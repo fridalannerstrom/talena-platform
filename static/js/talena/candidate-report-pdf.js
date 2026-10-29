@@ -115,26 +115,17 @@
     const clone = source.cloneNode(true);
     clone.removeAttribute("hidden");
     clone.classList.remove("d-none");
-    // Keep the rendered result only. No forms, edit controls, AI buttons,
-    // navigation, pending overlays, status messages or unrelated hidden tabs.
-    clone.querySelectorAll(
-      "button, input, textarea, select, form, " +
-      ".candidate-insights-subnavigation, .candidate-insights-navigation, " +
-      "[data-report-pdf-toolbar], .after-interview-manager-report__edit-controls, " +
-      "[hidden], .d-none, .visually-hidden, [aria-hidden='true'], " +
-      "[data-pre-interview-thinking], [data-post-interview-thinking], " +
-      ".spinner-border, .btn, .toast, .modal, .dropdown-menu"
-    ).forEach(node => node.remove());
 
+    // Snapshot charts BEFORE stripping hidden widgets. Original and cloned
+    // NodeLists have identical order at this point, even when canvases lack
+    // an id. Skipping hidden original charts avoids exporting stale graphs.
     const originals = Array.from(source.querySelectorAll("canvas"));
     const copied = Array.from(clone.querySelectorAll("canvas"));
-    // Only render live source canvases whose parent content is visible;
-    // cannot substitute an empty chart or silently export a blank graph.
-    copied.forEach(canvas => {
-      const index = Array.from(source.querySelectorAll("canvas"))
-        .findIndex(original => original.id && original.id === canvas.id);
-      const original = index >= 0 ? originals[index] : originals[copied.indexOf(canvas)];
-      if (!original || !original.width || !original.height) {
+    if (originals.length !== copied.length) throw new Error("Chart cloning failed.");
+    copied.forEach((canvas, index) => {
+      const original = originals[index];
+      if (!isVisible(original)) return; // Hidden graph removed below.
+      if (!original.width || !original.height) {
         throw new Error("Report chart is not ready.");
       }
       const image = document.createElement("img");
@@ -144,8 +135,18 @@
       canvas.replaceWith(image);
     });
 
-    // Form and button values may include unsaved candidate notes. Never
-    // export controls or data attributes with private state.
+    // Keep only visible, previously rendered content. Hidden AI placeholders,
+    // interactive controls and editable/unsaved candidate notes are excluded.
+    clone.querySelectorAll(
+      "button, input, textarea, select, form, " +
+      ".candidate-insights-subnavigation, .candidate-insights-navigation, " +
+      "[data-report-pdf-toolbar], .after-interview-manager-report__edit-controls, " +
+      "[hidden], .d-none, .visually-hidden, [aria-hidden='true'], " +
+      "[data-pre-interview-thinking], [data-post-interview-thinking], " +
+      ".spinner-border, .btn, .toast, .modal, .dropdown-menu"
+    ).forEach(node => node.remove());
+
+    // Never retain private state in data-* or onclick attributes.
     clone.querySelectorAll("*").forEach(node => {
       for (const attribute of Array.from(node.attributes)) {
         if (attribute.name.startsWith("data-") || attribute.name.startsWith("on")) {
