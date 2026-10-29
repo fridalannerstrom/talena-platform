@@ -1,5 +1,5 @@
 from django.urls import path
-from . import views
+from . import views, branding_views
 from apps.processes.automatic_invitations import (
     capture_automatic_candidate_invitations,
 )
@@ -38,6 +38,17 @@ urlpatterns = [
     path("companies/", views.company_list, name="company_list"),
     path("companies/create/", views.company_create, name="company_create"),
     path("companies/<int:pk>/", views.company_detail, name="company_detail"),
+
+    path(
+        "companies/<int:company_pk>/branding/",
+        branding_views.company_branding_settings,
+        name="company_branding_settings",
+    ),
+    path(
+        "companies/<int:company_pk>/branding/asset/<str:kind>/",
+        branding_views.company_branding_asset,
+        name="company_branding_asset",
+    ),
 
     path(
         "companies/<int:company_pk>/members/<int:user_pk>/remove/",
