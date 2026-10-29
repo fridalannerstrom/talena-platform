@@ -7,6 +7,45 @@ from django.dispatch import receiver
 import uuid
 from django.core.exceptions import ValidationError
 
+def company_brand_asset_path(instance, filename):
+    """Never use uploaded names or customer names as storage paths."""
+    import os
+    import uuid
+
+    suffix = os.path.splitext(filename)[1].lower()
+    if suffix not in {".png", ".jpg", ".jpeg", ".webp"}:
+        suffix = ".png"
+    return f"company-branding/{instance.company_id}/{uuid.uuid4().hex}{suffix}"
+
+
+class CompanyBranding(models.Model):
+    """Optional per-tenant report identity; never changes Talena's UI theme."""
+
+    company = models.OneToOneField(
+        "accounts.Company",
+        on_delete=models.CASCADE,
+        related_name="report_branding",
+    )
+    logo = models.ImageField(
+        upload_to=company_brand_asset_path, blank=True,
+    )
+    cover_image = models.ImageField(
+        upload_to=company_brand_asset_path, blank=True,
+    )
+    primary_color = models.CharField(
+        max_length=7, default="#FF6F61",
+        help_text="Primary HEX colour for PDF/report accents.",
+    )
+    cover_focus_y = models.PositiveSmallIntegerField(
+        default=50,
+        help_text="Vertical cover-image focal point (0–100%).",
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Report branding for {self.company_id}"
+
+
 # ============================================================================
 # USER
 # ============================================================================

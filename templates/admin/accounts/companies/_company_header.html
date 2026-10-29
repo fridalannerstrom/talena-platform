@@ -74,5 +74,10 @@
        href="{% url 'emails:admin_edit_company_invitation_template' company.pk %}">
       Email templates
     </a>
+
+    <a class="company-nav__item {% if active == 'branding' %}is-active{% endif %}"
+       href="{% url 'accounts:company_branding_settings' company.pk %}">
+      Branding
+    </a>
   </div>
 </div>

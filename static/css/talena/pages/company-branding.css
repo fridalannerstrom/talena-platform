@@ -1,0 +1,82 @@
+/* Ticket #182: report branding editor. No changes to tenant UI theme. */
+.company-branding { max-width: 1500px; }
+.company-branding .company-branding-card {
+  border: 1px solid var(--talena-border, #eadfda);
+  border-radius: 18px;
+  background: #fff;
+  overflow: hidden;
+  box-shadow: var(--talena-shadow-xs, 0 4px 18px rgba(0,0,0,.04));
+}
+.company-branding-card > .card-header {
+  background: #fff;
+  padding: 1.15rem 1.35rem;
+  border-bottom: 1px solid var(--talena-border, #eadfda);
+}
+.company-branding-card > .card-body { padding: 1.35rem; }
+.company-branding .form-control {
+  border: 1px solid var(--talena-border, #e8ded8);
+  border-radius: 12px;
+  background: #fbfaf9;
+  min-height: 42px;
+}
+.company-branding .form-text { font-size: .76rem; line-height: 1.6; }
+.company-branding-colour-picker {
+  width: 54px; height: 46px; min-width: 54px;
+  padding: .2rem; background: #fff;
+  border: 1px solid var(--talena-border, #eadfda); border-radius: 12px;
+  cursor: pointer;
+}
+.company-branding-swatch { width: 25%; height: 30px; display: block; border-radius: 8px; border: 1px solid rgba(0,0,0,.06); }
+.company-branding-focus-value { min-width: 42px; font-weight: 600; font-size: .8rem; font-variant-numeric: tabular-nums; }
+.company-branding .company-branding-preview-wrap { background: #fbfaf9; }
+.company-branding-cover {
+  --branding-primary: #FF6F61;
+  --branding-foreground: #141414;
+  --branding-focus: 50%;
+  overflow: hidden; position: relative;
+  aspect-ratio: 1 / 1.38;
+  max-width: 430px;
+  margin: 0 auto;
+  display: flex; flex-direction: column; justify-content: space-between;
+  background: linear-gradient(140deg, var(--branding-primary), #1c252d);
+  color: white;
+  border-radius: 3px;
+  isolation: isolate;
+  box-shadow: 0 14px 40px rgba(24, 21, 20, .14);
+}
+.company-branding-cover-photo {
+  position: absolute; inset: 0; z-index: -2;
+  background-position: center var(--branding-focus);
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+.company-branding-cover::before {
+  content: ""; position: absolute; inset: 0; z-index: -1;
+  background: linear-gradient(180deg, rgba(0,0,0,.18), rgba(0,0,0,.13) 28%, rgba(0,0,0,.72) 100%);
+}
+.company-branding-cover-top { padding: 9% 9% 0; }
+.company-branding-logo {
+  display: inline-flex; align-items: center; max-width: 85%;
+  min-height: 50px; padding: 0;
+  background: transparent; /* Respect the uploaded PNG alpha channel. */
+  color: #fff; font-size: 1.12rem; font-weight: 800;
+}
+.company-branding-logo > span {
+  padding: .75rem .95rem;
+  border-radius: 2px;
+  background: rgba(255,255,255,.96);
+  color: #18212a;
+}
+.company-branding-logo img { display: block; max-height: 78px; max-width: 100%; object-fit: contain; }
+.company-branding-cover-bottom { padding: 0 9% 10%; }
+.company-branding-cover-rule {
+  width: 64px; height: 5px; border-radius: 5px; background: var(--branding-primary); margin-bottom: 1.15rem;
+}
+.company-branding-cover-kicker { text-transform: uppercase; font-size: .63rem; letter-spacing: .2em; font-weight: 700; margin: 0 0 .55rem; }
+.company-branding-cover-bottom h4 { color: #fff; font-size: clamp(1.65rem,3.7vw,2.4rem); letter-spacing: -.03em; font-weight: 750; margin: 0 0 .6rem; }
+.company-branding-cover-company { color: #fff; font-size: .88rem; font-weight: 650; margin: 0 0 1.7rem; }
+.company-branding-cover-caption { color: rgba(255,255,255,.9); font-size: .69rem; margin: 0; }
+@media (max-width: 767px) {
+  .company-branding-card > .card-body { padding: 1rem; }
+  .company-branding-cover { max-width: 310px; }
+}
