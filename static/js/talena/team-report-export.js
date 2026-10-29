@@ -161,13 +161,18 @@
           sanitizeStage(node);
           return node;
         });
-        stage.append(cover, ...parts);
+        // Keep all report blocks in ONE flowing body. The PDF renderer now
+        // paginates it continuously instead of allocating a mostly empty A4
+        // page to every individual card/section.
+        const body = newElement("main", "team-report-pdf-body");
+        body.append(...parts);
+        stage.append(cover, body);
         document.body.appendChild(stage);
         if (anonymous) assertAnonymousSafe(stage);
         const title = anonymous ? copy.anonymous : copy.named;
         const filename = anonymous ? "anonym-teamrapport.pdf" : "teamrapport.pdf";
         await window.TalenaPdfExport.exportSections(
-          [{ node: cover, cover: true }, ...parts.map(node => ({ node }))],
+          [{ node: cover, cover: true }, { node: body, continuous: true }],
           {
             title,
             subject: anonymous ? "Aggregated team scores" : "Team assessment report",
