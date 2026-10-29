@@ -11,9 +11,9 @@
     { id: "personality-results", panel: "personality", subpanel: "results", label: { sv: "Personlighet · Resultat", en: "Personality · Results" }, availability: "personality" },
     { id: "motivation-results", panel: "motivation", subpanel: "results", label: { sv: "Motivation · Resultat", en: "Motivation · Results" }, availability: "motivation" },
     { id: "cognitive-results", panel: "cognitive", subpanel: "results", label: { sv: "Färdighet · Resultat", en: "Skills · Results" }, availability: "cognitive" },
-    { id: "team-profile", panel: "reports", subpanel: "team-report", label: { sv: "Individuell teamrapport", en: "Individual team report" }, availability: "personality" },
-    { id: "leadership-profile", panel: "reports", subpanel: "leadership-report", label: { sv: "Ledarskapsrapport", en: "Leadership report" }, availability: "personality" },
-    { id: "derailment-profile", panel: "reports", subpanel: "derailment-report", label: { sv: "Urspårningsrapport", en: "Derailment report" }, availability: "personality" }
+    { id: "team-profile", panel: "reports", subpanel: "team-report", label: { sv: "Individuell teamrapport", en: "Individual team report" }, availability: "teamProfile" },
+    { id: "leadership-profile", panel: "reports", subpanel: "leadership-report", label: { sv: "Ledarskapsrapport", en: "Leadership report" }, availability: "leadership" },
+    { id: "derailment-profile", panel: "reports", subpanel: "derailment-report", label: { sv: "Urspårningsrapport", en: "Derailment report" }, availability: "derailment" }
   ]);
 
   const translations = {
