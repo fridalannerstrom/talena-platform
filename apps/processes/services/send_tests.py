@@ -18,6 +18,8 @@ from apps.processes.services.assessment_usage import (
     register_sent_assessments,
 )
 
+from apps.core.integrations.local_callbacks import get_local_sova_callback_url
+
 
 def send_assessments_and_emails(*, process, invitations, actor_user, context="customer"):
     """
@@ -141,6 +143,14 @@ def send_assessments_and_emails(*, process, invitations, actor_user, context="cu
                         "talena_context": context,
                     },
                 }
+
+                # Sandbox-only: Sova v4 can use URLs supplied per order
+                # when no global callbacks are configured. Never enable
+                # this on production, and never put the token in logs.
+                local_callback_url = get_local_sova_callback_url()
+                if local_callback_url:
+                    payload["status_callback_url"] = local_callback_url
+                    payload["results_callback_url"] = local_callback_url
 
                 resp = client.order_assessment(
                     process.project_code,
