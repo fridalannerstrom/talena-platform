@@ -158,6 +158,17 @@
   }
 
   function assertReady(source, report) {
+    // The overview is AI-backed. Its visible summary must be finished,
+    // not merely an initial loading/placeholder card. Generation is never
+    // started by the PDF button; the user can retry after completion.
+    if (report.id === "overview") {
+      const result = source.querySelector("#purposeFitResult");
+      const summary = source.querySelector("#purposeFitSummary");
+      if (!result || result.classList.contains("d-none") ||
+          !summary || !summary.textContent.trim()) {
+        throw new Error(translations[language()].notReady);
+      }
+    }
     // "AI interpretation" and interview report types are intentionally not
     // registered until their saved/ready status can be checked accurately.
     if (!source || !source.textContent || source.textContent.trim().length < 30) {
