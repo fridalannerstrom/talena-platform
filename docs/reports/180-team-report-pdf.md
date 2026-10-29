@@ -81,3 +81,27 @@ boundary exists, it fills the page rather than generating a largely empty page.
 Before closing ticket #180, verify the sample team's new PDF uses fewer pages,
 there are no missing sections or split headings/charts, and compare anonymous
 and full exports separately. A long team report will still use several pages.
+
+## Individual team profile branding (#181 / #182)
+
+The existing **Ladda ner teamprofil** button inside each member's tab and
+**Ladda ner alla teamprofiler** ZIP action now both use the same
+`createPdf(profile)` implementation. Every PDF has the selected company's
+cover image, transparent PNG logo, primary palette, team name and person's
+name. A dedicated branded cover is followed by the existing candidate team
+style content, continuously paginated near team-profile card boundaries.
+
+The shared `TalenaPdfExport.exportSections(..., {returnBlob: true})` provides
+a PDF Blob without triggering a browser download. An individual button saves
+this Blob directly; the bulk action adds **one PDF per available member** into
+the ZIP as before. No server-stored PDF or external PDF service was added.
+
+- The existing anonymity toggle still **blocks identifiable individual exports**
+  (both single and ZIP), since this report contains individual results.
+- Existing incomplete-profile confirmation/skip behavior, unique filenames
+  and candidate tab open/close state are preserved.
+- PNG alpha requires a genuinely transparent source file. Only the CSS white
+  backing was removed, not white pixels inside an opaque bitmap.
+- Test a single profile, a multi-person ZIP, ZIP member PDF cover/pages,
+  incomplete members, language, and both PNG/cover image combinations locally
+  before approval.
