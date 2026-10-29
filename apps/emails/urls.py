@@ -5,6 +5,12 @@ app_name = "emails"
 
 urlpatterns = [
     path(
+        "admin/companies/<int:company_pk>/email-template/invitation/",
+        views.admin_edit_company_invitation_template,
+        name="admin_edit_company_invitation_template",
+    ),
+
+    path(
         "processes/<int:process_id>/email-template/invitation/",
         views.edit_process_invitation_template,
         name="edit_process_invitation_template",

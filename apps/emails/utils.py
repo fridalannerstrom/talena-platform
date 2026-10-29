@@ -183,3 +183,57 @@ def upgrade_legacy_default_invitation_template(template):
         ]
     )
     return True
+
+# Supported by both process-level and company-level invitation templates.
+INVITATION_PLACEHOLDERS = (
+    "first_name", "last_name", "email", "company_name",
+    "process_name", "assessments", "assessment_url",
+    "job_title", "job_location",
+    "sender_first_name", "sender_last_name", "sender_full_name",
+)
+
+
+def is_unchanged_process_default(template):
+    """Historical forms auto-created process templates on GET.
+
+    Those seeded defaults must not prevent a newly configured company template
+    from becoming the default for existing processes. An edited subject or body
+    counts as a process-specific override, unless both exactly match a known
+    Talena default.
+    """
+    if template is None or not template.is_active:
+        return False
+
+    current = get_default_invitation_template(template.language)
+    if template.subject == current["subject"] and template.body == current["body"]:
+        return True
+
+    return any(
+        template.subject == previous["subject"] and template.body == previous["body"]
+        for previous in LEGACY_DEFAULT_INVITATION_TEMPLATES
+    )
+
+
+def resolve_invitation_template(process, language, process_template=None):
+    """Resolve invitation copy: customized process > company > Talena.
+
+    Uncustomized legacy process records are treated as inherited defaults.
+    This is read-only and does not overwrite any customer-created copy.
+    """
+    from apps.emails.models import CompanyInvitationTemplate
+
+    if process_template and process_template.is_active and not is_unchanged_process_default(process_template):
+        return {"subject": process_template.subject, "body": process_template.body, "source": "process"}
+
+    company_template = None
+    if getattr(process, "company_id", None):
+        company_template = CompanyInvitationTemplate.objects.filter(
+            company_id=process.company_id,
+            language=language,
+            is_active=True,
+        ).first()
+    if company_template:
+        return {"subject": company_template.subject, "body": company_template.body, "source": "company"}
+
+    default = get_default_invitation_template(language)
+    return {"subject": default["subject"], "body": default["body"], "source": "talena"}
