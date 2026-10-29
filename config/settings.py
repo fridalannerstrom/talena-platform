@@ -59,6 +59,10 @@ SOVA_WEBHOOK_PROD_SECRET = os.getenv(
     "",
 )
 
+# Explicit opt-in for local Sova sandbox callback tests (never production).
+SOVA_LOCAL_CALLBACK_BASE_URL = os.getenv("SOVA_LOCAL_CALLBACK_BASE_URL", "")
+SOVA_LOCAL_CALLBACK_TOKEN = os.getenv("SOVA_LOCAL_CALLBACK_TOKEN", "")
+
 # --- Database --- #
 DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
 DB_HOST = (os.getenv("DB_HOST") or "").strip()
