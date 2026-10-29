@@ -175,6 +175,35 @@ class CompanyInvitationTemplateTests(TestCase):
         self.assertTrue(response.context["using_company_template"])
         self.assertEqual(response.context["form"]["subject"].value(), "Test for {company_name}: {process_name}")
 
+    def test_admin_can_save_process_override_and_disable_it_to_inherit(self):
+        self.company_template()
+        self.client.force_login(self.admin)
+        url = reverse(
+            "emails:admin_edit_company_process_invitation_template",
+            args=[self.company.pk, self.process.pk],
+        )
+        # The GET can seed an unchanged Talena default: inheritance still wins.
+        self.assertEqual(self.client.get(url).status_code, 200)
+        custom = {
+            "subject": "Custom invitation {first_name}",
+            "body": "Please use {assessment_url}",
+            "language": "sv",
+            "is_active": "on",
+        }
+        response = self.client.post(url, custom)
+        self.assertEqual(response.status_code, 302)
+        saved = EmailTemplate.objects.get(
+            process=self.process, language="sv", template_type="invitation",
+        )
+        self.assertTrue(saved.is_active)
+        self.assertEqual(resolve_invitation_template(self.process, "sv", saved)["source"], "process")
+
+        custom.pop("is_active")
+        self.assertEqual(self.client.post(url, custom).status_code, 302)
+        saved.refresh_from_db()
+        self.assertFalse(saved.is_active)
+        self.assertEqual(resolve_invitation_template(self.process, "sv", saved)["source"], "company")
+
     @patch("apps.processes.services.send_tests.log_event")
     @patch("apps.processes.services.send_tests.register_sent_assessments")
     @patch("apps.core.integrations.sova.SovaClient")
