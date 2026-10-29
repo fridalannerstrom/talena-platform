@@ -4,6 +4,8 @@ These fixtures describe supported possible payload shapes; they are NOT
 claimed to be captured from the real Sova sandbox.
 """
 import json
+import os
+from unittest.mock import MagicMock, patch
 
 from django.contrib.auth import get_user_model
 from django.test import SimpleTestCase, TestCase, override_settings
@@ -175,3 +177,113 @@ class IntegrityGuardIngestTests(TestCase):
         self.assertEqual(self._post({"integrity_guard_status": 2}, secret="wrong").status_code, 401)
         self.invitation.refresh_from_db()
         self.assertEqual(self.invitation.integrity_guard, {})
+
+    @override_settings(
+        DEBUG=True,
+        ENVIRONMENT="local",
+        SOVA_LOCAL_CALLBACK_BASE_URL="https://museum-scuff-guts.ngrok-free.dev",
+        SOVA_LOCAL_CALLBACK_TOKEN="T" * 48,
+    )
+    @patch.dict(os.environ, {"SOVA_ENV_BASE": "https://api-test.sovaonline.com"})
+    def test_local_callback_accepts_valid_token_without_header(self):
+        response = self.client.post(
+            "/integrations/sova/local/" + ("T" * 48) + "/",
+            data=json.dumps({
+                "request_id": "synthetic-integrity-request",
+                "overall_status": "in progress",
+                "integrity_guard": {"status": 2, "diagnostics": {"browser": 2}},
+            }),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 200)
+        self.invitation.refresh_from_db()
+        self.assertEqual(self.invitation.integrity_guard["overall_status"], 2)
+
+    @override_settings(
+        DEBUG=True,
+        ENVIRONMENT="local",
+        SOVA_LOCAL_CALLBACK_BASE_URL="https://museum-scuff-guts.ngrok-free.dev",
+        SOVA_LOCAL_CALLBACK_TOKEN="T" * 48,
+    )
+    @patch.dict(os.environ, {"SOVA_ENV_BASE": "https://api-test.sovaonline.com"})
+    def test_local_callback_rejects_wrong_token(self):
+        response = self.client.post(
+            "/integrations/sova/local/" + ("F" * 48) + "/",
+            data=json.dumps({
+                "request_id": "synthetic-integrity-request",
+                "integrity_guard": {"status": 2},
+            }),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 404)
+        self.invitation.refresh_from_db()
+        self.assertEqual(self.invitation.integrity_guard, {})
+
+    @override_settings(
+        DEBUG=False,
+        ENVIRONMENT="prod",
+        ALLOWED_HOSTS=["testserver"],
+        SOVA_LOCAL_CALLBACK_BASE_URL="https://museum-scuff-guts.ngrok-free.dev",
+        SOVA_LOCAL_CALLBACK_TOKEN="T" * 48,
+    )
+    @patch.dict(os.environ, {"SOVA_ENV_BASE": "https://api-test.sovaonline.com"})
+    def test_local_callback_is_disabled_in_production(self):
+        response = self.client.post(
+            "/integrations/sova/local/" + ("T" * 48) + "/",
+            data=json.dumps({"request_id": "synthetic-integrity-request"}),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 404)
+
+
+class LocalSovaCallbackConfigTests(SimpleTestCase):
+    @override_settings(
+        DEBUG=True, ENVIRONMENT="local",
+        SOVA_LOCAL_CALLBACK_BASE_URL="https://museum-scuff-guts.ngrok-free.dev",
+        SOVA_LOCAL_CALLBACK_TOKEN="T" * 48,
+    )
+    @patch.dict(os.environ, {"SOVA_ENV_BASE": "https://api-test.sovaonline.com"})
+    def test_generates_local_callback_url_from_ngrok_only(self):
+        from apps.core.integrations.local_callbacks import get_local_sova_callback_url
+
+        url = get_local_sova_callback_url()
+        self.assertEqual(
+            url,
+            "https://museum-scuff-guts.ngrok-free.dev/integrations/sova/local/"
+            + ("T" * 48) + "/",
+        )
+
+    @override_settings(DEBUG=True, ENVIRONMENT="local",
+                       SOVA_LOCAL_CALLBACK_BASE_URL="", SOVA_LOCAL_CALLBACK_TOKEN="")
+    def test_disabled_by_default(self):
+        from apps.core.integrations.local_callbacks import get_local_sova_callback_url
+
+        self.assertIsNone(get_local_sova_callback_url())
+
+    @override_settings(DEBUG=True, ENVIRONMENT="local",
+                       SOVA_LOCAL_CALLBACK_BASE_URL="http://localhost:8000",
+                       SOVA_LOCAL_CALLBACK_TOKEN="T" * 48)
+    @patch.dict(os.environ, {"SOVA_ENV_BASE": "https://api-test.sovaonline.com"})
+    def test_rejects_insecure_or_non_ngrok_callback(self):
+        from apps.core.integrations.local_callbacks import get_local_sova_callback_url
+
+        with self.assertRaises(ValueError):
+            get_local_sova_callback_url()
+
+    @override_settings(DEBUG=True, ENVIRONMENT="local",
+                       SOVA_LOCAL_CALLBACK_BASE_URL="https://museum-scuff-guts.ngrok-free.dev",
+                       SOVA_LOCAL_CALLBACK_TOKEN="T" * 48)
+    @patch.dict(os.environ, {"SOVA_ENV_BASE": "https://api.sovaonline.com"})
+    def test_rejects_production_sova_api(self):
+        from apps.core.integrations.local_callbacks import get_local_sova_callback_url
+
+        with self.assertRaises(ValueError):
+            get_local_sova_callback_url()
+
+    @override_settings(DEBUG=False, ENVIRONMENT="prod",
+                       SOVA_LOCAL_CALLBACK_BASE_URL="https://museum-scuff-guts.ngrok-free.dev",
+                       SOVA_LOCAL_CALLBACK_TOKEN="T" * 48)
+    def test_never_generates_callback_in_production(self):
+        from apps.core.integrations.local_callbacks import get_local_sova_callback_url
+
+        self.assertIsNone(get_local_sova_callback_url())
