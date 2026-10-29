@@ -32,6 +32,13 @@ def _cleanup_asset_paths(files):
 def company_branding_settings(request, company_pk):
     company = get_object_or_404(Company, pk=company_pk)
     branding = CompanyBranding.objects.filter(company=company).first()
+    # ModelForm.is_valid() mutates its model instance even before save().
+    # Snapshot the persisted paths BEFORE binding/validating the form.
+    existing_files = {
+        field: (getattr(branding, field).storage, getattr(branding, field).name)
+        for field in ("logo", "cover_image")
+        if branding and getattr(branding, field).name
+    }
 
     if request.method == "POST" and request.POST.get("action") == "reset":
         if branding:
@@ -64,15 +71,14 @@ def company_branding_settings(request, company_pk):
                 instance.company = company
                 replaced = []
                 for field in ("logo", "cover_image"):
-                    old = getattr(branding, field) if branding else None
                     if form.cleaned_data.get("remove_" + field):
                         setattr(instance, field, "")
-                        if old and old.name:
-                            replaced.append((old.storage, old.name))
+                        if field in existing_files:
+                            replaced.append(existing_files[field])
                     elif field in files:
                         setattr(instance, field, files[field])
-                        if old and old.name:
-                            replaced.append((old.storage, old.name))
+                        if field in existing_files:
+                            replaced.append(existing_files[field])
 
                 # A single stable row per company. Never overwrite another
                 # tenant's file, and keep the old image on validation failure.
