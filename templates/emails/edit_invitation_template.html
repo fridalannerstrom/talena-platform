@@ -49,6 +49,11 @@
               <span>{% trans "Candidate’s email address" %}</span>
             </button>
 
+            <button type="button" class="merge-field-item" data-copy="{company_name}">
+              <code>{company_name}</code>
+              <span>Company name</span>
+            </button>
+
             <button type="button" class="merge-field-item" data-copy="{process_name}">
               <code>{process_name}</code>
               <span>{% trans "Name of this test process" %}</span>
@@ -108,6 +113,13 @@
         </div>
 
         <div class="card-body p-4">
+
+          {% if using_company_template %}
+          <div class="alert alert-light border small">
+            This process currently inherits the company invitation template.
+            Saving changes here creates a process-specific version.
+          </div>
+          {% endif %}
 
           {% if form.non_field_errors %}
             <div class="alert alert-danger">{{ form.non_field_errors }}</div>
