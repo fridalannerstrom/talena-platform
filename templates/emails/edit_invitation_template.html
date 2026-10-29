@@ -102,6 +102,7 @@
     <div class="col-12 col-lg-8 col-xl-9">
       <form method="post" class="card process-section-card">
         {% csrf_token %}
+        {{ form.language.as_hidden }}
 
         <div class="card-header edit-email-header bg-white py-3 px-4 d-flex align-items-start justify-content-between gap-3 flex-wrap">
           <div>
@@ -139,6 +140,14 @@
             {% if form.body.errors %}
               <div class="text-danger small mt-1">{{ form.body.errors|striptags }}</div>
             {% endif %}
+          </div>
+
+          <div class="form-check mt-3">
+            {{ form.is_active }}
+            <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+              Use this process-specific email template
+            </label>
+            <div class="form-text">Uncheck to fall back to your company's active template, or Talena's default.</div>
           </div>
 
           <div class="template-tip mt-4">
