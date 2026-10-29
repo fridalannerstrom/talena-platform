@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from django.contrib import messages
+from apps.accounts.report_branding import get_report_branding
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -531,6 +532,7 @@ def team_detail(request, pk):
         {
             "company": company,
             "team": team,
+            "report_branding": get_report_branding(team.company),
             "memberships": memberships,
             "stats": stats,
             "team_style_stats": team_style_stats,

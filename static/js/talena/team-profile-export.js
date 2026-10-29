@@ -123,12 +123,63 @@
       window.setTimeout(() => URL.revokeObjectURL(url), 30000);
     }
 
-    // Build PDFs from the same HTML used by the candidate Team styles panel.
-    // Never send report data to a PDF API, or persist it in the application's media storage.
+    // Both the single-PDF button and ZIP call this same export path. The
+    // company branding is already tenant-scoped by the authorized team view.
+    function createBrandedCover(profile) {
+      const page = document.querySelector(".talena-team-page[data-team-report-brand-primary]");
+      if (!page) throw new Error("Company report branding is unavailable");
+
+      const primary = /^#[0-9a-f]{6}$/i.test(page.dataset.teamReportBrandPrimary || "")
+        ? page.dataset.teamReportBrandPrimary : "#FF6F61";
+      const cover = document.createElement("div");
+      cover.className = "talena-team-pdf-cover team-profile-pdf-cover";
+      cover.style.setProperty("--team-pdf-primary", primary);
+      const focus = Number(page.dataset.teamReportBrandFocus);
+      cover.style.backgroundPosition = "center " +
+        (Number.isFinite(focus) ? Math.max(0, Math.min(100, focus)) : 50) + "%";
+
+      const background = page.dataset.teamReportBrandCover || "";
+      if (background) {
+        cover.style.backgroundImage =
+          'linear-gradient(180deg,rgba(0,0,0,.15),rgba(0,0,0,.72)),url("' +
+          background.replace(/"/g, "%22") + '")';
+      }
+
+      const brand = document.createElement("div");
+      brand.className = "talena-team-pdf-cover-brand";
+      const logo = page.dataset.teamReportBrandLogo || "";
+      if (logo) {
+        const image = document.createElement("img");
+        image.src = logo;
+        image.alt = "";
+        brand.appendChild(image);
+      } else {
+        brand.classList.add("talena-team-pdf-cover-brand-fallback");
+        brand.textContent = page.dataset.teamReportCompany || "Talena";
+      }
+
+      const footer = document.createElement("div");
+      footer.className = "talena-team-pdf-cover-title";
+      const stripe = document.createElement("div");
+      stripe.className = "talena-team-pdf-cover-line";
+      const label = document.createElement("p");
+      label.className = "talena-team-pdf-cover-kicker";
+      label.textContent = copy.title;
+      const name = document.createElement("h1");
+      name.textContent = profile.dataset.reportName || copy.title;
+      const teamName = document.createElement("p");
+      teamName.textContent = page.dataset.teamReportName || "";
+      footer.append(stripe, label, name, teamName);
+      cover.append(brand, footer);
+      return cover;
+    }
+
+    // Export the candidate's existing Team styles panel, prefixed with the
+    // same branded cover used by the shared report. No server-side PDF files,
+    // Sova requests or third-party report processors are involved.
     async function createPdf(profile) {
       const previouslyOpen = profile.open;
       let stage = null;
-      let sourceCanvas = null;
       try {
         profile.open = true;
         await nextFrame();
@@ -154,10 +205,18 @@
           img.style.cssText = "display:block;width:100%;height:100%;object-fit:contain;";
           canvas.replaceWith(img);
         });
-
         copyReport.querySelectorAll("details").forEach(d => { d.open = true; });
+
+        const page = document.querySelector(".talena-team-page[data-team-report-brand-primary]");
         stage = document.createElement("div");
         stage.className = "talena-team-page team-profile-pdf-stage";
+        stage.style.setProperty("--team-report-accent", page.dataset.teamReportBrandPrimary || "#FF6F61");
+        stage.style.setProperty("--team-report-accent-light", page.dataset.teamReportBrandLight || "#FFF0ED");
+        stage.style.setProperty("--team-report-accent-dark", page.dataset.teamReportBrandDark || "#C94D41");
+
+        const cover = createBrandedCover(profile);
+        const body = document.createElement("main");
+        body.className = "team-profile-pdf-body";
         const header = document.createElement("header");
         header.className = "team-profile-pdf-heading";
         const h1 = document.createElement("h1");
@@ -165,77 +224,23 @@
         const candidateName = document.createElement("p");
         candidateName.textContent = profile.dataset.reportName || "";
         header.append(h1, candidateName);
-        stage.append(header, copyReport);
+        body.append(header, copyReport);
+        stage.append(cover, body);
         document.body.appendChild(stage);
         if (document.fonts?.ready) await document.fonts.ready;
         await nextFrame();
 
-        sourceCanvas = await window.html2canvas(stage, {
-          backgroundColor: "#ffffff",
-          scale: 1.5,
-          useCORS: true,
-          logging: false,
-          scrollX: 0,
-          scrollY: 0,
-          windowWidth: Math.max(document.documentElement.clientWidth, 1000)
-        });
-        if (!sourceCanvas.width || !sourceCanvas.height) {
-          throw new Error("Empty PDF page");
-        }
-
-        const pdf = new window.jspdf.jsPDF({
-          orientation: "portrait", unit: "mm", format: "a4", compress: true
-        });
-        const pageWidth = pdf.internal.pageSize.getWidth();
-        const pageHeight = pdf.internal.pageSize.getHeight();
-        const margin = 12;
-        const outputWidth = pageWidth - margin * 2;
-        const outputHeight = pageHeight - margin * 2;
-        const pixelsPerMm = sourceCanvas.width / outputWidth;
-        const maxSliceHeight = Math.floor(outputHeight * pixelsPerMm);
-        const top = stage.getBoundingClientRect().top;
-        const scale = sourceCanvas.width / stage.getBoundingClientRect().width;
-        const boundaries = Array.from(stage.querySelectorAll(".team-style-profile-card"))
-          .map(node => Math.round((node.getBoundingClientRect().top - top) * scale))
-          .filter(position => position > 0 && position < sourceCanvas.height)
-          .sort((a, b) => a - b);
-
-        let offset = 0;
-        let pageNumber = 0;
-        while (offset < sourceCanvas.height) {
-          const pageEnd = Math.min(offset + maxSliceHeight, sourceCanvas.height);
-          const possible = boundaries.filter(position =>
-            position >= offset + maxSliceHeight * 0.6 && position <= pageEnd
-          );
-          const sliceEnd = pageEnd < sourceCanvas.height && possible.length
-            ? possible[possible.length - 1] : pageEnd;
-          const sliceHeight = Math.max(1, sliceEnd - offset);
-          const pageCanvas = document.createElement("canvas");
-          pageCanvas.width = sourceCanvas.width;
-          pageCanvas.height = sliceHeight;
-          const ctx = pageCanvas.getContext("2d");
-          if (!ctx) throw new Error("Could not create PDF page");
-          ctx.drawImage(
-            sourceCanvas, 0, offset, sourceCanvas.width, sliceHeight,
-            0, 0, pageCanvas.width, pageCanvas.height
-          );
-          if (pageNumber > 0) pdf.addPage();
-          pdf.addImage(
-            pageCanvas.toDataURL("image/jpeg", 0.89),
-            "JPEG", margin, margin, outputWidth, sliceHeight / pixelsPerMm,
-            undefined, "FAST"
-          );
-          pageCanvas.width = 0;
-          pageCanvas.height = 0;
-          offset = sliceEnd;
-          pageNumber += 1;
-        }
-        return new Blob([pdf.output("arraybuffer")], { type: "application/pdf" });
+        // The shared engine packs content continuously and returns a single
+        // PDF Blob. The ZIP code reuses exactly the same output as "Download".
+        return await window.TalenaPdfExport.exportSections(
+          [{ node: cover, cover: true }, { node: body, continuous: true }],
+          {
+            title: copy.title + ": " + (profile.dataset.reportName || ""),
+            subject: "Individual team style profile",
+            returnBlob: true
+          }
+        );
       } finally {
-        if (sourceCanvas) {
-          sourceCanvas.width = 0;
-          sourceCanvas.height = 0;
-        }
         stage?.remove();
         profile.open = previouslyOpen;
       }
