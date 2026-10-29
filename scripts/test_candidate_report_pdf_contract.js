@@ -128,6 +128,14 @@ assert.deepEqual(Array.from(api.availableReports(missing).map(r => r.id)),
   "must not offer report types missing completed results");
 
 (async () => {
+  // The overview is an AI-backed summary. A loading/empty summary must
+  // never be presented as a finished report or silently exported.
+  await assert.rejects(
+    api.exportReport(good, "overview", { returnBlob: true }),
+    /inga färdiga resultat/,
+    "empty/unfinished AI overview must not export a PDF"
+  );
+  assert.equal(pdfSpy.calls.length, 0);
   const blob = await api.exportReport(good, "personality-results", { returnBlob: true });
   assert.equal(blob.type, "application/pdf");
   assert.equal(pdfSpy.calls.length, 1);
