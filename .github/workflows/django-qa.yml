@@ -34,6 +34,11 @@ jobs:
         run: node scripts/test_interview_note_pii_save.js
       - name: Verify After interview final output refresh state
         run: node scripts/test_after_interview_final_output_refresh.js
+      - name: Verify shared team PDF export and anonymous privacy contract
+        run: |
+          node --check static/js/talena/pdf-export-core.js
+          node --check static/js/talena/team-report-export.js
+          node scripts/test_team_report_pdf_contract.js
       - name: Run focused candidate result, interview, project pin, and account invite tests
         env:
           DJANGO_DEBUG: 'True'
