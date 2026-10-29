@@ -113,8 +113,8 @@ function workspace(flags) {
 }
 const good = workspace({});
 assert.deepEqual(
-  api.availableReports(good).map(r => r.id),
-  api.registry.map(r => r.id)
+  Array.from(api.availableReports(good), r => r.id),
+  Array.from(api.registry, r => r.id)
 );
 const missing = workspace({
   reportHasPersonality: "false",
