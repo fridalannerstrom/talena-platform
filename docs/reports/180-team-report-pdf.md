@@ -105,3 +105,17 @@ the ZIP as before. No server-stored PDF or external PDF service was added.
 - Test a single profile, a multi-person ZIP, ZIP member PDF cover/pages,
   incomplete members, language, and both PNG/cover image combinations locally
   before approval.
+
+## Release gate and next PDF tickets
+
+- Shared branding base #182 was merged independently as PR #397.
+- #180 is still awaiting **visual** acceptance of its anonymous-mode PDF.
+  The regression `scripts/test_team_report_anonymous_runtime.js` executes
+  the export's real allowlist, privacy guard, and anonymous-cover builder
+  against synthetic candidate identities and confirms that generic metadata
+  and filenames are chosen for anonymous mode.
+  This functional test is deliberately not a browser PDF-rendering test.
+- Next: #359 establishes export coverage for each authorized report tab and
+  a reusable report registry; #360 implements report-package selection,
+  ordering, PDF merge and separate ZIP from the same registered PDF components.
+- Do not mark #182 complete until report-wide integration is in place.
