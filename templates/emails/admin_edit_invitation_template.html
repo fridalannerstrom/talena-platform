@@ -46,6 +46,7 @@
         {% endif %}
         <form method="post">
           {% csrf_token %}
+          {{ form.language.as_hidden }}
 
           <div class="mb-3">
             <label class="form-label">{% trans "Subject" %}</label>
@@ -63,6 +64,14 @@
             {% for error in form.body.errors %}
               <div class="text-danger small mt-1">{{ error }}</div>
             {% endfor %}
+          </div>
+
+          <div class="form-check mb-3">
+            {{ form.is_active }}
+            <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+              Use this process-specific email template
+            </label>
+            <div class="form-text">Uncheck to inherit the company default or Talena's default.</div>
           </div>
 
           {% if form.non_field_errors %}
