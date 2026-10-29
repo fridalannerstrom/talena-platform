@@ -148,6 +148,9 @@
         // Never clone the entire team page: it contains candidates' names,
         // emails, private data attributes and individual report panels.
         stage = newElement("div", "talena-team-page team-report-pdf-stage");
+        stage.style.setProperty("--team-report-accent", page.dataset.teamReportBrandPrimary || "#FF6F61");
+        stage.style.setProperty("--team-report-accent-light", page.dataset.teamReportBrandLight || "#FFF0ED");
+        stage.style.setProperty("--team-report-accent-dark", page.dataset.teamReportBrandDark || "#C94D41");
         const cover = makeCover(anonymous);
         const parts = sources.map(source => {
           const node = newElement("section", "team-report-pdf-part");
