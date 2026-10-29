@@ -81,6 +81,7 @@
         image.alt = "";
         brandHeader.append(image);
       } else {
+        brandHeader.classList.add("talena-team-pdf-cover-brand-fallback");
         brandHeader.textContent = anonymous ? "Talena" : (page.dataset.teamReportCompany || "Talena");
       }
       const bottom = newElement("div", "talena-team-pdf-cover-title");
