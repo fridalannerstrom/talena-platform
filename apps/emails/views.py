@@ -10,6 +10,7 @@ from .utils import (
     get_default_invitation_template,
     upgrade_legacy_default_invitation_template,
     INVITATION_PLACEHOLDERS,
+    resolve_invitation_template,
     render_placeholders,
 )
 
@@ -82,7 +83,14 @@ def edit_process_invitation_template(request, process_id):
             # Stanna kvar i samma tab efter save
             return redirect("emails:edit_process_invitation_template", process_id=process.id)
     else:
-        form = EmailTemplateForm(instance=tpl)
+        inherited = resolve_invitation_template(process, language, tpl)
+        form = EmailTemplateForm(
+            instance=tpl,
+            initial=(
+                {"subject": inherited["subject"], "body": inherited["body"]}
+                if inherited["source"] == "company" else None
+            ),
+        )
 
     purpose_lookup = {
         item["key"]: item
@@ -102,6 +110,9 @@ def edit_process_invitation_template(request, process_id):
     return render(request, "emails/edit_invitation_template.html", {
         "process": process,
         "form": form,
+        "using_company_template": (
+            resolve_invitation_template(process, language, tpl)["source"] == "company"
+        ),
         "placeholders": get_email_template_placeholders(),
 
         # Needed by process_base / _process_header.html
@@ -174,12 +185,22 @@ def admin_edit_company_process_invitation_template(request, company_pk, process_
                 process_pk=process.pk,
             )
     else:
-        form = EmailTemplateForm(instance=tpl)
+        inherited = resolve_invitation_template(process, language, tpl)
+        form = EmailTemplateForm(
+            instance=tpl,
+            initial=(
+                {"subject": inherited["subject"], "body": inherited["body"]}
+                if inherited["source"] == "company" else None
+            ),
+        )
 
     return render(request, "emails/admin_edit_invitation_template.html", {
         "company": company,
         "process": process,
         "form": form,
+        "using_company_template": (
+            resolve_invitation_template(process, language, tpl)["source"] == "company"
+        ),
         "placeholders": get_email_template_placeholders(),
         "active": "processes",
         "show_invite_button": True,
@@ -237,8 +258,11 @@ def admin_edit_company_invitation_template(request, company_pk):
         "language": language,
         "placeholders": ["{" + key + "}" for key in INVITATION_PLACEHOLDERS],
         "preview_values": example,
-        "initial_preview_subject": render_placeholders(form["subject"].value() or "", example),
-        "initial_preview_body": render_placeholders(form["body"].value() or "", example),
+        # The template preview is rendered client-side with textContent.
+        # This also avoids interpreting malformed placeholders during an
+        # invalid POST, which must return form errors rather than HTTP 500.
+        "initial_preview_subject": form["subject"].value() or "",
+        "initial_preview_body": form["body"].value() or "",
         "active": "email_templates",
         "show_invite_button": False,
     })
