@@ -91,11 +91,11 @@ class ReportBrandingTests(TestCase):
 
     def test_admin_can_save_branding_and_preview_without_candidate_data(self):
         self.client.force_login(self.admin)
-        response = self.post_form(
-            data={"primary_color": "#164A6D", "cover_focus_y": "22"},
-            FILES={"logo": uploaded_image(), "cover_image": uploaded_image("cover.png")},
-        )
-        # Django Client accepts uploaded files in data, not the FILES kwarg.
+        response = self.client.post(self.editor_url, {
+            "primary_color": "#164A6D", "cover_focus_y": "22",
+            "logo": uploaded_image(),
+            "cover_image": uploaded_image("cover.png"),
+        })
         self.assertEqual(response.status_code, 302)
         brand = CompanyBranding.objects.get(company=self.company)
         self.assertEqual(brand.primary_color, "#164A6D")
