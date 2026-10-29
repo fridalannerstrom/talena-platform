@@ -236,6 +236,53 @@ class IntegrityGuardIngestTests(TestCase):
         self.assertEqual(response.status_code, 404)
 
 
+    @override_settings(
+        DEBUG=True,
+        ENVIRONMENT="local",
+        SOVA_LOCAL_CALLBACK_BASE_URL="https://museum-scuff-guts.ngrok-free.dev",
+        SOVA_LOCAL_CALLBACK_TOKEN="T" * 48,
+    )
+    @patch.dict(os.environ, {"SOVA_ENV_BASE": "https://api-test.sovaonline.com"})
+    @patch("apps.processes.services.send_tests.log_event")
+    @patch("apps.processes.services.send_tests.register_sent_assessments")
+    @patch("apps.processes.services.send_tests.EmailMultiAlternatives")
+    @patch("apps.processes.services.send_tests.EmailLog.objects.create")
+    @patch("apps.processes.services.send_tests.EmailTemplate.objects.filter")
+    @patch("apps.core.integrations.sova.SovaClient")
+    def test_new_sandbox_order_includes_both_callback_urls(
+        self, sova_client_cls, template_filter, email_log_create,
+        email_cls, register_usage, log_event,
+    ):
+        from apps.processes.services.send_tests import send_assessments_and_emails
+
+        self.invitation.status = "created"
+        self.invitation.save(update_fields=["status"])
+        sova_client = sova_client_cls.return_value
+        sova_client.get_accounts_with_projects.return_value = []
+        sova_client.order_assessment.return_value = {
+            "url": "https://assessment.example.test/synthetic-test"
+        }
+        template_filter.return_value.first.return_value = None
+        email_log_create.return_value = MagicMock(id=505)
+        email_cls.return_value.send.return_value = 1
+
+        result = send_assessments_and_emails(
+            process=self.invitation.process,
+            invitations=[self.invitation],
+            actor_user=self.invitation.process.created_by,
+        )
+        self.assertEqual(result["sent_count"], 1, result["errors"])
+
+        payload = sova_client.order_assessment.call_args.args[1]
+        callback = (
+            "https://museum-scuff-guts.ngrok-free.dev/integrations/sova/local/"
+            + ("T" * 48) + "/"
+        )
+        self.assertEqual(payload["status_callback_url"], callback)
+        self.assertEqual(payload["results_callback_url"], callback)
+        register_usage.assert_called_once()
+
+
 class LocalSovaCallbackConfigTests(SimpleTestCase):
     @override_settings(
         DEBUG=True, ENVIRONMENT="local",
