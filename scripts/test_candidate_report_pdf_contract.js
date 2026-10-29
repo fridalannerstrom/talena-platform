@@ -46,6 +46,7 @@ function node(tag = "div", text = "") {
     setAttribute() {}, removeAttribute() {}, remove() {},
     append(...children) { this.children.push(...children); },
     querySelectorAll() { return []; },
+    querySelector() { return null; },
     closest() { return null; },
     cloneNode() { return node(tag, text); }
   };
