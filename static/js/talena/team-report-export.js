@@ -67,6 +67,9 @@
         ? page.dataset.teamReportBrandPrimary : "#FF6F61";
       const cover = newElement("div", "talena-team-pdf-cover");
       cover.style.setProperty("--team-pdf-primary", primary);
+      const focusValue = Number(page.dataset.teamReportBrandFocus);
+      const focusY = Number.isFinite(focusValue) ? Math.max(0, Math.min(100, focusValue)) : 50;
+      cover.style.backgroundPosition = "center " + focusY + "%";
       const photo = page.dataset.teamReportBrandCover || "";
       if (photo) cover.style.backgroundImage = 'linear-gradient(180deg,rgba(0,0,0,.15),rgba(0,0,0,.72)),url("' + photo.replace(/"/g, "%22") + '")';
 
