@@ -10,7 +10,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from apps.accounts.models import (
-    Company, CompanyMember, OrgUnit, User, UserOrgUnitAccess,
+    Company, CompanyBranding, CompanyMember, OrgUnit, User, UserOrgUnitAccess,
 )
 from apps.candidate_results.models import CandidateResultSnapshot
 from apps.processes.models import Candidate, TestInvitation, TestProcess
@@ -149,6 +149,23 @@ class ReportAndTeamTenantAccessTests(TestCase):
             self.client.get(self.preview_url(self.snapshot_owned)).status_code,
             200,
         )
+
+    def test_team_detail_scopes_report_branding_to_authorized_company(self):
+        CompanyBranding.objects.create(
+            company=self.company_a, primary_color="#285A78",
+        )
+        CompanyBranding.objects.create(
+            company=self.company_b, primary_color="#B24466",
+        )
+        self.client.force_login(self.viewer)
+        response = self.client.get(self.team_url(self.shared_team))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["report_branding"]["palette"]["primary"], "#285A78")
+        self.assertContains(response, 'data-team-report-brand-primary="#285A78"')
+        self.assertNotContains(response, 'data-team-report-brand-primary="#B24466"')
+
+        self.client.force_login(self.foreign)
+        self.assertEqual(self.client.get(self.team_url(self.shared_team)).status_code, 404)
 
     def test_team_detail_denies_cross_company_and_wrong_org_or_own(self):
         for user in (self.foreign, self.hidden_unit, self.own_only):
