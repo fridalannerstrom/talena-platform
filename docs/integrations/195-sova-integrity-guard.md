@@ -54,3 +54,66 @@ assessment and webhook have passed end to end.
 
 ### Reference
 Sova Help Centre: https://sovaassessment.zendesk.com/hc/en-gb/articles/30062979480338-How-Integrity-Guard-works
+
+## Direct Sova sandbox → local ngrok (without an Azure Function)
+
+The original Sova Integration API v4 schema permits `status_callback_url` and
+`results_callback_url` in an `order-assessment` request. **Sova uses these
+only when no global callback is configured.** Therefore this is a testable
+route, **not a guarantee** that Sova will use the supplied addresses.
+
+To enable **only on a local machine**, keep the sandbox API configured and
+set the following in a local (gitignored) `.env`:
+
+```dotenv
+ENVIRONMENT=local
+DJANGO_DEBUG=True
+SOVA_ENV_BASE=https://api-test.sovaonline.com
+SOVA_LOCAL_CALLBACK_BASE_URL=https://YOUR-CURRENT-NGROK-DOMAIN.ngrok-free.dev
+SOVA_LOCAL_CALLBACK_TOKEN=GENERATE_A_FRESH_RANDOM_TOKEN_AT_LEAST_32_CHARACTERS
+DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1,YOUR-CURRENT-NGROK-DOMAIN.ngrok-free.dev
+DJANGO_CSRF_TRUSTED_ORIGINS=https://YOUR-CURRENT-NGROK-DOMAIN.ngrok-free.dev
+```
+
+Generate the token locally with:
+`python -c "import secrets; print(secrets.token_urlsafe(32))"`
+
+**Never put the token, full signed callback URL or raw Sova payload in
+GitHub, screenshots or chat.** The token is embedded in the callback URL and
+can be captured in ngrok's local request inspector and the development HTTP
+request logs. Keep both tools local/private, test with only internal synthetic
+candidate data, then stop ngrok and rotate/remove the token.
+
+Restart Django after setting the variables, run
+`python manage.py migrate`, and verify:
+`python manage.py test apps.core.test_sova_integrity_guard`.
+
+Create a **new candidate invitation** inside an **existing sandbox Sova
+project**, ensuring `SOVA_ENV_BASE` targets sandbox. The order payload will
+include both callback URLs pointing to the same token-protected local path.
+Existing invitations are not modified, and retries that reuse an existing
+Sova order do not change callback destinations.
+
+Keep ngrok running, complete a synthetic assessment, and check
+`http://127.0.0.1:4040` for a POST at
+`/integrations/sova/local/.../` (mask the token in any screenshots).
+
+- **POST 200:** Check the corresponding `TestInvitation` in local Django
+  Admin for `sova_activities`, `project_results` and `integrity_guard`.
+- **POST 404:** Check that the local token and URL settings are loaded,
+  and ensure the request hit the correct local-only route.
+- **POST 401:** Indicates the ordinary header-protected `/ingest/` route,
+  not the local token route, or invalid normal webhook credentials.
+- **No POST at all:** Most importantly, Sova may still have a globally
+  configured webhook destination that overrides both per-order URL fields.
+  In that case a full supplier-generated callback cannot be rerouted from
+  Talena's side alone. Synthetic local webhook tests still work, but actual
+  sandbox end-to-end testing would need callback configuration access.
+
+This local route does not exist on the ordinary production path. It returns
+404 unless `DEBUG=True`, `ENVIRONMENT=local`, both local callback settings
+are valid, and `SOVA_ENV_BASE` points at the Sova sandbox.
+
+Do not leave a Django debug server exposed through a public tunnel after
+testing. Never use production credentials or actual candidate data in the
+local tunnel.
