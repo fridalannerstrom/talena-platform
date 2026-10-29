@@ -100,8 +100,54 @@
 
     <!-- RIGHT: Form -->
     <div class="col-12 col-lg-8 col-xl-9">
+      {% get_current_language as page_language %}
+      {% if is_process_override %}
+      <div class="border rounded-3 bg-light p-3 mb-3 d-flex align-items-start justify-content-between flex-wrap gap-3">
+        <div style="flex:1;min-width:240px">
+          <div class="fw-semibold mb-1">
+            {% if page_language|slice:":2" == "sv" %}Du har gjort egna ändringar i mejlmallen{% else %}This process uses a custom invitation template{% endif %}
+          </div>
+          <div class="small text-muted">
+            {% if page_language|slice:":2" == "sv" %}
+              Den här processen använder din anpassade mall istället för standardmallen.
+              Du kan när som helst återgå till standardmallen.
+            {% else %}
+              Your changes override the default template for this process.
+              You can switch back to the default at any time.
+            {% endif %}
+          </div>
+        </div>
+        <form method="post" class="m-0">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="reset_to_default">
+          <button type="submit" class="btn btn-outline-secondary"
+                  onclick="return window.confirm('{% if page_language|slice:":2" == "sv" %}Vill du återgå till standardmallen för den här processen?{% else %}Restore the default invitation template for this process?{% endif %}')">
+            {% if page_language|slice:":2" == "sv" %}Återgå till standardmall{% else %}Restore default template{% endif %}
+          </button>
+        </form>
+      </div>
+      {% else %}
+      <div class="border rounded-3 bg-light p-3 mb-3">
+        <div class="fw-semibold mb-1">
+          {% if default_source == "company" %}
+            {% if page_language|slice:":2" == "sv" %}Du använder företagets standardmall{% else %}Using your company’s default template{% endif %}
+          {% else %}
+            {% if page_language|slice:":2" == "sv" %}Du använder Talenas standardmall{% else %}Using Talena's default template{% endif %}
+          {% endif %}
+        </div>
+        <div class="small text-muted">
+          {% if page_language|slice:":2" == "sv" %}
+            Om du ändrar texten och sparar skapas en egen mall för just den här processen.
+          {% else %}
+            Editing and saving the text creates a custom template for this process only.
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+
       <form method="post" class="card process-section-card">
         {% csrf_token %}
+        <input type="hidden" name="action" value="save">
         {{ form.language.as_hidden }}
 
         <div class="card-header edit-email-header bg-white py-3 px-4 d-flex align-items-start justify-content-between gap-3 flex-wrap">
@@ -114,13 +160,6 @@
         </div>
 
         <div class="card-body p-4">
-
-          {% if using_company_template %}
-          <div class="alert alert-light border small">
-            This process currently inherits the company invitation template.
-            Saving changes here creates a process-specific version.
-          </div>
-          {% endif %}
 
           {% if form.non_field_errors %}
             <div class="alert alert-danger">{{ form.non_field_errors }}</div>
@@ -140,14 +179,6 @@
             {% if form.body.errors %}
               <div class="text-danger small mt-1">{{ form.body.errors|striptags }}</div>
             {% endif %}
-          </div>
-
-          <div class="form-check mt-3">
-            {{ form.is_active }}
-            <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
-              Use this process-specific email template
-            </label>
-            <div class="form-text">Uncheck to fall back to your company's active template, or Talena's default.</div>
           </div>
 
           <div class="template-tip mt-4">
