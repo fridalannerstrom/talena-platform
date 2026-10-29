@@ -111,6 +111,9 @@
     data-report-has-personality="{% if has_personality_results %}true{% else %}false{% endif %}"
     data-report-has-motivation="{% if has_motivation_results %}true{% else %}false{% endif %}"
     data-report-has-cognitive="{% if has_ability_results %}true{% else %}false{% endif %}"
+    data-report-has-team-profile="{% if team_style_profile.available %}true{% else %}false{% endif %}"
+    data-report-has-leadership="{% if leadership_report_content.has_results %}true{% else %}false{% endif %}"
+    data-report-has-derailment="{% if derailment_report_content.has_results %}true{% else %}false{% endif %}"
   >
 
     <div class="candidate-insights-workspace__inner">
