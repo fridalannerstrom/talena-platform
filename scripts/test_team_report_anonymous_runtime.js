@@ -11,19 +11,8 @@ function loadFunction(name, context) {
   const start = source.indexOf(marker);
   assert.ok(start >= 0, "Missing function: " + name);
   let depth = 0;
-  let bodyStart = source.indexOf("{", start);
+  const bodyStart = source.indexOf("{", start);
   let end = -1;
-  for (let i = bodyStart; i < source.length; i++) {
-    if (source[i] === "{") depth += 1;
-    if (source[i] === "}" && --depth === 0) {
-      end = i;
-      break;
-    }
-    // Correct the depth for characters other than closing brackets.
-    if (source[i] !== "}") continue;
-  }
-  // Function bodies include nested braces, including object literals. Use
-  // a reliable scanner below rather than regex matching the first brace.
   depth = 0;
   for (let i = bodyStart; i < source.length; i++) {
     if (source[i] === "{") depth += 1;
