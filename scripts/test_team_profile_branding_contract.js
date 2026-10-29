@@ -58,4 +58,49 @@ assert.ok(sharedCss.includes(".talena-team-pdf-cover-brand-fallback"),
 assert.ok(sharedCss.includes("background: transparent;"),
   "uploaded transparent PNG logos must show through the cover");
 
-console.log("Team profile branding and ZIP PDF contract: OK");
+
+async function testPdfBlobMode() {
+  const vm = require("node:vm");
+  let downloads = 0;
+  const fakePdf = {
+    internal: { pageSize: { getWidth: () => 210, getHeight: () => 297 } },
+    setProperties() {}, addImage() {}, addPage() {},
+    setFont() {}, setFontSize() {}, setTextColor() {}, text() {},
+    save() { downloads += 1; },
+    output() { return new Uint8Array([37, 80, 68, 70]).buffer; }
+  };
+  const sandbox = {
+    window: {
+      html2canvas: async () => ({ width: 900, height: 500 }),
+      jspdf: { jsPDF: function () { return fakePdf; } }
+    },
+    document: {
+      fonts: { ready: Promise.resolve() },
+      documentElement: { clientWidth: 1200 },
+      createElement: () => ({
+        width: 0, height: 0,
+        getContext: () => ({ drawImage() {} }),
+        toDataURL: () => "data:image/jpeg;base64,dGVzdA=="
+      })
+    },
+    Blob,
+    Promise
+  };
+  vm.runInNewContext(core, sandbox, { timeout: 1000 });
+  const profileNode = { querySelectorAll: () => [] };
+  const blob = await sandbox.window.TalenaPdfExport.exportSections(
+    [{ node: profileNode, continuous: true }],
+    { title: "Synthetic team profile", returnBlob: true }
+  );
+  assert.equal(blob.type, "application/pdf");
+  assert.ok(blob.size > 0);
+  assert.equal(downloads, 0, "PDF blob mode must not trigger downloads inside ZIP");
+}
+
+testPdfBlobMode().then(() => {
+  console.log("Team profile branding and ZIP PDF contract: OK");
+}).catch(error => {
+  console.error(error);
+  process.exitCode = 1;
+});
+
