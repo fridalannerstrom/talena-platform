@@ -102,7 +102,7 @@
     <div class="col-12 col-lg-8 col-xl-9">
       {% get_current_language as page_language %}
       {% if is_process_override %}
-      <div class="border rounded-3 bg-light p-3 mb-3 d-flex align-items-start justify-content-between flex-wrap gap-3">
+      <div class="template-tip mb-3 d-flex align-items-start justify-content-between flex-wrap gap-3">
         <div style="flex:1;min-width:240px">
           <div class="fw-semibold mb-1">
             {% if page_language|slice:":2" == "sv" %}Du har gjort egna ändringar i mejlmallen{% else %}This process uses a custom invitation template{% endif %}
@@ -127,7 +127,7 @@
         </form>
       </div>
       {% else %}
-      <div class="border rounded-3 bg-light p-3 mb-3">
+      <div class="template-tip mb-3">
         <div class="fw-semibold mb-1">
           {% if default_source == "company" %}
             {% if page_language|slice:":2" == "sv" %}Du använder företagets standardmall{% else %}Using your company’s default template{% endif %}
