@@ -40,6 +40,32 @@ class EmailTemplate(models.Model):
         return f"{self.process_id} {self.template_type} {self.language}"
 
 
+class CompanyInvitationTemplate(models.Model):
+    """Company-wide default for candidate invitation emails, per language."""
+
+    company = models.ForeignKey(
+        "accounts.Company",
+        on_delete=models.CASCADE,
+        related_name="invitation_email_templates",
+    )
+    language = models.CharField(max_length=10, choices=EmailTemplate.LANG_CHOICES, default="sv")
+    subject = models.CharField(max_length=255)
+    body = models.TextField(help_text="Include {assessment_url} so the candidate receives the test link.")
+    is_active = models.BooleanField(default=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["company", "language"],
+                name="uniq_company_invitation_template_lang",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.company_id} invitation {self.language}"
+
+
 class EmailLog(models.Model):
     invitation = models.ForeignKey(
         "processes.TestInvitation",
