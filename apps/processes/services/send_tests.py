@@ -13,6 +13,7 @@ from apps.emails.utils import (
     get_default_invitation_template,
     upgrade_legacy_default_invitation_template,
     render_placeholders,
+    resolve_invitation_template,
 )
 from apps.processes.services.assessment_usage import (
     register_sent_assessments,
@@ -199,19 +200,13 @@ def send_assessments_and_emails(*, process, invitations, actor_user, context="cu
             if template:
                 upgrade_legacy_default_invitation_template(template)
 
-            default_template = get_default_invitation_template(lang)
-
-            subject_tpl = (
-                template.subject
-                if template
-                else default_template["subject"]
+            # A customized process copy still takes precedence, but old
+            # auto-created Talena defaults inherit the company template.
+            effective_template = resolve_invitation_template(
+                process, lang, process_template=template,
             )
-
-            body_tpl = (
-                template.body
-                if template
-                else default_template["body"]
-            )
+            subject_tpl = effective_template["subject"]
+            body_tpl = effective_template["body"]
 
             sender_full_name = (
                 actor_user.get_full_name().strip()
@@ -224,6 +219,7 @@ def send_assessments_and_emails(*, process, invitations, actor_user, context="cu
                 "last_name": candidate.last_name or "",
                 "email": candidate.email or "",
                 "process_name": process.name or "",
+                "company_name": getattr(process.company, "name", "") or "",
                 "assessments": format_assessment_names(
                     process.selected_tests
                 ),
