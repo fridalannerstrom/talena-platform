@@ -18,10 +18,17 @@
   pointer-events: none;
   color: #302d2b;
 }
+.talena-team-page.team-report-pdf-stage .team-report-pdf-body {
+  display: block;
+  width: 900px;
+  padding: 12px 0 22px;
+  margin: 0;
+  background: #fff;
+}
 .talena-team-page.team-report-pdf-stage .team-report-pdf-part {
   display: block;
   width: 900px;
-  padding: 32px 38px;
+  padding: 10px 38px;
   margin: 0;
   background: white;
 }
@@ -61,11 +68,16 @@
   width: max-content;
   max-width: 650px;
   min-height: 80px;
+  padding: 0;
+  background: transparent; /* Never place a white rectangle behind PNG logos. */
+  color: #fff;
+  font-size: 29px;
+  font-weight: 800;
+}
+.talena-team-pdf-cover-brand:not(:has(img)) {
   padding: 22px 30px;
   background: rgba(255,255,255,.97);
   color: #17212b;
-  font-size: 29px;
-  font-weight: 800;
 }
 .talena-team-pdf-cover-brand img {
   display: block; max-height: 100px; max-width: 600px;
