@@ -70,25 +70,35 @@ def edit_process_invitation_template(request, process_id):
             tpl
         )
 
+    effective = resolve_invitation_template(process, language, tpl)
+
+    if request.method == "POST" and request.POST.get("action") == "reset_to_default":
+        # Reset only this process's copy. Keep the record for audit/history;
+        # disabled copies never override company or Talena defaults.
+        if effective["source"] == "process":
+            tpl.is_active = False
+            tpl.save(update_fields=["is_active", "updated_at"])
+            messages.success(request, _("Invitation email template restored to default."))
+        return redirect("emails:edit_process_invitation_template", process_id=process.id)
+
     if request.method == "POST":
-        form = EmailTemplateForm(request.POST, instance=tpl)
+        # Saving a process-specific copy always activates it. No confusing
+        # active/inactive checkbox on the customer-facing editor.
+        submitted = request.POST.copy()
+        submitted["is_active"] = "on"
+        submitted["language"] = language
+        form = EmailTemplateForm(submitted, instance=tpl)
 
         if form.is_valid():
             form.save()
-            messages.success(
-                request,
-                _("Invitation email template updated."),
-            )
-
-            # Stanna kvar i samma tab efter save
+            messages.success(request, _("Invitation email template updated."))
             return redirect("emails:edit_process_invitation_template", process_id=process.id)
     else:
-        inherited = resolve_invitation_template(process, language, tpl)
         form = EmailTemplateForm(
             instance=tpl,
             initial=(
-                {"subject": inherited["subject"], "body": inherited["body"]}
-                if inherited["source"] == "company" else None
+                {"subject": effective["subject"], "body": effective["body"]}
+                if effective["source"] != "process" else None
             ),
         )
 
@@ -110,9 +120,9 @@ def edit_process_invitation_template(request, process_id):
     return render(request, "emails/edit_invitation_template.html", {
         "process": process,
         "form": form,
-        "using_company_template": (
-            resolve_invitation_template(process, language, tpl)["source"] == "company"
-        ),
+        "using_company_template": effective["source"] == "company",
+        "is_process_override": effective["source"] == "process",
+        "default_source": resolve_invitation_template(process, language)["source"],
         "placeholders": get_email_template_placeholders(),
 
         # Needed by process_base / _process_header.html
