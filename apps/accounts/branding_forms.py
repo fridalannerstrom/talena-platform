@@ -1,5 +1,6 @@
 """Internal-only form for tenant-scoped report branding."""
 from django import forms
+from django.core.files.uploadedfile import UploadedFile
 from PIL import Image
 
 from .models import CompanyBranding
@@ -20,7 +21,7 @@ class CompanyBrandingForm(forms.ModelForm):
         model = CompanyBranding
         fields = ["logo", "cover_image", "primary_color", "cover_focus_y"]
         widgets = {
-            "logo": forms.ClearableFileInput(attrs={"class": "form-control", "accept": ".png,.jpg,.jpeg,.webp"}),
+            "logo": forms.FileInput(attrs={"class": "form-control", "accept": ".png,.jpg,.jpeg,.webp"}),
             "cover_image": forms.ClearableFileInput(attrs={"class": "form-control", "accept": ".png,.jpg,.jpeg,.webp"}),
             "primary_color": forms.TextInput(attrs={"class": "form-control", "maxlength": "7", "placeholder": "#FF6F61"}),
             "cover_focus_y": forms.NumberInput(attrs={"class": "form-control", "min": "0", "max": "100", "step": "1"}),
@@ -39,7 +40,7 @@ class CompanyBrandingForm(forms.ModelForm):
         return value
 
     def _validate_image(self, value, kind):
-        if not value or not hasattr(value, "size"):
+        if not isinstance(value, UploadedFile):
             return value
         max_bytes = MAX_LOGO_BYTES if kind == "logo" else MAX_COVER_BYTES
         if value.size > max_bytes:
