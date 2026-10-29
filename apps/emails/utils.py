@@ -232,15 +232,6 @@ def resolve_invitation_template(process, language, process_template=None):
             language=language,
             is_active=True,
         ).first()
-    elif getattr(process, "company", None) is not None:
-        company_id = getattr(process.company, "id", None)
-        if company_id:
-            company_template = CompanyInvitationTemplate.objects.filter(
-                company_id=company_id,
-                language=language,
-                is_active=True,
-            ).first()
-
     if company_template:
         return {"subject": company_template.subject, "body": company_template.body, "source": "company"}
 
