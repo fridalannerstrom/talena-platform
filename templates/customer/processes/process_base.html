@@ -1673,6 +1673,12 @@ await runCandidateInit(
 
 }
 
+// Add PDF buttons after the current candidate's authorized data has been
+// rendered and initialized; export does not generate any new AI content.
+await runCandidateInit(
+  "Candidate PDF exports",
+  () => window.TalenaCandidateReportPdf?.init(sheetBody)
+);
 
 } catch (error) {
   console.error(

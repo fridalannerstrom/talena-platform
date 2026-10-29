@@ -1,0 +1,134 @@
+/* #359: opt-in candidate report PDF exports; no changes to Talena UI theme. */
+[data-candidate-insights-workspace] .candidate-pdf-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 12px 14px;
+  margin: 4px 0 18px;
+  border-radius: 12px;
+  background: #fff7f5;
+  border: 1px solid #f7d8d1;
+}
+[data-candidate-insights-workspace] .candidate-pdf-toolbar .btn {
+  font-size: .78rem;
+  padding: .48rem .85rem;
+  white-space: nowrap;
+}
+[data-candidate-insights-workspace] .candidate-pdf-status {
+  max-width: 310px;
+  color: #69564e;
+}
+.candidate-insights-workspace.candidate-pdf-stage {
+  position: absolute !important;
+  top: 0 !important;
+  left: -20000px !important;
+  width: 900px !important;
+  min-width: 900px !important;
+  background: #fff;
+  color: #292723;
+  padding: 0 !important;
+  margin: 0 !important;
+  display: block !important;
+  pointer-events: none;
+  z-index: -50;
+}
+.candidate-pdf-cover {
+  --candidate-pdf-primary: #FF6F61;
+  display: flex;
+  width: 900px;
+  height: 1273px;
+  padding: 85px 78px 96px;
+  flex-direction: column;
+  justify-content: space-between;
+  background: linear-gradient(140deg, var(--candidate-pdf-primary), #24333e);
+  background-size: cover;
+  background-position: center;
+  color: #fff;
+}
+.candidate-pdf-brand {
+  display: inline-flex;
+  align-items: center;
+  max-width: 650px;
+  min-height: 70px;
+  width: fit-content;
+  background: transparent;
+  color: #fff;
+  font-size: 28px;
+  font-weight: 800;
+}
+.candidate-pdf-brand > img {
+  display: block;
+  max-height: 115px;
+  max-width: 620px;
+  object-fit: contain;
+}
+.candidate-pdf-brand--fallback {
+  padding: 18px 25px;
+  color: #17212b;
+  background: rgba(255,255,255,.97);
+}
+.candidate-pdf-cover-title { max-width: 735px; }
+.candidate-pdf-rule {
+  width: 85px;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--candidate-pdf-primary);
+  margin-bottom: 24px;
+}
+.candidate-pdf-cover-title p {
+  font-size: 22px;
+  color: #fff;
+  line-height: 1.45;
+}
+.candidate-pdf-cover-title p:first-of-type {
+  font-size: 17px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .14em;
+}
+.candidate-pdf-cover-title h1 {
+  font-size: 58px;
+  line-height: 1.12;
+  color: #fff;
+  margin: 12px 0 26px;
+  font-weight: 750;
+}
+.candidate-pdf-stage .candidate-pdf-body {
+  display: block !important;
+  width: 900px;
+  padding: 38px 45px 55px;
+  background: #fff;
+  color: #292723;
+}
+.candidate-pdf-stage .candidate-pdf-content-title {
+  color: var(--candidate-pdf-accent-dark, #C94D41) !important;
+  font-size: 24px;
+  margin-bottom: 22px;
+}
+.candidate-pdf-stage .candidate-pdf-body > .candidate-insights-panel,
+.candidate-pdf-stage .candidate-pdf-body > .candidate-insights-subpanel {
+  display: block !important;
+  position: static !important;
+  width: 100%;
+  overflow: visible !important;
+}
+.candidate-pdf-stage .candidate-pdf-body img.candidate-pdf-chart {
+  display: block;
+  max-width: 100%;
+  object-fit: contain;
+}
+.candidate-pdf-stage .candidate-pdf-body .candidate-insights-panel > .card,
+.candidate-pdf-stage .candidate-pdf-body .candidate-insights-subpanel > .card {
+  margin-bottom: 12px;
+}
+.candidate-pdf-stage .candidate-pdf-body .card,
+.candidate-pdf-stage .candidate-pdf-body section {
+  break-inside: avoid;
+}
+@media (max-width: 767.98px) {
+  [data-candidate-insights-workspace] .candidate-pdf-toolbar {
+    justify-content: flex-start;
+  }
+}

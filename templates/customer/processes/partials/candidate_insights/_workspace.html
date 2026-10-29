@@ -101,6 +101,19 @@
   <section
     class="card candidate-insights-workspace mb-4"
     data-candidate-insights-workspace
+    data-report-brand-primary="{{ report_branding.palette.primary|default:'#FF6F61' }}"
+    data-report-brand-light="{{ report_branding.palette.light|default:'#FFF0ED' }}"
+    data-report-brand-dark="{{ report_branding.palette.dark|default:'#C94D41' }}"
+    data-report-brand-logo="{{ report_branding.logo_url|default:'' }}"
+    data-report-brand-cover="{{ report_branding.cover_url|default:'' }}"
+    data-report-brand-focus="{{ report_branding.cover_focus_y|default:50 }}"
+    data-report-brand-company="{{ company.name }}"
+    data-report-has-personality="{% if has_personality_results %}true{% else %}false{% endif %}"
+    data-report-has-motivation="{% if has_motivation_results %}true{% else %}false{% endif %}"
+    data-report-has-cognitive="{% if has_ability_results %}true{% else %}false{% endif %}"
+    data-report-has-team-profile="{% if team_style_profile.available %}true{% else %}false{% endif %}"
+    data-report-has-leadership="{% if leadership_report_content.has_results %}true{% else %}false{% endif %}"
+    data-report-has-derailment="{% if derailment_report_content.has_results %}true{% else %}false{% endif %}"
   >
 
     <div class="candidate-insights-workspace__inner">

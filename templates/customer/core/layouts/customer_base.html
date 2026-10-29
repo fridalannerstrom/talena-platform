@@ -45,6 +45,7 @@
   {# Final low-risk viewport/accessibility hardening. #}
   <link href="{% static 'css/talena/qa.css' %}" rel="stylesheet" />
   <link href="{% static 'css/talena/ai-privacy-notice.css' %}" rel="stylesheet" />
+  <link href="{% static 'css/talena/pages/candidate-report-pdf.css' %}" rel="stylesheet" />
 </head>
 
 <body class="nav-fixed">
@@ -112,6 +113,9 @@
   <script src="{% static 'js/talena/ai-privacy-notice.js' %}"></script>
 
   {# Shared customer shell behaviour #}
+  {# Shared browser PDF component; reused by team exports and #359/#360. #}
+  <script src="{% static 'js/talena/pdf-export-core.js' %}"></script>
+  <script src="{% static 'js/talena/candidate-report-pdf.js' %}"></script>
   <script src="{% static 'js/talena/customer-shell.js' %}"></script>
   <script src="{% static 'js/talena/automatic-invitation-setting.js' %}"></script>
   <script src="{% static 'js/talena/personality-question-basis.js' %}"></script>

@@ -116,7 +116,19 @@
     if (!source.width || !source.height) throw new Error("PDF page is empty.");
     const pageW = pdf.internal.pageSize.getWidth();
     const pageH = pdf.internal.pageSize.getHeight();
-    const margin = opts.cover ? 0 : 12;
+    // A4 cover images are 900 x 1273 px (A4 ~= 1272.86 px at that scale).
+    // Integer rounding previously generated a second 1px *blank* page.
+    // Always fit the entire cover on exactly one full-bleed A4 page.
+    if (opts.cover) {
+      if (opts.pageCount.value > 0) pdf.addPage();
+      pdf.addImage(
+        source.toDataURL("image/jpeg", .91), "JPEG",
+        0, 0, pageW, pageH, undefined, "FAST"
+      );
+      opts.pageCount.value += 1;
+      return;
+    }
+    const margin = 12;
     const width = pageW - margin * 2;
     const height = pageH - margin * 2;
     const pixelsPerMm = source.width / width;
