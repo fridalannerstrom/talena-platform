@@ -74,7 +74,7 @@
   font-size: 29px;
   font-weight: 800;
 }
-.talena-team-pdf-cover-brand:not(:has(img)) {
+.talena-team-pdf-cover-brand-fallback {
   padding: 22px 30px;
   background: rgba(255,255,255,.97);
   color: #17212b;
