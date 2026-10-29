@@ -57,10 +57,15 @@
 .company-branding-cover-top { padding: 9% 9% 0; }
 .company-branding-logo {
   display: inline-flex; align-items: center; max-width: 85%;
-  min-height: 50px; padding: .75rem .95rem;
-  background: rgba(255,255,255,.96);
-  color: #18212a; font-size: 1.12rem; font-weight: 800;
+  min-height: 50px; padding: 0;
+  background: transparent; /* Respect the uploaded PNG alpha channel. */
+  color: #fff; font-size: 1.12rem; font-weight: 800;
+}
+.company-branding-logo > span {
+  padding: .75rem .95rem;
   border-radius: 2px;
+  background: rgba(255,255,255,.96);
+  color: #18212a;
 }
 .company-branding-logo img { display: block; max-height: 78px; max-width: 100%; object-fit: contain; }
 .company-branding-cover-bottom { padding: 0 9% 10%; }
