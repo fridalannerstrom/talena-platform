@@ -8,6 +8,7 @@ from django.conf import settings
 from apps.processes.models import TestInvitation
 from apps.core.integrations.sova import SovaClient
 from apps.core.integrations.integrity_guard import extract_integrity_guard
+from apps.core.integrations.local_callbacks import get_local_sova_callback_url
 from apps.activity.models import ActivityEvent
 from apps.activity.services import log_event
 
@@ -79,12 +80,41 @@ def _extract_sova_reports(payload):
 
 
 @csrf_exempt
+def sova_local_ingest(request, token):
+    """Sandbox-only endpoint for callback URLs supplied on individual orders.
+
+    The random URL token replaces the normal header only on this isolated
+    local route. Never enable this mode on a public deployed Talena instance.
+    """
+    if request.method != "POST":
+        return JsonResponse({"error": "method not allowed"}, status=405)
+
+    try:
+        configured_url = get_local_sova_callback_url()
+    except ValueError:
+        configured_url = None
+
+    expected_token = getattr(settings, "SOVA_LOCAL_CALLBACK_TOKEN", "")
+    if (
+        not configured_url
+        or not expected_token
+        or not secrets.compare_digest(token, expected_token)
+    ):
+        return JsonResponse({"error": "not found"}, status=404)
+
+    request._sova_local_callback_authenticated = True
+    return sova_ingest(request)
+
+
+@csrf_exempt
 def sova_ingest(request):
 
+    # Never log request.path here: local sandbox callback paths contain
+    # a bearer token that must not be written to application logs.
     logger.info(
-        "SOVA webhook received: path=%s secret_present=%s",
-        request.path,
+        "SOVA webhook received: header_present=%s local_callback=%s",
         bool(request.headers.get("X-Talena-Webhook-Secret")),
+        bool(getattr(request, "_sova_local_callback_authenticated", False)),
     )
 
     if request.method != "POST":
@@ -117,10 +147,13 @@ def sova_ingest(request):
     )
 
     is_authorized = (
-        bool(secret)
-        and any(
-            secrets.compare_digest(secret, allowed_secret)
-            for allowed_secret in allowed_secrets
+        getattr(request, "_sova_local_callback_authenticated", False)
+        or (
+            bool(secret)
+            and any(
+                secrets.compare_digest(secret, allowed_secret)
+                for allowed_secret in allowed_secrets
+            )
         )
     )
 
