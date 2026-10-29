@@ -11,6 +11,7 @@
   <link href="{% static 'css/talena/pages/candidate-decision-support.css' %}" rel="stylesheet" />
   <link href="{% static 'css/talena/pages/team-styles.css' %}" rel="stylesheet" />
   <link href="{% static 'css/talena/pages/team-profile-export.css' %}" rel="stylesheet" />
+  <link href="{% static 'css/talena/pages/team-report-export.css' %}" rel="stylesheet" />
   <style>
     .talena-team-page .team-anonymity-toggle {
       display: inline-flex;
@@ -117,7 +118,13 @@
 {% block content %}
 {% get_current_language as LANGUAGE_CODE %}
 
-<div class="container-fluid py-4 talena-team-page">
+<div class="container-fluid py-4 talena-team-page"
+  data-team-report-brand-primary="{{ report_branding.palette.primary }}"
+  data-team-report-brand-logo="{{ report_branding.logo_url|default:'' }}"
+  data-team-report-brand-cover="{{ report_branding.cover_url|default:'' }}"
+  data-team-report-brand-focus="{{ report_branding.cover_focus_y }}"
+  data-team-report-name="{{ team.name }}"
+  data-team-report-company="{{ company.name }}">
 
   <div class="team-page-header">
     <div>
@@ -136,6 +143,15 @@
     </div>
 
     <div class="team-page-actions">
+      {% if team_style_stats.members_with_scores %}
+      <div class="team-common-report-export">
+        <button type="button" class="btn btn-outline-primary" data-team-report-download>
+          <i data-feather="download" class="icon-14"></i>
+          {% if LANGUAGE_CODE|slice:":2" == "sv" %}Ladda ner teamrapport{% else %}Download team report{% endif %}
+        </button>
+        <span class="small" data-team-report-download-status role="status" aria-live="polite"></span>
+      </div>
+      {% endif %}
       <button
         type="button"
         id="teamAnonymityToggle"
@@ -173,7 +189,7 @@
   </div>
 
   {% if team.goals or team.context or team.description %}
-    <section class="card mb-4" aria-labelledby="team-goals-heading">
+    <section class="card mb-4" aria-labelledby="team-goals-heading" data-team-report-context>
       <div class="card-header"><h2 id="team-goals-heading" class="team-section-title">{% trans "Team goals and context" %}</h2></div>
       <div class="card-body">
         {% if team.goals %}
@@ -200,7 +216,7 @@
   {% endif %}
 
   {% if team_style_stats.members_with_scores %}
-    <div class="team-summary-strip">
+    <div class="team-summary-strip" data-team-report-summary>
       <div class="team-summary-item">
         <div class="team-summary-label">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Medlemmar med data{% else %}{% trans "Members with data" %}{% endif %}</div>
         <div class="team-summary-value">{{ team_style_stats.members_with_scores }}</div>
@@ -237,7 +253,7 @@
     </div>
   {% endif %}
 
-  <div class="card mb-4">
+  <div class="card mb-4" data-team-report-composite>
     <div class="card-header d-flex justify-content-between align-items-start gap-3 flex-wrap">
       <div>
         <p class="team-page-eyebrow mb-1">{% trans "Team styles" %}</p>
@@ -324,7 +340,7 @@
     </div>
   </div>
 
-  <section class="card mb-4" aria-labelledby="team-ai-insights-heading">
+  <section class="card mb-4" aria-labelledby="team-ai-insights-heading" data-team-report-insights>
     <div class="card-header">
       <h2 id="team-ai-insights-heading" class="team-section-title">{% trans "Team insights" %}</h2>
       <p class="team-section-copy mb-0">{% trans "Separate reflections based on the team’s goals and available assessment results." %}</p>
@@ -403,8 +419,8 @@
   </section>
 
   {% if team_style_stats.members_with_scores %}
-    <div class="row g-4 mb-4">
-      <div class="col-lg-6">
+    <div class="row g-4 mb-4" data-team-report-maximum>
+      <div class="col-lg-6" data-team-report-maximum-numeric>
         <div class="card h-100">
           <div class="card-header">
             <div class="fw-semibold">{% trans "Composite team styles · Maximum" %}</div>
@@ -558,7 +574,7 @@
     </div>
   {% endif %}
 
-  <div class="card">
+  <div class="card" data-team-report-members>
     <div class="card-header d-flex justify-content-between align-items-center gap-3 flex-wrap">
       <div>
         <h2 class="team-section-title">{% trans "Candidates in this team" %}</h2>
@@ -645,6 +661,8 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
   <script src="{% static 'js/talena/team-pages.js' %}"></script>
   <script src="{% static 'js/talena/team-profile-export.js' %}"></script>
+  <script src="{% static 'js/talena/pdf-export-core.js' %}"></script>
+  <script src="{% static 'js/talena/team-report-export.js' %}"></script>
   <script>
     (function () {
       "use strict";
