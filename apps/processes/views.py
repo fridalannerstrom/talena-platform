@@ -3726,6 +3726,7 @@ def build_candidate_detail_context(
 
     return {
         "company": process.company,
+        "report_branding": __import__("apps.accounts.report_branding", fromlist=["get_report_branding"]).get_report_branding(process.company),
         "process": process,
         "invitation": invitation,
         "inv": invitation,
@@ -9806,6 +9807,7 @@ def build_historical_candidate_detail_context(
 
     return {
         "company": process.company,
+        "report_branding": __import__("apps.accounts.report_branding", fromlist=["get_report_branding"]).get_report_branding(process.company),
         "process": process,
         "candidate": candidate,
 
