@@ -224,6 +224,18 @@ class ReportBrandingTests(TestCase):
             self.assertEqual(len(palette["chart_colors"]), 4)
             self.assertIn(palette["on_primary"], ("#141414", "#FFFFFF"))
 
+    def test_transparent_png_logo_keeps_real_alpha_channel(self):
+        buffer = io.BytesIO()
+        rgba = Image.new("RGBA", (32, 32), (255, 255, 255, 0))
+        rgba.paste((25, 25, 25, 255), (8, 8, 24, 24))
+        rgba.save(buffer, format="PNG")
+        source = SimpleUploadedFile("transparent-logo.png", buffer.getvalue(), content_type="image/png")
+        normalized = normalize_brand_image(source, "logo")
+        with Image.open(normalized) as image:
+            self.assertEqual(image.mode, "RGBA")
+            self.assertEqual(image.getpixel((0, 0))[3], 0)
+            self.assertEqual(image.getpixel((15, 15))[3], 255)
+
     def test_standalone_image_normalizer_strips_metadata(self):
         normalized = normalize_brand_image(uploaded_image(metadata=True), "logo")
         self.assertEqual(normalized.name, "logo.png")
