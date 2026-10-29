@@ -38,6 +38,12 @@
       </div>
 
       <div class="card-body">
+        {% if using_company_template %}
+        <div class="alert alert-light border small">
+          This process currently inherits the <a href="{% url 'emails:admin_edit_company_invitation_template' company.pk %}">company template</a>.
+          Saving changes here creates a process-specific version.
+        </div>
+        {% endif %}
         <form method="post">
           {% csrf_token %}
 
