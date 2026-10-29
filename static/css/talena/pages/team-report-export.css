@@ -91,3 +91,16 @@
   .talena-team-page .team-common-report-export { align-items: stretch; }
   .talena-team-page .team-common-report-export [data-team-report-download-status] { text-align: left; }
 }
+
+/* PDF-only, tenant-defined accents. Existing team page/theme stays untouched. */
+.talena-team-page.team-report-pdf-stage .team-report-pdf-part .team-section-title,
+.talena-team-page.team-report-pdf-stage .team-report-pdf-part .team-page-eyebrow {
+  color: var(--team-report-accent-dark, #C94D41) !important;
+}
+.talena-team-page.team-report-pdf-stage .team-report-pdf-part .team-style-bar-fill,
+.talena-team-page.team-report-pdf-stage .team-report-pdf-part .team-style-bar-fill-max {
+  background: var(--team-report-accent, #FF6F61) !important;
+}
+.talena-team-page.team-report-pdf-stage .team-report-pdf-part > .col-lg-6 {
+  width: 100% !important;
+}
