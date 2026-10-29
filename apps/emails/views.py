@@ -4,11 +4,13 @@ from django.contrib import messages
 from django.utils.translation import gettext as _
 
 from apps.processes.models import TestProcess
-from .models import EmailTemplate
-from .forms import EmailTemplateForm
+from .models import EmailTemplate, CompanyInvitationTemplate
+from .forms import EmailTemplateForm, CompanyInvitationTemplateForm
 from .utils import (
     get_default_invitation_template,
     upgrade_legacy_default_invitation_template,
+    INVITATION_PLACEHOLDERS,
+    render_placeholders,
 )
 
 from urllib.parse import urlparse
@@ -116,6 +118,9 @@ def get_email_template_placeholders():
         "{first_name}",
         "{last_name}",
         "{email}",
+        "{company_name}",
+        "{job_title}",
+        "{job_location}",
         "{process_name}",
         "{assessments}",
         "{assessment_url}",
@@ -178,4 +183,62 @@ def admin_edit_company_process_invitation_template(request, company_pk, process_
         "placeholders": get_email_template_placeholders(),
         "active": "processes",
         "show_invite_button": True,
+    })
+
+
+@login_required
+@admin_required
+def admin_edit_company_invitation_template(request, company_pk):
+    """Company-wide default for new invitations, administered only by TQ admins."""
+    company = get_object_or_404(Company, pk=company_pk)
+    language = request.GET.get("language", "sv")
+    if language not in {"sv", "en"}:
+        language = "sv"
+
+    template = CompanyInvitationTemplate.objects.filter(
+        company=company, language=language,
+    ).first()
+
+    if request.method == "POST":
+        form = CompanyInvitationTemplateForm(request.POST, instance=template)
+        if form.is_valid():
+            saved = form.save(commit=False)
+            saved.company = company
+            saved.language = language
+            saved.save()
+            messages.success(request, _("Company invitation template saved."))
+            return HttpResponseRedirect(f"{request.path}?language={language}")
+    else:
+        initial = get_default_invitation_template(language)
+        form = CompanyInvitationTemplateForm(
+            instance=template,
+            initial=initial if template is None else None,
+        )
+
+    example = {
+        "first_name": "Anna",
+        "last_name": "Example",
+        "email": "anna@example.test",
+        "company_name": company.name,
+        "process_name": "Sample recruitment process",
+        "assessments": "Personality, Logical Reasoning",
+        "assessment_url": "https://example.test/assessment",
+        "job_title": "Example role",
+        "job_location": "Stockholm",
+        "sender_first_name": "Talena",
+        "sender_last_name": "Admin",
+        "sender_full_name": "Talena Admin",
+    }
+
+    return render(request, "emails/admin_edit_company_invitation_template.html", {
+        "company": company,
+        "form": form,
+        "template_saved": template is not None,
+        "language": language,
+        "placeholders": ["{" + key + "}" for key in INVITATION_PLACEHOLDERS],
+        "preview_values": example,
+        "initial_preview_subject": render_placeholders(form["subject"].value() or "", example),
+        "initial_preview_body": render_placeholders(form["body"].value() or "", example),
+        "active": "email_templates",
+        "show_invite_button": False,
     })
