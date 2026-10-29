@@ -1,0 +1,124 @@
+{% extends "admin/accounts/companies/company_base.html" %}
+{% load i18n %}
+
+{% block company_content %}
+<div class="d-flex justify-content-between align-items-start gap-3 flex-wrap mb-4">
+  <div>
+    <div class="text-muted small mb-1">Company settings / Candidate email</div>
+    <h2 class="h3 mb-1">Invitation email template</h2>
+    <p class="text-muted mb-0">
+      Set the default invitation wording for all test processes at {{ company.name }}.
+    </p>
+  </div>
+  <div class="btn-group" role="group" aria-label="Template language">
+    <a class="btn btn-sm {% if language == 'sv' %}btn-primary{% else %}btn-outline-secondary{% endif %}" href="?language=sv">Swedish</a>
+    <a class="btn btn-sm {% if language == 'en' %}btn-primary{% else %}btn-outline-secondary{% endif %}" href="?language=en">English</a>
+  </div>
+</div>
+
+<div class="alert alert-light border mb-4 small">
+  This is the <strong>company default</strong> for {{ language|upper }} invitations. A process with a deliberately
+  customized invitation email keeps its own wording. If no active company template
+  exists, Talena's standard invitation is used.
+  {% if not template_saved %}<div class="mt-2">No company template saved yet. The editor starts with Talena's default copy.</div>{% endif %}
+</div>
+
+<div class="row g-4">
+  <div class="col-12 col-xl-7">
+    <div class="card h-100">
+      <div class="card-header bg-white py-3">
+        <strong>Edit invitation</strong>
+        <div class="text-muted small">Changes only take effect after you save them. Existing sent emails are unchanged.</div>
+      </div>
+      <div class="card-body">
+        <form method="post" id="company-invitation-editor">
+          {% csrf_token %}
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+          {% endif %}
+          <div class="mb-3">
+            <label class="form-label fw-semibold" for="{{ form.subject.id_for_label }}">Subject</label>
+            {{ form.subject }}
+            {% for err in form.subject.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold" for="{{ form.body.id_for_label }}">Message</label>
+            {{ form.body }}
+            {% for err in form.body.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}
+          </div>
+          <div class="form-check mb-3">
+            {{ form.is_active }}
+            <label class="form-check-label" for="{{ form.is_active.id_for_label }}">Use this as the company default</label>
+          </div>
+          <div class="small text-muted mb-3">
+            The message must include <code>{assessment_url}</code> so candidates can access their assessment.
+            Turning off the template restores the normal fallback without deleting your saved copy.
+          </div>
+          <button type="submit" class="btn btn-primary">Save company template</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-xl-5">
+    <div class="card mb-3">
+      <div class="card-header bg-white py-3">
+        <strong>Live preview</strong>
+        <div class="text-muted small">Example values only. No email is sent.</div>
+      </div>
+      <div class="card-body">
+        <div class="small text-muted mb-1">Subject</div>
+        <div id="company-preview-subject" class="fw-semibold mb-3" style="overflow-wrap:anywhere">{{ initial_preview_subject }}</div>
+        <div class="small text-muted mb-1">Message</div>
+        <div id="company-preview-body" class="border rounded p-3 bg-light" style="white-space:pre-wrap;overflow-wrap:anywhere;min-height:10rem">{{ initial_preview_body }}</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header bg-white py-3">
+        <strong>Available placeholders</strong>
+        <div class="text-muted small">Click to copy a placeholder.</div>
+      </div>
+      <div class="card-body d-flex flex-wrap gap-2">
+        {% for placeholder in placeholders %}
+        <button type="button" class="btn btn-sm btn-outline-secondary" data-company-email-copy="{{ placeholder }}"><code>{{ placeholder }}</code></button>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{{ preview_values|json_script:"company-email-preview-values" }}
+<script>
+(function () {
+  "use strict";
+  const values = JSON.parse(document.getElementById("company-email-preview-values").textContent);
+  const subject = document.getElementById("id_subject");
+  const body = document.getElementById("id_body");
+  const subjectPreview = document.getElementById("company-preview-subject");
+  const bodyPreview = document.getElementById("company-preview-body");
+  function render(text) {
+    return (text || "").replace(/\{([a-z_]+)\}/g, function (token, key) {
+      return Object.prototype.hasOwnProperty.call(values, key) ? values[key] : token;
+    });
+  }
+  function update() {
+    subjectPreview.textContent = render(subject.value);
+    bodyPreview.textContent = render(body.value);
+  }
+  subject.addEventListener("input", update);
+  body.addEventListener("input", update);
+  update();
+  document.querySelectorAll("[data-company-email-copy]").forEach(function (button) {
+    button.addEventListener("click", async function () {
+      const token = button.getAttribute("data-company-email-copy");
+      try {
+        await navigator.clipboard.writeText(token);
+      } catch (error) {
+        body.focus();
+        body.setRangeText(token, body.selectionStart, body.selectionEnd, "end");
+        update();
+      }
+    });
+  });
+})();
+</script>
+{% endblock %}
