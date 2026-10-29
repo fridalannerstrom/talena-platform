@@ -1,0 +1,156 @@
+{% extends "admin/accounts/companies/company_base.html" %}
+{% load static i18n %}
+
+{% block extra_css %}
+  {{ block.super }}
+  <link href="{% static 'css/talena/pages/company-branding.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block company_content %}
+{% get_current_language as current_language %}
+{% with sv=current_language|slice:":2" %}
+<section class="company-branding" data-report-branding
+  data-logo-url="{{ profile.logo_url|default:'' }}"
+  data-cover-url="{{ profile.cover_url|default:'' }}">
+  <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
+    <div>
+      <p class="text-muted small mb-1">{% if sv == 'sv' %}Företagsinställningar{% else %}Company settings{% endif %}</p>
+      <h2 class="h3 mb-1">{% if sv == 'sv' %}Rapportbranding{% else %}Report branding{% endif %}</h2>
+      <p class="text-muted mb-0">
+        {% if sv == 'sv' %}Välj hur {{ company.name }} ska presenteras på rapporternas omslag och i PDF.
+        {% else %}Choose how {{ company.name }} appears on report covers and in PDFs.{% endif %}
+      </p>
+    </div>
+    {% if branding %}
+    <form method="post" class="company-branding-reset-form" onsubmit="return window.confirm('{% if sv == 'sv' %}Återställa alla brandinginställningar för företaget?{% else %}Restore all report branding to Talena defaults?{% endif %}')">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="reset">
+      <button class="btn btn-outline-secondary" type="submit">
+        <i data-feather="rotate-ccw" class="icon-14 me-1"></i>
+        {% if sv == 'sv' %}Återgå till Talenas standard{% else %}Restore Talena defaults{% endif %}
+      </button>
+    </form>
+    {% endif %}
+  </div>
+
+  <div class="row g-4 align-items-start">
+    <div class="col-12 col-xl-6">
+      <form method="post" enctype="multipart/form-data" class="card company-branding-card" data-branding-editor>
+        {% csrf_token %}
+        <div class="card-header">
+          <h3 class="h6 mb-1">{% if sv == 'sv' %}Designinställningar{% else %}Design settings{% endif %}</h3>
+          <div class="text-muted small">{% if sv == 'sv' %}Endast Talena-admin kan ändra dessa uppgifter.{% else %}Only Talena admins can edit these settings.{% endif %}</div>
+        </div>
+        <div class="card-body">
+          {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+
+          <div class="company-branding-field mb-4">
+            <label class="form-label fw-semibold" for="{{ form.logo.id_for_label }}">
+              {% if sv == 'sv' %}Kundens logotyp{% else %}Company logo{% endif %}
+            </label>
+            {{ form.logo }}
+            {% for e in form.logo.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+            <div class="form-text">{% if sv == 'sv' %}PNG, JPEG eller WebP, max 5 MB. Transparent PNG rekommenderas.{% else %}PNG, JPEG or WebP, max 5 MB. Transparent PNG is recommended.{% endif %}</div>
+            {% if branding and branding.logo %}
+              <div class="form-check mt-2">{{ form.remove_logo }}
+                <label class="form-check-label" for="{{ form.remove_logo.id_for_label }}">
+                  {% if sv == 'sv' %}Ta bort nuvarande logotyp{% else %}Remove current logo{% endif %}
+                </label>
+              </div>
+            {% endif %}
+          </div>
+
+          <div class="company-branding-field mb-4">
+            <label class="form-label fw-semibold" for="{{ form.cover_image.id_for_label }}">
+              {% if sv == 'sv' %}Omslagsbild{% else %}Cover image{% endif %}
+            </label>
+            {{ form.cover_image }}
+            {% for e in form.cover_image.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+            <div class="form-text">{% if sv == 'sv' %}PNG, JPEG eller WebP, max 10 MB. Bilden anpassas till första sidan.{% else %}PNG, JPEG or WebP, max 10 MB. The image is cropped to the cover.{% endif %}</div>
+            {% if branding and branding.cover_image %}
+              <div class="form-check mt-2">{{ form.remove_cover_image }}
+                <label class="form-check-label" for="{{ form.remove_cover_image.id_for_label }}">
+                  {% if sv == 'sv' %}Ta bort nuvarande omslagsbild{% else %}Remove current cover image{% endif %}
+                </label>
+              </div>
+            {% endif %}
+          </div>
+
+          <div class="company-branding-field mb-4">
+            <label class="form-label fw-semibold" for="{{ form.primary_color.id_for_label }}">
+              {% if sv == 'sv' %}Primärfärg{% else %}Primary colour{% endif %}
+            </label>
+            <div class="d-flex gap-2 align-items-center">
+              <input class="company-branding-colour-picker" type="color" data-branding-picker
+                value="{{ palette.primary }}" aria-label="{% if sv == 'sv' %}Välj färg{% else %}Choose colour{% endif %}">
+              {{ form.primary_color }}
+            </div>
+            {% for e in form.primary_color.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+            <div class="form-text">{% if sv == 'sv' %}Ange en HEX-färg. Vi skapar ljusare nyanser och läsbar text automatiskt.{% else %}Enter a HEX colour. Accent shades and readable text are generated automatically.{% endif %}</div>
+            <div class="d-flex gap-2 mt-3" aria-label="{% if sv == 'sv' %}Färgpalett{% else %}Colour palette{% endif %}">
+              <span class="company-branding-swatch" data-swatch="primary" style="background:{{ palette.primary }}"></span>
+              <span class="company-branding-swatch" data-swatch="medium" style="background:{{ palette.medium }}"></span>
+              <span class="company-branding-swatch" data-swatch="light" style="background:{{ palette.light }}"></span>
+              <span class="company-branding-swatch" data-swatch="dark" style="background:{{ palette.dark }}"></span>
+            </div>
+          </div>
+
+          <div class="company-branding-field mb-4">
+            <label class="form-label fw-semibold" for="{{ form.cover_focus_y.id_for_label }}">
+              {% if sv == 'sv' %}Omslagsbildens fokuspunkt i höjdled{% else %}Cover image vertical focal point{% endif %}
+            </label>
+            <div class="d-flex align-items-center gap-3">
+              {{ form.cover_focus_y }}
+              <span class="company-branding-focus-value" data-branding-focus-value>{{ profile.cover_focus_y }}%</span>
+            </div>
+            {% for e in form.cover_focus_y.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+            <div class="form-text">{% if sv == 'sv' %}0 = högst upp, 50 = mitten, 100 = längst ner.{% else %}0 = top, 50 = centre, 100 = bottom.{% endif %}</div>
+          </div>
+
+          <div class="d-flex flex-wrap align-items-center gap-3">
+            <button class="btn btn-primary" type="submit">
+              {% if sv == 'sv' %}Spara branding{% else %}Save branding{% endif %}
+            </button>
+            <span class="text-muted small">{% if sv == 'sv' %}Ändringar påverkar inte redan nedladdade PDF-filer.{% else %}Previously downloaded PDFs are unchanged.{% endif %}</span>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <div class="col-12 col-xl-6">
+      <div class="card company-branding-card">
+        <div class="card-header">
+          <h3 class="h6 mb-1">{% if sv == 'sv' %}Förhandsgranskning av omslag{% else %}Cover preview{% endif %}</h3>
+          <p class="text-muted small mb-0">{% if sv == 'sv' %}Exempelrapport med syntetiskt innehåll. Ingen kandidatdata används.{% else %}Synthetic sample report. No candidate data is used.{% endif %}</p>
+        </div>
+        <div class="card-body company-branding-preview-wrap">
+          <div class="company-branding-cover" data-branding-cover
+            style="--branding-primary:{{ palette.primary }};--branding-foreground:{{ palette.on_primary }};--branding-focus:{{ profile.cover_focus_y }}%;">
+            <div class="company-branding-cover-photo" data-branding-cover-photo
+              {% if profile.cover_url %}style="background-image:url('{{ profile.cover_url }}')"{% endif %}></div>
+            <div class="company-branding-cover-top">
+              <div class="company-branding-logo" data-branding-logo>
+                {% if profile.logo_url %}
+                  <img src="{{ profile.logo_url }}" alt="{{ company.name }}">
+                {% else %}
+                  <span>{{ company.name }}</span>
+                {% endif %}
+              </div>
+            </div>
+            <div class="company-branding-cover-bottom">
+              <div class="company-branding-cover-rule"></div>
+              <p class="company-branding-cover-kicker">{% if sv == 'sv' %}EXEMPELRAPPORT{% else %}SAMPLE REPORT{% endif %}</p>
+              <h4>{% if sv == 'sv' %}Teamrapport{% else %}Team report{% endif %}</h4>
+              <p class="company-branding-cover-company">{{ company.name }}</p>
+              <p class="company-branding-cover-caption">{% if sv == 'sv' %}Exempelteam · Syntetiska data{% else %}Example team · Synthetic data{% endif %}</p>
+            </div>
+          </div>
+          <p class="text-muted small mt-3 mb-0">{% if sv == 'sv' %}Omslaget visar hur logotyp, bild och färg samspelar. Den faktiska PDF-exporten kopplas på separat.{% else %}Preview how the logo, cover and colour work together. PDF export integration follows separately.{% endif %}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endwith %}
+<script src="{% static 'js/talena/company-branding.js' %}" defer></script>
+{% endblock %}
