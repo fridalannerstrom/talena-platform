@@ -68,10 +68,27 @@
   z-index: -10;
   width: 900px;
   min-width: 900px;
-  padding: 32px;
+  padding: 0;
   background: #fff;
   color: #302d2b;
   pointer-events: none;
+}
+
+/* Individual PDFs have exactly the same full-bleed branded A4 cover as
+   the shared team report; its PNG logo has no white backing. */
+.talena-team-page.team-profile-pdf-stage .team-profile-pdf-body {
+  display: block;
+  width: 900px;
+  padding: 32px;
+  margin: 0;
+  background: #fff;
+}
+.talena-team-page.team-profile-pdf-stage .team-profile-pdf-cover {
+  margin: 0;
+}
+.talena-team-page.team-profile-pdf-stage .team-profile-pdf-body .team-styles-header h2,
+.talena-team-page.team-profile-pdf-stage .team-profile-pdf-heading h1 {
+  color: var(--team-report-accent-dark, #C94D41) !important;
 }
 
 .talena-team-page.team-profile-pdf-stage .team-member-report-content {
