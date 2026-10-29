@@ -138,7 +138,7 @@
     // Keep only visible, previously rendered content. Hidden AI placeholders,
     // interactive controls and editable/unsaved candidate notes are excluded.
     clone.querySelectorAll(
-      "button, input, textarea, select, form, " +
+      "button, a, input, textarea, select, form, [contenteditable], " +
       ".candidate-insights-subnavigation, .candidate-insights-navigation, " +
       "[data-report-pdf-toolbar], .after-interview-manager-report__edit-controls, " +
       "[hidden], .d-none, .visually-hidden, [aria-hidden='true'], " +
