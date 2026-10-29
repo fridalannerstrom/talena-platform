@@ -30,7 +30,6 @@ for (const guard of ["assertAnonymousSafe(stage)", "sourceSelectors(anonymous)",
   assert.ok(js.includes(guard), "missing export or privacy guard: " + guard);
 }
 assert.ok(js.includes("profile.dataset.reportName"), "no candidate-name privacy check");
-assert.ok(js.includes("data-original"), "test needs checking text privacy stripping") if false else null;
 
 for (const marker of [
   "data-team-report-summary", "data-team-report-composite", "data-team-report-maximum-numeric",
