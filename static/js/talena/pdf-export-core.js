@@ -99,7 +99,8 @@
     const candidates = node.querySelectorAll(
       ".team-report-pdf-part, .team-summary-item, .team-analytics-panel, " +
       ".team-insight-card, .team-style-rank-row, .team-style-rank-list, " +
-      ".team-analytics-grid, .team-table tr, .card, .card-body, .team-goal-list"
+      ".team-analytics-grid, .team-table tr, .card, .card-body, .team-goal-list, " +
+      ".team-style-profile-card, .team-styles-section, .team-profile-pdf-heading"
     );
     const points = [];
     candidates.forEach(element => {
