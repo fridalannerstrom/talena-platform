@@ -39,8 +39,13 @@ The team page's existing anonymity toggle controls export mode too. When enabled
   bars use the derived palette; the team-style chart retains its distinct
   categorical colours for legibility.
 - The PDF engine is the new `static/js/talena/pdf-export-core.js`:
-  A4, raster per logical report section, multi-page slicing, PDF metadata,
-  real browser download; no backend report storage.
+  A4, a single continuously flowing report body after the cover, multi-page
+  slicing near natural card boundaries, PDF metadata, real browser download;
+  no backend report storage. Short sections no longer create separate A4 pages.
+- PNG logos render directly on the cover image with no imposed white backing.
+  The admin preview does the same. Actual image alpha is preserved when the
+  logo is uploaded; a PNG that already contains opaque white pixels does not
+  become transparent automatically (upload a logo with alpha in that case).
 - `#359`, `#360` and the existing `#181` should migrate to this core
   incrementally before their own final tickets can be closed.
 
@@ -63,3 +68,16 @@ Known limit: the PDF body uses images of the rendered UI, so text in the
 body is not selectable/searchable. More semantically rich PDF construction is
 tracked with common report exports (#359/#360); do not treat this version as
 the final shared report PDF platform.
+
+## Layout regression: sample 7-page export
+
+The sample PDF supplied during October 2026 UI testing was seven pages, with
+most body pages nearly empty because each HTML report section started a new
+A4 page. The revised browser export captures the combined report body **once**
+while keeping the cover as its own A4 page. Smart slicing places a page break
+near a card boundary when it uses at least 72% of the page height. If no suitable
+boundary exists, it fills the page rather than generating a largely empty page.
+
+Before closing ticket #180, verify the sample team's new PDF uses fewer pages,
+there are no missing sections or split headings/charts, and compare anonymous
+and full exports separately. A long team report will still use several pages.
