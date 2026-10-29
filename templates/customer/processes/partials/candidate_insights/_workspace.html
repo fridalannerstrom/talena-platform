@@ -108,6 +108,9 @@
     data-report-brand-cover="{{ report_branding.cover_url|default:'' }}"
     data-report-brand-focus="{{ report_branding.cover_focus_y|default:50 }}"
     data-report-brand-company="{{ company.name }}"
+    data-report-has-personality="{% if has_personality_results %}true{% else %}false{% endif %}"
+    data-report-has-motivation="{% if has_motivation_results %}true{% else %}false{% endif %}"
+    data-report-has-cognitive="{% if has_ability_results %}true{% else %}false{% endif %}"
   >
 
     <div class="candidate-insights-workspace__inner">
