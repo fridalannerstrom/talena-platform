@@ -7,7 +7,7 @@ from django.core import mail
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
-from apps.accounts.models import Company
+from apps.accounts.models import Company, CompanyMember, OrgUnit, UserOrgUnitAccess
 from apps.emails.models import CompanyInvitationTemplate, EmailLog, EmailTemplate
 from apps.emails.utils import get_default_invitation_template, resolve_invitation_template
 from apps.processes.models import Candidate, TestInvitation, TestProcess
@@ -203,6 +203,120 @@ class CompanyInvitationTemplateTests(TestCase):
         saved.refresh_from_db()
         self.assertFalse(saved.is_active)
         self.assertEqual(resolve_invitation_template(self.process, "sv", saved)["source"], "company")
+
+    def grant_customer_editor_access(self):
+        """Make process editable through the real tenant/org-unit permissions."""
+        unit = OrgUnit.objects.create(
+            company=self.company, name="Recruitment", unit_code="RECR",
+        )
+        CompanyMember.objects.create(
+            company=self.company, user=self.customer,
+            primary_org_unit=unit, role="member",
+        )
+        UserOrgUnitAccess.objects.create(
+            user=self.customer, org_unit=unit, permission="editor",
+        )
+        self.process.org_unit = unit
+        self.process.save(update_fields=["org_unit"])
+
+    def test_customer_save_override_without_checkbox_then_restore_company_default(self):
+        self.grant_customer_editor_access()
+        company_template = self.company_template()
+        self.client.force_login(self.customer)
+        url = reverse("emails:edit_process_invitation_template", args=[self.process.pk])
+
+        before = self.client.get(url)
+        self.assertEqual(before.status_code, 200)
+        self.assertFalse(before.context["is_process_override"])
+        self.assertEqual(
+            before.context["form"]["subject"].value(), company_template.subject,
+        )
+        self.assertNotContains(before, 'name="is_active"')
+        self.assertNotContains(before, 'name="action" value="reset_to_default"')
+
+        # No activation checkbox is sent by the customer editor. Saving
+        # creates an active override without needing a separate checkbox.
+        response = self.client.post(url, {
+            "action": "save",
+            "subject": "Personalised {first_name}",
+            "body": "Custom text: {assessment_url}",
+            "language": "en",  # Must not change the process's actual language
+        })
+        self.assertEqual(response.status_code, 302)
+        saved = EmailTemplate.objects.get(
+            process=self.process, template_type="invitation", language="sv",
+        )
+        self.assertTrue(saved.is_active)
+        self.assertEqual(saved.subject, "Personalised {first_name}")
+        self.assertEqual(resolve_invitation_template(self.process, "sv", saved)["source"], "process")
+
+        after = self.client.get(url)
+        self.assertEqual(after.status_code, 200)
+        self.assertTrue(after.context["is_process_override"])
+        self.assertContains(after, 'name="action" value="reset_to_default"')
+        self.assertNotContains(after, 'name="is_active"')
+
+        restored = self.client.post(url, {"action": "reset_to_default"})
+        self.assertEqual(restored.status_code, 302)
+        saved.refresh_from_db()
+        self.assertFalse(saved.is_active)
+        self.assertEqual(resolve_invitation_template(self.process, "sv", saved)["source"], "company")
+
+        inherited = self.client.get(url)
+        self.assertFalse(inherited.context["is_process_override"])
+        self.assertEqual(inherited.context["form"]["subject"].value(), company_template.subject)
+        self.assertEqual(inherited.context["form"]["body"].value(), company_template.body)
+        self.assertNotContains(inherited, 'name="action" value="reset_to_default"')
+
+    def test_customer_reset_without_company_template_restores_talena_default(self):
+        self.grant_customer_editor_access()
+        saved = EmailTemplate.objects.create(
+            process=self.process, language="sv", template_type="invitation",
+            subject="Own copy", body="Own text: {assessment_url}", is_active=True,
+        )
+        self.client.force_login(self.customer)
+        url = reverse("emails:edit_process_invitation_template", args=[self.process.pk])
+        self.assertTrue(self.client.get(url).context["is_process_override"])
+        self.assertEqual(
+            self.client.post(url, {"action": "reset_to_default"}).status_code, 302,
+        )
+        saved.refresh_from_db()
+        self.assertFalse(saved.is_active)
+        response = self.client.get(url)
+        standard = get_default_invitation_template("sv")
+        self.assertEqual(response.context["default_source"], "talena")
+        self.assertEqual(response.context["form"]["subject"].value(), standard["subject"])
+        self.assertEqual(response.context["form"]["body"].value(), standard["body"])
+
+    def test_customer_reset_enforces_tenant_and_edit_permissions(self):
+        self.grant_customer_editor_access()
+        saved = EmailTemplate.objects.create(
+            process=self.process, language="sv", template_type="invitation",
+            subject="Own copy", body="Own text: {assessment_url}",
+        )
+        url = reverse("emails:edit_process_invitation_template", args=[self.process.pk])
+        # User outside company cannot reset.
+        stranger = get_user_model().objects.create_user(
+            username="stranger", email="other@example.test", password="password",
+        )
+        CompanyMember.objects.create(user=stranger, company=self.other_company)
+        self.client.force_login(stranger)
+        self.assertEqual(
+            self.client.post(url, {"action": "reset_to_default"}).status_code, 403,
+        )
+        saved.refresh_from_db()
+        self.assertTrue(saved.is_active)
+
+        # Viewer has company membership but must not be allowed to edit.
+        UserOrgUnitAccess.objects.filter(
+            user=self.customer, org_unit=self.process.org_unit,
+        ).update(permission="viewer")
+        self.client.force_login(self.customer)
+        self.assertEqual(
+            self.client.post(url, {"action": "reset_to_default"}).status_code, 403,
+        )
+        saved.refresh_from_db()
+        self.assertTrue(saved.is_active)
 
     @patch("apps.processes.services.send_tests.log_event")
     @patch("apps.processes.services.send_tests.register_sent_assessments")
