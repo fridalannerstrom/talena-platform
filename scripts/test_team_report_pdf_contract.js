@@ -38,5 +38,35 @@ for (const marker of [
 ]) assert.ok(tpl.includes(marker), "team template missing: " + marker);
 
 assert.ok(core.includes("pdf.setProperties"), "PDF metadata should be explicitly controlled");
+assert.ok(js.includes('const body = newElement("main", "team-report-pdf-body")'), "report sections should be laid out continuously");
+assert.ok(js.includes('{ node: body, continuous: true }'), "PDF must capture continuous body once");
+assert.ok(!js.includes("...parts.map(node => ({ node }))],"), "no standalone page per small section");
+
+const vm = require("node:vm");
+const sandbox = { window: {} };
+vm.runInNewContext(core, sandbox, { timeout: 1000 });
+const paginate = sandbox.window.TalenaPdfExport.calculatePageSlices;
+assert.equal(typeof paginate, "function");
+
+function verifySlices(height, maxPage, boundaries, maxExpectedPages) {
+  const slices = paginate(height, maxPage, boundaries);
+  assert.ok(slices.length <= maxExpectedPages, "too many near-empty pages");
+  assert.equal(slices[0].start, 0);
+  assert.equal(slices[slices.length - 1].start + slices[slices.length - 1].height, height);
+  for (const [index, slice] of slices.entries()) {
+    assert.ok(slice.height > 0 && slice.height <= maxPage);
+    if (index > 0) {
+      assert.equal(slice.start, slices[index - 1].start + slices[index - 1].height);
+    }
+  }
+  return slices;
+}
+verifySlices(400, 1000, [], 1);
+verifySlices(2750, 1000, [100, 300, 750, 1600, 1800, 2600], 4);
+verifySlices(1500, 1000, [70, 150, 300], 2);
+verifySlices(4800, 1000, [950, 1910, 3100, 4000], 6);
+const natural = verifySlices(2250, 1000, [760, 1780], 3);
+assert.equal(natural[0].height, 760, "a near-page-end card boundary should be preferred");
+
 assert.ok(core.includes("pdf.save("), "download must produce a real PDF");
 console.log("Team report PDF contract: anonymous whitelist, branding, and export wiring OK");
