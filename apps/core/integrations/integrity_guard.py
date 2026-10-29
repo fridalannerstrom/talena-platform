@@ -14,7 +14,7 @@ DIAGNOSTIC_KEYS = ("diagnostics", "diagnostic_statuses", "checks", "details")
 
 
 def _key(value):
-    return re.sub(r"[^a-z0-9]+", "_", re.sub(r"([a-z0-9])([A-Z])", r"\1_\2", str(value))).strip("_").lower()
+    return re.sub(r"[^a-z0-9]+", "_", re.sub(r"([a-z0-9])([A-Z])", r"\1_\2", str(value)).lower()).strip("_")
 
 
 def _fields(mapping):
