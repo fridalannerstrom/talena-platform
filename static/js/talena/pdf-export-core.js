@@ -177,6 +177,11 @@
       }
     }
     if (pageCount.value < 1) throw new Error("The report could not be rendered.");
+    // A ZIP download needs one in-memory PDF blob per person. Never trigger
+    // standalone downloads while building an archive.
+    if (options.returnBlob) {
+      return new Blob([pdf.output("arraybuffer")], { type: "application/pdf" });
+    }
     pdf.save(options.filename || "talena-report.pdf");
   }
 
