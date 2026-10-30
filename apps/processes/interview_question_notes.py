@@ -895,13 +895,13 @@ def process_candidate_post_interview_decision_support_stream_with_evidence(
         try:
             for key in selected_keys:
                 if key == "overall_picture" and structured:
-                    from apps.core.ai.structured_overall_picture import generate_structured_overall_picture
+                    from apps.core.ai.structured_overall_picture import guarded_structured_overall_picture
                     yield json.dumps(
                         {"type": "content_block_started", "block": key},
                         ensure_ascii=False,
                     ) + "\n"
                     structured_failed = False
-                    for event in generate_structured_overall_picture(
+                    for event in guarded_structured_overall_picture(
                         owner, language_code=language_code,
                         category=structured_section or None, force=force,
                     ):
