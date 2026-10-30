@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "review_date": "2026-10-27",
+  "review_date": "2026-10-30",
   "status": "code_source_callsite_inventory_not_verified_network_payloads",
   "scope": "Only Python OpenAI SDK callsites under apps/. No actual candidate data inspected.",
   "sdk_client": "apps/core/ai/openai_client.py",
@@ -244,6 +244,23 @@
       ],
       "freetext": true,
       "comment": "IDs appear in local signature, not the outgoing prompt_context by current source code."
+    },
+    {
+      "path": "apps/core/ai/structured_overall_picture.py",
+      "calls": 1,
+      "functions": [
+        "_completion"
+      ],
+      "status": "active_after_interview_structured_overall_picture",
+      "data": [
+        "single available cognitive result and its percentile OR one actual top-three scored motivation factor and approved definition OR selected personality trait/indicator summaries",
+        "same-company role/purpose context for relevance only",
+        "general interview notes plus exact question/answer evidence restricted to the current assessment category",
+        "four separate administrator-editable prompt variants and global protected guidance",
+        "final synthesis receives prior successful Testbild/Intervjun text only; no new raw assessment or interview evidence"
+      ],
+      "freetext": true,
+      "comment": "Issue #355: sequential focused JSON-mode Chat Completions for one item/selection/synthesis at a time. Candidate is pseudonym CANDIDATE_A, with redact_candidate_name on the final prompt. General notes are free text; existing server/client PII masking applies. No external candidate report use, no response stored at OpenAI by this module."
     }
   ]
 }
