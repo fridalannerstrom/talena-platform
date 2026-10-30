@@ -21,7 +21,7 @@ for(const text of ["createTextNode", "textContent", "structured_section_error", 
 // One header refresh button, no individual area buttons. The backend must
 // receive no "section" filter so it generates skills, motivation, personality
 // and their final synthesis in one request.
-assert.equal((ui.match(/dataset\\.overallPictureGenerate = "true"/g) || []).length, 1,
+assert.equal((ui.match(/dataset\.overallPictureGenerate = "true"/g) || []).length, 1,
              "expected exactly one page-level generate button");
 assert.ok(ui.includes("header.append(headerCopy, generateButton)"),
           "generate action must be in top-right of Helhetsbild header");
