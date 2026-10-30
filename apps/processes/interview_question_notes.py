@@ -828,6 +828,8 @@ def process_candidate_post_interview_decision_support_stream_with_evidence(
             if str(saved_blocks.get(key) or "").strip():
                 statuses[key] = "outdated"
         saved_result["content_block_statuses"] = statuses
+        from apps.core.ai.structured_overall_picture import mark_structured_sections_outdated
+        mark_structured_sections_outdated(saved_result)
         owner.ai_post_interview_decision_support = saved_result
         owner.save(update_fields=[
             "ai_post_interview_decision_support",
@@ -841,8 +843,10 @@ def process_candidate_post_interview_decision_support_stream_with_evidence(
             if str(saved_blocks.get(key) or "").strip() and statuses.get(key) != "outdated":
                 statuses[key] = "outdated"
                 changed = True
+        from apps.core.ai.structured_overall_picture import mark_structured_sections_outdated
+        saved_result = dict(saved_result)
+        changed = mark_structured_sections_outdated(saved_result) or changed
         if changed:
-            saved_result = dict(saved_result)
             saved_result["content_block_statuses"] = statuses
             owner.ai_post_interview_decision_support = saved_result
             owner.save(update_fields=["ai_post_interview_decision_support"])
