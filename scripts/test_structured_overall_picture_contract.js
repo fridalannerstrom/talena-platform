@@ -18,6 +18,26 @@ for(const text of ["createTextNode", "textContent", "structured_section_error", 
                     "after-interview-overall__legacy", "postInterviewRegenerateUrl"]) {
   assert.ok(ui.includes(text) || text==="createTextNode", "missing safe rendering/progress: "+text);
 }
+// One header refresh button, no individual area buttons. The backend must
+// receive no "section" filter so it generates skills, motivation, personality
+// and their final synthesis in one request.
+assert.equal((ui.match(/dataset\\.overallPictureGenerate = "true"/g) || []).length, 1,
+             "expected exactly one page-level generate button");
+assert.ok(ui.includes("header.append(headerCopy, generateButton)"),
+          "generate action must be in top-right of Helhetsbild header");
+assert.ok(ui.includes("btn btn-icon btn-light after-interview-tab-card__regenerate"),
+          "generate action must match existing refresh button styling");
+assert.ok(ui.includes('generateButton.addEventListener("click", generate)'),
+          "header refresh must trigger full report generation");
+assert.ok(ui.includes('endpoint.searchParams.delete("section")'),
+          "full report regeneration must not filter an individual category");
+assert.ok(!ui.includes('endpoint.searchParams.set("section"'),
+          "individual category generation controls must be removed");
+assert.ok(!ui.includes('row.append(left, button)'),
+          "no per-section generate buttons may remain");
+assert.ok(ui.includes('generateButton.disabled = true')
+          && ui.includes('generateButton.disabled = false'),
+          "single action must lock against repeat clicks while generating");
 assert.ok(!ui.includes("innerHTML"), "model text must never become HTML");
 assert.ok(stream.includes('structured_section = str(request.GET.get("section")'), "back-end section routing absent");
 console.log("Structured Helhetsbild UI contract OK");
