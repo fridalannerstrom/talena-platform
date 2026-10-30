@@ -8,7 +8,7 @@
   data-manager-report-brand-dark="{{ report_branding.palette.dark|default:'#C94D41' }}"
   data-manager-report-brand-logo="{{ report_branding.logo_url|default:'' }}"
   data-manager-report-brand-cover="{{ report_branding.cover_url|default:'' }}"
-  data-manager-report-brand-focus="{{ report_branding.cover_focus_y|default:50 }}"
+  data-manager-report-brand-focus="{{ report_branding.cover_focus_y|default_if_none:50 }}"
   data-manager-report-brand-company="{{ report_branding.company_name|default:'Talena' }}"
   data-refresh-url="{{ final_output_refresh_url }}"
   data-pre-interview-stream-url="{{ pre_interview_decision_support_stream_url }}"
