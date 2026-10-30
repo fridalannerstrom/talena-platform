@@ -11,6 +11,7 @@ from django.db.models import Count
 from django.views.decorators.http import require_POST
 from apps.core.integrations.sova import SovaClient
 from apps.projects.models import ProjectMeta
+from apps.accounts.report_branding import get_report_branding
 from .utils.org_access import get_accessible_orgunit_ids
 from apps.processes.views import (
     build_scores_by_competency,
@@ -1537,6 +1538,7 @@ def build_candidate_detail_context(process, invitation):
     return {
 
         "company": process.company,
+        "report_branding": get_report_branding(process.company),
         "process": process,
         "invitation": invitation,
         "inv": invitation,
