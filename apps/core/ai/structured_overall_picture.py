@@ -279,7 +279,7 @@ def _theme_selection(owner, shared, rows, notes, language):
     if not rows:
         return []
     identity = [r["key"] for r in rows]
-    global_rules, guidance = _guidance("personality", language)
+    global_rules, _narrative_guidance = _guidance("personality", language)
     prompt = (
         "Select up to seven (usually five to seven when supported) genuinely distinct "
         "ROLE-RELEVANT work themes from the supplied candidate personality evidence "
@@ -293,7 +293,9 @@ def _theme_selection(owner, shared, rows, notes, language):
         "\nPersonality results: " + json.dumps(
             [{"key": x["key"], "title": x["title"], "summary": x["evidence"]["summary"]} for x in rows],
             ensure_ascii=False
-        ) + "\nProtected constraints: " + global_rules + "\nAdministrator guidance: " + guidance
+        ) + "\nProtected constraints: " + global_rules
+        # The editable personality-writing instructions are used in the
+        # per-theme text calls, not this typed theme-selection step.
     )
     parsed = _completion(prompt, owner, output_tokens=1200)
     results = []
