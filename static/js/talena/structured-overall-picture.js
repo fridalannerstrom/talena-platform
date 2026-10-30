@@ -28,6 +28,26 @@
       return parsed && parsed.schema === 1 ? parsed : {};
     } catch (_error) { return {}; }
   };
+  // A previous model response could contain Python repr/JSON dictionaries
+  // rather than prose. Never display those raw source notes as report text.
+  const isRawSourceDump = (value) => {
+    if (value && typeof value === "object") return true;
+    if (typeof value !== "string") return false;
+    const trimmed = value.trim();
+    return /^[\[{]\s*['"]/.test(trimmed)
+      || /^[\[{]\s*[a-zA-Z_]\w*\s*:/.test(trimmed)
+      || /['"](?:definition|general_notes|question_evidence|saved_answer_or_note|traits|indicators|summary)['"]\s*:/.test(trimmed.slice(0, 400));
+  };
+  const hasRawSourceLeak = (section) => {
+    if (isRawSourceDump(section?.text)) return true;
+    return (section?.items || []).some(
+      item => isRawSourceDump(item.testbild) || isRawSourceDump(item.intervjun)
+    );
+  };
+  const containsLegacyDump = (value) => {
+    const text = String(value || "");
+    return /\{\s*['"](?:definition|general_notes|traits|indicators|question_evidence|saved_answer_or_note)['"]\s*:/.test(text);
+  };
   const addParagraphs = (target, content) => {
     const paragraphs = String(content || "").trim().split(/\n\s*\n/).filter(Boolean);
     if (!paragraphs.length) target.appendChild(el("p", "after-interview-overall__muted",
@@ -166,13 +186,22 @@
       updateGenerateLabel();
       layout.replaceChildren();
       const sections = state.sections || {};
-      const fullyCurrent = sections.synthesis?.status === "completed"
+      const hasLeakedSections = Object.values(sections).some(hasRawSourceLeak);
+      if (hasLeakedSections) {
+        layout.appendChild(el("div", "alert alert-warning after-interview-overall__source-warning",
+          tr("En tidigare AI-generering innehåller tekniskt underlag i stället för rapporttext. "
+            + "Generera hela Helhetsbilden igen med knappen längst upp till höger.",
+            "An earlier AI response contains source data instead of report prose. "
+            + "Regenerate the entire Overall picture using the button above.")));
+      }
+      const fullyCurrent = !hasLeakedSections && sections.synthesis?.status === "completed"
         && ["skills", "motivation", "personality"].every(
           key => ["completed", "not_applicable"].includes(sections[key]?.status)
         );
       // If a new report is only partly ready, do not hide an older complete
       // Markdown report. The structured result may have failed mid-generation.
-      if (!fullyCurrent && legacy?.textContent?.trim()) {
+      if (!fullyCurrent && legacy?.textContent?.trim()
+          && !containsLegacyDump(legacy.textContent)) {
         const older = el("section", "after-interview-overall__legacy");
         older.append(
           el("h4", "after-interview-overall__group-title", tr("Tidigare Helhetsbild", "Previous Overall picture")),
@@ -196,17 +225,18 @@
         );
         // Completed sections need no visual status label; keep warnings and
         // pending/error states visible so users know when action is needed.
-        if (section.status !== "completed") {
+        const sectionStatus = hasRawSourceLeak(section) ? "outdated" : section.status;
+        if (sectionStatus !== "completed") {
           left.appendChild(
             el("span", "after-interview-overall__status",
-              statusText[section.status] || statusText.not_started)
+              statusText[sectionStatus] || statusText.not_started)
           );
         }
         row.append(left);
         area.appendChild(row);
 
         if (key === "synthesis") {
-          if (section.text) {
+          if (section.text && !isRawSourceDump(section.text)) {
             const body = el("div", "after-interview-overall__synthesis");
             addParagraphs(body, section.text);
             area.appendChild(body);
@@ -215,15 +245,18 @@
           for (const item of section.items || []) {
             const box = el("article", "after-interview-overall__item");
             box.appendChild(el("h5", "after-interview-overall__item-title", item.title));
-            if (item.status !== "completed") {
+            const itemNeedsRegeneration = isRawSourceDump(item.testbild)
+              || isRawSourceDump(item.intervjun);
+            if (itemNeedsRegeneration || item.status !== "completed") {
               box.appendChild(el("p", "after-interview-overall__muted",
-                statusText[item.status] || statusText.not_started));
+                statusText[itemNeedsRegeneration ? "outdated" : item.status]
+                  || statusText.not_started));
             }
-            if (item.testbild) {
+            if (item.testbild && !isRawSourceDump(item.testbild)) {
               box.appendChild(el("h6", "after-interview-overall__subheading", "Testbild"));
               addParagraphs(box, item.testbild);
             }
-            if (item.intervjun) {
+            if (item.intervjun && !isRawSourceDump(item.intervjun)) {
               box.appendChild(el("h6", "after-interview-overall__subheading", tr("Intervjun", "Interview")));
               addParagraphs(box, item.intervjun);
             }
