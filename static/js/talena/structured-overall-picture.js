@@ -132,7 +132,13 @@
     const render = () => {
       layout.replaceChildren();
       const sections = state.sections || {};
-      if (!Object.keys(sections).length && legacy?.textContent?.trim()) {
+      const fullyCurrent = sections.synthesis?.status === "completed"
+        && ["skills", "motivation", "personality"].every(
+          key => ["completed", "not_applicable"].includes(sections[key]?.status)
+        );
+      // If a new report is only partly ready, do not hide an older complete
+      // Markdown report. The structured result may have failed mid-generation.
+      if (!fullyCurrent && legacy?.textContent?.trim()) {
         const older = el("section", "after-interview-overall__legacy");
         older.append(
           el("h4", "after-interview-overall__group-title", tr("Tidigare Helhetsbild", "Previous Overall picture")),
