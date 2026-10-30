@@ -1978,9 +1978,19 @@
     const exploreFallback = document.createElement("div");
     [contradictions, remaining].filter(Boolean).forEach((node) => exploreFallback.appendChild(node));
 
-    panels.get("overview").appendChild(
-      makeCard(panel, "overall_picture", copy().tabs.overview, copy().descriptions.overview, summary, "overall_picture"),
-    );
+    const overviewSource = sourceBlock(panel, "overall_picture");
+    if (window.TalenaStructuredOverallPicture?.createCard) {
+      panels.get("overview").appendChild(
+        window.TalenaStructuredOverallPicture.createCard(
+          panel, overviewSource, sourceContent(panel, "overall_picture"),
+          copy().tabs.overview, copy().descriptions.overview, outputRoot,
+        ),
+      );
+    } else {
+      panels.get("overview").appendChild(
+        makeCard(panel, "overall_picture", copy().tabs.overview, copy().descriptions.overview, summary, "overall_picture"),
+      );
+    }
     panels.get("interview").appendChild(
       makeCard(panel, "interview_summary", copy().tabs.interview, copy().descriptions.interview, evidenceGrid, "interview_summary"),
     );

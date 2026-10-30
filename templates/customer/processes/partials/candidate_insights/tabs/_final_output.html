@@ -1223,6 +1223,7 @@
       style="display: none;"
     >
       <div data-after-interview-block="overall_picture">
+        {{ post_interview_decision_support.overall_picture_structured|json_script:"talena-overall-picture-structured" }}
         <div data-after-interview-block-content>
           {{ post_interview_decision_support.content_blocks.overall_picture|default:"" }}
         </div>
