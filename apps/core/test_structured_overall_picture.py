@@ -30,7 +30,7 @@ class StructuredOverallPictureTests(SimpleTestCase):
                 self.assertIn("Testbild", AI_PROMPT_REGISTRY[key]["defaults"][lang])
 
     def test_skill_units_use_only_actual_available_areas_in_order(self):
-        with patch.object(report, "extract_cognitive_results", return_value=[
+        with patch("apps.core.ai.cognitive_interpretation.extract_cognitive_results", return_value=[
             {"key": "verbal", "percentile": 45},
             {"key": "numerical", "percentile": 63},
         ]):
@@ -40,7 +40,7 @@ class StructuredOverallPictureTests(SimpleTestCase):
         self.assertNotIn("logical", str(units))
 
     def test_motivation_uses_real_ranked_scores_without_raw_technical_heading(self):
-        with patch.object(report, "extract_motivation_results", return_value=[
+        with patch("apps.core.ai.motivation_interpretation.extract_motivation_results", return_value=[
             {"name": "Enjoyment", "score": 3.1, "definition": "Enjoying work"},
             {"name": "Learning", "score": 4.9, "definition": "Learning"},
             {"name": "Authority", "score": 4.6, "definition": "Leadership"},
