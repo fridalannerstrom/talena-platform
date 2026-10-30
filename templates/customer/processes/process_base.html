@@ -11174,12 +11174,10 @@ function initialiseDecisionSupportRoot(
 // ========================================================
 
 const postStreamUrl =
-  root.dataset
-    .postInterviewStreamUrl;
+  (root.dataset.postInterviewStreamUrl || "") + "?structured=1";
 
 const postRegenerateUrl =
-  root.dataset
-    .postInterviewRegenerateUrl;
+  (root.dataset.postInterviewRegenerateUrl || "") + "?structured=1";
 
 const postGenerateButton =
   root.querySelector(
