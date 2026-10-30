@@ -108,3 +108,46 @@ class StructuredOverallPictureTests(SimpleTestCase):
             selected = report._theme_selection(self.owner, self.shared, traits, self.notes, "en")
         self.assertEqual(selected[0]["traits"], ["Empathy"])
         self.assertEqual(len(selected), 2)
+
+    def test_full_orchestration_keeps_units_separate_and_completes_synthesis_last(self):
+        self.owner.ai_post_interview_decision_support = {}
+        categories = {
+            "skills": [{"key": "numerical", "title": "Numerisk",
+                        "evidence": {"percentile": 60}}],
+            "motivation": [{"key": "factor_1", "title": "Lärande",
+                            "evidence": {"name": "Lärande", "score": 4.7}}],
+            "personality": [{"key": "Empathy", "title": "Empati",
+                             "evidence": {"summary": "Explores others' needs"}}],
+        }
+        prompts = []
+
+        def evidence(_owner, category, language, _shared, _notes):
+            return categories.get(category, [])
+
+        def completion(prompt, _owner, **kwargs):
+            prompts.append(prompt)
+            if "Respond as JSON object with a single key text" in prompt:
+                return {"text": "Integrated, grounded synthesis."}
+            return {"testbild": "Assessment only.", "intervjun": "Interview only."}
+
+        with (
+            patch.object(report, "_state", return_value={"schema": 1, "sections": {}, "language": ""}),
+            patch.object(report, "_save"),
+            patch.object(report, "_subject_evidence", side_effect=evidence),
+            patch.object(report, "_theme_selection", return_value=[
+                {"key": "theme_1", "title": "Samarbete i praktiken", "traits": ["Empathy"]}
+            ]),
+            patch.object(report, "_guidance", return_value=("Protected", "Scoped")),
+            patch.object(report, "_completion", side_effect=completion),
+            patch.object(report, "build_shared_ai_context", return_value=self.shared),
+            patch("apps.core.ai.post_interview_question_evidence_policy.get_post_interview_note_evidence",
+                  return_value=self.notes),
+        ):
+            events = list(report.generate_structured_overall_picture(
+                self.owner, language_code="sv",
+            ))
+        self.assertEqual(len(prompts), 4)
+        self.assertEqual([e["section"] for e in events if e["type"] == "structured_item_complete"],
+                         ["skills", "motivation", "personality"])
+        self.assertEqual(events[-1]["data"]["sections"]["synthesis"]["status"], "completed")
+        self.assertIn("Integrated, grounded synthesis", events[-1]["markdown"])
