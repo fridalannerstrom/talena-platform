@@ -29,6 +29,7 @@
   <link href="{% static 'css/talena/pages/process-list.css' %}?v=20260924-completed" rel="stylesheet" />
   <link href="{% static 'css/talena/pages/team-styles.css' %}" rel="stylesheet" />
   <link href="{% static 'css/talena/pages/interview-question-notes.css' %}" rel="stylesheet" />
+  <link href="{% static 'css/talena/pages/structured-overall-picture.css' %}?v=20261030-355" rel="stylesheet" />
   {# Shared branded A4 PDF cover used by team and manager reports. #}
   <link href="{% static 'css/talena/pages/team-report-export.css' %}" rel="stylesheet" />
 
@@ -127,7 +128,8 @@
   {# Candidate post-interview hierarchy refinement. Safe no-op outside candidate insights. #}
   <script src="{% static 'js/talena/after-interview-structure.js' %}"></script>
   <script src="{% static 'js/talena/pdf-export-core.js' %}"></script>
-  <script src="{% static 'js/talena/after-interview-tabs.js' %}?v=20261030-branded-pdf"></script>
+  <script src="{% static 'js/talena/structured-overall-picture.js' %}?v=20261030-355"></script>
+  <script src="{% static 'js/talena/after-interview-tabs.js' %}?v=20261030-355"></script>
 
   {# Keeps Chart.js team-style arc geometry stable during hover redraws. #}
   <script src="{% static 'js/talena/team-style-hover-fix.js' %}"></script>
