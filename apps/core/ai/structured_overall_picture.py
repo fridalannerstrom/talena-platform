@@ -182,6 +182,7 @@ def _subject_evidence(owner, category, language, shared, notes):
     # Lazy imports prevent the admin prompt registry from importing AI generators
     # while the registry itself is still being initialized.
     from .cognitive_interpretation import extract_cognitive_results
+    from apps.reports.libraries.cognitive.builder import build_cognitive_report
     from .motivation_interpretation import (
         extract_motivation_results, get_motivation_factor_display_name,
     )
@@ -189,10 +190,23 @@ def _subject_evidence(owner, category, language, shared, notes):
     if category == "skills":
         found = {row["key"]: row for row in extract_cognitive_results(owner)}
         order = ("numerical", "logical", "verbal")
-        return [{
-            "key": key, "title": SKILL_TITLES[language][key],
-            "evidence": {"percentile": found[key]["percentile"], "test": key},
-        } for key in order if key in found]
+        units = []
+        for key in order:
+            if key not in found:
+                continue
+            percentile = found[key]["percentile"]
+            approved = build_cognitive_report(
+                test_key=key, audience="practitioner", percentile=percentile,
+            )
+            units.append({
+                "key": key, "title": SKILL_TITLES[language][key],
+                "evidence": {
+                    "percentile": percentile, "test": key,
+                    "approved_test_description": approved.get("test_description") or "",
+                    "approved_result_interpretation": approved.get("result_text") or "",
+                },
+            })
+        return units
     if category == "motivation":
         scores = sorted(
             extract_motivation_results(owner),
