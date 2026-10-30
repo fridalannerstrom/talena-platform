@@ -390,7 +390,7 @@ def generate_structured_overall_picture(owner, *, language_code="sv", category=N
             if not any(sec.get("items") for sec in sources):
                 yield {"type": "structured_section_skipped", "section": part}
                 continue
-            if any(sec.get("status") in ("failed", "outdated", "generating") for sec in sources):
+            if any(sec.get("status") not in ("completed", "not_applicable") for sec in sources):
                 yield {"type": "structured_section_error", "section": part, "message": "Regenerate outdated/failed source sections before final synthesis."}
                 continue
             fingerprint = _hash({
@@ -467,10 +467,9 @@ def generate_structured_overall_picture(owner, *, language_code="sv", category=N
                 if not testbild:
                     raise ValueError("The model did not return Testbild.")
                 if not intervjun:
-                    if not scoped_notes["general_notes"] and not scoped_notes["question_evidence"]:
-                        intervjun = MISSING_INTERVIEW[language]
-                    else:
-                        raise ValueError("The model did not return Intervjun.")
+                    # General notes may exist without covering this particular area.
+                    # A blank interview field is never permission to invent examples.
+                    intervjun = MISSING_INTERVIEW[language]
                 saved_items.append({
                     "key": item["key"], "title": item["title"], "testbild": testbild,
                     "intervjun": intervjun, "status": "completed",
@@ -502,3 +501,15 @@ def generate_structured_overall_picture(owner, *, language_code="sv", category=N
         yield {"type": "structured_section_complete" if not section_error else "structured_section_error",
                "section": part, **({"message": "Some report items failed."} if section_error else {})}
     yield {"type": "structured_result", "data": state, "markdown": _legacy_markdown(state)}
+
+def guarded_structured_overall_picture(owner, **kwargs):
+    """Best-effort duplicate-submit guard; cache should be shared between workers."""
+    from django.core.cache import cache
+
+    lock = "talena:overall_picture:" + str(owner.pk)
+    if not cache.add(lock, "generating", timeout=900):
+        raise ValueError("Overall picture generation is already in progress.")
+    try:
+        yield from generate_structured_overall_picture(owner, **kwargs)
+    finally:
+        cache.delete(lock)
