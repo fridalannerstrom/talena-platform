@@ -722,6 +722,13 @@ def process_candidate_post_interview_decision_support_stream_with_evidence(
 
     language_code = get_request_ai_language(request)
     block_key = str(request.GET.get("block") or "").strip()
+    structured = request.GET.get("structured") == "1"
+    structured_section = str(request.GET.get("section") or "").strip()
+    if structured_section and (
+        not structured or structured_section not in ("skills", "motivation", "personality", "synthesis")
+        or block_key != "overall_picture"
+    ):
+        return JsonResponse({"error": "Invalid structured report section."}, status=400)
     if block_key and block_key not in POST_INTERVIEW_CONTENT_BLOCK_KEYS:
         return JsonResponse({"error": "Unknown After interview section."}, status=400)
 
@@ -843,6 +850,8 @@ def process_candidate_post_interview_decision_support_stream_with_evidence(
     force = request.GET.get("force") == "1"
     selected_keys = [block_key] if block_key else list(POST_INTERVIEW_CONTENT_BLOCK_KEYS)
     blocks_ready = all(str(saved_blocks.get(key) or "").strip() for key in selected_keys)
+    if structured:
+        blocks_ready = False  # Legacy Markdown does not prove the new typed report is current.
     if (
         not force
         and current_status == "completed"
@@ -865,7 +874,7 @@ def process_candidate_post_interview_decision_support_stream_with_evidence(
         response["X-Accel-Buffering"] = "no"
         return response
 
-    if current_status == "generating":
+    if current_status == "generating" and not structured:
         return JsonResponse(
             {"error": "After interview content is already being generated."},
             status=409,
@@ -885,6 +894,56 @@ def process_candidate_post_interview_decision_support_stream_with_evidence(
         errors = []
         try:
             for key in selected_keys:
+                if key == "overall_picture" and structured:
+                    from apps.core.ai.structured_overall_picture import generate_structured_overall_picture
+                    yield json.dumps(
+                        {"type": "content_block_started", "block": key},
+                        ensure_ascii=False,
+                    ) + "\n"
+                    structured_failed = False
+                    for event in generate_structured_overall_picture(
+                        owner, language_code=language_code,
+                        category=structured_section or None, force=force,
+                    ):
+                        if event.get("type") in ("structured_item_error", "structured_section_error"):
+                            structured_failed = True
+                        if event.get("type") == "structured_result":
+                            report_state = event.get("data") or {}
+                            report_sections = report_state.get("sections") or {}
+                            report_ready = (
+                                report_sections.get("synthesis", {}).get("status") == "completed"
+                                and all(
+                                    report_sections.get(part, {}).get("status") in ("completed", "not_applicable")
+                                    for part in ("skills", "motivation", "personality")
+                                )
+                            )
+                            if report_ready:
+                                markdown = str(event.get("markdown") or "").strip()
+                                if markdown:
+                                    save_post_interview_content_block(
+                                        owner=owner, block_key=key,
+                                        text=markdown, language_code=language_code,
+                                    )
+                                    # Keep the old four-block orchestration compatible.
+                                    yield json.dumps(
+                                        {"type": "content_block_delta", "block": key, "text": markdown},
+                                        ensure_ascii=False,
+                                    ) + "\n"
+                            else:
+                                set_post_interview_content_block_status(
+                                    owner=owner, block_key=key, status="outdated",
+                                )
+                        yield json.dumps(event, ensure_ascii=False) + "\n"
+                    if structured_failed:
+                        errors.append((key, "One or more Overall picture items failed."))
+                        result_holder["failed_blocks"].append(key)
+                    else:
+                        result_holder["completed_blocks"].append(key)
+                        yield json.dumps(
+                            {"type": "content_block_complete", "block": key},
+                            ensure_ascii=False,
+                        ) + "\n"
+                    continue
                 current_blocks = (
                     (owner.ai_post_interview_decision_support or {}).get("content_blocks")
                     or {}
@@ -987,6 +1046,15 @@ def process_candidate_post_interview_decision_support_stream_with_evidence(
                 ) == "completed"
                 for key in POST_INTERVIEW_CONTENT_BLOCK_KEYS
             )
+            if structured:
+                structured_state = final_result.get("overall_picture_structured") or {}
+                structured_sections = structured_state.get("sections") or {}
+                all_complete = bool(
+                    all_complete
+                    and structured_sections.get("synthesis", {}).get("status") == "completed"
+                    and all(structured_sections.get(part, {}).get("status") in ("completed", "not_applicable")
+                            for part in ("skills", "motivation", "personality"))
+                )
             if all_complete:
                 stored_owner.ai_post_interview_decision_support_status = "completed"
                 stored_owner.ai_post_interview_decision_support_generated_at = timezone.now()
@@ -1067,6 +1135,13 @@ def process_candidate_post_interview_decision_support_regenerate_with_evidence(
     from apps.core.ai.decision_support import POST_INTERVIEW_CONTENT_BLOCK_KEYS
 
     block_key = str(request.GET.get("block") or "").strip()
+    structured = request.GET.get("structured") == "1"
+    structured_section = str(request.GET.get("section") or "").strip()
+    if structured_section and (
+        not structured or structured_section not in ("skills", "motivation", "personality", "synthesis")
+        or block_key != "overall_picture"
+    ):
+        return JsonResponse({"error": "Invalid structured report section."}, status=400)
     if block_key and block_key not in POST_INTERVIEW_CONTENT_BLOCK_KEYS:
         return JsonResponse({"error": "Unknown After interview section."}, status=400)
 
@@ -1104,10 +1179,15 @@ def process_candidate_post_interview_decision_support_regenerate_with_evidence(
             "candidate_id": candidate_id,
         },
     )
+    from urllib.parse import urlencode
+    params = {"force": "1"}
     if block_key:
-        stream_url += f"?block={block_key}&force=1"
-    else:
-        stream_url += "?force=1"
+        params["block"] = block_key
+    if structured:
+        params["structured"] = "1"
+        if structured_section:
+            params["section"] = structured_section
+    stream_url += "?" + urlencode(params)
 
     return JsonResponse({"ok": True, "stream_url": stream_url})
 
