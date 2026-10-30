@@ -154,3 +154,73 @@ class StructuredOverallPictureTests(SimpleTestCase):
                          ["skills", "motivation", "personality"])
         self.assertEqual(events[-1]["data"]["sections"]["synthesis"]["status"], "completed")
         self.assertIn("Integrated, grounded synthesis", events[-1]["markdown"])
+
+
+    def test_rejects_python_and_json_source_dictionaries_from_prod(self):
+        examples = (
+            "{'definition': '', 'name': 'Research'}",
+            "{'definition': 'Värderar en miljö där de trivs', 'name': 'Glädje'}",
+            "{'general_notes': 'Kandidaten beskriver ...\\nKPI:er'}",
+            "{'traits': [{'summary': 'Samarbetsvillig', 'indicators': []}]}",
+            '{"traits": [{"summary": "Samarbete"}]}',
+            {"definition": "Värderar en miljö där de trivs"},
+            {"general_notes": "Intervjuanteckningar"},
+        )
+        for example in examples:
+            with self.subTest(example=str(example)[:40]):
+                self.assertTrue(report.is_raw_source_dump(example))
+                with self.assertRaises(ValueError):
+                    report._validated_prose(example, field="Testbild")
+
+    def test_normal_prose_remains_unchanged(self):
+        text = "Kandidaten beskriver att hen värdesätter samarbete och tydliga mål."
+        self.assertFalse(report.is_raw_source_dump(text))
+        self.assertEqual(report._validated_prose(text, field="Intervjun"), text)
+
+    def test_repairs_model_echo_once_before_persisting_item(self):
+        echo = {
+            "testbild": {"definition": "Godkänd tolkning", "name": "Glädje"},
+            "intervjun": "{'general_notes': 'Intervjuanteckningar'}",
+        }
+        repaired = {
+            "testbild": "Drivkraften kan handla om att få energi i ett lättsamt sammanhang.",
+            "intervjun": "Kandidaten berättar att humor är en viktig del av arbetsdagen.",
+        }
+        with patch.object(report, "_completion", side_effect=[echo, repaired]) as mocked:
+            testbild, intervjun = report._generate_validated_item(
+                self.owner, "Input evidence", language="sv",
+            )
+        self.assertEqual(testbild, repaired["testbild"])
+        self.assertEqual(intervjun, repaired["intervjun"])
+        self.assertEqual(mocked.call_count, 2)
+        self.assertIn("IMPORTANT REPAIR", mocked.call_args.args[0])
+
+    def test_never_marks_source_dump_as_successful_after_failed_repair(self):
+        raw = {
+            "testbild": "{'traits': [{'summary': 'Test'}]}",
+            "intervjun": "{'general_notes': 'Unfiltered notes'}",
+        }
+        with patch.object(report, "_completion", return_value=raw) as mocked:
+            with self.assertRaises(ValueError):
+                report._generate_validated_item(
+                    self.owner, "Input evidence", language="sv",
+                )
+        self.assertEqual(mocked.call_count, 2)
+
+    def test_fails_closed_for_nested_synthesis(self):
+        first = {"text": {"general_notes": "Raw notes"}}
+        second = {"text": "Testbild och intervju vägs samman med tydlig källskillnad."}
+        with patch.object(report, "_completion", side_effect=[first, second]):
+            result = report._generate_validated_synthesis(self.owner, "Earlier sections")
+        self.assertEqual(result, second["text"])
+
+    def test_empty_interview_is_allowed_without_inventing_evidence(self):
+        with patch.object(report, "_completion", return_value={
+            "testbild": "Resultatet kan indikera behov av en medveten strategi.",
+            "intervjun": "",
+        }) as mocked:
+            _testbild, intervjun = report._generate_validated_item(
+                self.owner, "Input evidence", language="sv",
+            )
+        self.assertEqual(intervjun, report.MISSING_INTERVIEW["sv"])
+        mocked.assert_called_once()
