@@ -279,6 +279,91 @@ def _completion(prompt, owner, *, output_tokens=1800):
     return parsed
 
 
+
+# A JSON-mode completion only guarantees the *outer* response is JSON.
+# The model may still put an entire source dictionary inside "testbild" or
+# "intervjun". Never turn such values into publishable prose with str(dict).
+_RAW_SOURCE_KEYS = (
+    "definition", "name", "summary", "traits", "indicators", "general_notes",
+    "question_evidence", "saved_answer_or_note", "testbild", "intervjun",
+)
+_RAW_SOURCE_KEY_PATTERN = re.compile(
+    r"""['"](?:definition|general_notes|question_evidence|saved_answer_or_note|traits|indicators|summary)['"]\s*:""",
+    flags=re.I,
+)
+
+
+def is_raw_source_dump(value):
+    """Recognise model echoes of JSON/Python evidence mappings, not prose."""
+    if not isinstance(value, str):
+        return isinstance(value, (dict, list, tuple))
+    stripped = value.strip()
+    if not stripped:
+        return False
+    # Python repr ({'definition': ...}), JSON ({"traits": ...}), arrays,
+    # including input containing escaped newline sequences.
+    if re.match(r"""^[\[{]\s*['"]""", stripped):
+        return True
+    if re.match(r"^[\[{]\s*[a-zA-Z_][\w]*\s*:", stripped):
+        return True
+    return bool(_RAW_SOURCE_KEY_PATTERN.search(stripped[:400]))
+
+
+def _validated_prose(value, *, field, allow_empty=False):
+    """Only genuine plain text can become a completed report item."""
+    if value is None or value == "":
+        if allow_empty:
+            return ""
+        raise ValueError(f"Model returned empty {field}.")
+    if not isinstance(value, str):
+        raise ValueError(f"Model returned a non-text {field}.")
+    prose = value.strip()
+    if not prose:
+        if allow_empty:
+            return ""
+        raise ValueError(f"Model returned empty {field}.")
+    if is_raw_source_dump(prose):
+        raise ValueError(f"Model echoed raw source data in {field}.")
+    return prose
+
+
+_REPAIR_INSTRUCTION = (
+    "\n\nIMPORTANT REPAIR: The earlier attempt returned structured source data, "
+    "a nested dictionary, or an empty field rather than report prose. Write "
+    "fresh, natural prose grounded in the sources ABOVE. JSON keys such as "
+    "definition, general_notes, traits, indicators, question_evidence, or "
+    "saved_answer_or_note must NEVER appear as values in the output. "
+    "Use a JSON object with STRING values only; do not nest dictionaries, "
+    "echo input JSON, or simply reproduce the source notes. Keep Testbild "
+    "and Intervjun separate and preserve their evidential boundaries."
+)
+
+
+def _generate_validated_item(owner, prompt, *, language):
+    """Repair a malformed answer once, then report failure without storing it."""
+    for attempt in range(2):
+        output = _completion(prompt + (_REPAIR_INSTRUCTION if attempt else ""), owner)
+        try:
+            testbild = _validated_prose(output.get("testbild"), field="Testbild")
+            intervjun = _validated_prose(
+                output.get("intervjun"), field="Intervjun", allow_empty=True,
+            )
+            return testbild, intervjun or MISSING_INTERVIEW[language]
+        except ValueError:
+            if attempt:
+                raise
+
+
+def _generate_validated_synthesis(owner, prompt):
+    for attempt in range(2):
+        output = _completion(prompt + (_REPAIR_INSTRUCTION if attempt else ""), owner, output_tokens=1600)
+        try:
+            return _validated_prose(output.get("text"), field="final synthesis")
+        except ValueError:
+            if attempt:
+                raise
+
+
 def _theme_selection(owner, shared, rows, notes, language):
     if not rows:
         return []
@@ -317,8 +402,12 @@ def _theme_selection(owner, shared, rows, notes, language):
 def _item_prompt(owner, category, item, shared, notes, language):
     global_rules, guidance = _guidance(category, language)
     return "\n\n".join([
-        "OUTPUT: JSON object with keys testbild and intervjun, each containing one or more "
-        "natural paragraphs. No Markdown headings. Write in language: " + language,
+        "OUTPUT: JSON object with EXACTLY two string fields, testbild and intervjun. "
+        "Each field must contain natural, newly written Swedish or English report prose, "
+        "NEVER a dictionary, array, JSON literal, Python object representation, "
+        "source note dump, or unedited assessment definition. Use the input only as evidence; "
+        "do not quote its technical field names (definition, general_notes, traits, "
+        "question_evidence, indicators). No Markdown headings. Write in language: " + language,
         "CANDIDATE: CANDIDATE_A",
         "AREA: " + str(item["title"]),
         "PURPOSE: " + str(shared.get("purpose_label") or ""),
@@ -420,10 +509,9 @@ def generate_structured_overall_picture(owner, *, language_code="sv", category=N
                 yield {"type": "structured_section_skipped", "section": part}
                 continue
             try:
-                response = _completion(_synthesis_prompt(owner, sections, shared, language), owner, output_tokens=1600)
-                text = str(response.get("text") or "").strip()
-                if not text:
-                    raise ValueError("The final synthesis was empty.")
+                text = _generate_validated_synthesis(
+                    owner, _synthesis_prompt(owner, sections, shared, language),
+                )
                 sections[part] = {"status": "completed", "text": text, "fingerprint": fingerprint,
                                   "generated_at": timezone.now().isoformat()}
                 _save(owner, state)
@@ -481,15 +569,11 @@ def generate_structured_overall_picture(owner, *, language_code="sv", category=N
                 continue
             yield {"type": "structured_item_started", "section": part, "item": item["key"]}
             try:
-                result = _completion(_item_prompt(owner, part, item, shared, scoped_notes, language), owner)
-                testbild = str(result.get("testbild") or "").strip()
-                intervjun = str(result.get("intervjun") or "").strip()
-                if not testbild:
-                    raise ValueError("The model did not return Testbild.")
-                if not intervjun:
-                    # General notes may exist without covering this particular area.
-                    # A blank interview field is never permission to invent examples.
-                    intervjun = MISSING_INTERVIEW[language]
+                testbild, intervjun = _generate_validated_item(
+                    owner,
+                    _item_prompt(owner, part, item, shared, scoped_notes, language),
+                    language=language,
+                )
                 saved_items.append({
                     "key": item["key"], "title": item["title"], "testbild": testbild,
                     "intervjun": intervjun, "status": "completed",
