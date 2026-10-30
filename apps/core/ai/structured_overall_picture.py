@@ -201,7 +201,9 @@ def _subject_evidence(owner, category, language, shared, notes):
             units.append({
                 "key": key, "title": SKILL_TITLES[language][key],
                 "evidence": {
-                    "percentile": percentile, "test": key,
+                    # Percentile is used locally to select approved copy,
+                    # not sent as raw numeric evidence to OpenAI (#358).
+                    "test": key,
                     "approved_test_description": approved.get("test_description") or "",
                     "approved_result_interpretation": approved.get("result_text") or "",
                 },
@@ -221,7 +223,8 @@ def _subject_evidence(owner, category, language, shared, notes):
             entries.append({
                 "key": "factor_" + str(index + 1),
                 "title": label,
-                "evidence": {"score": row["score"], "definition": row.get("definition") or "", "name": label},
+                # Precise score only determines the top-three ordering locally.
+                "evidence": {"definition": row.get("definition") or "", "name": label},
             })
         return entries
     if category == "personality":
