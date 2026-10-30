@@ -7392,6 +7392,10 @@ AI_PROMPT_REGISTRY.update({
 })
 
 
+# #355: independently editable After interview / Helhetsbild prompts.
+from .structured_overall_picture import PROMPT_REGISTRY_ADDITIONS
+AI_PROMPT_REGISTRY.update(PROMPT_REGISTRY_ADDITIONS)
+
 def get_ai_prompt_definition(
     key: str,
 ) -> dict[str, Any]:
