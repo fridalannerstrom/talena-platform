@@ -7395,6 +7395,14 @@ AI_PROMPT_REGISTRY.update({
 # #355: independently editable After interview / Helhetsbild prompts.
 from .structured_overall_picture import PROMPT_REGISTRY_ADDITIONS
 AI_PROMPT_REGISTRY.update(PROMPT_REGISTRY_ADDITIONS)
+# Preserve historical admin overrides but distinguish the old monolithic path.
+AI_PROMPT_REGISTRY["post_interview_overall_picture"]["name"] = (
+    "Efter intervju · Helhetsbild (äldre sammanhållen prompt)"
+)
+AI_PROMPT_REGISTRY["post_interview_overall_picture"]["description"] = (
+    "Arkiverad kompatibilitetsprompt för äldre Markdown-Helhetsbilder. "
+    "Nya strukturerade Helhetsbilder använder de fyra separata #355-prompterna."
+)
 
 def get_ai_prompt_definition(
     key: str,
