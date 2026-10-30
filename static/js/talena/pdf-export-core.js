@@ -100,7 +100,10 @@
       ".team-report-pdf-part, .team-summary-item, .team-analytics-panel, " +
       ".team-insight-card, .team-style-rank-row, .team-style-rank-list, " +
       ".team-analytics-grid, .team-table tr, .card, .card-body, .team-goal-list, " +
-      ".team-style-profile-card, .team-styles-section, .team-profile-pdf-heading"
+      ".team-style-profile-card, .team-styles-section, .team-profile-pdf-heading, " +
+      ".after-interview-manager-report__skill, .after-interview-manager-report__guide-level, " +
+      ".after-interview-manager-report__motivator, .after-interview-manager-report__personality-theme, " +
+      ".after-interview-manager-report__personality-advice"
     );
     const points = [];
     candidates.forEach(element => {
