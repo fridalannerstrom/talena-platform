@@ -16,13 +16,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from .candidate_name_privacy import redact_candidate_name
-from .cognitive_interpretation import extract_cognitive_results
 from .language import normalize_ai_language
-from .motivation_interpretation import (
-    extract_motivation_results, get_motivation_factor_display_name,
-)
-from .openai_client import get_chat_model, get_openai_client
-from .personality_ai_evidence import build_owner_personality_ai_evidence
 from .shared_context import build_shared_ai_context
 
 SCHEMA_VERSION = 1
@@ -185,6 +179,13 @@ def _save(owner, result):
 
 
 def _subject_evidence(owner, category, language, shared, notes):
+    # Lazy imports prevent the admin prompt registry from importing AI generators
+    # while the registry itself is still being initialized.
+    from .cognitive_interpretation import extract_cognitive_results
+    from .motivation_interpretation import (
+        extract_motivation_results, get_motivation_factor_display_name,
+    )
+    from .personality_ai_evidence import build_owner_personality_ai_evidence
     if category == "skills":
         found = {row["key"]: row for row in extract_cognitive_results(owner)}
         order = ("numerical", "logical", "verbal")
