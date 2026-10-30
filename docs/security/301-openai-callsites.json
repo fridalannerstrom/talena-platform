@@ -253,14 +253,14 @@
       ],
       "status": "active_after_interview_structured_overall_picture",
       "data": [
-        "single available cognitive result and its percentile OR one actual top-three scored motivation factor and approved definition OR selected personality trait/indicator summaries",
+        "one available cognitive ability's approved interpretation (percentile used locally only), OR one top-three motivation factor's approved definition (precise STIVE used locally only), OR selected personality/indicator summaries",
         "same-company role/purpose context for relevance only",
         "general interview notes plus exact question/answer evidence restricted to the current assessment category",
         "four separate administrator-editable prompt variants and global protected guidance",
         "final synthesis receives prior successful Testbild/Intervjun text only; no new raw assessment or interview evidence"
       ],
       "freetext": true,
-      "comment": "Issue #355: sequential focused JSON-mode Chat Completions for one item/selection/synthesis at a time. Candidate is pseudonym CANDIDATE_A, with redact_candidate_name on the final prompt. General notes are free text; existing server/client PII masking applies. No external candidate report use, no response stored at OpenAI by this module."
+      "comment": "Issue #355: separate focused JSON-mode completions for one item/selection/synthesis. No raw cognitive percentile or motivation STIVE is sent; these are used locally to select approved text or rank factors. Candidate name is pseudonym CANDIDATE_A, with redact_candidate_name before OpenAI. General notes can contain free text; Talena's existing PII masking/privacy wrapper applies. No candidate-facing report or AI response storage at the provider."
     }
   ]
 }
