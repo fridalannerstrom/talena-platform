@@ -845,7 +845,11 @@ def process_candidate_post_interview_decision_support_stream_with_evidence(
                 changed = True
         from apps.core.ai.structured_overall_picture import mark_structured_sections_outdated
         saved_result = dict(saved_result)
-        changed = mark_structured_sections_outdated(saved_result) or changed
+        typed_language = (saved_result.get("overall_picture_structured") or {}).get("language")
+        # Partial structured regenerations intentionally keep the global state
+        # outdated. Do not invalidate a freshly completed section on every GET.
+        if evidence_changed or (typed_language and typed_language != language_code):
+            changed = mark_structured_sections_outdated(saved_result) or changed
         if changed:
             saved_result["content_block_statuses"] = statuses
             owner.ai_post_interview_decision_support = saved_result
