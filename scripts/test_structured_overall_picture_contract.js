@@ -38,6 +38,10 @@ assert.ok(!ui.includes('row.append(left, button)'),
 assert.ok(ui.includes('generateButton.disabled = true')
           && ui.includes('generateButton.disabled = false'),
           "single action must lock against repeat clicks while generating");
+assert.ok(ui.includes('if (section.status !== "completed")'),
+          "completed section headings must not show a Klar/Ready status caption");
+assert.ok(ui.includes('statusText[section.status] || statusText.not_started'),
+          "unfinished, failed or outdated section statuses must remain visible");
 assert.ok(!ui.includes("innerHTML"), "model text must never become HTML");
 assert.ok(stream.includes('structured_section = str(request.GET.get("section")'), "back-end section routing absent");
 console.log("Structured Helhetsbild UI contract OK");
