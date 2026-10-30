@@ -38,6 +38,7 @@ class StructuredOverallPictureTests(SimpleTestCase):
         self.assertEqual([unit["key"] for unit in units], ["numerical", "verbal"])
         self.assertEqual([unit["title"] for unit in units], ["Numerisk", "Verbal"])
         self.assertNotIn("logical", str(units))
+        self.assertTrue(all("percentile" not in u["evidence"] for u in units))
 
     def test_motivation_uses_real_ranked_scores_without_raw_technical_heading(self):
         with patch("apps.core.ai.motivation_interpretation.extract_motivation_results", return_value=[
@@ -48,6 +49,7 @@ class StructuredOverallPictureTests(SimpleTestCase):
         ]):
             units = report._subject_evidence(self.owner, "motivation", "en", self.shared, self.notes)
         self.assertEqual([u["title"] for u in units], ["Learning", "Authority", "Quality"])
+        self.assertTrue(all("score" not in u["evidence"] for u in units))
 
     def test_question_context_stays_with_matching_category_only(self):
         notes = report._notes_for_category(self.notes, "skills")
@@ -87,7 +89,7 @@ class StructuredOverallPictureTests(SimpleTestCase):
             text = report._item_prompt(
                 self.owner, "skills",
                 {"key": "numerical", "title": "Numerisk",
-                 "evidence": {"test": "numerical", "percentile": 63}},
+                 "evidence": {"test": "numerical", "approved_result_interpretation": "Approved result meaning"}},
                 self.shared, report._notes_for_category(self.notes, "skills"), "sv"
             )
         self.assertIn("How did you analyse the figures?", text)
@@ -113,9 +115,9 @@ class StructuredOverallPictureTests(SimpleTestCase):
         self.owner.ai_post_interview_decision_support = {}
         categories = {
             "skills": [{"key": "numerical", "title": "Numerisk",
-                        "evidence": {"percentile": 60}}],
+                        "evidence": {"approved_result_interpretation": "Approved numeric interpretation"}}],
             "motivation": [{"key": "factor_1", "title": "Lärande",
-                            "evidence": {"name": "Lärande", "score": 4.7}}],
+                            "evidence": {"name": "Lärande", "definition": "Approved source description"}}],
             "personality": [{"key": "Empathy", "title": "Empati",
                              "evidence": {"summary": "Explores others' needs"}}],
         }
@@ -147,6 +149,7 @@ class StructuredOverallPictureTests(SimpleTestCase):
                 self.owner, language_code="sv",
             ))
         self.assertEqual(len(prompts), 4)
+        self.assertTrue(all("percentile" not in prompt and "STIVE" not in prompt for prompt in prompts))
         self.assertEqual([e["section"] for e in events if e["type"] == "structured_item_complete"],
                          ["skills", "motivation", "personality"])
         self.assertEqual(events[-1]["data"]["sections"]["synthesis"]["status"], "completed")
