@@ -38,9 +38,9 @@ assert.ok(!ui.includes('row.append(left, button)'),
 assert.ok(ui.includes('generateButton.disabled = true')
           && ui.includes('generateButton.disabled = false'),
           "single action must lock against repeat clicks while generating");
-assert.ok(ui.includes('if (section.status !== "completed")'),
+assert.ok(ui.includes('if (sectionStatus !== "completed")'),
           "completed section headings must not show a Klar/Ready status caption");
-assert.ok(ui.includes('statusText[section.status] || statusText.not_started'),
+assert.ok(ui.includes('statusText[sectionStatus] || statusText.not_started'),
           "unfinished, failed or outdated section statuses must remain visible");
 assert.ok(ui.includes("const isRawSourceDump = (value) =>"),
           "already-saved source dictionaries must be detected before rendering");
