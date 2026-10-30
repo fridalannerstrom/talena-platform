@@ -41,11 +41,25 @@
     const header = el("div", "after-interview-tab-card__header");
     const kicker = el("div", "after-interview-tab-card__eyebrow",
       "✦ " + tr("AI-genererat underlag", "AI-generated evidence"));
-    header.append(
+    const headerCopy = el("div", "after-interview-overall__header-copy");
+    headerCopy.append(
       kicker,
       el("h3", "after-interview-tab-card__title", heading),
       el("p", "after-interview-tab-card__description", description)
     );
+    // The entire Helhetsbild is generated from this one button, mirroring
+    // the rounded refresh control used by Talena's Sammanfattning.
+    const generateButton = el(
+      "button",
+      "btn btn-icon btn-light after-interview-tab-card__regenerate after-interview-overall__generate"
+    );
+    generateButton.type = "button";
+    generateButton.dataset.overallPictureGenerate = "true";
+    const refreshIcon = el("i");
+    refreshIcon.setAttribute("data-feather", "refresh-cw");
+    refreshIcon.setAttribute("aria-hidden", "true");
+    generateButton.appendChild(refreshIcon);
+    header.append(headerCopy, generateButton);
     const layout = el("div", "after-interview-overall__layout");
     const message = el("div", "alert alert-danger d-none mt-3");
     message.setAttribute("role", "alert");
@@ -62,20 +76,34 @@
       not_started: tr("Inte genererad", "Not generated"),
     };
 
-    const generate = async (category, button) => {
+    const updateGenerateLabel = () => {
+      const hasGenerated = Object.values(state.sections || {})
+        .some(section => section?.status === "completed");
+      const label = hasGenerated
+        ? tr("Generera hela Helhetsbilden igen", "Regenerate entire Overall picture")
+        : tr("Generera hela Helhetsbilden", "Generate entire Overall picture");
+      generateButton.setAttribute("aria-label", label);
+      generateButton.title = label;
+    };
+    const generate = async () => {
       if (busy) return;
       busy = true;
-      button.disabled = true;
-      button.setAttribute("aria-busy", "true");
+      generateButton.disabled = true;
+      generateButton.setAttribute("aria-busy", "true");
       message.classList.add("d-none");
-      button.textContent = tr("Skapar…", "Generating…");
+      const spinner = el("span", "spinner-border spinner-border-sm");
+      spinner.setAttribute("role", "status");
+      spinner.setAttribute("aria-label", tr("Genererar Helhetsbilden", "Generating Overall picture"));
+      generateButton.replaceChildren(spinner);
       try {
         const base = root?.dataset.postInterviewRegenerateUrl;
         if (!base) throw new Error(tr("Kunde inte hitta genereringsadressen.", "No generation endpoint available."));
         const endpoint = new URL(base, window.location.origin);
         endpoint.searchParams.set("block", "overall_picture");
         endpoint.searchParams.set("structured", "1");
-        endpoint.searchParams.set("section", category);
+        // No section parameter: backend generates every available skill,
+        // top-three motivator, role-relevant personality theme, then synthesis.
+        endpoint.searchParams.delete("section");
         const start = await fetch(endpoint, {
           method: "POST", credentials: "same-origin",
           headers: { "X-CSRFToken": token(), "X-Requested-With": "XMLHttpRequest",
@@ -98,8 +126,10 @@
           if (!line.trim()) return;
           const event = JSON.parse(line);
           if (event.type === "structured_result") latestState = event.data;
-          if ((event.type === "structured_section_error" || event.type === "structured_item_error")
-              && event.section === category) failed = true;
+          if (event.type === "structured_section_error"
+              || event.type === "structured_item_error"
+              || (event.type === "content_block_error" && event.block === "overall_picture")
+              || event.type === "generation_partial_error") failed = true;
           if (event.type === "error") throw new Error(event.message || tr("Genereringen misslyckades.", "Generation failed."));
         };
         while (true) {
@@ -123,13 +153,17 @@
         message.classList.remove("d-none");
       } finally {
         busy = false;
-        button.disabled = false;
-        button.removeAttribute("aria-busy");
+        generateButton.disabled = false;
+        generateButton.removeAttribute("aria-busy");
+        generateButton.replaceChildren(refreshIcon);
         render();
+        if (window.feather) window.feather.replace();
       }
     };
+    generateButton.addEventListener("click", generate);
 
     const render = () => {
+      updateGenerateLabel();
       layout.replaceChildren();
       const sections = state.sections || {};
       const fullyCurrent = sections.synthesis?.status === "completed"
@@ -161,12 +195,7 @@
           el("h4", "after-interview-overall__group-title", tr(swedish, english)),
           el("span", "after-interview-overall__status", statusText[section.status] || statusText.not_started)
         );
-        const button = el("button", "btn btn-outline-primary btn-sm",
-          section.status === "completed" ? tr("Generera igen", "Regenerate") : tr("Generera", "Generate"));
-        button.type = "button";
-        button.disabled = busy;
-        button.addEventListener("click", () => generate(key, button));
-        row.append(left, button);
+        row.append(left);
         area.appendChild(row);
 
         if (key === "synthesis") {
