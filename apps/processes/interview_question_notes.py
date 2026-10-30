@@ -937,6 +937,22 @@ def process_candidate_post_interview_decision_support_stream_with_evidence(
                                 set_post_interview_content_block_status(
                                     owner=owner, block_key=key, status="outdated",
                                 )
+                                # Record the current input versions even for a partial
+                                # structured rebuild. Its other sections stay stale,
+                                # without repeatedly invalidating just-updated items.
+                                version_owner = type(owner).objects.get(pk=owner.pk)
+                                version_owner.ai_post_interview_decision_support_status = "outdated"
+                                version_owner.ai_post_interview_decision_support_purpose = current_purpose
+                                version_owner.ai_post_interview_decision_support_notes_version = (
+                                    owner.interview_notes_updated_at or timezone.now()
+                                )
+                                version_owner.ai_post_interview_decision_support_generated_at = timezone.now()
+                                version_owner.save(update_fields=[
+                                    "ai_post_interview_decision_support_status",
+                                    "ai_post_interview_decision_support_purpose",
+                                    "ai_post_interview_decision_support_notes_version",
+                                    "ai_post_interview_decision_support_generated_at",
+                                ])
                         yield json.dumps(event, ensure_ascii=False) + "\n"
                     if structured_failed:
                         errors.append((key, "One or more Overall picture items failed."))
