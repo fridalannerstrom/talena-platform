@@ -1,4 +1,8 @@
 /* #355: structured post-interview Overall picture, scoped to the generated card. */
+.after-interview-overall .after-interview-tab-card__header { display: flex; align-items: flex-start; justify-content: space-between; gap: 1.25rem; }
+.after-interview-overall__header-copy { flex: 1 1 auto; min-width: 0; }
+.after-interview-overall__generate { flex: 0 0 auto; margin-left: auto; }
+.after-interview-overall__generate[aria-busy="true"] { cursor: progress; }
 .after-interview-overall .after-interview-overall__layout { display: grid; gap: 1.65rem; margin-top: 1.6rem; }
 .after-interview-overall__group { border-top: 1px solid var(--talena-border, #e6e0db); padding-top: 1.35rem; }
 .after-interview-overall__group:first-child { border-top: 0; padding-top: 0; }
@@ -6,7 +10,6 @@
 .after-interview-overall__heading { min-width: 0; }
 .after-interview-overall__group-title { font-size: 1.19rem; line-height: 1.35; font-weight: 750; margin: 0 0 .3rem; color: var(--talena-ink, #242321); }
 .after-interview-overall__status { color: var(--talena-text-muted, #706f6e); font-size: .75rem; }
-.after-interview-overall__group-header .btn { white-space: nowrap; flex: 0 0 auto; }
 .after-interview-overall__item { padding: 1.15rem 1.25rem; border: 1px solid var(--talena-border, #e6e0db); border-radius: 13px; background: #fff; margin-bottom: .85rem; box-shadow: 0 1px 2px rgba(22, 26, 28, .025); }
 .after-interview-overall__item-title { font-size: 1.02rem; font-weight: 750; color: var(--talena-ink, #242321); margin: 0 0 .85rem; }
 .after-interview-overall__subheading { font-size: .76rem; letter-spacing: .02em; font-weight: 750; color: var(--talena-ink, #242321); margin: .95rem 0 .35rem; }
@@ -19,5 +22,4 @@
 @media (max-width: 600px) {
   .after-interview-overall__group-header { flex-wrap: wrap; gap: .6rem; }
   .after-interview-overall__item { padding: .95rem; }
-  .after-interview-overall__group-header .btn { margin-left: auto; }
 }
