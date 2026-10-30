@@ -150,6 +150,33 @@ class ReportAndTeamTenantAccessTests(TestCase):
             200,
         )
 
+    def test_manager_report_pdf_branding_is_scoped_to_candidate_company(self):
+        """The refreshed manager report uses only its authorized tenant assets."""
+        CompanyBranding.objects.create(
+            company=self.company_a, primary_color="#285A78",
+        )
+        CompanyBranding.objects.create(
+            company=self.company_b, primary_color="#B24466",
+        )
+        url = reverse(
+            "processes:process_candidate_final_output",
+            kwargs={
+                "process_id": self.process.pk,
+                "candidate_id": self.candidate_a.pk,
+            },
+        )
+        self.client.force_login(self.viewer)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'data-manager-report-brand-primary="#285A78"')
+        self.assertNotContains(response, 'data-manager-report-brand-primary="#B24466"')
+        self.assertEqual(response.context["report_branding"]["company_name"], self.company_a.name)
+
+        self.client.force_login(self.foreign)
+        denied = self.client.get(url)
+        self.assertNotEqual(denied.status_code, 200)
+        self.assertNotIn(b'data-manager-report-brand-primary="#285A78"', denied.content)
+
     def test_team_detail_scopes_report_branding_to_authorized_company(self):
         CompanyBranding.objects.create(
             company=self.company_a, primary_color="#285A78",

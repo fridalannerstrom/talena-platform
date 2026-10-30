@@ -42,6 +42,8 @@ jobs:
           node scripts/test_team_report_pdf_contract.js
           node scripts/test_team_report_anonymous_runtime.js
           node scripts/test_team_profile_branding_contract.js
+          node --check static/js/talena/after-interview-tabs.js
+          node scripts/test_manager_report_branding_contract.js
       - name: Run focused candidate result, interview, project pin, and account invite tests
         env:
           DJANGO_DEBUG: 'True'
