@@ -21,7 +21,7 @@
     return cookie ? decodeURIComponent(cookie.slice(10)) : "";
   };
   const getSaved = (source) => {
-    const script = source?.querySelector("[data-overall-picture-structured]");
+    const script = source?.querySelector('script[id="talena-overall-picture-structured"]');
     if (!script?.textContent?.trim()) return {};
     try {
       const parsed = JSON.parse(script.textContent);
