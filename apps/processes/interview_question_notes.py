@@ -938,6 +938,8 @@ def process_candidate_post_interview_decision_support_stream_with_evidence(
                                         ensure_ascii=False,
                                     ) + "\n"
                             else:
+                                if not structured_section:
+                                    structured_failed = True
                                 set_post_interview_content_block_status(
                                     owner=owner, block_key=key, status="outdated",
                                 )
