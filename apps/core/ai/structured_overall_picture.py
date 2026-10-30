@@ -513,3 +513,22 @@ def guarded_structured_overall_picture(owner, **kwargs):
         yield from generate_structured_overall_picture(owner, **kwargs)
     finally:
         cache.delete(lock)
+
+def mark_structured_sections_outdated(document):
+    """Flag previous structured successes stale when source notes/context change."""
+    typed = document.get("overall_picture_structured")
+    if not isinstance(typed, dict):
+        return False
+    changed = False
+    typed = deepcopy(typed)
+    for section in (typed.get("sections") or {}).values():
+        if section.get("status") == "completed":
+            section["status"] = "outdated"
+            changed = True
+        for item in section.get("items") or []:
+            if item.get("status") == "completed":
+                item["status"] = "outdated"
+                changed = True
+    if changed:
+        document["overall_picture_structured"] = typed
+    return changed
