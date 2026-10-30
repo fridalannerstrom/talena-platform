@@ -191,10 +191,17 @@
         area.dataset.overallPictureSection = key;
         const row = el("div", "after-interview-overall__group-header");
         const left = el("div", "after-interview-overall__heading");
-        left.append(
-          el("h4", "after-interview-overall__group-title", tr(swedish, english)),
-          el("span", "after-interview-overall__status", statusText[section.status] || statusText.not_started)
+        left.appendChild(
+          el("h4", "after-interview-overall__group-title", tr(swedish, english))
         );
+        // Completed sections need no visual status label; keep warnings and
+        // pending/error states visible so users know when action is needed.
+        if (section.status !== "completed") {
+          left.appendChild(
+            el("span", "after-interview-overall__status",
+              statusText[section.status] || statusText.not_started)
+          );
+        }
         row.append(left);
         area.appendChild(row);
 
