@@ -863,3 +863,136 @@
   opacity: 1;
   visibility: visible;
 }
+
+/* #328: Compact duplication dialog, shared by every project card. */
+.process-duplicate-modal .modal-dialog {
+  max-width: 490px;
+}
+
+.process-duplicate-modal .modal-content {
+  border: 1px solid var(--talena-border, #e4e6e8);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(20, 30, 42, 0.16);
+}
+
+.process-duplicate-modal__header {
+  padding: 1.55rem 1.65rem 0.6rem;
+  border-bottom: 0;
+  align-items: flex-start;
+}
+
+.process-duplicate-modal__header .btn-close {
+  margin: 0;
+  padding: 0.45rem;
+  opacity: 0.55;
+  flex-shrink: 0;
+}
+
+.process-duplicate-modal__icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(51, 74, 91, 0.07);
+  color: var(--talena-ink, #253746);
+  flex-shrink: 0;
+}
+
+.process-duplicate-modal__icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.process-duplicate-modal__title {
+  margin: 0;
+  color: var(--talena-ink, #253746);
+  font-size: 1.2rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.process-duplicate-modal__source {
+  margin: 0.3rem 0 0;
+  color: var(--talena-text-subtle, #64748b);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.process-duplicate-modal__source strong {
+  color: var(--talena-ink, #253746);
+  font-weight: 600;
+}
+
+.process-duplicate-modal__body {
+  padding: 1.45rem 1.65rem 0.85rem;
+}
+
+.process-duplicate-modal__body .form-label {
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.process-duplicate-modal__input {
+  min-height: 46px;
+  border-radius: 10px;
+  padding: 0.7rem 0.85rem;
+}
+
+.process-duplicate-modal__hint {
+  display: flex;
+  gap: 0.5rem;
+  margin: 1rem 0 0;
+  color: var(--talena-text-subtle, #64748b);
+  font-size: 0.83rem;
+  line-height: 1.55;
+}
+
+.process-duplicate-modal__hint svg {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+}
+
+.process-duplicate-modal__footer {
+  border-top: 0;
+  padding: 1rem 1.65rem 1.55rem;
+  gap: 0.55rem;
+}
+
+.process-duplicate-modal__footer .btn {
+  border-radius: 10px;
+  min-height: 42px;
+  padding: 0.65rem 1.15rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+}
+
+.process-duplicate-modal__footer .btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+@media (max-width: 575.98px) {
+  .process-duplicate-modal .modal-dialog {
+    margin: 0.8rem;
+  }
+
+  .process-duplicate-modal__header {
+    padding: 1.3rem 1.1rem 0.45rem;
+  }
+
+  .process-duplicate-modal__body {
+    padding: 1.25rem 1.1rem 0.75rem;
+  }
+
+  .process-duplicate-modal__footer {
+    padding: 0.85rem 1.1rem 1.3rem;
+  }
+}
