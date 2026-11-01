@@ -6,6 +6,7 @@ protected AssessmentUsage, Sova records and unrelated tenant links are retained.
 from django.contrib.messages import get_messages
 from django.test import TestCase
 from django.urls import reverse
+from django.utils.translation import gettext, override
 
 from apps.accounts.models import Company, CompanyMember, OrgUnit, User, UserOrgUnitAccess
 from apps.processes.models import AssessmentUsage, Candidate, TestInvitation, TestProcess
@@ -219,3 +220,83 @@ class ScopedRemovalTests(TestCase):
         self.assertContains(response, 'id="removeCandidateModal"', count=1)
         self.assertContains(response, 'data-remove-candidate')
         self.assertContains(response, 'data-can-remove="true"')
+
+    def test_candidate_removal_modal_uses_active_swedish_language(self):
+        self.client.force_login(self.editor)
+        response = self.client.get(
+            reverse("processes:process_detail", args=[self.project.pk]),
+            HTTP_ACCEPT_LANGUAGE="sv",
+        )
+        self.assertEqual(response.status_code, 200)
+        markup = response.content.decode("utf-8")
+        modal = markup.split('id="removeCandidateModal"', 1)[1]
+        self.assertIn("Ta bort från projekt", modal)
+        self.assertIn("Kandidaten har beställda tester eller testhistorik", modal)
+        self.assertIn("Avbryt", modal)
+        self.assertNotIn("This candidate has ordered assessments", modal)
+        self.assertNotIn("Remove from project", modal)
+
+    def test_candidate_removal_modal_uses_active_english_language(self):
+        self.client.force_login(self.editor)
+        response = self.client.get(
+            reverse("processes:process_detail", args=[self.project.pk]),
+            HTTP_ACCEPT_LANGUAGE="en",
+        )
+        self.assertEqual(response.status_code, 200)
+        modal = response.content.decode("utf-8").split('id="removeCandidateModal"', 1)[1]
+        self.assertIn("Remove from project", modal)
+        self.assertIn("This candidate has ordered assessments", modal)
+        self.assertIn("Cancel", modal)
+        self.assertNotIn("Kandidaten har beställda tester eller testhistorik", modal)
+
+    def test_project_list_archive_and_restore_have_localized_modal(self):
+        self.client.force_login(self.editor)
+        for lang, archive, restore in (
+            ("sv", "Arkivera projekt", "Återställ projekt"),
+            ("en", "Archive project", "Restore project"),
+        ):
+            for archived in (False, True):
+                if archived:
+                    self.project.archive()
+                url = reverse("processes:process_list")
+                if archived:
+                    url += "?archived=1"
+                response = self.client.get(url, HTTP_ACCEPT_LANGUAGE=lang)
+                self.assertEqual(response.status_code, 200)
+                markup = response.content.decode("utf-8")
+                self.assertEqual(markup.count('id="projectStatusModal"'), 1)
+                self.assertIn('data-project-status-form', markup)
+                self.assertIn('data-project-status-action="restore"' if archived
+                              else 'data-project-status-action="archive"', markup)
+                self.assertIn(archive, markup)
+                self.assertIn(restore, markup)
+                self.assertNotIn('data-confirm="Archive this project?', markup)
+                self.assertIn('id="projectStatusForm"', markup)
+
+    def test_missing_project_list_swedish_translations_are_available(self):
+        with override("sv"):
+            self.assertEqual(gettext("Assessment workflows"), "Testflöden")
+            self.assertEqual(
+                gettext("Search by title, purpose or assessment..."),
+                "Sök på namn, syfte eller test...",
+            )
+            self.assertEqual(gettext("Filter by purpose"), "Filtrera på syfte")
+            self.assertEqual(gettext("All purposes"), "Alla syften")
+
+    def test_archive_and_restore_messages_match_selected_language(self):
+        self.client.force_login(self.editor)
+        archive_url = reverse("processes:process_archive", args=[self.project.pk])
+        restore_url = reverse("processes:process_unarchive", args=[self.project.pk])
+
+        response = self.client.post(archive_url, HTTP_ACCEPT_LANGUAGE="sv")
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(
+            "Projektet arkiverades.",
+            " ".join(str(m) for m in get_messages(response.wsgi_request)),
+        )
+        response = self.client.post(restore_url, HTTP_ACCEPT_LANGUAGE="en")
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(
+            "The project was restored.",
+            " ".join(str(m) for m in get_messages(response.wsgi_request)),
+        )
