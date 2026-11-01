@@ -22,7 +22,8 @@ def build_cognitive_insight_results(
     All three assessment types are always returned so the template can show
     a grey placeholder when an assessment has not been completed.
 
-    The comparison levels use the same approved percentile bands as the\n    candidate's own static result report; presentation text remains unchanged.
+    The comparison levels use the same approved percentile bands as the
+    candidate's own static result report; presentation text remains unchanged.
     """
 
     if language_code:
