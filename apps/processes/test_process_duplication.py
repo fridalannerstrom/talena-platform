@@ -81,12 +81,11 @@ class ProcessDuplicationTests(TestCase):
             ai_summary="Private candidate insight",
         )
 
-        mock_sova = patch("apps.processes.process_duplication.SovaClient")
+        # A live Sova connection must not be required for duplication.
+        mock_sova = patch("apps.core.integrations.sova.SovaClient")
         self.addCleanup(mock_sova.stop)
         self.sova = mock_sova.start()
-        self.sova.return_value.get_template_accounts_with_projects.return_value = [
-            {"code": "SOVA", "projects": [{"code": "PQ_MQ", "id": 123}]},
-        ]
+        self.sova.side_effect = RuntimeError("Sova offline")
         self.url = reverse("processes:process_duplicate", args=[self.source.pk])
 
     def test_editor_duplicates_config_but_not_candidates(self):
@@ -172,20 +171,33 @@ class ProcessDuplicationTests(TestCase):
         self.assertEqual(TestProcess.objects.count(), 1)
         self.sova.assert_not_called()
 
-    def test_missing_sova_template_leaves_no_copy(self):
+    def test_missing_saved_template_leaves_no_copy(self):
         self.client.force_login(self.owner)
-        self.sova.return_value.get_template_accounts_with_projects.return_value = []
+        self.source.project_code = ""
+        self.source.save(update_fields=["project_code"])
         response = self.client.post(self.url, {"name": "Unused"})
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "no longer available")
+        self.assertContains(response, "no saved Sova template")
         self.assertFalse(TestProcess.objects.filter(name="Unused").exists())
+        self.sova.assert_not_called()
 
-    def test_sova_error_leaves_no_copy(self):
+    def test_sova_outage_does_not_block_duplicate(self):
         self.client.force_login(self.owner)
-        self.sova.return_value.get_template_accounts_with_projects.side_effect = RuntimeError("API offline")
+        response = self.client.post(self.url, {"name": "Offline copy"})
+        self.assertEqual(response.status_code, 302)
+        copy = TestProcess.objects.get(name="Offline copy")
+        self.assertEqual(copy.account_code, "SOVA")
+        self.assertEqual(copy.project_code, "PQ_MQ")
+        self.assertEqual(copy.invitations.count(), 0)
+        self.sova.assert_not_called()
+
+    def test_missing_saved_account_leaves_no_copy(self):
+        self.client.force_login(self.owner)
+        self.source.account_code = ""
+        self.source.save(update_fields=["account_code"])
         response = self.client.post(self.url, {"name": "Unused"})
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Could not verify the Sova template")
+        self.assertContains(response, "no saved Sova template")
         self.assertFalse(TestProcess.objects.filter(name="Unused").exists())
 
     def test_historical_process_cannot_be_duplicated(self):
