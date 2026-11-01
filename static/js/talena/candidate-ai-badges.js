@@ -21,7 +21,7 @@
     ["[data-combined-questions-root]", ".personality-questions-header h2", ".combined-question-sections .personality-question-card__text"],
     ["#candidate-insights-panel-prepare-interview > .final-output-card", "h2.insight-summary-title", "[data-pre-interview-overall-synthesis]"],
     ["[data-post-interview-section]", "h3.insight-summary-title", "[data-post-interview-content] .purpose-fit-summary"],
-    [".after-interview-tab-card", ".after-interview-tab-card__title", "[data-after-interview-block-content]"],
+    [".after-interview-tab-card", ".after-interview-tab-card__title", "[data-after-interview-block-content][data-after-interview-ai-origin='true']"],
     ["[data-overall-picture-structured-card]", ".after-interview-tab-card__title", "[data-after-interview-block-content]"]
   ];
   const BADGE_CLASS = "talena-ai-generated-badge";
