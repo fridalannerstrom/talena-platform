@@ -7727,3 +7727,6 @@ msgstr "Inbjudan till tester"
 
 msgid "A chronological log of activity across your accessible projects."
 msgstr "En kronologisk logg över aktiviteter i de projekt du har tillgång till."
+
+msgid "The project purpose or context has changed."
+msgstr "Projektets syfte eller kontext har ändrats."
