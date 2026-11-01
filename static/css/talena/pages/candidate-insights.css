@@ -2172,3 +2172,62 @@
     width: 100%;
   }
 }
+
+/* #364 – Summary-only typography scale.
+   The body copy beneath "Sammanfattande tolkning" is the reference size.
+   Keep this scoped to the overview card so Personality, Skills and other
+   candidate tabs retain their existing typography. */
+.process-page #purposeFitCard {
+  --talena-summary-body-size: 0.75rem;
+  --talena-summary-body-line-height: 1.62;
+  --talena-summary-caption-size: 0.68rem;
+}
+
+/* Long-form, meaningful copy gets one size throughout the summary. */
+.process-page #purposeFitCard #purposeFitSummary,
+.process-page #purposeFitCard .purpose-fit-summary,
+.process-page #purposeFitCard .purpose-fit-list li,
+.process-page #purposeFitCard .candidate-result-overview__motivation-card-description,
+.process-page #purposeFitCard .candidate-result-overview__skill-interpretation,
+.process-page #purposeFitCard .personality-overview-summary__text,
+.process-page #purposeFitCard .personality-overview-summary__placeholder,
+.process-page #purposeFitCard .personality-overview-chart__intro,
+.process-page #purposeFitCard .candidate-result-overview__empty {
+  font-size: var(--talena-summary-body-size) !important;
+  line-height: var(--talena-summary-body-line-height) !important;
+}
+
+/* Secondary labels are distinct, but no longer dramatically smaller. */
+.process-page #purposeFitCard .candidate-result-overview__motivation-list-label,
+.process-page #purposeFitCard .candidate-result-overview__list-label,
+.process-page #purposeFitCard .candidate-result-overview__skill-comparison-label,
+.process-page #purposeFitCard .candidate-result-overview__skill-comparison-labels {
+  font-size: var(--talena-summary-caption-size) !important;
+  line-height: 1.4 !important;
+}
+
+/* Card names and links sit just above captions, below section headings. */
+.process-page #purposeFitCard .candidate-result-overview__motivation-card-name,
+.process-page #purposeFitCard .candidate-result-overview__skill-name,
+.process-page #purposeFitCard .personality-overview-summary__title {
+  font-size: 0.78rem !important;
+  line-height: 1.4 !important;
+}
+.process-page #purposeFitCard .candidate-result-overview__open {
+  font-size: 0.72rem !important;
+}
+.process-page #purposeFitCard .candidate-result-overview__skill-unit {
+  font-size: 0.62rem !important;
+}
+
+/* Keep longer motivation descriptions readable on mid-sized displays. */
+@media (min-width: 721px) and (max-width: 940px) {
+  .process-page #purposeFitCard .candidate-result-overview__motivation-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 720px) {
+  .process-page #purposeFitCard .candidate-result-overview__motivation-cards {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
