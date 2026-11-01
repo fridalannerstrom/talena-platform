@@ -242,7 +242,7 @@
             </tr>
             {% empty %}
             <tr>
-              <td colspan="{{ project_tests|length|add:6 }}" class="text-muted p-3">Inga kandidater ännu.</td>
+              <td colspan="{{ project_table_colspan }}" class="text-muted p-3">Inga kandidater ännu.</td>
             </tr>
             {% endfor %}
           </tbody>

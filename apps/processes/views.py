@@ -7030,6 +7030,7 @@ def process_detail(request, pk):
         "process": process,
         "invitations": invitations,
         "project_tests": project_tests,
+        "project_table_colspan": max(1, len(project_tests)) + 2 + (2 if can_edit else 0),
         "historical_candidates": historical_candidates,
         "is_historical": process.is_historical,
         "meta": meta,

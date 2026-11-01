@@ -273,7 +273,7 @@
 
               {% empty %}
                 <tr>
-                  <td colspan="{{ project_tests|length|add:3 }}" class="p-5 text-center text-muted empty-state">
+                  <td colspan="{{ project_table_colspan }}" class="p-5 text-center text-muted empty-state">
                     {% if can_edit %}
                       <div class="fw-semibold text-dark mb-1">
                         {% trans "No candidates yet" %}
