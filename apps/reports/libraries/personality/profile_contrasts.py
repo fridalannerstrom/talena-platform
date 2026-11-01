@@ -278,11 +278,13 @@ def build_profile_contrast_analysis(
 
     if language == "sv":
         neutral_message = (
-            "Inga indikatorpar med tydliga ytterlägen matchar de fördefinierade mönstren."
+            "Resultaten visar inga av de kontraster som Talena särskilt uppmärksammar. "
+            "Det betyder inte att information saknas."
         )
     else:
         neutral_message = (
-            "No indicator pairs at the defined extremes match the predefined patterns."
+            "The results do not show any of the contrasts Talena specifically highlights. "
+            "This does not mean information is missing."
         )
 
     return {
