@@ -76,6 +76,13 @@ class ProjectAssessmentStatusUnitTests(SimpleTestCase):
                 data = self.result(self.invitation(status=invitation_status))
                 self.assertEqual(data["personality"]["state"], wanted)
 
+    def test_sova_explicit_not_assigned_is_not_guessed_from_missing_data(self):
+        data = self.result(self.invitation(activities=[
+            {"activity": "personality", "status": "not_assigned"}
+        ]))
+        self.assertEqual(data["personality"]["state"], "not_assigned")
+        self.assertEqual(data["motivation"]["state"], "unknown")
+
     def test_sova_per_activity_failure_is_not_interpreted_as_completed(self):
         data = self.result(self.invitation(activities=[
             {"activity": "personality", "status": "failed"}

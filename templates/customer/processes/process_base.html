@@ -3660,6 +3660,8 @@ hideOutdatedState();
   // ------------------------------------------------------------
 
   function initStatusPolling() {
+    // #367 has its own per-assessment polling. Avoid duplicate requests.
+    if (document.querySelector("[data-project-test-statuses]")) return;
     function badgeClassFor(status) {
       switch ((status || "").toLowerCase()) {
         case "completed":

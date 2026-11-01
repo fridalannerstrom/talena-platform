@@ -41,6 +41,8 @@ STATUSES = {
     "done": "completed", "result available": "completed", "result_available": "completed",
     "pass": "completed", "passed": "completed", "fail": "completed", "refer": "completed",
     "expired": "expired", "cancelled": "expired", "canceled": "expired",
+    "not assigned": "not_assigned", "not_assigned": "not_assigned",
+    "not applicable": "not_assigned",
     "error": "activity_failed", "failed": "activity_failed",
 }
 
@@ -139,7 +141,7 @@ def invitation_test_statuses(invitation, columns, language="sv"):
         previous = states[key]
         if status in RANK and (previous not in RANK or RANK[status] > RANK[previous]):
             states[key] = status
-        elif status in ("expired", "activity_failed") and previous is None:
+        elif status in ("expired", "activity_failed", "not_assigned") and previous is None:
             states[key] = status
         elif previous is None:
             states[key] = "unknown"
