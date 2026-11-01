@@ -1699,6 +1699,32 @@
   white-space: nowrap;
 }
 
+/* #364: The overview uses the same approved, non-AI comparison as Skills.
+   Keep the text readable and allow all three cards to grow naturally. */
+.process-page .candidate-result-overview__skill-card:has(.candidate-result-overview__skill-interpretation) {
+  align-content: start;
+}
+.process-page .candidate-result-overview__skill-interpretation {
+  display: block;
+  min-width: 0;
+  width: 100%;
+  margin-top: .15rem;
+  padding-top: .6rem;
+  border-top: 1px solid var(--talena-border);
+  color: var(--talena-text-muted);
+  font-size: .65rem;
+  font-weight: 400;
+  line-height: 1.5;
+  text-align: left;
+  overflow-wrap: break-word;
+  white-space: normal;
+}
+@media (max-width: 460px) {
+  .process-page .candidate-result-overview__skill-interpretation {
+    font-size: .7rem;
+  }
+}
+
 .process-page .candidate-result-overview__empty {
   margin: 0;
   color: var(--talena-text-muted);
