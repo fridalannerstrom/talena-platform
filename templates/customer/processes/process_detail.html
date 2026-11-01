@@ -43,7 +43,13 @@
       </div>
 
       <div class="text-muted small">
-        {% if process.is_historical %}
+        {% if detail_language|slice:":2" == "sv" %}
+          {% if process.is_historical %}
+            {{ historical_candidates|length }} {% if historical_candidates|length == 1 %}kandidat i det historiska projektet{% else %}kandidater i det historiska projektet{% endif %}
+          {% else %}
+            {{ invitations|length }} {% if invitations|length == 1 %}kandidat i projektet{% else %}kandidater i projektet{% endif %}
+          {% endif %}
+        {% elif process.is_historical %}
           {% blocktrans count candidate_count=historical_candidates|length %}
             {{ candidate_count }} candidate in this historical project
           {% plural %}
