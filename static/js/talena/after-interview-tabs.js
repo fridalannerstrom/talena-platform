@@ -1409,6 +1409,7 @@
       if (buffer.trim()) handleLine(buffer);
       if (!received.trim()) throw new Error(copy().sectionGenerationFailed);
 
+      body.dataset.afterInterviewAiOrigin = "true";
       if (editController?.setAiText) {
         editController.setAiText(blockKey, received);
       } else {
