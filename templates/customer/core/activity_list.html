@@ -18,7 +18,7 @@
       <p class="activity-page-eyebrow">{% trans "Workspace activity" %}</p>
       <h1 class="activity-page-title">{% trans "Activity" %}</h1>
       <p class="activity-page-description">
-        {% trans "Activity across the test processes you have access to." %}
+        {% trans "Activity across the projects you have access to." %}
       </p>
     </div>
 
@@ -34,7 +34,7 @@
         {% trans "All activity" %}
       </h2>
       <p class="activity-summary-copy">
-        {% trans "A chronological log of activity across your accessible processes." %}
+        {% trans "A chronological log of activity across your accessible projects." %}
       </p>
     </div>
 
@@ -117,9 +117,9 @@
                     {% elif event.verb == "status_changed" %}
                       {% trans "Status updated" %}
                     {% elif event.verb == "process_created" %}
-                      {% trans "Process created" %}
+                      {% trans "Project created" %}
                     {% elif event.verb == "process_archived" %}
-                      {% trans "Process archived" %}
+                      {% trans "Project archived" %}
                     {% else %}
                       {% trans "Activity" %}
                     {% endif %}
@@ -132,7 +132,7 @@
 
                 {% if event.process %}
                   <div class="activity-process">
-                    {% trans "Process:" %}
+                    {% trans "Project:" %}
                     {{ event.process.project_name_snapshot|default:event.process.project_code|default:event.process.name }}
                   </div>
                 {% endif %}

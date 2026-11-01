@@ -152,6 +152,57 @@
     });
   });
 
+  // Duplicate projects in one reusable Bootstrap modal. The form still posts
+  // through Django's existing CSRF-protected endpoint and redirects on success.
+  const duplicateModal = document.getElementById("duplicateProcessModal");
+  const duplicateForm = document.getElementById("duplicateProcessForm");
+  const duplicateName = document.getElementById("duplicateProcessName");
+  const duplicateSource = document.getElementById("duplicateProcessSource");
+  const duplicateSubmit = document.getElementById("duplicateProcessSubmit");
+
+  if (duplicateModal && duplicateForm && duplicateName && duplicateSource) {
+    duplicateModal.addEventListener("show.bs.modal", function (event) {
+      const trigger = event.relatedTarget;
+      if (!trigger || !trigger.matches("[data-duplicate-trigger]")) {
+        return;
+      }
+
+      const sourceName = trigger.dataset.duplicateName || "";
+      const suffix = duplicateModal.dataset.copySuffix || " (copy)";
+      const allowedName = sourceName.slice(0, Math.max(0, 255 - suffix.length));
+
+      duplicateForm.action = trigger.dataset.duplicateUrl || "";
+      duplicateSource.textContent = sourceName;
+      duplicateName.value = allowedName + suffix;
+      if (duplicateSubmit) {
+        duplicateSubmit.disabled = false;
+      }
+    });
+
+    duplicateModal.addEventListener("shown.bs.modal", function () {
+      duplicateName.focus();
+      duplicateName.select();
+    });
+
+    duplicateForm.addEventListener("submit", function (event) {
+      // Guard against an empty or whitespace-only name, including an edited
+      // value that passes the browser's native "required" attribute.
+      const name = duplicateName.value.trim();
+      if (!name) {
+        event.preventDefault();
+        duplicateName.value = "";
+        duplicateName.reportValidity();
+        duplicateName.focus();
+        return;
+      }
+
+      duplicateName.value = name;
+      if (duplicateSubmit) {
+        duplicateSubmit.disabled = true;
+      }
+    });
+  }
+
   searchInput.addEventListener("input", render);
   purposeFilter.addEventListener("change", render);
   sortSelect.addEventListener("change", render);

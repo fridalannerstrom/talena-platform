@@ -6,7 +6,7 @@
     ? {
         title: "Automatisk testinbjudan",
         description:
-          "Välj om nya kandidater ska få sin testinbjudan direkt när de läggs till i processen.",
+          "Välj om nya kandidater ska få sin testinbjudan direkt när de läggs till i projektet.",
         label: "Skicka testinbjudan automatiskt",
         createHelp:
           "När inställningen är på skickas testerna direkt efter att kandidaten lagts till. Du kan ändra detta senare under Inställningar.",
@@ -16,7 +16,7 @@
     : {
         title: "Automatic assessment invitation",
         description:
-          "Choose whether new candidates should receive their assessment invitation as soon as they are added to the process.",
+          "Choose whether new candidates should receive their assessment invitation as soon as they are added to the project.",
         label: "Send assessment invitation automatically",
         createHelp:
           "When enabled, assessments are sent immediately after the candidate is added. You can change this later in Settings.",

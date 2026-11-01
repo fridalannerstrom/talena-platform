@@ -8,7 +8,7 @@
 {% trans "Optional" as js_optional %}
 {% trans "No tests selected" as js_no_tests_selected %}
 {% trans "Not selected" as js_not_selected %}
-{% trans "Test process" as js_test_process %}
+{% trans "Project" as js_test_process %}
 
 {% trans "Please select a purpose before continuing." as js_select_purpose_before_continuing %}
 {% trans "Please select at least one test before continuing." as js_select_test_before_continuing %}
@@ -24,15 +24,15 @@
   <div class="d-flex align-items-start justify-content-between mb-4">
     <div>
 <div class="text-muted small mb-1">
-  {% trans "Test processes" %}
+  {% trans "Projects" %}
 </div>
 
 <h1 class="h3 mb-1">
-  {% trans "Create test process" %}
+  {% trans "Create project" %}
 </h1>
 
 <p class="text-muted mb-0">
-  {% trans "Choose why you are creating this process, then Talena will recommend a suitable assessment setup." %}
+  {% trans "Choose why you are creating this project, then Talena will recommend a suitable assessment setup." %}
 </p>
     </div>
 
@@ -40,7 +40,7 @@
   href="{% url 'processes:process_list' %}"
   class="btn btn-outline-secondary btn-sm"
 >
-  {% trans "Back to processes" %}
+  {% trans "Back to projects" %}
 </a>
   </div>
 
@@ -66,7 +66,7 @@
       <!-- STEP INDICATOR -->
 <div
   class="wizard-progress mb-4"
-  aria-label="{% trans 'Create process steps' %}"
+  aria-label="{% trans 'Create project steps' %}"
 >
   <button type="button" class="wizard-progress-step active" data-step-target="1">
     <span class="wizard-progress-line"></span>
@@ -112,7 +112,7 @@
 
             <div class="mb-4">
 <h2 class="h4 mb-1">
-  {% trans "Why are you creating this process?" %}
+  {% trans "Why are you creating this project?" %}
 </h2>
 
 <p class="text-muted mb-0">
@@ -331,7 +331,7 @@
 </h2>
 
 <p class="text-muted mb-0">
-  {% trans "Give the process an internal name and add labels if you want to organize it by department, role or project." %}
+  {% trans "Give the project an internal name and add labels if you want to organize it by department, role or project." %}
 </p>
             </div>
 
@@ -362,7 +362,7 @@
   class="form-label"
   for="processNameInput"
 >
-  {% trans "Process name" %}
+  {% trans "Project name" %}
 </label>
                 <input
                   type="text"
@@ -370,7 +370,7 @@
                   id="processNameInput"
                   class="form-control form-control-lg"
                   value="{{ form.name.value|default:'' }}"
-                  placeholder="{% trans 'Process name' %}"
+                  placeholder="{% trans 'Project name' %}"
                 >
 
                 {% if form.name.errors %}
@@ -523,7 +523,7 @@
   type="submit"
   class="btn btn-primary"
 >
-  {% trans "Create process" %}
+  {% trans "Create project" %}
 </button>
             </div>
 

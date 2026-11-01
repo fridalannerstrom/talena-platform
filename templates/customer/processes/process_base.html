@@ -50,7 +50,7 @@
 {% trans "One section could not be updated. Reload the candidate and try that section again individually." as js_one_section_could_not_be_updated %}
 {% trans "COUNT sections could not be updated. Reload the candidate and try those sections again individually." as js_sections_could_not_be_updated %}
 {% trans "All AI insights have been updated" as js_all_ai_insights_updated %}
-{% trans "The new insights were generated using the latest process purpose and context. Reloading the candidate now…" as js_new_insights_generated_reloading %}
+{% trans "The new insights were generated using the latest project purpose and context. Reloading the candidate now…" as js_new_insights_generated_reloading %}
 {% trans "The AI update could not be started." as js_ai_update_could_not_start %}
 {% trans "Generating candidate summary…" as js_generating_candidate_summary %}
 {% trans "The summary could not be generated" as js_summary_could_not_be_generated %}
@@ -140,7 +140,7 @@
 
   <a href="{% url 'processes:process_list' %}"
      class="text-muted small text-decoration-none d-inline-flex align-items-center gap-1 mb-3">
-    ← {% trans "Back to processes" %}
+    ← {% trans "Back to projects" %}
   </a>
 
   {% with current_active=active|default:"overview" %}
@@ -162,7 +162,7 @@
 </div>
 
 <div class="text-muted small">
-  {% trans "Invite a candidate to this test process." %}
+  {% trans "Invite a candidate to this project." %}
 </div>
         </div>
         <button

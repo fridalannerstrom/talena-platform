@@ -4373,7 +4373,7 @@ def process_candidate_global_ai_update_plan(
         process,
     ):
         return HttpResponseForbidden(
-            "You do not have access to this process."
+            "You do not have access to this project."
         )
 
     if process.is_historical:
@@ -4543,7 +4543,7 @@ def process_candidate_pre_interview_decision_support_stream(
         process,
     ):
         return HttpResponseForbidden(
-            "You do not have access to this process."
+            "You do not have access to this project."
         )
     
     invitation = get_candidate_ai_owner(
@@ -4787,7 +4787,7 @@ def process_candidate_pre_interview_decision_support_regenerate(
         process,
     ):
         return HttpResponseForbidden(
-            "You do not have access to this process."
+            "You do not have access to this project."
         )
 
         
@@ -4867,7 +4867,7 @@ def process_candidate_post_interview_decision_support_stream(
         process,
     ):
         return HttpResponseForbidden(
-            "You do not have access to this process."
+            "You do not have access to this project."
         )
     
     invitation = get_candidate_ai_owner(
@@ -5225,7 +5225,7 @@ def process_candidate_post_interview_decision_support_regenerate(
         process,
     ):
         return HttpResponseForbidden(
-            "You do not have access to this process."
+            "You do not have access to this project."
         )
     
     invitation = get_candidate_ai_owner(
@@ -5324,7 +5324,7 @@ def process_candidate_interview_notes_update(
         process,
     ):
         return HttpResponseForbidden(
-            "You do not have access to this process."
+            "You do not have access to this project."
         )
 
     invitation = get_candidate_ai_owner(
@@ -5460,7 +5460,7 @@ def process_candidate_final_output(
         process,
     ):
         return HttpResponseForbidden(
-            "You do not have access to this process."
+            "You do not have access to this project."
         )
     
     invitation = get_candidate_ai_owner(
@@ -5756,7 +5756,7 @@ def process_candidate_combined_questions(
         process,
     ):
         return HttpResponseForbidden(
-            "You do not have access to this process."
+            "You do not have access to this project."
         )
 
     if process.is_historical:
@@ -6119,7 +6119,7 @@ def process_create(request):
                 # fallback: välj en direkt/åtkomlig unit automatiskt
                 fallback_id = next(iter(accessible_ids), None)
                 if not fallback_id:
-                    form.add_error(None, "You do not have an assigned org unit, so a process cannot be created.")
+                    form.add_error(None, "You do not have an assigned account, so a project cannot be created.")
                     return render(request, "customer/processes/process_create.html", {
                         "form": form,
                         "error": error,
@@ -6191,7 +6191,7 @@ def process_create(request):
 
             return redirect("processes:process_detail", pk=obj.pk)
 
-        messages.error(request, "The process could not be created. Please check the fields.")
+        messages.error(request, "The project could not be created. Please check the fields.")
     else:
         form = TestProcessCreateForm()
         form.fields["sova_template"].choices = choices
@@ -6332,17 +6332,17 @@ def process_update(request, pk):
     obj = get_object_or_404(TestProcess, pk=pk)
 
     if obj.is_historical:
-        return HttpResponseForbidden("Historical processes are read-only.")
+        return HttpResponseForbidden("Historical projects are read-only.")
 
     company = get_company_for_user(request.user)
     if not company or obj.company_id != company.id:
         return HttpResponseForbidden("No access.")
 
     if not user_can_edit_process(request.user, company, obj):
-        return HttpResponseForbidden("You do not have permission to edit this process.")
+        return HttpResponseForbidden("You do not have permission to edit this project.")
 
     if not user_can_access_process(request.user, obj):
-        return HttpResponseForbidden("You do not have access to this process.")
+        return HttpResponseForbidden("You do not have access to this project.")
 
     old_acc = (obj.account_code or "").strip()
     old_proj = (obj.project_code or "").strip()
@@ -6594,7 +6594,7 @@ def process_update(request, pk):
 
             messages.success(
                 request,
-                "The process was updated."
+                "The project was updated."
             )
 
             return redirect(
@@ -6638,10 +6638,10 @@ def process_delete(request, pk):
         return HttpResponseForbidden("No access.")
 
     if not user_can_edit_process(request.user, company, obj):
-        return HttpResponseForbidden("Du har inte behörighet att radera denna process.")
+        return HttpResponseForbidden("Du har inte behörighet att radera detta projekt.")
 
     if not user_can_access_process(request.user, obj):
-        return HttpResponseForbidden("You do not have access to this process.")
+        return HttpResponseForbidden("You do not have access to this project.")
 
         # ✅ B + C: delete om möjligt, annars arkivera
     if obj.can_delete():
@@ -6661,7 +6661,7 @@ def process_delete(request, pk):
             meta={"reason": "could_not_delete"},
         )
         obj.archive()
-        messages.info(request, "Processen kunde inte raderas eftersom tester har skickats. Den arkiverades istället.")
+        messages.info(request, "Projektet kunde inte raderas eftersom tester har skickats. Det arkiverades istället.")
 
     return redirect("processes:process_list")
 
@@ -6673,12 +6673,12 @@ def process_role_context(request, pk):
 
     if process.is_historical:
         return HttpResponseForbidden(
-            "Historical processes are read-only."
+            "Historical projects are read-only."
         )
 
     if not user_can_access_process(request.user, process):
         return HttpResponseForbidden(
-            "You do not have access to this process."
+            "You do not have access to this project."
         )
 
     # Company/org-unit scope is also enforced by the URL guard. Viewing
@@ -6688,7 +6688,7 @@ def process_role_context(request, pk):
         request.user, process.company, process
     ):
         return HttpResponseForbidden(
-            "You do not have permission to edit this process."
+            "You do not have permission to edit this project."
         )
 
     context_config = get_purpose_context_config(process.purpose)
@@ -6741,7 +6741,7 @@ def process_role_context(request, pk):
 
             messages.success(
                 request,
-                "The process context was saved."
+                "The project context was saved."
             )
 
             return redirect(
@@ -6836,7 +6836,7 @@ def process_detail(request, pk):
 
     # Access rule, including own-only logic
     if not user_can_view_process(request.user, company, process):
-        return HttpResponseForbidden("You do not have access to this process.")
+        return HttpResponseForbidden("You do not have access to this project.")
 
     meta = ProjectMeta.objects.filter(
         account_code=process.account_code,
@@ -6971,18 +6971,18 @@ def process_add_candidate(request, pk):
     process = get_object_or_404(TestProcess, pk=pk)
 
     if process.is_historical:
-        return HttpResponseForbidden("Historical processes are read-only.")
+        return HttpResponseForbidden("Historical projects are read-only.")
 
     company = get_company_for_user(request.user)
     if not company or process.company_id != company.id:
         return HttpResponseForbidden("No access.")
 
     if not user_can_edit_process(request.user, company, process):
-        return HttpResponseForbidden("Du har inte behörighet att ändra i denna process.")
+        return HttpResponseForbidden("Du har inte behörighet att ändra i detta projekt.")
 
     # ✅ Säkerhetskontroll
     if not company or not user_can_edit_process(request.user, company, process):
-        return HttpResponseForbidden("Du har inte behörighet att skicka tester i denna process.")
+        return HttpResponseForbidden("Du har inte behörighet att skicka tester i detta projekt.")
 
     is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest"
 
@@ -7017,10 +7017,10 @@ def process_add_candidate(request, pk):
                 )
 
             if inv_created:
-                msg = f"{candidate.email} har lagts till i processen."
+                msg = f"{candidate.email} har lagts till i projektet."
                 messages.success(request, msg)
             else:
-                msg = f"{candidate.email} är redan i processen."
+                msg = f"{candidate.email} är redan i projektet."
                 messages.info(request, msg)
 
             # ✅ Modal/AJAX: return JSON istället för redirect
@@ -7066,7 +7066,7 @@ def invite_candidate(request, pk, candidate_id):
 
     # Säkerhetskontroll
     if not user_can_access_process(request.user, process):
-        return HttpResponseForbidden("You do not have access to this process.")
+        return HttpResponseForbidden("You do not have access to this project.")
     
     candidate = get_object_or_404(Candidate, pk=candidate_id)
     invitation = get_object_or_404(TestInvitation, process=process, candidate=candidate)
@@ -7087,7 +7087,7 @@ def sova_order_assessment_smoke_test(request, pk, candidate_id):
 
     # Säkerhetskontroll
     if not user_can_access_process(request.user, process):
-        return HttpResponseForbidden("You do not have access to this process.")
+        return HttpResponseForbidden("You do not have access to this project.")
     candidate = get_object_or_404(Candidate, pk=candidate_id)
 
     client = SovaClient()
@@ -7389,7 +7389,7 @@ def remove_candidate_from_process(request, process_id, candidate_id):
 
 
     invitation.delete()
-    messages.success(request, "Candidate removed from process.")
+    messages.success(request, "Candidate removed from project.")
     return redirect("processes:process_detail", pk=process.id)
 
 
@@ -7399,7 +7399,7 @@ def process_send_tests(request, pk):
     process = get_object_or_404(TestProcess, pk=pk)
 
     if process.is_historical or not process.sova_sync_enabled:
-        messages.error(request, "This is a historical process and cannot send SOVA invitations.")
+        messages.error(request, "This is a historical project and cannot send SOVA invitations.")
         return redirect("processes:process_detail", pk=process.pk)
 
     company = get_company_for_user(request.user)
@@ -7407,13 +7407,13 @@ def process_send_tests(request, pk):
         return HttpResponseForbidden("No access.")
 
     if not user_can_edit_process(request.user, company, process):
-        return HttpResponseForbidden("Du har inte behörighet att skicka tester i denna process.")
+        return HttpResponseForbidden("Du har inte behörighet att skicka tester i detta projekt.")
 
     if request.method != "POST":
         return redirect("processes:process_detail", pk=process.pk)
 
     if not user_can_access_process(request.user, process):
-        return HttpResponseForbidden("You do not have access to this process.")
+        return HttpResponseForbidden("You do not have access to this project.")
 
     if request.method != "POST":
         return redirect("processes:process_detail", pk=process.pk)
@@ -7456,7 +7456,7 @@ def process_candidate_detail(request, process_id, candidate_id):
     process = get_object_or_404(TestProcess, pk=process_id)
 
     if not user_can_access_process(request.user, process):
-        return HttpResponseForbidden("You do not have access to this process.")
+        return HttpResponseForbidden("You do not have access to this project.")
 
     is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest"
     language_code = get_request_ai_language(request)
@@ -7636,7 +7636,7 @@ def process_invitation_statuses(request, pk):
 
     # Säkerhetskontroll
     if not user_can_access_process(request.user, process):
-        return HttpResponseForbidden("You do not have access to this process.")
+        return HttpResponseForbidden("You do not have access to this project.")
 
     qs = (
         TestInvitation.objects
@@ -7673,7 +7673,7 @@ def process_archive(request, pk):
         return HttpResponseForbidden("Du har inte behörighet att arkivera denna process.")
 
     if not user_can_access_process(request.user, obj):
-        return HttpResponseForbidden("You do not have access to this process.")
+        return HttpResponseForbidden("You do not have access to this project.")
 
     obj.archive()
 
@@ -7684,7 +7684,7 @@ def process_archive(request, pk):
         process=obj,
     )
 
-    messages.success(request, "Processen arkiverades.")
+    messages.success(request, "Projektet arkiverades.")
     return redirect("processes:process_list")
 
 
@@ -7703,10 +7703,10 @@ def process_unarchive(request, pk):
         return HttpResponseForbidden("Du har inte behörighet att återställa denna process.")
 
     if not user_can_access_process(request.user, obj):
-        return HttpResponseForbidden("You do not have access to this process.")
+        return HttpResponseForbidden("You do not have access to this project.")
 
     obj.unarchive()
-    messages.success(request, "Processen återställdes.")
+    messages.success(request, "Projektet återställdes.")
     return redirect("processes:process_list")
 
 
@@ -7723,7 +7723,7 @@ def process_candidate_summary_stream(
 
     if not user_can_access_process(request.user, process):
         return HttpResponseForbidden(
-            "You do not have access to this process."
+            "You do not have access to this project."
         )
 
     # ---------------------------------------------------------
@@ -7892,7 +7892,7 @@ def process_candidate_response_style_guidance_stream(
         process,
     ):
         return HttpResponseForbidden(
-            "You do not have access to this process."
+            "You do not have access to this project."
         )
 
     # ---------------------------------------------------------
@@ -8182,7 +8182,7 @@ def process_candidate_response_style_guidance_regenerate(
         process,
     ):
         return HttpResponseForbidden(
-            "You do not have access to this process."
+            "You do not have access to this project."
         )
 
     if process.is_historical:
@@ -8283,7 +8283,7 @@ def process_candidate_purpose_fit_stream(
         )
 
         return HttpResponseForbidden(
-            "You do not have access to this process."
+            "You do not have access to this project."
         )
 
     if not purpose_supports_fit(process):
@@ -8295,7 +8295,7 @@ def process_candidate_purpose_fit_stream(
         return JsonResponse(
             {
                 "error": (
-                    "This process does not support "
+                    "This project does not support "
                     "AI Overview."
                 )
             },
@@ -8532,14 +8532,14 @@ def process_candidate_purpose_fit_regenerate(
 
     if not user_can_access_process(request.user, process):
         return HttpResponseForbidden(
-            "You do not have access to this process."
+            "You do not have access to this project."
         )
 
     if not purpose_supports_fit(process):
         return JsonResponse(
             {
                 "error": (
-                    "Flexible processes do not support "
+                    "Flexible projects do not support "
                     "purpose-fit analysis."
                 )
             },
@@ -8874,14 +8874,14 @@ def process_create_v2(request):
                 },
             )
 
-            messages.success(request, "Testprocessen skapades.")
+            messages.success(request, "Projektet skapades.")
             return redirect("processes:process_detail", pk=obj.pk)
         
         else:
             print("PROCESS CREATE FORM ERRORS:", form.errors.as_json())
             print("POST DATA:", request.POST)
 
-        messages.error(request, "The process could not be created. Please check the fields.")
+        messages.error(request, "The project could not be created. Please check the fields.")
 
     # --------------------------------------------------
     # 11. GET: visa tom form
@@ -10356,7 +10356,7 @@ def process_candidate_summary_regenerate(
 
     if not user_can_access_process(request.user, process):
         return HttpResponseForbidden(
-            "You do not have access to this process."
+            "You do not have access to this project."
         )
 
     if process.is_historical:
@@ -10416,7 +10416,7 @@ def process_candidate_cognitive_interpretation_stream(
         process,
     ):
         return HttpResponseForbidden(
-            "You do not have access to this process."
+            "You do not have access to this project."
         )
 
     if process.is_historical:
@@ -10668,7 +10668,7 @@ def process_candidate_cognitive_interpretation_regenerate(
         process,
     ):
         return HttpResponseForbidden(
-            "You do not have access to this process."
+            "You do not have access to this project."
         )
 
 
@@ -10742,7 +10742,7 @@ def process_candidate_cognitive_questions_stream(
         process,
     ):
         return HttpResponseForbidden(
-            "You do not have access to this process."
+            "You do not have access to this project."
         )
 
 
@@ -10987,7 +10987,7 @@ def process_candidate_cognitive_questions_regenerate(
         process,
     ):
         return HttpResponseForbidden(
-            "You do not have access to this process."
+            "You do not have access to this project."
         )
 
     if process.is_historical:
@@ -11061,7 +11061,7 @@ def process_candidate_motivation_interpretation_stream(
         process,
     ):
         return HttpResponseForbidden(
-            "You do not have access to this process."
+            "You do not have access to this project."
         )
 
     if process.is_historical:
@@ -11312,7 +11312,7 @@ def process_candidate_motivation_interpretation_regenerate(
         process,
     ):
         return HttpResponseForbidden(
-            "You do not have access to this process."
+            "You do not have access to this project."
         )
 
     if process.is_historical:
@@ -11383,7 +11383,7 @@ def process_candidate_motivation_questions_stream(
         process,
     ):
         return HttpResponseForbidden(
-            "You do not have access to this process."
+            "You do not have access to this project."
         )
 
     if process.is_historical:
@@ -11674,7 +11674,7 @@ def process_candidate_motivation_questions_regenerate(
         process,
     ):
         return HttpResponseForbidden(
-            "You do not have access to this process."
+            "You do not have access to this project."
         )
 
 
@@ -11752,7 +11752,7 @@ def process_candidate_personality_interpretation_stream(
         process,
     ):
         return HttpResponseForbidden(
-            "You do not have access to this process."
+            "You do not have access to this project."
         )
 
     # ---------------------------------------------------------
@@ -12055,7 +12055,7 @@ def process_candidate_personality_interpretation_regenerate(
         process,
     ):
         return HttpResponseForbidden(
-            "You do not have access to this process."
+            "You do not have access to this project."
         )
 
     if process.is_historical:
@@ -12134,7 +12134,7 @@ def process_candidate_personality_questions_stream(
         process,
     ):
         return HttpResponseForbidden(
-            "You do not have access to this process."
+            "You do not have access to this project."
         )
 
     if process.is_historical:
@@ -12405,7 +12405,7 @@ def process_candidate_personality_questions_regenerate(
         process,
     ):
         return HttpResponseForbidden(
-            "You do not have access to this process."
+            "You do not have access to this project."
         )
 
     if process.is_historical:
@@ -12477,7 +12477,7 @@ def process_candidate_personality_traits_update(
         process,
     ):
         return HttpResponseForbidden(
-            "You do not have access to this process."
+            "You do not have access to this project."
         )
 
     if process.is_historical:

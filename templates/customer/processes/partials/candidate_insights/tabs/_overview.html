@@ -47,8 +47,8 @@
 
 {% blocktrans trimmed %}
   A combined interpretation of the candidate’s available
-  assessment results, selected process purpose and any
-  added process context.
+  assessment results, selected project purpose and any
+  added project context.
 {% endblocktrans %}
 
             {% endif %}
@@ -86,7 +86,7 @@
             data-regenerate-url="{% url 'processes:process_candidate_purpose_fit_regenerate' process.id candidate.id %}"
             data-bs-toggle="tooltip"
             data-bs-placement="top"
-            title="{% trans 'Generate a new overview using the latest assessment results, purpose and process context.' %}"
+            title="{% trans 'Generate a new overview using the latest assessment results, purpose and project context.' %}"
             aria-label="{% trans 'Generate a new AI overview' %}"
           >
             <i data-feather="refresh-cw"></i>
@@ -162,7 +162,7 @@
 
             {% else %}
 
-              {% trans "Analysing assessment results and process context…" %}
+              {% trans "Analysing assessment results and project context…" %}
 
             {% endif %}
 
@@ -575,7 +575,7 @@
                     purpose-fit-input-pill--muted
                   "
                 >
-                  {% trans "No original process context" %}
+                  {% trans "No original project context" %}
                 </span>
 
               {% else %}
@@ -588,7 +588,7 @@
                 {% if has_purpose_context %}
 
                   <span class="purpose-fit-input-pill">
-                    {% trans "Process context" %}
+                    {% trans "Project context" %}
                   </span>
 
                 {% else %}
@@ -600,7 +600,7 @@
                     "
                     data-bs-toggle="tooltip"
                     data-bs-placement="top"
-                    title="{% trans 'No additional process context has been added.' %}"
+                    title="{% trans 'No additional project context has been added.' %}"
                   >
                     {% trans "No added context" %}
                   </span>
@@ -715,7 +715,7 @@
           {% blocktrans with completed=tests_completed_count total=tests_sent_count %}
             {{ completed }} of {{ total }} assessments are complete.
             The combined AI summary will be generated when all assessments
-            in the process have been completed.
+            in the project have been completed.
           {% endblocktrans %}
         </p>
 

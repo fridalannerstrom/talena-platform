@@ -146,7 +146,7 @@ def get_default_invitation_template(
         language_code = "sv"
 
     with override(language_code):
-        subject = _("Invitation to assessment process")
+        subject = _("Invitation to assessments")
         if language_code == "sv":
             # Explicit Swedish default so deployed .mo files cannot cause
             # the older wording to be sent after this copy change.

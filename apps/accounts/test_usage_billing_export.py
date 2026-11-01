@@ -91,7 +91,7 @@ class BillingCsvExportTests(TestCase):
         self.assertIn("talena-billing-2026-09-19-2026-09-20.csv",
                       response["Content-Disposition"])
         self.assertEqual(csv_rows[0], [
-            "Company / account", "Process", "Sent by",
+            "Company / account", "Project", "Sent by",
             "Candidates", "Tests", "Test types", "Status",
         ])
         self.assertEqual(len(csv_rows), 2)

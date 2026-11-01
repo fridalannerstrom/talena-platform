@@ -7,7 +7,7 @@
 <div class="mb-3">
   <a href="{% url 'accounts:company_process_detail' company.pk process.pk %}"
      class="text-muted text-decoration-none small">
-    ← {% trans "Back to process" %}
+    ← {% trans "Back to project" %}
   </a>
 </div>
 
@@ -17,7 +17,7 @@
       <div class="text-muted small mb-1">{% trans "Email template" %}</div>
       <h1 class="h3 mb-1">{% trans "Invitation email" %}</h1>
       <div class="text-muted small">
-        {% if process.name %}{% blocktrans with process_name=process.name %}Editing template for <strong>{{ process_name }}</strong>{% endblocktrans %}{% else %}{% blocktrans %}Editing template for <strong>Untitled process</strong>{% endblocktrans %}{% endif %}
+        {% if process.name %}{% blocktrans with process_name=process.name %}Editing template for <strong>{{ process_name }}</strong>{% endblocktrans %}{% else %}{% blocktrans %}Editing template for <strong>Untitled project</strong>{% endblocktrans %}{% endif %}
       </div>
     </div>
 
@@ -33,15 +33,15 @@
       <div class="card-header">
         <div class="fw-semibold">{% trans "Template content" %}</div>
         <div class="text-muted small">
-          {% trans "This email will be used when candidates are invited to this process." %}
+          {% trans "This email will be used when candidates are invited to this project." %}
         </div>
       </div>
 
       <div class="card-body">
         {% if using_company_template %}
         <div class="alert alert-light border small">
-          This process currently inherits the <a href="{% url 'emails:admin_edit_company_invitation_template' company.pk %}">company template</a>.
-          Saving changes here creates a process-specific version.
+          This project currently inherits the <a href="{% url 'emails:admin_edit_company_invitation_template' company.pk %}">company template</a>.
+          Saving changes here creates a project-specific version.
         </div>
         {% endif %}
         <form method="post">
@@ -69,7 +69,7 @@
           <div class="form-check mb-3">
             {{ form.is_active }}
             <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
-              Use this process-specific email template
+              Use this project-specific email template
             </label>
             <div class="form-text">Uncheck to inherit the company default or Talena's default.</div>
           </div>

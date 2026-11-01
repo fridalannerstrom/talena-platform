@@ -56,12 +56,12 @@
 
             <button type="button" class="merge-field-item" data-copy="{process_name}">
               <code>{process_name}</code>
-              <span>{% trans "Name of this test process" %}</span>
+              <span>{% trans "Name of this project" %}</span>
             </button>
 
             <button type="button" class="merge-field-item" data-copy="{assessments}">
               <code>{assessments}</code>
-              <span>{% trans "Assessments included in the process, separated by commas" %}</span>
+              <span>{% trans "Assessments included in the project, separated by commas" %}</span>
             </button>
 
             <button type="button" class="merge-field-item" data-copy="{assessment_url}">
@@ -105,14 +105,14 @@
       <div class="template-tip mb-3 d-flex align-items-start justify-content-between flex-wrap gap-3">
         <div style="flex:1;min-width:240px">
           <div class="fw-semibold mb-1">
-            {% if page_language|slice:":2" == "sv" %}Du har gjort egna ändringar i mejlmallen{% else %}This process uses a custom invitation template{% endif %}
+            {% if page_language|slice:":2" == "sv" %}Du har gjort egna ändringar i mejlmallen{% else %}This project uses a custom invitation template{% endif %}
           </div>
           <div class="small text-muted">
             {% if page_language|slice:":2" == "sv" %}
               Den här processen använder din anpassade mall istället för standardmallen.
               Du kan när som helst återgå till standardmallen.
             {% else %}
-              Your changes override the default template for this process.
+              Your changes override the default template for this project.
               You can switch back to the default at any time.
             {% endif %}
           </div>
@@ -121,7 +121,7 @@
           {% csrf_token %}
           <input type="hidden" name="action" value="reset_to_default">
           <button type="submit" class="btn btn-outline-secondary"
-                  onclick="return window.confirm('{% if page_language|slice:":2" == "sv" %}Vill du återgå till standardmallen för den här processen?{% else %}Restore the default invitation template for this process?{% endif %}')">
+                  onclick="return window.confirm('{% if page_language|slice:":2" == "sv" %}Vill du återgå till standardmallen för det här projektet?{% else %}Restore the default invitation template for this project?{% endif %}')">
             {% if page_language|slice:":2" == "sv" %}Återgå till standardmall{% else %}Restore default template{% endif %}
           </button>
         </form>
@@ -137,9 +137,9 @@
         </div>
         <div class="small text-muted">
           {% if page_language|slice:":2" == "sv" %}
-            Om du ändrar texten och sparar skapas en egen mall för just den här processen.
+            Om du ändrar texten och sparar skapas en egen mall för just det här projektet.
           {% else %}
-            Editing and saving the text creates a custom template for this process only.
+            Editing and saving the text creates a custom template for this project only.
           {% endif %}
         </div>
       </div>

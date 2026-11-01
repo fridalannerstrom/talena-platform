@@ -6,7 +6,7 @@
 <div class="card">
   <div class="card-header d-flex align-items-center justify-content-between">
     <div>
-      <div class="fw-semibold">Test processes</div>
+      <div class="fw-semibold">Projects</div>
       <div class="text-muted small">
         All test processes connected to {{ company.name }}.
       </div>
@@ -47,7 +47,7 @@
             <td>
               <a href="{% url 'accounts:company_process_detail' company.pk p.pk %}"
                  class="fw-semibold text-decoration-none user-name-link">
-                {{ p.name|default:"Untitled process" }}
+                {{ p.name|default:"Untitled project" }}
               </a>
 
               {% if p.labels.all %}

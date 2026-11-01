@@ -5,7 +5,7 @@ PURPOSE_CONTEXT_CONFIG = {
     "recruitment": {
         "tab_label": _("Role context"),
         "context_title": _("Role context"),
-        "context_intro": _("Add role information to tailor candidate insights, questions and recommendations to this hiring process."),
+        "context_intro": _("Add role information to tailor candidate insights, questions and recommendations to this hiring project."),
 
         "title_label": _("Role title"),
         "fit_label": _("Role fit"),
@@ -34,7 +34,7 @@ PURPOSE_CONTEXT_CONFIG = {
 
         "save_button": _("Save role context"),
         "empty_state_title": _("No role context added yet"),
-        "empty_state_text": _("Add role context to tailor the candidate insights to this hiring process."),
+        "empty_state_text": _("Add role context to tailor the candidate insights to this hiring project."),
     },
 
     "role_match": {
@@ -310,15 +310,15 @@ PURPOSE_CONTEXT_CONFIG = {
     },
 
     "flexible": {
-        "tab_label": _("Process context"),
-        "context_title": _("Process context"),
-        "context_intro": _("Add context to tailor the candidate insights to this process."),
+        "tab_label": _("Project context"),
+        "context_title": _("Project context"),
+        "context_intro": _("Add context to tailor the candidate insights to this project."),
 
         "title_label": _("Context title"),
         "title_help": _("Give this context a short title."),
 
         "job_advertisement_label": _("Main context"),
-        "job_advertisement_help": _("Describe the process, situation or purpose."),
+        "job_advertisement_help": _("Describe the project, situation or purpose."),
 
         "requirements_profile_label": _("Expectations or criteria"),
         "requirements_profile_help": _("Describe what should be considered in the interpretation."),
@@ -340,7 +340,7 @@ PURPOSE_CONTEXT_CONFIG = {
 
         "save_button": _("Save context"),
         "empty_state_title": _("No context added yet"),
-        "empty_state_text": _("Add context to tailor the candidate insights to this process."),
+        "empty_state_text": _("Add context to tailor the candidate insights to this project."),
     },
 }
 

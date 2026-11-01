@@ -65,14 +65,14 @@
 
         <p class="migration-welcome-text">
           {% blocktrans with company_name=migration_company.name %}
-            As a {{ company_name }} user, you have access to your previous candidates and test processes from Sova. We've brought them into Talena so you can pick up where you left off.
+            As a {{ company_name }} user, you have access to your previous candidates and projects from Sova. We've brought them into Talena so you can pick up where you left off.
           {% endblocktrans %}
         </p>
 
         <div class="migration-welcome-stats">
           <div class="migration-welcome-stat">
             <strong>{{ migration_historical_process_count }}</strong>
-            {% trans "archived processes" %}
+            {% trans "archived projects" %}
           </div>
 
           <div class="migration-welcome-stat">
@@ -119,7 +119,7 @@
             type="submit"
             class="btn btn-outline-secondary migration-welcome-secondary"
           >
-            {% trans "Create new test process" %}
+            {% trans "Create new project" %}
           </button>
         </form>
 

@@ -251,7 +251,7 @@ def admin_edit_company_invitation_template(request, company_pk):
         "last_name": "Example",
         "email": "anna@example.test",
         "company_name": company.name,
-        "process_name": "Sample recruitment process",
+        "process_name": "Sample recruitment project",
         "assessments": "Personality, Logical Reasoning",
         "assessment_url": "https://example.test/assessment",
         "job_title": "Example role",

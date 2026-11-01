@@ -12,8 +12,8 @@ class ActivityEvent(models.Model):
         PROCESS_ARCHIVED = "process_archived", "Process arkiverad"
         PROCESS_DELETED = "process_deleted", "Process raderad"
 
-        CANDIDATE_ADDED = "candidate_added", "Kandidat lades till i process"
-        CANDIDATE_REMOVED = "candidate_removed", "Kandidat togs bort från process"
+        CANDIDATE_ADDED = "candidate_added", "Kandidat lades till i projekt"
+        CANDIDATE_REMOVED = "candidate_removed", "Kandidat togs bort från projekt"
 
         INVITE_SENT = "invite_sent", "Testinbjudan skickad"
 
@@ -199,7 +199,7 @@ class ActivityEvent(models.Model):
         process_name = (
             self.process.name
             if self.process
-            else _("the test process")
+            else _("the project")
         )
 
         # ---------------------------------------------------------
@@ -267,7 +267,7 @@ class ActivityEvent(models.Model):
 
         if self.verb == self.Verb.PROCESS_CREATED:
             return _(
-                "%(actor)s created the test process %(process_name)s"
+                "%(actor)s created the project %(process_name)s"
             ) % {
                 "actor": actor,
                 "process_name": process_name,
@@ -275,7 +275,7 @@ class ActivityEvent(models.Model):
 
         if self.verb == self.Verb.PROCESS_ARCHIVED:
             return _(
-                "%(actor)s archived the test process %(process_name)s"
+                "%(actor)s archived the project %(process_name)s"
             ) % {
                 "actor": actor,
                 "process_name": process_name,
@@ -283,7 +283,7 @@ class ActivityEvent(models.Model):
 
         if self.verb == self.Verb.PROCESS_DELETED:
             return _(
-                "%(actor)s deleted the test process %(process_name)s"
+                "%(actor)s deleted the project %(process_name)s"
             ) % {
                 "actor": actor,
                 "process_name": process_name,
@@ -461,14 +461,14 @@ class ActivityEvent(models.Model):
 
             if new == "started":
                 return _(
-                    "%(candidate)s started the process"
+                    "%(candidate)s started the project"
                 ) % {
                     "candidate": candidate,
                 }
 
             if new == "completed":
                 return _(
-                    "%(candidate)s completed the process"
+                    "%(candidate)s completed the project"
                 ) % {
                     "candidate": candidate,
                 }
