@@ -103,6 +103,25 @@
     });
   }
 
+  function markRichTextHeadings() {
+    // Generated Markdown can have its own headings. Mark those only when
+    // generated prose follows immediately, not the surrounding tab/card title.
+    document.querySelectorAll(
+      '[data-candidate-insights-workspace] [data-after-interview-block-content][data-after-interview-ai-origin="true"]'
+    ).forEach((block) => {
+      if (!hasGeneratedText(block)) return;
+      block.querySelectorAll(".after-interview-rich-text__heading").forEach((heading) => {
+        // Already-badged headings have been wrapped in the title row.
+        const row = heading.closest("." + ROW_CLASS);
+        const next = row ? row.nextElementSibling : heading.nextElementSibling;
+        const hasProse = Boolean(next &&
+          !next.matches("h2, h3, h4, h5, h6, .after-interview-rich-text__heading") &&
+          hasGeneratedText(next));
+        setBadge(heading, hasProse, false);
+      });
+    });
+  }
+
   function markManagerReportBlocks() {
     // These text fields are explicitly tracked by the editable AI block
     // controller. Manual edits retain the AI-assisted provenance.
@@ -127,6 +146,7 @@
     if (!document.querySelector("[data-candidate-insights-workspace]")) return;
     document.querySelectorAll("[data-candidate-insights-workspace]").forEach(removeLegacyKickers);
     RULES.forEach((rule) => markRule(...rule));
+    markRichTextHeadings();
     markManagerReportBlocks();
   }
 
