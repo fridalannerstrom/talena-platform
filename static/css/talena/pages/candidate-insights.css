@@ -1701,7 +1701,7 @@
 
 /* #364: The overview uses the same approved, non-AI comparison as Skills.
    Keep the text readable and allow all three cards to grow naturally. */
-.process-page .candidate-result-overview__skill-card:has(.candidate-result-overview__skill-interpretation) {
+.process-page .candidate-result-overview__skill-card {
   align-content: start;
 }
 .process-page .candidate-result-overview__skill-interpretation {
