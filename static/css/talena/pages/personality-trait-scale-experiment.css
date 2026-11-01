@@ -490,3 +490,108 @@ html[lang^="sv"] .process-page .personality-graph__axis span:nth-child(2)::befor
   letter-spacing: 0.04em !important;
   text-transform: uppercase !important;
 }
+
+
+/* #365: The detailed trait graph now uses the same midpoint-out
+   reading direction as all other personality profile scales. */
+.process-page .personality-graph__bars {
+  position: relative !important;
+  display: grid !important;
+  grid-template-columns: repeat(10, minmax(0, 1fr)) !important;
+  align-items: end !important;
+  gap: 4px !important;
+  height: 98px !important;
+  padding-top: 18px !important;
+}
+.process-page .personality-graph__segment {
+  position: relative !important;
+  min-width: 0;
+  width: 100% !important;
+  transition: background-color 160ms ease;
+}
+.process-page .personality-graph__segment--filled {
+  background: var(--talena-chart-accent-soft, #ffb4a9) !important;
+}
+.process-page .personality-graph__segment--selected {
+  background: var(--talena-chart-accent, #ff6f61) !important;
+}
+.process-page .personality-graph__center-line {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  bottom: 0;
+  width: 2px;
+  height: 78px;
+  border-radius: 2px;
+  background: rgba(35, 43, 50, .49);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+/* Compact trait and indicator rows without shrinking readable text. */
+.process-page #personality-detailed-view .personality-profile-section {
+  margin-bottom: .7rem !important;
+}
+.process-page #personality-detailed-view .personality-trait-card {
+  padding: 1.12rem 1rem !important;
+}
+.process-page #personality-detailed-view .personality-trait-card__header {
+  margin-bottom: .35rem !important;
+}
+.process-page #personality-detailed-view .personality-trait-card__title {
+  margin-bottom: .45rem !important;
+  font-size: 1.03rem !important;
+  line-height: 1.35;
+}
+.process-page #personality-detailed-view .personality-trait-card__main {
+  gap: .75rem !important;
+}
+.process-page #personality-detailed-view .personality-trait-card__pole p {
+  font-size: .7rem !important;
+  line-height: 1.5 !important;
+}
+.process-page #personality-detailed-view .personality-trait-card__summary {
+  margin-top: .6rem !important;
+  padding: .65rem .8rem !important;
+}
+.process-page #personality-detailed-view .personality-trait-card__indicator-panel {
+  margin-top: .65rem !important;
+}
+.process-page #personality-detailed-view .personality-indicator-row {
+  padding: .72rem .55rem !important;
+}
+.process-page #personality-detailed-view .personality-indicator-row__header {
+  margin-bottom: .25rem !important;
+}
+.process-page #personality-detailed-view .personality-indicator-row__profile {
+  gap: .75rem !important;
+}
+.process-page #personality-detailed-view .personality-indicator-scale {
+  margin-top: .1rem !important;
+}
+.process-page #personality-detailed-view .personality-indicator-row__pole p {
+  font-size: .67rem !important;
+  line-height: 1.5 !important;
+}
+
+@media (max-width: 720px) {
+  .process-page #personality-detailed-view .personality-trait-card {
+    padding: .95rem .85rem !important;
+  }
+  .process-page #personality-detailed-view .personality-trait-card__main,
+  .process-page #personality-detailed-view .personality-indicator-row__profile {
+    gap: .55rem !important;
+  }
+  .process-page #personality-detailed-view .personality-indicator-row {
+    padding: .7rem .25rem !important;
+  }
+  .process-page #personality-detailed-view .personality-graph__bars {
+    gap: 3px !important;
+    max-width: 100%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .process-page .personality-graph__segment {
+    transition: none;
+  }
+}
