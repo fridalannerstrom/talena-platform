@@ -140,6 +140,9 @@ from django.db.models.functions import Coalesce
 from apps.processes.models import HistoricalProcessCandidate
 from django.contrib import messages
 from django.db import transaction
+from django.db.models.deletion import ProtectedError
+from django.db.utils import IntegrityError
+from apps.processes.services.process_locking import can_delete_process_safely
 from .forms import SelfRegisterForm
 from django.urls import reverse
 from django.utils import timezone
@@ -5930,6 +5933,15 @@ def process_list(request):
             or (perm == "own" and p.created_by_id == request.user.id)
         )
         can_edit_by_process_id[p.id] = can_edit
+        # Prevent misleading "permanent delete" UI for projects containing
+        # ordered assessments or protected billing records.
+        if show_archived and can_edit and not p.is_historical:
+            p.can_delete_now = (
+                can_delete_process_safely(p)
+                and not p.assessment_usages.exists()
+            )
+        else:
+            p.can_delete_now = False
 
     # ProjectMeta lookup
     keys = {
@@ -6626,45 +6638,94 @@ def process_update(request, pk):
 
 
 @login_required
+@require_POST
 def process_delete(request, pk):
     obj = get_object_or_404(TestProcess, pk=pk)
-
-    # ✅ kräver POST (viktigt)
-    if request.method != "POST":
-        return HttpResponseForbidden("POST required.")
-
     company = get_company_for_user(request.user)
+
     if not company or obj.company_id != company.id:
-        return HttpResponseForbidden("No access.")
+        return HttpResponseForbidden("Du saknar åtkomst till projektet.")
 
     if not user_can_edit_process(request.user, company, obj):
-        return HttpResponseForbidden("Du har inte behörighet att radera detta projekt.")
+        return HttpResponseForbidden("Du har inte behörighet att ta bort projektet.")
 
     if not user_can_access_process(request.user, obj):
-        return HttpResponseForbidden("You do not have access to this project.")
+        return HttpResponseForbidden("Du saknar åtkomst till projektet.")
 
-        # ✅ B + C: delete om möjligt, annars arkivera
-    if obj.can_delete():
-        log_event(
-            company=company,
-            verb=ActivityEvent.Verb.PROCESS_DELETED,
-            actor=request.user,
-            process=obj,
-        )
-        obj.delete()
-    else:
+    # Never hard-delete an active project through an old/direct delete URL.
+    # Actual permanent deletion is available only for archived projects.
+    if not obj.is_archived:
+        obj.archive()
         log_event(
             company=company,
             verb=ActivityEvent.Verb.PROCESS_ARCHIVED,
             actor=request.user,
             process=obj,
-            meta={"reason": "could_not_delete"},
         )
-        obj.archive()
-        messages.info(request, "Projektet kunde inte raderas eftersom tester har skickats. Det arkiverades istället.")
+        messages.info(
+            request,
+            "Projektet arkiverades. Öppna Arkiverade projekt för fler alternativ."
+            if (get_language() or "").startswith("sv")
+            else "The project was archived. Open Archived projects for more options.",
+        )
+        return redirect("processes:process_list")
 
-    return redirect("processes:process_list")
+    archived_url = reverse("processes:process_list") + "?archived=1"
+    # An ordered test or a billing row is a hard stop. Neither the project
+    # nor associated assessment or billing data must be erased here.
+    if (
+        not can_delete_process_safely(obj)
+        or obj.assessment_usages.exists()
+    ):
+        messages.warning(
+            request,
+            "Projektet kan inte raderas permanent eftersom det innehåller "
+            "beställda tester eller faktureringsunderlag. Det ligger kvar i arkivet."
+            if (get_language() or "").startswith("sv")
+            else "This project cannot be permanently deleted because it contains "
+            "ordered assessments or billing records. It remains archived.",
+        )
+        return redirect(archived_url)
 
+    try:
+        with transaction.atomic():
+            # Re-check under a row lock to avoid a second deletion request
+            # racing against this request. Protected FKs remain the final guard.
+            locked = TestProcess.objects.select_for_update().get(pk=obj.pk)
+            if not can_delete_process_safely(locked) or locked.assessment_usages.exists():
+                messages.warning(
+                    request,
+                    "Projektet kan inte raderas eftersom tester eller faktureringsunderlag finns."
+                    if (get_language() or "").startswith("sv")
+                    else "The project cannot be deleted because assessments or billing records exist.",
+                )
+                return redirect(archived_url)
+            process_name = locked.name
+            locked.delete()
+            # Do not log against the removed process FK: such events cascade.
+            log_event(
+                company=company,
+                verb=ActivityEvent.Verb.PROCESS_DELETED,
+                actor=request.user,
+                meta={"process_name": process_name},
+            )
+    except (ProtectedError, IntegrityError):
+        messages.warning(
+            request,
+            "Projektet kan inte raderas eftersom uppgifter behöver bevaras. "
+            "Det ligger kvar i arkivet."
+            if (get_language() or "").startswith("sv")
+            else "This project cannot be deleted because protected records must be retained. "
+            "It remains archived.",
+        )
+        return redirect(archived_url)
+
+    messages.success(
+        request,
+        "Projektet har raderats." if (get_language() or "").startswith("sv")
+        else "The project was deleted.",
+    )
+    return redirect(archived_url)
 
 
 @login_required
@@ -7370,28 +7431,88 @@ def self_register(request, token):
 @login_required
 @require_POST
 def remove_candidate_from_process(request, process_id, candidate_id):
-    process = get_object_or_404(TestProcess, pk=process_id, created_by=request.user)
+    # Editor permission is based on the account and org unit, not who created
+    # the project. The URL-level edit guard also enforces Editor/Own/Viewer.
+    process = get_object_or_404(TestProcess, pk=process_id)
+    company = get_company_for_user(request.user)
+    if (
+        not company
+        or process.company_id != company.pk
+        or not user_can_edit_process(request.user, company, process)
+        or not user_can_access_process(request.user, process)
+    ):
+        return HttpResponseForbidden(
+            "Du har inte behörighet att ta bort kandidaten från projektet."
+            if (get_language() or "").startswith("sv")
+            else "You cannot remove this candidate from the project."
+        )
+
+    if process.is_historical:
+        messages.warning(
+            request,
+            "Historiska projekt behöver hanteras separat."
+            if (get_language() or "").startswith("sv")
+            else "Historical projects require a separate removal workflow.",
+        )
+        return redirect("processes:process_detail", pk=process.pk)
 
     invitation = get_object_or_404(
         TestInvitation,
         process=process,
         candidate_id=candidate_id,
     )
+    detail_url = reverse("processes:process_detail", kwargs={"pk": process.pk})
 
-    log_event(
-        company=process.company,
-        verb=ActivityEvent.Verb.CANDIDATE_REMOVED,
-        actor=request.user,
-        process=process,
-        candidate=invitation.candidate,
-        invitation=invitation,
+    # Until #307 is implemented, only remove an unstarted/unordered
+    # invitation. Preserve candidate account, other projects, Sova links and
+    # accounting history when assessments have already been ordered.
+    if (
+        invitation.assessment_url
+        or invitation.status in ("sent", "started", "completed", "expired")
+        or invitation.assessment_usages.exists()
+    ):
+        messages.warning(
+            request,
+            "Kandidaten har beställda tester eller testhistorik och kan ännu inte "
+            "tas bort via den här funktionen. Inga uppgifter har raderats."
+            if (get_language() or "").startswith("sv")
+            else "This candidate has ordered assessments or test history and "
+            "cannot yet be removed here. No data was deleted.",
+        )
+        return redirect(detail_url)
+
+    candidate = invitation.candidate
+    try:
+        with transaction.atomic():
+            # The invitation relationship, not the global Candidate, is removed.
+            # Keep the activity event after deletion because its invitation FK
+            # would be deleted by Django's cascade otherwise.
+            invitation.delete()
+            log_event(
+                company=company,
+                verb=ActivityEvent.Verb.CANDIDATE_REMOVED,
+                actor=request.user,
+                process=process,
+                candidate=candidate,
+            )
+    except (ProtectedError, IntegrityError):
+        messages.warning(
+            request,
+            "Kandidaten kunde inte tas bort eftersom kopplade uppgifter måste bevaras. "
+            "Inga uppgifter har raderats."
+            if (get_language() or "").startswith("sv")
+            else "This candidate could not be removed because related records "
+            "must be retained. No data was deleted.",
+        )
+        return redirect(detail_url)
+
+    messages.success(
+        request,
+        "Kandidaten togs bort från projektet, men finns kvar i andra sammanhang."
+        if (get_language() or "").startswith("sv")
+        else "The candidate was removed from this project but remains in other contexts.",
     )
-
-
-    invitation.delete()
-    messages.success(request, "Candidate removed from project.")
-    return redirect("processes:process_detail", pk=process.id)
-
+    return redirect(detail_url)
 
 
 @login_required
