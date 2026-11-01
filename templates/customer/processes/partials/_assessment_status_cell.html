@@ -1,0 +1,13 @@
+{% comment %}
+Reusable per-Sova-test status for one project-scoped invitation.
+The server owns all status text, including the tooltip and a visible icon.
+{% endcomment %}
+<span class="talena-assessment-state talena-assessment-state--{{ cell.tone }}"
+      data-assessment-status
+      data-invitation-id="{{ inv.id }}"
+      data-test-key="{{ cell.key }}"
+      title="{{ cell.title }}"
+      aria-label="{{ cell.title }}">
+  <span class="talena-assessment-state__icon" aria-hidden="true">{{ cell.icon }}</span>
+  <span class="talena-assessment-state__label">{{ cell.label }}</span>
+</span>
