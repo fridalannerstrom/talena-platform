@@ -385,51 +385,51 @@ html[lang^="sv"] .process-page .personality-indicator-scale__label--center::befo
   display: none !important;
 }
 
-/* Tighten the graph without changing the STEN logic. */
+/* Keep the trait graph compact without changing source scores. */
 .process-page .personality-trait-card__header {
-  margin-bottom: 0.8rem !important;
+  margin-bottom: 0.25rem !important;
 }
 
 .process-page .personality-graph__bars {
-  height: 104px !important;
-  padding-top: 26px !important;
+  height: 78px !important;
+  padding-top: 12px !important;
 }
 
 .process-page .personality-graph__segment:nth-child(1),
 .process-page .personality-graph__segment:nth-child(10) {
-  height: 14px !important;
+  height: 9px !important;
 }
 
 .process-page .personality-graph__segment:nth-child(2),
 .process-page .personality-graph__segment:nth-child(9) {
-  height: 25px !important;
+  height: 17px !important;
 }
 
 .process-page .personality-graph__segment:nth-child(3),
 .process-page .personality-graph__segment:nth-child(8) {
-  height: 39px !important;
+  height: 25px !important;
 }
 
 .process-page .personality-graph__segment:nth-child(4),
 .process-page .personality-graph__segment:nth-child(7) {
-  height: 55px !important;
+  height: 34px !important;
 }
 
 .process-page .personality-graph__segment:nth-child(5),
 .process-page .personality-graph__segment:nth-child(6) {
-  height: 70px !important;
+  height: 45px !important;
 }
 
 .process-page .personality-graph__marker {
-  width: 30px !important;
-  height: 30px !important;
-  bottom: calc(100% + 8px) !important;
-  font-size: 0.75rem !important;
+  width: 26px !important;
+  height: 26px !important;
+  bottom: calc(100% + 5px) !important;
+  font-size: 0.67rem !important;
 }
 
 .process-page .personality-graph__marker::after {
-  width: 8px !important;
-  height: 8px !important;
+  width: 7px !important;
+  height: 7px !important;
 }
 
 /* Left / Right -> arrows. */
@@ -500,8 +500,8 @@ html[lang^="sv"] .process-page .personality-graph__axis span:nth-child(2)::befor
   grid-template-columns: repeat(10, minmax(0, 1fr)) !important;
   align-items: end !important;
   gap: 4px !important;
-  height: 98px !important;
-  padding-top: 18px !important;
+  height: 78px !important;
+  padding-top: 12px !important;
 }
 .process-page .personality-graph__segment {
   position: relative !important;
@@ -520,10 +520,10 @@ html[lang^="sv"] .process-page .personality-graph__axis span:nth-child(2)::befor
   z-index: 2;
   left: 50%;
   bottom: 0;
-  width: 2px;
-  height: 78px;
-  border-radius: 2px;
-  background: rgba(35, 43, 50, .49);
+  width: 1px;
+  height: 52px;
+  border-radius: 1px;
+  background: rgba(35, 43, 50, .38);
   transform: translateX(-50%);
   pointer-events: none;
 }
@@ -533,32 +533,32 @@ html[lang^="sv"] .process-page .personality-graph__axis span:nth-child(2)::befor
   margin-bottom: .7rem !important;
 }
 .process-page #personality-detailed-view .personality-trait-card {
-  padding: 1.12rem 1rem !important;
+  padding: .95rem 1rem !important;
 }
 .process-page #personality-detailed-view .personality-trait-card__header {
-  margin-bottom: .35rem !important;
+  margin-bottom: .2rem !important;
 }
 .process-page #personality-detailed-view .personality-trait-card__title {
-  margin-bottom: .45rem !important;
+  margin-bottom: .25rem !important;
   font-size: 1.03rem !important;
   line-height: 1.35;
 }
 .process-page #personality-detailed-view .personality-trait-card__main {
-  gap: .75rem !important;
+  gap: .6rem !important;
 }
 .process-page #personality-detailed-view .personality-trait-card__pole p {
   font-size: .7rem !important;
   line-height: 1.5 !important;
 }
 .process-page #personality-detailed-view .personality-trait-card__summary {
-  margin-top: .6rem !important;
-  padding: .65rem .8rem !important;
+  margin-top: .45rem !important;
+  padding: .55rem .8rem !important;
 }
 .process-page #personality-detailed-view .personality-trait-card__indicator-panel {
-  margin-top: .65rem !important;
+  margin-top: .5rem !important;
 }
 .process-page #personality-detailed-view .personality-indicator-row {
-  padding: .72rem .55rem !important;
+  padding: .62rem .55rem !important;
 }
 .process-page #personality-detailed-view .personality-indicator-row__header {
   margin-bottom: .25rem !important;
@@ -576,7 +576,7 @@ html[lang^="sv"] .process-page .personality-graph__axis span:nth-child(2)::befor
 
 @media (max-width: 720px) {
   .process-page #personality-detailed-view .personality-trait-card {
-    padding: .95rem .85rem !important;
+    padding: .85rem .85rem !important;
   }
   .process-page #personality-detailed-view .personality-trait-card__main,
   .process-page #personality-detailed-view .personality-indicator-row__profile {
