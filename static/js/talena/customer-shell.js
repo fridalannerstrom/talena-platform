@@ -161,7 +161,7 @@
     const typeLabels = {
       customer: form.dataset.customerLabel || "Customer",
       candidate: form.dataset.candidateLabel || "Candidate",
-      process: form.dataset.processLabel || "Test process",
+      process: form.dataset.processLabel || "Project",
     };
 
     let timer = null;

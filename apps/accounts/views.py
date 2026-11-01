@@ -2739,10 +2739,10 @@ def admin_process_create_for_user(request, user_pk):
             else:
                 obj.labels.clear()
 
-            messages.success(request, "Testprocess skapad.")
+            messages.success(request, "Projekt skapat.")
             return redirect(next_url)
 
-        messages.error(request, "Kunde inte skapa testprocess. Kontrollera fälten.")
+        messages.error(request, "Kunde inte skapa projekt. Kontrollera fälten.")
     else:
         form = TestProcessCreateForm()
         form.fields["sova_template"].choices = choices
@@ -2894,7 +2894,7 @@ def admin_process_update(request, pk):
             else:
                 updated.labels.clear()
 
-            messages.success(request, "Process uppdaterad.")
+            messages.success(request, "Projekt uppdaterat.")
             return redirect(next_url)
 
         messages.error(request, "Kunde inte spara. Kontrollera fälten.")
@@ -2930,7 +2930,7 @@ def admin_remove_candidate_from_process(request, process_id, candidate_id):
         candidate_id=candidate_id,
     )
     invitation.delete()
-    messages.success(request, "Kandidaten togs bort från processen.")
+    messages.success(request, "Kandidaten togs bort från projektet.")
     return redirect("accounts:admin_process_detail", pk=process.id)
 
 
@@ -2939,7 +2939,7 @@ def admin_process_send_tests(request, pk):
     process = get_object_or_404(TestProcess, pk=pk)
 
     if process.is_historical or not process.sova_sync_enabled:
-        messages.error(request, "This is a historical process and cannot send SOVA invitations.")
+        messages.error(request, "This is a historical project and cannot send SOVA invitations.")
         return redirect("accounts:admin_process_detail", pk=process.pk)
 
     if request.method != "POST":
@@ -3099,7 +3099,7 @@ def admin_process_delete(request, pk):
 
     process_name = process.name
     process.delete()
-    messages.success(request, f"Processen '{process_name}' raderades.")
+    messages.success(request, f"Projektet '{process_name}' raderades.")
     return redirect(next_url)
 
 @login_required
@@ -3475,14 +3475,14 @@ def company_historical_process_create(request, pk):
                 },
             )
 
-            messages.success(request, "Historical test process created.")
+            messages.success(request, "Historical project created.")
             return redirect(
                 "accounts:company_process_detail",
                 company_pk=company.pk,
                 process_pk=process.pk,
             )
 
-        messages.error(request, "Could not create historical process. Check the form fields.")
+        messages.error(request, "Could not create historical project. Check the form fields.")
 
     else:
         form = HistoricalTestProcessForm(company=company)
@@ -3912,14 +3912,14 @@ def company_process_create(request, company_pk):
                 },
             )
 
-            messages.success(request, "SOVA process created.")
+            messages.success(request, "SOVA project created.")
             return redirect(
                 "accounts:company_process_detail",
                 company_pk=company.pk,
                 process_pk=obj.pk,
             )
 
-        messages.error(request, "Could not create SOVA process. Check the form fields.")
+        messages.error(request, "Could not create SOVA project. Check the form fields.")
 
     else:
         form = TestProcessWizardCreateForm()
@@ -3946,7 +3946,7 @@ def company_process_archive(request, company_pk, process_pk):
     )
 
     if process.is_archived:
-        messages.info(request, "This process is already archived.")
+        messages.info(request, "This project is already archived.")
         return redirect(
             "accounts:company_process_detail",
             company_pk=company.pk,
@@ -3963,7 +3963,7 @@ def company_process_archive(request, company_pk, process_pk):
         meta={"context": "admin_company_view"},
     )
 
-    messages.success(request, "Process archived.")
+    messages.success(request, "Project archived.")
     return redirect(
         "accounts:company_process_detail",
         company_pk=company.pk,
@@ -3984,7 +3984,7 @@ def company_process_unarchive(request, company_pk, process_pk):
     )
 
     if not process.is_archived:
-        messages.info(request, "This process is not archived.")
+        messages.info(request, "This project is not archived.")
         return redirect(
             "accounts:company_process_detail",
             company_pk=company.pk,
@@ -4004,7 +4004,7 @@ def company_process_unarchive(request, company_pk, process_pk):
         },
     )
 
-    messages.success(request, "Process restored.")
+    messages.success(request, "Project restored.")
     return redirect(
         "accounts:company_process_detail",
         company_pk=company.pk,
@@ -4050,7 +4050,7 @@ def company_process_delete(request, company_pk, process_pk):
 
     process.delete()
 
-    messages.success(request, f"Process '{process_name}' deleted.")
+    messages.success(request, f"Project '{process_name}' deleted.")
     return redirect(
         "accounts:company_processes",
         pk=company.pk,

@@ -7,9 +7,9 @@
   <!-- Header -->
   <div class="d-flex align-items-start justify-content-between mb-4">
     <div>
-      <div class="text-muted small mb-1">Skapa testprocess åt</div>
+      <div class="text-muted small mb-1">Skapa projekt åt</div>
       <h1 class="h4 mb-1">{{ user_obj.get_full_name|default:user_obj.email }}</h1>
-      <div class="text-muted">Skapa en testprocess så kunden kan börja skicka tester.</div>
+      <div class="text-muted">Skapa ett projekt så kunden kan börja skicka tester.</div>
     </div>
 
     <a class="btn btn-outline-secondary" href="{{ next_url }}">
@@ -29,7 +29,7 @@
       <div class="card">
         <div class="card-header bg-white py-3">
           <div class="subheading mb-1">Processdetaljer</div>
-          <div class="text-muted small">Grunduppgifter för testprocessen.</div>
+          <div class="text-muted small">Grunduppgifter för projektet.</div>
         </div>
 
         <div class="card-body">
@@ -113,7 +113,7 @@
             </div>
 
             <div class="d-flex align-items-center gap-2 mt-4">
-              <button class="btn btn-primary" type="submit">Skapa process</button>
+              <button class="btn btn-primary" type="submit">Skapa projekt</button>
               <a class="btn btn-outline-secondary" href="{{ next_url }}">Avbryt</a>
             </div>
           </form>
@@ -133,7 +133,7 @@
           <ul class="mb-0 ps-3">
             <li>Välj rätt SOVA-mall, det styr testflödet.</li>
             <li>Lägg labels för enklare filtrering och överblick.</li>
-            <li>Du kan alltid justera processens inställningar i efterhand.</li>
+            <li>Du kan alltid justera projektets inställningar i efterhand.</li>
           </ul>
         </div>
       </div>
