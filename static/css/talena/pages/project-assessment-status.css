@@ -1,24 +1,155 @@
-/* Ticket #367: horizontally scrollable, accessible per-assessment status matrix. */
-.talena-assessment-matrix { overflow-x: auto; max-width: 100%; scrollbar-gutter: stable; }
-.talena-assessment-matrix table { min-width: max-content; border-collapse: separate; border-spacing: 0; }
-.talena-assessment-matrix .talena-assessment-name { position: sticky; left: 0; z-index: 2; background: #fff; min-width: 200px; box-shadow: 1px 0 0 #e7e8e8; }
-.talena-assessment-matrix thead .talena-assessment-name { z-index: 4; background: #f8f9fa; }
-.talena-assessment-matrix .talena-assessment-select { position: sticky; left: 0; background: #fff; z-index: 3; width: 48px; min-width: 48px; }
+/* #367: Compact per-test status matrix, shared by customer and admin views. */
+.talena-assessment-matrix {
+  overflow-x: auto;
+  max-width: 100%;
+  scrollbar-gutter: stable;
+}
+.talena-assessment-matrix table {
+  min-width: max-content;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+.talena-assessment-matrix .talena-assessment-name {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  background: #fff;
+  min-width: 200px;
+  box-shadow: 1px 0 0 #e7e8e8;
+}
+.talena-assessment-matrix thead .talena-assessment-name {
+  z-index: 4;
+  background: #f8f9fa;
+}
+.talena-assessment-matrix .talena-assessment-select {
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  background: #fff;
+  width: 48px;
+  min-width: 48px;
+}
 .talena-assessment-matrix .talena-assessment-select + .talena-assessment-name { left: 48px; }
-.talena-assessment-matrix thead .talena-assessment-select { background: #f8f9fa; z-index: 5; }
-.talena-assessment-matrix .talena-assessment-actions { position: sticky; right: 0; background: #fff; z-index: 2; box-shadow: -1px 0 0 #e7e8e8; min-width: 80px; }
-.talena-assessment-matrix thead .talena-assessment-actions { background: #f8f9fa; z-index: 4; }
+.talena-assessment-matrix thead .talena-assessment-select {
+  z-index: 5;
+  background: #f8f9fa;
+}
+.talena-assessment-matrix .talena-assessment-actions {
+  position: sticky;
+  right: 0;
+  z-index: 2;
+  background: #fff;
+  min-width: 80px;
+  box-shadow: -1px 0 0 #e7e8e8;
+}
+.talena-assessment-matrix thead .talena-assessment-actions {
+  z-index: 4;
+  background: #f8f9fa;
+}
 .talena-assessment-matrix tbody tr:hover .talena-assessment-name,
 .talena-assessment-matrix tbody tr:hover .talena-assessment-select,
-.talena-assessment-matrix tbody tr:hover .talena-assessment-actions { background: #fafbfc; }
-.talena-assessment-matrix th[data-test-header] { min-width: 135px; white-space: nowrap; }
-.talena-assessment-matrix td[data-test-cell] { min-width: 135px; white-space: nowrap; }
-.talena-assessment-state { display: inline-flex; align-items: center; gap: .35rem; border: 1px solid #dce1e5; border-radius: 999px; padding: .32rem .55rem; background: #f8fafb; color: #4c5864; font-size: .79rem; font-weight: 600; line-height: 1.3; white-space: nowrap; }
-.talena-assessment-state__icon { font-size: .95rem; font-weight: 800; }
-.talena-assessment-state--success { border-color: #b8d9c3; background: #edf7ef; color: #24653a; }
-.talena-assessment-state--info { border-color: #b7d4ed; background: #edf5fc; color: #225a82; }
-.talena-assessment-state--warning { border-color: #efd8b7; background: #fff7e9; color: #85521a; }
+.talena-assessment-matrix tbody tr:hover .talena-assessment-actions {
+  background: #fafbfc;
+}
+
+/* Center the tiny status symbols beneath their test headings. */
+.talena-assessment-matrix th[data-test-header],
+.talena-assessment-matrix td[data-test-cell] {
+  min-width: 116px;
+  width: 116px;
+  text-align: center;
+  white-space: nowrap;
+}
+.talena-assessment-matrix td[data-test-cell] { vertical-align: middle; }
+
+/* Icon-only indicators: a small, quiet circle instead of a full text pill. */
+.talena-assessment-state {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  vertical-align: middle;
+  border: 1px solid #e1e7ed;
+  border-radius: 50%;
+  background: #f6f8fa;
+  color: #748191;
+  cursor: help;
+  line-height: 1;
+  transition: background-color .15s ease, border-color .15s ease, box-shadow .15s ease;
+}
+.talena-assessment-state__symbol {
+  display: block;
+  width: 19px;
+  height: 19px;
+  flex: none;
+}
+.talena-assessment-state:hover {
+  box-shadow: 0 0 0 3px rgba(103, 122, 145, .09);
+}
+.talena-assessment-state:focus-visible {
+  outline: 2px solid #647a91;
+  outline-offset: 3px;
+}
+.talena-assessment-state--success {
+  border-color: #c4e3ce;
+  background: #ebf7ee;
+  color: #23804b;
+}
+.talena-assessment-state--success:hover { background: #dff2e6; }
+.talena-assessment-state--info {
+  border-color: #c5daee;
+  background: #edf5fd;
+  color: #367bb0;
+}
+.talena-assessment-state--info:hover { background: #e2effb; }
+.talena-assessment-state--warning {
+  border-color: #efd9b6;
+  background: #fff7e9;
+  color: #a96a20;
+}
+.talena-assessment-state--warning:hover { background: #fff0d8; }
+/* An invitation is different from a verified "not started" status. */
+.talena-assessment-state[data-state="invited"] {
+  border-color: #dae4ed;
+  background: #f1f6fa;
+  color: #5a7993;
+}
+.talena-assessment-state[data-state="not_started"] {
+  border-color: #d9e2ea;
+  background: #f6f8fb;
+  color: #6c7e91;
+}
+.talena-assessment-state[data-state="not_sent"] {
+  border-color: #e7e8eb;
+  background: #fafafa;
+  color: #9aa2ad;
+}
+.talena-assessment-state[data-state="failed"],
+.talena-assessment-state[data-state="activity_failed"] {
+  border-color: #f3c9c9;
+  background: #fff0f0;
+  color: #b94b4b;
+}
+.talena-assessment-state[data-state="unknown"],
+.talena-assessment-state[data-state="not_assigned"] {
+  border-style: dashed;
+  background: transparent;
+  color: #8a949e;
+}
 @media (max-width: 700px) {
-  .talena-assessment-matrix .talena-assessment-name { min-width: 175px; max-width: 190px; }
-  .talena-assessment-matrix th[data-test-header], .talena-assessment-matrix td[data-test-cell] { min-width: 120px; }
+  .talena-assessment-matrix .talena-assessment-name {
+    min-width: 175px;
+    max-width: 190px;
+  }
+  .talena-assessment-matrix th[data-test-header],
+  .talena-assessment-matrix td[data-test-cell] {
+    min-width: 108px;
+    width: 108px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .talena-assessment-state { transition: none; }
 }
