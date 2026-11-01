@@ -135,8 +135,8 @@
                   </form>
                 {% endif %}
                 {% if can_edit and not p.is_historical and p.source == "talena" %}
-                  <button
-                    type="button"
+                  <a
+                    href="{% url 'processes:process_duplicate' p.id %}"
                     class="icon-btn"
                     data-duplicate-trigger
                     data-bs-toggle="modal"
@@ -147,7 +147,7 @@
                     title="{% if list_language|slice:':2' == 'sv' %}Duplicera projekt{% else %}Duplicate project{% endif %}"
                   >
                     <i data-feather="copy"></i>
-                  </button>
+                  </a>
                 {% endif %}
                 {% if can_edit and not p.is_historical %}
                   {% if not show_archived %}
