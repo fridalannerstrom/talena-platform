@@ -59,8 +59,10 @@
     const card = el("section", "after-interview-tab-card after-interview-overall");
     card.dataset.overallPictureStructuredCard = "true";
     const header = el("div", "after-interview-tab-card__header");
-    const kicker = el("div", "after-interview-tab-card__eyebrow",
-      "✦ " + tr("AI-genererat underlag", "AI-generated evidence"));
+    const kicker = el("span", "talena-ai-generated-badge",
+      "✦ " + tr("AI-genererat", "AI-generated"));
+    kicker.setAttribute("aria-label", tr("AI-genererat", "AI-generated"));
+    kicker.hidden = true;
     const headerCopy = el("div", "after-interview-overall__header-copy");
     headerCopy.append(
       kicker,
@@ -187,6 +189,18 @@
       layout.replaceChildren();
       const sections = state.sections || {};
       const hasLeakedSections = Object.values(sections).some(hasRawSourceLeak);
+      // The header is AI-marked only when at least one section contains
+      // generated narrative, not simply because a report shell exists.
+      const hasGenerated = Object.values(sections).some(section =>
+        !hasRawSourceLeak(section) && (
+          (typeof section?.text === "string" && section.text.trim())
+          || (section?.items || []).some(item =>
+            (typeof item.testbild === "string" && item.testbild.trim())
+            || (typeof item.intervjun === "string" && item.intervjun.trim())
+          )
+        )
+      );
+      kicker.hidden = !hasGenerated;
       if (hasLeakedSections) {
         layout.appendChild(el("div", "alert alert-warning after-interview-overall__source-warning",
           tr("En tidigare AI-generering innehåller tekniskt underlag i stället för rapporttext. "
@@ -223,6 +237,19 @@
         left.appendChild(
           el("h4", "after-interview-overall__group-title", tr(swedish, english))
         );
+        const sectionHasAI = !hasRawSourceLeak(section) && (
+          (typeof section.text === "string" && section.text.trim())
+          || (section.items || []).some(item =>
+            (typeof item.testbild === "string" && item.testbild.trim())
+            || (typeof item.intervjun === "string" && item.intervjun.trim())
+          )
+        );
+        if (sectionHasAI) {
+          const generatedBadge = el("span", "talena-ai-generated-badge",
+            "✦ " + tr("AI-genererat", "AI-generated"));
+          generatedBadge.setAttribute("aria-label", tr("AI-genererat", "AI-generated"));
+          left.appendChild(generatedBadge);
+        }
         // Completed sections need no visual status label; keep warnings and
         // pending/error states visible so users know when action is needed.
         const sectionStatus = hasRawSourceLeak(section) ? "outdated" : section.status;
