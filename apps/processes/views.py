@@ -7817,7 +7817,11 @@ def process_archive(request, pk):
         return HttpResponseForbidden("No access.")
 
     if not user_can_edit_process(request.user, company, obj):
-        return HttpResponseForbidden("Du har inte behörighet att arkivera denna process.")
+        return HttpResponseForbidden(
+            "Du har inte behörighet att arkivera det här projektet."
+            if (get_language() or "").startswith("sv")
+            else "You do not have permission to archive this project."
+        )
 
     if not user_can_access_process(request.user, obj):
         return HttpResponseForbidden("You do not have access to this project.")
@@ -7831,7 +7835,11 @@ def process_archive(request, pk):
         process=obj,
     )
 
-    messages.success(request, "Projektet arkiverades.")
+    messages.success(
+        request,
+        "Projektet arkiverades." if (get_language() or "").startswith("sv")
+        else "The project was archived.",
+    )
     return redirect("processes:process_list")
 
 
@@ -7847,13 +7855,21 @@ def process_unarchive(request, pk):
         return HttpResponseForbidden("No access.")
 
     if not user_can_edit_process(request.user, company, obj):
-        return HttpResponseForbidden("Du har inte behörighet att återställa denna process.")
+        return HttpResponseForbidden(
+            "Du har inte behörighet att återställa det här projektet."
+            if (get_language() or "").startswith("sv")
+            else "You do not have permission to restore this project."
+        )
 
     if not user_can_access_process(request.user, obj):
         return HttpResponseForbidden("You do not have access to this project.")
 
     obj.unarchive()
-    messages.success(request, "Projektet återställdes.")
+    messages.success(
+        request,
+        "Projektet återställdes." if (get_language() or "").startswith("sv")
+        else "The project was restored.",
+    )
     return redirect("processes:process_list")
 
 

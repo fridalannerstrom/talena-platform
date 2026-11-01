@@ -140,17 +140,31 @@
     });
   });
 
-  grid.querySelectorAll("form[data-confirm]").forEach(function (form) {
-    form.addEventListener("submit", function (event) {
-      event.stopPropagation();
+  // Reuse the Talena dialog for both archive and restore. Intercept only
+  // when Bootstrap is available; native POST remains the no-JS fallback.
+  const projectStatusModal = document.getElementById("projectStatusModal");
+  const projectStatusForm = document.getElementById("projectStatusForm");
+  const projectStatusName = document.getElementById("projectStatusName");
 
-      const message = form.dataset.confirm || "";
+  if (projectStatusModal && projectStatusForm && projectStatusName) {
+    grid.querySelectorAll("form[data-project-status-form]").forEach(function (sourceForm) {
+      sourceForm.addEventListener("submit", function (event) {
+        event.stopPropagation();
+        if (!window.bootstrap || !window.bootstrap.Modal) return;
 
-      if (message && !window.confirm(message)) {
         event.preventDefault();
-      }
+        const action = sourceForm.dataset.projectStatusAction === "restore"
+          ? "restore" : "archive";
+
+        projectStatusForm.action = sourceForm.action;
+        projectStatusName.textContent = sourceForm.dataset.projectName || "";
+        projectStatusModal.querySelectorAll("[data-project-status-copy]").forEach(function (element) {
+          element.hidden = element.dataset.projectStatusCopy !== action;
+        });
+        window.bootstrap.Modal.getOrCreateInstance(projectStatusModal).show();
+      });
     });
-  });
+  }
 
   // Duplicate projects in one reusable Bootstrap modal. The form still posts
   // through Django's existing CSRF-protected endpoint and redirects on success.

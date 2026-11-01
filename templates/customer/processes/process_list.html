@@ -2,7 +2,7 @@
 {% load dict_extras static i18n %}
 
 {% block extra_css %}
-  <link href="{% static 'css/talena/pages/process-list.css' %}?v=20261101-removal-modal" rel="stylesheet" />
+  <link href="{% static 'css/talena/pages/process-list.css' %}?v=20261101-archive-language-fix" rel="stylesheet" />
 {% endblock %}
 
 {% block content %}
@@ -163,7 +163,9 @@
                     <form
                       method="post"
                       action="{% url 'processes:process_archive' p.id %}"
-                      data-confirm="{% trans 'Archive this project?' %}"
+                      data-project-status-form
+                      data-project-status-action="archive"
+                      data-project-name="{{ p.name }}"
                     >
                       {% csrf_token %}
                       <button type="submit" class="icon-btn" aria-label="{% trans 'Archive' %}" title="{% trans 'Archive' %}">
@@ -174,7 +176,9 @@
                     <form
                       method="post"
                       action="{% url 'processes:process_unarchive' p.id %}"
-                      data-confirm="{% trans 'Restore this project to active projects?' %}"
+                      data-project-status-form
+                      data-project-status-action="restore"
+                      data-project-name="{{ p.name }}"
                     >
                       {% csrf_token %}
                       <button type="submit" class="icon-btn" aria-label="{% trans 'Restore' %}" title="{% trans 'Restore' %}">
@@ -376,6 +380,58 @@
     </div>
   </div>
 </div>
+{# One shared Bootstrap confirmation for archive and restore. Without JS, the original POST form still works. #}
+<div class="modal fade process-duplicate-modal" id="projectStatusModal" tabindex="-1" aria-hidden="true" aria-labelledby="projectStatusTitle" aria-describedby="projectStatusDescription">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form id="projectStatusForm" method="post">
+        {% csrf_token %}
+        <div class="modal-header process-duplicate-modal__header">
+          <div class="d-flex align-items-center gap-3">
+            <div class="process-duplicate-modal__icon" aria-hidden="true">
+              <i data-feather="archive"></i>
+            </div>
+            <div>
+              <h2 class="modal-title process-duplicate-modal__title" id="projectStatusTitle">
+                <span data-project-status-copy="archive">{% if list_language|slice:':2' == 'sv' %}Arkivera projekt{% else %}Archive project{% endif %}</span>
+                <span data-project-status-copy="restore" hidden>{% if list_language|slice:':2' == 'sv' %}Återställ projekt{% else %}Restore project{% endif %}</span>
+              </h2>
+              <p class="process-duplicate-modal__source" id="projectStatusName"></p>
+            </div>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% if list_language|slice:':2' == 'sv' %}Stäng{% else %}Close{% endif %}"></button>
+        </div>
+        <div class="modal-body process-duplicate-modal__body" id="projectStatusDescription">
+          <p data-project-status-copy="archive" class="mb-0">
+            {% if list_language|slice:':2' == 'sv' %}
+              Vill du arkivera det här projektet? Det flyttas till Arkiverade projekt och kan återställas senare. Kandidater och testresultat raderas inte.
+            {% else %}
+              Archive this project? It will move to Archived projects and can be restored later. Candidates and assessment results will not be deleted.
+            {% endif %}
+          </p>
+          <p data-project-status-copy="restore" class="mb-0" hidden>
+            {% if list_language|slice:':2' == 'sv' %}
+              Vill du återställa projektet? Det flyttas tillbaka till Aktiva projekt. Kandidater och testresultat påverkas inte.
+            {% else %}
+              Restore this project? It will return to Active projects. Candidates and assessment results will not be affected.
+            {% endif %}
+          </p>
+        </div>
+        <div class="modal-footer process-duplicate-modal__footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+            {% if list_language|slice:':2' == 'sv' %}Avbryt{% else %}Cancel{% endif %}
+          </button>
+          <button type="submit" class="btn btn-primary" id="projectStatusSubmit">
+            <i data-feather="check"></i>
+            <span data-project-status-copy="archive">{% if list_language|slice:':2' == 'sv' %}Arkivera projekt{% else %}Archive project{% endif %}</span>
+            <span data-project-status-copy="restore" hidden>{% if list_language|slice:':2' == 'sv' %}Återställ projekt{% else %}Restore project{% endif %}</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
 {# Project deletion is distinct from archival and from full GDPR erasure. #}
 <div class="modal fade process-duplicate-modal" id="removeProjectModal" tabindex="-1" aria-hidden="true" aria-labelledby="removeProjectTitle">
   <div class="modal-dialog modal-dialog-centered">
@@ -428,5 +484,5 @@
 
 {% block extra_js %}
   {{ block.super }}
-  <script src="{% static 'js/talena/process-list.js' %}?v=20261101-removal-modal"></script>
+  <script src="{% static 'js/talena/process-list.js' %}?v=20261101-archive-language-fix"></script>
 {% endblock %}
