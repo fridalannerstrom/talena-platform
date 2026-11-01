@@ -7387,13 +7387,13 @@ msgid "the project"
 msgstr "projektet"
 
 msgid "%(actor)s created the project %(process_name)s"
-msgstr "%(actor)s skapade projektet %(projekt_name)s"
+msgstr "%(actor)s skapade projektet %(process_name)s"
 
 msgid "%(actor)s archived the project %(process_name)s"
-msgstr "%(actor)s arkiverade projektet %(projekt_name)s"
+msgstr "%(actor)s arkiverade projektet %(process_name)s"
 
 msgid "%(actor)s deleted the project %(process_name)s"
-msgstr "%(actor)s raderade projektet %(projekt_name)s"
+msgstr "%(actor)s raderade projektet %(process_name)s"
 
 msgid "%(candidate)s started the project"
 msgstr "%(candidate)s påbörjade projektet"
@@ -7414,7 +7414,7 @@ msgid "Project context"
 msgstr "Projektkontext"
 
 msgid "Add the information that would help Talena interpret the assessment results in relation to this project."
-msgstr "Fyll i information som hjälper Talena att tolka testresultaten i relation till den här projektet."
+msgstr "Fyll i information som hjälper Talena att tolka testresultaten i relation till det här projektet."
 
 msgid "Add role information to tailor candidate insights, questions and recommendations to this hiring project."
 msgstr "Lägg till rollinformation för att anpassa kandidatinsikter, frågor och rekommendationer till rekryteringsprojektet."
@@ -7423,16 +7423,16 @@ msgid "Add role context to tailor the candidate insights to this hiring project.
 msgstr "Lägg till rollkontext för att anpassa kandidatinsikterna till rekryteringsprojektet."
 
 msgid "Add context to tailor the candidate insights to this project."
-msgstr "Lägg till kontext för att anpassa kandidatinsikterna till den här projektet."
+msgstr "Lägg till kontext för att anpassa kandidatinsikterna till det här projektet."
 
 msgid "Describe the project, situation or purpose."
 msgstr "Beskriv projektet, situationen eller syftet."
 
 msgid "Flexible project"
-msgstr "Flexibel projekt"
+msgstr "Flexibelt projekt"
 
 msgid "Create a project without a defined purpose."
-msgstr "Skapa en projekt utan ett definierat syfte."
+msgstr "Skapa ett projekt utan ett definierat syfte."
 
 msgid "Project"
 msgstr "Projekt"
@@ -7448,8 +7448,8 @@ msgstr "Projekt"
 
 msgid "\n                      %(process_count)s project\n                    "
 msgid_plural "\n                      %(process_count)s projects\n                    "
-msgstr[0] "\n                      %(projekt_count)s projekt\n                    "
-msgstr[1] "\n                      %(projekt_count)s projekt\n                    "
+msgstr[0] "\n                      %(process_count)s projekt\n                    "
+msgstr[1] "\n                      %(process_count)s projekt\n                    "
 
 msgid "Activity across the projects you have access to."
 msgstr "Aktivitet i de projekt som du har tillgång till."
@@ -7494,7 +7494,7 @@ msgid "archived projects"
 msgstr "arkiverade projekt"
 
 msgid "Assessment included in this project"
-msgstr "Test som ingår i den här projektet"
+msgstr "Test som ingår i det här projektet"
 
 msgid "Project information has changed"
 msgstr "Projektinformationen har ändrats"
@@ -7509,7 +7509,7 @@ msgid "The candidate insights have been updated using the latest project informa
 msgstr "Kandidatinsikterna har uppdaterats utifrån den senaste projektinformationen."
 
 msgid "Add context to make the candidate insights more relevant to this project."
-msgstr "Lägg till kontext för att göra kandidatinsikterna mer relevanta för den här projektet."
+msgstr "Lägg till kontext för att göra kandidatinsikterna mer relevanta för det här projektet."
 
 msgid "A combined interpretation of the personality profile in relation to the selected purpose and available project context."
 msgstr "En samlad tolkning av personlighetsprofilen i relation till det valda syftet och tillgänglig projektkontext."
@@ -7578,7 +7578,7 @@ msgid "Back to projects"
 msgstr "Tillbaka till projekt"
 
 msgid "Invite a candidate to this project."
-msgstr "Bjud in en kandidat till den här projektet."
+msgstr "Bjud in en kandidat till det här projektet."
 
 msgid "Choose why you are creating this project, then Talena will recommend a suitable assessment setup."
 msgstr "Välj syftet med projektet så rekommenderar Talena en lämplig testkombination."
@@ -7587,7 +7587,7 @@ msgid "Create project steps"
 msgstr "Steg för att skapa ett projekt"
 
 msgid "Why are you creating this project?"
-msgstr "Varför skapar du den här projektet?"
+msgstr "Varför skapar du det här projektet?"
 
 msgid "Give the project an internal name and add labels if you want to organize it by department, role or project."
 msgstr "Ge projektet ett internt namn och lägg till etiketter för att organisera det efter exempelvis avdelning, roll eller prioritet."
@@ -7608,11 +7608,11 @@ msgstr[1] "\n        %(candidate_count)s kandidater i den här historiska projek
 
 msgid "\n        %(candidate_count)s candidate in this project\n      "
 msgid_plural "\n        %(candidate_count)s candidates in this project\n      "
-msgstr[0] "\n        %(candidate_count)s kandidat i den här projektet\n      "
-msgstr[1] "\n        %(candidate_count)s kandidater i den här projektet\n      "
+msgstr[0] "\n        %(candidate_count)s kandidat i det här projektet\n      "
+msgstr[1] "\n        %(candidate_count)s kandidater i det här projektet\n      "
 
 msgid "You have read-only access to this project."
-msgstr "Du har endast läsbehörighet till den här projektet."
+msgstr "Du har endast läsbehörighet till det här projektet."
 
 msgid "Project settings"
 msgstr "Projektinställningar"
@@ -7657,10 +7657,10 @@ msgid "These are the projects you have archived."
 msgstr "Här visas de projekt som du har arkiverat."
 
 msgid "Archive this project?"
-msgstr "Vill du arkivera den här projektet?"
+msgstr "Vill du arkivera det här projektet?"
 
 msgid "Restore this project to active projects?"
-msgstr "Vill du återställa den här projektet till aktiva projekt?"
+msgstr "Vill du återställa det här projektet till aktiva projekt?"
 
 msgid "Permanently delete this archived project? This cannot be undone."
 msgstr "Vill du radera den här arkiverade projektet permanent? Detta går inte att ångra."
@@ -7669,19 +7669,19 @@ msgid "No archived projects"
 msgstr "Inga arkiverade projekt"
 
 msgid "When you archive a project, it will appear here."
-msgstr "När du arkiverar en projekt visas den här."
+msgstr "När du arkiverar ett projekt visas den här."
 
 msgid "You do not have any projects yet"
 msgstr "Du har inga projekt ännu"
 
 msgid "Create a project to start sending assessments to candidates."
-msgstr "Skapa en projekt för att börja skicka tester till kandidater."
+msgstr "Skapa ett projekt för att börja skicka tester till kandidater."
 
 msgid "Create your first project"
 msgstr "Skapa din första projekt"
 
 msgid "Add context to tailor Candidate Insights to this project."
-msgstr "Lägg till kontext för att anpassa kandidatinsikterna till den här projektet."
+msgstr "Lägg till kontext för att anpassa kandidatinsikterna till det här projektet."
 
 msgid "Enter your details to take part in the project."
 msgstr "Fyll i dina uppgifter för att delta i projektet."
