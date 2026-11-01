@@ -1,6 +1,8 @@
 {% extends "admin/accounts/companies/company_base.html" %}
 {% load static %}
 {% block company_content %}
+{% get_current_language as admin_project_language %}
+<link rel="stylesheet" href="{% static 'css/talena/pages/project-assessment-status.css' %}?v=20261101-367">
 
 
 {# ------------------------------------------------------------------ #}
@@ -300,13 +302,21 @@
     </span>
   </div>
 
-  <div class="table-responsive">
+  <div class="table-responsive talena-assessment-matrix" data-project-test-statuses data-status-url="{% url 'accounts:admin_process_invitation_statuses' process.id %}">
     <table class="table table-striped align-middle mb-0">
       <thead>
         <tr>
-          <th>Name</th>
-          <th>Email</th>
-          <th>Status</th>
+          <th class="talena-assessment-name">{% if admin_project_language|slice:":2" == "sv" %}Namn{% else %}Name{% endif %}</th>
+          <th>{% if admin_project_language|slice:":2" == "sv" %}E-post{% else %}Email{% endif %}</th>
+          {% if process.is_historical %}
+            <th>{% if admin_project_language|slice:":2" == "sv" %}Historisk status{% else %}Historical status{% endif %}</th>
+          {% else %}
+            {% for test in project_tests %}
+              <th data-test-header>{% if admin_project_language|slice:":2" == "sv" %}{{ test.sv }}{% else %}{{ test.en }}{% endif %}</th>
+            {% empty %}
+              <th>{% if admin_project_language|slice:":2" == "sv" %}Tester saknas{% else %}No assessments configured{% endif %}</th>
+            {% endfor %}
+          {% endif %}
 
 {% if process.is_historical %}
   <th>Added</th>
@@ -384,7 +394,7 @@
 
           {% for inv in invitations %}
             <tr>
-              <td>
+              <td class="talena-assessment-name">
                 {% if inv.candidate %}
 <a
   href="{% url 'processes:process_candidate_detail' process.id inv.candidate.id %}"
@@ -404,29 +414,13 @@
                 {{ inv.candidate.email|default:"-" }}
               </td>
 
-              <td>
-                {% if inv.status == "completed" %}
-                  <span class="talena-pill talena-pill-success">
-                    <span class="talena-pill-dot"></span>
-                    Completed
-                  </span>
-                {% elif inv.status == "started" %}
-                  <span class="talena-pill talena-pill-purple">
-                    <span class="talena-pill-dot"></span>
-                    Started
-                  </span>
-                {% elif inv.status == "sent" %}
-                  <span class="talena-pill talena-pill-soft">
-                    <span class="talena-pill-dot"></span>
-                    Sent
-                  </span>
-                {% else %}
-                  <span class="talena-pill talena-pill-warning">
-                    <span class="talena-pill-dot"></span>
-                    {{ inv.status|default:"Created"|title }}
-                  </span>
-                {% endif %}
-              </td>
+              {% for cell in inv.assessment_status_cells %}
+                <td data-test-cell>
+                  {% include "customer/processes/partials/_assessment_status_cell.html" with cell=cell inv=inv %}
+                </td>
+              {% empty %}
+                <td class="text-muted">{% if admin_project_language|slice:":2" == "sv" %}Inga tester valda{% else %}No assessments selected{% endif %}</td>
+              {% endfor %}
 
               <td class="text-muted text-nowrap">
                 {% if inv.created_at %}
@@ -446,8 +440,8 @@
             </tr>
           {% empty %}
             <tr>
-              <td colspan="5" class="text-muted p-3">
-                No candidates have been added to this process yet.
+              <td colspan="{{ project_tests|length|add:4 }}" class="text-muted p-3">
+                No candidates have been added to this project yet.
               </td>
             </tr>
           {% endfor %}
@@ -1422,4 +1416,5 @@ function refreshDynamicCandidateSheetContent(
 
 <script src="{% static 'js/candidate-purpose-fit.js' %}"></script>
 
+<script src="{% static 'js/talena/project-assessment-status.js' %}?v=20261101-367"></script>
 {% endblock %}
