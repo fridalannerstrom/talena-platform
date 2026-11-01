@@ -45,7 +45,7 @@
           data-personality-questions-status-badge
           data-bs-toggle="tooltip"
           data-bs-placement="top"
-          title="{% trans 'The selected traits, process purpose or context have changed.' %}"
+          title="{% trans 'The selected traits, project purpose or context have changed.' %}"
         >
           {% trans "Needs update" %}
         </span>
@@ -163,12 +163,12 @@
             <p class="small text-muted mb-0" data-question-basis-summary-description>
               {% if question_basis == "competencies" %}
                 {% if LANGUAGE_CODE|slice:":2" == "sv" %}
-                  Talena skapade frågorna utifrån dessa kompetenser, deras definitioner, processens syfte och tillgänglig kontext. Personlighetsdata används endast som stödjande evidens, inte som ett direkt kompetensbetyg.
+                  Talena skapade frågorna utifrån dessa kompetenser, deras definitioner, projektets syfte och tillgänglig kontext. Personlighetsdata används endast som stödjande evidens, inte som ett direkt kompetensbetyg.
                 {% else %}
-                  Talena created the questions from these competencies, their definitions, the process purpose and available context. Personality data is supporting evidence only, not a direct competency rating.
+                  Talena created the questions from these competencies, their definitions, the project purpose and available context. Personality data is supporting evidence only, not a direct competency rating.
                 {% endif %}
               {% else %}
-                {% blocktrans %}Talena generated the questions below using these personality traits, the process purpose and any available context. Change the selection to shape the next set of questions.{% endblocktrans %}
+                {% blocktrans %}Talena generated the questions below using these personality traits, the project purpose and any available context. Change the selection to shape the next set of questions.{% endblocktrans %}
               {% endif %}
             </p>
 
@@ -250,7 +250,7 @@
                   {% endif %}
                 {% else %}
                   {% blocktrans trimmed %}
-                    Choose up to six traits, or leave all traits unselected to let Talena choose based on the process purpose and context. Questions will be generated using the selected traits, process purpose and available context.
+                    Choose up to six traits, or leave all traits unselected to let Talena choose based on the project purpose and context. Questions will be generated using the selected traits, project purpose and available context.
                   {% endblocktrans %}
                 {% endif %}
               </p>
@@ -274,17 +274,17 @@
               aria-selected="{% if question_basis != 'competencies' %}true{% else %}false{% endif %}"
               {% if LANGUAGE_CODE|slice:":2" == "sv" %}
                 data-summary-title="Personlighetsdrag som används i frågorna"
-                data-summary-description="Talena skapade frågorna utifrån dessa personlighetsdrag, processens syfte och tillgänglig kontext. Ändra urvalet för att påverka nästa uppsättning frågor."
+                data-summary-description="Talena skapade frågorna utifrån dessa personlighetsdrag, projektets syfte och tillgänglig kontext. Ändra urvalet för att påverka nästa uppsättning frågor."
                 data-edit-label="Ändra personlighetsdrag"
                 data-dialog-title="Välj personlighetsdrag att utforska"
-                data-dialog-description="Välj upp till sex personlighetsdrag, eller lämna alla omarkerade för att låta Talena välja utifrån processens syfte och kontext."
+                data-dialog-description="Välj upp till sex personlighetsdrag, eller lämna alla omarkerade för att låta Talena välja utifrån projektets syfte och kontext."
                 data-status-label="Välj upp till 6 personlighetsdrag"
               {% else %}
                 data-summary-title="Traits used for these questions"
-                data-summary-description="Talena generated the questions using these personality traits, the process purpose and available context. Change the selection to shape the next set of questions."
+                data-summary-description="Talena generated the questions using these personality traits, the project purpose and available context. Change the selection to shape the next set of questions."
                 data-edit-label="Change traits"
                 data-dialog-title="Select traits to explore"
-                data-dialog-description="Choose up to six traits, or leave all traits unselected to let Talena choose based on the process purpose and context."
+                data-dialog-description="Choose up to six traits, or leave all traits unselected to let Talena choose based on the project purpose and context."
                 data-status-label="Select up to 6 traits"
               {% endif %}
             >
@@ -298,14 +298,14 @@
               aria-selected="{% if question_basis == 'competencies' %}true{% else %}false{% endif %}"
               {% if LANGUAGE_CODE|slice:":2" == "sv" %}
                 data-summary-title="Kompetenser som används i frågorna"
-                data-summary-description="Talena skapade frågorna utifrån dessa kompetenser, deras definitioner, processens syfte och tillgänglig kontext. Personlighetsdata används endast som stödjande evidens, inte som ett direkt kompetensbetyg."
+                data-summary-description="Talena skapade frågorna utifrån dessa kompetenser, deras definitioner, projektets syfte och tillgänglig kontext. Personlighetsdata används endast som stödjande evidens, inte som ett direkt kompetensbetyg."
                 data-edit-label="Ändra kompetenser"
                 data-dialog-title="Välj kompetenser att utforska"
                 data-dialog-description="Välj upp till sex kompetenser från Sovas 38-kompetensramverk. Talena skapar alltid åtta personlighetsfrågor och fördelar dem över de valda områdena."
                 data-status-label="Välj upp till 6 kompetenser"
               {% else %}
                 data-summary-title="Competencies used for these questions"
-                data-summary-description="Talena created the questions from these competencies, their definitions, the process purpose and available context. Personality data is supporting evidence only, not a direct competency rating."
+                data-summary-description="Talena created the questions from these competencies, their definitions, the project purpose and available context. Personality data is supporting evidence only, not a direct competency rating."
                 data-edit-label="Change competencies"
                 data-dialog-title="Select competencies to explore"
                 data-dialog-description="Select up to six competencies from Sova's 38-competency framework. Talena always creates eight personality questions and distributes them across the selected areas."
