@@ -168,7 +168,13 @@ class ProjectAssessmentStatusIntegrationTests(TestCase):
         self.assertIn("Motivation", markup)
         self.assertIn("Genomfört", markup)
         self.assertIn("Påbörjat", markup)
-        self.assertNotIn('data-status-badge="1"', markup)
+        # The parent layout retains a legacy JavaScript selector as a
+        # fallback, but the actual candidate table has no total-status cell.
+        table = markup.split(
+            '<table class="table table-hover align-middle mb-0 process-table">',
+            1,
+        )[1].split("</table>", 1)[0]
+        self.assertNotIn('data-status-badge="1"', table)
         self.assertIn('data-test-key="personality"', markup)
 
     def test_polling_api_reflects_updated_per_activity_status(self):
