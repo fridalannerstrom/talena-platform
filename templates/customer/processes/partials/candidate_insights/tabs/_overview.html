@@ -193,7 +193,7 @@
         <section class="purpose-fit-section mb-3">
 
           <div class="purpose-fit-section-title">
-            {% trans "Overall interpretation" %}
+            {% if LANGUAGE_CODE|slice:":2" == "sv" %}Sammanfattande tolkning{% else %}Summary interpretation{% endif %}
           </div>
 
           <div

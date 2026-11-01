@@ -1,271 +1,162 @@
 (function () {
   "use strict";
 
-  const WORKSPACE_SELECTOR = "[data-candidate-insights-workspace]";
-  const STYLE_ID = "talena-ai-generated-badge-styles";
+  // Explicit data provenance: each output selector refers to an AI response
+  // field or an AI-generated question, never a heading keyword or a chart.
+  // Candidate reports, static test interpretations and interviewer notes have
+  // no corresponding rules, so they cannot be marked by this code.
+  const RULES = [
+    ["#purposeFitCard", "#purposeFitTitle", "#purposeFitSummary"],
+    ["#purposeFitResult", ".purpose-fit-section:first-child .purpose-fit-section-title", "#purposeFitSummary"],
+    [".personality-overview-summary", ".personality-overview-summary__title", "[data-personality-area-summary]"],
+    [".purpose-fit-list-card--positive", ".purpose-fit-section-title", "#purposeFitAlignment li"],
+    [".purpose-fit-list-card--verify", ".purpose-fit-section-title", "#purposeFitVerify li"],
+    ["[data-personality-ai-root]", "[data-personality-ai-title]", "[data-personality-ai-interpretation]"],
+    ["[data-personality-ai-root] .personality-interpretation__overall", ".purpose-fit-section-title", "[data-personality-ai-interpretation]"],
+    ["[data-motivation-ai-root]", "h2.insight-summary-title", "[data-motivation-ai-interpretation]"],
+    ["[data-cognitive-interpretation-root]", "h2.insight-summary-title", "[data-cognitive-ai-interpretation]"],
+    ["[data-personality-questions-root]", ".personality-questions-header h2", "[data-personality-questions-list] .personality-question-card"],
+    ["[data-motivation-questions-root]", ".personality-questions-header h2", "[data-motivation-questions-list] .personality-question-card"],
+    ["[data-cognitive-questions-root]", ".personality-questions-header h2", "[data-cognitive-questions-list] .personality-question-card"],
+    ["[data-combined-questions-root]", ".personality-questions-header h2", ".combined-question-sections .personality-question-card__text"],
+    ["#candidate-insights-panel-prepare-interview > .final-output-card", "h2.insight-summary-title", "[data-pre-interview-overall-synthesis]"],
+    ["[data-post-interview-section]", "h3.insight-summary-title", "[data-post-interview-content] .purpose-fit-summary"],
+    [".after-interview-tab-card", ".after-interview-tab-card__title", "[data-after-interview-block-content]"],
+    ["[data-overall-picture-structured-card]", ".after-interview-tab-card__title", "[data-after-interview-block-content]"]
+  ];
   const BADGE_CLASS = "talena-ai-generated-badge";
   const ROW_CLASS = "talena-ai-title-row";
-
-  const MAJOR_AI_HEADING_SELECTORS = [
-    "#purposeFitTitle",
-    "[data-personality-ai-root] h2[data-personality-ai-title]",
-    "[data-motivation-ai-root] > div:first-of-type > div:first-child > h2.insight-summary-title",
-    "[data-cognitive-interpretation-root] > div:first-of-type > div:first-child > h2.insight-summary-title",
-    "[data-personality-questions-root] .personality-questions-header h2.insight-summary-title",
-    "[data-motivation-questions-root] .personality-questions-header h2.insight-summary-title",
-    "[data-cognitive-questions-root] .personality-questions-header h2.insight-summary-title",
-    "[data-combined-questions-root] > .personality-questions-header h2.insight-summary-title",
-    "#candidate-insights-panel-prepare-interview > .final-output-card > .d-flex:first-child > div:first-child > h2.insight-summary-title",
-    "[data-post-interview-section] > .d-flex:first-child > div:first-child > h3.insight-summary-title"
-  ];
-
-  const INTERPRETATION_TAB_SELECTORS = [
-    "#candidate-insights-panel-personality [data-insights-subtab=\"interpretation\"] span",
-    "#candidate-insights-panel-motivation [data-insights-subtab=\"interpretation\"] span",
-    "#candidate-insights-panel-cognitive [data-insights-subtab=\"interpretation\"] span"
-  ];
 
   function isSwedish() {
     return (document.documentElement.lang || "").toLowerCase().startsWith("sv");
   }
 
-  function badgeLabel() {
-    return isSwedish() ? "AI-genererat" : "AI-generated";
+  function label(assisted) {
+    return assisted
+      ? (isSwedish() ? "AI-assisterat" : "AI-assisted")
+      : (isSwedish() ? "AI-genererat" : "AI-generated");
   }
 
-  function ensureStyles() {
-    if (document.getElementById(STYLE_ID)) return;
-
-    const style = document.createElement("style");
-    style.id = STYLE_ID;
-    style.textContent = `
-      .process-page .${ROW_CLASS} {
-        display: flex;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 0.65rem;
-        margin-bottom: 0.25rem;
-      }
-
-      .process-page .${ROW_CLASS} > .insight-summary-title {
-        margin: 0 !important;
-      }
-
-      .process-page .${BADGE_CLASS} {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.32rem;
-        width: fit-content;
-        padding: 0.34rem 0.58rem;
-        border: 1px solid #cdddf8;
-        border-radius: 999px;
-        background: #eff5ff;
-        color: #3f67a3;
-        font-size: 0.68rem;
-        font-weight: 720;
-        line-height: 1;
-        letter-spacing: 0;
-        text-transform: none;
-        white-space: nowrap;
-        box-shadow: 0 1px 0 rgba(61, 103, 165, 0.04);
-      }
-
-      .process-page [data-talena-ai-badged="true"]::after {
-        content: none !important;
-        display: none !important;
-      }
-
-      /* Legacy polish.css used a pseudo-element to replace the visible
-         interpretation-tab text with "AI-interpretation" / "AI-tolkning".
-         The tabs now render their real label directly in the template, so
-         expose that text and disable the legacy pseudo-label. */
-      #layoutSidenav_content main .process-page
-      .candidate-insights-view-option[data-insights-subtab="interpretation"] span {
-        font-size: 0.7rem !important;
-      }
-
-      #layoutSidenav_content main .process-page
-      .candidate-insights-view-option[data-insights-subtab="interpretation"] span::after {
-        content: none !important;
-        display: none !important;
-      }
-
-      @media (max-width: 575.98px) {
-        .process-page .${ROW_CLASS} {
-          gap: 0.5rem;
-        }
-
-        .process-page .${BADGE_CLASS} {
-          padding: 0.3rem 0.5rem;
-          font-size: 0.65rem;
-        }
-      }
-    `;
-
-    document.head.appendChild(style);
+  function setLabel(badge, assisted) {
+    const value = label(assisted);
+    badge.textContent = "✦ " + value;
+    badge.setAttribute("aria-label", value);
+    badge.setAttribute("lang", isSwedish() ? "sv" : "en");
   }
 
-  function setText(element, swedish, english) {
-    if (!element) return;
-    const next = isSwedish() ? swedish : english;
-    if (element.textContent.trim() !== next) {
-      element.textContent = next;
+  function findRuleOutput(root, selector) {
+    try {
+      return root.querySelector(selector);
+    } catch (_error) {
+      return null;
     }
   }
 
-  function polishAiLabels(scope) {
-    if (!scope?.querySelector) return;
-
-    setText(
-      scope.querySelector('[data-insights-tab="overview"]'),
-      "Sammanfattning",
-      "Summary"
-    );
-
-    const summaryTitle = scope.querySelector("#purposeFitTitle");
-    if (summaryTitle) {
-      const current = summaryTitle.textContent.trim().toLowerCase();
-      const preliminary = current.includes("preliminary") || current.includes("preliminär");
-      setText(
-        summaryTitle,
-        preliminary ? "Preliminär sammanfattning" : "Sammanfattning",
-        preliminary ? "Preliminary summary" : "Summary"
-      );
-    }
-
-    INTERPRETATION_TAB_SELECTORS.forEach((selector) => {
-      scope.querySelectorAll(selector).forEach((label) => {
-        setText(label, "Tolkning", "Interpretation");
-      });
-    });
+  function hasGeneratedText(element) {
+    if (!element || element.closest("[hidden], .d-none")) return false;
+    if (element.classList?.contains("after-interview-tab-empty")) return false;
+    return Boolean((element.textContent || "").trim());
   }
 
-  function removeGeneratedEyebrowNearHeading(heading) {
+  function setBadge(heading, visible, assisted) {
     if (!heading) return;
-
-    const parent = heading.parentElement;
-    if (!parent) return;
-
-    parent.querySelectorAll(":scope > .insight-summary-kicker").forEach((kicker) => {
-      kicker.remove();
-    });
-
-    const previous = heading.previousElementSibling;
-    if (previous?.classList.contains("candidate-section-eyebrow")) {
-      previous.remove();
+    let row = heading.parentElement;
+    if (!row || !row.classList.contains(ROW_CLASS)) {
+      if (!visible) return;
+      row = document.createElement("div");
+      row.className = ROW_CLASS;
+      heading.parentNode.insertBefore(row, heading);
+      row.appendChild(heading);
+    }
+    let badge = row.querySelector(":scope > ." + BADGE_CLASS);
+    if (!badge && visible) {
+      badge = document.createElement("span");
+      badge.className = BADGE_CLASS;
+      row.appendChild(badge);
+    }
+    if (badge) {
+      badge.hidden = !visible;
+      if (visible) setLabel(badge, assisted);
     }
   }
 
-  function ensureBadgeForHeading(heading) {
-    if (!heading) return;
-
-    ensureStyles();
-
-    if (heading.dataset.talenaAiBadged === "true") {
-      const row = heading.closest(`.${ROW_CLASS}`);
-      const badge = row?.querySelector(`.${BADGE_CLASS}`);
-      const nextLabel = `✦ ${badgeLabel()}`;
-      if (badge && badge.textContent.trim() !== nextLabel) {
-        badge.textContent = nextLabel;
-      }
-      return;
-    }
-
-    removeGeneratedEyebrowNearHeading(heading);
-
-    const parent = heading.parentElement;
-    if (!parent) return;
-
-    const row = document.createElement("div");
-    row.className = ROW_CLASS;
-
-    parent.insertBefore(row, heading);
-    row.appendChild(heading);
-
-    const badge = document.createElement("span");
-    badge.className = `${BADGE_CLASS} badge rounded-pill`;
-    badge.textContent = `✦ ${badgeLabel()}`;
-    badge.setAttribute("aria-label", badgeLabel());
-
-    row.appendChild(badge);
-    heading.dataset.talenaAiBadged = "true";
-  }
-
-  function removeLegacyNestedAiMarkers(scope) {
-    scope
-      .querySelectorAll(
-        "#candidate-insights-panel-prepare-interview [data-response-style-interview-guidance] .insight-summary-kicker"
-      )
-      .forEach((marker) => marker.remove());
-  }
-
-  function removeWrongAiEyebrows(scope) {
-    const prepareHeading = scope.querySelector(
-      "#candidate-insights-panel-prepare-interview > .final-output-card > .d-flex:first-child > div:first-child > h2.insight-summary-title"
-    );
-
-    const postHeading = scope.querySelector(
-      "[data-post-interview-section] > .d-flex:first-child > div:first-child > h3.insight-summary-title"
-    );
-
-    [prepareHeading, postHeading].forEach((heading) => {
-      if (!heading) return;
-
-      const previous = heading.previousElementSibling;
-      if (previous?.classList.contains("candidate-section-eyebrow")) {
-        previous.remove();
+  function removeLegacyKickers(root) {
+    // Only old AI-specific labels immediately beside an AI heading, not
+    // category labels on unrelated content such as test-result cards.
+    root.querySelectorAll(".insight-summary-kicker").forEach((kicker) => {
+      if (/AI-generated insight|AI-supported questions|AI-genererad insikt|AI-frågor/i.test(kicker.textContent || "")) {
+        kicker.hidden = true;
+        kicker.setAttribute("aria-hidden", "true");
       }
     });
   }
 
-  function applyBadges(scope) {
-    if (!scope?.querySelectorAll) return;
-
-    ensureStyles();
-    polishAiLabels(scope);
-    removeWrongAiEyebrows(scope);
-    removeLegacyNestedAiMarkers(scope);
-
-    MAJOR_AI_HEADING_SELECTORS.forEach((selector) => {
-      scope.querySelectorAll(selector).forEach(ensureBadgeForHeading);
+  function markRule(rootSelector, headingSelector, outputSelector) {
+    document.querySelectorAll(
+      '[data-candidate-insights-workspace] ' + rootSelector
+    ).forEach((root) => {
+      const heading = root.querySelector(headingSelector);
+      const output = findRuleOutput(root, outputSelector);
+      setBadge(heading, hasGeneratedText(output), false);
     });
   }
 
-  function scan(scope) {
-    if (!scope) return;
+  function markManagerReportBlocks() {
+    // These text fields are explicitly tracked by the editable AI block
+    // controller. Manual edits retain the AI-assisted provenance.
+    document.querySelectorAll(
+      "[data-candidate-insights-workspace] [data-manager-report-edit-key][data-manager-report-ai-text]"
+    ).forEach((field) => {
+      const aiValue = (field.dataset.managerReportAiText || "").trim();
+      const edited = Boolean(field.closest(".after-interview-manager-report")?.querySelector(
+        '[data-manager-report-edited="' + CSS.escape(field.dataset.managerReportEditKey || "") + '"]'
+      ));
+      let badge = field.previousElementSibling;
+      if (!badge?.classList.contains("talena-ai-field-badge")) {
+        badge = document.createElement("span");
+        badge.className = BADGE_CLASS + " talena-ai-field-badge";
+        field.parentNode.insertBefore(badge, field);
+      }
+      badge.hidden = !aiValue;
+      if (aiValue) setLabel(badge, edited);
+    });
+  }
 
-    if (scope.matches?.(WORKSPACE_SELECTOR)) {
-      applyBadges(scope);
-    }
+  let scheduled = false;
+  function scan() {
+    if (!document.querySelector("[data-candidate-insights-workspace]")) return;
+    document.querySelectorAll("[data-candidate-insights-workspace]").forEach(removeLegacyKickers);
+    RULES.forEach((rule) => markRule(...rule));
+    markManagerReportBlocks();
+  }
 
-    scope.querySelectorAll?.(WORKSPACE_SELECTOR).forEach(applyBadges);
-
-    const workspace = scope.closest?.(WORKSPACE_SELECTOR);
-    if (workspace) applyBadges(workspace);
+  function schedule() {
+    if (scheduled) return;
+    scheduled = true;
+    window.requestAnimationFrame(() => {
+      scheduled = false;
+      scan();
+    });
   }
 
   function start() {
-    scan(document);
-
-    const observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        mutation.addedNodes.forEach((node) => {
-          if (node.nodeType === Node.ELEMENT_NODE) {
-            scan(node);
-          }
-        });
-      });
+    scan();
+    const observer = new MutationObserver((changes) => {
+      if (changes.some((change) =>
+        change.type === "characterData" ||
+        change.type === "childList" ||
+        (change.type === "attributes" &&
+          ["class", "hidden", "data-has-result", "data-manager-report-ai-text"].includes(change.attributeName))
+      )) {
+        schedule();
+      }
     });
-
     observer.observe(document.body, {
-      childList: true,
-      subtree: true
+      subtree: true, childList: true, characterData: true,
+      attributes: true, attributeFilter: ["class", "hidden", "data-has-result", "data-manager-report-ai-text"]
     });
   }
-
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", start, { once: true });
-  } else {
-    start();
-  }
+  } else start();
 })();
