@@ -2,7 +2,7 @@
 {% load dict_extras static i18n %}
 
 {% block extra_css %}
-  <link href="{% static 'css/talena/pages/process-list.css' %}?v=20260924-pin-tooltip-layer" rel="stylesheet" />
+  <link href="{% static 'css/talena/pages/process-list.css' %}?v=20261101-duplicate-modal" rel="stylesheet" />
 {% endblock %}
 
 {% block content %}
@@ -135,14 +135,19 @@
                   </form>
                 {% endif %}
                 {% if can_edit and not p.is_historical and p.source == "talena" %}
-                  <a
+                  <button
+                    type="button"
                     class="icon-btn"
-                    href="{% url 'processes:process_duplicate' p.id %}"
+                    data-duplicate-trigger
+                    data-bs-toggle="modal"
+                    data-bs-target="#duplicateProcessModal"
+                    data-duplicate-url="{% url 'processes:process_duplicate' p.id %}"
+                    data-duplicate-name="{{ p.name }}"
                     aria-label="{% if list_language|slice:':2' == 'sv' %}Duplicera projekt{% else %}Duplicate project{% endif %}"
                     title="{% if list_language|slice:':2' == 'sv' %}Duplicera projekt{% else %}Duplicate project{% endif %}"
                   >
                     <i data-feather="copy"></i>
-                  </a>
+                  </button>
                 {% endif %}
                 {% if can_edit and not p.is_historical %}
                   {% if not show_archived %}
@@ -291,9 +296,85 @@
   {% endif %}
 
 </div>
+
+{# One shared dialog, outside the clickable project cards. #}
+<div
+  class="modal fade process-duplicate-modal"
+  id="duplicateProcessModal"
+  tabindex="-1"
+  aria-labelledby="duplicateProcessModalTitle"
+  aria-hidden="true"
+  data-copy-suffix="{% if list_language|slice:':2' == 'sv' %} (kopia){% else %} (copy){% endif %}"
+>
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form id="duplicateProcessForm" method="post" action="">
+        {% csrf_token %}
+        <input type="hidden" name="from_modal" value="1">
+        <input type="hidden" name="return_to_archived" value="{% if show_archived %}1{% else %}0{% endif %}">
+
+        <div class="modal-header process-duplicate-modal__header">
+          <div class="d-flex align-items-center gap-3">
+            <div class="process-duplicate-modal__icon" aria-hidden="true">
+              <i data-feather="copy"></i>
+            </div>
+            <div>
+              <h2 class="modal-title process-duplicate-modal__title" id="duplicateProcessModalTitle">
+                {% if list_language|slice:':2' == 'sv' %}Duplicera projekt{% else %}Duplicate project{% endif %}
+              </h2>
+              <p class="process-duplicate-modal__source">
+                {% if list_language|slice:':2' == 'sv' %}Kopiera inställningar från{% else %}Copy settings from{% endif %}
+                <strong id="duplicateProcessSource"></strong>
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="{% if list_language|slice:':2' == 'sv' %}Stäng{% else %}Close{% endif %}"
+          ></button>
+        </div>
+
+        <div class="modal-body process-duplicate-modal__body">
+          <label class="form-label fw-semibold" for="duplicateProcessName">
+            {% if list_language|slice:':2' == 'sv' %}Namn på nya projektet{% else %}New project name{% endif %}
+          </label>
+          <input
+            class="form-control process-duplicate-modal__input"
+            id="duplicateProcessName"
+            type="text"
+            name="name"
+            required
+            maxlength="255"
+            autocomplete="off"
+          >
+          <p class="process-duplicate-modal__hint">
+            <i data-feather="info" aria-hidden="true"></i>
+            {% if list_language|slice:':2' == 'sv' %}
+              Testkombination, rollkontext och inställningar följer med. Kandidater, inbjudningar och resultat kopieras inte.
+            {% else %}
+              Assessment setup, role context and settings are copied. Candidates, invitations and results are not.
+            {% endif %}
+          </p>
+        </div>
+
+        <div class="modal-footer process-duplicate-modal__footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+            {% if list_language|slice:':2' == 'sv' %}Avbryt{% else %}Cancel{% endif %}
+          </button>
+          <button type="submit" class="btn btn-primary" id="duplicateProcessSubmit">
+            <i data-feather="copy" aria-hidden="true"></i>
+            {% if list_language|slice:':2' == 'sv' %}Skapa kopia{% else %}Create copy{% endif %}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
   {{ block.super }}
-  <script src="{% static 'js/talena/process-list.js' %}"></script>
+  <script src="{% static 'js/talena/process-list.js' %}?v=20261101-duplicate-modal"></script>
 {% endblock %}
