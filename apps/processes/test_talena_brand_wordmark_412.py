@@ -17,13 +17,21 @@ class TalenaSystemWordmarkTests(SimpleTestCase):
         ns = {"svg": "http://www.w3.org/2000/svg"}
         paths = root.findall(".//svg:path", ns)
         self.assertTrue(any(p.attrib.get("fill") == "#be5f56" for p in paths))
-        text_nodes = root.findall(".//svg:text", ns)
-        self.assertEqual(len(text_nodes), 1)
-        wordmark = text_nodes[0]
-        self.assertEqual("".join(wordmark.itertext()), "Talena")
-        self.assertIn("Georgia", wordmark.attrib["font-family"])
-        self.assertEqual(wordmark.attrib["fill"], "#171312")
-        self.assertNotIn('font-family="Sora"', logo)
+        # The wordmark is based on Google Fonts Sora Bold outlines rather
+        # than SVG <text>. Images loaded via <img> do not inherit page fonts.
+        self.assertEqual(root.findall(".//svg:text", ns), [])
+        glyphs = [p for p in paths if p.attrib.get("data-sora-glyph")]
+        self.assertEqual("".join(p.attrib["data-sora-glyph"] for p in glyphs), "Talena")
+        self.assertEqual(len(glyphs), 6)
+        self.assertTrue(all(p.attrib["fill"] == "#171312" for p in glyphs))
+        self.assertTrue(all(p.attrib["d"].startswith("M") for p in glyphs))
+        self.assertTrue(all("scale(0.109 -0.109)" in p.attrib["transform"] for p in glyphs))
+        self.assertIn("Sora Bold (Google Fonts)", logo)
+        self.assertNotIn("Georgia", logo)
+        self.assertNotIn("font-family", logo)
+        # Individual x positions guarantee the last glyph stays within the
+        # 526px viewBox, even without browser font availability.
+        self.assertIn("translate(451 124)", glyphs[-1].attrib["transform"])
 
     def test_customer_admin_login_and_candidate_views_share_one_brand_asset(self):
         base = Path(settings.BASE_DIR) / "templates"
