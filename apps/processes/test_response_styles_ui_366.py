@@ -45,12 +45,21 @@ class ResponseStylesUiTests(SimpleTestCase):
         sv = self.render_personality(language="sv")
         en = self.render_personality(language="en")
         self.assertIn('data-contrast-empty-state="no-patterns"', sv)
-        self.assertIn("Inga särskilda mönster just nu", sv)
-        self.assertIn("Det betyder inte att information saknas.", sv)
-        self.assertIn("No particular patterns to highlight right now", en)
-        self.assertIn("This does not mean information is missing.", en)
+        self.assertIn(
+            "Här visas utvalda kombinationer av personlighetsdrag som kan vara "
+            "intressanta att utforska tillsammans. I den här profilen framträder "
+            "inga av dessa kombinationer, men det kan fortfarande finnas andra "
+            "nyanser och samband som är värdefulla att utforska i samtalet.",
+            sv,
+        )
+        self.assertIn("None of these combinations stand out in this profile", en)
+        self.assertEqual(sv.count('data-profile-contrasts-intro="no-patterns"'), 1)
+        self.assertEqual(en.count('data-profile-contrasts-intro="no-patterns"'), 1)
         for markup in (sv, en):
             self.assertNotIn('data-contrast-empty-state="unavailable"', markup)
+            self.assertNotIn('data-profile-contrasts-intro="matched"', markup)
+            self.assertNotIn("Mönstren visas när indikatorer ligger långt", markup)
+            self.assertNotIn("Inga indikatorpar med tydliga ytterlägen", markup)
 
     def test_no_personality_results_shows_distinct_unavailable_state(self):
         sv = self.render_personality(has_results=False, has_response_style=False, available=0)
@@ -61,6 +70,9 @@ class ResponseStylesUiTests(SimpleTestCase):
         self.assertIn('data-contrast-empty-state="unavailable"', sv)
         self.assertNotIn('data-contrast-empty-state="no-patterns"', sv)
         self.assertIn("Det finns ännu inget personlighetsresultat", sv)
+        for markup in (sv, en):
+            self.assertNotIn('data-profile-contrasts-intro="no-patterns"', markup)
+            self.assertNotIn('data-profile-contrasts-intro="matched"', markup)
 
     def test_insufficient_mapped_results_are_not_called_no_patterns(self):
         markup = self.render_personality(available=1)
@@ -83,6 +95,35 @@ class ResponseStylesUiTests(SimpleTestCase):
         self.assertIn('data-profile-contrast-id="synthetic-catalog-pattern"', markup)
         self.assertIn("En fördefinierad möjlig nyans.", markup)
         self.assertNotIn("data-contrast-empty-state=", markup)
+        self.assertEqual(markup.count('data-profile-contrasts-intro="matched"'), 1)
+        self.assertNotIn('data-profile-contrasts-intro="no-patterns"', markup)
+        self.assertIn(
+            "Här visas utvalda kombinationer av personlighetsdrag som kan vara "
+            "intressanta att utforska tillsammans. Se dem som möjliga nyanser "
+            "att förstå bättre, inte som slutsatser.",
+            markup,
+        )
+
+    def test_matched_patterns_have_exactly_one_nonconclusive_english_intro(self):
+        contrast = {
+            "id": "synthetic-pattern",
+            "dimensions": [
+                {"label": "Variation", "sten": 8, "graph_segments": []},
+                {"label": "Adaptability", "sten": 2, "graph_segments": []},
+            ],
+            "hypothesis": "A cautious, predefined hypothesis.",
+        }
+        markup = self.render_personality(language="en", contrasts=[contrast])
+        self.assertIn(
+            "Selected combinations of personality traits that may be "
+            "interesting to explore together are shown here. Consider them "
+            "possible nuances to understand better, not conclusions.",
+            markup,
+        )
+        self.assertEqual(markup.count('data-profile-contrasts-intro="matched"'), 1)
+        self.assertNotIn("data-contrast-empty-state=", markup)
+        self.assertNotIn('data-profile-contrasts-intro="no-patterns"', markup)
+        self.assertIn("A cautious, predefined hypothesis.", markup)
 
     def test_no_sten_labels_or_removed_ai_sections_in_rendered_html(self):
         markup = self.render_personality()
