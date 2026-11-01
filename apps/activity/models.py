@@ -8,9 +8,9 @@ class ActivityEvent(models.Model):
         # ---------------------------------------------------------
         # Test process activity
         # ---------------------------------------------------------
-        PROCESS_CREATED = "process_created", "Process skapad"
-        PROCESS_ARCHIVED = "process_archived", "Process arkiverad"
-        PROCESS_DELETED = "process_deleted", "Process raderad"
+        PROCESS_CREATED = "process_created", "Projekt skapat"
+        PROCESS_ARCHIVED = "process_archived", "Projekt arkiverat"
+        PROCESS_DELETED = "process_deleted", "Projekt raderat"
 
         CANDIDATE_ADDED = "candidate_added", "Kandidat lades till i projekt"
         CANDIDATE_REMOVED = "candidate_removed", "Kandidat togs bort från projekt"

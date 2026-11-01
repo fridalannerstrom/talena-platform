@@ -7684,7 +7684,7 @@ def process_archive(request, pk):
         process=obj,
     )
 
-    messages.success(request, "Processen arkiverades.")
+    messages.success(request, "Projektet arkiverades.")
     return redirect("processes:process_list")
 
 
@@ -7706,7 +7706,7 @@ def process_unarchive(request, pk):
         return HttpResponseForbidden("You do not have access to this project.")
 
     obj.unarchive()
-    messages.success(request, "Processen återställdes.")
+    messages.success(request, "Projektet återställdes.")
     return redirect("processes:process_list")
 
 
@@ -8295,7 +8295,7 @@ def process_candidate_purpose_fit_stream(
         return JsonResponse(
             {
                 "error": (
-                    "This process does not support "
+                    "This project does not support "
                     "AI Overview."
                 )
             },
@@ -8539,7 +8539,7 @@ def process_candidate_purpose_fit_regenerate(
         return JsonResponse(
             {
                 "error": (
-                    "Flexible processes do not support "
+                    "Flexible projects do not support "
                     "purpose-fit analysis."
                 )
             },

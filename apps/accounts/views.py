@@ -658,7 +658,7 @@ def admin_usage_billing(request):
                 "process_name": (
                     usage.process_name_snapshot
                     or process.name
-                    or "No process"
+                    or "No project"
                 ),
 
                 "project_name": (
@@ -782,7 +782,7 @@ def admin_usage_billing(request):
         writer = csv.writer(response, delimiter=";")
         headers = [
             "Company / account",
-            "Process",
+            "Project",
             "Sent by",
             "Candidates",
             "Tests",
@@ -2864,7 +2864,7 @@ def admin_process_update(request, pk):
             if locked and ((acc.strip() != old_acc) or (proj.strip() != old_proj)):
                 messages.error(
                     request,
-                    "Du kan inte ändra testpaket efter att tester har skickats i processen."
+                    "Du kan inte ändra testpaket efter att tester har skickats i projektet."
                 )
                 return redirect(f"{reverse('accounts:admin_process_update', kwargs={'pk': obj.pk})}?next={next_url}")
 
@@ -3041,10 +3041,10 @@ def admin_process_add_candidate(request, pk):
 
 
             if inv_created:
-                msg = f"{candidate.email} har lagts till i processen."
+                msg = f"{candidate.email} har lagts till i projektet."
                 messages.success(request, msg)
             else:
-                msg = f"{candidate.email} är redan i processen."
+                msg = f"{candidate.email} är redan i projektet."
                 messages.info(request, msg)
 
             if is_ajax:
@@ -3796,7 +3796,7 @@ def company_process_create(request, company_pk):
             if not org_unit:
                 form.add_error(
                     None,
-                    "Please select which account/unit this process belongs to."
+                    "Please select which account/unit this project belongs to."
                 )
 
                 return render(
@@ -4027,7 +4027,7 @@ def company_process_delete(request, company_pk, process_pk):
     if not process.can_delete():
         messages.error(
             request,
-            "This process cannot be deleted because tests have been sent, started or completed. Archive it instead."
+            "This project cannot be deleted because tests have been sent, started or completed. Archive it instead."
         )
         return redirect(
             "accounts:company_process_detail",
