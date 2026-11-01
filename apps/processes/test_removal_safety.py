@@ -166,7 +166,7 @@ class ScopedRemovalTests(TestCase):
         )
         self.assertTrue(TestProcess.objects.filter(pk=self.project.pk).exists())
         self.assertIn(
-            "inte raderas permanent",
+            "cannot be permanently deleted",
             " ".join(str(m) for m in get_messages(response.wsgi_request)),
         )
 
