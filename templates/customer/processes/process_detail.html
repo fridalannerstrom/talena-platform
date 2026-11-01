@@ -2,6 +2,7 @@
 {% load static i18n %}
 
 {% block process_content %}
+<link rel="stylesheet" href="{% static 'css/talena/pages/project-assessment-status.css' %}?v=20261101-367">
 {% get_current_language as detail_language %}
 
 {% if not process.is_historical %}
@@ -82,29 +83,33 @@
         {% csrf_token %}
     {% endif %}
 
-      <div class="table-responsive">
+      <div class="table-responsive talena-assessment-matrix" data-project-test-statuses data-status-url="{% url 'processes:process_invitation_statuses' process.id %}">
         <table class="table table-hover align-middle mb-0 process-table">
           <thead class="table-light">
             <tr>
               {% if can_edit and not process.is_historical %}
-                <th style="width:44px;" class="ps-4">
+                <th style="width:44px;" class="ps-4 talena-assessment-select">
                   <input type="checkbox" id="select-all">
                 </th>
               {% endif %}
 
-              <th>{% trans "Candidate" %}</th>
+              <th class="talena-assessment-name">{% trans "Candidate" %}</th>
 
               {% if process.is_historical %}
                 <th style="width: 190px;">{% trans "Type" %}</th>
                 <th style="width: 160px;">{% trans "Status" %}</th>
                 <th style="width: 170px;">{% trans "Imported" %}</th>
               {% else %}
-                <th style="width: 160px;">{% trans "Status" %}</th>
+                {% for test in project_tests %}
+                  <th data-test-header scope="col" title="{% if detail_language|slice:':2' == 'sv' %}Status för {{ test.sv }}{% else %}{{ test.en }} status{% endif %}">{% if detail_language|slice:':2' == 'sv' %}{{ test.sv }}{% else %}{{ test.en }}{% endif %}</th>
+                {% empty %}
+                  <th>{% if detail_language|slice:':2' == 'sv' %}Tester saknas{% else %}No assessments configured{% endif %}</th>
+                {% endfor %}
                 <th style="width: 170px;">{% trans "Registered" %}</th>
               {% endif %}
 
               {% if can_edit and not process.is_historical %}
-                <th class="text-end pe-4" style="width:90px;"></th>
+                <th class="text-end pe-4 talena-assessment-actions" style="width:90px;"></th>
               {% endif %}
             </tr>
           </thead>
@@ -185,7 +190,7 @@
                 <tr class="candidate-row">
 
                   {% if can_edit %}
-                    <td class="ps-4">
+                    <td class="ps-4 talena-assessment-select">
                       <input
                         type="checkbox"
                         name="invitation_ids"
@@ -195,7 +200,7 @@
                     </td>
                   {% endif %}
 
-                  <td>
+                  <td class="talena-assessment-name">
                     <div class="d-flex align-items-center gap-3 process-detail-table">
                       <div class="user-initials-yellow">
                         {% with fn=inv.candidate.first_name|default:"" ln=inv.candidate.last_name|default:"" %}
@@ -231,15 +236,13 @@
                     </div>
                   </td>
 
-                  <td>
-                    <span
-                      class="badge"
-                      data-invitation-id="{{ inv.id }}"
-                      data-status-badge="1"
-                    >
-                      {{ inv.status_label }}
-                    </span>
-                  </td>
+                  {% for cell in inv.assessment_status_cells %}
+                    <td data-test-cell>
+                      {% include "customer/processes/partials/_assessment_status_cell.html" with cell=cell inv=inv %}
+                    </td>
+                  {% empty %}
+                    <td class="text-muted">{% if detail_language|slice:":2" == "sv" %}Inga tester valda{% else %}No assessments selected{% endif %}</td>
+                  {% endfor %}
 
                   <td class="text-muted">
                     {{ inv.invited_at|default:inv.created_at|date:"Y-m-d" }}
@@ -249,7 +252,7 @@
                   </td>
 
                   {% if can_edit %}
-                    <td class="text-end pe-4">
+                    <td class="text-end pe-4 talena-assessment-actions">
                       <button
                         type="button"
                         class="button-icon"
@@ -270,7 +273,7 @@
 
               {% empty %}
                 <tr>
-                  <td colspan="{% if can_edit %}5{% else %}3{% endif %}" class="p-5 text-center text-muted empty-state">
+                  <td colspan="{{ project_tests|length|add:3 }}" class="p-5 text-center text-muted empty-state">
                     {% if can_edit %}
                       <div class="fw-semibold text-dark mb-1">
                         {% trans "No candidates yet" %}
@@ -454,4 +457,5 @@ document.addEventListener("DOMContentLoaded", function () {
 </script>
 {% endif %}
 
+<script src="{% static 'js/talena/project-assessment-status.js' %}?v=20261101-367"></script>
 {% endblock %}
