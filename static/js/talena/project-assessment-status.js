@@ -63,8 +63,8 @@
             const label = cell.querySelector(".talena-assessment-state__label");
             const path = cell.querySelector(".talena-assessment-state__symbol path");
             const nextClass = "talena-assessment-state talena-assessment-state--" + assessment.tone;
-            const title = assessment.label + ": " + assessment.title;
-            const accessibleLabel = assessment.label + ". " + assessment.title;
+            const title = assessment.title;
+            const accessibleLabel = assessment.title;
 
             if (cell.className !== nextClass) cell.className = nextClass;
             if (cell.dataset.state !== assessment.state) cell.dataset.state = assessment.state;
