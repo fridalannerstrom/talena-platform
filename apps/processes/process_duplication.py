@@ -4,7 +4,6 @@ Sova account_code/project_code refer to shared assessment templates. The unique
 Sova order/project IDs belong to invitations and are never copied here.
 """
 from copy import deepcopy
-import logging
 
 from django import forms
 from django.contrib import messages
@@ -19,13 +18,10 @@ from apps.accounts.models import CompanyMember
 from apps.accounts.utils.org_access import user_can_edit_process
 from apps.activity.models import ActivityEvent
 from apps.activity.services import log_event
-from apps.core.integrations.sova import SovaClient
 
 from .models import ProcessRoleContext, TestProcess
 from .process_settings_models import ProcessAutomationSettings
 
-
-logger = logging.getLogger(__name__)
 
 
 def localize(sv, en):
@@ -44,16 +40,17 @@ class DuplicateProcessForm(forms.Form):
         self.fields["name"].label = localize("Namn på kopian", "Name of the copy")
 
 
-def sova_template_exists(source):
-    """Validate the same shared template used by the original project."""
-    accounts = SovaClient().get_template_accounts_with_projects()
-    return any(
-        (account.get("code") or "").strip() == source.account_code
-        and any(
-            (project.get("code") or "").strip() == source.project_code
-            for project in account.get("projects") or []
-        )
-        for account in accounts or []
+def has_saved_sova_template(source):
+    """Ensure a reusable shared Sova template is configured locally.
+
+    Talena reuses Sova's project *code* for new assessment orders. Looking up
+    Sova here is unnecessary and would stop otherwise-valid duplication when
+    local credentials or Sova's API are unavailable. No unique Sova project or
+    assessment-order ID is stored on TestProcess or copied.
+    """
+    return bool(
+        (source.account_code or "").strip()
+        and (source.project_code or "").strip()
     )
 
 
@@ -165,35 +162,20 @@ def process_duplicate(request, pk):
         initial={"name": suggested_name},
     )
     if request.method == "POST" and form.is_valid():
-        if not source.account_code or not source.project_code:
+        if not has_saved_sova_template(source):
             form.add_error(None, localize(
-                "Projektet saknar en Sova-mall och kan inte dupliceras.",
-                "This project has no Sova template and cannot be duplicated.",
+                "Projektet saknar en sparad Sova-mall och kan inte dupliceras.",
+                "This project has no saved Sova template and cannot be duplicated.",
             ))
         else:
-            try:
-                exists = sova_template_exists(source)
-            except Exception:
-                logger.exception("Sova lookup failed for process duplication %s", source.pk)
-                form.add_error(None, localize(
-                    "Det gick inte att kontrollera Sova-mallen. Försök igen senare.",
-                    "Could not verify the Sova template. Please try again later.",
-                ))
-            else:
-                if not exists:
-                    form.add_error(None, localize(
-                        "Sova-mallen finns inte längre. Ingen kopia skapades.",
-                        "The Sova template is no longer available. No copy was created.",
-                    ))
-                else:
-                    duplicate = copy_process_settings(
-                        source, name=form.cleaned_data["name"], created_by=request.user,
-                    )
-                    messages.success(request, localize(
-                        "Projektet har duplicerats utan kandidater.",
-                        "Project duplicated without candidates.",
-                    ))
-                    return redirect("processes:process_detail", pk=duplicate.pk)
+            duplicate = copy_process_settings(
+                source, name=form.cleaned_data["name"], created_by=request.user,
+            )
+            messages.success(request, localize(
+                "Projektet har duplicerats utan kandidater.",
+                "Project duplicated without candidates.",
+            ))
+            return redirect("processes:process_detail", pk=duplicate.pk)
     return render(
         request, "customer/processes/process_duplicate.html",
         {"form": form, "source": source},
