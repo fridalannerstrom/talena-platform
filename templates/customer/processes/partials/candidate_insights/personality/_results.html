@@ -44,7 +44,7 @@
     data-personality-view-tab="detailed"
   >
     <i data-feather="list" aria-hidden="true"></i>
-     <span>{% if LANGUAGE_CODE|slice:":2" == "sv" %}Egenskaps- och indikatorprofilen{% else %}Trait & indicator profile{% endif %}</span>
+     <span>{% if LANGUAGE_CODE|slice:":2" == "sv" %}Karaktärsdrags- och indikatorprofilen{% else %}Trait and indicator profile{% endif %}</span>
   </button>
 
 <button
@@ -57,7 +57,7 @@
     data-personality-view-tab="quick"
   >
     <i data-feather="align-justify" aria-hidden="true"></i>
-     <span>{% if LANGUAGE_CODE|slice:":2" == "sv" %}Egenskapsprofilen{% else %}Trait profile{% endif %}</span>
+     <span>{% if LANGUAGE_CODE|slice:":2" == "sv" %}Karaktärsdragsprofilen{% else %}Trait profile{% endif %}</span>
   </button>
 
 <button
@@ -640,16 +640,9 @@
 
               </div>
 
-              {% if style.available %}
-                <div class="response-style-item__result" aria-label="{% if LANGUAGE_CODE|slice:':2' == 'sv' %}Poäng {{ style.value }} av 10{% else %}Score {{ style.value }} of 10{% endif %}">{{ style.value }}/10</div>
-              {% else %}
-                <span
-                  class="
-                    response-style-item__badge
-                    response-style-item__badge--missing
-                  "
-                >
-                   {% trans "Not available" %}
+              {% if not style.available %}
+                <span class="response-style-item__badge response-style-item__badge--missing">
+                  {% trans "Not available" %}
                 </span>
               {% endif %}
 
