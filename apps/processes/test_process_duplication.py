@@ -164,6 +164,65 @@ class ProcessDuplicationTests(TestCase):
             self.client.get(reverse("processes:process_list")), self.url,
         )
 
+    def test_project_list_uses_one_modal_instead_of_navigating_to_copy_page(self):
+        self.client.force_login(self.editor)
+        response = self.client.get(reverse("processes:process_list"))
+        self.assertContains(response, 'id="duplicateProcessModal"', count=1)
+        self.assertContains(response, 'id="duplicateProcessForm"', count=1)
+        self.assertContains(response, 'data-duplicate-trigger')
+        self.assertContains(response, 'data-bs-toggle="modal"')
+        self.assertContains(response, 'data-bs-target="#duplicateProcessModal"')
+        self.assertContains(response, f'data-duplicate-url="{self.url}"')
+        self.assertContains(response, 'data-duplicate-name="Leadership"')
+        self.assertContains(response, 'name="from_modal" value="1"')
+        self.assertContains(response, 'name="name"')
+        self.assertContains(response, 'maxlength="255"')
+
+    def test_popup_post_creates_project_and_redirects_to_copy(self):
+        self.client.force_login(self.owner)
+        response = self.client.post(
+            self.url,
+            {
+                "name": "My modal copy",
+                "from_modal": "1",
+                "return_to_archived": "0",
+            },
+        )
+        duplicate = TestProcess.objects.get(name="My modal copy")
+        self.assertRedirects(
+            response,
+            reverse("processes:process_detail", args=[duplicate.pk]),
+            fetch_redirect_response=False,
+        )
+        self.assertEqual(duplicate.invitations.count(), 0)
+
+    def test_popup_validation_failure_returns_to_project_list(self):
+        self.client.force_login(self.owner)
+        response = self.client.post(
+            self.url,
+            {"name": "    ", "from_modal": "1", "return_to_archived": "0"},
+        )
+        self.assertRedirects(
+            response, reverse("processes:process_list"),
+            fetch_redirect_response=False,
+        )
+        self.assertEqual(TestProcess.objects.count(), 1)
+
+    def test_popup_template_error_returns_to_archived_tab(self):
+        self.client.force_login(self.owner)
+        self.source.archive()
+        self.source.project_code = ""
+        self.source.save(update_fields=["project_code"])
+        response = self.client.post(
+            self.url,
+            {"name": "No copy", "from_modal": "1", "return_to_archived": "1"},
+        )
+        self.assertRedirects(
+            response, reverse("processes:process_list") + "?archived=1",
+            fetch_redirect_response=False,
+        )
+        self.assertFalse(TestProcess.objects.filter(name="No copy").exists())
+
     def test_blank_name_does_not_create_process(self):
         self.client.force_login(self.owner)
         response = self.client.post(self.url, {"name": "   "})
