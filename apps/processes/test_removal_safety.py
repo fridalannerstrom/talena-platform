@@ -258,6 +258,8 @@ class ScopedRemovalTests(TestCase):
             for archived in (False, True):
                 if archived:
                     self.project.archive()
+                else:
+                    self.project.unarchive()
                 url = reverse("processes:process_list")
                 if archived:
                     url += "?archived=1"
