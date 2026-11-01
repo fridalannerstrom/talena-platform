@@ -17,6 +17,34 @@
     });
     if (!byCell.size) return;
 
+    // Bootstrap tooltips escape the horizontally scrolling table, unlike
+    // pseudo-element tooltips. Native title remains as a safe fallback.
+    const Tooltip = window.bootstrap && window.bootstrap.Tooltip;
+    if (Tooltip) {
+      byCell.forEach(cell => {
+        const existing = typeof Tooltip.getInstance === "function"
+          ? Tooltip.getInstance(cell) : null;
+        if (!existing) {
+          new Tooltip(cell, {
+            container: "body",
+            trigger: "hover focus",
+            placement: "top",
+            delay: { show: 120, hide: 80 }
+          });
+        }
+        // Tapping a status on a touch device should explain the icon,
+        // without opening the candidate row.
+        cell.addEventListener("click", event => {
+          if (!window.matchMedia || !window.matchMedia("(hover: none)").matches) return;
+          event.stopPropagation();
+          cell.focus();
+          const tooltip = typeof Tooltip.getInstance === "function"
+            ? Tooltip.getInstance(cell) : null;
+          if (tooltip) tooltip.show();
+        });
+      });
+    }
+
     async function refresh() {
       if (document.hidden) return;
       try {
@@ -47,7 +75,18 @@
                 path.getAttribute("d") !== assessment.icon_path) {
               path.setAttribute("d", assessment.icon_path);
             }
-            if (cell.title !== title) cell.title = title;
+            const tooltip = Tooltip && typeof Tooltip.getInstance === "function"
+              ? Tooltip.getInstance(cell) : null;
+            if (tooltip) {
+              if (cell.getAttribute("data-bs-original-title") !== title) {
+                cell.setAttribute("data-bs-original-title", title);
+                if (typeof tooltip.setContent === "function") {
+                  tooltip.setContent({ ".tooltip-inner": title });
+                }
+              }
+            } else if (cell.title !== title) {
+              cell.title = title;
+            }
             if (cell.getAttribute("aria-label") !== accessibleLabel) {
               cell.setAttribute("aria-label", accessibleLabel);
             }
