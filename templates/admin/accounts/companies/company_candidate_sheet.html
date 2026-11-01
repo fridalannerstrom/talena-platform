@@ -1,3 +1,5 @@
+{% load i18n %}
+{% get_current_language as candidate_ui_language %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 {% if is_historical %}
@@ -360,17 +362,6 @@
                 Sent assessments
               </button>
 
-              <button
-                class="candidate-tab"
-                type="button"
-                data-tab-group="candidate-main-tabs"
-                data-tab-target="link"
-                role="tab"
-                aria-selected="false"
-                onclick="switchTabs(this)">
-                Assessment link
-              </button>
-
               {% if not is_historical %}
                 <button
                   class="candidate-tab"
@@ -460,6 +451,43 @@
               data-tab-group="candidate-main-tabs"
               data-tab-panel="tests"
               role="tabpanel">
+<div class="candidate-assessment-link-section" data-candidate-assessment-link>
+  <div class="candidate-assessment-link-section__eyebrow">{% if candidate_ui_language|slice:":2" == "sv" %}Testlänk{% else %}Assessment link{% endif %}</div>
+  {% if invitation.assessment_link_state == "available" %}
+<div class="candidate-link-panel">
+                  <div class="candidate-link-panel-text">
+                    <div class="candidate-inline-title">Assessment link</div>
+                    <div class="candidate-inline-meta">
+                      Click to highlight the link, or press "Copy".
+                    </div>
+                  </div>
+
+                  <div class="candidate-link-field">
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="candidateAssessmentUrl"
+                      value="{{ invitation.assessment_url }}"
+                      readonly
+                      onclick="this.select()"
+                    >
+                    <button
+                      class="btn btn-primary"
+                      type="button"
+                      data-copy-candidate-url="candidateAssessmentUrl">
+                      Copy
+                    </button>
+                  </div>
+                </div>
+{% elif invitation.assessment_link_state == "expired" %}
+<div class="candidate-assessment-link-notice" role="status">{% if candidate_ui_language|slice:":2" == "sv" %}Testlänken har gått ut. Skicka en ny inbjudan om kandidaten behöver göra testerna igen.{% else %}This assessment link has expired. Send a new invitation if the candidate needs to retake the assessments.{% endif %}</div>
+{% elif invitation.assessment_link_state == "invalid" %}
+<div class="candidate-assessment-link-notice" role="status">{% if candidate_ui_language|slice:":2" == "sv" %}Testlänken är ogiltig och kan inte kopieras. Kontrollera inbjudan innan du delar en ny länk.{% else %}The assessment link is invalid and cannot be copied. Check the invitation before sharing a new link.{% endif %}</div>
+{% else %}
+<div class="candidate-assessment-link-notice" role="status">{% if candidate_ui_language|slice:":2" == "sv" %}Ingen testlänk finns ännu. Den visas här när en inbjudan har skapats.{% else %}No assessment link is available yet. It will appear here when an invitation has been created.{% endif %}</div>
+{% endif %}
+</div>
+
               {% if activities %}
                 <div class="candidate-inline-list">
                   {% for item in activities %}
@@ -493,41 +521,7 @@
             </div>
 
             <!-- LINK -->
-            <div
-              class="candidate-tab-panel"
-              data-tab-group="candidate-main-tabs"
-              data-tab-panel="link"
-              role="tabpanel">
-              {% if invitation.assessment_url %}
-                <div class="candidate-link-panel">
-                  <div class="candidate-link-panel-text">
-                    <div class="candidate-inline-title">Assessment link</div>
-                    <div class="candidate-inline-meta">
-                      Click to highlight the link, or press "Copy".
-                    </div>
-                  </div>
-
-                  <div class="candidate-link-field">
-                    <input
-                      type="text"
-                      class="form-control"
-                      id="candidateAssessmentUrl"
-                      value="{{ invitation.assessment_url }}"
-                      readonly
-                      onclick="this.select()"
-                    >
-                    <button
-                      class="btn btn-primary"
-                      type="button"
-                      data-copy-candidate-url="candidateAssessmentUrl">
-                      Copy
-                    </button>
-                  </div>
-                </div>
-              {% else %}
-                <div class="text-muted small">No assessment link available yet.</div>
-              {% endif %}
-            </div>
+            
 
             {% if not is_historical %}
               {% include "candidate_results/_candidate_result_tab.html" %}
