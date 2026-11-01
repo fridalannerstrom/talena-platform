@@ -5938,6 +5938,7 @@ def process_list(request):
         if show_archived and can_edit and not p.is_historical:
             p.can_delete_now = (
                 can_delete_process_safely(p)
+                and not p.invitations.filter(status="expired").exists()
                 and not p.assessment_usages.exists()
             )
         else:
@@ -6652,6 +6653,17 @@ def process_delete(request, pk):
     if not user_can_access_process(request.user, obj):
         return HttpResponseForbidden("Du saknar åtkomst till projektet.")
 
+    # Imported/historical projects may contain results not represented by
+    # live TestInvitation records. Never purge them using this legacy endpoint.
+    if obj.is_historical:
+        messages.warning(
+            request,
+            "Historiska projekt kan inte raderas via den här funktionen."
+            if (get_language() or "").startswith("sv")
+            else "Historical projects cannot be deleted through this action.",
+        )
+        return redirect(reverse("processes:process_list") + "?archived=1")
+
     # Never hard-delete an active project through an old/direct delete URL.
     # Actual permanent deletion is available only for archived projects.
     if not obj.is_archived:
@@ -6675,6 +6687,7 @@ def process_delete(request, pk):
     # nor associated assessment or billing data must be erased here.
     if (
         not can_delete_process_safely(obj)
+        or obj.invitations.filter(status="expired").exists()
         or obj.assessment_usages.exists()
     ):
         messages.warning(
@@ -6692,7 +6705,11 @@ def process_delete(request, pk):
             # Re-check under a row lock to avoid a second deletion request
             # racing against this request. Protected FKs remain the final guard.
             locked = TestProcess.objects.select_for_update().get(pk=obj.pk)
-            if not can_delete_process_safely(locked) or locked.assessment_usages.exists():
+            if (
+                not can_delete_process_safely(locked)
+                or locked.invitations.filter(status="expired").exists()
+                or locked.assessment_usages.exists()
+            ):
                 messages.warning(
                     request,
                     "Projektet kan inte raderas eftersom tester eller faktureringsunderlag finns."
@@ -7468,6 +7485,15 @@ def remove_candidate_from_process(request, process_id, candidate_id):
     # accounting history when assessments have already been ordered.
     if (
         invitation.assessment_url
+        or invitation.sova_request_id
+        or invitation.sova_project_id
+        or invitation.sova_invitation_id
+        or invitation.sova_payload
+        or invitation.project_results
+        or invitation.result_payload
+        or invitation.sova_reports
+        or invitation.sova_activities
+        or invitation.sova_phases
         or invitation.status in ("sent", "started", "completed", "expired")
         or invitation.assessment_usages.exists()
     ):
