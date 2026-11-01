@@ -177,6 +177,32 @@ class ProjectAssessmentStatusIntegrationTests(TestCase):
         self.assertNotIn('data-status-badge="1"', table)
         self.assertIn('data-test-key="personality"', markup)
 
+    def test_customer_statuses_use_icons_with_accessible_sv_tooltips(self):
+        response = self.client.get(
+            reverse("processes:process_detail", args=[self.project.pk]),
+            HTTP_ACCEPT_LANGUAGE="sv",
+        )
+        self.assertEqual(response.status_code, 200)
+        markup = response.content.decode("utf8")
+        self.assertIn('data-state="completed"', markup)
+        self.assertIn('data-state="started"', markup)
+        self.assertIn('class="talena-assessment-state__symbol"', markup)
+        self.assertIn('title="Genomfört: ', markup)
+        self.assertIn('aria-label="Påbörjat. ', markup)
+        self.assertIn('<span class="visually-hidden talena-assessment-state__label">', markup)
+        self.assertNotIn('class="talena-assessment-state__icon"', markup)
+
+    def test_icons_and_english_tooltips_are_present_in_polling_data(self):
+        response = self.client.get(
+            reverse("processes:process_invitation_statuses", args=[self.project.pk]),
+            HTTP_ACCEPT_LANGUAGE="en",
+        )
+        self.assertEqual(response.status_code, 200)
+        assessments = response.json()["invitations"][0]["assessments"]
+        self.assertEqual([cell["label"] for cell in assessments], ["Completed", "Started"])
+        self.assertTrue(all(cell["icon_path"].startswith("M") for cell in assessments))
+        self.assertNotEqual(assessments[0]["icon_path"], assessments[1]["icon_path"])
+
     def test_polling_api_reflects_updated_per_activity_status(self):
         url = reverse("processes:process_invitation_statuses", args=[self.project.pk])
         response = self.client.get(url, HTTP_ACCEPT_LANGUAGE="en")
