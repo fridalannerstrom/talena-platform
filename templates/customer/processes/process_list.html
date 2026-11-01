@@ -6,6 +6,7 @@
 {% endblock %}
 
 {% block content %}
+{% get_current_language as list_language %}
 <div class="container-fluid px-2 px-md-3 process-list-page">
 
   <header class="process-list-page-header">
@@ -132,6 +133,16 @@
                       </button>
                     {% endif %}
                   </form>
+                {% endif %}
+                {% if can_edit and not p.is_historical and p.source == "talena" %}
+                  <a
+                    class="icon-btn"
+                    href="{% url 'processes:process_duplicate' p.id %}"
+                    aria-label="{% if list_language|slice:':2' == 'sv' %}Duplicera projekt{% else %}Duplicate project{% endif %}"
+                    title="{% if list_language|slice:':2' == 'sv' %}Duplicera projekt{% else %}Duplicate project{% endif %}"
+                  >
+                    <i data-feather="copy"></i>
+                  </a>
                 {% endif %}
                 {% if can_edit and not p.is_historical %}
                   {% if not show_archived %}
