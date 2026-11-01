@@ -203,6 +203,28 @@
     });
   }
 
+  // One modal handles both safe permanent deletion and protected projects.
+  const removeProjectModal = document.getElementById("removeProjectModal");
+  if (removeProjectModal) {
+    const removeForm = document.getElementById("removeProjectForm");
+    const removeName = document.getElementById("removeProjectName");
+    const removeSafe = document.getElementById("removeProjectSafe");
+    const removeBlocked = document.getElementById("removeProjectBlocked");
+    const removeSubmit = document.getElementById("removeProjectSubmit");
+
+    removeProjectModal.addEventListener("show.bs.modal", function (event) {
+      const trigger = event.relatedTarget;
+      if (!trigger || !trigger.matches("[data-remove-project]")) return;
+      const canDelete = trigger.dataset.canDelete === "true";
+      removeForm.action = trigger.dataset.removeUrl || "";
+      removeName.textContent = trigger.dataset.projectName || "";
+      removeSafe.hidden = !canDelete;
+      removeBlocked.hidden = canDelete;
+      removeSubmit.hidden = !canDelete;
+      removeSubmit.disabled = !canDelete;
+    });
+  }
+
   searchInput.addEventListener("input", render);
   purposeFilter.addEventListener("change", render);
   sortSelect.addEventListener("change", render);

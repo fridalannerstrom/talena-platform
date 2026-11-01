@@ -2,7 +2,7 @@
 {% load dict_extras static i18n %}
 
 {% block extra_css %}
-  <link href="{% static 'css/talena/pages/process-list.css' %}?v=20261101-duplicate-modal" rel="stylesheet" />
+  <link href="{% static 'css/talena/pages/process-list.css' %}?v=20261101-removal-modal" rel="stylesheet" />
 {% endblock %}
 
 {% block content %}
@@ -182,16 +182,20 @@
                       </button>
                     </form>
 
-                    <form
-                      method="post"
-                      action="{% url 'processes:process_delete' p.id %}"
-                      data-confirm="{% trans 'Permanently delete this archived project? This cannot be undone.' %}"
+                    <button
+                      type="button"
+                      class="icon-btn icon-btn-danger"
+                      data-bs-toggle="modal"
+                      data-bs-target="#removeProjectModal"
+                      data-remove-project
+                      data-project-name="{{ p.name }}"
+                      data-remove-url="{% url 'processes:process_delete' p.id %}"
+                      data-can-delete="{{ p.can_delete_now|yesno:'true,false' }}"
+                      aria-label="{% if list_language|slice:':2' == 'sv' %}Hantera borttagning av projekt{% else %}Manage project removal{% endif %}"
+                      title="{% if list_language|slice:':2' == 'sv' %}Ta bort projekt{% else %}Remove project{% endif %}"
                     >
-                      {% csrf_token %}
-                      <button type="submit" class="icon-btn icon-btn-danger" aria-label="{% trans 'Delete' %}" title="{% trans 'Delete' %}">
-                        <i data-feather="trash-2"></i>
-                      </button>
-                    </form>
+                      <i data-feather="trash-2"></i>
+                    </button>
                   {% endif %}
                 {% endif %}
               </div>
@@ -372,9 +376,57 @@
     </div>
   </div>
 </div>
+{# Project deletion is distinct from archival and from full GDPR erasure. #}
+<div class="modal fade process-duplicate-modal" id="removeProjectModal" tabindex="-1" aria-hidden="true" aria-labelledby="removeProjectTitle">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form id="removeProjectForm" method="post">
+        {% csrf_token %}
+        <div class="modal-header process-duplicate-modal__header">
+          <div class="d-flex align-items-center gap-3">
+            <div class="process-duplicate-modal__icon" aria-hidden="true"><i data-feather="alert-triangle"></i></div>
+            <div>
+              <h2 class="modal-title process-duplicate-modal__title" id="removeProjectTitle">
+                {% if list_language|slice:':2' == 'sv' %}Ta bort projekt{% else %}Remove project{% endif %}
+              </h2>
+              <p class="process-duplicate-modal__source" id="removeProjectName"></p>
+            </div>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% if list_language|slice:':2' == 'sv' %}Stäng{% else %}Close{% endif %}"></button>
+        </div>
+        <div class="modal-body process-duplicate-modal__body">
+          <p id="removeProjectSafe">
+            {% if list_language|slice:':2' == 'sv' %}
+              Projektet är arkiverat och saknar beställda tester. Om du fortsätter raderas projektet och dess projektspecifika uppgifter permanent i Talena. Kandidaternas uppgifter i andra projekt påverkas inte.
+            {% else %}
+              This archived project has no ordered assessments. Continuing permanently deletes the project and its project-specific data from Talena. Candidate data in other projects is not affected.
+            {% endif %}
+          </p>
+          <p id="removeProjectBlocked" class="mb-0" hidden>
+            {% if list_language|slice:':2' == 'sv' %}
+              Det här projektet innehåller beställda tester eller faktureringsunderlag och kan inte raderas permanent ännu. Projektet ligger kvar i arkivet. Fullständig gallring hanteras separat.
+            {% else %}
+              This project contains ordered assessments or billing records and cannot yet be permanently deleted. It remains archived. Full erasure is handled separately.
+            {% endif %}
+          </p>
+        </div>
+        <div class="modal-footer process-duplicate-modal__footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+            {% if list_language|slice:':2' == 'sv' %}Avbryt{% else %}Cancel{% endif %}
+          </button>
+          <button id="removeProjectSubmit" type="submit" class="btn btn-danger">
+            <i data-feather="trash-2"></i>
+            {% if list_language|slice:':2' == 'sv' %}Radera projekt{% else %}Delete project{% endif %}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
 {% endblock %}
 
 {% block extra_js %}
   {{ block.super }}
-  <script src="{% static 'js/talena/process-list.js' %}?v=20261101-duplicate-modal"></script>
+  <script src="{% static 'js/talena/process-list.js' %}?v=20261101-removal-modal"></script>
 {% endblock %}
