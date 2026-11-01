@@ -37,6 +37,7 @@ class CandidateAiProvenanceTests(SimpleTestCase):
     def test_badges_use_ai_output_selectors_not_heading_keywords(self):
         script = self.source("static/js/talena/candidate-ai-badges.js")
         self.assertIn('["#purposeFitResult",', script)
+        self.assertNotIn('["#purposeFitCard", "#purposeFitTitle"', script)
         self.assertIn('"#purposeFitSummary"', script)
         self.assertIn("[data-personality-ai-interpretation]", script)
         self.assertIn("[data-motivation-ai-interpretation]", script)
@@ -63,8 +64,10 @@ class CandidateAiProvenanceTests(SimpleTestCase):
 
     def test_structured_overall_picture_badge_requires_generated_content(self):
         script = self.source("static/js/talena/structured-overall-picture.js")
-        self.assertIn('kicker.hidden = !hasGenerated;', script)
         self.assertIn("sectionHasAI", script)
+        self.assertIn('addAiText("Testbild", item.testbild)', script)
+        self.assertIn('addAiText(tr("Intervjun", "Interview"), item.intervjun)', script)
+        self.assertNotIn("kicker.hidden", script)
         self.assertIn("hasRawSourceLeak", script)
 
     def test_manual_manager_edits_are_ai_assisted(self):
@@ -74,6 +77,25 @@ class CandidateAiProvenanceTests(SimpleTestCase):
         self.assertIn('field.dataset.managerReportManuallyEdited === "true"', script)
         self.assertIn('data-after-interview-ai-origin', script)
         self.assertIn('body.dataset.afterInterviewAiOrigin = "true"', manager)
+
+    def test_badges_only_at_direct_ai_text_headings(self):
+        script = self.source("static/js/talena/candidate-ai-badges.js")
+        self.assertNotIn('["[data-cognitive-interpretation-root]", "h2.insight-summary-title"', script)
+        self.assertNotIn('["[data-motivation-ai-root]", "h2.insight-summary-title"', script)
+        self.assertNotIn('["[data-personality-ai-root]", "[data-personality-ai-title]"', script)
+        self.assertNotIn('["#candidate-insights-panel-prepare-interview > .final-output-card"', script)
+        self.assertNotIn('["[data-post-interview-section]", "h3.insight-summary-title"', script)
+        self.assertNotIn('["[data-personality-questions-root]", ".personality-questions-header h2"', script)
+        self.assertIn('["[data-cognitive-interpretation-root] .purpose-fit-section"', script)
+        self.assertIn('["[data-motivation-ai-root] .purpose-fit-section"', script)
+        self.assertIn('["[data-pre-interview-content] > .purpose-fit-section:first-child"', script)
+        self.assertIn('["[data-post-interview-content] > .purpose-fit-section:first-child"', script)
+
+    def test_ai_badge_typography_is_smaller_and_lighter(self):
+        style = self.source("static/css/talena/pages/candidate-eyebrows.css")
+        self.assertIn("font-size: .62rem;", style)
+        self.assertIn("font-weight: 550;", style)
+        self.assertIn("font-size: .6rem;", style)
 
     def test_candidate_result_portal_is_not_ai_labelled(self):
         script = self.source("static/js/talena/candidate-ai-badges.js")

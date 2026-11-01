@@ -52,23 +52,23 @@
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: .55rem;
+  gap: .45rem;
   margin-bottom: .35rem;
 }
 .talena-ai-title-row > :first-child { margin: 0 !important; }
 .talena-ai-generated-badge {
   display: inline-flex;
   align-items: center;
-  gap: .25rem;
+  gap: .22rem;
   width: fit-content;
-  padding: .32rem .55rem;
+  padding: .28rem .48rem;
   border: 1px solid #cdddf8;
   border-radius: 999px;
   background: #eff5ff;
   color: #3f67a3;
-  font-size: .68rem;
-  font-weight: 700;
-  line-height: 1.15;
+  font-size: .62rem;
+  font-weight: 550;
+  line-height: 1.2;
   white-space: nowrap;
   letter-spacing: 0;
   text-transform: none;
@@ -83,8 +83,8 @@
 @media (max-width: 575.98px) {
   .talena-ai-title-row { gap: .4rem; }
   .talena-ai-generated-badge {
-    padding: .3rem .48rem;
-    font-size: .64rem;
+    padding: .26rem .44rem;
+    font-size: .6rem;
     white-space: normal;
   }
 }

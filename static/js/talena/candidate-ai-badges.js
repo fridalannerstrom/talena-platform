@@ -6,31 +6,23 @@
   // Candidate reports, static test interpretations and interviewer notes have
   // no corresponding rules, so they cannot be marked by this code.
   const RULES = [
-    ["#purposeFitCard", "#purposeFitTitle", "#purposeFitSummary"],
     ["#purposeFitResult", ".purpose-fit-section:first-child .purpose-fit-section-title", "#purposeFitSummary"],
     [".personality-overview-summary", ".personality-overview-summary__title", "[data-personality-area-summary]"],
     [".purpose-fit-list-card--positive", ".purpose-fit-section-title", "#purposeFitAlignment li"],
     [".purpose-fit-list-card--verify", ".purpose-fit-section-title", "#purposeFitVerify li"],
-    ["[data-personality-ai-root]", "[data-personality-ai-title]", "[data-personality-ai-interpretation]"],
     ["[data-personality-ai-root] .personality-interpretation__overall", ".purpose-fit-section-title", "[data-personality-ai-interpretation]"],
+    ["[data-motivation-ai-root] .purpose-fit-section", ".purpose-fit-section-title", "[data-motivation-ai-interpretation]"],
+    ["[data-cognitive-interpretation-root] .purpose-fit-section", ".purpose-fit-section-title", "[data-cognitive-ai-interpretation]"],
+    ["[data-pre-interview-content] > .purpose-fit-section:first-child", ".purpose-fit-section-title", "[data-pre-interview-overall-synthesis]"],
+    ["[data-post-interview-content] > .purpose-fit-section:first-child", ".purpose-fit-section-title", ".purpose-fit-summary"],
     ["[data-personality-ai-dynamics-section]", ".purpose-fit-section-title", "[data-personality-ai-dynamics]"],
     ["[data-personality-ai-motivation-section]:not([data-personality-ai-motivation-missing])", ".purpose-fit-section-title", "[data-personality-ai-motivation-interaction]"],
     ["[data-personality-ai-supportive-section]", ".purpose-fit-section-title", "[data-personality-ai-supportive] li"],
     ["[data-personality-ai-explore-section]", ".purpose-fit-section-title", "[data-personality-ai-explore] li"],
-    ["[data-motivation-ai-root]", "h2.insight-summary-title", "[data-motivation-ai-interpretation]"],
     ["[data-motivation-ai-expectation-section]", ".purpose-fit-section-title", "[data-motivation-ai-expectation]"],
     ["[data-motivation-ai-engagement-section]", ".purpose-fit-section-title", "[data-motivation-ai-engagement] li"],
     ["[data-motivation-ai-clarify-section]", ".purpose-fit-section-title", "[data-motivation-ai-clarify] li"],
-    ["[data-cognitive-interpretation-root]", "h2.insight-summary-title", "[data-cognitive-ai-interpretation]"],
     ["[data-cognitive-ai-considerations-section]", ".purpose-fit-section-title", "[data-cognitive-ai-considerations] li"],
-    ["[data-personality-questions-root]", ".personality-questions-header h2", "[data-personality-questions-list] .personality-question-card"],
-    ["[data-motivation-questions-root]", ".personality-questions-header h2", "[data-motivation-questions-list] .personality-question-card"],
-    ["[data-cognitive-questions-root]", ".personality-questions-header h2", "[data-cognitive-questions-list] .personality-question-card"],
-    ["[data-combined-questions-root]", ".personality-questions-header h2", ".combined-question-sections .personality-question-card__text"],
-    ["#candidate-insights-panel-prepare-interview > .final-output-card", "h2.insight-summary-title", "[data-pre-interview-overall-synthesis]"],
-    ["[data-post-interview-section]", "h3.insight-summary-title", "[data-post-interview-content] .purpose-fit-summary"],
-    [".after-interview-tab-card", ".after-interview-tab-card__title", "[data-after-interview-block-content][data-after-interview-ai-origin='true']"],
-    ["[data-overall-picture-structured-card]", ".after-interview-tab-card__title", "[data-after-interview-block-content]"]
   ];
   const BADGE_CLASS = "talena-ai-generated-badge";
   const ROW_CLASS = "talena-ai-title-row";
