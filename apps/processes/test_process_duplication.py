@@ -128,7 +128,7 @@ class ProcessDuplicationTests(TestCase):
         self.assertTrue(duplicate.automation_settings.automatic_invitation_enabled)
         self.assertEqual(duplicate.invitations.count(), 0)
         self.assertEqual(duplicate.self_registrations.count(), 0)
-        self.assertEqual(duplicate.historical_process_records.count(), 0)
+        self.assertEqual(duplicate.historical_candidates.count(), 0)
 
     def test_own_permission_applies_to_own_process_only(self):
         self.client.force_login(self.own_only)
