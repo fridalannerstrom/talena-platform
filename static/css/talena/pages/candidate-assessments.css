@@ -640,6 +640,24 @@
   background: linear-gradient(90deg, #ff9b89 0%, var(--talena-coral) 100%) !important;
 }
 
+/* #364: approved static norm comparison, visually attached to each test bar. */
+.process-page .cognitive-result-card__static-comparison {
+  margin: .8rem 0 0 !important;
+  padding: .75rem 0 0;
+  border-top: 1px solid var(--talena-border, #e9e4e1);
+  color: var(--talena-text, #3c4145) !important;
+  font-size: .7rem !important;
+  line-height: 1.6 !important;
+  font-weight: 400;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 720px) {
+  .process-page .cognitive-result-card__static-comparison {
+    padding-top: .65rem;
+    margin-top: .7rem !important;
+  }
+}
+
 
 /* =========================================================
    INTERPRETATIONS

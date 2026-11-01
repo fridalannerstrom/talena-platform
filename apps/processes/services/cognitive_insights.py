@@ -4,6 +4,10 @@ from typing import Any
 
 from django.utils.translation import gettext as _, override
 
+from apps.reports.libraries.cognitive.candidate_result_content import (
+    candidate_cognitive_level_key,
+)
+
 # Talena cognitive results language batch 1
 def build_cognitive_insight_results(
     verbal_percentile=None,
@@ -18,7 +22,8 @@ def build_cognitive_insight_results(
     All three assessment types are always returned so the template can show
     a grey placeholder when an assessment has not been completed.
 
-    Percentile calculations and thresholds are intentionally unchanged.
+    The comparison levels use the same approved percentile bands as the
+    candidate's own static result report; presentation text remains unchanged.
     """
 
     if language_code:
@@ -39,54 +44,30 @@ def build_cognitive_insight_results(
             return None
 
     def get_level(percentile):
-        """
-        Translate a percentile result into a display level and interpretation.
-        Adjust the thresholds later if Sova uses different norm bands.
-        """
-
-        if percentile is None:
+        """Use the approved candidate-report norm bands in every result view."""
+        level_key = candidate_cognitive_level_key(percentile)
+        labels = {
+            "very-low": _("Very low"),
+            "low": _("Low"),
+            "average": _("Typical range"),
+            "high": _("High"),
+            "very-high": _("Very high"),
+        }
+        if level_key is None:
             return {
                 "completed": False,
                 "level_key": "missing",
                 "level_label": _("Not completed"),
             }
-
-        if percentile <= 9:
-            return {
-                "completed": True,
-                "level_key": "very-low",
-                "level_label": _("Very low"),
-            }
-
-        if percentile <= 24:
-            return {
-                "completed": True,
-                "level_key": "low",
-                "level_label": _("Low"),
-            }
-
-        if percentile <= 74:
-            return {
-                "completed": True,
-                "level_key": "average",
-                "level_label": _("Typical range"),
-            }
-
-        if percentile <= 90:
-            return {
-                "completed": True,
-                "level_key": "high",
-                "level_label": _("High"),
-            }
-
         return {
             "completed": True,
-            "level_key": "very-high",
-            "level_label": _("Very high"),
+            "level_key": level_key,
+            "level_label": labels[level_key],
         }
 
     def get_interpretation(test_key, percentile):
-        if percentile is None:
+        level_key = candidate_cognitive_level_key(percentile)
+        if level_key is None:
             return _(
                 "This candidate has not completed this assessment."
             )
@@ -105,7 +86,7 @@ def build_cognitive_insight_results(
 
         ability_text = ability_labels[test_key]
 
-        if percentile <= 9:
+        if level_key == "very-low":
             return _(
                 "The candidate may find it considerably more difficult "
                 "than most people in the reference group to %(ability)s."
@@ -113,7 +94,7 @@ def build_cognitive_insight_results(
                 "ability": ability_text,
             }
 
-        if percentile <= 24:
+        if level_key == "low":
             return _(
                 "The candidate may find it more difficult than many "
                 "others in the reference group to %(ability)s."
@@ -121,7 +102,7 @@ def build_cognitive_insight_results(
                 "ability": ability_text,
             }
 
-        if percentile <= 74:
+        if level_key == "average":
             return _(
                 "The candidate is likely to find it about as easy as "
                 "most people in the reference group to %(ability)s."
@@ -129,7 +110,7 @@ def build_cognitive_insight_results(
                 "ability": ability_text,
             }
 
-        if percentile <= 90:
+        if level_key == "high":
             return _(
                 "The candidate may find it easier than many others in "
                 "the reference group to %(ability)s."
