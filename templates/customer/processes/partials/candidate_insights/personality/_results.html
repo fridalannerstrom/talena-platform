@@ -679,7 +679,7 @@
 <div
   class="response-style-scale response-style-profile__scale"
   role="img"
-  aria-label="{{ style.title }}: {{ style.value }} out of 10"
+  aria-label="{{ style.title }}: {% if LANGUAGE_CODE|slice:':2' == 'sv' %}poäng {{ style.value }} av 10{% else %}score {{ style.value }} of 10{% endif %}"
 >
   <div class="response-style-scale__track">
 
