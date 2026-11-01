@@ -3296,6 +3296,8 @@ if (
   };
 
   window.openCandidateTab = function openCandidateTab(tabTarget) {
+    // Compatibility for saved links and older calls targeting the removed tab.
+    if (tabTarget === "link") tabTarget = "tests";
     const tabButton = document.querySelector(
       `[data-tab-group="candidate-main-tabs"][data-tab-target="${tabTarget}"]`
     );

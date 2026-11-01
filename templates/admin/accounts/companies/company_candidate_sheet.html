@@ -359,7 +359,7 @@
                 role="tab"
                 aria-selected="false"
                 onclick="switchTabs(this)">
-                Sent assessments
+                {% if candidate_ui_language|slice:":2" == "sv" %}Skickade tester{% else %}Sent assessments{% endif %}
               </button>
 
               {% if not is_historical %}
@@ -451,15 +451,13 @@
               data-tab-group="candidate-main-tabs"
               data-tab-panel="tests"
               role="tabpanel">
-<div class="candidate-assessment-link-section" data-candidate-assessment-link>
+<div class="candidate-assessment-link-section border-bottom pb-3 mb-3" data-candidate-assessment-link>
   <div class="candidate-assessment-link-section__eyebrow">{% if candidate_ui_language|slice:":2" == "sv" %}Testlänk{% else %}Assessment link{% endif %}</div>
   {% if invitation.assessment_link_state == "available" %}
 <div class="candidate-link-panel">
                   <div class="candidate-link-panel-text">
-                    <div class="candidate-inline-title">Assessment link</div>
-                    <div class="candidate-inline-meta">
-                      Click to highlight the link, or press "Copy".
-                    </div>
+                    <div class="candidate-inline-title">{% if candidate_ui_language|slice:":2" == "sv" %}Kandidatens testlänk{% else %}Candidate assessment link{% endif %}</div>
+                    <div class="candidate-inline-meta">{% if candidate_ui_language|slice:":2" == "sv" %}Klicka på länken för att markera den eller tryck på Kopiera.{% else %}Click to select the link, or press Copy.{% endif %}</div>
                   </div>
 
                   <div class="candidate-link-field">
@@ -475,7 +473,7 @@
                       class="btn btn-primary"
                       type="button"
                       data-copy-candidate-url="candidateAssessmentUrl">
-                      Copy
+                      {% if candidate_ui_language|slice:":2" == "sv" %}Kopiera{% else %}Copy{% endif %}
                     </button>
                   </div>
                 </div>
@@ -495,7 +493,7 @@
                       <div>
                         <div class="candidate-inline-title">{{ item.activity|default:"-" }}</div>
                         <div class="candidate-inline-meta">
-                          Assessment included in this test process
+                          {% if candidate_ui_language|slice:":2" == "sv" %}Test ingår i detta projekt{% else %}Assessment included in this project{% endif %}
                         </div>
                       </div>
 

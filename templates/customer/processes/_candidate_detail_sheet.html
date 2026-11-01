@@ -178,12 +178,12 @@
                 data-tab-panel="tests"
                 role="tabpanel"
               >
-<div class="candidate-assessment-link-section" data-candidate-assessment-link>
+<div class="candidate-assessment-link-section border-bottom pb-3 mb-3" data-candidate-assessment-link>
   <div class="candidate-assessment-link-section__eyebrow">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Testlänk{% else %}Assessment link{% endif %}</div>
   {% if invitation.assessment_link_state == "available" %}
 <div class="candidate-link-panel">
                     <div class="candidate-link-panel-text">
-                      <div class="candidate-inline-title">{% trans "Assessment link" %}</div>
+                      <div class="candidate-inline-title">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Kandidatens testlänk{% else %}Candidate assessment link{% endif %}</div>
                       <div class="candidate-inline-meta">{% trans "Click to highlight the link, or press Copy." %}</div>
                     </div>
 
