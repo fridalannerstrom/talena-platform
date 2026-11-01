@@ -110,7 +110,31 @@ class ProjectAssessmentStatusUnitTests(SimpleTestCase):
         data = self.result(inv, ("verbal",), "en")
         self.assertEqual(data["verbal"]["label"], "Completed")
         self.assertEqual(data["verbal"]["state"], "completed")
-        self.assertIn("Sova", data["verbal"]["title"])
+        self.assertEqual(data["verbal"]["title"], "The candidate has completed the test.")
+
+    def test_all_states_use_clear_non_technical_sv_en_tooltips(self):
+        from apps.processes.services.project_assessment_status import (
+            LABELS_STATUS, _cell,
+        )
+        for state in LABELS_STATUS:
+            with self.subTest(state=state):
+                sv = _cell("personality", state, "sv")
+                en = _cell("personality", state, "en")
+                self.assertTrue(sv["title"].endswith("."))
+                self.assertTrue(en["title"].endswith("."))
+                self.assertLessEqual(len(sv["title"]), 65)
+                self.assertLessEqual(len(en["title"]), 65)
+                for message in (sv["title"], en["title"]):
+                    self.assertNotIn("Sova", message)
+                    self.assertNotIn("assessment status", message.lower())
+                    self.assertNotIn("individuell", message.lower())
+        sent = _cell("personality", "invited", "sv")
+        self.assertEqual(sent["label"], "Skickat")
+        self.assertEqual(sent["title"], "Testet är skickat till kandidaten.")
+        self.assertEqual(_cell("personality", "invited", "en")["title"],
+                         "The test has been sent to the candidate.")
+        self.assertEqual(_cell("personality", "activity_failed", "sv")["label"],
+                         "Fel vid testet")
 
     def test_per_test_status_no_cross_test_name_match(self):
         self.assertEqual(test_key("Numerical reasoning"), "numerical")
@@ -187,8 +211,8 @@ class ProjectAssessmentStatusIntegrationTests(TestCase):
         self.assertIn('data-state="completed"', markup)
         self.assertIn('data-state="started"', markup)
         self.assertIn('class="talena-assessment-state__symbol"', markup)
-        self.assertIn('title="Genomfört: ', markup)
-        self.assertIn('aria-label="Påbörjat. ', markup)
+        self.assertIn('title="Kandidaten har genomfört testet."', markup)
+        self.assertIn('aria-label="Kandidaten har påbörjat testet."', markup)
         self.assertIn('<span class="visually-hidden talena-assessment-state__label">', markup)
         self.assertNotIn('class="talena-assessment-state__icon"', markup)
 
