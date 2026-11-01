@@ -64,9 +64,12 @@
     kicker.setAttribute("aria-label", tr("AI-genererat", "AI-generated"));
     kicker.hidden = true;
     const headerCopy = el("div", "after-interview-overall__header-copy");
+    const titleRow = el("div", "talena-ai-title-row");
+    titleRow.append(
+      el("h3", "after-interview-tab-card__title", heading), kicker
+    );
     headerCopy.append(
-      kicker,
-      el("h3", "after-interview-tab-card__title", heading),
+      titleRow,
       el("p", "after-interview-tab-card__description", description)
     );
     // The entire Helhetsbild is generated from this one button, mirroring
@@ -233,7 +236,7 @@
         const area = el("section", "after-interview-overall__group");
         area.dataset.overallPictureSection = key;
         const row = el("div", "after-interview-overall__group-header");
-        const left = el("div", "after-interview-overall__heading");
+        const left = el("div", "after-interview-overall__heading talena-ai-title-row");
         left.appendChild(
           el("h4", "after-interview-overall__group-title", tr(swedish, english))
         );
