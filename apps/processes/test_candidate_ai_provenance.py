@@ -42,9 +42,11 @@ class CandidateAiProvenanceTests(SimpleTestCase):
         self.assertIn("[data-personality-ai-interpretation]", script)
         self.assertIn("[data-motivation-ai-interpretation]", script)
         self.assertIn("[data-cognitive-ai-interpretation]", script)
-        self.assertIn("[data-personality-questions-list]", script)
-        self.assertIn("[data-motivation-questions-list]", script)
-        self.assertIn("[data-cognitive-questions-list]", script)
+        # The broad "Questions" header is followed by an informational
+        # introduction rather than AI-written prose, so it is left unbadged.
+        self.assertNotIn('["[data-personality-questions-root]", ".personality-questions-header h2"', script)
+        self.assertNotIn('["[data-motivation-questions-root]", ".personality-questions-header h2"', script)
+        self.assertNotIn('["[data-cognitive-questions-root]", ".personality-questions-header h2"', script)
         self.assertIn("[data-after-interview-block-content]", script)
         self.assertIn("data-manager-report-ai-text", script)
         self.assertNotIn("MAJOR_AI_HEADING_SELECTORS", script)
