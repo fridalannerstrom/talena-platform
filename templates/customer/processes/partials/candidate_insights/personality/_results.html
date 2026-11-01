@@ -774,7 +774,9 @@
 <!-- /RESPONSE STYLES -->
   <section class="purpose-fit-card mt-4" aria-labelledby="profileContrastsHeading">
     <h3 id="profileContrastsHeading" class="insight-summary-sub-title">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Möjliga nyanser att utforska{% else %}Possible nuances to explore{% endif %}</h3>
-    <p>{% if LANGUAGE_CODE|slice:":2" == "sv" %}Mönstren visas när indikatorer ligger långt åt varsitt håll. Se dem som möjliga nyanser att utforska, inte som slutsatser.{% else %}Patterns appear when indicators fall at opposite extremes. Treat them as possible nuances to explore, not as conclusions.{% endif %}</p>
+    {% if profile_contrast_analysis.activated_contrasts %}
+      <p data-profile-contrasts-intro="matched">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Här visas utvalda kombinationer av personlighetsdrag som kan vara intressanta att utforska tillsammans. Se dem som möjliga nyanser att förstå bättre, inte som slutsatser.{% else %}Selected combinations of personality traits that may be interesting to explore together are shown here. Consider them possible nuances to understand better, not conclusions.{% endif %}</p>
+    {% endif %}
     {% for contrast in profile_contrast_analysis.activated_contrasts %}
       <article class="profile-contrast-card" data-profile-contrast-id="{{ contrast.id }}">
         <div class="profile-contrast-card__dimensions">
@@ -817,8 +819,7 @@
             </svg>
           </span>
           <div>
-            <h4 class="profile-contrast-empty__title">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Inga särskilda mönster just nu{% else %}No particular patterns to highlight right now{% endif %}</h4>
-            <p class="profile-contrast-empty__description">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Resultaten visar inga av de kontraster som Talena särskilt uppmärksammar. Det betyder inte att information saknas. Övriga delar av personlighetsprofilen kan fortfarande ge värdefulla insikter.{% else %}The results do not show any of the contrasts Talena specifically highlights. This does not mean information is missing. The rest of the personality profile can still offer useful insights.{% endif %}</p>
+            <p class="profile-contrast-empty__description" data-profile-contrasts-intro="no-patterns">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Här visas utvalda kombinationer av personlighetsdrag som kan vara intressanta att utforska tillsammans. I den här profilen framträder inga av dessa kombinationer, men det kan fortfarande finnas andra nyanser och samband som är värdefulla att utforska i samtalet.{% else %}Selected combinations of personality traits that may be interesting to explore together are shown here. None of these combinations stand out in this profile, but other nuances and connections may still be worth exploring in conversation.{% endif %}</p>
           </div>
         </div>
       {% else %}

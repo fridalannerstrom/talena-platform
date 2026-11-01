@@ -30,7 +30,10 @@ body.talena-admin {
 }
 
 .talena-admin .talena-admin-brand .talena-sidebar-logo {
-  width: 92px;
+  width: 108px;
+  max-width: 100%;
+  height: auto;
+  flex-shrink: 1;
 }
 
 .talena-admin .talena-admin-brand-badge {
