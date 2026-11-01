@@ -3,6 +3,7 @@ from django.db import models
 from django.utils import timezone
 import uuid
 from django.urls import reverse
+from urllib.parse import urlsplit
 from apps.accounts.models import OrgUnit, Company
 from apps.activity.models import ActivityEvent
 from apps.activity.services import log_event
@@ -196,6 +197,39 @@ class TestInvitation(models.Model):
             "failed": "Fel",
         }.get(self.status, self.status)
     
+    @property
+    def assessment_link_state(self):
+        """Controls disclosure of the candidate-specific assessment URL.
+
+        A link is only shown on an already-authorised invitation detail page.
+        Never log, export or copy an unvalidated/expired URL. Do not assume an
+        expiry date that Sova has not supplied; use its explicit expired status.
+        """
+        url = (self.assessment_url or "").strip()
+        if not url:
+            return "missing"
+        if self.status == "expired":
+            return "expired"
+        if any(char.isspace() or ord(char) < 32 or ord(char) == 127 for char in url):
+            return "invalid"
+
+        try:
+            parts = urlsplit(url)
+            # An HTTPS host with a valid optional port. Never disclose URLs
+            # with embedded credentials, fragments posing as another link,
+            # or non-web schemes (javascript:, data:, http:, etc.).
+            if (
+                parts.scheme.lower() != "https"
+                or not parts.hostname
+                or parts.username is not None
+                or parts.password is not None
+                or parts.port == 0
+            ):
+                return "invalid"
+        except (ValueError, AttributeError):
+            return "invalid"
+        return "available"
+
     assessment_url = models.URLField(blank=True, null=True)
     sova_request_id = models.CharField(max_length=512, blank=True, null=True)
 
