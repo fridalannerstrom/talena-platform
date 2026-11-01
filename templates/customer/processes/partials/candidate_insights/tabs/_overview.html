@@ -366,6 +366,12 @@
                                   <span>{% trans "Higher" %}</span>
                                 </span>
                               </span>
+                              {% if result.interpretation %}
+                                <span class="candidate-result-overview__skill-interpretation"
+                                      data-cognitive-summary-comparison="{{ result.key }}">
+                                  {{ result.interpretation }}
+                                </span>
+                              {% endif %}
                             {% endif %}
                           </span>
                         {% endif %}

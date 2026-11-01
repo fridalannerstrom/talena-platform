@@ -55,16 +55,6 @@
 
             </div>
 
-            <div class="cognitive-result-card__content">
-
-              {% if result.interpretation %}
-                <p class="cognitive-result-card__interpretation">
-                  {{ result.interpretation }}
-                </p>
-              {% endif %}
-
-            </div>
-
             <div class="cognitive-comparison">
 
               <div class="cognitive-comparison__label">
@@ -83,6 +73,14 @@
                 <span>{% trans "Typical range" %}</span>
                 <span>{% trans "Higher" %}</span>
               </div>
+
+              {# Static, approved text from the cognitive insight service; no AI. #}
+              {% if result.interpretation %}
+                <p class="cognitive-result-card__interpretation cognitive-result-card__static-comparison"
+                   data-cognitive-static-comparison="{{ result.key }}">
+                  {{ result.interpretation }}
+                </p>
+              {% endif %}
 
             </div>
 
@@ -131,16 +129,6 @@
 
                 </div>
               </div>
-
-            </div>
-
-            <div class="cognitive-result-card__content">
-
-              {% if result.interpretation %}
-                <p class="cognitive-result-card__interpretation">
-                  {{ result.interpretation }}
-                </p>
-              {% endif %}
 
             </div>
 
