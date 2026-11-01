@@ -27,6 +27,7 @@
         if (!existing) {
           new Tooltip(cell, {
             container: "body",
+            customClass: "talena-assessment-tooltip",
             trigger: "hover focus",
             placement: "top",
             delay: { show: 120, hide: 80 }
