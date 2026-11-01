@@ -21,11 +21,11 @@
         <div class="card-header purpose-context-header bg-white py-3 px-4">
 
           <div class="fw-semibold mb-1">
-            {% if context_config.context_title %}{{ context_config.context_title }}{% else %}{% trans "Process context" %}{% endif %}
+            {% if context_config.context_title %}{{ context_config.context_title }}{% else %}{% trans "Project context" %}{% endif %}
           </div>
 
           <div class="text-muted small">
-            {% if context_config.context_intro %}{{ context_config.context_intro }}{% else %}{% trans "Add context to tailor Candidate Insights to this process." %}{% endif %}
+            {% if context_config.context_intro %}{{ context_config.context_intro }}{% else %}{% trans "Add context to tailor Candidate Insights to this project." %}{% endif %}
           </div>
 
         </div>
@@ -114,7 +114,7 @@
             </div>
 
             <div class="small text-muted">
-              {% if process_purpose.label %}{{ process_purpose.label }}{% elif process.purpose %}{{ process.purpose }}{% else %}{% trans "Flexible process" %}{% endif %}
+              {% if process_purpose.label %}{{ process_purpose.label }}{% elif process.purpose %}{{ process.purpose }}{% else %}{% trans "Flexible project" %}{% endif %}
             </div>
 
           </div>
@@ -155,11 +155,11 @@
           <div>
 
             <div class="fw-semibold mb-1">
-              {% if context_config.context_title %}{{ context_config.context_title }}{% else %}{% trans "Process context" %}{% endif %}
+              {% if context_config.context_title %}{{ context_config.context_title }}{% else %}{% trans "Project context" %}{% endif %}
             </div>
 
             <div class="text-muted small">
-              {% if context_config.context_intro %}{{ context_config.context_intro }}{% else %}{% trans "Add context to tailor Candidate Insights to this process." %}{% endif %}
+              {% if context_config.context_intro %}{{ context_config.context_intro }}{% else %}{% trans "Add context to tailor Candidate Insights to this project." %}{% endif %}
             </div>
 
           </div>

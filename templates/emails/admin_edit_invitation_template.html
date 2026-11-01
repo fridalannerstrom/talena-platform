@@ -7,7 +7,7 @@
 <div class="mb-3">
   <a href="{% url 'accounts:company_process_detail' company.pk process.pk %}"
      class="text-muted text-decoration-none small">
-    ← {% trans "Back to process" %}
+    ← {% trans "Back to project" %}
   </a>
 </div>
 
@@ -17,7 +17,7 @@
       <div class="text-muted small mb-1">{% trans "Email template" %}</div>
       <h1 class="h3 mb-1">{% trans "Invitation email" %}</h1>
       <div class="text-muted small">
-        {% if process.name %}{% blocktrans with process_name=process.name %}Editing template for <strong>{{ process_name }}</strong>{% endblocktrans %}{% else %}{% blocktrans %}Editing template for <strong>Untitled process</strong>{% endblocktrans %}{% endif %}
+        {% if process.name %}{% blocktrans with process_name=process.name %}Editing template for <strong>{{ process_name }}</strong>{% endblocktrans %}{% else %}{% blocktrans %}Editing template for <strong>Untitled project</strong>{% endblocktrans %}{% endif %}
       </div>
     </div>
 
@@ -33,7 +33,7 @@
       <div class="card-header">
         <div class="fw-semibold">{% trans "Template content" %}</div>
         <div class="text-muted small">
-          {% trans "This email will be used when candidates are invited to this process." %}
+          {% trans "This email will be used when candidates are invited to this project." %}
         </div>
       </div>
 

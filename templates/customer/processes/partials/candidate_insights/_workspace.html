@@ -13,7 +13,7 @@
 {% else %}
   {% trans "Skills" as cognitive_panel_title %}
 {% endif %}
-{% trans "A practical interpretation of the available cognitive results in relation to the selected purpose and process context." as cognitive_panel_description %}
+{% trans "A practical interpretation of the available cognitive results in relation to the selected purpose and project context." as cognitive_panel_description %}
 {% trans "Reports" as reports_panel_title %}
 {% if LANGUAGE_CODE|slice:":2" == "sv" %}
   {% trans "Rapporter för team, ledarskap och beteendemönster." as reports_panel_description %}
@@ -45,7 +45,7 @@
           </h2>
 
           <p class="text-muted mb-0">
-            {% blocktrans %}Add context to make the candidate insights more relevant to this process.{% endblocktrans %}
+            {% blocktrans %}Add context to make the candidate insights more relevant to this project.{% endblocktrans %}
           </p>
 
         </div>
