@@ -746,6 +746,6 @@ def decorate_key_strengths(candidate_insights):
                 ((sten_value - 1) / 9) * 100,
                 1,
             )
-            indicator["display_score"] = f"STEN {sten_value}"
+            indicator["display_score"] = f"{sten_value}/10"
 
     return candidate_insights
