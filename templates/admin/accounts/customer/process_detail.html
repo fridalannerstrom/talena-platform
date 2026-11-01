@@ -2,6 +2,9 @@
 {% block title %}Testprocess | Talena{% endblock %}
 
 {% block content %}
+{% load static i18n %}
+{% get_current_language as admin_project_language %}
+<link rel="stylesheet" href="{% static 'css/talena/pages/project-assessment-status.css' %}?v=20261101-367-icons-sm">
 
 <a href="{% if request.GET.next %}{{ request.GET.next }}{% else %}{% url 'accounts:admin_user_detail' pk=process.created_by.id %}{% endif %}"
     class="text-muted small text-decoration-none">
@@ -155,30 +158,34 @@
           action="{% url 'accounts:admin_process_send_tests' process.id %}">
       {% csrf_token %}
 
-      <div class="table-responsive">
+      <div class="table-responsive talena-assessment-matrix" data-project-test-statuses data-status-url="{% url 'accounts:admin_process_invitation_statuses' process.id %}">
         <table class="table align-middle mb-0">
           <thead class="table-light">
             <tr>
-              <th style="width:44px;" class="ps-3">
+              <th style="width:44px;" class="ps-3 talena-assessment-select">
                 <input type="checkbox" id="select-all">
               </th>
-              <th style="width: 34%;">Namn</th>
-              <th>Status</th>
+              <th class="talena-assessment-name">Namn</th>
+              {% for test in project_tests %}
+                <th data-test-header>{% if admin_project_language|slice:':2' == 'sv' %}{{ test.sv }}{% else %}{{ test.en }}{% endif %}</th>
+              {% empty %}
+                <th>{% if admin_project_language|slice:':2' == 'sv' %}Tester saknas{% else %}No assessments configured{% endif %}</th>
+              {% endfor %}
               <th>Källa</th>
               <th style="width: 170px;">Inbjuden</th>
               <th style="width: 170px;">Slutförd</th>
-              <th class="text-end pe-3" style="width:70px;"></th>
+              <th class="text-end pe-3 talena-assessment-actions" style="width:70px;"></th>
             </tr>
           </thead>
 
           <tbody>
             {% for inv in invitations %}
             <tr>
-              <td class="ps-3">
+              <td class="ps-3 talena-assessment-select">
                 <input type="checkbox" name="invitation_ids" value="{{ inv.id }}" class="row-check">
               </td>
 
-              <td>
+              <td class="talena-assessment-name">
                 <div class="d-flex align-items-center gap-3 process-detail-table">
                   <div class="user-initials">
   {% with fn=inv.candidate.first_name|default:"" ln=inv.candidate.last_name|default:"" %}
@@ -204,13 +211,13 @@
                 </div>
               </td>
 
-              <td>
-                <span class="badge"
-                      data-status-badge="1"
-                      data-invitation-id="{{ inv.id }}">
-                  {{ inv.status_label }}
-                </span>
-              </td>
+              {% for cell in inv.assessment_status_cells %}
+                <td data-test-cell>
+                  {% include "customer/processes/partials/_assessment_status_cell.html" with cell=cell inv=inv %}
+                </td>
+              {% empty %}
+                <td class="text-muted">{% if admin_project_language|slice:":2" == "sv" %}Inga tester valda{% else %}No assessments selected{% endif %}</td>
+              {% endfor %}
 
               <td class="text-muted">
   {% if inv.source == "invited" and inv.invited_by %}
@@ -222,7 +229,7 @@
               <td class="text-muted">{{ inv.invited_at|date:"Y-m-d H:i"|default:"—" }}</td>
               <td class="text-muted">{{ inv.completed_at|date:"Y-m-d H:i"|default:"—" }}</td>
 
-              <td class="text-end pe-3">
+              <td class="text-end pe-3 talena-assessment-actions">
                 <button type="submit"
                         class="btn btn-sm btn-outline-danger"
                         form="send-tests-form"
@@ -235,7 +242,7 @@
             </tr>
             {% empty %}
             <tr>
-              <td colspan="7" class="text-muted p-3">Inga kandidater ännu.</td>
+              <td colspan="{{ project_table_colspan }}" class="text-muted p-3">Inga kandidater ännu.</td>
             </tr>
             {% endfor %}
           </tbody>
@@ -337,56 +344,8 @@
   });
 </script>
 
-<!-- Poll statuses (din befintliga, men städad från dubletter) -->
-<script>
-(function () {
-  const url = "{% url 'accounts:admin_process_invitation_statuses' process.id %}";
-  const POLL_MS = 5000;
+<script src="{% static 'js/talena/project-assessment-status.js' %}?v=20261101-367-icons-sm"></script>
 
-  function badgeClassFor(status) {
-    switch ((status || "").toLowerCase()) {
-      case "completed": return "badge bg-success";
-      case "started": return "badge bg-info text-dark";
-      case "sent": return "badge bg-warning text-dark";
-      case "created": return "badge bg-secondary";
-      default: return "badge bg-light text-dark";
-    }
-  }
-
-  async function poll() {
-    try {
-      const res = await fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } });
-      if (!res.ok) return;
-      const data = await res.json();
-
-      (data.invitations || []).forEach(inv => {
-        const el = document.querySelector(`[data-status-badge="1"][data-invitation-id="${inv.id}"]`);
-        if (el) {
-          el.className = badgeClassFor(inv.status);
-
-          let label = inv.status;
-          const st = (inv.status || "").toLowerCase();
-          if (st === "completed") label = "Färdig";
-          if (st === "started") label = "Påbörjad";
-          if (st === "sent") label = "Skickad";
-          if (st === "created") label = "Ej skickad";
-
-          el.textContent = label;
-        }
-
-        const sovaEl = document.querySelector(`[data-sova-badge="1"][data-invitation-id="${inv.id}"]`);
-        if (sovaEl) {
-          const sovaVal = (inv.sova_overall_status || "—");
-          sovaEl.textContent = `SOVA: ${sovaVal}`;
-        }
-      });
-    } catch (e) {}
-  }
-
-  poll();
-  setInterval(poll, POLL_MS);
-})();
-</script>
 
 <script>
   document.addEventListener("DOMContentLoaded", () => {

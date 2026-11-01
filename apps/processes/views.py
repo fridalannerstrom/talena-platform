@@ -143,6 +143,11 @@ from django.db import transaction
 from django.db.models.deletion import ProtectedError
 from django.db.utils import IntegrityError
 from apps.processes.services.process_locking import can_delete_process_safely
+from apps.processes.services.project_assessment_status import (
+    project_test_columns,
+    attach_test_statuses,
+    invitation_test_statuses,
+)
 from .forms import SelfRegisterForm
 from django.urls import reverse
 from django.utils import timezone
@@ -6964,6 +6969,7 @@ def process_detail(request, pk):
         invitations = (
             process.invitations
             .select_related("candidate")
+            .prefetch_related("assessment_usages")
             .order_by("-created_at")
         )
 
@@ -7002,6 +7008,10 @@ def process_detail(request, pk):
             status__in=["started", "completed", "expired"]
         ).count()
 
+    project_tests = [] if process.is_historical else project_test_columns(process, meta)
+    if project_tests:
+        attach_test_statuses(invitations, project_tests, get_language() or "sv")
+
     activity_events = (
         ActivityEvent.objects
         .filter(company=company, process=process)
@@ -7019,6 +7029,8 @@ def process_detail(request, pk):
     context = {
         "process": process,
         "invitations": invitations,
+        "project_tests": project_tests,
+        "project_table_colspan": max(1, len(project_tests)) + 2 + (2 if can_edit else 0),
         "historical_candidates": historical_candidates,
         "is_historical": process.is_historical,
         "meta": meta,
@@ -7789,9 +7801,16 @@ def process_invitation_statuses(request, pk):
         TestInvitation.objects
         .filter(process=process)
         .select_related("candidate")
+        .prefetch_related("assessment_usages")
         .order_by("created_at")
     )
-
+    columns = project_test_columns(
+        process,
+        ProjectMeta.objects.filter(
+            account_code=process.account_code, project_code=process.project_code,
+        ).first(),
+    )
+    lang = get_language() or "sv"
     return JsonResponse({
         "invitations": [
             {
@@ -7799,6 +7818,7 @@ def process_invitation_statuses(request, pk):
                 "status": inv.status,
                 "completed_at": inv.completed_at.isoformat() if inv.completed_at else None,
                 "sova_overall_status": getattr(inv, "sova_overall_status", "") or "",
+                "assessments": invitation_test_statuses(inv, columns, lang),
             }
             for inv in qs
         ]

@@ -19,7 +19,7 @@
         aria-controls="candidate-insights-panel-overview"
         data-insights-tab="overview"
       >
-        {% trans "AI summary" %}
+        {% if LANGUAGE_CODE|slice:":2" == "sv" %}Överblick{% else %}Overview{% endif %}
       </button>
 
 

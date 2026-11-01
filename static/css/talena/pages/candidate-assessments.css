@@ -1070,3 +1070,61 @@
     grid-column: auto;
   }
 }
+
+/* #366: Purposeful, neutral empty states for deterministic profile contrasts. */
+.process-page .profile-contrast-empty {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-top: 1.2rem;
+  padding: 1.45rem 1.4rem;
+  border: 1px solid #dde5e9;
+  border-radius: 14px;
+  background: #f7fafb;
+  color: var(--talena-ink, #282d31);
+}
+.process-page .profile-contrast-empty__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 42px;
+  width: 42px;
+  height: 42px;
+  border: 1px solid #d7e2e8;
+  border-radius: 12px;
+  background: #fff;
+  color: #718899;
+}
+.process-page .profile-contrast-empty__title {
+  margin: 0 0 .4rem;
+  font-size: .94rem;
+  line-height: 1.4;
+  font-weight: 660;
+  color: var(--talena-ink, #282d31);
+}
+.process-page .profile-contrast-empty__description {
+  margin: 0;
+  max-width: 70ch;
+  font-size: .82rem;
+  line-height: 1.65;
+  color: var(--talena-text-muted, #626d76);
+}
+.process-page .profile-contrast-empty--pending {
+  background: #fbfbfa;
+  border-color: var(--talena-border, #e5e4e1);
+}
+.process-page .profile-contrast-empty--pending .profile-contrast-empty__icon {
+  border-color: #e9e7e2;
+  color: #8e918e;
+}
+@media (max-width: 600px) {
+  .process-page .profile-contrast-empty {
+    gap: .8rem;
+    padding: 1.05rem;
+  }
+  .process-page .profile-contrast-empty__icon {
+    flex-basis: 36px;
+    width: 36px;
+    height: 36px;
+  }
+}

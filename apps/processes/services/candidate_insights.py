@@ -2139,10 +2139,10 @@ def normalize_assessment_indicators(
             "sten_value": sten_value,
             "sten_position": sten_position,
 
-            "display_score": f"STEN {sten_value}",
+            "display_score": f"{sten_value}/10",
             "tooltip": (
                 f"Personality assessment · "
-                f"STEN {sten_value} on a scale from 1 to 10."
+                f"Score {sten_value} of 10."
             ),
         })
 

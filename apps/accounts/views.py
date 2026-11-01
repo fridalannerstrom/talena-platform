@@ -11,6 +11,12 @@ from django.db.models import Count
 from django.views.decorators.http import require_POST
 from apps.core.integrations.sova import SovaClient
 from apps.projects.models import ProjectMeta
+from apps.processes.services.project_assessment_status import (
+    project_test_columns,
+    attach_test_statuses,
+    invitation_test_statuses,
+)
+from django.utils.translation import get_language
 from apps.accounts.report_branding import get_report_branding
 from .utils.org_access import get_accessible_orgunit_ids
 from apps.processes.views import (
@@ -1844,6 +1850,7 @@ def admin_process_detail(request, pk):
         TestInvitation.objects
         .filter(process=process)
         .select_related("candidate")
+        .prefetch_related("assessment_usages")
         .order_by("-created_at")
     )
 
@@ -1853,10 +1860,17 @@ def admin_process_detail(request, pk):
         status_counts[inv.status] = status_counts.get(inv.status, 0) + 1
 
     total_sent = invitations.count()
+    meta = ProjectMeta.objects.filter(
+        account_code=process.account_code, project_code=process.project_code,
+    ).first()
+    project_tests = [] if process.is_historical else project_test_columns(process, meta)
+    attach_test_statuses(invitations, project_tests, get_language() or "sv")
 
     return render(request, "admin/accounts/customer/process_detail.html", {
         "process": process,
         "invitations": invitations,
+        "project_tests": project_tests,
+        "project_table_colspan": max(1, len(project_tests)) + 6,
         "status_counts": status_counts,
         "total_sent": total_sent,
         "self_reg_url": request.build_absolute_uri(process.get_self_registration_url()),
@@ -2988,9 +3002,16 @@ def admin_process_invitation_statuses(request, pk):
         TestInvitation.objects
         .filter(process=process)
         .select_related("candidate")
+        .prefetch_related("assessment_usages")
         .order_by("created_at")
     )
-
+    columns = project_test_columns(
+        process,
+        ProjectMeta.objects.filter(
+            account_code=process.account_code, project_code=process.project_code,
+        ).first(),
+    )
+    lang = get_language() or "sv"
     return JsonResponse({
         "invitations": [
             {
@@ -2998,6 +3019,7 @@ def admin_process_invitation_statuses(request, pk):
                 "status": inv.status,
                 "completed_at": inv.completed_at.isoformat() if inv.completed_at else None,
                 "sova_overall_status": getattr(inv, "sova_overall_status", "") or "",
+                "assessments": invitation_test_statuses(inv, columns, lang),
             }
             for inv in qs
         ]
@@ -3261,6 +3283,7 @@ def company_process_detail(request, company_pk, process_pk):
         TestInvitation.objects
         .filter(process=process)
         .select_related("candidate")
+        .prefetch_related("assessment_usages")
         .order_by("-created_at")
     )
 
@@ -3321,11 +3344,18 @@ def company_process_detail(request, company_pk, process_pk):
     self_reg_url = request.build_absolute_uri(
         process.get_self_registration_url()
     )
+    meta = ProjectMeta.objects.filter(
+        account_code=process.account_code, project_code=process.project_code,
+    ).first()
+    project_tests = [] if process.is_historical else project_test_columns(process, meta)
+    attach_test_statuses(invitations, project_tests, get_language() or "sv")
 
     return render(request, "admin/accounts/companies/company_process_detail.html", {
         "company": company,
         "process": process,
         "invitations": invitations,
+        "project_tests": project_tests,
+        "project_table_colspan": max(1, len(project_tests)) + 4,
         "historical_candidates": historical_candidates,
         "kpis": kpis,
         "self_reg_url": self_reg_url,

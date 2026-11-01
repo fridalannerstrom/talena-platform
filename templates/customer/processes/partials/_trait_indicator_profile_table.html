@@ -1,3 +1,4 @@
+{% load i18n %}
 <div class="mb-3">
   <p class="text-muted mb-2">{{ report.description }}</p>
 
@@ -23,7 +24,7 @@
             <th>Expected name</th>
             <th>SOVA match</th>
             <th>Canonical key</th>
-            <th>Sten</th>
+            <th>{% trans "Score" %}</th>
             <th>Mapping</th>
           </tr>
         </thead>
@@ -61,7 +62,7 @@
         <thead class="table-light">
           <tr>
             <th>Competency</th>
-            <th>Sten</th>
+            <th>{% trans "Score" %}</th>
           </tr>
         </thead>
         <tbody>

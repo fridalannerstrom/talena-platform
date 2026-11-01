@@ -59,11 +59,8 @@
     const card = el("section", "after-interview-tab-card after-interview-overall");
     card.dataset.overallPictureStructuredCard = "true";
     const header = el("div", "after-interview-tab-card__header");
-    const kicker = el("div", "after-interview-tab-card__eyebrow",
-      "✦ " + tr("AI-genererat underlag", "AI-generated evidence"));
     const headerCopy = el("div", "after-interview-overall__header-copy");
     headerCopy.append(
-      kicker,
       el("h3", "after-interview-tab-card__title", heading),
       el("p", "after-interview-tab-card__description", description)
     );
@@ -219,10 +216,24 @@
         const area = el("section", "after-interview-overall__group");
         area.dataset.overallPictureSection = key;
         const row = el("div", "after-interview-overall__group-header");
-        const left = el("div", "after-interview-overall__heading");
+        const left = el("div", "after-interview-overall__heading talena-ai-title-row");
         left.appendChild(
           el("h4", "after-interview-overall__group-title", tr(swedish, english))
         );
+        const sectionHasAI = !hasRawSourceLeak(section) && (
+          (typeof section.text === "string" && section.text.trim())
+          || (section.items || []).some(item =>
+            (typeof item.testbild === "string" && item.testbild.trim())
+            || (typeof item.intervjun === "string" && item.intervjun.trim())
+          )
+        );
+        // Other sections contain Testbild/Intervjun text at a deeper level.
+        if (key === "synthesis" && sectionHasAI) {
+          const generatedBadge = el("span", "talena-ai-generated-badge",
+            "✦ " + tr("AI-genererat", "AI-generated"));
+          generatedBadge.setAttribute("aria-label", tr("AI-genererat", "AI-generated"));
+          left.appendChild(generatedBadge);
+        }
         // Completed sections need no visual status label; keep warnings and
         // pending/error states visible so users know when action is needed.
         const sectionStatus = hasRawSourceLeak(section) ? "outdated" : section.status;
@@ -252,13 +263,21 @@
                 statusText[itemNeedsRegeneration ? "outdated" : item.status]
                   || statusText.not_started));
             }
+            const addAiText = (subtitle, content) => {
+              const titleRow = el("div", "talena-ai-title-row");
+              titleRow.appendChild(el("h6", "after-interview-overall__subheading", subtitle));
+              const badge = el("span", "talena-ai-generated-badge",
+                "✦ " + tr("AI-genererat", "AI-generated"));
+              badge.setAttribute("aria-label", tr("AI-genererat", "AI-generated"));
+              titleRow.appendChild(badge);
+              box.appendChild(titleRow);
+              addParagraphs(box, content);
+            };
             if (item.testbild && !isRawSourceDump(item.testbild)) {
-              box.appendChild(el("h6", "after-interview-overall__subheading", "Testbild"));
-              addParagraphs(box, item.testbild);
+              addAiText("Testbild", item.testbild);
             }
             if (item.intervjun && !isRawSourceDump(item.intervjun)) {
-              box.appendChild(el("h6", "after-interview-overall__subheading", tr("Intervjun", "Interview")));
-              addParagraphs(box, item.intervjun);
+              addAiText(tr("Intervjun", "Interview"), item.intervjun);
             }
             area.appendChild(box);
           }

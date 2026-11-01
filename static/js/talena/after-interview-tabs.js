@@ -838,10 +838,6 @@
     const header = document.createElement("div");
     header.className = "after-interview-tab-card__header";
 
-    const eyebrow = document.createElement("div");
-    eyebrow.className = "after-interview-tab-card__eyebrow";
-    eyebrow.textContent = "✦ " + copy().generated;
-
     const toolbar = document.createElement("div");
     toolbar.className = "after-interview-tab-card__toolbar";
     const heading = document.createElement("h3");
@@ -853,7 +849,8 @@
     intro.className = "after-interview-tab-card__description";
     intro.textContent = description;
 
-    header.append(eyebrow, toolbar, intro);
+    // #363: source-verified tag is attached only when this AI block has text.
+    header.append(toolbar, intro);
     card.appendChild(header);
 
     const supplied = blockKey ? sourceContent(panel, blockKey) : null;
@@ -861,6 +858,7 @@
     body.classList.add("after-interview-tab-card__body");
     if (blockKey) {
       body.dataset.afterInterviewBlockContent = blockKey;
+      if (supplied) body.dataset.afterInterviewAiOrigin = "true";
       if (!supplied && !fallback) {
         body.classList.add("after-interview-tab-empty");
         body.textContent = copy().unavailable;
@@ -941,6 +939,8 @@
       editButton.hidden = !canEdit;
       badge.hidden = !hasManualEdit;
       binding.target.dataset.managerReportEditKey = binding.key;
+      // Provenance stays AI-assisted when the generated text is edited.
+      binding.target.dataset.managerReportManuallyEdited = hasManualEdit ? "true" : "false";
     };
 
     const setAiText = (key, text) => {
@@ -1409,6 +1409,7 @@
       if (buffer.trim()) handleLine(buffer);
       if (!received.trim()) throw new Error(copy().sectionGenerationFailed);
 
+      body.dataset.afterInterviewAiOrigin = "true";
       if (editController?.setAiText) {
         editController.setAiText(blockKey, received);
       } else {
