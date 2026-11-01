@@ -858,6 +858,7 @@
     body.classList.add("after-interview-tab-card__body");
     if (blockKey) {
       body.dataset.afterInterviewBlockContent = blockKey;
+      if (supplied) body.dataset.afterInterviewAiOrigin = "true";
       if (!supplied && !fallback) {
         body.classList.add("after-interview-tab-empty");
         body.textContent = copy().unavailable;
