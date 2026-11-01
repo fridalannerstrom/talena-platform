@@ -7730,3 +7730,19 @@ msgstr "En kronologisk logg över aktiviteter i de projekt du har tillgång till
 
 msgid "The project purpose or context has changed."
 msgstr "Projektets syfte eller kontext har ändrats."
+
+# Project list translations, 2026-11-01
+msgid "Assessment workflows"
+msgstr "Testflöden"
+
+# Project list translations, 2026-11-01
+msgid "Search by title, purpose or assessment..."
+msgstr "Sök på namn, syfte eller test..."
+
+# Project list translations, 2026-11-01
+msgid "Filter by purpose"
+msgstr "Filtrera på syfte"
+
+# Project list translations, 2026-11-01
+msgid "All purposes"
+msgstr "Alla syften"

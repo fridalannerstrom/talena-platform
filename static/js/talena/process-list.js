@@ -140,17 +140,31 @@
     });
   });
 
-  grid.querySelectorAll("form[data-confirm]").forEach(function (form) {
-    form.addEventListener("submit", function (event) {
-      event.stopPropagation();
+  // Reuse the Talena dialog for both archive and restore. Intercept only
+  // when Bootstrap is available; native POST remains the no-JS fallback.
+  const projectStatusModal = document.getElementById("projectStatusModal");
+  const projectStatusForm = document.getElementById("projectStatusForm");
+  const projectStatusName = document.getElementById("projectStatusName");
 
-      const message = form.dataset.confirm || "";
+  if (projectStatusModal && projectStatusForm && projectStatusName) {
+    grid.querySelectorAll("form[data-project-status-form]").forEach(function (sourceForm) {
+      sourceForm.addEventListener("submit", function (event) {
+        event.stopPropagation();
+        if (!window.bootstrap || !window.bootstrap.Modal) return;
 
-      if (message && !window.confirm(message)) {
         event.preventDefault();
-      }
+        const action = sourceForm.dataset.projectStatusAction === "restore"
+          ? "restore" : "archive";
+
+        projectStatusForm.action = sourceForm.action;
+        projectStatusName.textContent = sourceForm.dataset.projectName || "";
+        projectStatusModal.querySelectorAll("[data-project-status-copy]").forEach(function (element) {
+          element.hidden = element.dataset.projectStatusCopy !== action;
+        });
+        window.bootstrap.Modal.getOrCreateInstance(projectStatusModal).show();
+      });
     });
-  });
+  }
 
   // Duplicate projects in one reusable Bootstrap modal. The form still posts
   // through Django's existing CSRF-protected endpoint and redirects on success.
@@ -200,6 +214,28 @@
       if (duplicateSubmit) {
         duplicateSubmit.disabled = true;
       }
+    });
+  }
+
+  // One modal handles both safe permanent deletion and protected projects.
+  const removeProjectModal = document.getElementById("removeProjectModal");
+  if (removeProjectModal) {
+    const removeForm = document.getElementById("removeProjectForm");
+    const removeName = document.getElementById("removeProjectName");
+    const removeSafe = document.getElementById("removeProjectSafe");
+    const removeBlocked = document.getElementById("removeProjectBlocked");
+    const removeSubmit = document.getElementById("removeProjectSubmit");
+
+    removeProjectModal.addEventListener("show.bs.modal", function (event) {
+      const trigger = event.relatedTarget;
+      if (!trigger || !trigger.matches("[data-remove-project]")) return;
+      const canDelete = trigger.dataset.canDelete === "true";
+      removeForm.action = trigger.dataset.removeUrl || "";
+      removeName.textContent = trigger.dataset.projectName || "";
+      removeSafe.hidden = !canDelete;
+      removeBlocked.hidden = canDelete;
+      removeSubmit.hidden = !canDelete;
+      removeSubmit.disabled = !canDelete;
     });
   }
 

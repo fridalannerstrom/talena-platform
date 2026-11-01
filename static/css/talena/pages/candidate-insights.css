@@ -2093,3 +2093,40 @@
     transition: none;
   }
 }
+
+/* #362: Link is the first section of the Sent assessments tab. */
+.candidate-assessment-link-section {
+  min-width: 0;
+}
+.candidate-assessment-link-section__eyebrow {
+  margin-bottom: 0.65rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--talena-text-muted, #63707d);
+}
+.candidate-assessment-link-notice {
+  border: 1px solid var(--talena-border, #dfe4e8);
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  background: #f8fafb;
+  color: var(--talena-text-muted, #526272);
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+.candidate-assessment-link-section .candidate-link-field {
+  min-width: 0;
+}
+.candidate-assessment-link-section .candidate-link-field .form-control {
+  min-width: 0;
+}
+@media (max-width: 575.98px) {
+  .candidate-assessment-link-section .candidate-link-field {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+  .candidate-assessment-link-section .candidate-link-field .form-control {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+}

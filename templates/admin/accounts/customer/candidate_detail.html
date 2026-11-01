@@ -1,4 +1,6 @@
 {% extends "admin/core/layouts/admin_base.html" %}
+{% load i18n %}
+{% get_current_language as candidate_ui_language %}
 {% block title %}{{ candidate.first_name }} {{ candidate.last_name }} | Talena Admin{% endblock %}
 
 {% block content %}
@@ -186,18 +188,7 @@
             role="tab"
             aria-selected="false"
             onclick="switchTabs(this)">
-            Sent tests
-          </button>
-
-          <button
-            class="candidate-tab"
-            type="button"
-            data-tab-group="admin-candidate-main-tabs"
-            data-tab-target="link"
-            role="tab"
-            aria-selected="false"
-            onclick="switchTabs(this)">
-            Test link
+            {% if candidate_ui_language|slice:":2" == "sv" %}Skickade tester{% else %}Sent assessments{% endif %}
           </button>
 
           <button
@@ -280,6 +271,43 @@
           data-tab-group="admin-candidate-main-tabs"
           data-tab-panel="tests"
           role="tabpanel">
+<div class="candidate-assessment-link-section border-bottom pb-3 mb-3" data-candidate-assessment-link>
+  <div class="candidate-assessment-link-section__eyebrow">{% if candidate_ui_language|slice:":2" == "sv" %}Testlänk{% else %}Assessment link{% endif %}</div>
+  {% if invitation.assessment_link_state == "available" %}
+<div class="candidate-link-panel">
+
+              <div class="candidate-link-panel-text">
+                <div class="candidate-inline-title">{% if candidate_ui_language|slice:":2" == "sv" %}Kandidatens testlänk{% else %}Candidate assessment link{% endif %}</div>
+                <div class="candidate-inline-meta">{% if candidate_ui_language|slice:":2" == "sv" %}Kopiera testlänken om du behöver dela den med kandidaten.{% else %}Copy the assessment link if you need to share it with the candidate.{% endif %}</div>
+              </div>
+
+              <div class="candidate-link-field">
+                <input
+                  type="text"
+                  class="form-control"
+                  id="adminCandidateAssessmentUrl"
+                  value="{{ invitation.assessment_url }}"
+                  readonly
+                  onclick="this.select()">
+
+                <button
+                  class="btn btn-primary"
+                  type="button"
+                  data-copy-candidate-url="adminCandidateAssessmentUrl">
+                  {% if candidate_ui_language|slice:":2" == "sv" %}Kopiera{% else %}Copy{% endif %}
+                </button>
+              </div>
+
+            </div>
+{% elif invitation.assessment_link_state == "expired" %}
+<div class="candidate-assessment-link-notice" role="status">{% if candidate_ui_language|slice:":2" == "sv" %}Testlänken har gått ut. Skicka en ny inbjudan om kandidaten behöver göra testerna igen.{% else %}This assessment link has expired. Send a new invitation if the candidate needs to retake the assessments.{% endif %}</div>
+{% elif invitation.assessment_link_state == "invalid" %}
+<div class="candidate-assessment-link-notice" role="status">{% if candidate_ui_language|slice:":2" == "sv" %}Testlänken är ogiltig och kan inte kopieras. Kontrollera inbjudan innan du delar en ny länk.{% else %}The assessment link is invalid and cannot be copied. Check the invitation before sharing a new link.{% endif %}</div>
+{% else %}
+<div class="candidate-assessment-link-notice" role="status">{% if candidate_ui_language|slice:":2" == "sv" %}Ingen testlänk finns ännu. Den visas här när en inbjudan har skapats.{% else %}No assessment link is available yet. It will appear here when an invitation has been created.{% endif %}</div>
+{% endif %}
+</div>
+
 
           {% if activities %}
             <div class="candidate-inline-list">
@@ -291,7 +319,7 @@
                       {{ item.activity|default:"-" }}
                     </div>
                     <div class="candidate-inline-meta">
-                      Status from SOVA activity payload
+                      {% if candidate_ui_language|slice:":2" == "sv" %}Status från Sova{% else %}Status from Sova{% endif %}
                     </div>
                   </div>
 
@@ -322,47 +350,7 @@
 
 
         <!-- TEST LINK -->
-        <div
-          class="candidate-tab-panel"
-          data-tab-group="admin-candidate-main-tabs"
-          data-tab-panel="link"
-          role="tabpanel">
-
-          {% if invitation.assessment_url %}
-            <div class="candidate-link-panel">
-
-              <div class="candidate-link-panel-text">
-                <div class="candidate-inline-title">Test link</div>
-                <div class="candidate-inline-meta">
-                  Admin can copy the candidate test link if needed.
-                </div>
-              </div>
-
-              <div class="candidate-link-field">
-                <input
-                  type="text"
-                  class="form-control"
-                  id="adminCandidateAssessmentUrl"
-                  value="{{ invitation.assessment_url }}"
-                  readonly
-                  onclick="this.select()">
-
-                <button
-                  class="btn btn-primary"
-                  type="button"
-                  data-copy-candidate-url="adminCandidateAssessmentUrl">
-                  Copy
-                </button>
-              </div>
-
-            </div>
-          {% else %}
-            <div class="text-muted small">
-              No test link available yet.
-            </div>
-          {% endif %}
-
-        </div>
+        
 
 
         <!-- ACTIVITY -->

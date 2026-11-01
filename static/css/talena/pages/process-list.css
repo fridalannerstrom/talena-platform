@@ -996,3 +996,8 @@
     padding: 0.85rem 1.1rem 1.3rem;
   }
 }
+
+/* Bootstrap button styles must never override the blocked-action state. */
+.process-duplicate-modal [hidden] {
+  display: none !important;
+}

@@ -2,6 +2,7 @@
 {% load static i18n %}
 
 {% block process_content %}
+{% get_current_language as detail_language %}
 
 {% if not process.is_historical %}
   {# STATUS OVERVIEW #}
@@ -250,13 +251,16 @@
                   {% if can_edit %}
                     <td class="text-end pe-4">
                       <button
-                        type="submit"
+                        type="button"
                         class="button-icon"
-                        form="send-tests-form"
-                        formaction="{% url 'processes:remove_candidate_from_process' process.id inv.candidate_id %}"
-                        formmethod="post"
-                        onclick="return confirm('{% trans 'Are you sure you want to remove this candidate?' %}');"
-                        aria-label="{% trans 'Remove candidate' %}"
+                        data-bs-toggle="modal"
+                        data-bs-target="#removeCandidateModal"
+                        data-remove-candidate
+                        data-remove-url="{% url 'processes:remove_candidate_from_process' process.id inv.candidate_id %}"
+                        data-remove-name="{{ inv.candidate.first_name }} {{ inv.candidate.last_name }}"
+                        data-can-remove="{% if inv.assessment_url or inv.sova_request_id or inv.sova_project_id or inv.sova_invitation_id or inv.status == 'sent' or inv.status == 'started' or inv.status == 'completed' or inv.status == 'expired' %}false{% else %}true{% endif %}"
+                        aria-label="{% if detail_language|slice:':2' == 'sv' %}Ta bort från projekt{% else %}Remove from project{% endif %}"
+                        title="{% if detail_language|slice:':2' == 'sv' %}Ta bort från projekt{% else %}Remove from project{% endif %}"
                       >
                         <i data-feather="trash-2"></i>
                       </button>
@@ -376,6 +380,78 @@
       </div>
     </div>
   </div>
+{% endif %}
+
+{% if can_edit and not process.is_historical %}
+<div class="modal fade process-duplicate-modal" id="removeCandidateModal" tabindex="-1" aria-hidden="true" aria-labelledby="removeCandidateTitle">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form id="removeCandidateForm" method="post">
+        {% csrf_token %}
+        <div class="modal-header process-duplicate-modal__header">
+          <div class="d-flex align-items-center gap-3">
+            <div class="process-duplicate-modal__icon" aria-hidden="true"><i data-feather="user-minus"></i></div>
+            <div>
+              <h2 class="modal-title process-duplicate-modal__title" id="removeCandidateTitle">
+                {% if detail_language|slice:':2' == 'sv' %}Ta bort från projekt{% else %}Remove from project{% endif %}
+              </h2>
+              <p class="process-duplicate-modal__source" id="removeCandidateName"></p>
+            </div>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% if detail_language|slice:':2' == 'sv' %}Stäng{% else %}Close{% endif %}"></button>
+        </div>
+        <div class="modal-body process-duplicate-modal__body">
+          <p id="removeCandidateSafe">
+            {% if detail_language|slice:':2' == 'sv' %}
+              Kandidaten och den oskickade inbjudan tas bort från det här projektet. Kandidaten finns kvar i andra projekt och team. Det här är inte en fullständig GDPR-radering.
+            {% else %}
+              The candidate and unsent invitation are removed from this project. The candidate stays in other projects and teams. This is not full GDPR erasure.
+            {% endif %}
+          </p>
+          <p id="removeCandidateBlocked" hidden>
+            {% if detail_language|slice:':2' == 'sv' %}
+              Kandidaten har beställda tester eller testhistorik som måste bevaras. Borttagning är ännu inte tillgänglig för den här kandidaten. Inga uppgifter ändras.
+            {% else %}
+              This candidate has ordered assessments or test history that must be retained. Removal is not yet available for this candidate. No data will be changed.
+            {% endif %}
+          </p>
+        </div>
+        <div class="modal-footer process-duplicate-modal__footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+            {% if detail_language|slice:':2' == 'sv' %}Avbryt{% else %}Cancel{% endif %}
+          </button>
+          <button type="submit" class="btn btn-danger" id="removeCandidateSubmit">
+            <i data-feather="user-minus"></i>
+            {% if detail_language|slice:':2' == 'sv' %}Ta bort från projekt{% else %}Remove from project{% endif %}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const modal = document.getElementById("removeCandidateModal");
+  if (!modal) return;
+  const form = document.getElementById("removeCandidateForm");
+  const name = document.getElementById("removeCandidateName");
+  const safe = document.getElementById("removeCandidateSafe");
+  const blocked = document.getElementById("removeCandidateBlocked");
+  const submit = document.getElementById("removeCandidateSubmit");
+
+  modal.addEventListener("show.bs.modal", function (event) {
+    const trigger = event.relatedTarget;
+    if (!trigger || !trigger.matches("[data-remove-candidate]")) return;
+    const canRemove = trigger.dataset.canRemove === "true";
+    form.action = trigger.dataset.removeUrl || "";
+    name.textContent = trigger.dataset.removeName || "";
+    safe.hidden = !canRemove;
+    blocked.hidden = canRemove;
+    submit.hidden = !canRemove;
+    submit.disabled = !canRemove;
+  });
+});
+</script>
 {% endif %}
 
 {% endblock %}
