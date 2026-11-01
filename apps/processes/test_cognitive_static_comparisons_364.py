@@ -1,4 +1,6 @@
 """#364: existing approved cognitive comparisons in customer/admin result cards."""
+from types import SimpleNamespace
+
 from django.template.loader import render_to_string
 from django.test import SimpleTestCase
 from django.utils.translation import override
@@ -35,6 +37,65 @@ class CognitiveStaticComparisonTests(SimpleTestCase):
                 "customer/processes/partials/candidate_insights/cognitive/_results.html",
                 {"candidate_insights": {"cognitive_results": results}},
             )
+
+    def _render_summary(self, language, numerical=50, logical=None, verbal=None):
+        with override(language):
+            results = build_cognitive_insight_results(
+                numerical_percentile=numerical,
+                logical_percentile=logical,
+                verbal_percentile=verbal,
+            )
+            owner = SimpleNamespace(
+                ai_purpose_fit={"summary": "Synthetic overall summary"},
+                ai_purpose_fit_status="completed",
+            )
+            return render_to_string(
+                "customer/processes/partials/candidate_insights/tabs/_overview.html",
+                {
+                    "LANGUAGE_CODE": language,
+                    "has_any_results": True,
+                    "has_personality_assessment_in_process": False,
+                    "has_motivation_assessment_in_process": False,
+                    "has_cognitive_assessments_in_process": True,
+                    "has_completed_cognitive_results": any(r["completed"] for r in results),
+                    "all_assessments_completed": True,
+                    "has_personality_results": False,
+                    "has_motivation_results": False,
+                    "is_historical": False,
+                    "candidate": SimpleNamespace(id=1),
+                    "process": SimpleNamespace(id=1),
+                    "invitation": owner,
+                    "candidate_insights": {"cognitive_results": results},
+                    "assessment_keys_in_process": ("numerical", "logical", "verbal"),
+                },
+            )
+
+    def test_summary_also_shows_one_approved_comparison_below_each_completed_skill(self):
+        for language in ("sv", "en"):
+            with self.subTest(language=language):
+                markup = self._render_summary(language, numerical=2, logical=1, verbal=91)
+                self.assertIn('candidate-result-overview__area--skills', markup)
+                for key, percentile in (("numerical", 2), ("logical", 1), ("verbal", 91)):
+                    self.assertEqual(
+                        markup.count(f'data-cognitive-summary-comparison="{key}"'), 1
+                    )
+                    expected = self._results(percentile, key, language)["interpretation"]
+                    self.assertEqual(markup.count(expected), 1)
+                self.assertLess(
+                    markup.index('candidate-result-overview__skill-comparison-track'),
+                    markup.index('data-cognitive-summary-comparison="logical"'),
+                )
+                self.assertNotIn('data-cognitive-static-comparison=', markup)
+
+    def test_summary_does_not_invent_comparisons_for_missing_skills(self):
+        for language in ("sv", "en"):
+            with self.subTest(language=language):
+                markup = self._render_summary(
+                    language, numerical=45, logical=None, verbal=None
+                )
+                self.assertEqual(markup.count('data-cognitive-summary-comparison="numerical"'), 1)
+                self.assertNotIn('data-cognitive-summary-comparison="logical"', markup)
+                self.assertNotIn('data-cognitive-summary-comparison="verbal"', markup)
 
     def test_every_boundary_uses_the_shared_approved_candidate_norm_mapping(self):
         cases = (
