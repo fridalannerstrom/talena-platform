@@ -4,7 +4,7 @@
 {% block content %}
 {% load static i18n %}
 {% get_current_language as admin_project_language %}
-<link rel="stylesheet" href="{% static 'css/talena/pages/project-assessment-status.css' %}?v=20261101-367-icons">
+<link rel="stylesheet" href="{% static 'css/talena/pages/project-assessment-status.css' %}?v=20261101-367-icons-sm">
 
 <a href="{% if request.GET.next %}{{ request.GET.next }}{% else %}{% url 'accounts:admin_user_detail' pk=process.created_by.id %}{% endif %}"
     class="text-muted small text-decoration-none">
@@ -344,7 +344,7 @@
   });
 </script>
 
-<script src="{% static 'js/talena/project-assessment-status.js' %}?v=20261101-367-icons"></script>
+<script src="{% static 'js/talena/project-assessment-status.js' %}?v=20261101-367-icons-sm"></script>
 
 
 <script>
