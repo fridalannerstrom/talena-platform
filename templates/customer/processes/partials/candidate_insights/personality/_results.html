@@ -44,7 +44,7 @@
     data-personality-view-tab="detailed"
   >
     <i data-feather="list" aria-hidden="true"></i>
-     <span>{% if LANGUAGE_CODE|slice:":2" == "sv" %}Egenskaps- och indikatorprofilen{% else %}Trait & indicator profile{% endif %}</span>
+     <span>{% if LANGUAGE_CODE|slice:":2" == "sv" %}Karaktärsdrags- och indikatorprofilen{% else %}Trait and indicator profile{% endif %}</span>
   </button>
 
 <button
@@ -57,7 +57,7 @@
     data-personality-view-tab="quick"
   >
     <i data-feather="align-justify" aria-hidden="true"></i>
-     <span>{% if LANGUAGE_CODE|slice:":2" == "sv" %}Egenskapsprofilen{% else %}Trait profile{% endif %}</span>
+     <span>{% if LANGUAGE_CODE|slice:":2" == "sv" %}Karaktärsdragsprofilen{% else %}Trait profile{% endif %}</span>
   </button>
 
 <button
@@ -149,10 +149,14 @@
         <div
           class="
             personality-graph__segment
+            {% if segment.filled_toward_midpoint %}
+              personality-graph__segment--filled
+            {% endif %}
             {% if segment.selected %}
               personality-graph__segment--selected
             {% endif %}
           "
+          data-score="{{ segment.score }}"
           style="height: {{ segment.height }}px;"
           aria-label="{% if LANGUAGE_CODE|slice:':2' == 'sv' %}Poäng {{ segment.score }} av 10{% else %}Score {{ segment.score }} of 10{% endif %}"
         >
@@ -166,7 +170,7 @@
         </div>
 
       {% endfor %}
-
+      <span class="personality-graph__center-line" aria-hidden="true"></span>
     </div>
 
     <div class="personality-graph__axis">
@@ -640,16 +644,9 @@
 
               </div>
 
-              {% if style.available %}
-                <div class="response-style-item__result" aria-label="{% if LANGUAGE_CODE|slice:':2' == 'sv' %}Poäng {{ style.value }} av 10{% else %}Score {{ style.value }} of 10{% endif %}">{{ style.value }}/10</div>
-              {% else %}
-                <span
-                  class="
-                    response-style-item__badge
-                    response-style-item__badge--missing
-                  "
-                >
-                   {% trans "Not available" %}
+              {% if not style.available %}
+                <span class="response-style-item__badge response-style-item__badge--missing">
+                  {% trans "Not available" %}
                 </span>
               {% endif %}
 

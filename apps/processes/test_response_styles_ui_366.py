@@ -93,7 +93,8 @@ class ResponseStylesUiTests(SimpleTestCase):
         self.assertNotIn("About Consequence Scale and Ratings Spread", markup)
         self.assertNotIn('data-response-style-guidance-root', markup)
         self.assertNotIn('data-guidance-stream-url', markup)
-        self.assertIn("5/10", markup)
+        self.assertIn("response-style-scale response-style-profile__scale", markup)
+        self.assertNotIn("response-style-item__result", markup)
 
     def test_obsolete_auto_streaming_is_removed_but_interview_tools_remain(self):
         source = (Path(settings.BASE_DIR) /
