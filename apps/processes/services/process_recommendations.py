@@ -27,9 +27,9 @@ PROCESS_PURPOSES = [
     },
     {
         "key": "unsure",
-        "label": _("Flexible Process"),
+        "label": _("Flexible Project"),
         "description": _(
-            "Create a flexible process based on the current need."
+            "Create a flexible project based on the current need."
         ),
     },
 ]
@@ -262,7 +262,7 @@ def build_default_process_name(purpose, selected_tests):
     purpose_lookup = {item["key"]: item["label"] for item in PROCESS_PURPOSES}
     purpose_label = purpose_lookup.get(
         purpose,
-        _("Test process"),
+        _("Project"),
     )
 
     test_labels = []

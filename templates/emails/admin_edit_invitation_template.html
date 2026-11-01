@@ -40,8 +40,8 @@
       <div class="card-body">
         {% if using_company_template %}
         <div class="alert alert-light border small">
-          This process currently inherits the <a href="{% url 'emails:admin_edit_company_invitation_template' company.pk %}">company template</a>.
-          Saving changes here creates a process-specific version.
+          This project currently inherits the <a href="{% url 'emails:admin_edit_company_invitation_template' company.pk %}">company template</a>.
+          Saving changes here creates a project-specific version.
         </div>
         {% endif %}
         <form method="post">
@@ -69,7 +69,7 @@
           <div class="form-check mb-3">
             {{ form.is_active }}
             <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
-              Use this process-specific email template
+              Use this project-specific email template
             </label>
             <div class="form-text">Uncheck to inherit the company default or Talena's default.</div>
           </div>

@@ -32,7 +32,7 @@ class TestProcessCreateForm(forms.ModelForm):
     labels_text = forms.CharField(
         required=False,
         help_text=(
-            "Enter one or more tags that describe the testing process. "
+            "Enter one or more tags that describe the project. "
             "Separate the tags with commas."
         ),
         widget=forms.TextInput(
@@ -97,7 +97,7 @@ class TestProcessCreateForm(forms.ModelForm):
             self.fields["sova_template"].disabled = True
             self.fields["sova_template"].help_text = _(
                 "The assessment package cannot be changed after assessments "
-                "have been ordered in this process."
+                "have been ordered in this project."
             )
 
 
@@ -222,7 +222,7 @@ class TestProcessWizardCreateForm(forms.Form):
     name = forms.CharField(
         max_length=255,
         required=False,
-        label=_("Process name"),
+        label=_("Project name"),
         widget=forms.TextInput(
             attrs={
                 "class": "form-control",
@@ -241,7 +241,7 @@ class TestProcessWizardCreateForm(forms.Form):
             }
         ),
         help_text=_(
-            "Enter one or more labels that describe the test process. "
+            "Enter one or more labels that describe the project. "
             "Separate the labels with commas."
         ),
     )
@@ -302,14 +302,14 @@ class ProcessRoleContextForm(forms.ModelForm):
         config = context_config or {}
 
         self.fields["context_text"].label = (
-            config.get("context_field_label") or _("Process context")
+            config.get("context_field_label") or _("Project context")
         )
 
         self.fields["context_text"].help_text = (
             config.get("context_field_help")
             or _(
                 "Add the information that would help Talena interpret "
-                "the assessment results in relation to this process."
+                "the assessment results in relation to this project."
             )
         )
 
@@ -359,7 +359,7 @@ class HistoricalTestProcessForm(forms.ModelForm):
         ]
 
         labels = {
-            "name": "Historical process name",
+            "name": "Historical project name",
             "org_unit": "Account / unit",
             "sova_account_name": "Original SOVA account name",
             "sova_project_name": "Original SOVA project name",
