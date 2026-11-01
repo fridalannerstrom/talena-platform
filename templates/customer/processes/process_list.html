@@ -12,19 +12,19 @@
   <header class="process-list-page-header">
     <div>
       <div class="process-list-eyebrow">{% trans "Assessment workflows" %}</div>
-      <h1>{% trans "Test processes" %}</h1>
-      <p>{% trans "Overview of your test processes and their status." %}</p>
+      <h1>{% trans "Projects" %}</h1>
+      <p>{% trans "Overview of your projects and their status." %}</p>
     </div>
 
     {% if not show_archived %}
       <a class="btn btn-primary process-create-button" href="{% url 'processes:process_create' %}">
         <i data-feather="plus"></i>
-        {% trans "Create test process" %}
+        {% trans "Create project" %}
       </a>
     {% endif %}
   </header>
 
-  <section class="process-toolbar" aria-label="{% trans 'Process tools' %}">
+  <section class="process-toolbar" aria-label="{% trans 'Project tools' %}">
     <div class="process-search-wrap">
       <i data-feather="search"></i>
       <input
@@ -32,7 +32,7 @@
         type="text"
         class="form-control"
         placeholder="{% trans 'Search by title, purpose or assessment...' %}"
-        aria-label="{% trans 'Search test processes' %}"
+        aria-label="{% trans 'Search projects' %}"
       >
     </div>
 
@@ -40,7 +40,7 @@
       <option value="">{% trans "All purposes" %}</option>
     </select>
 
-    <select id="sortBy" class="form-select" aria-label="{% trans 'Sort test processes' %}">
+    <select id="sortBy" class="form-select" aria-label="{% trans 'Sort projects' %}">
       <option value="created_desc">{% trans "Sort: Newest first" %}</option>
       <option value="created_asc">{% trans "Sort: Oldest first" %}</option>
       <option value="candidates_desc">{% trans "Sort: Most candidates" %}</option>
@@ -51,7 +51,7 @@
   </section>
 
   <div class="process-list-subnav">
-    <div class="seg-tabs" role="tablist" aria-label="{% trans 'Show test processes' %}">
+    <div class="seg-tabs" role="tablist" aria-label="{% trans 'Show projects' %}">
       <a
         href="{% url 'processes:process_list' %}"
         class="seg-tab {% if not show_archived %}is-active{% endif %}"
@@ -72,7 +72,7 @@
     </div>
 
     {% if show_archived %}
-      <div class="process-list-helper">{% trans "These are the processes you have archived." %}</div>
+      <div class="process-list-helper">{% trans "These are the projects you have archived." %}</div>
     {% endif %}
   </div>
 
@@ -163,7 +163,7 @@
                     <form
                       method="post"
                       action="{% url 'processes:process_archive' p.id %}"
-                      data-confirm="{% trans 'Archive this process?' %}"
+                      data-confirm="{% trans 'Archive this project?' %}"
                     >
                       {% csrf_token %}
                       <button type="submit" class="icon-btn" aria-label="{% trans 'Archive' %}" title="{% trans 'Archive' %}">
@@ -174,7 +174,7 @@
                     <form
                       method="post"
                       action="{% url 'processes:process_unarchive' p.id %}"
-                      data-confirm="{% trans 'Restore this process to active processes?' %}"
+                      data-confirm="{% trans 'Restore this project to active projects?' %}"
                     >
                       {% csrf_token %}
                       <button type="submit" class="icon-btn" aria-label="{% trans 'Restore' %}" title="{% trans 'Restore' %}">
@@ -185,7 +185,7 @@
                     <form
                       method="post"
                       action="{% url 'processes:process_delete' p.id %}"
-                      data-confirm="{% trans 'Permanently delete this archived process? This cannot be undone.' %}"
+                      data-confirm="{% trans 'Permanently delete this archived project? This cannot be undone.' %}"
                     >
                       {% csrf_token %}
                       <button type="submit" class="icon-btn icon-btn-danger" aria-label="{% trans 'Delete' %}" title="{% trans 'Delete' %}">
@@ -285,12 +285,12 @@
       <div class="process-empty-icon"><i data-feather="folder"></i></div>
 
       {% if show_archived %}
-        <h2>{% trans "No archived test processes" %}</h2>
-        <p>{% trans "When you archive a process, it will appear here." %}</p>
+        <h2>{% trans "No archived projects" %}</h2>
+        <p>{% trans "When you archive a project, it will appear here." %}</p>
       {% else %}
-        <h2>{% trans "You do not have any test processes yet" %}</h2>
-        <p>{% trans "Create a test process to start sending assessments to candidates." %}</p>
-        <a class="btn btn-primary" href="{% url 'processes:process_create' %}">{% trans "Create your first test process" %}</a>
+        <h2>{% trans "You do not have any projects yet" %}</h2>
+        <p>{% trans "Create a project to start sending assessments to candidates." %}</p>
+        <a class="btn btn-primary" href="{% url 'processes:process_create' %}">{% trans "Create your first project" %}</a>
       {% endif %}
     </div>
   {% endif %}

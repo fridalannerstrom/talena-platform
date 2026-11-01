@@ -21,7 +21,7 @@
       </h1>
 
       <p class="candidate-directory__description">
-        {% trans "All candidates you have access to across test processes and historical imports." %}
+        {% trans "All candidates you have access to across projects and historical imports." %}
       </p>
     </div>
 
@@ -98,7 +98,7 @@
           <tr>
             <th>{% trans "Candidate" %}</th>
             <th>{% trans "Teams" %}</th>
-            <th>{% trans "Processes" %}</th>
+            <th>{% trans "Projects" %}</th>
             <th>{% trans "Assessments" %}</th>
             <th>{% trans "Latest activity" %}</th>
             <th class="text-end">{% trans "Actions" %}</th>
@@ -158,9 +158,9 @@
               <td>
                 <span>
                   {% blocktrans count process_count=candidate.total_process_count|default:0 %}
-                    {{ process_count }} process
+                    {{ process_count }} project
                   {% plural %}
-                    {{ process_count }} processes
+                    {{ process_count }} projects
                   {% endblocktrans %}
                 </span>
               </td>

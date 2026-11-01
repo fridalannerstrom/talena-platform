@@ -43,15 +43,15 @@
       <div class="text-muted small">
         {% if process.is_historical %}
           {% blocktrans count candidate_count=historical_candidates|length %}
-            {{ candidate_count }} candidate in this historical test process
+            {{ candidate_count }} candidate in this historical project
           {% plural %}
-            {{ candidate_count }} candidates in this historical test process
+            {{ candidate_count }} candidates in this historical project
           {% endblocktrans %}
         {% else %}
           {% blocktrans count candidate_count=invitations|length %}
-            {{ candidate_count }} candidate in this test process
+            {{ candidate_count }} candidate in this project
           {% plural %}
-            {{ candidate_count }} candidates in this test process
+            {{ candidate_count }} candidates in this project
           {% endblocktrans %}
         {% endif %}
       </div>
@@ -292,7 +292,7 @@
                     {% else %}
                       <div class="fw-semibold text-dark mb-1">No candidates yet</div>
                       <div class="small text-muted">
-                        {% trans "You have read-only access to this process." %}
+                        {% trans "You have read-only access to this project." %}
                       </div>
                     {% endif %}
                   </td>

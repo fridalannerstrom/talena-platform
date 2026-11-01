@@ -36,11 +36,11 @@
 
         <div class="card-header bg-white py-3 px-4">
           <div class="fw-semibold">
-            {% trans "Process settings" %}
+            {% trans "Project settings" %}
           </div>
 
           <div class="text-muted small">
-            {% trans "Update the process details, purpose and selected assessments." %}
+            {% trans "Update the project details, purpose and selected assessments." %}
           </div>
         </div>
 
@@ -97,7 +97,7 @@
                 <div>
                   <div class="fw-semibold">{% trans "Assessment setup" %}</div>
                   <div class="text-muted small">
-                    {% trans "Choose the purpose and the assessments that should be included in this process." %}
+                    {% trans "Choose the purpose and the assessments that should be included in this project." %}
                   </div>
                 </div>
               </div>
@@ -158,14 +158,14 @@
 
                 {% if template_locked %}
                   <div class="text-muted small mb-3">
-                    {% trans "The assessment selection cannot be changed because assessments have already been sent in this process." %}
+                    {% trans "The assessment selection cannot be changed because assessments have already been sent in this project." %}
                   </div>
 
                   <div class="alert alert-warning d-flex align-items-start gap-2">
                     <div class="process-settings-lock-icon" aria-hidden="true">🔒</div>
                     <div>
                       <strong>{% trans "The selected assessments are locked." %}</strong><br>
-                      {% trans "You can still update the process name, labels and purpose. Changing the purpose updates how Talena interprets and presents candidate reports, but the assessments already sent will remain unchanged." %}
+                      {% trans "You can still update the project name, labels and purpose. Changing the purpose updates how Talena interprets and presents candidate reports, but the assessments already sent will remain unchanged." %}
                     </div>
                   </div>
 
@@ -324,28 +324,28 @@
       <div class="card process-section-card">
         <div class="card-header bg-white py-3 px-4">
           <div class="fw-semibold">{% trans "Tips" %}</div>
-          <div class="text-muted small">{% trans "For a clear and organised process." %}</div>
+          <div class="text-muted small">{% trans "For a clear and organised project." %}</div>
         </div>
 
         <div class="card-body small">
           <div class="tip-block mb-3">
             <div class="fw-semibold text-dark mb-1">{% trans "Use labels to stay organised" %}</div>
             <p class="mb-0">
-              {% trans "Labels are for internal structure. You can use them to group processes by department, role type, project, priority or customer-specific categories." %}
+              {% trans "Labels are for internal structure. You can use them to group projects by department, role type, project, priority or customer-specific categories." %}
             </p>
           </div>
 
           <div class="tip-block mb-3">
             <div class="fw-semibold text-dark mb-1">{% trans "Purpose guides the report" %}</div>
             <p class="mb-0">
-              {% trans "The selected purpose helps Talena understand how candidate results should be interpreted and presented. You can update it later if the focus of the process changes." %}
+              {% trans "The selected purpose helps Talena understand how candidate results should be interpreted and presented. You can update it later if the focus of the project changes." %}
             </p>
           </div>
 
           <div class="tip-block">
             <div class="fw-semibold text-dark mb-1">{% trans "Locked assessments?" %}</div>
             <p class="mb-0">
-              {% trans "Once assessments have been sent, the assessment selection is locked to protect the process history. The purpose can still be updated." %}
+              {% trans "Once assessments have been sent, the assessment selection is locked to protect the project history. The purpose can still be updated." %}
             </p>
           </div>
         </div>
