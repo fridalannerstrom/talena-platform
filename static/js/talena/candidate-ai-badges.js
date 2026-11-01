@@ -39,9 +39,11 @@
 
   function setLabel(badge, assisted) {
     const value = label(assisted);
-    badge.textContent = "✦ " + value;
-    badge.setAttribute("aria-label", value);
-    badge.setAttribute("lang", isSwedish() ? "sv" : "en");
+    const nextText = "✦ " + value;
+    if (badge.textContent !== nextText) badge.textContent = nextText;
+    if (badge.getAttribute("aria-label") !== value) badge.setAttribute("aria-label", value);
+    const lang = isSwedish() ? "sv" : "en";
+    if (badge.getAttribute("lang") !== lang) badge.setAttribute("lang", lang);
   }
 
   function findRuleOutput(root, selector) {
@@ -75,7 +77,7 @@
       row.appendChild(badge);
     }
     if (badge) {
-      badge.hidden = !visible;
+      if (badge.hidden !== !visible) badge.hidden = !visible;
       if (visible) setLabel(badge, assisted);
     }
   }
@@ -85,8 +87,8 @@
     // category labels on unrelated content such as test-result cards.
     root.querySelectorAll(".insight-summary-kicker").forEach((kicker) => {
       if (/AI-generated insight|AI-supported questions|AI-genererad insikt|AI-frågor/i.test(kicker.textContent || "")) {
-        kicker.hidden = true;
-        kicker.setAttribute("aria-hidden", "true");
+        if (!kicker.hidden) kicker.hidden = true;
+        if (kicker.getAttribute("aria-hidden") !== "true") kicker.setAttribute("aria-hidden", "true");
       }
     });
   }
@@ -108,16 +110,14 @@
       "[data-candidate-insights-workspace] [data-manager-report-edit-key][data-manager-report-ai-text]"
     ).forEach((field) => {
       const aiValue = (field.dataset.managerReportAiText || "").trim();
-      const edited = Boolean(field.closest(".after-interview-manager-report")?.querySelector(
-        '[data-manager-report-edited="' + CSS.escape(field.dataset.managerReportEditKey || "") + '"]'
-      ));
+      const edited = field.dataset.managerReportManuallyEdited === "true";
       let badge = field.previousElementSibling;
       if (!badge?.classList.contains("talena-ai-field-badge")) {
         badge = document.createElement("span");
         badge.className = BADGE_CLASS + " talena-ai-field-badge";
         field.parentNode.insertBefore(badge, field);
       }
-      badge.hidden = !aiValue;
+      if (badge.hidden !== !aiValue) badge.hidden = !aiValue;
       if (aiValue) setLabel(badge, edited);
     });
   }
