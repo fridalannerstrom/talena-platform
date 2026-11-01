@@ -2,6 +2,7 @@ from django.urls import path
 
 from . import views
 from .pinned_projects import toggle_pinned_project
+from .process_duplication import process_duplicate
 from .access_control import (
     process_edit_access_required,
     process_view_access_required,
@@ -30,6 +31,7 @@ urlpatterns = [
         name="process_update",
     ),
     path("<int:pk>/delete/", views.process_delete, name="process_delete"),
+    path("<int:pk>/duplicate/", process_duplicate, name="process_duplicate"),
     path("<int:pk>/pin/", toggle_pinned_project, name="toggle_pinned_project"),
     path(
         "new/",
