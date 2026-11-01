@@ -149,10 +149,14 @@
         <div
           class="
             personality-graph__segment
+            {% if segment.filled_toward_midpoint %}
+              personality-graph__segment--filled
+            {% endif %}
             {% if segment.selected %}
               personality-graph__segment--selected
             {% endif %}
           "
+          data-score="{{ segment.score }}"
           style="height: {{ segment.height }}px;"
           aria-label="{% if LANGUAGE_CODE|slice:':2' == 'sv' %}Poäng {{ segment.score }} av 10{% else %}Score {{ segment.score }} of 10{% endif %}"
         >
@@ -166,7 +170,7 @@
         </div>
 
       {% endfor %}
-
+      <span class="personality-graph__center-line" aria-hidden="true"></span>
     </div>
 
     <div class="personality-graph__axis">
