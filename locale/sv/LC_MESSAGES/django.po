@@ -7381,3 +7381,349 @@ msgstr "%(actor)s återkallade åtkomsten till kandidatrapporten för %(candidat
 #, python-format
 msgid "Access to %(candidate)s's candidate report expired"
 msgstr "Åtkomsten till kandidatrapporten för %(candidate)s gick ut"
+
+# #206 Project terminology additions (legacy msgids retained for saved content)
+msgid "the project"
+msgstr "projektet"
+
+msgid "%(actor)s created the project %(process_name)s"
+msgstr "%(actor)s skapade projektet %(projekt_name)s"
+
+msgid "%(actor)s archived the project %(process_name)s"
+msgstr "%(actor)s arkiverade projektet %(projekt_name)s"
+
+msgid "%(actor)s deleted the project %(process_name)s"
+msgstr "%(actor)s raderade projektet %(projekt_name)s"
+
+msgid "%(candidate)s started the project"
+msgstr "%(candidate)s påbörjade projektet"
+
+msgid "%(candidate)s completed the project"
+msgstr "%(candidate)s genomförde projektet"
+
+msgid "Invitation to project"
+msgstr "Inbjudan till projekt"
+
+msgid "Project name"
+msgstr "Projektnamn"
+
+msgid "Enter one or more labels that describe the project. Separate the labels with commas."
+msgstr "Ange en eller flera etiketter som beskriver projektet. Separera etiketterna med kommatecken."
+
+msgid "Project context"
+msgstr "Projektkontext"
+
+msgid "Add the information that would help Talena interpret the assessment results in relation to this project."
+msgstr "Fyll i information som hjälper Talena att tolka testresultaten i relation till den här projektet."
+
+msgid "Add role information to tailor candidate insights, questions and recommendations to this hiring project."
+msgstr "Lägg till rollinformation för att anpassa kandidatinsikter, frågor och rekommendationer till rekryteringsprojektet."
+
+msgid "Add role context to tailor the candidate insights to this hiring project."
+msgstr "Lägg till rollkontext för att anpassa kandidatinsikterna till rekryteringsprojektet."
+
+msgid "Add context to tailor the candidate insights to this project."
+msgstr "Lägg till kontext för att anpassa kandidatinsikterna till den här projektet."
+
+msgid "Describe the project, situation or purpose."
+msgstr "Beskriv projektet, situationen eller syftet."
+
+msgid "Flexible project"
+msgstr "Flexibel projekt"
+
+msgid "Create a project without a defined purpose."
+msgstr "Skapa en projekt utan ett definierat syfte."
+
+msgid "Project"
+msgstr "Projekt"
+
+msgid "May spend too much time interacting and networking at the expense of other goals, or involve others before the project is sufficiently clear."
+msgstr "Kan lägga för mycket tid på interaktion och nätverkande på bekostnad av andra mål eller involvera andra innan projektet är tillräckligt tydlig."
+
+msgid "All candidates you have access to across projects and historical imports."
+msgstr "Alla kandidater du har tillgång till i projekt och historiska importer."
+
+msgid "Projects"
+msgstr "Projekt"
+
+msgid "\n                      %(process_count)s project\n                    "
+msgid_plural "\n                      %(process_count)s projects\n                    "
+msgstr[0] "\n                      %(projekt_count)s projekt\n                    "
+msgstr[1] "\n                      %(projekt_count)s projekt\n                    "
+
+msgid "Activity across the projects you have access to."
+msgstr "Aktivitet i de projekt som du har tillgång till."
+
+msgid "Project created"
+msgstr "Projekt skapat"
+
+msgid "Project archived"
+msgstr "Projekt arkiverat"
+
+msgid "Project:"
+msgstr "Projekt:"
+
+msgid "Create a new project"
+msgstr "Skapa ett nytt projekt"
+
+msgid "View your projects"
+msgstr "Visa dina projekt"
+
+msgid "Latest projects"
+msgstr "Senaste projekten"
+
+msgid "No active projects yet"
+msgstr "Inga aktiva projekt ännu"
+
+msgid "Create your first project to send assessments and follow candidate progress here."
+msgstr "Skapa ditt första projekt för att skicka tester och följa kandidaternas framsteg här."
+
+msgid "Create project"
+msgstr "Skapa projekt"
+
+msgid "Activity across your active projects"
+msgstr "Aktivitet i dina aktiva projekt"
+
+msgid "Create new project"
+msgstr "Skapa nytt projekt"
+
+msgid "\n            As a %(company_name)s user, you have access to your previous candidates and projects from Sova. We've brought them into Talena so you can pick up where you left off.\n          "
+msgstr "\n            Som användare på %(company_name)s har du tillgång till era tidigare kandidater och projekt från Sova. Vi har flyttat in dem i Talena så att ni kan fortsätta där ni slutade.\n          "
+
+msgid "archived projects"
+msgstr "arkiverade projekt"
+
+msgid "Assessment included in this project"
+msgstr "Test som ingår i den här projektet"
+
+msgid "Project information has changed"
+msgstr "Projektinformationen har ändrats"
+
+msgid "The project purpose and/or context have changed since some AI insights were generated. Update them to reflect the latest information."
+msgstr "Projektets syfte och/eller kontext har ändrats sedan vissa AI-insikter genererades. Uppdatera dem så att de speglar den senaste informationen."
+
+msgid "The affected interpretations, guidance and questions will be regenerated using the current project purpose and context."
+msgstr "Berörda tolkningar, vägledningar och frågor genereras på nytt utifrån projektets nuvarande syfte och kontext."
+
+msgid "The candidate insights have been updated using the latest project information."
+msgstr "Kandidatinsikterna har uppdaterats utifrån den senaste projektinformationen."
+
+msgid "Add context to make the candidate insights more relevant to this project."
+msgstr "Lägg till kontext för att göra kandidatinsikterna mer relevanta för den här projektet."
+
+msgid "A combined interpretation of the personality profile in relation to the selected purpose and available project context."
+msgstr "En samlad tolkning av personlighetsprofilen i relation till det valda syftet och tillgänglig projektkontext."
+
+msgid "The selected traits, project purpose or context have changed."
+msgstr "De valda personlighetsdragen, projektets syfte eller kontext har ändrats."
+
+msgid "Talena generated the questions below using these personality traits, the project purpose and any available context. Change the selection to shape the next set of questions."
+msgstr "Talena skapade frågorna nedan utifrån dessa personlighetsdrag, projektets syfte och eventuell tillgänglig kontext. Ändra urvalet för att påverka nästa uppsättning frågor."
+
+msgid "Choose up to six traits, or leave all traits unselected to let Talena choose based on the project purpose and context. Questions will be generated using the selected traits, project purpose and available context."
+msgstr "Välj upp till sex personlighetsdrag, eller lämna alla omarkerade för att låta Talena välja utifrån projektets syfte och kontext. Frågorna genereras utifrån de valda personlighetsdragen, projektets syfte och tillgänglig kontext."
+
+msgid "A practical interpretation of the available cognitive results in relation to the selected purpose and project context."
+msgstr "En praktisk tolkning av de tillgängliga kognitiva resultaten i relation till det valda syftet och projektkontexten."
+
+msgid "Uses the available assessment interpretations, project purpose and context to prepare a focused and evidence-based discussion."
+msgstr "Använder tillgängliga testtolkningar, projektets syfte och kontext för att förbereda ett fokuserat och underlagsbaserat samtal."
+
+msgid "The project information has changed"
+msgstr "Projektinformationen har ändrats"
+
+msgid "This decision support was created using an earlier purpose or project context. Generate an updated version before relying on it."
+msgstr "Det här beslutsstödet skapades utifrån ett tidigare syfte eller en tidigare projektkontext. Generera en uppdaterad version innan du använder det som underlag."
+
+msgid "Assessment indications that may be particularly relevant to the purpose and context of this project."
+msgstr "Testindikationer som kan vara särskilt relevanta för projektets syfte och kontext."
+
+msgid "This synthesis was generated using an earlier version of the interview notes or project information. Generate an updated version before relying on it."
+msgstr "Den här sammanställningen genererades utifrån en tidigare version av intervjuanteckningarna eller projektinformationen. Generera en uppdaterad version innan du använder den som underlag."
+
+msgid "A practical interpretation of the motivation profile in relation to the selected purpose and project context."
+msgstr "En praktisk tolkning av motivationsprofilen i relation till det valda syftet och projektkontexten."
+
+msgid "These questions were generated using an earlier project purpose or context. Refresh them to include the latest information."
+msgstr "Frågorna genererades utifrån ett tidigare projektyfte eller en tidigare kontext. Uppdatera dem så att den senaste informationen inkluderas."
+
+msgid "\n                A combined interpretation of the candidate’s available\n                assessment results, selected project purpose and any\n                added project context.\n              "
+msgstr "En samlad tolkning av kandidatens tillgängliga testresultat, det valda projektyftet och eventuell tillagd projektkontext."
+
+msgid "Generate a new overview using the latest assessment results, purpose and project context."
+msgstr "Generera en ny översikt utifrån de senaste testresultaten, syftet och projektkontexten."
+
+msgid "Analysing assessment results and project context…"
+msgstr "Analyserar testresultat och projektkontext…"
+
+msgid "No original project context"
+msgstr "Ingen ursprunglig projektkontext"
+
+msgid "No additional project context has been added."
+msgstr "Ingen ytterligare projektkontext har lagts till."
+
+msgid "\n            %(completed)s of %(total)s assessments are complete.\n            The combined AI summary will be generated when all assessments\n            in the project have been completed.\n          "
+msgstr "\n          %(completed)s av %(total)s tester är genomförda.\n          Den kombinerade AI-sammanfattningen skapas när samtliga tester\n          i projektet har genomförts.\n        "
+
+msgid "Include a Personality assessment in future projects to unlock a detailed trait profile, response-style guidance, team-style insights, AI-supported interpretation and tailored follow-up questions."
+msgstr "Inkludera ett personlighetstest i framtida projekt för att få tillgång till en detaljerad egenskapsprofil, vägledning om svarsstilar, teamstilsinsikter, AI-stödd tolkning och anpassade följdfrågor."
+
+msgid "Team-style insights are generated from the Personality assessment. Include it in future projects to explore how the candidate may contribute, communicate, build trust and collaborate within a team."
+msgstr "Teamstilsinsikter genereras utifrån personlighetstestet. Inkludera det i framtida projekt för att utforska hur kandidaten kan bidra, kommunicera, bygga förtroende och samarbeta i ett team."
+
+msgid "The new insights were generated using the latest project purpose and context. Reloading the candidate now…"
+msgstr "Nya insikter har skapats med projektets senaste syfte och kontext. Laddar om kandidaten…"
+
+msgid "Back to projects"
+msgstr "Tillbaka till projekt"
+
+msgid "Invite a candidate to this project."
+msgstr "Bjud in en kandidat till den här projektet."
+
+msgid "Choose why you are creating this project, then Talena will recommend a suitable assessment setup."
+msgstr "Välj syftet med projektet så rekommenderar Talena en lämplig testkombination."
+
+msgid "Create project steps"
+msgstr "Steg för att skapa ett projekt"
+
+msgid "Why are you creating this project?"
+msgstr "Varför skapar du den här projektet?"
+
+msgid "Give the project an internal name and add labels if you want to organize it by department, role or project."
+msgstr "Ge projektet ett internt namn och lägg till etiketter för att organisera det efter exempelvis avdelning, roll eller prioritet."
+
+msgid "A combined interpretation of the candidate’s available assessment results, selected project purpose and any added project context."
+msgstr "En samlad tolkning av kandidatens tillgängliga testresultat, valt syfte för projektet och eventuell tillagd projektkontext."
+
+msgid "Assessments included in the project, separated by commas"
+msgstr "Testerna som ingår i projektet, separerade med kommatecken"
+
+msgid "Add Logical if the person needs to quickly understand systems, projects or problem-solving tasks."
+msgstr "Lägg till logisk förmåga om personen snabbt behöver förstå system, projekt eller problemlösningsuppgifter."
+
+msgid "\n        %(candidate_count)s candidate in this historical project\n      "
+msgid_plural "\n        %(candidate_count)s candidates in this historical project\n      "
+msgstr[0] "\n        %(candidate_count)s kandidat i den här historiska projektet\n      "
+msgstr[1] "\n        %(candidate_count)s kandidater i den här historiska projektet\n      "
+
+msgid "\n        %(candidate_count)s candidate in this project\n      "
+msgid_plural "\n        %(candidate_count)s candidates in this project\n      "
+msgstr[0] "\n        %(candidate_count)s kandidat i den här projektet\n      "
+msgstr[1] "\n        %(candidate_count)s kandidater i den här projektet\n      "
+
+msgid "You have read-only access to this project."
+msgstr "Du har endast läsbehörighet till den här projektet."
+
+msgid "Project settings"
+msgstr "Projektinställningar"
+
+msgid "Update the project details, purpose and selected assessments."
+msgstr "Uppdatera projektets uppgifter, syfte och valda tester."
+
+msgid "Choose the purpose and the assessments that should be included in this project."
+msgstr "Välj syfte och vilka tester som ska ingå i projektet."
+
+msgid "The assessment selection cannot be changed because assessments have already been sent in this project."
+msgstr "Testkombinationen kan inte ändras eftersom tester redan har skickats i projektet."
+
+msgid "You can still update the project name, labels and purpose. Changing the purpose updates how Talena interprets and presents candidate reports, but the assessments already sent will remain unchanged."
+msgstr "Du kan fortfarande uppdatera projektets namn, etiketter och syfte. När syftet ändras uppdateras hur Talena tolkar och presenterar kandidatrapporterna, men tester som redan har skickats förblir oförändrade."
+
+msgid "For a clear and organised project."
+msgstr "För en tydlig och organiserad projekt."
+
+msgid "Labels are for internal structure. You can use them to group projects by department, role type, project, priority or customer-specific categories."
+msgstr "Etiketter hjälper dig att organisera projekt efter avdelning, rolltyp, prioritet eller andra kategorier."
+
+msgid "The selected purpose helps Talena understand how candidate results should be interpreted and presented. You can update it later if the focus of the project changes."
+msgstr "Det valda syftet hjälper Talena att förstå hur kandidatresultaten ska tolkas och presenteras. Du kan uppdatera det senare om projektets fokus förändras."
+
+msgid "Once assessments have been sent, the assessment selection is locked to protect the project history. The purpose can still be updated."
+msgstr "När tester har skickats låses testkombinationen för att bevara projekthistoriken. Syftet kan fortfarande ändras."
+
+msgid "Overview of your projects and their status."
+msgstr "Översikt över dina projekt och deras status."
+
+msgid "Search projects"
+msgstr "Sök bland projekt"
+
+msgid "Sort projects"
+msgstr "Sortera projekt"
+
+msgid "Show projects"
+msgstr "Visa projekt"
+
+msgid "These are the projects you have archived."
+msgstr "Här visas de projekt som du har arkiverat."
+
+msgid "Archive this project?"
+msgstr "Vill du arkivera den här projektet?"
+
+msgid "Restore this project to active projects?"
+msgstr "Vill du återställa den här projektet till aktiva projekt?"
+
+msgid "Permanently delete this archived project? This cannot be undone."
+msgstr "Vill du radera den här arkiverade projektet permanent? Detta går inte att ångra."
+
+msgid "No archived projects"
+msgstr "Inga arkiverade projekt"
+
+msgid "When you archive a project, it will appear here."
+msgstr "När du arkiverar en projekt visas den här."
+
+msgid "You do not have any projects yet"
+msgstr "Du har inga projekt ännu"
+
+msgid "Create a project to start sending assessments to candidates."
+msgstr "Skapa en projekt för att börja skicka tester till kandidater."
+
+msgid "Create your first project"
+msgstr "Skapa din första projekt"
+
+msgid "Add context to tailor Candidate Insights to this project."
+msgstr "Lägg till kontext för att anpassa kandidatinsikterna till den här projektet."
+
+msgid "Enter your details to take part in the project."
+msgstr "Fyll i dina uppgifter för att delta i projektet."
+
+msgid "Your details are used to connect you to the correct project."
+msgstr "Dina uppgifter används för att koppla dig till rätt projekt."
+
+msgid "Enter your name and the email address that should be connected to the project."
+msgstr "Ange ditt namn och den e-postadress som ska kopplas till projektet."
+
+msgid "Candidates can belong to several teams, across different projects."
+msgstr "Kandidater kan tillhöra flera team i olika projekt."
+
+msgid "Create a team to group candidates across different projects."
+msgstr "Skapa ett team för att samla kandidater från olika projekt."
+
+msgid "Create and manage candidate teams across projects."
+msgstr "Skapa och hantera kandidatteam i olika projekt."
+
+msgid "Back to project"
+msgstr "Tillbaka till projektet"
+
+msgid "Editing template for <strong>Untitled project</strong>"
+msgstr "Redigerar mall för <strong>Namnlös projekt</strong>"
+
+msgid "This email will be used when candidates are invited to this project."
+msgstr "Det här e-postmeddelandet används när kandidater bjuds in till projektet."
+
+msgid "Name of this project"
+msgstr "Namnet på det här projektet"
+
+msgid "Flexible Project"
+msgstr "Flexibelt projekt"
+
+msgid "Create a flexible project based on the current need."
+msgstr "Skapa ett flexibelt projekt utifrån aktuella behov."
+
+msgid "Project tools"
+msgstr "Projektverktyg"
+
+msgid "Invitation to assessments"
+msgstr "Inbjudan till tester"
+
+msgid "A chronological log of activity across your accessible projects."
+msgstr "En kronologisk logg över aktiviteter i de projekt du har tillgång till."
