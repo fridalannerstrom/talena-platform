@@ -29,6 +29,22 @@ LABELS_STATUS = {
     "not_assigned": ("Ej tilldelat", "Not assigned", "Inget test av denna typ har tilldelats.", "No assessment of this type has been assigned."),
     "unknown": ("Okänt", "Unknown", "Ingen verifierad individuell teststatus finns från Sova.", "No verified individual Sova assessment status is available."),
 }
+
+# Presentation-only, stroke-based SVG paths for compact status indicators.
+# These are fixed server-owned icons, never derived from Sova payloads.
+ICON_PATHS = {
+    "not_sent": "M22 2 11 13 M22 2l-7 20-4-9-9-4Z",
+    "not_started": "M12 2a10 10 0 1 0 0 20a10 10 0 1 0 0-20 M12 7v5l3 2",
+    "started": "M12 2a10 10 0 1 0 0 20a10 10 0 1 0 0-20 M10 8l6 4-6 4Z",
+    "completed": "M5 12l5 5L20 7",
+    "invited": "M4 5h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z M2 7l10 7 10-7",
+    "expired": "M6 3h12 M6 21h12 M8 3c0 5 4 6 4 9s-4 4-4 9 M16 3c0 5-4 6-4 9s4 4 4 9",
+    "failed": "M12 3 2 21h20L12 3Z M12 9v4 M12 17h.01",
+    "activity_failed": "M5 5l14 14 M19 5 5 19",
+    "not_assigned": "M5 12h14",
+    "unknown": "M9.5 9a2.5 2.5 0 0 1 5 0c0 2-2.5 2.5-2.5 5 M12 18h.01",
+}
+
 ORDER = tuple(key for key in TEST_ORDER if key in LABELS)
 RANK = {"unknown": 0, "not_started": 1, "started": 2, "completed": 3}
 STATUSES = {
@@ -116,6 +132,7 @@ def _cell(key, state, language):
                  "info" if state == "started" else
                  "warning" if state in ("expired", "failed", "activity_failed") else
                  "muted"),
+        "icon_path": ICON_PATHS[state],
         "icon": ("✓" if state == "completed" else
                  "◷" if state == "started" else
                  "!" if state in ("expired", "failed", "activity_failed") else "•"),
