@@ -17,17 +17,19 @@ LABELS = {
     "numerical": ("Numeriskt", "Numerical"),
     "verbal": ("Verbalt", "Verbal"),
 }
+# User-facing explanations are intentionally short and avoid internal Sova
+# terminology. Status distinctions are preserved in the machine-readable state.
 LABELS_STATUS = {
-    "not_sent": ("Ej skickat", "Not sent", "Utskicket är inte gjort.", "The invitation has not been sent."),
-    "not_started": ("Inte påbörjat", "Not started", "Sova rapporterar att testet inte är påbörjat.", "Sova reports that the assessment has not started."),
-    "started": ("Påbörjat", "Started", "Sova rapporterar att testet har påbörjats.", "Sova reports that the assessment has started."),
-    "completed": ("Genomfört", "Completed", "Sova rapporterar att testet har genomförts.", "Sova reports that the assessment has been completed."),
-    "invited": ("Inbjuden", "Invited", "Testet är tilldelat, men individuell startstatus saknas.", "Assigned assessment; individual start status is unavailable."),
-    "expired": ("Utgånget", "Expired", "Inbjudan har gått ut; testets individuella status är inte känd.", "Invitation expired; individual assessment status is unknown."),
-    "failed": ("Utskick misslyckades", "Delivery failed", "Utskicket misslyckades; testets status är inte känd.", "Invitation delivery failed; individual status is unknown."),
-    "activity_failed": ("Misslyckat", "Failed", "Sova har rapporterat att den här aktiviteten misslyckades.", "Sova reported that this activity failed."),
-    "not_assigned": ("Ej tilldelat", "Not assigned", "Inget test av denna typ har tilldelats.", "No assessment of this type has been assigned."),
-    "unknown": ("Okänt", "Unknown", "Ingen verifierad individuell teststatus finns från Sova.", "No verified individual Sova assessment status is available."),
+    "not_sent": ("Ej skickat", "Not sent", "Testet har inte skickats.", "The test has not been sent."),
+    "not_started": ("Inte påbörjat", "Not started", "Kandidaten har inte påbörjat testet.", "The candidate has not started the test."),
+    "started": ("Påbörjat", "Started", "Kandidaten har påbörjat testet.", "The candidate has started the test."),
+    "completed": ("Genomfört", "Completed", "Kandidaten har genomfört testet.", "The candidate has completed the test."),
+    "invited": ("Skickat", "Sent", "Testet är skickat till kandidaten.", "The test has been sent to the candidate."),
+    "expired": ("Utgånget", "Expired", "Inbjudan har gått ut.", "The invitation has expired."),
+    "failed": ("Kunde inte skickas", "Could not be sent", "Inbjudan kunde inte skickas.", "The invitation could not be sent."),
+    "activity_failed": ("Fel vid testet", "Test error", "Ett fel har rapporterats för testet.", "An error was reported for the test."),
+    "not_assigned": ("Ej tilldelat", "Not assigned", "Testet har inte tilldelats kandidaten.", "The candidate has not been assigned this test."),
+    "unknown": ("Status saknas", "Status unavailable", "Vi saknar information om testets status.", "No status information is available for this test."),
 }
 
 # Presentation-only, stroke-based SVG paths for compact status indicators.
