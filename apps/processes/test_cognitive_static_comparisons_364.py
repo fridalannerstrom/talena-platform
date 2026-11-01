@@ -1,6 +1,8 @@
 """#364: existing approved cognitive comparisons in customer/admin result cards."""
+from pathlib import Path
 from types import SimpleNamespace
 
+from django.conf import settings
 from django.template.loader import render_to_string
 from django.test import SimpleTestCase
 from django.utils.translation import override
@@ -96,6 +98,26 @@ class CognitiveStaticComparisonTests(SimpleTestCase):
                 self.assertEqual(markup.count('data-cognitive-summary-comparison="numerical"'), 1)
                 self.assertNotIn('data-cognitive-summary-comparison="logical"', markup)
                 self.assertNotIn('data-cognitive-summary-comparison="verbal"', markup)
+
+    def test_summary_typography_reuses_the_overview_body_size_only_inside_summary(self):
+        path = Path(settings.BASE_DIR) / "static/css/talena/pages/candidate-insights.css"
+        stylesheet = path.read_text(encoding="utf-8")
+        start = stylesheet.index("/* #364 – Summary-only typography scale.")
+        scoped = stylesheet[start:]
+        self.assertIn("--talena-summary-body-size: 0.75rem", scoped)
+        self.assertIn("--talena-summary-body-line-height: 1.62", scoped)
+        self.assertIn("#purposeFitCard #purposeFitSummary", scoped)
+        for selector in (
+            "candidate-result-overview__motivation-card-description",
+            "candidate-result-overview__skill-interpretation",
+            "personality-overview-summary__text",
+            "purpose-fit-list li",
+        ):
+            self.assertIn("#purposeFitCard ." + selector, scoped)
+        self.assertIn("font-size: var(--talena-summary-body-size) !important", scoped)
+        self.assertIn("candidate-result-overview__skill-comparison-labels", scoped)
+        self.assertIn("@media (max-width: 720px)", scoped)
+        self.assertNotIn("#candidate-insights-panel-cognitive", scoped)
 
     def test_every_boundary_uses_the_shared_approved_candidate_norm_mapping(self):
         cases = (
