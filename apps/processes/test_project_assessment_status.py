@@ -136,6 +136,21 @@ class ProjectAssessmentStatusUnitTests(SimpleTestCase):
         self.assertEqual(_cell("personality", "activity_failed", "sv")["label"],
                          "Fel vid testet")
 
+    def test_unsent_icon_looks_pending_not_sent(self):
+        from apps.processes.services.project_assessment_status import (
+            ICON_PATHS, _cell,
+        )
+        sv = _cell("personality", "not_sent", "sv")
+        en = _cell("personality", "not_sent", "en")
+        self.assertEqual(sv["label"], "Ej skickat")
+        self.assertEqual(en["label"], "Not sent")
+        self.assertEqual(sv["title"], "Testet har inte skickats.")
+        self.assertEqual(sv["icon_path"], en["icon_path"])
+        self.assertIn("M16 15v2l1.5 1", sv["icon_path"])  # clock hands
+        self.assertNotEqual(sv["icon_path"], ICON_PATHS["invited"])
+        self.assertNotEqual(sv["icon_path"], ICON_PATHS["not_started"])
+        self.assertNotIn("M22 2l-7 20", sv["icon_path"])  # old paper plane
+
     def test_per_test_status_no_cross_test_name_match(self):
         self.assertEqual(test_key("Numerical reasoning"), "numerical")
         self.assertEqual(test_key("L"), "logical")
