@@ -205,11 +205,101 @@ class ScopedRemovalTests(TestCase):
         )
         active = self.client.get(reverse("processes:process_detail", args=[self.project.pk]), HTTP_ACCEPT_LANGUAGE="sv")
         self.assertNotContains(active, 'data-candidate-id="' + str(self.candidate.pk) + '"')
-        self.assertContains(active, "Sova-åtkomst ej bekräftat spärrad")
+        self.assertNotContains(active, "Borttagna från projektet")
+        self.assertNotContains(active, "Sova-åtkomst ej bekräftat spärrad")
+        self.assertNotContains(active, self.candidate.email)
         detail = reverse("processes:process_candidate_detail", args=[self.project.pk, self.candidate.pk])
         self.assertEqual(self.client.get(detail).status_code, 404)
         polling = self.client.get(reverse("processes:process_invitation_statuses", args=[self.project.pk]))
         self.assertEqual(polling.json()["invitations"], [])
+
+    def test_removed_candidate_is_visible_in_both_admin_audit_pages_only(self):
+        self.invitation.status = "sent"
+        self.invitation.assessment_url = "https://example.org/assessment"
+        self.invitation.save(update_fields=["status", "assessment_url"])
+        self.client.force_login(self.editor)
+        self.client.post(self.remove_url)
+        self.invitation.refresh_from_db()
+        self.assertIsNotNone(self.invitation.removed_from_process_at)
+
+        # The customer cannot see the removed person's identity anywhere on
+        # this project page, including when the active list is empty.
+        customer_page = self.client.get(
+            reverse("processes:process_detail", args=[self.project.pk]),
+            HTTP_ACCEPT_LANGUAGE="sv",
+        )
+        self.assertNotContains(customer_page, "Borttagna från projektet")
+        self.assertNotContains(customer_page, self.candidate.email)
+
+        platform_admin = User.objects.create_superuser(
+            username="removed-audit-admin",
+            email="removed-audit-admin@example.test",
+            password="test-password",
+        )
+        self.client.force_login(platform_admin)
+        urls = (
+            reverse("accounts:admin_process_detail", args=[self.project.pk]),
+            reverse(
+                "accounts:company_process_detail",
+                args=[self.company.pk, self.project.pk],
+            ),
+        )
+        for url in urls:
+            with self.subTest(url=url):
+                response = self.client.get(url)
+                self.assertEqual(response.status_code, 200)
+                self.assertContains(response, "Borttagna kandidater")
+                self.assertContains(response, self.candidate.email)
+                self.assertContains(response, "Tillagd")
+                self.assertContains(response, "Borttagen")
+                self.assertContains(response, "Spärrning hos Sova ej bekräftad")
+                self.assertContains(
+                    response, self.invitation.created_at.strftime("%Y-%m-%d")
+                )
+                self.assertContains(
+                    response,
+                    self.invitation.removed_from_process_at.strftime("%Y-%m-%d"),
+                )
+
+    def test_customer_activity_excludes_removed_candidates_but_keeps_audit_events(self):
+        from apps.activity.models import ActivityEvent
+        from apps.activity.services import customer_visible_activity
+
+        added = ActivityEvent.objects.create(
+            company=self.company,
+            verb=ActivityEvent.Verb.CANDIDATE_ADDED,
+            actor=self.editor,
+            process=self.project,
+            candidate=self.candidate,
+            invitation=self.invitation,
+        )
+        still_active = ActivityEvent.objects.create(
+            company=self.company,
+            verb=ActivityEvent.Verb.CANDIDATE_ADDED,
+            actor=self.editor,
+            process=self.second_project,
+            candidate=self.candidate,
+            invitation=self.other_invitation,
+        )
+        self.client.force_login(self.editor)
+        self.client.post(self.remove_url)
+        events = ActivityEvent.objects.filter(company=self.company)
+        removed = events.get(
+            verb=ActivityEvent.Verb.CANDIDATE_REMOVED,
+            process=self.project,
+            candidate=self.candidate,
+        )
+        self.assertTrue(events.filter(pk__in=[added.pk, removed.pk]).exists())
+        visible_ids = set(customer_visible_activity(events).values_list("pk", flat=True))
+        self.assertNotIn(added.pk, visible_ids)
+        self.assertNotIn(removed.pk, visible_ids)
+        self.assertIn(still_active.pk, visible_ids)
+
+        response = self.client.get(reverse("core:customer_activity"))
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, "removed the candidate")
+        self.assertNotContains(response, "added the candidate")
+        self.assertEqual(response.context["page_obj"].paginator.count, 1)
 
     def test_removal_revokes_candidate_result_link_without_deleting_snapshot(self):
         from apps.candidate_results.models import CandidateResultAccess, CandidateResultSnapshot
