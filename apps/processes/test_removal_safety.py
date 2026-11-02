@@ -313,8 +313,9 @@ class ScopedRemovalTests(TestCase):
         markup = response.content.decode("utf-8")
         modal = markup.split('id="removeCandidateModal"', 1)[1]
         self.assertIn("Ta bort från projekt", modal)
-        self.assertIn("Sova-testlänken spärras INTE automatiskt", modal)
+        self.assertNotIn("Sova-testlänken spärras INTE automatiskt", modal)
         self.assertIn("Avbryt", modal)
+        self.assertIn('class="btn btn-dark" id="removeCandidateSubmit"', modal)
         self.assertNotIn("This candidate has ordered assessments", modal)
         self.assertNotIn("Remove from project", modal)
 
@@ -327,7 +328,7 @@ class ScopedRemovalTests(TestCase):
         self.assertEqual(response.status_code, 200)
         modal = response.content.decode("utf-8").split('id="removeCandidateModal"', 1)[1]
         self.assertIn("Remove from project", modal)
-        self.assertIn("Sova assessment link is NOT automatically revoked", modal)
+        self.assertNotIn("Sova assessment link is NOT automatically revoked", modal)
         self.assertIn("Cancel", modal)
         self.assertNotIn("Sova-testlänken spärras INTE automatiskt", modal)
 
