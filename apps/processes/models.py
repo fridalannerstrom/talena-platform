@@ -241,6 +241,18 @@ class TestInvitation(models.Model):
     overall_score = models.FloatField(null=True, blank=True)
     project_results = models.JSONField(null=True, blank=True)
 
+    # Project removal is a reversible visibility/access decision, not GDPR erasure.
+    # Keep Sova and billing history attached to this invitation.
+    removed_from_process_at = models.DateTimeField(null=True, blank=True, db_index=True)
+    SOVA_REVOCATION_STATES = [
+        ("not_required", "No Sova access to revoke"),
+        ("manual_pending", "Sova revocation requires manual verification"),
+        ("confirmed", "Sova access revocation manually verified"),
+    ]
+    sova_revocation_state = models.CharField(
+        max_length=24, choices=SOVA_REVOCATION_STATES, default="not_required",
+    )
+
     status = models.CharField(max_length=30, choices=STATUS_CHOICES, default="created")
     invited_at = models.DateTimeField(blank=True, null=True)
     started_at = models.DateTimeField(blank=True, null=True)
