@@ -7556,12 +7556,12 @@ def remove_candidate_from_process(request, process_id, candidate_id):
             "have been revoked. IMPORTANT: the Sova test link may still work. "
             "Contact Talent Qode to revoke it in Sova.",
         )
-    elif outcome == "deleted":
+    elif outcome == "removed_unsent":
         messages.success(
             request,
-            "Den oskickade inbjudan togs bort från projektet."
+            "Den oskickade inbjudan har tagits bort från den aktiva projektlistan."
             if (get_language() or "").startswith("sv")
-            else "The unsent invitation was removed from this project.",
+            else "The unsent invitation was removed from the active project list.",
         )
     else:
         messages.info(
