@@ -38,7 +38,7 @@ def has_assessment_history(invitation):
 def remove_candidate_from_project(*, invitation, actor):
     """Remove only this project membership, retain protected order/history.
 
-    Returns 'deleted', 'hidden', or 'already_removed'. Provider cancellation
+    Returns 'removed_unsent', 'hidden', or 'already_removed'. Provider cancellation
     is deliberately NOT attempted without a verified, authorised Sova API.
     """
     inv = (
@@ -51,19 +51,15 @@ def remove_candidate_from_project(*, invitation, actor):
 
     company = inv.process.company
     candidate = inv.candidate
-    if has_assessment_history(inv):
-        inv.removed_from_process_at = timezone.now()
-        inv.sova_revocation_state = "manual_pending"
-        inv.save(update_fields=["removed_from_process_at", "sova_revocation_state"])
-        # Candidate-facing report URLs and verification codes must stop working.
-        CandidateResultAccess.objects.filter(
-            snapshot__invitation=inv, revoked_at__isnull=True
-        ).update(revoked_at=inv.removed_from_process_at)
-        outcome = "hidden"
-    else:
-        # Old safe behavior: delete a never-ordered project invitation only.
-        inv.delete()
-        outcome = "deleted"
+    ordered = has_assessment_history(inv)
+    inv.removed_from_process_at = timezone.now()
+    inv.sova_revocation_state = "manual_pending" if ordered else "not_required"
+    inv.save(update_fields=["removed_from_process_at", "sova_revocation_state"])
+    # Candidate-facing report URLs and verification codes must stop working.
+    CandidateResultAccess.objects.filter(
+        snapshot__inv, revoked_at__isnull=True
+    ).update(revoked_at=inv.removed_from_process_at)
+    outcome = "hidden" if ordered else "removed_unsent"
 
     log_event(
         company=company,
