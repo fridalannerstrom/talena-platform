@@ -188,7 +188,7 @@ from apps.accounts.models import Company, CompanyMember, OrgUnit
 from apps.projects.models import ProjectMeta
 
 from apps.activity.models import ActivityEvent
-from apps.activity.services import log_event
+from apps.activity.services import log_event, customer_visible_activity
 
 from apps.reports.libraries.motivation.builder import (
     build_scores_by_competency,
@@ -7018,10 +7018,10 @@ def process_detail(request, pk):
         attach_test_statuses(invitations, project_tests, get_language() or "sv")
 
     activity_events = (
-        ActivityEvent.objects
-        .filter(company=company, process=process)
-        .select_related("actor", "candidate", "invitation")
-        [:50]
+        customer_visible_activity(
+            ActivityEvent.objects.filter(company=company, process=process)
+        )
+        .select_related("actor", "candidate", "invitation")[:50]
     )
 
     purpose_lookup = {
