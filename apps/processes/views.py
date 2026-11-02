@@ -7017,6 +7017,10 @@ def process_detail(request, pk):
         ).count()
 
     project_tests = [] if process.is_historical else project_test_columns(process, meta)
+    if not process.is_historical:
+        from apps.processes.services.candidate_project_removal import has_assessment_history
+        for invitation in invitations:
+            invitation.project_removal_has_history = has_assessment_history(invitation)
     if project_tests:
         attach_test_statuses(invitations, project_tests, get_language() or "sv")
 
