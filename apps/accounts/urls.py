@@ -83,6 +83,7 @@ urlpatterns = [
     path("processes/<int:pk>/", views.admin_process_detail, name="admin_process_detail"),
     path("processes/<int:pk>/send-tests/", views.admin_process_send_tests, name="admin_process_send_tests"),
     path("processes/<int:process_id>/remove/<int:candidate_id>/", views.admin_remove_candidate_from_process, name="admin_remove_candidate_from_process"),
+    path("processes/<int:process_id>/verify-sova-revocation/<int:candidate_id>/", views.admin_confirm_sova_revocation, name="admin_confirm_sova_revocation"),
     path("processes/<int:pk>/statuses/", views.admin_process_invitation_statuses, name="admin_process_invitation_statuses"),
     path(
     "processes/<int:pk>/add-candidate/",
