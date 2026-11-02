@@ -205,6 +205,8 @@ class TestInvitation(models.Model):
         Never log, export or copy an unvalidated/expired URL. Do not assume an
         expiry date that Sova has not supplied; use its explicit expired status.
         """
+        if self.removed_from_process_at:
+            return "missing"
         url = self.assessment_url or ""
         if not url.strip():
             return "missing"
