@@ -204,7 +204,7 @@ def candidate_list(request):
     # ---------------------------------------------------------
     live_memberships = list(
         TestInvitation.objects
-        .filter(process_id__in=accessible_process_ids)
+        .filter(process_id__in=accessible_process_ids, removed_from_process_at__isnull=True)
         .select_related("process")
     )
 
@@ -268,6 +268,7 @@ def candidate_list(request):
             .filter(
                 process_id__in=accessible_process_ids,
                 candidate_id__in=candidate_ids,
+                removed_from_process_at__isnull=True,
             )
             .values("candidate_id")
             .annotate(
