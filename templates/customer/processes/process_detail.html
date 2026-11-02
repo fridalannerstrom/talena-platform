@@ -458,20 +458,13 @@
                 The person is removed from the active candidate list. Ordered assessments, history and necessary billing records are retained with restricted access. Talena candidate-report links are revoked.
               {% endif %}
             </p>
-            <p class="text-danger fw-semibold">
-              {% if detail_language|slice:':2' == 'sv' %}
-                Viktigt: Sova-testlänken spärras INTE automatiskt. Den kan fortfarande fungera. Kontakta Talent Qode direkt för att få Sova-åtkomsten avaktiverad.
-              {% else %}
-                Important: the Sova assessment link is NOT automatically revoked and may still work. Contact Talent Qode promptly to disable access in Sova.
-              {% endif %}
-            </p>
           </div>
         </div>
         <div class="modal-footer process-duplicate-modal__footer">
           <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
             {% if detail_language|slice:':2' == 'sv' %}Avbryt{% else %}Cancel{% endif %}
           </button>
-          <button type="submit" class="btn btn-danger" id="removeCandidateSubmit">
+          <button type="submit" class="btn btn-dark" id="removeCandidateSubmit">
             <i data-feather="user-minus"></i>
             {% if detail_language|slice:':2' == 'sv' %}Ta bort från projekt{% else %}Remove from project{% endif %}
           </button>
