@@ -167,7 +167,7 @@ class ScopedRemovalTests(TestCase):
             "Sova-testlänken kan fortfarande fungera",
             " ".join(str(m) for m in get_messages(response.wsgi_request)),
         )
-        active = self.client.get(reverse("processes:process_detail", args=[self.project.pk]))
+        active = self.client.get(reverse("processes:process_detail", args=[self.project.pk]), HTTP_ACCEPT_LANGUAGE="sv")
         self.assertNotContains(active, 'data-candidate-id="' + str(self.candidate.pk) + '"')
         self.assertContains(active, "Sova-åtkomst ej bekräftat spärrad")
         detail = reverse("processes:process_candidate_detail", args=[self.project.pk, self.candidate.pk])
@@ -182,7 +182,7 @@ class ScopedRemovalTests(TestCase):
         self.invitation.save(update_fields=["status"])
         snapshot = CandidateResultSnapshot.objects.create(
             invitation=self.invitation, candidate=self.candidate,
-            process=self.project,
+            process=self.project, content={"sections": []},
         )
         access, _token, _code = create_candidate_result_access(snapshot)
         self.client.force_login(self.editor)
