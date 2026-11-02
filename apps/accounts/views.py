@@ -1848,10 +1848,16 @@ def admin_process_detail(request, pk):
 
     invitations = (
         TestInvitation.objects
-        .filter(process=process)
+        .filter(process=process, removed_from_process_at__isnull=True)
         .select_related("candidate")
         .prefetch_related("assessment_usages")
         .order_by("-created_at")
+    )
+
+    removed_invitations = (
+        TestInvitation.objects.filter(
+            process=process, removed_from_process_at__isnull=False
+        ).select_related("candidate").order_by("-removed_from_process_at")
     )
 
     # Snabb statistik
@@ -1869,6 +1875,7 @@ def admin_process_detail(request, pk):
     return render(request, "admin/accounts/customer/process_detail.html", {
         "process": process,
         "invitations": invitations,
+        "removed_invitations": removed_invitations,
         "project_tests": project_tests,
         "project_table_colspan": max(1, len(project_tests)) + 6,
         "status_counts": status_counts,
@@ -2935,6 +2942,32 @@ def admin_process_update(request, pk):
 
 @admin_required
 @require_POST
+def admin_confirm_sova_revocation(request, process_id, candidate_id):
+    """Manually record VERIFIED provider revocation; no API call is implied."""
+    if request.POST.get("verified_in_sova") != "yes":
+        return HttpResponseForbidden("Explicit verification in Sova required.")
+    invitation = get_object_or_404(
+        TestInvitation,
+        process_id=process_id, candidate_id=candidate_id,
+        removed_from_process_at__isnull=False,
+        sova_revocation_state="manual_pending",
+    )
+    invitation.sova_revocation_state = "confirmed"
+    invitation.save(update_fields=["sova_revocation_state"])
+    log_event(
+        company=invitation.process.company,
+        verb=ActivityEvent.Verb.CANDIDATE_REMOVED,
+        actor=request.user,
+        process=invitation.process,
+        candidate=invitation.candidate,
+        meta={"action": "sova_revocation_manually_verified"},
+    )
+    messages.success(request, "Bekräftad spärrning hos Sova har registrerats.")
+    return redirect("accounts:admin_process_detail", pk=process_id)
+
+
+@admin_required
+@require_POST
 def admin_remove_candidate_from_process(request, process_id, candidate_id):
     process = get_object_or_404(TestProcess, pk=process_id)
 
@@ -2943,8 +2976,16 @@ def admin_remove_candidate_from_process(request, process_id, candidate_id):
         process=process,
         candidate_id=candidate_id,
     )
-    invitation.delete()
-    messages.success(request, "Kandidaten togs bort från projektet.")
+    from apps.processes.services.candidate_project_removal import remove_candidate_from_project
+    outcome = remove_candidate_from_project(invitation=invitation, actor=request.user)
+    if outcome == "hidden":
+        messages.warning(
+            request,
+            "Borttagen från aktiva listan. Sova-testlänken är INTE automatiskt spärrad. "
+            "Kontakta Sova för manuell återkallelse.",
+        )
+    else:
+        messages.success(request, "Kandidaten togs bort från projektet.")
     return redirect("accounts:admin_process_detail", pk=process.id)
 
 
@@ -2966,7 +3007,8 @@ def admin_process_send_tests(request, pk):
 
     invitations = (
         TestInvitation.objects
-        .filter(process=process, id__in=invitation_ids)
+        .filter(process=process, id__in=invitation_ids,
+                removed_from_process_at__isnull=True)
         .select_related("candidate")
     )
 
@@ -3000,7 +3042,7 @@ def admin_process_invitation_statuses(request, pk):
 
     qs = (
         TestInvitation.objects
-        .filter(process=process)
+        .filter(process=process, removed_from_process_at__isnull=True)
         .select_related("candidate")
         .prefetch_related("assessment_usages")
         .order_by("created_at")
@@ -3281,7 +3323,7 @@ def company_process_detail(request, company_pk, process_pk):
 
     invitations = (
         TestInvitation.objects
-        .filter(process=process)
+        .filter(process=process, removed_from_process_at__isnull=True)
         .select_related("candidate")
         .prefetch_related("assessment_usages")
         .order_by("-created_at")

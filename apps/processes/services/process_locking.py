@@ -8,16 +8,29 @@ package must not change and the process must not be deleted.
 
 
 def has_ordered_assessments(process) -> bool:
-    """Return True once at least one SOVA assessment URL has been persisted."""
+    """True for persisted Sova orders, including failed deliveries without URLs."""
     if not process or not getattr(process, "pk", None):
         return False
 
-    return (
+    from django.db.models import Q
+
+    if (
         process.invitations
         .exclude(assessment_url__isnull=True)
         .exclude(assessment_url="")
         .exists()
-    )
+    ):
+        return True
+
+    # A failed email/order can still have a real Sova reference but no URL.
+    # Keep this protection even after the project membership was soft-removed.
+    return process.invitations.filter(
+        (Q(request_id__isnull=False) & ~Q(request_id=""))
+        | (Q(sova_request_id__isnull=False) & ~Q(sova_request_id=""))
+        | (Q(sova_invitation_id__isnull=False) & ~Q(sova_invitation_id=""))
+        | (Q(sova_payload__isnull=False) & ~Q(sova_payload={}))
+        | Q(assessment_usages__isnull=False)
+    ).exists()
 
 
 def is_test_package_locked(process) -> bool:

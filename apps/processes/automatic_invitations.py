@@ -146,7 +146,7 @@ def _flush_pending_automatic_invitations() -> None:
 
     invitations = list(
         TestInvitation.objects
-        .filter(pk__in=unique_ids)
+        .filter(pk__in=unique_ids, removed_from_process_at__isnull=True)
         .select_related("process", "candidate", "process__company")
         .order_by("pk")
     )

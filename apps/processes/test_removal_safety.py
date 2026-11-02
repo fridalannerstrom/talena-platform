@@ -77,11 +77,12 @@ class ScopedRemovalTests(TestCase):
             reverse("processes:process_detail", args=[self.project.pk]),
             fetch_redirect_response=False,
         )
-        self.assertFalse(TestInvitation.objects.filter(pk=self.invitation.pk).exists())
+        self.assertTrue(TestInvitation.objects.filter(pk=self.invitation.pk).exists())
+        self.assertIsNotNone(TestInvitation.objects.get(pk=self.invitation.pk).removed_from_process_at)
         self.assertTrue(Candidate.objects.filter(pk=self.candidate.pk).exists())
         self.assertTrue(TestInvitation.objects.filter(pk=self.other_invitation.pk).exists())
         self.assertIn(
-            "Kandidaten togs bort från projektet",
+            "Den oskickade inbjudan har tagits bort från den aktiva projektlistan",
             " ".join(str(m) for m in get_messages(response.wsgi_request)),
         )
 
@@ -129,6 +130,87 @@ class ScopedRemovalTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertTrue(TestInvitation.objects.filter(pk=self.invitation.pk).exists())
         self.assertTrue(AssessmentUsage.objects.filter(pk=usage.pk).exists())
+
+    def test_removed_unsent_candidate_remains_blocked_from_readding(self):
+        self.client.force_login(self.editor)
+        self.client.post(self.remove_url)
+        inv = TestInvitation.objects.get(pk=self.invitation.pk)
+        self.assertIsNotNone(inv.removed_from_process_at)
+        self.assertEqual(inv.sova_revocation_state, "not_required")
+        self.client.post(
+            reverse("processes:process_add_candidate", args=[self.project.pk]),
+            {"first_name": self.candidate.first_name,
+             "last_name": self.candidate.last_name, "email": self.candidate.email},
+        )
+        inv.refresh_from_db()
+        self.assertIsNotNone(inv.removed_from_process_at)
+
+    def test_ordered_removal_hides_from_project_but_retains_billing_and_sova_reference(self):
+        usage = AssessmentUsage.objects.create(
+            company=self.company, org_unit=self.unit, process=self.project,
+            candidate=self.candidate, invitation=self.invitation,
+            assessment_type="personality",
+        )
+        self.invitation.status = "sent"
+        self.invitation.assessment_url = "https://example.org/assessment"
+        self.invitation.save(update_fields=["status", "assessment_url"])
+        self.client.force_login(self.editor)
+        response = self.client.post(self.remove_url, HTTP_ACCEPT_LANGUAGE="sv")
+        self.assertEqual(response.status_code, 302)
+        self.invitation.refresh_from_db()
+        self.assertIsNotNone(self.invitation.removed_from_process_at)
+        self.assertEqual(self.invitation.sova_revocation_state, "manual_pending")
+        self.assertEqual(self.invitation.assessment_url, "https://example.org/assessment")
+        self.assertTrue(AssessmentUsage.objects.filter(pk=usage.pk).exists())
+        self.assertTrue(TestInvitation.objects.filter(pk=self.other_invitation.pk).exists())
+        self.assertIn(
+            "Sova-testlänken kan fortfarande fungera",
+            " ".join(str(m) for m in get_messages(response.wsgi_request)),
+        )
+        active = self.client.get(reverse("processes:process_detail", args=[self.project.pk]), HTTP_ACCEPT_LANGUAGE="sv")
+        self.assertNotContains(active, 'data-candidate-id="' + str(self.candidate.pk) + '"')
+        self.assertContains(active, "Sova-åtkomst ej bekräftat spärrad")
+        detail = reverse("processes:process_candidate_detail", args=[self.project.pk, self.candidate.pk])
+        self.assertEqual(self.client.get(detail).status_code, 404)
+        polling = self.client.get(reverse("processes:process_invitation_statuses", args=[self.project.pk]))
+        self.assertEqual(polling.json()["invitations"], [])
+
+    def test_removal_revokes_candidate_result_link_without_deleting_snapshot(self):
+        from apps.candidate_results.models import CandidateResultAccess, CandidateResultSnapshot
+        from apps.candidate_results.services import create_candidate_result_access
+        self.invitation.status = "completed"
+        self.invitation.save(update_fields=["status"])
+        snapshot = CandidateResultSnapshot.objects.create(
+            invitation=self.invitation, candidate=self.candidate,
+            process=self.project, content={"sections": []},
+        )
+        access, _token, _code = create_candidate_result_access(snapshot)
+        self.client.force_login(self.editor)
+        self.client.post(self.remove_url)
+        access.refresh_from_db()
+        self.assertIsNotNone(access.revoked_at)
+        self.assertTrue(CandidateResultSnapshot.objects.filter(pk=snapshot.pk).exists())
+
+    def test_removed_sova_invitation_cannot_be_readded_as_active_candidate(self):
+        self.invitation.status = "sent"
+        self.invitation.save(update_fields=["status"])
+        self.client.force_login(self.editor)
+        self.client.post(self.remove_url)
+        self.assertEqual(
+            TestInvitation.objects.get(pk=self.invitation.pk).sova_revocation_state,
+            "manual_pending",
+        )
+        self.client.post(
+            reverse("processes:process_add_candidate", args=[self.project.pk]),
+            {"first_name": self.candidate.first_name,
+             "last_name": self.candidate.last_name, "email": self.candidate.email},
+        )
+        self.assertIsNotNone(TestInvitation.objects.get(pk=self.invitation.pk).removed_from_process_at)
+        self.assertEqual(
+            TestInvitation.objects.filter(
+                process=self.project, removed_from_process_at__isnull=True,
+            ).count(), 0
+        )
 
     def test_active_project_delete_url_archives_not_purges(self):
         self.client.force_login(self.editor)
@@ -219,7 +301,7 @@ class ScopedRemovalTests(TestCase):
         )
         self.assertContains(response, 'id="removeCandidateModal"', count=1)
         self.assertContains(response, 'data-remove-candidate')
-        self.assertContains(response, 'data-can-remove="true"')
+        self.assertContains(response, 'data-ordered="false"')
 
     def test_candidate_removal_modal_uses_active_swedish_language(self):
         self.client.force_login(self.editor)
@@ -231,8 +313,9 @@ class ScopedRemovalTests(TestCase):
         markup = response.content.decode("utf-8")
         modal = markup.split('id="removeCandidateModal"', 1)[1]
         self.assertIn("Ta bort från projekt", modal)
-        self.assertIn("Kandidaten har beställda tester eller testhistorik", modal)
+        self.assertNotIn("Sova-testlänken spärras INTE automatiskt", modal)
         self.assertIn("Avbryt", modal)
+        self.assertIn('class="btn btn-dark" id="removeCandidateSubmit"', modal)
         self.assertNotIn("This candidate has ordered assessments", modal)
         self.assertNotIn("Remove from project", modal)
 
@@ -245,9 +328,9 @@ class ScopedRemovalTests(TestCase):
         self.assertEqual(response.status_code, 200)
         modal = response.content.decode("utf-8").split('id="removeCandidateModal"', 1)[1]
         self.assertIn("Remove from project", modal)
-        self.assertIn("This candidate has ordered assessments", modal)
+        self.assertNotIn("Sova assessment link is NOT automatically revoked", modal)
         self.assertIn("Cancel", modal)
-        self.assertNotIn("Kandidaten har beställda tester eller testhistorik", modal)
+        self.assertNotIn("Sova-testlänken spärras INTE automatiskt", modal)
 
     def test_project_list_archive_and_restore_have_localized_modal(self):
         self.client.force_login(self.editor)

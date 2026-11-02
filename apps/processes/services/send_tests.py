@@ -75,6 +75,16 @@ def send_assessments_and_emails(*, process, invitations, actor_user, context="cu
         if lang not in {"sv", "en"}:
             lang = "sv"
 
+        # Never reorder or email somebody deliberately removed from a project.
+        # Re-read because admin/automatic sends may hold stale invitation objects.
+        # A removal may have happened after the queryset was constructed.
+        is_removed = bool(getattr(inv, "removed_from_process_at", None))
+        if not is_removed and getattr(inv, "pk", None) and hasattr(inv, "refresh_from_db"):
+            inv.refresh_from_db(fields=["removed_from_process_at"])
+            is_removed = bool(inv.removed_from_process_at)
+        if is_removed:
+            skipped_count += 1
+            continue
         if inv.status in ("sent", "started", "completed"):
             skipped_count += 1
             continue
@@ -182,6 +192,18 @@ def send_assessments_and_emails(*, process, invitations, actor_user, context="cu
                 sent_at=usage_sent_at,
                 sova_request_id=request_id,
             )
+
+            # If removal raced with a Sova order, keep the Sova reference for
+            # billing/manual cancellation but never deliver another email.
+            if getattr(inv, "pk", None) and hasattr(inv, "refresh_from_db"):
+                inv.refresh_from_db(fields=["removed_from_process_at"])
+                if inv.removed_from_process_at:
+                    from apps.processes.models import TestInvitation
+                    TestInvitation.objects.filter(pk=inv.pk).update(
+                        sova_revocation_state="manual_pending",
+                    )
+                    skipped_count += 1
+                    continue
 
             # ---------------------------------------------------------
             # 2. Build and send invitation email.

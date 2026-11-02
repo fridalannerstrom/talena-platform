@@ -6928,6 +6928,7 @@ def process_detail(request, pk):
 
     can_edit = user_can_edit_process(request.user, company, process)
 
+    removed_invitations = TestInvitation.objects.none()
     if process.is_historical:
         invitations = TestInvitation.objects.none()
 
@@ -6968,6 +6969,7 @@ def process_detail(request, pk):
 
         invitations = (
             process.invitations
+            .filter(removed_from_process_at__isnull=True)
             .select_related("candidate")
             .prefetch_related("assessment_usages")
             .order_by("-created_at")
@@ -6979,6 +6981,12 @@ def process_detail(request, pk):
             .values_list("status", "c")
         )
 
+        removed_invitations = (
+            process.invitations
+            .filter(removed_from_process_at__isnull=False)
+            .select_related("candidate")
+            .order_by("-removed_from_process_at")
+        )
         total_candidates = invitations.count()
 
         invited_qs = invitations.filter(
@@ -7009,6 +7017,10 @@ def process_detail(request, pk):
         ).count()
 
     project_tests = [] if process.is_historical else project_test_columns(process, meta)
+    if not process.is_historical:
+        from apps.processes.services.candidate_project_removal import has_assessment_history
+        for invitation in invitations:
+            invitation.project_removal_has_history = has_assessment_history(invitation)
     if project_tests:
         attach_test_statuses(invitations, project_tests, get_language() or "sv")
 
@@ -7029,6 +7041,7 @@ def process_detail(request, pk):
     context = {
         "process": process,
         "invitations": invitations,
+        "removed_invitations": removed_invitations,
         "project_tests": project_tests,
         "project_table_colspan": max(1, len(project_tests)) + 2 + (2 if can_edit else 0),
         "historical_candidates": historical_candidates,
@@ -7105,6 +7118,16 @@ def process_add_candidate(request, pk):
                     invitation=invitation,
                     meta={"source": "invited"},
                 )
+
+            if not inv_created and invitation.removed_from_process_at:
+                msg = (
+                    "Personen har tidigare tagits bort från projektet. "
+                    "Kontakta Talent Qode om en ny inbjudan behövs."
+                )
+                if is_ajax:
+                    return JsonResponse({"ok": False, "message": msg}, status=409)
+                messages.warning(request, msg)
+                return redirect("processes:process_detail", pk=process.pk)
 
             if inv_created:
                 msg = f"{candidate.email} har lagts till i projektet."
@@ -7309,9 +7332,21 @@ def self_register(request, token):
                 meta={"source": "self_registered"},
             )
 
-        if not created and invitation.source != "self_registered":
+        if not created and not invitation.removed_from_process_at and invitation.source != "self_registered":
             invitation.source = "self_registered"
             invitation.save(update_fields=["source"])
+
+    if invitation.removed_from_process_at:
+        return render(request, "customer/processes/self_register_success.html", {
+            "process": process,
+            "message": (
+                "Det går inte att starta tester med denna registrering. "
+                "Kontakta den som skickade inbjudan."
+                if lang == "sv" else
+                "Assessments cannot be started with this registration. "
+                "Please contact the person who sent the invitation."
+            ),
+        })
 
     existing_url = invitation.assessment_url
     if not existing_url:
@@ -7492,66 +7527,50 @@ def remove_candidate_from_process(request, process_id, candidate_id):
     )
     detail_url = reverse("processes:process_detail", kwargs={"pk": process.pk})
 
-    # Until #307 is implemented, only remove an unstarted/unordered
-    # invitation. Preserve candidate account, other projects, Sova links and
-    # accounting history when assessments have already been ordered.
-    if (
-        invitation.assessment_url
-        or invitation.sova_request_id
-        or invitation.sova_project_id
-        or invitation.sova_invitation_id
-        or invitation.sova_payload
-        or invitation.project_results
-        or invitation.result_payload
-        or invitation.sova_reports
-        or invitation.sova_activities
-        or invitation.sova_phases
-        or invitation.status in ("sent", "started", "completed", "expired")
-        or invitation.assessment_usages.exists()
-    ):
-        messages.warning(
-            request,
-            "Kandidaten har beställda tester eller testhistorik och kan ännu inte "
-            "tas bort via den här funktionen. Inga uppgifter har raderats."
-            if (get_language() or "").startswith("sv")
-            else "This candidate has ordered assessments or test history and "
-            "cannot yet be removed here. No data was deleted.",
-        )
-        return redirect(detail_url)
-
-    candidate = invitation.candidate
-    try:
-        with transaction.atomic():
-            # The invitation relationship, not the global Candidate, is removed.
-            # Keep the activity event after deletion because its invitation FK
-            # would be deleted by Django's cascade otherwise.
-            invitation.delete()
-            log_event(
-                company=company,
-                verb=ActivityEvent.Verb.CANDIDATE_REMOVED,
-                actor=request.user,
-                process=process,
-                candidate=candidate,
-            )
-    except (ProtectedError, IntegrityError):
-        messages.warning(
-            request,
-            "Kandidaten kunde inte tas bort eftersom kopplade uppgifter måste bevaras. "
-            "Inga uppgifter har raderats."
-            if (get_language() or "").startswith("sv")
-            else "This candidate could not be removed because related records "
-            "must be retained. No data was deleted.",
-        )
-        return redirect(detail_url)
-
-    messages.success(
-        request,
-        "Kandidaten togs bort från projektet, men finns kvar i andra sammanhang."
-        if (get_language() or "").startswith("sv")
-        else "The candidate was removed from this project but remains in other contexts.",
+    # An ordered invitation must remain for billing, Sova callbacks and audit.
+    # Sova revocation is separate and MUST NOT be reported as completed here.
+    from apps.processes.services.candidate_project_removal import (
+        remove_candidate_from_project,
     )
-    return redirect(detail_url)
+    try:
+        outcome = remove_candidate_from_project(
+            invitation=invitation, actor=request.user,
+        )
+    except (ProtectedError, IntegrityError):
+        messages.error(
+            request,
+            "Kopplade uppgifter hindrade borttagningen. Inga uppgifter ändrades."
+            if (get_language() or "").startswith("sv")
+            else "Related records prevented removal. No data was changed.",
+        )
+        return redirect(detail_url)
 
+    if outcome == "hidden":
+        messages.warning(
+            request,
+            "Personen är borttagen från projektets aktiva lista och resultatlänkar "
+            "i Talena har spärrats. OBS: Sova-testlänken kan fortfarande fungera. "
+            "Kontakta Talent Qode för att spärra den hos Sova."
+            if (get_language() or "").startswith("sv")
+            else "The person is removed from the active list and Talena result links "
+            "have been revoked. IMPORTANT: the Sova test link may still work. "
+            "Contact Talent Qode to revoke it in Sova.",
+        )
+    elif outcome == "removed_unsent":
+        messages.success(
+            request,
+            "Den oskickade inbjudan har tagits bort från den aktiva projektlistan."
+            if (get_language() or "").startswith("sv")
+            else "The unsent invitation was removed from the active project list.",
+        )
+    else:
+        messages.info(
+            request,
+            "Personen är redan borttagen från projektet."
+            if (get_language() or "").startswith("sv")
+            else "This person was already removed from the project.",
+        )
+    return redirect(detail_url)
 
 @login_required
 def process_send_tests(request, pk):
@@ -7584,7 +7603,8 @@ def process_send_tests(request, pk):
 
     invitations = (
         TestInvitation.objects
-        .filter(process=process, id__in=invitation_ids)
+        .filter(process=process, id__in=invitation_ids,
+                removed_from_process_at__isnull=True)
         .select_related("candidate")
     )
 
@@ -7799,7 +7819,7 @@ def process_invitation_statuses(request, pk):
 
     qs = (
         TestInvitation.objects
-        .filter(process=process)
+        .filter(process=process, removed_from_process_at__isnull=True)
         .select_related("candidate")
         .prefetch_related("assessment_usages")
         .order_by("created_at")

@@ -191,6 +191,8 @@ def send_candidate_result_email(
     A resend rotates the token and verification code on the existing access
     row. It never creates a second active access record.
     """
+    if getattr(invitation, "removed_from_process_at", None):
+        raise ValueError("Candidate was removed from the project; no result email may be sent.")
     if not invitation.process.candidate_results_enabled:
         raise ValueError("Candidate results are not enabled for this process.")
     if invitation.status != "completed":

@@ -6,6 +6,7 @@ from .process_duplication import process_duplicate
 from .access_control import (
     process_edit_access_required,
     process_view_access_required,
+    active_candidate_membership_required,
 )
 from .automatic_invitations import (
     capture_automatic_candidate_invitations,
@@ -370,6 +371,10 @@ _PROCESS_EDIT_ROUTE_NAMES = {
 }
 
 for pattern in urlpatterns:
+    # Apply before the org-unit permissions wrapper, which remains the
+    # outermost guard and returns 403 for an unauthorized customer.
+    if "candidate_id" in str(pattern.pattern) and pattern.name != "remove_candidate_from_process":
+        pattern.callback = active_candidate_membership_required(pattern.callback)
     if pattern.name in _PROCESS_EDIT_ROUTE_NAMES:
         pattern.callback = process_edit_access_required(pattern.callback)
     elif pattern.name in _PROCESS_VIEW_ROUTE_NAMES:
