@@ -52,7 +52,7 @@ from django.shortcuts import get_object_or_404, render
 from apps.accounts.utils.org_access import get_effective_orgunit_permissions
 from django.db.models import Q, Count
 from apps.activity.models import ActivityEvent
-from apps.activity.services import log_event
+from apps.activity.services import log_event, customer_visible_activity
 
 from django.utils import timezone
 from django.views.decorators.http import require_POST
@@ -147,10 +147,11 @@ def customer_dashboard(request):
     accessible_process_ids = accessible_processes.values_list("id", flat=True)
 
     activity_events = (
-        ActivityEvent.objects
-        .filter(
-            company=company,
-            process_id__in=accessible_process_ids,
+        customer_visible_activity(
+            ActivityEvent.objects.filter(
+                company=company,
+                process_id__in=accessible_process_ids,
+            )
         )
         .select_related("actor", "process", "candidate", "invitation")
         .order_by("-created_at")[:10]
@@ -271,10 +272,11 @@ def customer_activity(request):
     )
 
     activity_queryset = (
-        ActivityEvent.objects
-        .filter(
-            company=company,
-            process_id__in=accessible_process_ids,
+        customer_visible_activity(
+            ActivityEvent.objects.filter(
+                company=company,
+                process_id__in=accessible_process_ids,
+            )
         )
         .select_related(
             "actor",

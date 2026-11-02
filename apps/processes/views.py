@@ -188,7 +188,7 @@ from apps.accounts.models import Company, CompanyMember, OrgUnit
 from apps.projects.models import ProjectMeta
 
 from apps.activity.models import ActivityEvent
-from apps.activity.services import log_event
+from apps.activity.services import log_event, customer_visible_activity
 
 from apps.reports.libraries.motivation.builder import (
     build_scores_by_competency,
@@ -6928,7 +6928,6 @@ def process_detail(request, pk):
 
     can_edit = user_can_edit_process(request.user, company, process)
 
-    removed_invitations = TestInvitation.objects.none()
     if process.is_historical:
         invitations = TestInvitation.objects.none()
 
@@ -6981,12 +6980,6 @@ def process_detail(request, pk):
             .values_list("status", "c")
         )
 
-        removed_invitations = (
-            process.invitations
-            .filter(removed_from_process_at__isnull=False)
-            .select_related("candidate")
-            .order_by("-removed_from_process_at")
-        )
         total_candidates = invitations.count()
 
         invited_qs = invitations.filter(
@@ -7025,10 +7018,10 @@ def process_detail(request, pk):
         attach_test_statuses(invitations, project_tests, get_language() or "sv")
 
     activity_events = (
-        ActivityEvent.objects
-        .filter(company=company, process=process)
-        .select_related("actor", "candidate", "invitation")
-        [:50]
+        customer_visible_activity(
+            ActivityEvent.objects.filter(company=company, process=process)
+        )
+        .select_related("actor", "candidate", "invitation")[:50]
     )
 
     purpose_lookup = {
@@ -7041,7 +7034,6 @@ def process_detail(request, pk):
     context = {
         "process": process,
         "invitations": invitations,
-        "removed_invitations": removed_invitations,
         "project_tests": project_tests,
         "project_table_colspan": max(1, len(project_tests)) + 2 + (2 if can_edit else 0),
         "historical_candidates": historical_candidates,

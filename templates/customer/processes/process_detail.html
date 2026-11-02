@@ -321,39 +321,6 @@
       </form>
     {% endif %}
 
-    {% if can_edit and removed_invitations %}
-      <div class="border-top p-3 px-md-4">
-        <h3 class="h6 mb-2">
-          {% if detail_language|slice:':2' == 'sv' %}Borttagna från projektet{% else %}Removed from project{% endif %}
-        </h3>
-        <p class="text-muted small mb-3">
-          {% if detail_language|slice:':2' == 'sv' %}
-            Dessa personer visas inte i kandidatlistan, men nödvändig testhistorik kan finnas kvar.
-          {% else %}
-            These people are no longer in the active candidate list, but necessary assessment history may be retained.
-          {% endif %}
-        </p>
-        {% for removed in removed_invitations %}
-          <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 py-2 border-top small">
-            <span>{{ removed.candidate.first_name }} {{ removed.candidate.last_name }}</span>
-            {% if removed.sova_revocation_state == "manual_pending" %}
-              <span class="text-danger fw-semibold">
-                {% if detail_language|slice:':2' == 'sv' %}
-                  Sova-åtkomst ej bekräftat spärrad. Kontakta Talent Qode.
-                {% else %}
-                  Sova access not confirmed revoked. Contact Talent Qode.
-                {% endif %}
-              </span>
-            {% elif removed.sova_revocation_state == "confirmed" %}
-              <span class="text-success">
-                {% if detail_language|slice:':2' == 'sv' %}Sova-spärr verifierad{% else %}Sova revocation verified{% endif %}
-              </span>
-            {% endif %}
-          </div>
-        {% endfor %}
-      </div>
-    {% endif %}
-
   </div>
 </div>
 

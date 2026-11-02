@@ -3329,6 +3329,14 @@ def company_process_detail(request, company_pk, process_pk):
         .order_by("-created_at")
     )
 
+    # Internal audit only. This queryset must never be sent to customer views.
+    removed_invitations = (
+        TestInvitation.objects.filter(
+            process=process,
+            removed_from_process_at__isnull=False,
+        ).select_related("candidate").order_by("-removed_from_process_at")
+    )
+
     historical_candidates = (
         HistoricalProcessCandidate.objects
         .filter(process=process)
@@ -3396,6 +3404,7 @@ def company_process_detail(request, company_pk, process_pk):
         "company": company,
         "process": process,
         "invitations": invitations,
+        "removed_invitations": removed_invitations,
         "project_tests": project_tests,
         "project_table_colspan": max(1, len(project_tests)) + 4,
         "historical_candidates": historical_candidates,

@@ -252,34 +252,7 @@
   </div>
 </div>
 
-{% if removed_invitations %}
-<div class="card mb-4">
-  <div class="card-header fw-semibold">Borttagna från projektet / Sova-uppföljning</div>
-  <div class="card-body">
-    <p class="small text-muted">
-      Historiken bevaras. En borttagning i Talena spärrar inte Sova-testlänken.
-      Verifiera avaktivering manuellt hos Sova före bekräftelse.
-    </p>
-    {% for removed in removed_invitations %}
-    <div class="d-flex justify-content-between align-items-center gap-3 border-top py-2 flex-wrap">
-      <span>{{ removed.candidate.first_name }} {{ removed.candidate.last_name }}</span>
-      {% if removed.sova_revocation_state == "manual_pending" %}
-      <form method="post" action="{% url 'accounts:admin_confirm_sova_revocation' process.id removed.candidate_id %}">
-        {% csrf_token %}
-        <input type="hidden" name="verified_in_sova" value="yes">
-        <button type="submit" class="btn btn-sm btn-outline-danger"
-                onclick="return confirm('Jag har själv kontrollerat att teståtkomsten är spärrad hos Sova. Bekräfta?');">
-          Bekräfta verifierad Sova-spärr
-        </button>
-      </form>
-      {% else %}
-      <span class="text-success small">Sova-spärr verifierad / ingen beställning</span>
-      {% endif %}
-    </div>
-    {% endfor %}
-  </div>
-</div>
-{% endif %}
+{% include "admin/accounts/partials/_removed_candidate_history.html" %}
 
 <div class="modal fade" id="addCandidateModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
