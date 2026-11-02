@@ -16,6 +16,7 @@ class ProcessLockingTests(SimpleTestCase):
         invitations.exclude.return_value.exclude.return_value.exists.return_value = (
             has_assessment_url
         )
+        invitations.filter.return_value.exists.return_value = False
 
         return SimpleNamespace(
             pk=123,
@@ -39,6 +40,12 @@ class ProcessLockingTests(SimpleTestCase):
             model_can_delete=True,
         )
 
+        self.assertFalse(can_delete_process_safely(process))
+
+    def test_sova_reference_without_url_still_blocks_project_deletion(self):
+        process = self._process(has_assessment_url=False)
+        process.invitations.filter.return_value.exists.return_value = True
+        self.assertTrue(has_ordered_assessments(process))
         self.assertFalse(can_delete_process_safely(process))
 
     def test_unstarted_process_keeps_existing_model_rules(self):
