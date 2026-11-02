@@ -7332,7 +7332,7 @@ def self_register(request, token):
                 meta={"source": "self_registered"},
             )
 
-        if not created and invitation.source != "self_registered":
+        if not created and not invitation.removed_from_process_at and invitation.source != "self_registered":
             invitation.source = "self_registered"
             invitation.save(update_fields=["source"])
 
