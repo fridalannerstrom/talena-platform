@@ -95,3 +95,28 @@ def process_edit_access_required(view_func):
         return view_func(request, *args, **kwargs)
 
     return wrapped
+
+
+def active_candidate_membership_required(view_func):
+    """Block direct customer candidate/AI URLs after project soft-removal.
+
+    History remains available internally for lawful billing and provider
+    reconciliation, not through the active project candidate endpoints.
+    """
+    @wraps(view_func)
+    def wrapped(request, *args, **kwargs):
+        candidate_id = kwargs.get("candidate_id")
+        process = _get_process_from_kwargs(kwargs)
+        if candidate_id is not None and process is not None and not process.is_historical:
+            from django.http import Http404
+            from apps.processes.models import TestInvitation
+
+            if not TestInvitation.objects.filter(
+                process=process,
+                candidate_id=candidate_id,
+                removed_from_process_at__isnull=True,
+            ).exists():
+                raise Http404("Candidate not active in project")
+        return view_func(request, *args, **kwargs)
+
+    return wrapped
