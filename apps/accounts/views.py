@@ -2942,6 +2942,32 @@ def admin_process_update(request, pk):
 
 @admin_required
 @require_POST
+def admin_confirm_sova_revocation(request, process_id, candidate_id):
+    """Manually record VERIFIED provider revocation; no API call is implied."""
+    if request.POST.get("verified_in_sova") != "yes":
+        return HttpResponseForbidden("Explicit verification in Sova required.")
+    invitation = get_object_or_404(
+        TestInvitation,
+        process_id=process_id, candidate_id=candidate_id,
+        removed_from_process_at__isnull=False,
+        sova_revocation_state="manual_pending",
+    )
+    invitation.sova_revocation_state = "confirmed"
+    invitation.save(update_fields=["sova_revocation_state"])
+    log_event(
+        company=invitation.process.company,
+        verb=ActivityEvent.Verb.CANDIDATE_REMOVED,
+        actor=request.user,
+        process=invitation.process,
+        candidate=invitation.candidate,
+        meta={"action": "sova_revocation_manually_verified"},
+    )
+    messages.success(request, "Bekräftad spärrning hos Sova har registrerats.")
+    return redirect("accounts:admin_process_detail", pk=process_id)
+
+
+@admin_required
+@require_POST
 def admin_remove_candidate_from_process(request, process_id, candidate_id):
     process = get_object_or_404(TestProcess, pk=process_id)
 
