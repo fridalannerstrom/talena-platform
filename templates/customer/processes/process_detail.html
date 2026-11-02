@@ -267,7 +267,7 @@
                         data-remove-candidate
                         data-remove-url="{% url 'processes:remove_candidate_from_process' process.id inv.candidate_id %}"
                         data-remove-name="{{ inv.candidate.first_name }} {{ inv.candidate.last_name }}"
-                        data-ordered="{% if inv.assessment_url or inv.sova_request_id or inv.sova_project_id or inv.sova_invitation_id or inv.status == 'sent' or inv.status == 'started' or inv.status == 'completed' or inv.status == 'expired' %}true{% else %}false{% endif %}"
+                        data-ordered="{% if inv.project_removal_has_history %}true{% else %}false{% endif %}"
                         aria-label="{% if detail_language|slice:':2' == 'sv' %}Ta bort från projekt{% else %}Remove from project{% endif %}"
                         title="{% if detail_language|slice:':2' == 'sv' %}Ta bort från projekt{% else %}Remove from project{% endif %}"
                       >
