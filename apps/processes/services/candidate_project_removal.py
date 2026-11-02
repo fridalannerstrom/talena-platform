@@ -18,6 +18,9 @@ def has_assessment_history(invitation):
     return bool(
         invitation.assessment_url
         or invitation.sova_request_id
+        or invitation.request_id
+        or invitation.sova_candidate_id
+        or invitation.sova_order_id
         or invitation.sova_project_id
         or invitation.sova_invitation_id
         or invitation.sova_payload
