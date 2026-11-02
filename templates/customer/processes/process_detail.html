@@ -267,7 +267,7 @@
                         data-remove-candidate
                         data-remove-url="{% url 'processes:remove_candidate_from_process' process.id inv.candidate_id %}"
                         data-remove-name="{{ inv.candidate.first_name }} {{ inv.candidate.last_name }}"
-                        data-can-remove="{% if inv.assessment_url or inv.sova_request_id or inv.sova_project_id or inv.sova_invitation_id or inv.status == 'sent' or inv.status == 'started' or inv.status == 'completed' or inv.status == 'expired' %}false{% else %}true{% endif %}"
+                        data-ordered="{% if inv.assessment_url or inv.sova_request_id or inv.sova_project_id or inv.sova_invitation_id or inv.status == 'sent' or inv.status == 'started' or inv.status == 'completed' or inv.status == 'expired' %}true{% else %}false{% endif %}"
                         aria-label="{% if detail_language|slice:':2' == 'sv' %}Ta bort från projekt{% else %}Remove from project{% endif %}"
                         title="{% if detail_language|slice:':2' == 'sv' %}Ta bort från projekt{% else %}Remove from project{% endif %}"
                       >
@@ -319,6 +319,39 @@
 
     {% if not process.is_historical %}
       </form>
+    {% endif %}
+
+    {% if removed_invitations %}
+      <div class="border-top p-3 px-md-4">
+        <h3 class="h6 mb-2">
+          {% if detail_language|slice:':2' == 'sv' %}Borttagna från projektet{% else %}Removed from project{% endif %}
+        </h3>
+        <p class="text-muted small mb-3">
+          {% if detail_language|slice:':2' == 'sv' %}
+            Dessa personer visas inte i kandidatlistan, men nödvändig testhistorik kan finnas kvar.
+          {% else %}
+            These people are no longer in the active candidate list, but necessary assessment history may be retained.
+          {% endif %}
+        </p>
+        {% for removed in removed_invitations %}
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 py-2 border-top small">
+            <span>{{ removed.candidate.first_name }} {{ removed.candidate.last_name }}</span>
+            {% if removed.sova_revocation_state == "manual_pending" %}
+              <span class="text-danger fw-semibold">
+                {% if detail_language|slice:':2' == 'sv' %}
+                  Sova-åtkomst ej bekräftat spärrad. Kontakta Talent Qode.
+                {% else %}
+                  Sova access not confirmed revoked. Contact Talent Qode.
+                {% endif %}
+              </span>
+            {% elif removed.sova_revocation_state == "confirmed" %}
+              <span class="text-success">
+                {% if detail_language|slice:':2' == 'sv' %}Sova-spärr verifierad{% else %}Sova revocation verified{% endif %}
+              </span>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
     {% endif %}
 
   </div>
@@ -412,18 +445,27 @@
         <div class="modal-body process-duplicate-modal__body">
           <p id="removeCandidateSafe">
             {% if detail_language|slice:':2' == 'sv' %}
-              Kandidaten och den oskickade inbjudan tas bort från det här projektet. Kandidaten finns kvar i andra projekt och team. Det här är inte en fullständig GDPR-radering.
+              Personen och en oskickad inbjudan tas bort från detta projekt. Ingen fullständig GDPR-radering görs.
             {% else %}
-              The candidate and unsent invitation are removed from this project. The candidate stays in other projects and teams. This is not full GDPR erasure.
+              This person and an unsent invitation will be removed from this project. This is not GDPR erasure.
             {% endif %}
           </p>
-          <p id="removeCandidateBlocked" hidden>
-            {% if detail_language|slice:':2' == 'sv' %}
-              Kandidaten har beställda tester eller testhistorik som måste bevaras. Borttagning är ännu inte tillgänglig för den här kandidaten. Inga uppgifter ändras.
-            {% else %}
-              This candidate has ordered assessments or test history that must be retained. Removal is not yet available for this candidate. No data will be changed.
-            {% endif %}
-          </p>
+          <div id="removeCandidateOrdered" hidden>
+            <p>
+              {% if detail_language|slice:':2' == 'sv' %}
+                Personen tas bort från den aktiva kandidatlistan. Beställda tester, historik och nödvändigt faktureringsunderlag sparas med begränsad åtkomst. Eventuella kandidatrapportlänkar i Talena spärras.
+              {% else %}
+                The person is removed from the active candidate list. Ordered assessments, history and necessary billing records are retained with restricted access. Talena candidate-report links are revoked.
+              {% endif %}
+            </p>
+            <p class="text-danger fw-semibold">
+              {% if detail_language|slice:':2' == 'sv' %}
+                Viktigt: Sova-testlänken spärras INTE automatiskt. Den kan fortfarande fungera. Kontakta Talent Qode direkt för att få Sova-åtkomsten avaktiverad.
+              {% else %}
+                Important: the Sova assessment link is NOT automatically revoked and may still work. Contact Talent Qode promptly to disable access in Sova.
+              {% endif %}
+            </p>
+          </div>
         </div>
         <div class="modal-footer process-duplicate-modal__footer">
           <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
@@ -445,19 +487,19 @@ document.addEventListener("DOMContentLoaded", function () {
   const form = document.getElementById("removeCandidateForm");
   const name = document.getElementById("removeCandidateName");
   const safe = document.getElementById("removeCandidateSafe");
-  const blocked = document.getElementById("removeCandidateBlocked");
+  const ordered = document.getElementById("removeCandidateOrdered");
   const submit = document.getElementById("removeCandidateSubmit");
 
   modal.addEventListener("show.bs.modal", function (event) {
     const trigger = event.relatedTarget;
     if (!trigger || !trigger.matches("[data-remove-candidate]")) return;
-    const canRemove = trigger.dataset.canRemove === "true";
+    const hasOrdered = trigger.dataset.ordered === "true";
     form.action = trigger.dataset.removeUrl || "";
     name.textContent = trigger.dataset.removeName || "";
-    safe.hidden = !canRemove;
-    blocked.hidden = canRemove;
-    submit.hidden = !canRemove;
-    submit.disabled = !canRemove;
+    safe.hidden = hasOrdered;
+    ordered.hidden = !hasOrdered;
+    submit.hidden = false;
+    submit.disabled = false;
   });
 });
 </script>
