@@ -99,6 +99,42 @@ class ScopedRemovalTests(TestCase):
         self.assertEqual(self.client.get(self.remove_url).status_code, 405)
         self.assertTrue(TestInvitation.objects.filter(pk=self.invitation.pk).exists())
 
+    def test_removal_row_lock_does_not_join_related_nullable_tables(self):
+        """The first locked SELECT must target TestInvitation alone.
+
+        PostgreSQL raises FeatureNotSupported when FOR UPDATE applies to
+        the nullable side of an outer join. Assert the actual SQL shape so
+        SQLite-based CI also catches a future select_related regression.
+        """
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+        from apps.processes.services.candidate_project_removal import (
+            remove_candidate_from_project,
+        )
+
+        self.invitation.status = "sent"
+        self.invitation.assessment_url = "https://example.org/assessment"
+        self.invitation.save(update_fields=["status", "assessment_url"])
+
+        with CaptureQueriesContext(connection) as captured:
+            result = remove_candidate_from_project(
+                invitation=self.invitation, actor=self.editor,
+            )
+
+        selects = [
+            query["sql"]
+            for query in captured.captured_queries
+            if 'FROM "processes_testinvitation"' in query["sql"]
+            and query["sql"].lstrip().upper().startswith("SELECT")
+        ]
+        self.assertTrue(selects, "Expected a direct TestInvitation SELECT")
+        self.assertNotIn(" JOIN ", selects[0].upper())
+        if connection.features.has_select_for_update:
+            self.assertIn("FOR UPDATE", selects[0].upper())
+        self.assertEqual(result, "hidden")
+        self.invitation.refresh_from_db()
+        self.assertIsNotNone(self.invitation.removed_from_process_at)
+
     def test_ordered_assessment_is_not_removed(self):
         self.invitation.status = "failed"
         self.invitation.assessment_url = "https://example.org/assessment"

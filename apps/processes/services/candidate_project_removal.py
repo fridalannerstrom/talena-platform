@@ -40,9 +40,11 @@ def remove_candidate_from_project(*, invitation, actor):
     Returns 'removed_unsent', 'hidden', or 'already_removed'. Provider cancellation
     is deliberately NOT attempted without a verified, authorised Sova API.
     """
+    # PostgreSQL rejects FOR UPDATE on the nullable side of an OUTER JOIN.
+    # Lock only the invitation row; related objects are fetched separately
+    # below, outside the locked SELECT. Do not add select_related() here.
     inv = (
         TestInvitation.objects.select_for_update()
-        .select_related("process__company", "candidate")
         .get(pk=invitation.pk, process_id=invitation.process_id)
     )
     if inv.removed_from_process_at:
