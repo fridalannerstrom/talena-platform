@@ -35,7 +35,14 @@ LABELS_STATUS = {
 # Presentation-only, stroke-based SVG paths for compact status indicators.
 # These are fixed server-owned icons, never derived from Sova payloads.
 ICON_PATHS = {
-    "not_sent": "M22 2 11 13 M22 2l-7 20-4-9-9-4Z",
+    # An envelope with a small clock: the invitation is awaiting dispatch.
+    # Unlike a paper plane, this must not suggest that it was already sent.
+    "not_sent": (
+        "M18 9V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h7 "
+        "M2 7l9 6 7-5 "
+        "M20 17a4 4 0 1 1-8 0 4 4 0 0 1 8 0 "
+        "M16 15v2l1.5 1"
+    ),
     "not_started": "M12 2a10 10 0 1 0 0 20a10 10 0 1 0 0-20 M12 7v5l3 2",
     "started": "M12 2a10 10 0 1 0 0 20a10 10 0 1 0 0-20 M10 8l6 4-6 4Z",
     "completed": "M5 12l5 5L20 7",
