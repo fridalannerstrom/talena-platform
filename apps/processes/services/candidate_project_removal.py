@@ -56,7 +56,7 @@ def remove_candidate_from_project(*, invitation, actor):
     inv.save(update_fields=["removed_from_process_at", "sova_revocation_state"])
     # Candidate-facing report URLs and verification codes must stop working.
     CandidateResultAccess.objects.filter(
-        snapshot__inv, revoked_at__isnull=True
+        snapshot__invitation=inv, revoked_at__isnull=True
     ).update(revoked_at=inv.removed_from_process_at)
     outcome = "hidden" if ordered else "removed_unsent"
 
