@@ -321,7 +321,7 @@
       </form>
     {% endif %}
 
-    {% if removed_invitations %}
+    {% if can_edit and removed_invitations %}
       <div class="border-top p-3 px-md-4">
         <h3 class="h6 mb-2">
           {% if detail_language|slice:':2' == 'sv' %}Borttagna från projektet{% else %}Removed from project{% endif %}
