@@ -77,11 +77,12 @@ class ScopedRemovalTests(TestCase):
             reverse("processes:process_detail", args=[self.project.pk]),
             fetch_redirect_response=False,
         )
-        self.assertFalse(TestInvitation.objects.filter(pk=self.invitation.pk).exists())
+        self.assertTrue(TestInvitation.objects.filter(pk=self.invitation.pk).exists())
+        self.assertIsNotNone(TestInvitation.objects.get(pk=self.invitation.pk).removed_from_process_at)
         self.assertTrue(Candidate.objects.filter(pk=self.candidate.pk).exists())
         self.assertTrue(TestInvitation.objects.filter(pk=self.other_invitation.pk).exists())
         self.assertIn(
-            "Den oskickade inbjudan togs bort från projektet",
+            "Den oskickade inbjudan har tagits bort från den aktiva projektlistan",
             " ".join(str(m) for m in get_messages(response.wsgi_request)),
         )
 
@@ -129,6 +130,20 @@ class ScopedRemovalTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertTrue(TestInvitation.objects.filter(pk=self.invitation.pk).exists())
         self.assertTrue(AssessmentUsage.objects.filter(pk=usage.pk).exists())
+
+    def test_removed_unsent_candidate_remains_blocked_from_readding(self):
+        self.client.force_login(self.editor)
+        self.client.post(self.remove_url)
+        inv = TestInvitation.objects.get(pk=self.invitation.pk)
+        self.assertIsNotNone(inv.removed_from_process_at)
+        self.assertEqual(inv.sova_revocation_state, "not_required")
+        self.client.post(
+            reverse("processes:process_add_candidate", args=[self.project.pk]),
+            {"first_name": self.candidate.first_name,
+             "last_name": self.candidate.last_name, "email": self.candidate.email},
+        )
+        inv.refresh_from_db()
+        self.assertIsNotNone(inv.removed_from_process_at)
 
     def test_ordered_removal_hides_from_project_but_retains_billing_and_sova_reference(self):
         usage = AssessmentUsage.objects.create(
