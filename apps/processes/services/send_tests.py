@@ -75,6 +75,17 @@ def send_assessments_and_emails(*, process, invitations, actor_user, context="cu
         if lang not in {"sv", "en"}:
             lang = "sv"
 
+        # Never reorder or email somebody deliberately removed from a project.
+        # Re-read because admin/automatic sends may hold stale invitation objects.
+        if (
+            getattr(inv, "removed_from_process_at", None)
+            or type(inv).objects.filter(
+                pk=inv.pk, removed_from_process_at__isnull=False
+            ).exists() if getattr(inv, "pk", None) and hasattr(type(inv), "objects")
+            else bool(getattr(inv, "removed_from_process_at", None))
+        ):
+            skipped_count += 1
+            continue
         if inv.status in ("sent", "started", "completed"):
             skipped_count += 1
             continue
