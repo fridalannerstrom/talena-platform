@@ -466,6 +466,8 @@ def manage_candidate_result(request, invitation_id: int):
             )
         )
 
+    if invitation.removed_from_process_at:
+        return HttpResponseForbidden("Candidate has been removed from this project.")
     action = (request.POST.get("action") or "").strip()
 
     if action == "send":
