@@ -19,6 +19,144 @@ from apps.core.integrations.integrity_guard import (
 from apps.processes.models import Candidate, TestInvitation, TestProcess
 
 
+
+# Shape confirmed from a 2026-11-03 Sova production score callback.
+# All names and results here are synthetic. Never commit raw candidate payloads.
+REAL_SOVA_GUARD_SHAPE = {
+    "status": 2,
+    "status_description": "Concerns Detected",
+    "integrity_findings": [
+        {
+            "diagnostic": 1, "diagnostic_status": 1,
+            "activities": [
+                {"activity": "TQ Personality", "status": 1},
+                {"activity": "TQ Motivation", "status": 1},
+            ],
+        },
+        {
+            "diagnostic": 2, "diagnostic_status": 1,
+            "activities": [
+                {"activity": "TQ Personality", "status": 1},
+                {"activity": "TQ Motivation", "status": 1},
+            ],
+        },
+        {
+            "diagnostic": 3, "diagnostic_status": 1,
+            "activities": [
+                {"activity": "TQ Personality", "status": 1},
+                {"activity": "TQ Motivation", "status": 1},
+            ],
+        },
+        {
+            "diagnostic": 4, "diagnostic_status": 2,
+            "activities": [
+                {"activity": "TQ Personality", "status": 2},
+                {"activity": "TQ Motivation", "status": 2},
+                {"activity": "TQ Verbal Reasoning", "status": 1},
+                {"activity": "TQ Numerical Reasoning", "status": 2},
+                {"activity": "TQ Logical Reasoning", "status": 1},
+            ],
+        },
+    ],
+}
+
+
+class RealSovaIntegrityFindingsTests(SimpleTestCase):
+    def _parsed(self):
+        return extract_integrity_guard({
+            "overall_status": "completed",  # overall assessment status, not Guard
+            "integrity_guard": REAL_SOVA_GUARD_SHAPE,
+        })
+
+    def test_parses_four_numeric_diagnostics_with_per_test_states(self):
+        data = self._parsed()
+        self.assertEqual(data["overall_status"], 2)
+        self.assertEqual(data["diagnostics"], {
+            "ip_address": 1,
+            "devices_used": 1,
+            "browser_patrolling": 1,
+            "question_engagement": 2,
+        })
+        self.assertEqual(len(data["sources"]), 1)
+        findings = data["sources"][0]["findings"]
+        self.assertEqual(len(findings), 4)
+        self.assertEqual(findings[3]["activities"][0], {
+            "name": "TQ Personality", "status": 2,
+        })
+
+    def test_display_matches_real_sova_recruiter_icons(self):
+        display = integrity_guard_for_display(self._parsed())
+        self.assertEqual(display["state"], "concern")
+        checks = display["entries"][0]["diagnostics"]
+        self.assertEqual(
+            [item["name_sv"] for item in checks],
+            ["IP-adress", "Använda enheter", "Byte av flik eller webbläsare", "Svarsmönster"],
+        )
+        self.assertEqual([item["state"] for item in checks], [
+            "clear", "clear", "clear", "concern",
+        ])
+        self.assertEqual(
+            {item["name"]: item["state"] for item in checks[3]["activities"]},
+            {
+                "TQ Personality": "concern",
+                "TQ Motivation": "concern",
+                "TQ Verbal Reasoning": "clear",
+                "TQ Numerical Reasoning": "concern",
+                "TQ Logical Reasoning": "clear",
+            },
+        )
+
+    def test_existing_invitation_uses_original_payload_without_retake(self):
+        legacy_stored = {
+            "overall_status": 2,
+            "overall_description": "Concerns Detected",
+            "diagnostics": {},
+            "sources": [{
+                "path": "payload.integrity_guard",
+                "overall_status": 2,
+                "overall_description": "Concerns Detected",
+                "diagnostics": {},
+            }],
+        }
+        invitation = TestInvitation(
+            integrity_guard=legacy_stored,
+            sova_payload={"integrity_guard": REAL_SOVA_GUARD_SHAPE},
+        )
+        self.assertEqual(len(invitation.integrity_guard_display["entries"][0]["diagnostics"]), 4)
+        self.assertEqual(invitation.integrity_guard, legacy_stored)
+
+    def test_unknown_diagnostic_kept_neutral_without_guessing_label(self):
+        value = {"integrity_guard": {
+            "status": 2,
+            "integrity_findings": [{
+                "diagnostic": 99, "diagnostic_status": 2,
+                "activities": [{"activity": "PQ", "status": 2}],
+            }],
+        }}
+        entry = integrity_guard_for_display(extract_integrity_guard(value))["entries"][0]
+        self.assertEqual(entry["diagnostics"][0]["name_sv"], "Kontroll 99")
+        self.assertEqual(entry["diagnostics"][0]["activities"][0]["state"], "concern")
+
+    def test_does_not_infer_individual_states_from_overall_warning(self):
+        value = {"integrity_guard": {
+            "status": 2,
+            "integrity_findings": [{
+                "diagnostic": 4, "diagnostic_status": 2,
+                "activities": [{"activity": "Personality"}],
+            }],
+        }}
+        entry = integrity_guard_for_display(extract_integrity_guard(value))["entries"][0]
+        self.assertEqual(entry["diagnostics"][0]["state"], "concern")
+        self.assertEqual(entry["diagnostics"][0]["activities"], [])
+
+    def test_non_guard_personality_competency_does_not_get_parsed(self):
+        self.assertIsNone(extract_integrity_guard({
+            "activities": [{"activity": "PQ", "competencies": [
+                {"competency": "Integrity", "sten": 5, "status": 2},
+            ]}],
+        }))
+
+
 class IntegrityGuardParserTests(SimpleTestCase):
     def test_nested_camelcase_and_list_diagnostics(self):
         payload = {
@@ -188,6 +326,32 @@ class IntegrityGuardTemplateTests(SimpleTestCase):
         self.assertIn("Monitoring error", en)
         self.assertIn("No AI interpretation is used.", en)
 
+    def test_real_sova_findings_render_all_checks_in_both_languages(self):
+        invitation = TestInvitation(
+            integrity_guard={},
+            sova_payload={"integrity_guard": REAL_SOVA_GUARD_SHAPE},
+        )
+        with override("sv"):
+            html = render_to_string(
+                "customer/processes/partials/_integrity_guard_panel.html",
+                {"invitation": invitation},
+            )
+        self.assertIn("Svarsmönster", html)
+        self.assertIn("IP-adress", html)
+        self.assertIn("TQ Personality", html)
+        self.assertIn("TQ Numerical Reasoning", html)
+        self.assertIn("Avvikelse", html)
+        self.assertIn("Övervakade tester", html)
+        self.assertNotIn("Concerns Detected", html)
+        with override("en"):
+            english = render_to_string(
+                "customer/processes/partials/_integrity_guard_panel.html",
+                {"invitation": invitation},
+            )
+        self.assertIn("Question engagement", english)
+        self.assertIn("Monitored assessments", english)
+        self.assertIn("Concern", english)
+
     def test_missing_guard_has_no_panel(self):
         self.assertNotIn('data-integrity-guard-panel', self.render_panel({}))
 
@@ -284,6 +448,17 @@ class IntegrityGuardIngestTests(TestCase):
         self.assertEqual(self.invitation.integrity_guard["overall_description"], "Review this test")
         self.assertEqual(self.invitation.integrity_guard["diagnostics"]["browser_patrolling"], 2)
         self.assertIn("project_scores", self.invitation.project_results)
+
+    def test_production_sova_findings_shape_persists_without_other_result_changes(self):
+        response = self.post({"integrity_guard": REAL_SOVA_GUARD_SHAPE})
+        self.assertEqual(response.status_code, 200)
+        self.invitation.refresh_from_db()
+        data = self.invitation.integrity_guard
+        self.assertEqual(data["overall_status"], 2)
+        self.assertEqual(len(data["sources"][0]["findings"]), 4)
+        self.assertEqual(data["diagnostics"]["question_engagement"], 2)
+        self.assertEqual(len(data["sources"][0]["findings"][3]["activities"]), 5)
+        self.assertIsNone(self.invitation.project_results)
 
     def test_missing_guard_never_breaks_or_erases_previous_value(self):
         self.assertEqual(self.post({"integrity_guard_status": 0}).status_code, 200)
