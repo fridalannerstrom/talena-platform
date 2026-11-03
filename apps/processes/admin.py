@@ -142,7 +142,7 @@ class TestInvitationAdmin(admin.ModelAdmin):
         ("SOVA status", {"fields": ("sova_overall_status", "sova_current_phase_code", "sova_current_phase_idx")}),
         ("SOVA identifiers", {"fields": ("request_id", "sova_invitation_id", "sova_project_id")}),
         ("Webhook debug (latest payload)", {"fields": ("sova_payload",)}),
-        ("Results", {"fields": ("overall_score", "project_results")}),
+        ("Results", {"fields": ("overall_score", "project_results", "integrity_guard")}),
         ("Timestamps", {"fields": ("created_at", "invited_at", "completed_at")}),
     )
 
