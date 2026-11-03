@@ -198,6 +198,11 @@ class TestInvitation(models.Model):
         }.get(self.status, self.status)
     
     @property
+    def integrity_guard_display(self):
+        from apps.core.integrations.integrity_guard import integrity_guard_for_display
+        return integrity_guard_for_display(self.integrity_guard)
+
+    @property
     def assessment_link_state(self):
         """Controls disclosure of the candidate-specific assessment URL.
 
@@ -242,6 +247,7 @@ class TestInvitation(models.Model):
     sova_project_id = models.IntegerField(null=True, blank=True)   
     overall_score = models.FloatField(null=True, blank=True)
     project_results = models.JSONField(null=True, blank=True)
+    integrity_guard = models.JSONField(default=dict, blank=True)
 
     # Project removal is a reversible visibility/access decision, not GDPR erasure.
     # Keep Sova and billing history attached to this invitation.
