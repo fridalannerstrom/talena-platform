@@ -405,6 +405,7 @@
 >
                     {{ inv.candidate.name|default:inv.candidate.email }}
                   </a>
+                  {% include "customer/processes/partials/_integrity_guard_badge.html" with inv=inv %}
                 {% else %}
                   <span class="text-muted">Unknown candidate</span>
                 {% endif %}
