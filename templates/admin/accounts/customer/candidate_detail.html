@@ -1,5 +1,6 @@
 {% extends "admin/core/layouts/admin_base.html" %}
-{% load i18n %}
+{% load static i18n %}
+<link rel="stylesheet" href="{% static 'css/talena/pages/integrity-guard.css' %}?v=20261103-ig1">
 {% get_current_language as candidate_ui_language %}
 {% block title %}{{ candidate.first_name }} {{ candidate.last_name }} | Talena Admin{% endblock %}
 
@@ -262,6 +263,7 @@
             </div>
 
           </div>
+          {% include "customer/processes/partials/_integrity_guard_panel.html" %}
         </div>
 
 
