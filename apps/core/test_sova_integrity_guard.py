@@ -3,6 +3,7 @@
 All payloads are synthetic: no production assessment data or credentials.
 """
 import json
+from types import SimpleNamespace
 from pathlib import Path
 
 from django.conf import settings
@@ -13,7 +14,7 @@ from django.utils.translation import override
 
 from apps.accounts.models import Company
 from apps.core.integrations.integrity_guard import (
-    extract_integrity_guard, integrity_guard_for_display,
+    extract_integrity_guard, integrity_guard_for_display, without_integrity_guard,
 )
 from apps.processes.models import Candidate, TestInvitation, TestProcess
 
@@ -100,6 +101,68 @@ class IntegrityGuardParserTests(SimpleTestCase):
             },
         }})
         self.assertEqual(guard["diagnostics"], {"browser": 1, "engagement": 3})
+
+
+class IntegrityGuardNoAITests(SimpleTestCase):
+    def test_recursively_strips_guard_from_score_payload_without_mutation(self):
+        payload = {
+            "project_scores": [{
+                "competency": "Integrity",
+                "score": 8,
+                "integrityGuard": {
+                    "diagnostics": {"ip_address": 2},
+                    "overallStatus": 2,
+                },
+            }],
+            "integrity_guard_status": 2,
+            "other": {"integrity_guard_data": {"status": 3}, "score": 6},
+        }
+        cleaned = without_integrity_guard(payload)
+        self.assertNotIn("integrity_guard", json.dumps(cleaned).lower())
+        self.assertNotIn("integrityGuard", json.dumps(cleaned))
+        self.assertEqual(cleaned["project_scores"][0]["competency"], "Integrity")
+        self.assertEqual(cleaned["other"]["score"], 6)
+        self.assertIn("integrityGuard", payload["project_scores"][0])
+
+    def test_existing_ai_context_cannot_embed_monitoring_data(self):
+        from apps.ai_chat.services.candidate_chat_context import build_live_candidate_profile
+        invitation = SimpleNamespace(
+            sova_activities=[{
+                "activity": "Personality",
+                "status": "completed",
+                "competencies": [{"competency": "Integrity", "sten": 6}],
+                "integrity_guard": {"status": 2},
+            }],
+            project_results={
+                "overall_score": 42,
+                "scores": [
+                    {"name": "Numerical", "score": 6,
+                     "integrityGuard": {"overallStatus": 3}},
+                ],
+                "integrity_guard_status": 2,
+            },
+            overall_score=42,
+        )
+        profile = build_live_candidate_profile(invitation)
+        body = json.dumps(profile)
+        self.assertNotIn("integrity_guard", body.lower())
+        self.assertNotIn("integrityGuard", body)
+        self.assertIn('"score": 6', body)
+
+    def test_assessment_evidence_never_passes_ig_status_to_ai(self):
+        from apps.core.ai.purpose_fit import build_assessment_evidence
+        invitation = SimpleNamespace(
+            process=SimpleNamespace(is_historical=False),
+            sova_activities=[{
+                "activity": "Personality Questionnaire",
+                "competencies": [{"competency": "Integrity", "sten": 6}],
+                "integrityGuard": {"overallStatus": 2},
+            }],
+        )
+        text, count = build_assessment_evidence(invitation)
+        self.assertGreater(count, 0)
+        self.assertNotIn("integrityGuard", text)
+        self.assertNotIn("overallStatus", text)
 
 
 class IntegrityGuardTemplateTests(SimpleTestCase):
