@@ -90,7 +90,8 @@ class TestProcessAdmin(admin.ModelAdmin):
                 "provider",
                 "account_code",
                 "project_code",
-                "sova_project_id",
+                "sova_account_name",
+                "sova_project_name",
                 "project_name_snapshot",
             )
         }),
