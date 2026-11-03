@@ -159,6 +159,22 @@ def extract_integrity_guard(payload):
 # enters Talena's AI prompts, interpretation or candidate results portal.
 _STATES = {0: "not_monitored", 1: "clear", 2: "concern", 3: "error"}
 
+# Human-readable labels for documented Sova checks. Unknown vendor keys are
+# merely formatted, never guessed or interpreted.
+_DIAGNOSTIC_LABELS = {
+    "ip": ("IP-adress", "IP address"),
+    "ip_address": ("IP-adress", "IP address"),
+    "collaboration_ip_address": ("IP-adress", "IP address"),
+    "device": ("Enheter", "Devices"),
+    "devices_used": ("Enheter", "Devices used"),
+    "device_switching": ("Enhetsbyte", "Device switching"),
+    "browser_patrolling": ("Byte av flik eller webbläsare", "Tab or browser switching"),
+    "tab_switching": ("Byte av flik eller webbläsare", "Tab or browser switching"),
+    "question_engagement": ("Svarsmönster", "Question engagement"),
+    "response_pattern": ("Svarsmönster", "Response pattern"),
+    "session_cookies": ("Webbläsarsessioner", "Browser sessions"),
+}
+
 
 def _effective_state(overall, diagnostics):
     """A flag in one assessment must not disappear behind a clear overall."""
@@ -197,7 +213,15 @@ def integrity_guard_for_display(stored):
             "state": state,
             "description": description,
             "diagnostics": [
-                {"name": name.replace("_", " ").capitalize(), "state": _STATES[code]}
+                {
+                    "name_sv": _DIAGNOSTIC_LABELS.get(
+                        name, (name.replace("_", " ").capitalize(),) * 2
+                    )[0],
+                    "name_en": _DIAGNOSTIC_LABELS.get(
+                        name, (name.replace("_", " ").capitalize(),) * 2
+                    )[1],
+                    "state": _STATES[code],
+                }
                 for name, code in sorted(diagnostics.items())
             ],
         })
