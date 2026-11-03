@@ -70,7 +70,7 @@
           <ul class="talena-ig-panel__checks">
             {% for check in entry.diagnostics %}
               <li>
-                <span class="talena-ig-panel__check-name">{{ check.name }}</span>
+                <span class="talena-ig-panel__check-name">{% if ig_language|slice:':2' == 'sv' %}{{ check.name_sv }}{% else %}{{ check.name_en }}{% endif %}</span>
                 <span class="talena-ig-check talena-ig-check--{{ check.state }}">
                   {% if check.state == 'concern' %}
                     {% if ig_language|slice:':2' == 'sv' %}Behöver granskas{% else %}Needs review{% endif %}
