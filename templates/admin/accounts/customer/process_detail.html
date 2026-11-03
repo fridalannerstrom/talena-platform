@@ -205,6 +205,7 @@
                          data-candidate-name="{{ inv.candidate.first_name }} {{ inv.candidate.last_name|escape }}">
                         {{ inv.candidate.first_name }} {{ inv.candidate.last_name }}
                       </a>
+                      {% include "customer/processes/partials/_integrity_guard_badge.html" with inv=inv %}
                     </div>
                     <div class="text-muted small text-truncate">{{ inv.candidate.email }}</div>
                   </div>
