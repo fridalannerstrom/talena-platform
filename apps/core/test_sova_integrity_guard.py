@@ -119,7 +119,7 @@ class IntegrityGuardTemplateTests(SimpleTestCase):
         self.assertIn("Integrity Guard", html)
         self.assertIn("Avvikelser behöver granskas", html)
         self.assertIn("betyder inte att kandidaten har fuskat", html)
-        self.assertIn("Ip address", html)
+        self.assertIn("IP-adress", html)
         self.assertNotIn("AI-genererat", html)
         en = self.render_panel({"overall_status": 3}, "en")
         self.assertIn("Monitoring error", en)
