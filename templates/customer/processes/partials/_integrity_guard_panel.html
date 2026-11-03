@@ -1,0 +1,95 @@
+{% load i18n %}
+{% get_current_language as ig_language %}
+{% with guard=invitation.integrity_guard_display %}
+{% if guard.visible %}
+<section class="talena-ig-panel" data-integrity-guard-panel aria-label="Integrity Guard">
+  <div class="talena-ig-panel__heading">
+    {% include "customer/processes/partials/_integrity_guard_badge.html" with inv=invitation %}
+    <div>
+      <h3 class="talena-ig-panel__title">Integrity Guard</h3>
+      <p class="talena-ig-panel__subtitle">
+        {% if guard.state == 'concern' %}
+          {% if ig_language|slice:':2' == 'sv' %}Avvikelser behöver granskas{% else %}Concerns need review{% endif %}
+        {% elif guard.state == 'error' %}
+          {% if ig_language|slice:':2' == 'sv' %}Mätfel{% else %}Monitoring error{% endif %}
+        {% elif guard.state == 'clear' %}
+          {% if ig_language|slice:':2' == 'sv' %}Inga avvikelser upptäckta{% else %}No concerns detected{% endif %}
+        {% elif guard.state == 'not_monitored' %}
+          {% if ig_language|slice:':2' == 'sv' %}Ingen övervakning registrerad{% else %}No monitoring recorded{% endif %}
+        {% else %}
+          {% if ig_language|slice:':2' == 'sv' %}Status saknas{% else %}Status unavailable{% endif %}
+        {% endif %}
+      </p>
+    </div>
+  </div>
+  <p class="talena-ig-panel__help">
+    {% if guard.state == 'concern' %}
+      {% if ig_language|slice:':2' == 'sv' %}
+        Integrity Guard har registrerat signaler som kan behöva granskas. Det betyder inte att kandidaten har fuskat. Exempelvis kan uppkopplingsproblem, avbrott, webbläsarbeteende eller störningar i omgivningen ha ofarliga förklaringar. Granska informationen i sitt sammanhang.
+      {% else %}
+        Integrity Guard detected signals that may need review. This does not prove cheating. Technical issues, interruptions, browser activity or distractions may have innocent explanations. Review the findings in context.
+      {% endif %}
+    {% elif guard.state == 'error' %}
+      {% if ig_language|slice:':2' == 'sv' %}
+        Integrity Guard kunde inte genomföra mätningen korrekt. Det kan bero på tekniska problem eller saknade uppgifter. Testresultatet kan fortfarande vara giltigt, men denna signal ska inte användas som beslutsunderlag.
+      {% else %}
+        Integrity Guard could not complete monitoring correctly. Technical issues or missing data may be responsible. The assessment may still be valid, but this signal should not be used in decisions.
+      {% endif %}
+    {% elif guard.state == 'clear' %}
+      {% if ig_language|slice:':2' == 'sv' %}
+        Integrity Guard upptäckte inga signaler som kräver uppmärksamhet under de övervakade momenten. Det är inte någon garanti för hur testet genomfördes.
+      {% else %}
+        Integrity Guard detected no signals requiring attention during monitored assessments. This is not a guarantee about how the assessment was completed.
+      {% endif %}
+    {% elif guard.state == 'not_monitored' %}
+      {% if ig_language|slice:':2' == 'sv' %}
+        Sova anger att testet inte övervakades. Avsaknad av mätning betyder inte att allt är kontrollerat.
+      {% else %}
+        Sova reports that monitoring was not performed. No monitoring data does not mean everything has been checked.
+      {% endif %}
+    {% else %}
+      {% if ig_language|slice:':2' == 'sv' %}
+        Sova har skickat en beskrivning men ingen giltig mätstatus. Det går inte att dra slutsatser från signalen.
+      {% else %}
+        Sova supplied a description without a valid monitoring status. No conclusion can be drawn from this signal.
+      {% endif %}
+    {% endif %}
+  </p>
+  {% for entry in guard.entries %}
+    {% if entry.diagnostics or entry.description %}
+      <div class="talena-ig-panel__details">
+        {% if guard.entries|length > 1 %}
+          <div class="talena-ig-panel__eyebrow">
+            {% if ig_language|slice:':2' == 'sv' %}Sova-resultat {{ forloop.counter }}{% else %}Sova result {{ forloop.counter }}{% endif %}
+          </div>
+        {% endif %}
+        {% if entry.description %}
+          <p class="talena-ig-panel__vendor-note">{{ entry.description }}</p>
+        {% endif %}
+        {% if entry.diagnostics %}
+          <ul class="talena-ig-panel__checks">
+            {% for check in entry.diagnostics %}
+              <li>
+                <span class="talena-ig-panel__check-name">{% if ig_language|slice:':2' == 'sv' %}{{ check.name_sv }}{% else %}{{ check.name_en }}{% endif %}</span>
+                <span class="talena-ig-check talena-ig-check--{{ check.state }}">
+                  {% if check.state == 'concern' %}
+                    {% if ig_language|slice:':2' == 'sv' %}Behöver granskas{% else %}Needs review{% endif %}
+                  {% elif check.state == 'error' %}
+                    {% if ig_language|slice:':2' == 'sv' %}Mätfel{% else %}Monitoring error{% endif %}
+                  {% else %}
+                    {% if ig_language|slice:':2' == 'sv' %}Inga avvikelser{% else %}No concerns{% endif %}
+                  {% endif %}
+                </span>
+              </li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      </div>
+    {% endif %}
+  {% endfor %}
+  <div class="talena-ig-panel__footnote">
+    {% if ig_language|slice:':2' == 'sv' %}Teknisk övervakningsinformation från Sova. Ingen AI-tolkning används.{% else %}Technical monitoring data from Sova. No AI interpretation is used.{% endif %}
+  </div>
+</section>
+{% endif %}
+{% endwith %}

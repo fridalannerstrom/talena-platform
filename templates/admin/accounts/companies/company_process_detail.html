@@ -2,6 +2,7 @@
 {% load static i18n %}
 {% block company_content %}
 {% get_current_language as admin_project_language %}
+<link rel="stylesheet" href="{% static 'css/talena/pages/integrity-guard.css' %}?v=20261103-ig1">
 <link rel="stylesheet" href="{% static 'css/talena/pages/project-assessment-status.css' %}?v=20261101-367-icons-sm">
 
 
@@ -405,6 +406,7 @@
 >
                     {{ inv.candidate.name|default:inv.candidate.email }}
                   </a>
+                  {% include "customer/processes/partials/_integrity_guard_badge.html" with inv=inv %}
                 {% else %}
                   <span class="text-muted">Unknown candidate</span>
                 {% endif %}

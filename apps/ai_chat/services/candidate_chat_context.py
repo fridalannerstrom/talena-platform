@@ -1,5 +1,7 @@
 import json
 
+from apps.core.integrations.integrity_guard import without_integrity_guard
+
 from apps.processes.models import (
     HistoricalProcessCandidate,
     TestInvitation,
@@ -87,7 +89,9 @@ def build_live_candidate_profile(invitation):
                 invitation.sova_activities or []
             )
         ),
-        "project_results": (
+        # Some Sova score payloads embed Integrity Guard information inside
+        # project_results. Never pass monitoring data into an AI context.
+        "project_results": without_integrity_guard(
             invitation.project_results or {}
         ),
         "overall_score": invitation.overall_score,

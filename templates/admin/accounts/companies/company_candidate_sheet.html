@@ -1,4 +1,5 @@
-{% load i18n %}
+{% load static i18n %}
+<link rel="stylesheet" href="{% static 'css/talena/pages/integrity-guard.css' %}?v=20261103-ig1">
 {% get_current_language as candidate_ui_language %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -443,6 +444,7 @@
                 </div>
 
               </div>
+              {% include "customer/processes/partials/_integrity_guard_panel.html" %}
             </div>
 
             <!-- SENT TESTS -->

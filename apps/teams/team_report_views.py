@@ -7,6 +7,7 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext as _, get_language
 
+from apps.core.integrations.integrity_guard import without_integrity_guard
 from apps.processes.models import HistoricalProcessCandidate, TestInvitation
 from apps.processes.services.access import get_accessible_processes_for_user
 from apps.processes.services.candidate_profile import build_historical_candidate_profile
@@ -79,7 +80,7 @@ def _collect_live_competencies(invitation):
 
         for competency in _as_list(activity.get("competencies")):
             if isinstance(competency, dict):
-                competencies.append(competency)
+                competencies.append(without_integrity_guard(competency))
 
     return competencies
 

@@ -233,6 +233,7 @@
                               {{ inv.candidate.email }}
                             {% endif %}
                           </a>
+                          {% include "customer/processes/partials/_integrity_guard_badge.html" with inv=inv %}
                         </div>
 
                         <div class="text-muted small text-truncate">
