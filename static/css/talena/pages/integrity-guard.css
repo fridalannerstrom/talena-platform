@@ -35,3 +35,23 @@
 .talena-ig-panel__footnote { margin-top:13px; color:#737e84; font-size:0.74rem; }
 @media(max-width:575px) { .talena-ig-panel { padding:14px; }
   .talena-ig-panel__checks li { flex-wrap:wrap; } }
+
+/* Expandable, per-diagnostic Sova details. Warning sections start expanded. */
+.talena-ig-panel__checks > .talena-ig-panel__check {
+  display:block; padding:14px 0; border-top:1px solid #eceeee;
+}
+.talena-ig-panel__checks > .talena-ig-panel__check:first-child {padding-top:0; border-top:0;}
+.talena-ig-panel__checks > .talena-ig-panel__check:last-child {padding-bottom:0;}
+.talena-ig-panel__check-head {display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;}
+.talena-ig-panel__check-name {font-size:0.88rem; font-weight:650;}
+.talena-ig-panel__check-description {font-size:0.81rem; line-height:1.55; color:#5b646a; margin:7px 0 0;}
+.talena-ig-panel__activity-details {margin-top:11px; background:#fff; border:1px solid #e9eced; border-radius:8px; overflow:hidden;}
+.talena-ig-panel__activity-details summary {
+  cursor:pointer; padding:9px 12px; font-size:0.8rem; font-weight:650; color:#485158;
+}
+.talena-ig-panel__activity-details summary:hover {background:#fbfbfb;}
+.talena-ig-panel__activity-count {font-weight:400; color:#7c8589; padding-left:5px;}
+.talena-ig-panel__activities {list-style:none; padding:0 12px 10px; margin:0;}
+.talena-ig-panel__activities li {display:flex; justify-content:space-between; align-items:center; gap:12px; padding:8px 0; border-top:1px solid #f0f1f2; flex-wrap:wrap;}
+.talena-ig-panel__activity-name {font-size:0.8rem; font-weight:450; color:#454e53;}
+.talena-ig-panel__activities .talena-ig-check {flex:none;}

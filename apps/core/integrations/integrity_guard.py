@@ -1,7 +1,8 @@
 """Parse Sova Integrity Guard scores without requiring the feature on every test.
 
-The sandbox score-push schema has not yet been confirmed against a real payload.
-Keep vendor key aliases here so the mapping can be adjusted after inspection.
+The Integrity Guard score-push schema was confirmed from a production test
+on 2026-11-03. Its `integrity_findings` contain diagnostic IDs, statuses,
+and per-activity statuses. Keep vendor aliases for backwards compatibility.
 Never interpret a personality 'Integrity' competency as an Integrity Guard signal.
 """
 import re
@@ -59,6 +60,61 @@ def _diagnostics(value):
     return output
 
 
+
+# Numeric IDs and meanings are confirmed by comparing an actual Sova score
+# callback with the corresponding four controls in the Sova recruiter UI.
+# This is a vendor data mapping, NOT an AI inference.
+SOVA_DIAGNOSTIC_IDS = {
+    1: "ip_address",
+    2: "devices_used",
+    3: "browser_patrolling",
+    4: "question_engagement",
+}
+
+
+def _sova_findings(value):
+    """Normalise the real Sova integrity_findings structure.
+
+    The nested activity status is specific to a monitoring check; never treat
+    it as the assessment's completion status.
+    """
+    if not isinstance(value, list):
+        return []
+    output = []
+    for raw in value[:30]:
+        if not isinstance(raw, dict):
+            continue
+        fields = _fields(raw)
+        identifier = fields.get("diagnostic")
+        if isinstance(identifier, bool):
+            continue
+        if isinstance(identifier, str) and identifier.isdigit():
+            identifier = int(identifier)
+        if not isinstance(identifier, int) or not 1 <= identifier <= 999:
+            continue
+        status = _status(fields.get("diagnostic_status"), {1, 2, 3})
+        if status is None:
+            continue
+
+        activities = []
+        for activity in (fields.get("activities") or [])[:100] if isinstance(fields.get("activities"), list) else []:
+            if not isinstance(activity, dict):
+                continue
+            item = _fields(activity)
+            name = item.get("activity")
+            activity_status = _status(item.get("status"), {1, 2, 3})
+            if isinstance(name, str) and name.strip() and activity_status is not None:
+                activities.append({"name": name.strip()[:160], "status": activity_status})
+
+        key = SOVA_DIAGNOSTIC_IDS.get(identifier, f"diagnostic_{identifier}")
+        output.append({
+            "key": key,
+            "status": status,
+            "activities": activities,
+        })
+    return output
+
+
 def _guard_entry(value):
     if isinstance(value, (int, str)) and not isinstance(value, bool):
         status = _status(value, {0, 1, 2, 3})
@@ -79,6 +135,10 @@ def _guard_entry(value):
         if name in fields:
             diagnostics.update(_diagnostics(fields[name]))
 
+    findings = _sova_findings(fields.get("integrity_findings"))
+    for finding in findings:
+        diagnostics[finding["key"]] = finding["status"]
+
     # Some score templates expose each diagnostic directly within the guard object.
     for name, raw in fields.items():
         if name.endswith("_status") and name not in {"overall_status", "status", "status_description"}:
@@ -89,7 +149,7 @@ def _guard_entry(value):
 
     if status is None and description is None and not diagnostics:
         return None
-    return {"overall_status": status, "overall_description": description, "diagnostics": diagnostics}
+    return {"overall_status": status, "overall_description": description, "diagnostics": diagnostics, "findings": findings}
 
 
 def _inline_entry(value):
@@ -159,14 +219,33 @@ def extract_integrity_guard(payload):
 # enters Talena's AI prompts, interpretation or candidate results portal.
 _STATES = {0: "not_monitored", 1: "clear", 2: "concern", 3: "error"}
 
-# Human-readable labels for documented Sova checks. Unknown vendor keys are
-# merely formatted, never guessed or interpreted.
+# Fixed UI texts, independent of AI and assessment scores.
+# Diagnostic IDs 1..4 are mapped to these four controls based on the actual
+# Sova score callback and its recruiter UI. Unknown IDs get neutral labels.
+_DIAGNOSTIC_DESCRIPTIONS = {
+    "ip_address": (
+        "Kontrollen granskar ovanliga mönster med IP-adresser vid testgenomförandet. Nätverksbyten kan ha naturliga orsaker.",
+        "This check looks for unusual IP address patterns during the assessments. Network changes may have innocent causes.",
+    ),
+    "devices_used": (
+        "Kontrollen granskar ovanlig användning av flera enheter under testet. Tekniska problem eller tillgänglighetsskäl kan förklara byten.",
+        "This check looks for unusual use of multiple devices. Technical or accessibility reasons may explain device changes.",
+    ),
+    "browser_patrolling": (
+        "Kontrollen granskar upprepade eller långvariga byten mellan flikar och webbläsare under testerna.",
+        "This check looks for repeated or sustained switching between tabs or browsers during assessments.",
+    ),
+    "question_engagement": (
+        "Kontrollen granskar ihållande ovanliga svarstider och svarsmönster. En avvikelse innebär inte att någon har fuskat.",
+        "This check looks for sustained unusual response times or patterns. A concern does not prove cheating.",
+    ),
+}
 _DIAGNOSTIC_LABELS = {
     "ip": ("IP-adress", "IP address"),
     "ip_address": ("IP-adress", "IP address"),
+    "devices_used": ("Använda enheter", "Devices used"),
     "collaboration_ip_address": ("IP-adress", "IP address"),
     "device": ("Enheter", "Devices"),
-    "devices_used": ("Enheter", "Devices used"),
     "device_switching": ("Enhetsbyte", "Device switching"),
     "browser_patrolling": ("Byte av flik eller webbläsare", "Tab or browser switching"),
     "tab_switching": ("Byte av flik eller webbläsare", "Tab or browser switching"),
@@ -209,21 +288,52 @@ def integrity_guard_for_display(stored):
         state = _effective_state(overall, diagnostics)
         if state == "unknown" and not description:
             continue
+        # Preserve Sova's order for the four numbered checks and attach
+        # each check's real per-test statuses, without guessing missing tests.
+        raw_findings = raw.get("findings")
+        activity_by_key = {}
+        if isinstance(raw_findings, list):
+            for finding in raw_findings:
+                if not isinstance(finding, dict) or not isinstance(finding.get("key"), str):
+                    continue
+                key = finding["key"]
+                checks = []
+                for activity in finding.get("activities") or []:
+                    if not isinstance(activity, dict):
+                        continue
+                    code = _status(activity.get("status"), {1, 2, 3})
+                    name = activity.get("name")
+                    if code is not None and isinstance(name, str) and name.strip():
+                        checks.append({"name": name.strip(), "state": _STATES[code]})
+                activity_by_key[key] = checks
+        order = list(dict.fromkeys(
+            [f["key"] for f in raw_findings if isinstance(f, dict) and isinstance(f.get("key"), str)]
+        )) if isinstance(raw_findings, list) else []
+        order += [key for key in sorted(diagnostics) if key not in order]
+        display_diagnostics = []
+        for key in order:
+            code = diagnostics.get(key)
+            if code not in (1, 2, 3):
+                continue
+            labels = _DIAGNOSTIC_LABELS.get(key)
+            if labels is None and key.startswith("diagnostic_"):
+                identifier = key.removeprefix("diagnostic_")
+                labels = (f"Kontroll {identifier}", f"Check {identifier}")
+            if labels is None:
+                labels = (key.replace("_", " ").capitalize(),) * 2
+            descriptions = _DIAGNOSTIC_DESCRIPTIONS.get(key, ("", ""))
+            display_diagnostics.append({
+                "name_sv": labels[0],
+                "name_en": labels[1],
+                "description_sv": descriptions[0],
+                "description_en": descriptions[1],
+                "state": _STATES[code],
+                "activities": activity_by_key.get(key, []),
+            })
         entries.append({
             "state": state,
             "description": description,
-            "diagnostics": [
-                {
-                    "name_sv": _DIAGNOSTIC_LABELS.get(
-                        name, (name.replace("_", " ").capitalize(),) * 2
-                    )[0],
-                    "name_en": _DIAGNOSTIC_LABELS.get(
-                        name, (name.replace("_", " ").capitalize(),) * 2
-                    )[1],
-                    "state": _STATES[code],
-                }
-                for name, code in sorted(diagnostics.items())
-            ],
+            "diagnostics": display_diagnostics,
         })
 
     # Combine every monitored assessment rather than presenting only the

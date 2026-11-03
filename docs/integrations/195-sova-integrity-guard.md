@@ -49,40 +49,69 @@ Tickets: #195 (ingestion), #88 (candidate list), #89 (candidate detail), #90 (ex
 - Swedish and English strings are included. Neither Sova's data nor these
   strings are sent to the AI pipeline.
 
-## Production rollout / verification
+## Confirmed Sova payload structure (2026-11-03)
 
-The earlier sandbox PR #395 was never merged. It used hypothetical score
-fixtures and an opt-in local ngrok callback. This implementation is rebased
-conceptually onto current `main`, intentionally **without** exposing a new
-callback endpoint or adding local ngrok configuration.
+A full, completed synthetic/internal assessment was verified against the
+Sova recruiter Integrity Guard UI and the corresponding actual score callback.
+Sova sends **more than the headline**. Relevant data shape (illustrative,
+never an actual candidate payload):
 
-**Before considering #195 fully verified:**
+```json
+{
+  "integrity_guard": {
+    "status": 2,
+    "status_description": "Concerns Detected",
+    "integrity_findings": [
+      {"diagnostic": 1, "diagnostic_status": 1, "activities": [
+        {"activity": "TQ Personality", "status": 1}
+      ]},
+      {"diagnostic": 4, "diagnostic_status": 2, "activities": [
+        {"activity": "TQ Personality", "status": 2},
+        {"activity": "TQ Verbal Reasoning", "status": 1}
+      ]}
+    ]
+  }
+}
+```
 
-1. Confirm which of Talena's two Sova webhook paths production actually uses.
-   The authenticated ingest path above captures Guard. The legacy
-   `/webhooks/sova/` endpoint remains a separate security issue (#309/PR #346).
-   **Do not blindly merge PR #346** without confirming the callback header:
-   it can reject production callbacks with 401.
-2. Deploy this change using the normal GitHub flow, run migration
-   `python manage.py migrate`, and verify 0066 was applied.
-3. Order a **new synthetic internal** Sova assessment in a production project
-   with Integrity Guard enabled. Complete it and check in authorised Django
-   Admin that `TestInvitation.integrity_guard` contains status/description/
-   per-diagnostic values. No sensitive candidate payloads in logs/issues/chat.
-4. Compare the real Sova field names/structure to the aliases in the parser.
-   If different, update the parser and add a **redacted synthetic regression
-   fixture**. Only then consider the real score mapping confirmed.
-5. Check statuses 1/2/3 and 0 when available; no data, omitted diagnostics
-   and repeated callbacks. Verify the candidate list and candidate card,
-   including both Swedish and English, show the appropriate state.
-6. Confirm a Sova result without Guard still processes as before, and test
-   score/status delivery and candidate result notification normally.
-7. Confirm no monitoring data appears in candidate-facing reports or AI
-   requests. This is explicitly outside the AI interpretation pipeline.
+Numbered diagnostic mappings, compared with the Sova recruiter UI:
+- 1: IP address
+- 2: Devices used
+- 3: Browser patrolling
+- 4: Question engagement
+
+Each `diagnostic_status` and each nested `activities[].status` is 1 (clear),
+2 (concern), or 3 (monitoring error). The nested status belongs to the
+monitoring **check within that assessment**, not test completion. Unknown
+numeric IDs are displayed neutrally, never assigned an invented meaning.
+
+The four descriptions and all status labels are static Swedish/English
+copy. The UI expands each check to show individual monitored assessments,
+defaulting the concern section open.
+
+### Existing candidates / rollout
+
+Prior to this update the webhook handler stored the original callback in
+`TestInvitation.sova_payload`, but the original parser discarded the nested
+findings. `TestInvitation.integrity_guard_display` now prefers already
+normalised findings in `integrity_guard`, and otherwise reparses the retained
+`sova_payload`. Previously completed candidates can therefore show details
+immediately after the code deploy **without retesting or a data migration**.
+Future callbacks persist the full normalised check/assessment data.
+
+Migration 0066 was required by the original introduction of the field and
+is **not introduced or changed** by this follow-up. The existing Sova
+authentication/webhook routing remains unchanged; the separate legacy
+callback security issue #309/PR #346 must still be handled independently.
+
+Protect raw assessment payloads: never put candidate IDs, names, scores,
+links or tokens in GitHub issues, logs, regression fixtures, or public chats.
+Always use synthetic examples. Do not expose Integrity Guard in the
+candidate's personal report or Talena AI requests.
 
 ## Automated regression tests
 
 `python manage.py test apps.core.test_sova_integrity_guard`
 
-Tests use synthetic Sova data only. Passing them does not prove that the
-real vendor's payload schema matches the aliases.
+Tests use synthetic, de-identified examples derived from the now-confirmed
+Sova payload schema. Keep regression fixtures free of real candidate data.

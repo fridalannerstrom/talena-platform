@@ -63,23 +63,62 @@
             {% if ig_language|slice:':2' == 'sv' %}Sova-resultat {{ forloop.counter }}{% else %}Sova result {{ forloop.counter }}{% endif %}
           </div>
         {% endif %}
-        {% if entry.description %}
-          <p class="talena-ig-panel__vendor-note">{{ entry.description }}</p>
+        {% if entry.description and not entry.diagnostics %}
+          <p class="talena-ig-panel__vendor-note">
+            {% if entry.description == 'Concerns Detected' %}
+              {% if ig_language|slice:':2' == 'sv' %}Avvikelser upptäckta. Detaljerad information saknas i den registrerade statusen.{% else %}Concerns detected. No detailed findings are available in the stored status.{% endif %}
+            {% elif entry.description == 'All Clear' %}
+              {% if ig_language|slice:':2' == 'sv' %}Inga avvikelser upptäckta.{% else %}No concerns detected.{% endif %}
+            {% else %}
+              {{ entry.description }}
+            {% endif %}
+          </p>
         {% endif %}
         {% if entry.diagnostics %}
           <ul class="talena-ig-panel__checks">
             {% for check in entry.diagnostics %}
-              <li>
-                <span class="talena-ig-panel__check-name">{% if ig_language|slice:':2' == 'sv' %}{{ check.name_sv }}{% else %}{{ check.name_en }}{% endif %}</span>
-                <span class="talena-ig-check talena-ig-check--{{ check.state }}">
-                  {% if check.state == 'concern' %}
-                    {% if ig_language|slice:':2' == 'sv' %}Behöver granskas{% else %}Needs review{% endif %}
-                  {% elif check.state == 'error' %}
-                    {% if ig_language|slice:':2' == 'sv' %}Mätfel{% else %}Monitoring error{% endif %}
-                  {% else %}
-                    {% if ig_language|slice:':2' == 'sv' %}Inga avvikelser{% else %}No concerns{% endif %}
-                  {% endif %}
-                </span>
+              <li class="talena-ig-panel__check">
+                <div class="talena-ig-panel__check-head">
+                  <span class="talena-ig-panel__check-name">{% if ig_language|slice:':2' == 'sv' %}{{ check.name_sv }}{% else %}{{ check.name_en }}{% endif %}</span>
+                  <span class="talena-ig-check talena-ig-check--{{ check.state }}">
+                    {% if check.state == 'concern' %}
+                      {% if ig_language|slice:':2' == 'sv' %}Behöver granskas{% else %}Needs review{% endif %}
+                    {% elif check.state == 'error' %}
+                      {% if ig_language|slice:':2' == 'sv' %}Mätfel{% else %}Monitoring error{% endif %}
+                    {% else %}
+                      {% if ig_language|slice:':2' == 'sv' %}Inga avvikelser{% else %}No concerns{% endif %}
+                    {% endif %}
+                  </span>
+                </div>
+                {% if check.description_sv or check.description_en %}
+                  <p class="talena-ig-panel__check-description">
+                    {% if ig_language|slice:':2' == 'sv' %}{{ check.description_sv }}{% else %}{{ check.description_en }}{% endif %}
+                  </p>
+                {% endif %}
+                {% if check.activities %}
+                  <details class="talena-ig-panel__activity-details" {% if check.state == 'concern' %}open{% endif %}>
+                    <summary>
+                      {% if ig_language|slice:':2' == 'sv' %}Övervakade tester{% else %}Monitored assessments{% endif %}
+                      <span class="talena-ig-panel__activity-count">{{ check.activities|length }}</span>
+                    </summary>
+                    <ul class="talena-ig-panel__activities">
+                      {% for activity in check.activities %}
+                        <li>
+                          <span class="talena-ig-panel__activity-name">{{ activity.name }}</span>
+                          <span class="talena-ig-check talena-ig-check--{{ activity.state }}">
+                            {% if activity.state == 'concern' %}
+                              {% if ig_language|slice:':2' == 'sv' %}Avvikelse{% else %}Concern{% endif %}
+                            {% elif activity.state == 'error' %}
+                              {% if ig_language|slice:':2' == 'sv' %}Mätfel{% else %}Monitoring error{% endif %}
+                            {% else %}
+                              {% if ig_language|slice:':2' == 'sv' %}Ingen avvikelse{% else %}No concerns{% endif %}
+                            {% endif %}
+                          </span>
+                        </li>
+                      {% endfor %}
+                    </ul>
+                  </details>
+                {% endif %}
               </li>
             {% endfor %}
           </ul>

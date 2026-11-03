@@ -199,8 +199,29 @@ class TestInvitation(models.Model):
     
     @property
     def integrity_guard_display(self):
-        from apps.core.integrations.integrity_guard import integrity_guard_for_display
-        return integrity_guard_for_display(self.integrity_guard)
+        from apps.core.integrations.integrity_guard import (
+            extract_integrity_guard, integrity_guard_for_display,
+        )
+
+        # Read the already-stored Sova callback for existing invitations:
+        # older parser versions stored only the overall Guard status, although
+        # the original webhook JSON contains per-diagnostic/per-test findings.
+        # No migration or candidate retake is needed.
+        saved = self.integrity_guard or {}
+        if isinstance(saved, dict) and any(
+            isinstance(entry, dict) and entry.get("findings")
+            for entry in saved.get("sources", [])
+        ):
+            return integrity_guard_for_display(saved)
+
+        payload = self.sova_payload if isinstance(self.sova_payload, dict) else {}
+        parsed = extract_integrity_guard(payload) if payload else None
+        if parsed and any(
+            isinstance(entry, dict) and entry.get("findings")
+            for entry in parsed.get("sources", [])
+        ):
+            return integrity_guard_for_display(parsed)
+        return integrity_guard_for_display(saved or parsed)
 
     @property
     def assessment_link_state(self):
