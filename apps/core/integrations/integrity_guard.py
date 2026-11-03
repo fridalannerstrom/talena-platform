@@ -231,3 +231,21 @@ def integrity_guard_for_display(stored):
     states = [entry["state"] for entry in entries]
     state = next((s for s in ("concern", "error", "clear", "not_monitored") if s in states), "unknown")
     return {"visible": bool(entries), "state": state, "entries": entries}
+
+
+def without_integrity_guard(value):
+    """Remove monitoring signals from any nested payload destined for AI.
+
+    Only explicit Guard key families are stripped. A normal personality
+    competency named "Integrity" remains valid assessment evidence.
+    The original Sova data and stored diagnostics are not mutated.
+    """
+    if isinstance(value, dict):
+        return {
+            key: without_integrity_guard(child)
+            for key, child in value.items()
+            if not (_key(key) in GUARD_KEYS or _key(key).startswith("integrity_guard_"))
+        }
+    if isinstance(value, list):
+        return [without_integrity_guard(child) for child in value]
+    return value
