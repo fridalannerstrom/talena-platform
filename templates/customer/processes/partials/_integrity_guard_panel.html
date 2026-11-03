@@ -14,8 +14,10 @@
           {% if ig_language|slice:':2' == 'sv' %}Mätfel{% else %}Monitoring error{% endif %}
         {% elif guard.state == 'clear' %}
           {% if ig_language|slice:':2' == 'sv' %}Inga avvikelser upptäckta{% else %}No concerns detected{% endif %}
-        {% else %}
+        {% elif guard.state == 'not_monitored' %}
           {% if ig_language|slice:':2' == 'sv' %}Ingen övervakning registrerad{% else %}No monitoring recorded{% endif %}
+        {% else %}
+          {% if ig_language|slice:':2' == 'sv' %}Status saknas{% else %}Status unavailable{% endif %}
         {% endif %}
       </p>
     </div>
@@ -39,11 +41,17 @@
       {% else %}
         Integrity Guard detected no signals requiring attention during monitored assessments. This is not a guarantee about how the assessment was completed.
       {% endif %}
-    {% else %}
+    {% elif guard.state == 'not_monitored' %}
       {% if ig_language|slice:':2' == 'sv' %}
         Sova anger att testet inte övervakades. Avsaknad av mätning betyder inte att allt är kontrollerat.
       {% else %}
         Sova reports that monitoring was not performed. No monitoring data does not mean everything has been checked.
+      {% endif %}
+    {% else %}
+      {% if ig_language|slice:':2' == 'sv' %}
+        Sova har skickat en beskrivning men ingen giltig mätstatus. Det går inte att dra slutsatser från signalen.
+      {% else %}
+        Sova supplied a description without a valid monitoring status. No conclusion can be drawn from this signal.
       {% endif %}
     {% endif %}
   </p>
