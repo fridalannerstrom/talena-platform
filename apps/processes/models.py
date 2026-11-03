@@ -208,8 +208,14 @@ class TestInvitation(models.Model):
         # the original webhook JSON contains per-diagnostic/per-test findings.
         # No migration or candidate retake is needed.
         saved = self.integrity_guard or {}
+        if isinstance(saved, dict) and any(
+            isinstance(entry, dict) and entry.get("findings")
+            for entry in saved.get("sources", [])
+        ):
+            return integrity_guard_for_display(saved)
+
         payload = self.sova_payload if isinstance(self.sova_payload, dict) else {}
-        parsed = extract_integrity_guard(payload)
+        parsed = extract_integrity_guard(payload) if payload else None
         if parsed and any(
             isinstance(entry, dict) and entry.get("findings")
             for entry in parsed.get("sources", [])
