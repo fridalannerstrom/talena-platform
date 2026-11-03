@@ -246,7 +246,6 @@ _DIAGNOSTIC_LABELS = {
     "devices_used": ("Använda enheter", "Devices used"),
     "collaboration_ip_address": ("IP-adress", "IP address"),
     "device": ("Enheter", "Devices"),
-    "devices_used": ("Enheter", "Devices used"),
     "device_switching": ("Enhetsbyte", "Device switching"),
     "browser_patrolling": ("Byte av flik eller webbläsare", "Tab or browser switching"),
     "tab_switching": ("Byte av flik eller webbläsare", "Tab or browser switching"),
