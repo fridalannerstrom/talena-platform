@@ -9,7 +9,7 @@ import re
 
 GUARD_KEYS = {"integrity_guard", "integrity_guard_results", "integrity_guard_result", "integrity_guard_data"}
 OVERALL_KEYS = ("overall_status", "overall", "status", "code")
-DESCRIPTION_KEYS = ("overall_description", "status_description", "description", "summary_description")
+DESCRIPTION_KEYS = ("overall_description", "overall_status_description", "status_description", "description", "summary_description")
 DIAGNOSTIC_KEYS = ("diagnostics", "diagnostic_statuses", "checks", "details")
 
 
