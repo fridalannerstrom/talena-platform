@@ -2,13 +2,13 @@
 {% get_current_language as ig_language %}
 {% with guard=invitation.integrity_guard_display %}
 {% if guard.visible %}
-<section class="talena-ig-panel" data-integrity-guard-panel aria-label="Integrity Guard">
-  <div class="talena-ig-panel__heading">
-    {% include "customer/processes/partials/_integrity_guard_badge.html" with inv=invitation %}
-    <div>
-      <h3 class="talena-ig-panel__title">Integrity Guard</h3>
-      <p class="talena-ig-panel__subtitle">
-        {% if guard.state == 'concern' %}
+<details class="talena-ig-panel" data-integrity-guard-panel>
+  <summary class="talena-ig-panel__toggle">
+    <span class="talena-ig-panel__heading">
+      {% include "customer/processes/partials/_integrity_guard_badge.html" with inv=invitation %}
+      <span class="talena-ig-panel__heading-text">
+        <span class="talena-ig-panel__title">Integrity Guard</span>
+        <span class="talena-ig-panel__subtitle">{% if guard.state == 'concern' %}
           {% if ig_language|slice:':2' == 'sv' %}Avvikelser behöver granskas{% else %}Concerns need review{% endif %}
         {% elif guard.state == 'error' %}
           {% if ig_language|slice:':2' == 'sv' %}Mätfel{% else %}Monitoring error{% endif %}
@@ -18,10 +18,16 @@
           {% if ig_language|slice:':2' == 'sv' %}Ingen övervakning registrerad{% else %}No monitoring recorded{% endif %}
         {% else %}
           {% if ig_language|slice:':2' == 'sv' %}Status saknas{% else %}Status unavailable{% endif %}
-        {% endif %}
-      </p>
-    </div>
-  </div>
+        {% endif %}</span>
+      </span>
+    </span>
+    <span class="talena-ig-panel__toggle-action" aria-hidden="true">
+      <span class="talena-ig-panel__show-label">{% if ig_language|slice:':2' == 'sv' %}Visa detaljer{% else %}Show details{% endif %}</span>
+      <span class="talena-ig-panel__hide-label">{% if ig_language|slice:':2' == 'sv' %}Dölj detaljer{% else %}Hide details{% endif %}</span>
+      <span class="talena-ig-panel__chevron"></span>
+    </span>
+  </summary>
+  <div class="talena-ig-panel__body">
   <p class="talena-ig-panel__help">
     {% if guard.state == 'concern' %}
       {% if ig_language|slice:':2' == 'sv' %}
@@ -126,9 +132,36 @@
       </div>
     {% endif %}
   {% endfor %}
+  <details class="talena-ig-panel__guide" data-integrity-guard-guide>
+    <summary>{% if ig_language|slice:':2' == 'sv' %}Så tolkar du Integrity Guard{% else %}How to interpret Integrity Guard{% endif %}</summary>
+    <div class="talena-ig-panel__guide-body">
+      {% if ig_language|slice:':2' == 'sv' %}
+        <p>Integrity Guard utvecklas och valideras fortfarande. Resultaten är ett stöd för uppföljning, inte ett facit om hur testet genomförts. En flagga är inte bevis på fusk. Flera flaggor kan motivera närmare granskning, men måste också förstås i sitt sammanhang.</p>
+        <p>Ta hänsyn till testtypen. Personlighets- och motivationstester kan innebära eftertanke och pauser. I numeriska tester kan användning av miniräknare eller kladdpapper vara en naturlig förklaring, om hjälpmedlen är tillåtna. Adaptiva färdighetstester kan också ge varierande svarstider.</p>
+        <p class="talena-ig-panel__guide-label">Exempel på möjliga förklaringar och uppföljning</p>
+        <ul>
+          <li><strong>Flera IP-adresser:</strong> Nätverksbyte under pendling eller mellan hem och arbete kan vara en förklaring. Stäm av om andra signaler också finns.</li>
+          <li><strong>Flikbyten under numeriskt test:</strong> Det kan bero på ett tillåtet digitalt hjälpmedel. Fråga hur testet genomfördes och kontrollera testets instruktioner.</li>
+          <li><strong>Ovanligt snabba svar:</strong> Om sådan information faktiskt finns i underlaget kan uppföljning eller ett separat verifikationstest vara relevant. Integrity Guard-statusen ensam bevisar varken extern hjälp eller hög träffsäkerhet.</li>
+        </ul>
+        <p>Utgå från de kontroller som faktiskt har rapporterats för varje test. Diskutera oklarheter sakligt och dra inga automatiska slutsatser om personen.</p>
+      {% else %}
+        <p>Integrity Guard is still being developed and validated. Its findings are a starting point for follow-up, not a definitive account of how an assessment was completed. A flag does not prove cheating. Several flags may warrant closer review, but must also be considered in context.</p>
+        <p>Consider the assessment type. Personality and motivation questionnaires may involve reflection and pauses. In numerical assessments, a calculator or notes may offer an ordinary explanation if those aids are permitted. Adaptive ability tests may also produce varying response times.</p>
+        <p class="talena-ig-panel__guide-label">Examples of possible explanations and follow-up</p>
+        <ul>
+          <li><strong>Multiple IP addresses:</strong> Switching networks while travelling or moving between home and work may explain this. Check whether other signals were reported.</li>
+          <li><strong>Tab changes during a numerical test:</strong> These may relate to a permitted digital aid. Ask how the assessment was completed and check its instructions.</li>
+          <li><strong>Unusually fast responses:</strong> If such evidence is actually available, further discussion or a separate verification assessment may be appropriate. An Integrity Guard flag alone proves neither external assistance nor high accuracy.</li>
+        </ul>
+        <p>Use only the checks actually reported for each assessment. Discuss uncertainties without making automatic judgments about the person.</p>
+      {% endif %}
+    </div>
+  </details>
   <div class="talena-ig-panel__footnote">
     {% if ig_language|slice:':2' == 'sv' %}Teknisk övervakningsinformation från Sova. Ingen AI-tolkning används.{% else %}Technical monitoring data from Sova. No AI interpretation is used.{% endif %}
   </div>
-</section>
+  </div>
+</details>
 {% endif %}
 {% endwith %}
