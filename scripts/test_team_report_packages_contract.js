@@ -42,6 +42,11 @@ for(const tag of ["getAvailable:","exportReportForPackage",
   assert.ok(combined.includes(tag),"composite team report adapter missing "+tag);
 assert.ok(team.includes("if(!isCurrent()||isAnon())return [];"),
   "Picker must not disclose member names when anonymised");
+assert.ok(team.includes('getAttribute("aria-checked")!=="false"'),
+  "Missing or uninitialised anonymity switch must fail closed");
+assert.ok(team.includes("if(busy)cancelled=true;") &&
+  team.includes("if(cancelled||!isCurrent()||isAnon()"),
+  "Once anonymity is activated during export, returning to named mode must not resume old download");
 assert.ok(team.includes("if(!isCurrent()||isAnon()||!profileApi()?.isCurrent()"),
   "Every export step must reject anonymous/stale team context");
 assert.ok(team.includes("MutationObserver(anonymityChanged)"),
