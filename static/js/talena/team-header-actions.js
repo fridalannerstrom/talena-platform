@@ -22,7 +22,9 @@
     // or anchor navigation still fires, and export feedback stays visible.
     details.addEventListener("click",event=>{
       const action=event.target.closest(".team-actions-more-menu a, .team-actions-more-menu button");
-      if(action&&!action.disabled)close();
+      // Buttons stay on the current page (downloads); restore the visible
+      // menu trigger as focus target once their menu row is hidden.
+      if(action&&!action.disabled)close(action.tagName==="BUTTON");
     });
 
     document.addEventListener("pointerdown",event=>{
