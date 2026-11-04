@@ -34,6 +34,9 @@ assert.ok(tpl.includes("team-header-actions.js"),"Dropdown behavior must be load
 assert.ok(css.includes(".talena-team-page .team-page-header") &&
   css.includes("grid-template-columns:minmax(260px,1fr) auto"),
   "Give the team name room beside the condensed action row");
+assert.ok(css.includes("background:rgba(255,255,255,.93)")&&
+  css.includes("border-radius:18px"),
+  "Team identity and actions should share a clean compact surface");
 assert.ok(css.includes(".team-actions-more-menu")&&
   css.includes("position:absolute")&&css.includes("z-index:50"),
   "Dropdown must overlay content rather than push team report down");
@@ -76,6 +79,13 @@ handlers["details:click"]({
   target:{closest:selector=>selector.includes(".team-actions-more-menu")?{disabled:false}:null}
 });
 assert.equal(details.open,false,"Selecting an action closes the menu");
+details.open=true;
+handlers["details:click"]({
+  target:{closest:selector=>selector.includes(".team-actions-more-menu")
+    ?{disabled:false,tagName:"BUTTON"}:null}
+});
+assert.equal(details.open,false,"Download action closes its menu");
+assert.equal(summaryFocused,2,"Download action must restore focus to visible menu trigger");
 details.open=true;
 handlers["details:focusout"]({relatedTarget:"outside"});
 assert.equal(details.open,false,"Leaving the menu via keyboard closes it");
