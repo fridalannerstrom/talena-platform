@@ -48,6 +48,19 @@
       Dest:pdf.context.obj([target.ref,PDFName.of("Fit")])
     }));
   }
+  function largeError() {
+    const error=Error("Report package too large");
+    error.code="REPORT_PACKAGE_TOO_LARGE";
+    return error;
+  }
+  // pdf-lib's built-in Helvetica covers Swedish/Latin text but not every
+  // Unicode script or emoji. Keep Swedish names, and fall back per glyph
+  // rather than letting one unsupported symbol abort a long export.
+  function pdfText(font,value) {
+    return Array.from(safeFilenamePart(value)).map(char=>{
+      try{font.encodeText(char);return char;}catch(_){return "?";}
+    }).join("");
+  }
   function validateEntries(entries) {
     if(!Array.isArray(entries)||!entries.length||entries.length>MAX_REPORTS)
       throw Error("Invalid report package selection");
@@ -56,7 +69,7 @@
       if(!entry||typeof entry.title!=="string"||entry.blob?.type!=="application/pdf"||
         !entry.filename||!safeFilenamePart(entry.filename))throw Error("Invalid report PDF");
       total+=entry.blob.size;
-      if(total>MAX_BYTES)throw Error("Report package too large");
+      if(total>MAX_BYTES)throw largeError();
     }
   }
   async function merge(entries,coverBlob,options={}) {
@@ -76,7 +89,7 @@
     for(const entry of entries){
       const source=await PDFDocument.load(await entry.blob.arrayBuffer());
       const count=source.getPageCount();
-      if(!count||pdf.getPageCount()+count>MAX_PAGES)throw Error("Report package too large");
+      if(!count||pdf.getPageCount()+count>MAX_PAGES)throw largeError();
       const start=pdf.getPageCount();
       const pages=await pdf.copyPages(source,source.getPageIndices());
       pages.forEach(page=>pdf.addPage(page));
@@ -85,12 +98,13 @@
     const font=await pdf.embedFont(StandardFonts.Helvetica);
     const accent=color(options.accent);
     tocPages.forEach((page,i)=>{
-      page.drawText(options.contentsTitle||"Contents",{x:52,y:780,size:25,font,color:accent});
+      page.drawText(pdfText(font,options.contentsTitle||"Contents"),{x:52,y:780,size:25,font,color:accent});
       page.drawLine({start:{x:52,y:757},end:{x:544,y:757},thickness:1,color:accent});
       const links=[];
       targets.slice(i*ROWS,(i+1)*ROWS).forEach((entry,j)=>{
         const y=710-j*37;
-        const title=entry.title.length>59?entry.title.slice(0,56)+"...":entry.title;
+        const cleaned=pdfText(font,entry.title);
+        const title=cleaned.length>59?cleaned.slice(0,56)+"...":cleaned;
         page.drawText(title,{x:56,y,size:12,font});
         page.drawText(String(entry.start+1),{x:510,y,size:11,font,color:accent});
         links.push(link(pdf,pdf.getPage(entry.start),[48,y-12,546,y+24]));
@@ -98,7 +112,7 @@
       if(links.length)page.node.set(PDFName.of("Annots"),pdf.context.obj(links));
     });
     const data=await pdf.save();
-    if(data.byteLength>MAX_BYTES)throw Error("Report package too large");
+    if(data.byteLength>MAX_BYTES)throw largeError();
     return new Blob([data],{type:"application/pdf"});
   }
   async function zipFiles(entries) {
@@ -113,7 +127,7 @@
     });
     const blob=await zip.generateAsync({type:"blob",compression:"DEFLATE",
       compressionOptions:{level:3}});
-    if(!blob.size||blob.size>MAX_BYTES)throw Error("Report package too large");
+    if(!blob.size||blob.size>MAX_BYTES)throw largeError();
     return blob;
   }
   function download(blob,filename) {
