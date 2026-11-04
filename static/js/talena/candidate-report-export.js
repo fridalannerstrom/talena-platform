@@ -112,7 +112,9 @@
       .trim()).slice(0, 90).join("").replace(/[.\s-]+$/g, "");
   }
   function candidateExportName() {
-    const sheet = workspace?.closest(".candidate-sheet-layout");
+    if (!workspace || workspace.isConnected === false ||
+        document.querySelector?.("[data-candidate-insights-workspace]") !== workspace) return "";
+    const sheet = workspace.closest(".candidate-sheet-layout");
     const identity = sheet?.querySelector(".candidate-profile-name[data-report-export-name]");
     return safeFilenamePart(identity?.getAttribute("data-report-export-name"));
   }
