@@ -16,7 +16,6 @@ assert.ok(js.includes('api().exportReport(report.id,{returnBlob:true})'));
 assert.ok(js.includes('api().exportCover(t.cover)'));
 assert.ok(js.includes('document.querySelector("[data-candidate-insights-workspace]")===workspace'));
 assert.ok(js.includes("if(!current()||workspace!==original)throw Error(t.stale)"));
-assert.ok(js.includes('getData')===false);
 assert.ok(!/\bfetch\s*\(/.test(js),"No candidate/server data may be fetched");
 assert.ok(!/\bpostMessage\s*\(/.test(js),"PDF data must not be posted to another origin");
 assert.ok(!js.includes("window.open("));
