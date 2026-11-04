@@ -1,7 +1,7 @@
 # #360 Rapportpaket – första fungerande utvecklingsetappen (2026-11-04)
 
 ## Beroenden
-Denna branch är medvetet **staplad på `feature/359-candidate-pdf-registry`** och ska inte mergas till main före att #359 granskats och mergats. Ingen migration eller server-endpoint behövs.
+Beroendet #359 (PR #446) mergades till `main` den 2026-11-04. Denna PR har nu `main` som bas för slutlig QA och merge. Ingen migration eller server-endpoint behövs.
 
 ## Gränssnitt
 - Knappen **Skapa rapportpaket / Create report package** visas i **kandidatkortets övre högra hörn, i samma översta rad som namnet** (i befintlig `.candidate-profile-actions`), inte i insight-navigationens flikrad. Den följer det behöriga kandidatkort som öppnas dynamiskt via AJAX och återskapas inte dubbelt vid flikbyten.
