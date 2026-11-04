@@ -102,9 +102,42 @@
     if (!source) return false;
     try { return Boolean(item.ready(source)); } catch (_) { return false; }
   }
+  // #360: first and last name are rendered by Django on the *current*
+  // authorised candidate sheet. Do not fall back to the title text, because
+  // it may display an email address for candidates without a recorded name.
+  function safeFilenamePart(value) {
+    return Array.from(String(value || "").normalize("NFC")
+      .replace(/[\u0000-\u001F\u007F-\u009F\u200B-\u200F\u202A-\u202E\u2066-\u2069<>:"/\\|?*]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim()).slice(0, 90).join("").replace(/[.\s-]+$/g, "");
+  }
+  function candidateExportName() {
+    if (!workspace || workspace.isConnected === false ||
+        document.querySelector?.("[data-candidate-insights-workspace]") !== workspace) return "";
+    const sheet = workspace.closest(".candidate-sheet-layout");
+    const identity = sheet?.querySelector(".candidate-profile-name[data-report-export-name]");
+    return safeFilenamePart(identity?.getAttribute("data-report-export-name"));
+  }
+  function reportFilename(item) {
+    const name = candidateExportName();
+    const reportTitle = safeFilenamePart(item.label.replace(/\s*·\s*/g, " - "));
+    return name && reportTitle
+      ? name + " - " + reportTitle + ".pdf"
+      : "talena-" + item.id + ".pdf";
+  }
+  function getPackageFilename(format) {
+    if (!["pdf", "zip"].includes(format)) throw Error("Unsupported package format");
+    const name = candidateExportName();
+    const label = format === "zip"
+      ? (sv ? "Rapporter" : "Reports")
+      : (sv ? "Rapportpaket" : "Report package");
+    return name
+      ? name + " - " + label + "." + format
+      : "talena-" + (format === "zip" ? "rapporter.zip" : "rapportpaket.pdf");
+  }
   function getAvailableReports() {
     return registry.filter(isReady).map(item =>
-      ({ id: item.id, title: item.label, filename: "talena-" + item.id + ".pdf" }));
+      ({ id: item.id, title: item.label, filename: reportFilename(item) }));
   }
   const create = (tag, css = "", content = null) => {
     const node = document.createElement(tag);
@@ -138,8 +171,7 @@
     }
     // Only the already visible candidate identity from this exact card may
     // be printed; no query or identifier lookup crosses the current project.
-    const candidateName = workspace.closest(".candidate-sheet-layout")
-      ?.querySelector(".candidate-profile-name")?.textContent.trim() || "";
+    const candidateName = candidateExportName();
     const caption = create("div", "talena-team-pdf-cover-title");
     caption.append(create("div", "talena-team-pdf-cover-line"),
       create("p", "talena-team-pdf-cover-kicker", "Talena"),
@@ -197,6 +229,7 @@
     if (!item || !isReady(item)) throw Error(copy.unavailable);
     if (exporting) throw Error(copy.busy);
     if (!window.TalenaPdfExport?.exportSections) throw Error(copy.error);
+    const downloadName = reportFilename(item); // freeze identity before async work
     exporting = true;
     let stage;
     try {
@@ -218,7 +251,7 @@
       const link = create("a");
       try {
         link.href = url;
-        link.download = "talena-" + item.id + ".pdf";
+        link.download = downloadName;
         document.body.append(link);
         link.click();
         link.remove();
@@ -229,6 +262,25 @@
     } finally {
       stage?.remove();
       exporting = false;
+    }
+  }
+  // #360: brand the merged file with the same existing cover used for every
+  // single-report export. No candidate data leaves this page.
+  async function exportCover(label) {
+    if (!workspace?.isConnected || !window.TalenaPdfExport?.exportSections)
+      throw Error(copy.unavailable);
+    const title = String(label || "Talena").slice(0, 100);
+    const cover = coverFor({label:title});
+    const stage = create("div", "process-page candidate-insights-workspace talena-candidate-pdf-stage");
+    stage.append(cover);
+    document.body.append(stage);
+    try {
+      await new Promise(resolve => requestAnimationFrame(resolve));
+      return await window.TalenaPdfExport.exportSections(
+        [{node:cover, cover:true}], {title,subject:title,returnBlob:true}
+      );
+    } finally {
+      stage.remove();
     }
   }
   // Shared icon: native title/ARIA work even before Feather initialises an
@@ -370,6 +422,7 @@
     if (!current) return;
     if (workspace === current) {
       schedule();
+      window.TalenaReportPackages?.initialize?.(current);
       return;
     }
     // A different candidate replaces the offcanvas body. Stop observing the
@@ -382,9 +435,10 @@
       attributes:true, attributeFilter:["class","hidden","data-has-result","data-status"]
     });
     schedule();
+    window.TalenaReportPackages?.initialize?.(current);
   }
   window.TalenaCandidateReports = Object.freeze({
-    initialize, getAvailableReports, exportReport
+    initialize, getAvailableReports, exportReport, exportCover, getPackageFilename
   });
   initialize(document); // Also supports pages where the sheet is already in the DOM.
 })();

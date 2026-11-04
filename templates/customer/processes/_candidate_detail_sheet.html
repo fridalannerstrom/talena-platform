@@ -31,7 +31,8 @@
 
                 <div class="candidate-profile-identity">
                   <div class="candidate-profile-title-row">
-                    <h1 class="candidate-profile-name">
+                    <h1 class="candidate-profile-name"
+                        data-report-export-name="{{ candidate.first_name|default:'' }} {{ candidate.last_name|default:'' }}">
                       {% if candidate.first_name or candidate.last_name %}
                         {{ candidate.first_name }} {{ candidate.last_name }}
                       {% else %}
