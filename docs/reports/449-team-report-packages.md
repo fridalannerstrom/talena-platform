@@ -1,0 +1,88 @@
+# #449 – Skapa teamrapportpaket
+
+Första utvecklingsetappen 2026-11-04. **Draft, inte produktionsgodkänd.**
+
+## Var i Talena?
+
+På befintliga **teamets detaljsida**, bland teamets huvudåtgärder, visas
+`Skapa teamrapportpaket` när aggregerade teamresultat finns.
+De befintliga knapparna för **Ladda ner teamrapport**, **Ladda ner alla teamprofiler (ZIP)**
+och nedladdning av en enda medlems profil behålls oförändrade.
+
+## Vilka rapporter kan väljas?
+
+- **Sammansatt teamrapport** om den befintliga #180-exporten har data.
+- **Individuell teamprofil: [medlem]** för varje teammedlem vars profil är
+  fullständig och renderad i den aktuellt behöriga teamvyn.
+- Saknade/ej färdiga profiler räknas och förklaras; de exporteras inte.
+- **Ingen automatisk AI-generering**. Endast de redan tillgängliga rapporterna används.
+
+Välj alla/avmarkera, drag-and-drop och tangentbordets flytta-upp/ned.
+Två nedladdningsformat: **en gemensam PDF** eller **separata PDF-filer i ZIP**.
+Den ordning som visas i väljaren används också vid export. ZIP-namnen får
+ordningsprefix (01, 02, …) så att filhanterare inte tappar sorteringen.
+
+## Exakt samma rapporter som idag
+
+`TalenaTeamProfilesExport.exportProfileForPackage(id)` återanvänder
+den befintliga `createPdf(profile)` från #181, inklusive branding, canvas,
+sidbrytningar och sparad profil.
+
+`TalenaTeamReportExport.exportReportForPackage()` återanvänder den befintliga
+`renderPdf()` för den sammansatta rapporten från #180.
+
+`TalenaReportPackageCore` är en **gemensam** PDF/ZIP-motor som extraherats från
+kandidatväljaren i #360. Den används av både #360 och #449.
+Vid sammanslagning läggs först ett brandat teamomslag och en klickbar
+innehållsförteckning (interna PDF-destinationer). De individuella PDF-sidorna
+kopieras intakta med befintliga omslag. ZIP innehåller separata PDF-Blobar.
+
+## Integritet och behörighet
+
+- Detta är **ett enda team i en redan auktoriserad teamvy**. Ingen ny
+  backend-route läser kandidater eller rapporter. Medlems-ID:n måste matcha
+  befintliga, kompletta profiler som faktiskt renderats på den sidan.
+- I anonymiserat läge är hela identifierande teamrapportpaketsfunktionen
+  blockerad, i stället för att riskera identifierande individuella rapporter.
+  Befintlig separat **anonymiserad sammansatt teamrapport** från #180 är kvar.
+- Anonymitetsswitchen kontrolleras vid öppning, före varje rapport, efter
+  varje async PDF, och direkt före nedladdning. Växling till anonymt läge
+  stänger omedelbart dialogen och **avbryter** även en export som pågår.
+  Växling tillbaka under samma export återupptar den inte.
+- Knappen visas inte förrän sessionens anonymitet har återställts.
+  Endast initialt behörig medlemsdata används och filnamn/mellandata
+  sparas inte på servern eller skickas till AI/Sova.
+- Team-/medlemsnamn i filer tillåts **endast när anonymisering är av**.
+  Filnamn saneras från sökvägs- och styrtecken, utan att å/ä/ö förstörs.
+  Dessa PDF:er och ZIP är personuppgifter och ska hanteras/gallras som övrig
+  nedladdad kandidatdata.
+
+## Gränser och säkerhet
+
+Högst 40 PDF:er, totalt högst 100 MB och högst 450 sidor i sammanslagning.
+Progress och tydliga fel visas i dialogen och teamvyn. Inget nytt AI-anrop,
+inget nytt HTTP-endpoint, ingen databasändring/migration.
+
+## Beroenden och QA
+
+`feature/449-team-report-packages` bygger på `feature/360-report-packages`,
+som i sin tur bygger på `feature/359-candidate-pdf-registry`. **Ingen merge
+till main innan #359 och #360 har validerats och landat.**
+
+Kod- och anonymitetskontrakten körs i
+`scripts/test_team_report_packages_contract.js` via Django QA.
+#180/#181:s befintliga exportkontroller och #360:s PDF-registertest fortsätter
+också köras.
+
+**Manuell QA kvar:**
+- Vanligt team med 2, 5 och 20+ medlemmar: en PDF/ZIP med rätt filer,
+  namn, ordning och branding, inklusive transparent PNG-logotyp.
+- PDF-länkar i Chrome, Edge och Adobe Reader, längre rapporters sidbrytning,
+  bild-/canvasinnehåll, storleksgränser och tomma/ofärdiga profiler.
+- Aktivt anonymt läge och växling mitt under PDF-rendering (absolut ingen
+  identifierande nedladdning), även när sessionen startar anonymiserad.
+- Olika kunder, roller, teammedlemskap och byten mellan team. Inga andra
+  kunders eller kandidaters data ska kunna exporteras.
+- Responsivt läge, drag-and-drop, tangentbordsflytt och skärmläsare.
+
+**Kopplat till** #449, #181, #180, #182, #359, #360.
