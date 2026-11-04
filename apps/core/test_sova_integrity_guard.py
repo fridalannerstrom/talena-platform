@@ -352,6 +352,29 @@ class IntegrityGuardTemplateTests(SimpleTestCase):
         self.assertIn("Monitored assessments", english)
         self.assertIn("Concern", english)
 
+    def test_report_starts_collapsed_and_shows_status_in_summary(self):
+        html = self.render_panel({"overall_status": 2, "diagnostics": {"ip_address": 2}})
+        self.assertIn('<details class="talena-ig-panel" data-integrity-guard-panel>', html)
+        self.assertIn('<summary class="talena-ig-panel__toggle">', html)
+        self.assertIn("Visa detaljer", html)
+        self.assertIn("Dölj detaljer", html)
+        self.assertIn("Avvikelser behöver granskas", html)
+        self.assertNotIn('<details class="talena-ig-panel" data-integrity-guard-panel open', html)
+        self.assertIn("IP-adress", html)
+        self.assertIn('data-integrity-guard-guide', html)
+
+    def test_guide_is_collapsed_and_cautionary_in_both_languages(self):
+        swedish = self.render_panel({"overall_status": 1})
+        self.assertIn("Så tolkar du Integrity Guard", swedish)
+        self.assertIn("En flagga är inte bevis på fusk.", swedish)
+        self.assertIn("om hjälpmedlen är tillåtna", swedish)
+        self.assertIn('<details class="talena-ig-panel__guide" data-integrity-guard-guide>', swedish)
+        english = self.render_panel({"overall_status": 3}, "en")
+        self.assertIn("How to interpret Integrity Guard", english)
+        self.assertIn("A flag does not prove cheating.", english)
+        self.assertIn("if those aids are permitted", english)
+        self.assertIn("Show details", english)
+
     def test_missing_guard_has_no_panel(self):
         self.assertNotIn('data-integrity-guard-panel', self.render_panel({}))
 
