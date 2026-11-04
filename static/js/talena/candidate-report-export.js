@@ -271,7 +271,7 @@
       if (item.id === "overview") {
         toolbar.classList.add("talena-candidate-pdf-toolbar--overview");
       }
-      const pair = create("span", "talena-candidate-report-button-pair");
+      const pair = create("div", "talena-candidate-report-button-pair");
       const parent = generate.parentNode;
       parent.insertBefore(pair, generate);
       pair.append(toolbar, generate);
