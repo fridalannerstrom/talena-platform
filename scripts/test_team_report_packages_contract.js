@@ -51,7 +51,7 @@ assert.ok(team.includes("if(!isCurrent()||isAnon())return [];"),
 assert.ok(team.includes('getAttribute("aria-checked")!=="false"'),
   "Missing or uninitialised anonymity switch must fail closed");
 assert.ok(team.includes("if(busy)cancelled=true;") &&
-  team.includes("if(cancelled||!isCurrent()||isAnon()"),
+  team.includes("if(cancelled||!adaptersReady()||!isCurrent()||isAnon()"),
   "Once anonymity is activated during export, returning to named mode must not resume old download");
 assert.ok(team.includes("if(cancelled||!adaptersReady()||!isCurrent()||isAnon()||!profileApi()?.isCurrent()"),
   "Every export step must reject cancelled, disconnected, anonymous or stale team context");
