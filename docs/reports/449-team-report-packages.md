@@ -105,3 +105,27 @@ Rapportväljaren tolkade dessa saknade funktioner som noll färdiga rapporter.
   färdiga individuella profiler verkligen blir **tre valbara rapporter**.
   Saknad adapter och anonymt läge kontrolleras separat.
 - Fortfarande krävs lokal webbläsarverifiering på ett riktigt team.
+
+## Teamheader / UX-förbättring (2026-11-04)
+
+Efter visuell granskning gjordes teamets toppsektion om till en diskret vit
+rubrikkort-yta med mer utrymme för teamnamnet och en kompakt åtgärdsrad.
+Följande åtgärder finns direkt i headern:
+
+- **Skapa teamrapportpaket** (primärknapp när resultat finns, respekterar anonymisering).
+- **Redigera medlemmar** (sekundärknapp).
+- **Anonymisera** (synlig switch med oförändrat beteende).
+- **Fler åtgärder**: gruppering Rapporter (Ladda ner teamrapport, Ladda ner individuella teamprofiler) och Hantera team (Redigera team, samt Ta bort team om `can_edit_team`).
+
+Fler-menyn bygger på semantisk `details/summary` så den fungerar även utan
+JavaScript; med JS stängs den på Escape (fokus åter till trigger), klick
+utanför, när en åtgärd väljs eller när fokus flyttas ut.
+Exporternas **ursprungliga knappar/data-attribut**, länkar och permissionsvillkor
+behålls. Alla tre statusfält för nedladdning ligger **utanför dropdownen** för
+att kunna visa export-progress och fel även när menyn stängs. Anpassningar
+för desktop, tablet, mobil och reducerad animation.
+
+`scripts/test_team_header_actions_contract.js` kontrollerar dessa avtal,
+inklusive tangentbords-/dropdownbeteende och att äldre knappar finns kvar.
+Manuell layoutgranskning i riktig webbläsare och kontroll av PDF-/ZIP-export
+återstår före merge.
