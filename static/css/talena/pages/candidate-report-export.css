@@ -1,0 +1,246 @@
+/* #359: independent candidate PDF export UI and in-memory render stage.
+   Scoped to authorised candidate workspace, never affects saved source data. */
+[data-candidate-insights-workspace] .talena-candidate-pdf-toolbar {
+  display:flex; align-items:center; flex-wrap:wrap; justify-content:flex-end;
+  gap:10px; margin:0 0 15px; padding:0;
+}
+[data-candidate-insights-workspace] .talena-candidate-pdf-toolbar .btn {
+  font-size:.73rem; font-weight:600; white-space:nowrap;
+}
+[data-candidate-insights-workspace] .talena-candidate-pdf-button {
+  display:inline-flex; align-items:center; justify-content:center;
+  flex:0 0 auto; width:36px; height:36px; padding:0;
+  color:#252a2d; border:1px solid #e7e9ec; border-radius:10px;
+  background:#fff; box-shadow:0 3px 10px rgba(23,19,18,.035);
+}
+[data-candidate-insights-workspace] .talena-candidate-pdf-button:hover,
+[data-candidate-insights-workspace] .talena-candidate-pdf-button:focus-visible {
+  color:#171312; border-color:#b9bdc4; background:#f7f8f9;
+}
+[data-candidate-insights-workspace] .talena-candidate-pdf-button.is-loading svg {
+  opacity:.35;
+}
+[data-candidate-insights-workspace] .talena-candidate-pdf-toolbar--overview {
+  display:inline-flex; flex:0 0 auto; position:relative;
+  align-items:center; justify-content:center; gap:0;
+  margin:0; padding:0; flex-wrap:nowrap;
+}
+[data-candidate-insights-workspace] .talena-candidate-pdf-toolbar--overview .talena-candidate-pdf-button {
+  width:42px; height:42px; border-radius:12px;
+}
+[data-candidate-insights-workspace] .talena-candidate-pdf-toolbar--overview .talena-candidate-pdf-message {
+  position:absolute; right:0; top:calc(100% + 5px); width:225px;
+  max-width:225px; padding:0; font-size:.7rem; pointer-events:none;
+  visibility:hidden;
+}
+[data-candidate-insights-workspace] .talena-candidate-pdf-toolbar--overview .talena-candidate-pdf-message.is-error {
+  visibility:visible; color:#b42318; background:#fff;
+  border:1px solid #fecdca; border-radius:6px; padding:6px 9px;
+  z-index:1;
+}
+[data-candidate-insights-workspace] .talena-candidate-pdf-toolbar .btn[disabled] {
+  cursor:not-allowed; opacity:.48;
+}
+[data-candidate-insights-workspace] .talena-candidate-pdf-message {
+  color:#7a7d82; font-size:.69rem; line-height:1.4;
+}
+@media(max-width:575px) {
+  [data-candidate-insights-workspace] .talena-candidate-pdf-toolbar {
+    justify-content:flex-start; gap:7px;
+  }
+}
+.talena-candidate-pdf-stage {
+  display:block !important; position:fixed; top:0; left:-10000px;
+  width:900px; max-width:none; height:auto; max-height:none;
+  margin:0; padding:0; border:0; overflow:visible !important;
+  z-index:-1; background:#fff; pointer-events:none;
+  font-family:inherit; color:#252a2d;
+}
+.talena-candidate-pdf-stage .talena-candidate-pdf-body {
+  display:block !important; width:900px; max-width:none; padding:48px 54px;
+  background:#fff; overflow:visible;
+}
+.talena-candidate-pdf-stage .talena-candidate-pdf-heading {
+  font-size:23px; font-weight:700; margin:0 0 23px;
+}
+.talena-candidate-pdf-stage .candidate-insights-panel,
+.talena-candidate-pdf-stage .candidate-insights-subpanel,
+.talena-candidate-pdf-stage .after-interview-tab-panel {
+  display:block !important; position:static !important;
+  visibility:visible !important; width:100%; max-width:none;
+  margin:0; opacity:1;
+}
+.talena-candidate-pdf-stage .talena-candidate-pdf-chart {
+  display:block; width:100%; height:auto; object-fit:contain;
+}
+.talena-candidate-pdf-stage .card { box-shadow:none; }
+.talena-candidate-pdf-stage .after-interview-tab-card {
+  border:1px solid #e7e9ec; padding:20px; border-radius:12px;
+}
+.talena-candidate-pdf-stage .team-style-guidance-explainer[open] > * {
+  visibility:visible;
+}
+
+
+/* Unified candidate-report actions. These rules deliberately override the
+   legacy SB Admin .btn-icon circle and later per-page button styles. */
+.process-page [data-candidate-insights-workspace] .talena-candidate-report-button-pair {
+  display:inline-flex;
+  align-items:center;
+  justify-content:flex-end;
+  flex:0 0 auto;
+  gap:9px;
+  white-space:nowrap;
+}
+.process-page [data-candidate-insights-workspace] .talena-candidate-pdf-toolbar--inline {
+  display:inline-flex;
+  align-items:center;
+  flex:0 0 auto;
+  flex-wrap:nowrap;
+  margin:0 !important;
+  padding:0 !important;
+  gap:0 !important;
+}
+.process-page [data-candidate-insights-workspace] .talena-candidate-report-heading-row {
+  display:flex !important;
+  flex-direction:row !important;
+  align-items:flex-start;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  gap:12px;
+  min-width:0;
+}
+.process-page [data-candidate-insights-workspace] .talena-candidate-report-heading-row > :first-child,
+.process-page [data-candidate-insights-workspace] .talena-candidate-report-heading {
+  min-width:0;
+  flex:1 1 260px;
+}
+.process-page [data-candidate-insights-workspace] .talena-report-action-button.btn-icon {
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  flex:0 0 42px !important;
+  width:42px !important;
+  min-width:42px !important;
+  height:42px !important;
+  min-height:42px !important;
+  padding:0 !important;
+  border:1px solid #ebe7e4 !important;
+  border-radius:12px !important;
+  background:#fff !important;
+  color:#716e6b !important;
+  box-shadow:0 2px 9px rgba(23,19,18,.025) !important;
+  line-height:1 !important;
+  overflow:hidden;
+}
+.process-page [data-candidate-insights-workspace] .talena-report-action-button.btn-icon:hover:not(:disabled),
+.process-page [data-candidate-insights-workspace] .talena-report-action-button.btn-icon:focus-visible {
+  color:#bb635b !important;
+  background:#fcf9f8 !important;
+  border-color:#dcc9c5 !important;
+  box-shadow:0 3px 12px rgba(23,19,18,.06) !important;
+}
+.process-page [data-candidate-insights-workspace] .talena-report-action-button.btn-icon .feather,
+.process-page [data-candidate-insights-workspace] .talena-report-action-button.btn-icon > svg {
+  display:block;
+  width:19px !important;
+  height:19px !important;
+  flex:0 0 19px;
+  stroke-width:1.75;
+}
+.process-page [data-candidate-insights-workspace] .talena-candidate-pdf-toolbar--inline .talena-candidate-pdf-message {
+  position:absolute;
+  width:1px;
+  height:1px;
+  overflow:hidden;
+  clip-path:inset(50%);
+  white-space:nowrap;
+  margin:0;
+  padding:0;
+}
+.process-page [data-candidate-insights-workspace] .talena-candidate-pdf-toolbar--inline .talena-candidate-pdf-message.is-error {
+  position:absolute;
+  top:calc(100% + 6px);
+  right:0;
+  z-index:10;
+  width:230px;
+  height:auto;
+  padding:7px 10px;
+  clip-path:none;
+  overflow:visible;
+  white-space:normal;
+  color:#b42318;
+  background:#fff;
+  border:1px solid #fecdca;
+  border-radius:8px;
+  box-shadow:0 4px 14px rgba(23,19,18,.06);
+}
+.process-page [data-candidate-insights-workspace] .talena-candidate-pdf-toolbar--inline {
+  position:relative;
+}
+.process-page [data-candidate-insights-workspace] .talena-candidate-pdf-toolbar--standalone {
+  margin:0 0 10px !important;
+  padding:0 !important;
+}
+/* Questions had two nested Bootstrap mt-4 classes, producing an
+   unnecessarily tall gap directly underneath the subsection tabs. */
+.process-page [data-candidate-insights-workspace] .candidate-insights-subpanel .personality-questions-header.mt-4,
+.process-page [data-candidate-insights-workspace] .candidate-insights-subpanel .personality-questions-header .insight-summary-kicker.mt-4 {
+  margin-top:0 !important;
+}
+@media(max-width:620px) {
+  .process-page [data-candidate-insights-workspace] .talena-candidate-report-heading-row {
+    gap:8px;
+  }
+  .process-page [data-candidate-insights-workspace] .talena-candidate-report-heading-row > :first-child,
+  .process-page [data-candidate-insights-workspace] .talena-candidate-report-heading {
+    flex-basis:190px;
+  }
+}
+
+/* PDF render has a fixed A4-facing width, regardless of the browser viewport.
+   Prevent wide desktop chart grids from extending beyond the raster canvas.
+   This affects only the temporary export clone, never the candidate UI. */
+.talena-candidate-pdf-stage,
+.talena-candidate-pdf-stage *,
+.talena-candidate-pdf-stage *::before,
+.talena-candidate-pdf-stage *::after {
+  box-sizing:border-box;
+}
+.talena-candidate-pdf-stage .talena-candidate-pdf-body {
+  min-width:0; width:900px; max-width:900px;
+}
+.talena-candidate-pdf-stage .talena-candidate-pdf-body > .candidate-insights-subpanel,
+.talena-candidate-pdf-stage .personality-profile,
+.talena-candidate-pdf-stage .personality-profile-section,
+.talena-candidate-pdf-stage .personality-trait-card,
+.talena-candidate-pdf-stage .personality-trait-card__indicator-panel {
+  min-width:0 !important; max-width:100% !important; width:100%;
+}
+.talena-candidate-pdf-stage .personality-trait-card__main,
+.talena-candidate-pdf-stage .personality-indicator-row__profile {
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) minmax(0,1.8fr) minmax(0,1fr) !important;
+  gap:10px !important; align-items:center;
+  width:100%; max-width:100%; min-width:0;
+}
+.talena-candidate-pdf-stage .personality-trait-card__main > *,
+.talena-candidate-pdf-stage .personality-indicator-row__profile > *,
+.talena-candidate-pdf-stage .personality-indicator-row,
+.talena-candidate-pdf-stage .personality-graph,
+.talena-candidate-pdf-stage .personality-indicator-row__scale-wrap,
+.talena-candidate-pdf-stage .personality-indicator-scale {
+  min-width:0 !important; max-width:100% !important;
+}
+.talena-candidate-pdf-stage .personality-trait-card__pole,
+.talena-candidate-pdf-stage .personality-indicator-row__pole {
+  overflow-wrap:anywhere;
+}
+.talena-candidate-pdf-stage .personality-graph,
+.talena-candidate-pdf-stage .personality-indicator-row__scale-wrap {
+  width:100%;
+}
+/* Source grids for the trait-only profile must fit the PDF's usable width. */
+.talena-candidate-pdf-stage .personality-quick-row {
+  grid-template-columns:minmax(0,1fr) minmax(0,1.8fr) minmax(0,1fr) !important;
+}

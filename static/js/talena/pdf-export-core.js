@@ -103,7 +103,13 @@
       ".team-style-profile-card, .team-styles-section, .team-profile-pdf-heading, " +
       ".after-interview-manager-report__skill, .after-interview-manager-report__guide-level, " +
       ".after-interview-manager-report__motivator, .after-interview-manager-report__personality-theme, " +
-      ".after-interview-manager-report__personality-advice"
+      ".after-interview-manager-report__personality-advice, " +
+      // Trait cards may be taller than a page, so rows and summaries must
+      // also be possible breakpoints. Never split an indicator's text/scale.
+      ".personality-profile-section__header, .personality-trait-card__header, " +
+      ".personality-trait-card__main, .personality-trait-card__summary, " +
+      ".personality-indicator-row, .personality-trait-card, .personality-quick-row, " +
+      ".personality-overview-group, .personality-overview-item"
     );
     const points = [];
     candidates.forEach(element => {
@@ -111,6 +117,11 @@
       if (!rect.height) return;
       const bottom = Math.round((rect.bottom - box.top) * scale);
       if (bottom > 0 && bottom < source.height) points.push(bottom);
+      // A section can start near a page edge even if its bottom lies on the
+      // next page. Its top is a valid boundary before that section, too.
+      // Avoid top/bottom duplicates for near-zero-height elements.
+      const top = Math.round((rect.top - box.top) * scale);
+      if (rect.height > 12 && top > 0 && top < source.height) points.push(top);
     });
     return points;
   }
