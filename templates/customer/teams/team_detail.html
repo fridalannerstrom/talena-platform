@@ -14,7 +14,7 @@
   <link href="{% static 'css/talena/pages/team-report-export.css' %}" rel="stylesheet" />
   {# #449: shared PDF/ZIP picker styles, with a team-specific header action. #}
   <link href="{% static 'css/talena/pages/candidate-report-packages.css' %}?v=20261104-449-1" rel="stylesheet" />
-  <link href="{% static 'css/talena/pages/team-report-packages.css' %}?v=20261104-449-1" rel="stylesheet" />
+  <link href="{% static 'css/talena/pages/team-report-packages.css' %}?v=20261104-449-header-1" rel="stylesheet" />
   <style>
     .talena-team-page .team-anonymity-toggle {
       display: inline-flex;
@@ -702,6 +702,7 @@
   {# #449: assemble already-rendered team PDFs using the same core as #360. #}
   <script src="{% static 'js/talena/report-package-core.js' %}?v=20261104-449-1"></script>
   <script src="{% static 'js/talena/team-report-packages.js' %}?v=20261104-449-picker-3"></script>
+  <script src="{% static 'js/talena/team-header-actions.js' %}?v=20261104-449-header-1"></script>
   <script>
     (function () {
       "use strict";
