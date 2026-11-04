@@ -73,6 +73,11 @@
   column-gap:30px;
   row-gap:16px;
   overflow:visible;
+  padding:24px 26px;
+  border:1px solid #e8e3df;
+  border-radius:18px;
+  background:rgba(255,255,255,.93);
+  box-shadow:0 5px 22px rgba(35,27,23,.035);
 }
 .talena-team-page .team-page-identity { min-width:0; }
 .talena-team-page .team-page-identity .team-page-title {
@@ -298,7 +303,7 @@
   .talena-team-page .team-page-action-feedback > span { text-align:left; }
 }
 @media(max-width:767.98px) {
-  .talena-team-page .team-page-header { display:grid; }
+  .talena-team-page .team-page-header { display:grid; padding:19px 17px; }
   .talena-team-page .team-page-actions { width:100%; }
   .talena-team-page .team-page-action-bar { width:100%; gap:8px; }
   .talena-team-page .team-page-action-bar .btn { flex:0 0 auto; }
