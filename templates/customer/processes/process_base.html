@@ -2906,6 +2906,9 @@ function initCandidateSheetInteractions(container) {
   initCandidateInsightsWorkspace(container);
   initCandidateInsightsSubtabs(container);
 
+  // #359: bind report buttons each time the AJAX candidate sheet is loaded.
+  window.TalenaCandidateReports?.initialize?.(container);
+
   if (
     typeof window.initPersonalityViewSwitcher === "function"
   ) {
