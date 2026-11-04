@@ -65,9 +65,11 @@ inget nytt HTTP-endpoint, ingen databasändring/migration.
 
 ## Beroenden och QA
 
-`feature/449-team-report-packages` bygger på `feature/360-report-packages`,
-som i sin tur bygger på `feature/359-candidate-pdf-registry`. **Ingen merge
-till main innan #359 och #360 har validerats och landat.**
+PR #450 riktas nu mot `main` för full CI. PR #446 (#359) är redan mergad,
+medan PR #448 (#360) måste passera full QA och mergas **före** denna PR.
+Branchens historik omfattar fortfarande båda tidigare funktionsgrenarna,
+men GitHub jämför automatiskt bort redan mergade commits. Inga ändringar
+skickas till produktion innan respektive PR mergas till `main`.
 
 Kod- och anonymitetskontrakten körs i
 `scripts/test_team_report_packages_contract.js` via Django QA.
