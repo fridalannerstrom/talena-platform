@@ -1,0 +1,64 @@
+/* #449: team package action supplements (never replaces) legacy downloads.
+ * Dialog rows, order buttons and formats reuse #360 candidate package CSS.
+ */
+.talena-team-page .team-package-actions {
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:4px;
+  max-width:260px;
+}
+.talena-team-page .team-package-actions [data-team-package-open] {
+  white-space:nowrap;
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  padding:8px 12px;
+  font-size:.78rem;
+  font-weight:650;
+  color:#4d4845;
+  background:#fff;
+  border-color:#e4ded9;
+  border-radius:10px;
+  box-shadow:0 2px 9px rgba(23,19,18,.025);
+}
+.talena-team-page .team-package-actions [data-team-package-open][hidden] {
+  display:none !important;
+}
+.talena-team-page .team-package-actions [data-team-package-open]:hover:not(:disabled) {
+  color:#b7544c;
+  background:#fef9f8;
+  border-color:#d9b9b3;
+}
+.talena-team-page .team-package-actions [data-team-package-open]:disabled {
+  opacity:.65;
+  cursor:not-allowed;
+}
+.talena-team-page .team-package-actions [data-team-package-status] {
+  color:#62776b;
+  font-size:.71rem;
+  text-align:right;
+  line-height:1.4;
+}
+.talena-team-page .team-package-actions [data-team-package-status].is-error {
+  color:#b42318;
+}
+.talena-team-package-dialog .talena-package-hint {
+  padding:7px 10px;
+  border:1px solid #eee7e0;
+  background:#faf8f6;
+  border-radius:8px;
+  font-size:.74rem;
+  margin:6px 0 12px;
+}
+.talena-team-package-dialog .talena-package-row {
+  padding-block:10px;
+}
+@media(max-width:900px) {
+  .talena-team-page .team-package-actions {
+    align-items:flex-start;
+  }
+  .talena-team-page .team-package-actions [data-team-package-status] {
+    text-align:left;
+  }
+}
