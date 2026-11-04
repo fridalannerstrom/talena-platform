@@ -27,3 +27,12 @@ Denna branch är medvetet **staplad på `feature/359-candidate-pdf-registry`** o
 - UX-justeringar och eventuellt snyggare slutligt rapportpaketsomslag efter visuell granskning.
 
 **Ingen merge till main eller stängning av #359/#360 utan visuell QA.**
+
+
+## Filnamn, kandidatidentifiering och integritet (2026-11-04)
+
+- Enskilda PDF:er, PDF:er inuti ZIP, sammanslagen PDF och ZIP-filen får **förnamn och efternamn** före nuvarande rapportspecifika namn, till exempel `Anna Andersson - Personlighet - Resultat.pdf`, `Anna Andersson - Rapportpaket.pdf` och `Anna Andersson - Rapporter.zip`.
+- Kandidatnamnet kommer från `data-report-export-name` i det **öppna och behöriga kandidatkortet**. Det attributet renderas med endast Django-fälten `first_name` och `last_name`. Rubrikens möjliga **e-postfallback används aldrig** som filnamn.
+- Filnamn saneras från kontrolltecken, dubbelriktade styrtecken, sökvägsavgränsare och operativsystemets otillåtna filnamnstecken. Svenska och andra Unicode-bokstäver behålls. Namnet avgränsas till högst 90 Unicode-kodpunkter. Saknas namn används neutralt `talena-<rapport-id>.pdf`, `talena-rapportpaket.pdf` eller `talena-rapporter.zip`.
+- För långvariga, asynkrona exporter låses filnamnet till kandidatkortets namn vid exportstart. Exportvalidering kontrollerar fortfarande att aktuellt kandidatkort finns kvar före nedladdning. Ingen kandidatidentitet läggs i URL:er, API-anrop eller felsökningsloggar och inga nya serverlagrade exportfiler skapas.
+- **GDPR:** Namn i filnamn är personuppgifter. Namngivningen hjälper till att undvika förväxling i den redan behöriga rekryteringshanteringen, men nedladdade filer ska hanteras med samma åtkomstskydd, raderingsrutiner och säkerhet vid delning som själva rapportinnehållet. Talena kan inte automatiskt ta bort en fil som kunden laddat ner till sin egen enhet eller externa molntjänst.
