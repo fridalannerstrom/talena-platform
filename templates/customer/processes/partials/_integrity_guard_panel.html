@@ -8,17 +8,7 @@
       {% include "customer/processes/partials/_integrity_guard_badge.html" with inv=invitation %}
       <span class="talena-ig-panel__heading-text">
         <span class="talena-ig-panel__title">Integrity Guard</span>
-        <span class="talena-ig-panel__subtitle">{% if guard.state == 'concern' %}
-          {% if ig_language|slice:':2' == 'sv' %}Avvikelser behöver granskas{% else %}Concerns need review{% endif %}
-        {% elif guard.state == 'error' %}
-          {% if ig_language|slice:':2' == 'sv' %}Mätfel{% else %}Monitoring error{% endif %}
-        {% elif guard.state == 'clear' %}
-          {% if ig_language|slice:':2' == 'sv' %}Inga avvikelser upptäckta{% else %}No concerns detected{% endif %}
-        {% elif guard.state == 'not_monitored' %}
-          {% if ig_language|slice:':2' == 'sv' %}Ingen övervakning registrerad{% else %}No monitoring recorded{% endif %}
-        {% else %}
-          {% if ig_language|slice:':2' == 'sv' %}Status saknas{% else %}Status unavailable{% endif %}
-        {% endif %}</span>
+        <span class="talena-ig-panel__subtitle">{% if ig_language|slice:':2' == 'sv' %}Teknisk övervakningsinformation{% else %}Technical monitoring information{% endif %}</span>
       </span>
     </span>
     <span class="talena-ig-panel__toggle-action" aria-hidden="true">
@@ -28,6 +18,17 @@
     </span>
   </summary>
   <div class="talena-ig-panel__body">
+    <p class="talena-ig-panel__status talena-ig-panel__status--{{ guard.state }}">{% if guard.state == 'concern' %}
+          {% if ig_language|slice:':2' == 'sv' %}Avvikelser behöver granskas{% else %}Concerns need review{% endif %}
+        {% elif guard.state == 'error' %}
+          {% if ig_language|slice:':2' == 'sv' %}Mätfel{% else %}Monitoring error{% endif %}
+        {% elif guard.state == 'clear' %}
+          {% if ig_language|slice:':2' == 'sv' %}Inga avvikelser upptäckta{% else %}No concerns detected{% endif %}
+        {% elif guard.state == 'not_monitored' %}
+          {% if ig_language|slice:':2' == 'sv' %}Ingen övervakning registrerad{% else %}No monitoring recorded{% endif %}
+        {% else %}
+          {% if ig_language|slice:':2' == 'sv' %}Status saknas{% else %}Status unavailable{% endif %}
+        {% endif %}</p>
   <p class="talena-ig-panel__help">
     {% if guard.state == 'concern' %}
       {% if ig_language|slice:':2' == 'sv' %}
