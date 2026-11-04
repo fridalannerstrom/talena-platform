@@ -86,3 +86,22 @@ också köras.
 - Responsivt läge, drag-and-drop, tangentbordsflytt och skärmläsare.
 
 **Kopplat till** #449, #181, #180, #182, #359, #360.
+
+## Buggrättning 2026-11-04: tom rapportväljare trots teamresultat
+
+Orsak som identifierades i koden: de två befintliga exportskripten
+`team-profile-export.js` och `team-report-export.js` hade uppdaterats med
+#449-adaptrar men låg fortfarande i teammallen **utan versionsparameter**.
+Webbläsaren kunde därför använda en tidigare cachad version utan
+`window.TalenaTeamProfilesExport` respektive `window.TalenaTeamReportExport`.
+Rapportväljaren tolkade dessa saknade funktioner som noll färdiga rapporter.
+
+- Nya explicita cacheversioner för båda exportadaptrarna och rapportväljaren
+  i `team_detail.html`, i korrekt skriptordning.
+- Väljaren skiljer nu på **inga färdiga rapporter** och **saknade exportfunktioner**.
+  Den senare situationen visar en tydlig svensk/engelsk feltext och skapar
+  ingen missvisande tom dialog.
+- Nytt kört regressionstest verifierar att en sammansatt rapport och två
+  färdiga individuella profiler verkligen blir **tre valbara rapporter**.
+  Saknad adapter och anonymt läge kontrolleras separat.
+- Fortfarande krävs lokal webbläsarverifiering på ett riktigt team.
