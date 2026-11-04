@@ -3,12 +3,15 @@
 const assert=require("node:assert/strict"),fs=require("node:fs"),vm=require("node:vm");
 const file=name=>fs.readFileSync(name,"utf8");
 const js=file("static/js/talena/candidate-report-packages.js");
+const assembler=file("static/js/talena/report-package-core.js");
 const css=file("static/css/talena/pages/candidate-report-packages.css");
 const registry=file("static/js/talena/candidate-report-export.js");
 const base=file("templates/customer/core/layouts/customer_base.html");
 assert.ok(base.includes("candidate-report-packages.css"));
 assert.ok(base.includes("candidate-report-packages.js"));
 assert.ok(base.indexOf("candidate-report-packages.js")>base.indexOf("candidate-report-export.js"));
+assert.ok(base.indexOf("report-package-core.js")<base.indexOf("candidate-report-packages.js"),
+  "Load shared PDF/ZIP assembler before candidate picker");
 assert.ok(registry.includes("exportCover")&&registry.includes("returnBlob:true"));
 assert.ok(registry.includes("TalenaReportPackages?.initialize?.(current)"));
 assert.ok(js.includes('api().getAvailableReports()'));
@@ -35,9 +38,14 @@ assert.ok(!js.includes("window.open("));
 assert.ok(js.includes("dataTransfer.setData")&&js.includes("dragover"));
 assert.ok(js.includes("move(id,direction)")&&js.includes(".focus()"));
 assert.ok(js.includes("chosen=new Set(on?order:[])"));
-assert.ok(js.includes('window.JSZip')&&js.includes('zip.file(e.filename,e.blob)'));
-assert.ok(js.includes('window.PDFLib')&&js.includes('pdf.copyPages(src,src.getPageIndices())'));
-assert.ok(js.includes('PDFName.of("Annots")')&&js.includes('PDFName.of("Fit")'));
+assert.ok(js.includes('window.TalenaReportPackageCore.zipFiles(entries)') ||
+  js.includes('await core.zipFiles(entries)'),
+  "Candidate picker must reuse the shared ZIP assembler");
+assert.ok(js.includes('await core.merge(entries,await api().exportCover(t.cover)'),
+  "Candidate picker must reuse the shared PDF merger and branded cover");
+assert.ok(assembler.includes('window.JSZip')&&assembler.includes('zip.file('));
+assert.ok(assembler.includes('window.PDFLib')&&assembler.includes('pdf.copyPages(source,source.getPageIndices())'));
+assert.ok(assembler.includes('PDFName.of("Annots")')&&assembler.includes('PDFName.of("Fit")'));
 assert.ok(js.includes("MAX_BYTES")&&js.includes("MAX_PAGES")&&js.includes("MAX_REPORTS"));
 assert.ok(js.includes('dialog.showModal()')&&js.includes('dialog.addEventListener("cancel"'));
 assert.ok(js.includes('role","status"')&&js.includes('aria-live","polite"'));
