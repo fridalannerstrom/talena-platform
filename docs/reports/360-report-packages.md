@@ -4,7 +4,7 @@
 Denna branch är medvetet **staplad på `feature/359-candidate-pdf-registry`** och ska inte mergas till main före att #359 granskats och mergats. Ingen migration eller server-endpoint behövs.
 
 ## Gränssnitt
-- Knappen **Skapa rapportpaket / Create report package** visas i kandidatens befintliga insight-navigation, och följer det kandidatkort som öppnas dynamiskt via AJAX.
+- Knappen **Skapa rapportpaket / Create report package** visas i **kandidatkortets övre högra hörn, i samma översta rad som namnet** (i befintlig `.candidate-profile-actions`), inte i insight-navigationens flikrad. Den följer det behöriga kandidatkort som öppnas dynamiskt via AJAX och återskapas inte dubbelt vid flikbyten.
 - Ett modal-dialogfönster visar bara rapporter som är klara i det **aktuella auktoriserade kandidatkortets** PDF-register.
 - Kryssrutor, välj/avmarkera alla, drag-and-drop och tangentbordstillgängliga upp/ned-knappar. Den visade ordningen styr PDF/ZIP.
 - Välj **en sammanslagen PDF** eller **separata PDF:er i ZIP**. Ingen AI genereras vid export.
@@ -36,3 +36,7 @@ Denna branch är medvetet **staplad på `feature/359-candidate-pdf-registry`** o
 - Filnamn saneras från kontrolltecken, dubbelriktade styrtecken, sökvägsavgränsare och operativsystemets otillåtna filnamnstecken. Svenska och andra Unicode-bokstäver behålls. Namnet avgränsas till högst 90 Unicode-kodpunkter. Saknas namn används neutralt `talena-<rapport-id>.pdf`, `talena-rapportpaket.pdf` eller `talena-rapporter.zip`.
 - För långvariga, asynkrona exporter låses filnamnet till kandidatkortets namn vid exportstart. Exportvalidering kontrollerar fortfarande att aktuellt kandidatkort finns kvar före nedladdning. Ingen kandidatidentitet läggs i URL:er, API-anrop eller felsökningsloggar och inga nya serverlagrade exportfiler skapas.
 - **GDPR:** Namn i filnamn är personuppgifter. Namngivningen hjälper till att undvika förväxling i den redan behöriga rekryteringshanteringen, men nedladdade filer ska hanteras med samma åtkomstskydd, raderingsrutiner och säkerhet vid delning som själva rapportinnehållet. Talena kan inte automatiskt ta bort en fil som kunden laddat ner till sin egen enhet eller externa molntjänst.
+
+## Team (separat ticket)
+
+Teamets nuvarande ZIP-export av alla individuella teamprofiler ingår i #181 (stängd). Valbart urval av flera teammedlemmars profiler och en sammanslagen PDF/ZIP är **inte** scope för #360: se separat #449. Vid implementering av #449 måste teamets anonymitetsläge och användarbehörigheter styra både innehåll och filnamn.
