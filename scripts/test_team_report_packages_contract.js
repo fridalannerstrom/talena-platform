@@ -47,8 +47,8 @@ assert.ok(team.includes('getAttribute("aria-checked")!=="false"'),
 assert.ok(team.includes("if(busy)cancelled=true;") &&
   team.includes("if(cancelled||!isCurrent()||isAnon()"),
   "Once anonymity is activated during export, returning to named mode must not resume old download");
-assert.ok(team.includes("if(!isCurrent()||isAnon()||!profileApi()?.isCurrent()"),
-  "Every export step must reject anonymous/stale team context");
+assert.ok(team.includes("if(cancelled||!isCurrent()||isAnon()||!profileApi()?.isCurrent()"),
+  "Every export step must reject cancelled, anonymous or stale team context");
 assert.ok(team.includes("MutationObserver(anonymityChanged)"),
   "Anonymous-mode changes must hide the picker");
 assert.ok(team.includes("if(dialog)discard();"),
