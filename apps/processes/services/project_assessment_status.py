@@ -179,14 +179,23 @@ def invitation_test_statuses(invitation, columns, language="sv"):
         usages = getattr(invitation, "status_usages", []) or []
     for usage in usages:
         key = test_key(getattr(usage, "assessment_type", ""))
-        if key not in states or states[key] in ("completed", "started", "not_started"):
+        if key not in states:
             continue
         state = str(getattr(usage, "status", "")).lower()
+        current = states[key]
+
+        # A recorded AssessmentUsage is evidence about THIS test, not the
+        # invitation's global status. Sova callbacks can be partial and can
+        # include placeholders ("unknown"/"not started") for other activities.
+        # These must not erase an independently confirmed sent test.
+        # Keep explicit failures, expiration and "not assigned" as-is.
+        if current in ("expired", "activity_failed", "not_assigned"):
+            continue
         if state == "completed" and not getattr(usage, "completed_at_is_estimated", False):
             states[key] = "completed"
-        elif state == "started":
+        elif state == "started" and current != "completed":
             states[key] = "started"
-        elif state == "sent" and states[key] is None:
+        elif state == "sent" and current in (None, "unknown", "not_started"):
             states[key] = "invited"
 
     invitation_status = (getattr(invitation, "status", "") or "").lower()

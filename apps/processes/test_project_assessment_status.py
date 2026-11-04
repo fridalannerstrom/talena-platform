@@ -76,6 +76,67 @@ class ProjectAssessmentStatusUnitTests(SimpleTestCase):
                 data = self.result(self.invitation(status=invitation_status))
                 self.assertEqual(data["personality"]["state"], wanted)
 
+    def test_five_sent_tests_keep_envelopes_when_only_pq_starts(self):
+        names = ("personality", "motivation", "verbal", "logical", "numerical")
+        usages = [
+            SimpleNamespace(assessment_type=name, status="sent",
+                            completed_at_is_estimated=False)
+            for name in names
+        ]
+        inv = self.invitation(status="started", usages=usages, activities=[
+            {"activity": "TQ Personality", "status": "started"},
+            {"activity": "TQ Motivation", "status": "unknown"},
+            {"activity": "TQ Verbal Reasoning", "status": "not started"},
+            {"activity": "TQ Logical Reasoning"},  # Callback placeholder
+            # Numeriskt test saknas helt i den partiella callbacken.
+        ])
+        data = self.result(inv, names)
+        self.assertEqual({key: cell["state"] for key, cell in data.items()}, {
+            "personality": "started", "motivation": "invited",
+            "verbal": "invited", "logical": "invited", "numerical": "invited",
+        })
+        self.assertTrue(all(data[key]["label"] == "Skickat" for key in names[1:]))
+        inv.sova_activities = [
+            {"activity": "TQ Personality", "status": "started"},
+            {"activity": "TQ Motivation", "status": "started"},
+        ]
+        data = self.result(inv, names, "en")
+        self.assertEqual({key: cell["state"] for key, cell in data.items()}, {
+            "personality": "started", "motivation": "started",
+            "verbal": "invited", "logical": "invited", "numerical": "invited",
+        })
+        self.assertEqual(data["verbal"]["label"], "Sent")
+        self.assertNotEqual(data["verbal"]["icon_path"], data["motivation"]["icon_path"])
+
+    def test_persisted_completed_and_started_do_not_regress_on_partial_callback(self):
+        usages = [
+            SimpleNamespace(assessment_type="personality", status="completed",
+                            completed_at_is_estimated=False),
+            SimpleNamespace(assessment_type="motivation", status="started",
+                            completed_at_is_estimated=False),
+        ]
+        data = self.result(self.invitation(status="started", usages=usages, activities=[
+            {"activity": "PQ", "status": "started"},
+            {"activity": "MQ", "status": "unknown"},
+        ]))
+        self.assertEqual(data["personality"]["state"], "completed")
+        self.assertEqual(data["motivation"]["state"], "started")
+
+    def test_explicit_problem_never_overridden_by_sent_usage(self):
+        usages = [SimpleNamespace(
+            assessment_type="motivation", status="sent",
+            completed_at_is_estimated=False,
+        )]
+        for raw, expected in (
+            ("not_assigned", "not_assigned"),
+            ("failed", "activity_failed"),
+            ("expired", "expired"),
+        ):
+            with self.subTest(raw=raw):
+                data = self.result(self.invitation(status="started", usages=usages,
+                    activities=[{"activity": "MQ", "status": raw}]))
+                self.assertEqual(data["motivation"]["state"], expected)
+
     def test_sova_explicit_not_assigned_is_not_guessed_from_missing_data(self):
         data = self.result(self.invitation(activities=[
             {"activity": "personality", "status": "not_assigned"}
@@ -257,6 +318,77 @@ class ProjectAssessmentStatusIntegrationTests(TestCase):
         updated = self.client.get(url, HTTP_ACCEPT_LANGUAGE="sv").json()
         self.assertEqual([s["label"] for s in updated["invitations"][0]["assessments"]],
                          ["Genomfört", "Genomfört"])
+
+    def test_polling_preserves_sent_envelopes_across_partial_sova_callbacks(self):
+        from django.utils import timezone
+        from apps.processes.services.assessment_usage import (
+            register_sent_assessments, sync_assessment_usage_from_activities,
+        )
+
+        keys = ["personality", "motivation", "verbal", "logical", "numerical"]
+        self.project.selected_tests = keys
+        self.project.save(update_fields=["selected_tests"])
+        self.invitation.status = "sent"
+        self.invitation.sova_activities = []
+        self.invitation.invited_at = timezone.now()
+        self.invitation.save(update_fields=["status", "sova_activities", "invited_at"])
+        register_sent_assessments(
+            invitation=self.invitation, sent_by=self.user,
+            sent_at=self.invitation.invited_at, sova_request_id="synthetic-request",
+        )
+
+        customer_url = reverse("processes:process_invitation_statuses",
+                               args=[self.project.pk])
+        def read_statuses(url, language):
+            response = self.client.get(url, HTTP_ACCEPT_LANGUAGE=language)
+            self.assertEqual(response.status_code, 200)
+            return {cell["key"]: cell
+                    for cell in response.json()["invitations"][0]["assessments"]}
+
+        initial = read_statuses(customer_url, "sv")
+        self.assertEqual(set(initial), set(keys))
+        self.assertTrue(all(cell["state"] == "invited" for cell in initial.values()))
+
+        # Callback may contain only PQ plus placeholder states for other tests.
+        activities = [
+            {"activity": "TQ Personality", "status": "started"},
+            {"activity": "TQ Motivation", "status": "unknown"},
+            {"activity": "TQ Verbal Reasoning", "status": "not started"},
+        ]
+        self.invitation.status = "started"
+        self.invitation.sova_activities = activities
+        self.invitation.save(update_fields=["status", "sova_activities"])
+        sync_assessment_usage_from_activities(invitation=self.invitation, activities=activities)
+        after_pq = read_statuses(customer_url, "sv")
+        self.assertEqual({key: cell["state"] for key, cell in after_pq.items()}, {
+            "personality": "started", "motivation": "invited",
+            "verbal": "invited", "logical": "invited", "numerical": "invited",
+        })
+        self.assertTrue(all(after_pq[key]["label"] == "Skickat" for key in keys[1:]))
+        self.assertTrue(all(after_pq[key]["icon_path"] == initial[key]["icon_path"]
+                            for key in keys[1:]))
+
+        # Later callback includes only MQ. Previously observed PQ stays started.
+        activities = [{"activity": "TQ Motivation", "status": "started"}]
+        self.invitation.sova_activities = activities
+        self.invitation.save(update_fields=["sova_activities"])
+        sync_assessment_usage_from_activities(invitation=self.invitation, activities=activities)
+        after_mq = read_statuses(customer_url, "en")
+        self.assertEqual({key: cell["state"] for key, cell in after_mq.items()}, {
+            "personality": "started", "motivation": "started",
+            "verbal": "invited", "logical": "invited", "numerical": "invited",
+        })
+        self.assertEqual(after_mq["verbal"]["label"], "Sent")
+
+        # Both admin lists use the same admin polling endpoint and cell partial.
+        self.user.is_staff = True
+        self.user.is_superuser = True
+        self.user.save(update_fields=["is_staff", "is_superuser"])
+        admin_url = reverse("accounts:admin_process_invitation_statuses",
+                            args=[self.project.pk])
+        admin = read_statuses(admin_url, "sv")
+        self.assertEqual({key: cell["state"] for key, cell in admin.items()},
+                         {key: cell["state"] for key, cell in after_mq.items()})
 
     def test_never_expose_another_company_or_project_status(self):
         url = reverse("processes:process_invitation_statuses", args=[self.foreign_project.pk])
