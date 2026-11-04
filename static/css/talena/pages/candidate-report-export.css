@@ -125,28 +125,28 @@
   height:42px !important;
   min-height:42px !important;
   padding:0 !important;
-  border:1px solid #e1dfdc !important;
+  border:1px solid #ebe7e4 !important;
   border-radius:12px !important;
   background:#fff !important;
-  color:#494541 !important;
-  box-shadow:0 3px 12px rgba(23,19,18,.035) !important;
+  color:#716e6b !important;
+  box-shadow:0 2px 9px rgba(23,19,18,.025) !important;
   line-height:1 !important;
   overflow:hidden;
 }
 .process-page [data-candidate-insights-workspace] .talena-report-action-button.btn-icon:hover:not(:disabled),
 .process-page [data-candidate-insights-workspace] .talena-report-action-button.btn-icon:focus-visible {
-  color:#d3574c !important;
-  background:#fff7f5 !important;
-  border-color:#ffbfb8 !important;
+  color:#bb635b !important;
+  background:#fcf9f8 !important;
+  border-color:#dcc9c5 !important;
   box-shadow:0 3px 12px rgba(23,19,18,.06) !important;
 }
 .process-page [data-candidate-insights-workspace] .talena-report-action-button.btn-icon .feather,
 .process-page [data-candidate-insights-workspace] .talena-report-action-button.btn-icon > svg {
   display:block;
-  width:22px !important;
-  height:22px !important;
-  flex:0 0 22px;
-  stroke-width:2;
+  width:19px !important;
+  height:19px !important;
+  flex:0 0 19px;
+  stroke-width:1.75;
 }
 .process-page [data-candidate-insights-workspace] .talena-candidate-pdf-toolbar--inline .talena-candidate-pdf-message {
   position:absolute;
