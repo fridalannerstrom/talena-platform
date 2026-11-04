@@ -55,3 +55,58 @@
 .talena-ig-panel__activities li {display:flex; justify-content:space-between; align-items:center; gap:12px; padding:8px 0; border-top:1px solid #f0f1f2; flex-wrap:wrap;}
 .talena-ig-panel__activity-name {font-size:0.8rem; font-weight:450; color:#454e53;}
 .talena-ig-panel__activities .talena-ig-check {flex:none;}
+
+/* Candidate card: keep status visible while collapsing the detailed report. */
+.talena-ig-panel { padding:0; }
+.talena-ig-panel__toggle {
+  display:flex; align-items:center; justify-content:space-between; gap:16px;
+  padding:14px 18px; cursor:pointer; list-style:none; border-radius:12px;
+}
+.talena-ig-panel__toggle::-webkit-details-marker,
+.talena-ig-panel__guide > summary::-webkit-details-marker { display:none; }
+.talena-ig-panel__toggle::marker,
+.talena-ig-panel__guide > summary::marker { content:""; }
+.talena-ig-panel__toggle:focus-visible,
+.talena-ig-panel__guide > summary:focus-visible,
+.talena-ig-panel__activity-details > summary:focus-visible {
+  outline:2px solid #4c74ba; outline-offset:3px;
+}
+.talena-ig-panel__toggle:hover { background:#fafbfc; }
+.talena-ig-panel__heading { min-width:0; }
+.talena-ig-panel__heading-text { display:flex; flex-direction:column; min-width:0; }
+.talena-ig-panel__title, .talena-ig-panel__subtitle { display:block; }
+.talena-ig-panel__toggle-action {
+  flex:none; display:inline-flex; align-items:center; gap:10px;
+  color:#5b6470; font-size:0.8rem; font-weight:600;
+}
+.talena-ig-panel__hide-label, .talena-ig-panel[open] .talena-ig-panel__show-label { display:none; }
+.talena-ig-panel[open] .talena-ig-panel__hide-label { display:inline; }
+.talena-ig-panel__chevron {
+  display:inline-block; width:8px; height:8px; border-right:2px solid currentColor;
+  border-bottom:2px solid currentColor; transform:rotate(45deg);
+  transition:transform 140ms ease;
+}
+.talena-ig-panel[open] .talena-ig-panel__chevron { transform:rotate(225deg); }
+.talena-ig-panel__body { padding:0 18px 16px; border-top:1px solid #edf0f1; }
+.talena-ig-panel__guide { border:1px solid #e7ebed; border-radius:9px; margin-top:15px; background:#fff; }
+.talena-ig-panel__guide > summary {
+  cursor:pointer; padding:11px 13px; color:#394651; font-weight:650;
+  font-size:0.83rem; list-style:none;
+}
+.talena-ig-panel__guide > summary:hover { background:#fafbfc; }
+.talena-ig-panel__guide-body {
+  padding:0 14px 13px; color:#566069; font-size:0.82rem; line-height:1.6;
+}
+.talena-ig-panel__guide-body p { margin:9px 0; }
+.talena-ig-panel__guide-body ul { margin:5px 0 10px; padding-left:20px; }
+.talena-ig-panel__guide-body li { margin:6px 0; }
+.talena-ig-panel__guide-label { color:#303840; font-weight:650; }
+@media(max-width:575px) {
+  .talena-ig-panel__toggle { padding:12px 13px; gap:9px; }
+  .talena-ig-panel__body { padding:0 13px 13px; }
+  .talena-ig-panel__toggle-action { gap:5px; font-size:0.72rem; }
+  .talena-ig-panel__heading .talena-ig-shield { width:31px; height:31px; }
+}
+@media(prefers-reduced-motion:reduce) {
+  .talena-ig-panel__chevron { transition:none; }
+}
