@@ -41,6 +41,17 @@ assert.ok(js.includes('PDFName.of("Annots")')&&js.includes('PDFName.of("Fit")'))
 assert.ok(js.includes("MAX_BYTES")&&js.includes("MAX_PAGES")&&js.includes("MAX_REPORTS"));
 assert.ok(js.includes('dialog.showModal()')&&js.includes('dialog.addEventListener("cancel"'));
 assert.ok(js.includes('role","status"')&&js.includes('aria-live","polite"'));
+assert.ok(js.includes('workspace.closest(".candidate-sheet-layout")') &&
+  js.includes('sheet?.querySelector(".candidate-profile-header .candidate-profile-actions")') &&
+  js.includes('headerActions.append(trigger)'),
+  "Package trigger must live at top right beside candidate name");
+assert.ok(js.includes("trigger.parentElement===headerActions"),
+  "AJAX refresh must not duplicate a header-level report package button");
+assert.ok(!js.includes('nav.append(trigger)'),
+  "Report package action must no longer sit inside the Insights navigation");
+assert.ok(css.includes(".candidate-profile-header .candidate-profile-actions .talena-package-open") &&
+  !css.includes("[data-candidate-insights-workspace] .candidate-insights-navigation {"),
+  "Package button CSS must apply to candidate header, not navigation");
 assert.ok(css.includes(".talena-package-dialog")&&css.includes(".talena-package-row"));
 const sandbox={
   document:{documentElement:{lang:"sv"},querySelector:()=>null},
