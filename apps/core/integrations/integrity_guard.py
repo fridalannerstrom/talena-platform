@@ -224,20 +224,20 @@ _STATES = {0: "not_monitored", 1: "clear", 2: "concern", 3: "error"}
 # Sova score callback and its recruiter UI. Unknown IDs get neutral labels.
 _DIAGNOSTIC_DESCRIPTIONS = {
     "ip_address": (
-        "Kontrollen granskar ovanliga mönster med IP-adresser vid testgenomförandet. Nätverksbyten kan ha naturliga orsaker.",
-        "This check looks for unusual IP address patterns during the assessments. Network changes may have innocent causes.",
+        "Kontrollen uppmärksammar ovanliga mönster i IP-adresser. Om något markeras kan det till exempel bero på att personen har bytt mellan wifi och mobildata eller gjort testerna på olika platser. Det betyder inte i sig att någon har fuskat.",
+        "This check highlights unusual IP address patterns. A flag may simply reflect a switch between Wi-Fi and mobile data, or taking assessments in different locations. On its own, it does not mean someone has cheated.",
     ),
     "devices_used": (
-        "Kontrollen granskar ovanlig användning av flera enheter under testet. Tekniska problem eller tillgänglighetsskäl kan förklara byten.",
-        "This check looks for unusual use of multiple devices. Technical or accessibility reasons may explain device changes.",
+        "Kontrollen uppmärksammar om flera enheter verkar ha använts. Ett byte kan ha praktiska orsaker, exempelvis tekniska problem eller behov av ett annat hjälpmedel. En markering är inte i sig ett bevis på fusk.",
+        "This check highlights possible use of multiple devices. Switching devices may have practical reasons, such as technical difficulties or accessibility needs. A flag alone is not evidence of cheating.",
     ),
     "browser_patrolling": (
-        "Kontrollen granskar upprepade eller långvariga byten mellan flikar och webbläsare under testerna.",
-        "This check looks for repeated or sustained switching between tabs or browsers during assessments.",
+        "Kontrollen uppmärksammar upprepade eller längre byten mellan flikar och webbläsare. Det kan till exempel handla om ett avbrott eller ett digitalt hjälpmedel, om sådana är tillåtna i testet. En markering betyder inte automatiskt att någon har fuskat.",
+        "This check highlights repeated or longer switches between tabs and browsers. These may reflect an interruption or a digital aid, where permitted by the assessment instructions. A flag does not automatically mean someone has cheated.",
     ),
     "question_engagement": (
-        "Kontrollen granskar ihållande ovanliga svarstider och svarsmönster. En avvikelse innebär inte att någon har fuskat.",
-        "This check looks for sustained unusual response times or patterns. A concern does not prove cheating.",
+        "Kontrollen uppmärksammar ovanliga svarstider och svarsmönster. Det kan till exempel bero på att personen har behövt tänka olika länge på frågorna, gjort en paus eller fått frågor med varierande svårighetsgrad. En markering betyder inte att någon har fuskat, utan är något att förstå i sitt sammanhang.",
+        "This check highlights unusual response times and answer patterns. These may have natural explanations, such as spending more time on certain questions, taking a break or encountering questions of different difficulty. A flag does not mean someone has cheated and should be considered in context.",
     ),
 }
 _DIAGNOSTIC_LABELS = {
