@@ -181,7 +181,8 @@
       window.TalenaReportPackageCore.download(output,packageFilename);
       status(t.done);
     }catch(err){
-      status([t.stale,t.large].includes(err?.message)?err.message:t.error,true);
+      status(err?.code==="REPORT_PACKAGE_TOO_LARGE"?t.large:
+        [t.stale,t.large].includes(err?.message)?err.message:t.error,true);
     }finally{
       busy=false;
       dialog?.querySelectorAll("button,input").forEach(e=>{e.disabled=false;});
