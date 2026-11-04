@@ -131,7 +131,7 @@ class FakeElement {
   close(){this.open=false;}
   remove(){}
   querySelector(selector){
-    const name=selector.match(/^\\[data-([a-z-]+)\\]$/)?.[1];
+    const name=selector.match(/^\[data-([a-z-]+)\]$/)?.[1];
     if(!name)return null;
     const key=name.replace(/-([a-z])/g,(_match,letter)=>letter.toUpperCase());
     const visit=element=>{
@@ -145,7 +145,7 @@ class FakeElement {
 mock.document.body=new FakeElement("body");
 mock.document.createElement=tag=>new FakeElement(tag);
 mock.window.TalenaReportPackageCore={
-  safeFilenamePart:value=>String(value).replace(/[^\\p{L}\\p{N} ]/gu,"").trim()
+  safeFilenamePart:value=>String(value).replace(/[^\p{L}\p{N} ]/gu,"").trim()
 };
 mock.window.TalenaTeamProfilesExport.getAvailableProfiles=()=>{
   exposedNames++;
