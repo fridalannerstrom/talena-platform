@@ -318,7 +318,11 @@ class IntegrityGuardTemplateTests(SimpleTestCase):
             "diagnostics": {"ip_address": 2, "device": 1},
         })
         self.assertIn("Integrity Guard", html)
-        self.assertIn("Avvikelser behöver granskas", html)
+        header, body = html.split('<div class="talena-ig-panel__body">', 1)
+        self.assertIn("Teknisk övervakningsinformation", header)
+        self.assertIn('<span class="talena-ig-panel__subtitle">Teknisk övervakningsinformation</span>', header)
+        self.assertIn("Avvikelser behöver granskas", body)
+        self.assertIn('talena-ig-panel__status--concern', body)
         self.assertIn("betyder inte att kandidaten har fuskat", html)
         self.assertIn("IP-adress", html)
         self.assertNotIn("AI-genererat", html)
@@ -352,7 +356,7 @@ class IntegrityGuardTemplateTests(SimpleTestCase):
         self.assertIn("Monitored assessments", english)
         self.assertIn("Concern", english)
 
-    def test_report_starts_collapsed_and_shows_status_in_summary(self):
+    def test_report_starts_collapsed_and_keeps_status_in_expanded_body(self):
         html = self.render_panel({"overall_status": 2, "diagnostics": {"ip_address": 2}})
         self.assertIn('<details class="talena-ig-panel" data-integrity-guard-panel>', html)
         self.assertIn('<summary class="talena-ig-panel__toggle">', html)
@@ -362,6 +366,24 @@ class IntegrityGuardTemplateTests(SimpleTestCase):
         self.assertNotIn('<details class="talena-ig-panel" data-integrity-guard-panel open', html)
         self.assertIn("IP-adress", html)
         self.assertIn('data-integrity-guard-guide', html)
+
+    def test_compact_summary_does_not_spotlight_concern_but_explains_when_opened(self):
+        for language, subtitle, explicit_status in (
+            ("sv", "Teknisk övervakningsinformation", "Avvikelser behöver granskas"),
+            ("en", "Technical monitoring information", "Concerns need review"),
+        ):
+            with self.subTest(language=language):
+                html = self.render_panel({"overall_status": 2}, language)
+                summary, details = html.split('<div class="talena-ig-panel__body">', 1)
+                self.assertIn(subtitle, summary)
+                self.assertIn(
+                    '<span class="talena-ig-panel__subtitle">' + subtitle + '</span>',
+                    summary,
+                )
+                self.assertIn(explicit_status, details)
+        css = (Path(settings.BASE_DIR) / "static/css/talena/pages/integrity-guard.css").read_text(encoding="utf-8")
+        self.assertIn("width:20px; height:20px; margin-left:5px", css)
+        self.assertIn("width:24px; height:24px; border-radius:7px", css)
 
     def test_guide_is_collapsed_and_cautionary_in_both_languages(self):
         swedish = self.render_panel({"overall_status": 1})
