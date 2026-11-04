@@ -24,6 +24,24 @@ assert.ok(js.includes('stage.setAttribute("data-candidate-pdf-report", item.id)'
   "Temporary PDF stage must expose report identity for A4 layout styling");
 assert.ok(css.includes(".talena-candidate-pdf-toolbar--overview"),
   "Overview action-row styles are missing");
+assert.ok(js.includes('const generateSelector = [') &&
+  js.includes('source.querySelector(generateSelector)') &&
+  js.includes('pair.append(toolbar, generate)'),
+  "PDF and Generate must render side by side in the same action pair");
+assert.ok(js.includes('findHeading(source)') &&
+  js.includes('header.append(toolbar)'),
+  "Results PDF must be inside the report heading, not a separate top row");
+assert.ok(js.includes('toolbar.classList.add("talena-candidate-pdf-toolbar--inline")'),
+  "Inline toolbar styling must be used on heading and Generate pairs");
+assert.ok(css.includes(".talena-candidate-report-button-pair") &&
+  css.includes("border-radius:12px !important") &&
+  css.includes("width:42px !important") &&
+  css.includes("height:42px !important"),
+  "Paired Generate/PDF buttons must have matching rounded-square geometry");
+assert.ok(js.includes('width="22" height="22"'),
+  "PDF icon must be visibly larger than the previous 18px glyph");
+assert.ok(css.includes(".personality-questions-header.mt-4"),
+  "Nested question headings need compact spacing after the tab row");
 assert.ok(css.includes(".personality-trait-card__main") &&
   css.includes(".personality-indicator-row__profile"),
   "Personality PDF needs explicit A4-width chart grids");
