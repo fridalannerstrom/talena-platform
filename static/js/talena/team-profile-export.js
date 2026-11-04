@@ -289,7 +289,7 @@
       if (!currentPage() || isAnonymous()) return [];
       return profiles.filter(profile => profile.isConnected &&
         profile.dataset.hasReport === "true" &&
-        /^\\d+$/.test(profile.dataset.memberId || "") &&
+        /^\d+$/.test(profile.dataset.memberId || "") &&
         !!profile.querySelector("[data-team-report]"))
         .map(profile => ({
           id: profile.dataset.memberId,
