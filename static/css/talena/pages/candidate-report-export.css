@@ -81,6 +81,123 @@
   visibility:visible;
 }
 
+
+/* Unified candidate-report actions. These rules deliberately override the
+   legacy SB Admin .btn-icon circle and later per-page button styles. */
+.process-page [data-candidate-insights-workspace] .talena-candidate-report-button-pair {
+  display:inline-flex;
+  align-items:center;
+  justify-content:flex-end;
+  flex:0 0 auto;
+  gap:9px;
+  white-space:nowrap;
+}
+.process-page [data-candidate-insights-workspace] .talena-candidate-pdf-toolbar--inline {
+  display:inline-flex;
+  align-items:center;
+  flex:0 0 auto;
+  flex-wrap:nowrap;
+  margin:0 !important;
+  padding:0 !important;
+  gap:0 !important;
+}
+.process-page [data-candidate-insights-workspace] .talena-candidate-report-heading-row {
+  display:flex !important;
+  flex-direction:row !important;
+  align-items:flex-start;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  gap:12px;
+  min-width:0;
+}
+.process-page [data-candidate-insights-workspace] .talena-candidate-report-heading-row > :first-child,
+.process-page [data-candidate-insights-workspace] .talena-candidate-report-heading {
+  min-width:0;
+  flex:1 1 260px;
+}
+.process-page [data-candidate-insights-workspace] .talena-report-action-button.btn-icon {
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  flex:0 0 42px !important;
+  width:42px !important;
+  min-width:42px !important;
+  height:42px !important;
+  min-height:42px !important;
+  padding:0 !important;
+  border:1px solid #e1dfdc !important;
+  border-radius:12px !important;
+  background:#fff !important;
+  color:#494541 !important;
+  box-shadow:0 3px 12px rgba(23,19,18,.035) !important;
+  line-height:1 !important;
+  overflow:hidden;
+}
+.process-page [data-candidate-insights-workspace] .talena-report-action-button.btn-icon:hover:not(:disabled),
+.process-page [data-candidate-insights-workspace] .talena-report-action-button.btn-icon:focus-visible {
+  color:#d3574c !important;
+  background:#fff7f5 !important;
+  border-color:#ffbfb8 !important;
+  box-shadow:0 3px 12px rgba(23,19,18,.06) !important;
+}
+.process-page [data-candidate-insights-workspace] .talena-report-action-button.btn-icon .feather,
+.process-page [data-candidate-insights-workspace] .talena-report-action-button.btn-icon > svg {
+  display:block;
+  width:22px !important;
+  height:22px !important;
+  flex:0 0 22px;
+  stroke-width:2;
+}
+.process-page [data-candidate-insights-workspace] .talena-candidate-pdf-toolbar--inline .talena-candidate-pdf-message {
+  position:absolute;
+  width:1px;
+  height:1px;
+  overflow:hidden;
+  clip-path:inset(50%);
+  white-space:nowrap;
+  margin:0;
+  padding:0;
+}
+.process-page [data-candidate-insights-workspace] .talena-candidate-pdf-toolbar--inline .talena-candidate-pdf-message.is-error {
+  position:absolute;
+  top:calc(100% + 6px);
+  right:0;
+  z-index:10;
+  width:230px;
+  height:auto;
+  padding:7px 10px;
+  clip-path:none;
+  overflow:visible;
+  white-space:normal;
+  color:#b42318;
+  background:#fff;
+  border:1px solid #fecdca;
+  border-radius:8px;
+  box-shadow:0 4px 14px rgba(23,19,18,.06);
+}
+.process-page [data-candidate-insights-workspace] .talena-candidate-pdf-toolbar--inline {
+  position:relative;
+}
+.process-page [data-candidate-insights-workspace] .talena-candidate-pdf-toolbar--standalone {
+  margin:0 0 10px !important;
+  padding:0 !important;
+}
+/* Questions had two nested Bootstrap mt-4 classes, producing an
+   unnecessarily tall gap directly underneath the subsection tabs. */
+.process-page [data-candidate-insights-workspace] .candidate-insights-subpanel .personality-questions-header.mt-4,
+.process-page [data-candidate-insights-workspace] .candidate-insights-subpanel .personality-questions-header .insight-summary-kicker.mt-4 {
+  margin-top:0 !important;
+}
+@media(max-width:620px) {
+  .process-page [data-candidate-insights-workspace] .talena-candidate-report-heading-row {
+    gap:8px;
+  }
+  .process-page [data-candidate-insights-workspace] .talena-candidate-report-heading-row > :first-child,
+  .process-page [data-candidate-insights-workspace] .talena-candidate-report-heading {
+    flex-basis:190px;
+  }
+}
+
 /* PDF render has a fixed A4-facing width, regardless of the browser viewport.
    Prevent wide desktop chart grids from extending beyond the raster canvas.
    This affects only the temporary export clone, never the candidate UI. */
