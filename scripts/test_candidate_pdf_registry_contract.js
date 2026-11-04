@@ -27,6 +27,18 @@ assert.ok(css.includes(".talena-candidate-pdf-toolbar--overview"),
 assert.ok(css.includes(".personality-trait-card__main") &&
   css.includes(".personality-indicator-row__profile"),
   "Personality PDF needs explicit A4-width chart grids");
+
+// Regression: the original 12-page PDF lost every right-hand indicator
+// scale half because [aria-hidden=true] removed the 1px grid centre-line.
+// The centre-line is a *visible* layout spacer, not hidden PDF content.
+const cloneRemoveSelector = js.match(/clone\.querySelectorAll\(\s*'button, form, input[\s\S]*?\)\.forEach\(element => element\.remove\(\)\);/);
+assert.ok(cloneRemoveSelector, "PDF clone cleanup selector must remain testable");
+assert.ok(!cloneRemoveSelector[0].includes('[aria-hidden="true"]'),
+  "aria-hidden must not remove the indicator centre-line/right five STEN steps");
+assert.ok(core.includes(".personality-indicator-row"),
+  "PDF pager must recognize indicator rows as natural breakpoints");
+assert.ok(core.includes(".personality-trait-card__main"),
+  "PDF pager must recognize larger trait charts as natural breakpoints");
 assert.ok(css.includes("left:-10000px"));
 assert.ok(core.includes("returnBlob"));
 assert.ok(js.includes("window.TalenaCandidateReports = Object.freeze"));
