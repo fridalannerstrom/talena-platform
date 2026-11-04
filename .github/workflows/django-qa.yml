@@ -46,6 +46,8 @@ jobs:
           node --check static/js/talena/after-interview-tabs.js
           node --check static/js/talena/candidate-report-export.js
           node scripts/test_candidate_pdf_registry_contract.js
+          node --check static/js/talena/candidate-report-packages.js
+          node scripts/test_candidate_report_packages_contract.js
           node scripts/test_manager_report_branding_contract.js
           node --check static/js/talena/structured-overall-picture.js
           node --check static/js/talena/candidate-ai-badges.js
