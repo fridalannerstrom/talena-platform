@@ -189,7 +189,9 @@
       }
     }
     function beginPackage() {
-      if (!currentPage() || anonymousMode() || !hasResults() ||
+      // The composite report is optional in a package. Complete individual
+      // profiles can still be selected when the composite is unavailable.
+      if (!currentPage() || anonymousMode() ||
           button.disabled || rendering || packageBusy) return false;
       packageBusy = true;
       button.disabled = true;
