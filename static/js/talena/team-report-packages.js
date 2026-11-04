@@ -250,10 +250,15 @@
     }else status("",false,true);
   }
   trigger.addEventListener("click",open);
-  trigger.hidden=false;
   const toggle=page.querySelector("#teamAnonymityToggle");
   if(toggle&&typeof MutationObserver!=="undefined"){
     new MutationObserver(anonymityChanged).observe(toggle,{attributes:true,attributeFilter:["aria-checked"]});
   }
-  anonymityChanged();
+  // The template restores the anonymity switch from sessionStorage during
+  // DOMContentLoaded. Only reveal the package control once that restoration
+  // has run, preventing a one-frame leak of an enabled identifying action.
+  const activate=()=>{trigger.hidden=false;anonymityChanged();};
+  if(document.readyState==="loading") {
+    document.addEventListener("DOMContentLoaded",()=>Promise.resolve().then(activate),{once:true});
+  } else activate();
 })();
