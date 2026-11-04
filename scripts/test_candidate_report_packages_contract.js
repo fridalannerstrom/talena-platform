@@ -14,6 +14,19 @@ assert.ok(registry.includes("TalenaReportPackages?.initialize?.(current)"));
 assert.ok(js.includes('api().getAvailableReports()'));
 assert.ok(js.includes('api().exportReport(report.id,{returnBlob:true})'));
 assert.ok(js.includes('api().exportCover(t.cover)'));
+assert.ok(js.includes('api().getPackageFilename(format)') &&
+  js.includes("download(output,packageFilename)"),
+  "Both merged PDFs and ZIPs must use the current candidate's download filename");
+assert.ok(registry.includes("getPackageFilename") &&
+  registry.includes("filename: reportFilename(item)"),
+  "Every ZIP entry must be named from the currently authorised candidate");
+const candidateSheet = file("templates/customer/processes/_candidate_detail_sheet.html");
+assert.ok(candidateSheet.includes('data-report-export-name="{{ candidate.first_name|default:'),
+  "Only first and last name may be exposed as report filename metadata");
+assert.ok(registry.includes("safeFilenamePart") &&
+  registry.includes('data-report-export-name') &&
+  registry.includes('document.querySelector?.("[data-candidate-insights-workspace]") !== workspace'),
+  "Candidate filename must be sanitised, never use email fallback and be scoped to current sheet");
 assert.ok(js.includes('document.querySelector("[data-candidate-insights-workspace]")===workspace'));
 assert.ok(js.includes("if(!current()||workspace!==original)throw Error(t.stale)"));
 assert.ok(!/\bfetch\s*\(/.test(js),"No candidate/server data may be fetched");
