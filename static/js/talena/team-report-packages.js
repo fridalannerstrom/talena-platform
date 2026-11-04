@@ -225,7 +225,8 @@
       status(t.done);
       status(t.done,false,true);
     }catch(err) {
-      const message=[t.anonymous,t.stale,t.large].includes(err?.message)?err.message:t.failed;
+      const message=err?.code==="REPORT_PACKAGE_TOO_LARGE"?t.large:
+        [t.anonymous,t.stale,t.large].includes(err?.message)?err.message:t.failed;
       status(message,true);status(message,true,true);
     }finally {
       busy=false;
