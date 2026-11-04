@@ -4,8 +4,11 @@
  */
 (() => {
   "use strict";
-  const workspace = document.querySelector("[data-candidate-insights-workspace]");
-  if (!workspace || window.TalenaCandidateReports) return;
+  if (window.TalenaCandidateReports) return;
+  // Candidate sheets are loaded by AJAX into an offcanvas *after* page load.
+  // Keep a stable export API and bind it to the currently displayed sheet.
+  let workspace = null;
+  let observer = null;
   const sv = (document.documentElement.lang || "").toLowerCase().startsWith("sv");
   const copy = sv ? {
     action: "Ladda ner PDF-rapport", busy: "Skapar PDF…",
@@ -91,7 +94,9 @@
   ];
   registry.forEach(item => { item.label ||= title[item.id]; });
   const byId = new Map(registry.map(item => [item.id, item]));
-  const getSource = item => workspace.querySelector(item.selector);
+  const getSource = item =>
+    workspace && workspace.isConnected !== false
+      ? workspace.querySelector(item.selector) : null;
   function isReady(item) {
     const source = getSource(item);
     if (!source) return false;
@@ -274,12 +279,27 @@
     queued = true;
     Promise.resolve().then(refresh);
   };
-  window.TalenaCandidateReports = Object.freeze({ getAvailableReports, exportReport });
-  schedule();
-  // Generated panels are updated asynchronously after interviews; refresh
-  // availability without relying on a second backend request.
-  new MutationObserver(schedule).observe(workspace, {
-    subtree:true, childList:true, characterData:true,
-    attributes:true, attributeFilter:["class","hidden","data-has-result","data-status"]
+  function initialize(container = document) {
+    const current = container.querySelector?.("[data-candidate-insights-workspace]") ||
+      (container.matches?.("[data-candidate-insights-workspace]") ? container : null);
+    if (!current) return;
+    if (workspace === current) {
+      schedule();
+      return;
+    }
+    // A different candidate replaces the offcanvas body. Stop observing the
+    // previous candidate to prevent stale UI updates and cross-candidate reads.
+    observer?.disconnect();
+    workspace = current;
+    observer = new MutationObserver(schedule);
+    observer.observe(workspace, {
+      subtree:true, childList:true, characterData:true,
+      attributes:true, attributeFilter:["class","hidden","data-has-result","data-status"]
+    });
+    schedule();
+  }
+  window.TalenaCandidateReports = Object.freeze({
+    initialize, getAvailableReports, exportReport
   });
+  initialize(document); // Also supports pages where the sheet is already in the DOM.
 })();
