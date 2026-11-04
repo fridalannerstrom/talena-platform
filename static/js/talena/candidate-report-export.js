@@ -231,6 +231,25 @@
       exporting = false;
     }
   }
+  // #360: brand the merged file with the same existing cover used for every
+  // single-report export. No candidate data leaves this page.
+  async function exportCover(label) {
+    if (!workspace?.isConnected || !window.TalenaPdfExport?.exportSections)
+      throw Error(copy.unavailable);
+    const title = String(label || "Talena").slice(0, 100);
+    const cover = coverFor({label:title});
+    const stage = create("div", "process-page candidate-insights-workspace talena-candidate-pdf-stage");
+    stage.append(cover);
+    document.body.append(stage);
+    try {
+      await new Promise(resolve => requestAnimationFrame(resolve));
+      return await window.TalenaPdfExport.exportSections(
+        [{node:cover, cover:true}], {title,subject:title,returnBlob:true}
+      );
+    } finally {
+      stage.remove();
+    }
+  }
   // Shared icon: native title/ARIA work even before Feather initialises an
   // AJAX-loaded candidate sheet. This is intentionally not a text-sized CTA.
   const pdfIcon = '<svg width="19" height="19" viewBox="0 0 24 24" ' +
@@ -370,6 +389,7 @@
     if (!current) return;
     if (workspace === current) {
       schedule();
+      window.TalenaReportPackages?.initialize?.(current);
       return;
     }
     // A different candidate replaces the offcanvas body. Stop observing the
@@ -382,9 +402,10 @@
       attributes:true, attributeFilter:["class","hidden","data-has-result","data-status"]
     });
     schedule();
+    window.TalenaReportPackages?.initialize?.(current);
   }
   window.TalenaCandidateReports = Object.freeze({
-    initialize, getAvailableReports, exportReport
+    initialize, getAvailableReports, exportReport, exportCover
   });
   initialize(document); // Also supports pages where the sheet is already in the DOM.
 })();
