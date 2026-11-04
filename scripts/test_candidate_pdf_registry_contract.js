@@ -124,6 +124,16 @@ class FakeElement {
 }
 const overview = new FakeElement("section", "Synthetic assessment results ".repeat(20));
 const scope = new FakeElement();
+// The visible heading can fall back to email, but the dedicated filename
+// attribute contains *only* the candidate's first and last name.
+const candidateIdentity = {
+  textContent: "private-email@example.invalid",
+  getAttribute: attr => attr === "data-report-export-name" ? "Anna Andersson" : null
+};
+scope.closest = selector => selector === ".candidate-sheet-layout"
+  ? {querySelector: childSelector =>
+      childSelector === ".candidate-profile-name[data-report-export-name]"
+        ? candidateIdentity : null} : null;
 scope.querySelector = selector =>
   selector === "#candidate-insights-panel-overview" ? overview : null;
 let currentWorkspace = null; // Model dynamically opened candidate offcanvas.
@@ -160,6 +170,14 @@ vm.runInNewContext(js, context, {timeout:1000});
   const listed = api.getAvailableReports();
   assert.equal(listed.length, 1);
   assert.equal(listed[0].id, "overview");
+  assert.equal(listed[0].filename, "Anna Andersson - Överblick.pdf");
+  assert.equal(api.getPackageFilename("pdf"), "Anna Andersson - Rapportpaket.pdf");
+  assert.equal(api.getPackageFilename("zip"), "Anna Andersson - Rapporter.zip");
+  assert.ok(!listed[0].filename.includes("private-email"));
+  candidateIdentity.getAttribute = () => "Åsa / \u202EAndersson:Test";
+  assert.equal(api.getPackageFilename("zip"), "Åsa Andersson Test - Rapporter.zip",
+    "Filename must preserve Swedish letters and strip unsafe filename characters");
+  candidateIdentity.getAttribute = () => "Anna Andersson";
   const blob = await api.exportReport("overview", {returnBlob:true});
   assert.equal(blob.type, "application/pdf");
   assert.equal(rendered, 1);
@@ -170,6 +188,8 @@ vm.runInNewContext(js, context, {timeout:1000});
     ? new FakeElement("section", "Next candidate has no completed results.") : null;
   currentWorkspace = second;
   api.initialize(browserDocument);
+  assert.equal(api.getPackageFilename("pdf"), "talena-rapportpaket.pdf",
+    "Missing names must not fall back to an email or previous candidate");
   assert.equal(disconnected, 1, "The old candidate observer must be stopped");
   assert.equal(api.getAvailableReports().length, 0,
     "An incomplete second candidate must not inherit previous report exports");
