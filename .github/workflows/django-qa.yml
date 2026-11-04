@@ -45,6 +45,8 @@ jobs:
           node --check static/js/talena/report-package-core.js
           node --check static/js/talena/team-report-packages.js
           node scripts/test_team_report_packages_contract.js
+          node --check static/js/talena/team-header-actions.js
+          node scripts/test_team_header_actions_contract.js
           node --check static/js/talena/process-list.js
           node --check static/js/talena/after-interview-tabs.js
           node --check static/js/talena/candidate-report-export.js
