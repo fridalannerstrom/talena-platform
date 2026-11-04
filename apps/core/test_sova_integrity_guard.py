@@ -328,7 +328,42 @@ class IntegrityGuardTemplateTests(SimpleTestCase):
         self.assertNotIn("AI-genererat", html)
         en = self.render_panel({"overall_status": 3}, "en")
         self.assertIn("Monitoring error", en)
-        self.assertIn("No AI interpretation is used.", en)
+        self.assertNotIn("No AI interpretation is used.", en)
+
+    def test_empathetic_explanations_are_static_and_localised(self):
+        invitation = TestInvitation(
+            integrity_guard={},
+            sova_payload={"integrity_guard": REAL_SOVA_GUARD_SHAPE},
+        )
+        with override("sv"):
+            swedish = render_to_string(
+                "customer/processes/partials/_integrity_guard_panel.html",
+                {"invitation": invitation},
+            )
+        for example in (
+            "wifi och mobildata",
+            "tekniska problem",
+            "ett digitalt hjälpmedel",
+            "frågor med varierande svårighetsgrad",
+            "En markering betyder inte att någon har fuskat",
+        ):
+            self.assertIn(example, swedish)
+        self.assertNotIn("Teknisk övervakningsinformation från Sova. Ingen AI-tolkning används.", swedish)
+        with override("en"):
+            english = render_to_string(
+                "customer/processes/partials/_integrity_guard_panel.html",
+                {"invitation": invitation},
+            )
+        for example in (
+            "Wi-Fi and mobile data",
+            "technical difficulties",
+            "digital aid",
+            "questions of different difficulty",
+            "A flag does not mean someone has cheated",
+        ):
+            self.assertIn(example, english)
+        self.assertNotIn("Technical monitoring data from Sova.", english)
+        self.assertNotIn("No AI interpretation is used.", english)
 
     def test_real_sova_findings_render_all_checks_in_both_languages(self):
         invitation = TestInvitation(
