@@ -320,7 +320,7 @@ class IntegrityGuardTemplateTests(SimpleTestCase):
         self.assertIn("Integrity Guard", html)
         header, body = html.split('<div class="talena-ig-panel__body">', 1)
         self.assertIn("Teknisk övervakningsinformation", header)
-        self.assertNotIn("Avvikelser behöver granskas", header)
+        self.assertIn('<span class="talena-ig-panel__subtitle">Teknisk övervakningsinformation</span>', header)
         self.assertIn("Avvikelser behöver granskas", body)
         self.assertIn('talena-ig-panel__status--concern', body)
         self.assertIn("betyder inte att kandidaten har fuskat", html)
@@ -376,7 +376,10 @@ class IntegrityGuardTemplateTests(SimpleTestCase):
                 html = self.render_panel({"overall_status": 2}, language)
                 summary, details = html.split('<div class="talena-ig-panel__body">', 1)
                 self.assertIn(subtitle, summary)
-                self.assertNotIn(explicit_status, summary)
+                self.assertIn(
+                    '<span class="talena-ig-panel__subtitle">' + subtitle + '</span>',
+                    summary,
+                )
                 self.assertIn(explicit_status, details)
         css = (Path(settings.BASE_DIR) / "static/css/talena/pages/integrity-guard.css").read_text(encoding="utf-8")
         self.assertIn("width:20px; height:20px; margin-left:5px", css)
