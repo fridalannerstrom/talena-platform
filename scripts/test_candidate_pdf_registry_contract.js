@@ -63,6 +63,7 @@ class FakeElement {
   }
   querySelector() { return null; }
   querySelectorAll() { return []; }
+  closest() { return null; }
   cloneNode() { return new FakeElement(this.tag, this.textContent); }
   removeAttribute() {}
   setAttribute() {}
