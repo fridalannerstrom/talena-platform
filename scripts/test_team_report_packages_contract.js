@@ -19,6 +19,12 @@ for(const ref of ["data-team-package-open","data-team-package-status",
     "candidate-report-packages.css","team-report-packages.css"])
   assert.ok(tpl.includes(ref),"team template missing "+ref);
 assert.ok(tpl.indexOf("report-package-core.js")<tpl.indexOf("team-report-packages.js"));
+assert.ok(/team-profile-export\.js' %}\?v=20261104-449-adapters-/.test(tpl) &&
+  /team-report-export\.js' %}\?v=20261104-449-adapters-/.test(tpl),
+  "Both existing team PDF adapters need updated cache versions so the package picker sees their new APIs");
+assert.ok(team.includes('if(!adaptersReady()){status(t.unavailable,true,true);return;}'),
+  "Unloaded adapters must show a clear error, never pretend the team has no reports");
+
 assert.ok(customerBase.indexOf("report-package-core.js")<
   customerBase.indexOf("candidate-report-packages.js"));
 assert.ok(styles.includes(".team-package-actions"));
@@ -47,8 +53,8 @@ assert.ok(team.includes('getAttribute("aria-checked")!=="false"'),
 assert.ok(team.includes("if(busy)cancelled=true;") &&
   team.includes("if(cancelled||!isCurrent()||isAnon()"),
   "Once anonymity is activated during export, returning to named mode must not resume old download");
-assert.ok(team.includes("if(cancelled||!isCurrent()||isAnon()||!profileApi()?.isCurrent()"),
-  "Every export step must reject cancelled, anonymous or stale team context");
+assert.ok(team.includes("if(cancelled||!adaptersReady()||!isCurrent()||isAnon()||!profileApi()?.isCurrent()"),
+  "Every export step must reject cancelled, disconnected, anonymous or stale team context");
 assert.ok(team.includes("MutationObserver(anonymityChanged)"),
   "Anonymous-mode changes must hide the picker");
 assert.ok(team.includes("if(dialog)discard();"),
@@ -102,5 +108,63 @@ assert.equal(typeof listener,"function");
 anonymous=true;observe();
 assert.equal(trigger.disabled,true);
 assert.equal(exposedNames,0);
+
+anonymous=false;observe();
+listener();
+assert.match(outerStatus.textContent,/inte läsas in/i,
+  "Missing report adapters should be diagnosed, not display an empty report list");
+
+// Simulate the same team page with a loaded composite PDF adapter and two
+// authorised complete member profiles. The picker must list three reports
+// without relying on another async request, and ignore an incomplete member.
+class FakeElement {
+  constructor(tag) {
+    this.tagName=tag;this.dataset={};this.children=[];this.listeners={};
+    this.classList={toggle(){}};
+    this.textContent="";this.hidden=false;this.disabled=false;
+  }
+  append(...nodes){nodes.forEach(node=>{node.parentElement=this;this.children.push(node);});}
+  replaceChildren(...nodes){this.children=[];this.append(...nodes);}
+  setAttribute(key,value){this[key]=value;}
+  addEventListener(key,fn){this.listeners[key]=fn;}
+  showModal(){this.open=true;}
+  close(){this.open=false;}
+  remove(){}
+  querySelector(selector){
+    const name=selector.match(/^\\[data-([a-z-]+)\\]$/)?.[1];
+    if(!name)return null;
+    const key=name.replace(/-([a-z])/g,(_match,letter)=>letter.toUpperCase());
+    const visit=element=>{
+      if(Object.prototype.hasOwnProperty.call(element.dataset||{},key))return element;
+      for(const child of element.children||[]){const found=visit(child);if(found)return found;}
+      return null;
+    };
+    return visit(this);
+  }
+}
+mock.document.body=new FakeElement("body");
+mock.document.createElement=tag=>new FakeElement(tag);
+mock.window.TalenaReportPackageCore={
+  safeFilenamePart:value=>String(value).replace(/[^\\p{L}\\p{N} ]/gu,"").trim()
+};
+mock.window.TalenaTeamProfilesExport.getAvailableProfiles=()=>{
+  exposedNames++;
+  return [
+    {id:"1",title:"Anna Exempel",filename:"Anna - Team.pdf"},
+    {id:"2",title:"Bertil Test",filename:"Bertil - Team.pdf"}
+  ];
+};
+mock.window.TalenaTeamProfilesExport.getMissingCount=()=>1;
+mock.window.TalenaTeamReportExport={getAvailable:()=>true};
+listener();
+const opened=mock.document.body.children.find(child=>child.tagName==="dialog");
+assert.ok(opened?.open,"Report picker must open once existing adapters are available");
+const rows=opened.querySelector("[data-package-count]");
+assert.equal(rows.textContent,"Valda rapporter: 3",
+  "A finished team overview + 2 completed member profiles must be selectable");
+const optionsList=opened.children.find(child=>child.tagName==="ol");
+assert.equal(optionsList.children.length,3,"Every completed report must be rendered as a picker row");
+assert.ok(optionsList.children[0].textContent!==undefined);
+
 
 console.log("Team report packages #449: reuse, privacy, eligibility, PDF/ZIP and toggle OK");
