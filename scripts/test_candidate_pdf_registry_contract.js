@@ -38,8 +38,11 @@ assert.ok(css.includes(".talena-candidate-report-button-pair") &&
   css.includes("width:42px !important") &&
   css.includes("height:42px !important"),
   "Paired Generate/PDF buttons must have matching rounded-square geometry");
-assert.ok(js.includes('width="22" height="22"'),
-  "PDF icon must be visibly larger than the previous 18px glyph");
+assert.ok(js.includes('width="19" height="19"') &&
+  js.includes('stroke-width="1.75"'),
+  "PDF icon should remain legible but subtle at 19px with a light stroke");
+assert.ok(css.includes("width:19px !important") && css.includes("stroke-width:1.75"),
+  "Both PDF and Generate icons should use the same subtle sizing");
 assert.ok(css.includes(".personality-questions-header.mt-4"),
   "Nested question headings need compact spacing after the tab row");
 assert.ok(css.includes(".personality-trait-card__main") &&
