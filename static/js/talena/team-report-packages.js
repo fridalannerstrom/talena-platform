@@ -43,10 +43,11 @@
   const profileApi=()=>window.TalenaTeamProfilesExport;
   const teamApi=()=>window.TalenaTeamReportExport;
   const pack=()=>window.TalenaReportPackageCore;
-  const isAnon=()=>page.querySelector("#teamAnonymityToggle")?.getAttribute("aria-checked")==="true";
+  // Fail closed if the team anonymity switch is missing or not initialised.
+  const isAnon=()=>page.querySelector("#teamAnonymityToggle")?.getAttribute("aria-checked")!=="false";
   const isCurrent=()=>page.isConnected &&
     document.querySelector(".talena-team-page[data-team-report-brand-primary]")===page;
-  let dialog=null,list=null,order=[],chosen=new Set(),busy=false;
+  let dialog=null,list=null,order=[],chosen=new Set(),busy=false,cancelled=false;
   const reportName=()=>pack().safeFilenamePart(page.dataset.teamReportName)||"talena-team";
   function options() {
     if(!isCurrent()||isAnon())return [];
@@ -176,7 +177,7 @@
     if(list)draw();else refresh();
   }
   function requireCurrent() {
-    if(!isCurrent()||isAnon()||!profileApi()?.isCurrent()||
+    if(cancelled||!isCurrent()||isAnon()||!profileApi()?.isCurrent()||
       !teamApi()?.isCurrent())throw Error(isAnon()?t.anonymous:t.stale);
   }
   async function exportPackage() {
@@ -191,6 +192,7 @@
     // downloads and prevent snapshot races with live team charts.
     if(!profileApi().beginPackage())return status(t.stale,true);
     if(!teamApi().beginPackage()){profileApi().endPackage();return status(t.stale,true);}
+    cancelled=false;
     busy=true;refresh();
     dialog.querySelectorAll("button,input").forEach(control=>{control.disabled=true;});
     try {
@@ -239,8 +241,10 @@
     trigger.disabled=anonymous;
     trigger.title=anonymous?t.anonymous:t.open;
     if(anonymous){
-      // Tear down any dialog immediately, even if PDF rendering is in
-      // progress; the per-report adapters subsequently reject all blobs.
+      // A privacy toggle permanently cancels the in-flight package, even
+      // if names are shown again before its slow PDF rendering finishes.
+      if(busy)cancelled=true;
+      // Tear down identifying report labels immediately.
       if(dialog)discard();
       status(t.anonymous,true,true);
     }else status("",false,true);
