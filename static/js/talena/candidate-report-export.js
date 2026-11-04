@@ -74,8 +74,10 @@
           // Helhetsbild has a separate structured renderer (#355), not
           // necessarily the legacy .after-interview-tab-card__body hook.
           if (id === "after-overview") {
-            return !!element.querySelector(".after-interview-overall__synthesis") &&
-              !element.querySelector(".after-interview-overall__source-warning");
+            const current = element.querySelector(".after-interview-overall__synthesis");
+            const legacy = element.querySelector(".after-interview-overall__legacy .after-interview-tab-card__body");
+            return !element.querySelector(".after-interview-overall__source-warning") &&
+              (!!current || (!!legacy && legacy.textContent.trim().length > 80));
           }
           const body = element.querySelector(".after-interview-tab-card__body");
           return !!body && !body.classList.contains("after-interview-tab-empty") &&
@@ -144,6 +146,9 @@
     clone.style.display = "block";
     const liveCanvases = source.querySelectorAll("canvas");
     clone.querySelectorAll("canvas").forEach((canvas, index) => {
+      // Inactive optional panels are removed below. They must not block
+      // export just because their hidden canvases were never rendered.
+      if (canvas.closest('[hidden], .d-none')) return;
       const live = liveCanvases[index];
       if (!live || !live.width || !live.height) throw Error("Chart not ready");
       const image = create("img", "talena-candidate-pdf-chart");
