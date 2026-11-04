@@ -22,7 +22,6 @@
   };
   const MAX_REPORTS = 20, MAX_BYTES = 100 * 1024 * 1024, MAX_PAGES = 450, ROWS = 17;
   let workspace=null, trigger=null, dialog=null, list=null, order=[], chosen=new Set(), busy=false;
-  const libs={};
   const element=(tag,cls,text)=>{
     const e=document.createElement(tag); if(cls)e.className=cls;
     if(text!==undefined)e.textContent=text; return e;
@@ -141,74 +140,10 @@
     document.body.append(dialog);dialog.showModal();
     if(list)redraw();else refresh();
   }
-  function load(name,url,ready){
-    if(ready())return Promise.resolve();
-    if(!libs[name]){
-      libs[name]=new Promise((resolve,reject)=>{
-        const script=element("script");script.src=url;script.crossOrigin="anonymous";
-        script.referrerPolicy="no-referrer";
-        script.addEventListener("load",()=>ready()?resolve():reject(Error(t.error)),{once:true});
-        script.addEventListener("error",()=>reject(Error(t.error)),{once:true});
-        document.head.append(script);
-      }).catch(e=>{delete libs[name];throw e;});
-    }
-    return libs[name];
-  }
-  function download(blob,name){
-    const url=URL.createObjectURL(blob);
-    const a=element("a");a.href=url;a.download=name;document.body.append(a);
-    try{a.click();}finally{a.remove();window.setTimeout(()=>URL.revokeObjectURL(url),30000);}
-  }
   function accent(){
-    const hex=workspace?.querySelector("[data-final-output-root]")?.dataset.managerReportBrandPrimary||"#FF6F61";
+    const hex=workspace?.querySelector("[data-final-output-root]")
+      ?.dataset.managerReportBrandPrimary||"#FF6F61";
     return /^#[0-9a-f]{6}$/i.test(hex)?hex:"#FF6F61";
-  }
-  function makeLink(pdf,target,rect){
-    const {PDFName}=window.PDFLib;
-    const obj=pdf.context.obj({
-      Type:PDFName.of("Annot"),Subtype:PDFName.of("Link"),
-      Rect:rect,Border:[0,0,0],Dest:pdf.context.obj([target.ref,PDFName.of("Fit")])
-    });
-    return pdf.context.register(obj);
-  }
-  async function merge(entries,coverBlob){
-    const {PDFDocument,StandardFonts,PDFName,rgb}=window.PDFLib;
-    const pdf=await PDFDocument.create();
-    pdf.setTitle(t.cover);pdf.setAuthor("Talena");
-    const cover=await PDFDocument.load(await coverBlob.arrayBuffer());
-    const importedCover=await pdf.copyPages(cover,cover.getPageIndices());
-    importedCover.forEach(page=>pdf.addPage(page));
-    const tocPages=Array.from({length:Math.ceil(entries.length/ROWS)},
-      ()=>pdf.addPage([595.28,841.89]));
-    const targets=[];
-    for(const entry of entries){
-      const src=await PDFDocument.load(await entry.blob.arrayBuffer());
-      if(!src.getPageCount()||pdf.getPageCount()+src.getPageCount()>MAX_PAGES)throw Error(t.large);
-      const index=pdf.getPageCount(),pages=await pdf.copyPages(src,src.getPageIndices());
-      pages.forEach(page=>pdf.addPage(page));
-      targets.push({title:entry.title,start:index});
-    }
-    const font=await pdf.embedFont(StandardFonts.Helvetica),hex=accent();
-    const color=rgb(...[1,3,5].map(n=>parseInt(hex.slice(n,n+2),16)/255));
-    tocPages.forEach((page,pageIndex)=>{
-      page.drawText(t.toc,{x:52,y:780,size:25,font,color});
-      page.drawLine({start:{x:52,y:757},end:{x:544,y:757},thickness:1,color});
-      const links=[];
-      targets.slice(pageIndex*ROWS,(pageIndex+1)*ROWS).forEach((entry,i)=>{
-        const y=710-i*37;
-        const title=entry.title.length>59?entry.title.slice(0,56)+"...":entry.title;
-        page.drawText(title,{x:56,y,size:12,font});
-        page.drawText(String(entry.start+1),{x:510,y,size:11,font,color});
-        links.push(makeLink(pdf,pdf.getPage(entry.start),[48,y-12,546,y+24]));
-      });
-      if(links.length)page.node.set(PDFName.of("Annots"),pdf.context.obj(links));
-    });
-    return new Blob([await pdf.save()],{type:"application/pdf"});
-  }
-  async function zipFiles(entries){
-    const zip=new window.JSZip();
-    entries.forEach(e=>zip.file(e.filename,e.blob));
-    return zip.generateAsync({type:"blob",compression:"DEFLATE",compressionOptions:{level:3}});
   }
   async function exportPackage(){
     if(busy||!current())return;
@@ -223,12 +158,7 @@
     dialog.querySelectorAll("button,input").forEach(e=>{e.disabled=true;});
     try{
       status(t.preparing);
-      if(format==="zip")
-        await load("zip","https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js",
-          ()=>typeof window.JSZip==="function");
-      else
-        await load("pdf","https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js",
-          ()=>!!window.PDFLib?.PDFDocument);
+      await window.TalenaReportPackageCore.ensure(format);
       let total=0;
       const entries=[];
       for(let i=0;i<ids.length;i++){
@@ -242,11 +172,13 @@
         entries.push({...report,blob});
       }
       status(t.preparing);
-      const output=format==="zip"?await zipFiles(entries):
-        await merge(entries,await api().exportCover(t.cover));
+      const core=window.TalenaReportPackageCore;
+      const output=format==="zip"?await core.zipFiles(entries):
+        await core.merge(entries,await api().exportCover(t.cover),
+          {title:t.cover,contentsTitle:t.toc,accent:accent()});
       if(!current()||workspace!==original)throw Error(t.stale);
       if(!output?.size||output.size>MAX_BYTES)throw Error(t.large);
-      download(output,packageFilename);
+      window.TalenaReportPackageCore.download(output,packageFilename);
       status(t.done);
     }catch(err){
       status([t.stale,t.large].includes(err?.message)?err.message:t.error,true);
