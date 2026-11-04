@@ -131,11 +131,15 @@
       brand.classList.add("talena-team-pdf-cover-brand-fallback");
       brand.textContent = branding.managerReportBrandCompany || "Talena";
     }
+    // Only the already visible candidate identity from this exact card may
+    // be printed; no query or identifier lookup crosses the current project.
+    const candidateName = workspace.closest(".candidate-sheet-layout")
+      ?.querySelector(".candidate-profile-name")?.textContent.trim() || "";
     const caption = create("div", "talena-team-pdf-cover-title");
     caption.append(create("div", "talena-team-pdf-cover-line"),
       create("p", "talena-team-pdf-cover-kicker", "Talena"),
       create("h1", "", item.label),
-      create("p", "", branding.managerReportBrandCompany || "Talena"));
+      create("p", "", candidateName || branding.managerReportBrandCompany || "Talena"));
     cover.append(brand, caption);
     return cover;
   }
