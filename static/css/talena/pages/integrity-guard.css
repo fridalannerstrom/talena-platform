@@ -110,3 +110,46 @@
 @media(prefers-reduced-motion:reduce) {
   .talena-ig-panel__chevron { transition:none; }
 }
+
+
+/* Quiet Integrity Guard presentation: secondary context, not a headline warning.
+   Detail checks and their actual statuses remain unchanged on expansion. */
+.talena-ig-shield {
+  width:20px; height:20px; margin-left:5px; border-radius:6px;
+  background:#f5f6f6; color:#75808a;
+}
+.talena-ig-shield svg { width:17px; height:17px; stroke-width:1.55; }
+.talena-ig-shield__mark { font-size:9px; font-weight:700; padding-top:0; }
+.talena-ig-shield--clear { color:#607d6b; background:#f2f6f3; }
+.talena-ig-shield--concern { color:#81725f; background:#f7f5f1; }
+.talena-ig-shield--error { color:#9b6565; background:#fbf5f5; }
+.talena-ig-panel {
+  margin:12px 0 2px; border-color:#edf0f1;
+  border-radius:10px; background:#fff;
+}
+.talena-ig-panel__toggle {
+  padding:10px 14px; gap:10px; border-radius:10px;
+}
+.talena-ig-panel__heading { gap:9px; }
+.talena-ig-panel__heading .talena-ig-shield {
+  width:24px; height:24px; border-radius:7px; margin-left:0;
+}
+.talena-ig-panel__heading .talena-ig-shield svg { width:20px; height:20px; }
+.talena-ig-panel__heading .talena-ig-shield__mark { font-size:10px; }
+.talena-ig-panel__title { font-size:0.86rem; font-weight:600; color:#3b454e; }
+.talena-ig-panel__subtitle { font-size:0.76rem; color:#7b858d; margin-top:2px; }
+.talena-ig-panel__toggle-action { font-size:0.77rem; color:#79838a; font-weight:550; }
+.talena-ig-panel__toggle:hover { background:#f9fafb; }
+.talena-ig-panel__body { padding:0 14px 14px; }
+.talena-ig-panel__status {
+  margin:13px 0 0; font-size:0.79rem; font-weight:600; color:#636e76;
+}
+.talena-ig-panel__status--concern { color:#896b42; }
+.talena-ig-panel__status--error { color:#945b5b; }
+.talena-ig-panel__status--clear { color:#55775f; }
+.talena-ig-panel__help { margin-top:8px; }
+@media(max-width:575px) {
+  .talena-ig-panel__toggle { padding:10px 12px; }
+  .talena-ig-panel__body { padding:0 12px 12px; }
+  .talena-ig-panel__heading .talena-ig-shield { width:24px; height:24px; }
+}
