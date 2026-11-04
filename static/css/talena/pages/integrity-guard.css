@@ -153,3 +153,26 @@
   .talena-ig-panel__body { padding:0 12px 12px; }
   .talena-ig-panel__heading .talena-ig-shield { width:24px; height:24px; }
 }
+
+/* Body copy is deliberately quieter than headings and status labels. */
+.talena-ig-panel__body { font-size:0.7rem; line-height:1.55; }
+.talena-ig-panel__help,
+.talena-ig-panel__vendor-note,
+.talena-ig-panel__check-description,
+.talena-ig-panel__guide-body,
+.talena-ig-panel__checks li,
+.talena-ig-panel__activity-name {
+  font-size:0.7rem;
+}
+.talena-ig-panel__check-description,
+.talena-ig-panel__guide-body { line-height:1.55; }
+.talena-ig-panel__title { font-size:0.8rem; }
+.talena-ig-panel__subtitle { font-size:0.72rem; }
+.talena-ig-panel__status { font-size:0.73rem; }
+.talena-ig-panel__check-name { font-size:0.77rem; }
+.talena-ig-panel__guide > summary,
+.talena-ig-panel__activity-details summary { font-size:0.75rem; }
+.talena-ig-panel__guide-label { font-size:0.74rem; }
+.talena-ig-panel__eyebrow { font-size:0.69rem; }
+.talena-ig-check { font-size:0.68rem; padding:2px 8px; }
+.talena-ig-panel__toggle-action { font-size:0.73rem; }
