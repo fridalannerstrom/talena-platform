@@ -50,7 +50,7 @@ assert.ok(!js.includes("window.open("), "PDF export must stay in the current aut
 
 // Before an AJAX candidate sheet is injected, the registry API is available
 // but must not expose any candidate's content.
-const sandbox = { document: {querySelector: () => null}, window:{} };
+const sandbox = { document: {documentElement: {lang:"sv"}, querySelector: () => null}, window:{} };
 vm.runInNewContext(js, sandbox, {timeout:1000});
 assert.ok(sandbox.window.TalenaCandidateReports);
 assert.deepEqual(Array.from(sandbox.window.TalenaCandidateReports.getAvailableReports()), []);
