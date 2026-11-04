@@ -259,11 +259,20 @@
   function initialize(next){
     if(!next?.isConnected)return;
     if(workspace!==next){if(!busy)discard();workspace=next;}
-    if(trigger?.isConnected&&trigger.closest("[data-candidate-insights-workspace]")===workspace)return;
-    const nav=workspace.querySelector(".candidate-insights-navigation");
-    if(!nav)return;
+    // The export action belongs to the candidate header (name/status row).
+    // Never attach it to the Insights tabs: the button should stay in the
+    // upper-right corner when a user changes report tabs.
+    const sheet=workspace.closest(".candidate-sheet-layout");
+    const headerActions=sheet?.querySelector(".candidate-profile-header .candidate-profile-actions");
+    if(!headerActions)return;
+    // The opener is OUTSIDE the insights workspace now. Checking closest()
+    // against the workspace would add duplicates after each AJAX refresh.
+    if(trigger?.isConnected&&trigger.parentElement===headerActions)return;
     trigger=element("button","btn btn-sm talena-package-open",t.open);
-    trigger.type="button";trigger.addEventListener("click",open);nav.append(trigger);
+    trigger.type="button";
+    trigger.setAttribute("data-candidate-report-package-open","");
+    trigger.addEventListener("click",open);
+    headerActions.append(trigger);
   }
   window.TalenaReportPackages=Object.freeze({initialize});
   initialize(document.querySelector("[data-candidate-insights-workspace]"));
