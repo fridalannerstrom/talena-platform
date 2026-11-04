@@ -132,7 +132,7 @@
   data-team-report-company="{{ company.name }}">
 
   <div class="team-page-header">
-    <div>
+    <div class="team-page-identity">
       <a href="{% url 'teams:team_list' %}" class="team-back-link">
         <i data-feather="arrow-left" class="icon-14"></i>
         {% trans "Back to teams" %}
@@ -148,55 +148,79 @@
     </div>
 
     <div class="team-page-actions">
-      {% if team_style_stats.members_with_scores %}
-      <div class="team-package-actions">
-        <button type="button" class="btn btn-outline-secondary" data-team-package-open hidden>
-          <i data-feather="layers" class="icon-14" aria-hidden="true"></i>
-          {% if LANGUAGE_CODE|slice:":2" == "sv" %}Skapa teamrapportpaket{% else %}Create team report package{% endif %}
-        </button>
-        <span class="small" data-team-package-status role="status" aria-live="polite"></span>
-      </div>
-      <div class="team-common-report-export">
-        <button type="button" class="btn btn-outline-primary" data-team-report-download>
-          <i data-feather="download" class="icon-14"></i>
-          {% if LANGUAGE_CODE|slice:":2" == "sv" %}Ladda ner teamrapport{% else %}Download team report{% endif %}
-        </button>
-        <span class="small" data-team-report-download-status role="status" aria-live="polite"></span>
-      </div>
-      {% endif %}
-      <button
-        type="button"
-        id="teamAnonymityToggle"
-        class="team-anonymity-toggle"
-        role="switch"
-        aria-checked="false"
-      >
-        <span class="team-anonymity-label">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Anonymisera{% else %}Anonymise{% endif %}</span>
-        <span class="team-anonymity-switch" aria-hidden="true"></span>
-      </button>
-      {% if team_style_stats.members_with_scores %}
-        <div class="team-profile-bulk-actions">
-          <button type="button" class="btn btn-outline-primary" data-team-export-all>
-            <i data-feather="download" class="icon-14"></i>
-            {% if LANGUAGE_CODE|slice:":2" == "sv" %}Ladda ner alla teamprofiler{% else %}Download all team profiles{% endif %}
-          </button>
-          <p class="small text-muted mb-0" role="status" aria-live="polite" data-team-export-status></p>
-        </div>
-      {% endif %}
-      <a href="{% url 'teams:team_edit' team.pk %}" class="btn btn-outline-secondary team-secondary-action">
-        <i data-feather="edit-3" class="icon-14"></i>
-        {% trans "Edit team" %}
-      </a>
-      <a href="{% url 'teams:team_members_edit' team.pk %}" class="btn btn-primary">
-        <i data-feather="users" class="icon-14"></i>
-        {% if LANGUAGE_CODE|slice:":2" == "sv" %}Redigera medlemmar{% else %}Edit members{% endif %}
-      </a>
-      {% if can_edit_team %}
-        <a href="{% url 'teams:team_delete' team.pk %}" class="btn team-danger-action">
-          <i data-feather="trash-2" class="icon-14"></i>
-          {% if LANGUAGE_CODE|slice:":2" == "sv" %}Ta bort team{% else %}{% trans "Delete team" %}{% endif %}
+      <div class="team-page-action-bar">
+        {% if team_style_stats.members_with_scores %}
+          <div class="team-package-actions">
+            <button type="button" class="btn btn-outline-secondary team-package-primary" data-team-package-open hidden>
+              <i data-feather="layers" class="icon-14" aria-hidden="true"></i>
+              {% if LANGUAGE_CODE|slice:":2" == "sv" %}Skapa teamrapportpaket{% else %}Create report package{% endif %}
+            </button>
+          </div>
+        {% endif %}
+
+        <a href="{% url 'teams:team_members_edit' team.pk %}" class="btn btn-outline-secondary team-edit-members">
+          <i data-feather="users" class="icon-14" aria-hidden="true"></i>
+          {% if LANGUAGE_CODE|slice:":2" == "sv" %}Redigera medlemmar{% else %}Edit members{% endif %}
         </a>
-      {% endif %}
+
+        <button
+          type="button"
+          id="teamAnonymityToggle"
+          class="team-anonymity-toggle"
+          role="switch"
+          aria-checked="false"
+        >
+          <span class="team-anonymity-label">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Anonymisera{% else %}Anonymise{% endif %}</span>
+          <span class="team-anonymity-switch" aria-hidden="true"></span>
+        </button>
+
+        <details class="team-actions-more" data-team-actions-more>
+          <summary class="team-actions-more-trigger">
+            <i data-feather="more-horizontal" class="icon-14" aria-hidden="true"></i>
+            {% if LANGUAGE_CODE|slice:":2" == "sv" %}Fler åtgärder{% else %}More actions{% endif %}
+            <i data-feather="chevron-down" class="icon-14 team-actions-more-chevron" aria-hidden="true"></i>
+          </summary>
+          <div class="team-actions-more-menu" role="group"
+               aria-label="{% if LANGUAGE_CODE|slice:":2" == "sv" %}Teamåtgärder{% else %}Team actions{% endif %}">
+            {% if team_style_stats.members_with_scores %}
+              <p class="team-actions-more-label">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Rapporter{% else %}Reports{% endif %}</p>
+              <div class="team-common-report-export">
+                <button type="button" class="team-actions-more-item" data-team-report-download>
+                  <i data-feather="file-text" class="icon-14" aria-hidden="true"></i>
+                  {% if LANGUAGE_CODE|slice:":2" == "sv" %}Ladda ner teamrapport{% else %}Download team report{% endif %}
+                </button>
+              </div>
+              <div class="team-profile-bulk-actions">
+                <button type="button" class="team-actions-more-item" data-team-export-all>
+                  <i data-feather="archive" class="icon-14" aria-hidden="true"></i>
+                  {% if LANGUAGE_CODE|slice:":2" == "sv" %}Ladda ner individuella teamprofiler{% else %}Download individual team profiles{% endif %}
+                </button>
+              </div>
+              <div class="team-actions-more-divider" aria-hidden="true"></div>
+            {% endif %}
+            <p class="team-actions-more-label">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Hantera team{% else %}Manage team{% endif %}</p>
+            <a href="{% url 'teams:team_edit' team.pk %}" class="team-actions-more-item">
+              <i data-feather="edit-3" class="icon-14" aria-hidden="true"></i>
+              {% trans "Edit team" %}
+            </a>
+            {% if can_edit_team %}
+              <div class="team-actions-more-divider" aria-hidden="true"></div>
+              <a href="{% url 'teams:team_delete' team.pk %}" class="team-actions-more-item team-actions-more-danger">
+                <i data-feather="trash-2" class="icon-14" aria-hidden="true"></i>
+                {% if LANGUAGE_CODE|slice:":2" == "sv" %}Ta bort team{% else %}{% trans "Delete team" %}{% endif %}
+              </a>
+            {% endif %}
+          </div>
+        </details>
+      </div>
+      {# Export feedback remains visible even after the More menu closes. #}
+      <div class="team-page-action-feedback" aria-live="polite">
+        {% if team_style_stats.members_with_scores %}
+          <span class="small" data-team-package-status role="status" aria-live="polite"></span>
+          <span class="small" data-team-report-download-status role="status" aria-live="polite"></span>
+          <span class="small" data-team-export-status role="status" aria-live="polite"></span>
+        {% endif %}
+      </div>
     </div>
   </div>
 
