@@ -33,6 +33,7 @@
 
     let librariesPromise = null;
     let busy = false;
+    let packageBusy = false;
     let activeItemStatus = null;
 
     function updateStatus(text, error) {
@@ -247,7 +248,7 @@
     }
 
     async function runExport(button, action) {
-      if (busy) return;
+      if (busy || packageBusy) return;
       section.querySelectorAll("[data-team-export-item-status]").forEach(node => {
         node.textContent = "";
       });
@@ -276,6 +277,63 @@
         busy = false;
       }
     }
+
+    // #449: a strictly scoped, Blob-only adapter for the report package picker.
+    // It must never expose names, PDF bytes or member identifiers in anonymised
+    // mode, even when that mode is switched on while the export is running.
+    const sourcePage = section.closest(".talena-team-page");
+    const currentPage = () => section.isConnected &&
+      sourcePage?.isConnected &&
+      document.querySelector(".talena-team-page[data-team-report-brand-primary]") === sourcePage;
+    function availableProfiles() {
+      if (!currentPage() || isAnonymous()) return [];
+      return profiles.filter(profile => profile.isConnected &&
+        profile.dataset.hasReport === "true" &&
+        /^\\d+$/.test(profile.dataset.memberId || "") &&
+        !!profile.querySelector("[data-team-report]"))
+        .map(profile => ({
+          id: profile.dataset.memberId,
+          title: (profile.dataset.reportName || copy.title).trim(),
+          filename: filename(profile)
+        }));
+    }
+    function beginPackage() {
+      if (!currentPage() || isAnonymous() || busy || packageBusy) return false;
+      packageBusy = true;
+      document.querySelectorAll("[data-team-export-all], [data-team-export-single]")
+        .forEach(button => { button.disabled = true; });
+      return true;
+    }
+    function endPackage() {
+      packageBusy = false;
+      document.querySelectorAll("[data-team-export-all], [data-team-export-single]")
+        .forEach(button => { button.disabled = false; });
+    }
+    async function exportProfileForPackage(memberId) {
+      const id = String(memberId);
+      if (!packageBusy || !currentPage() || isAnonymous()) throw Error(copy.anonymous);
+      const candidate = profiles.find(profile =>
+        profile.dataset.memberId === id &&
+        profile.isConnected && profile.dataset.hasReport === "true" &&
+        !!profile.querySelector("[data-team-report]"));
+      if (!candidate) throw Error("Team member profile unavailable");
+      await ensureLibraries(false);
+      if (!currentPage() || isAnonymous() || candidate.dataset.hasReport !== "true")
+        throw Error(copy.anonymous);
+      const blob = await createPdf(candidate);
+      if (!currentPage() || isAnonymous() || candidate.dataset.hasReport !== "true")
+        throw Error(copy.anonymous);
+      return blob;
+    }
+    window.TalenaTeamProfilesExport = Object.freeze({
+      getAvailableProfiles: availableProfiles,
+      getMissingCount: () => profiles.length - availableProfiles().length,
+      isAnonymous,
+      isCurrent: currentPage,
+      beginPackage,
+      endPackage,
+      exportProfileForPackage
+    });
 
     section.querySelectorAll("[data-team-export-single]").forEach(function (button) {
       button.addEventListener("click", function () {
