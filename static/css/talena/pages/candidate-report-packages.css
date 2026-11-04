@@ -1,19 +1,10 @@
-/* #360 Candidate report package picker. Scoped to the authorised workspace. */
-[data-candidate-insights-workspace] .candidate-insights-navigation {
-  display:flex;
-  gap:12px;
-  align-items:center;
-  justify-content:space-between;
-  flex-wrap:wrap;
-}
-[data-candidate-insights-workspace] .candidate-insights-navigation .candidate-profile-tabs-wrap {
-  flex:1 1 560px;
-  min-width:0;
-}
-[data-candidate-insights-workspace] .talena-package-open {
-  flex:0 0 auto;
+/* #360: package entry belongs in the candidate identity header,
+   not the Insights tab/navigation bar. Scoped to candidate sheet only. */
+.candidate-sheet-layout .candidate-profile-header .candidate-profile-actions .talena-package-open {
   display:inline-flex;
   align-items:center;
+  justify-content:center;
+  flex:0 0 auto;
   min-height:36px;
   border:1px solid #dedbd8;
   border-radius:10px;
@@ -21,13 +12,30 @@
   color:#494541;
   font-weight:650;
   font-size:.77rem;
-  padding:7px 12px;
-  margin:4px 0;
+  line-height:1.2;
+  padding:8px 14px;
+  margin:0;
+  white-space:nowrap;
+  box-shadow:0 2px 9px rgba(23,19,18,.025);
 }
-[data-candidate-insights-workspace] .talena-package-open:hover {
+.candidate-sheet-layout .candidate-profile-header .candidate-profile-actions .talena-package-open:hover,
+.candidate-sheet-layout .candidate-profile-header .candidate-profile-actions .talena-package-open:focus-visible {
   border-color:#c8bab6;
   color:#c8574f;
   background:#fdf9f8;
+}
+@media(max-width:1199.98px){
+  .candidate-sheet-layout .candidate-profile-header .candidate-profile-actions:has(.talena-package-open) {
+    justify-content:flex-end;
+    width:100%;
+  }
+}
+@media(max-width:575px){
+  .candidate-sheet-layout .candidate-profile-header .candidate-profile-actions .talena-package-open {
+    min-height:34px;
+    padding:7px 11px;
+    font-size:.74rem;
+  }
 }
 .talena-package-dialog {
   width:min(630px,calc(100vw - 24px));
@@ -210,5 +218,5 @@
     padding:7px 9px;
   }
   .talena-package-modes {flex-direction:column;}
-  .talena-package-open {margin-left:8px;}
+
 }
