@@ -39,7 +39,8 @@ for (const marker of [
 
 assert.ok(core.includes("pdf.setProperties"), "PDF metadata should be explicitly controlled");
 assert.ok(js.includes('const body = newElement("main", "team-report-pdf-body")'), "report sections should be laid out continuously");
-assert.ok(js.includes('{ node: body, continuous: true }'), "PDF must capture continuous body once");
+assert.ok(js.includes('{node:body,continuous:true}') || js.includes('{ node: body, continuous: true }'),
+  "PDF must capture continuous body once");
 assert.ok(!js.includes("...parts.map(node => ({ node }))],"), "no standalone page per small section");
 
 const vm = require("node:vm");
