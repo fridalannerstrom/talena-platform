@@ -195,11 +195,12 @@
     exporting = true;
     let stage;
     try {
-      const body = create("main", "talena-candidate-pdf-body");
+      const body = create("main", "talena-candidate-pdf-body candidate-insight-page");
       body.append(create("h1", "talena-candidate-pdf-heading", item.label),
         copyContent(getSource(item)));
       const cover = coverFor(item);
       stage = create("div", "process-page candidate-insights-workspace talena-candidate-pdf-stage");
+      stage.setAttribute("data-candidate-pdf-report", item.id);
       stage.append(cover, body);
       document.body.append(stage);
       await new Promise(resolve => requestAnimationFrame(resolve));
@@ -225,34 +226,56 @@
       exporting = false;
     }
   }
+  // Shared icon: native title/ARIA work even before Feather initialises an
+  // AJAX-loaded candidate sheet. This is intentionally not a text-sized CTA.
+  const pdfIcon = '<svg width="18" height="18" viewBox="0 0 24 24" ' +
+    'fill="none" stroke="currentColor" stroke-width="1.8" ' +
+    'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+    '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>' +
+    '<polyline points="14 2 14 8 20 8"/>' +
+    '<path d="M12 12v6m-3-3 3 3 3-3"/></svg>';
+
   function addToolbar(item) {
     if (item.existingButton) return; // Chefsrapport has its own download button.
     const source = getSource(item);
-    if (!source || source.querySelector(":scope > [data-candidate-pdf-toolbar]")) return;
+    if (!source || source.querySelector("[data-candidate-pdf-toolbar]")) return;
     const toolbar = create("div", "talena-candidate-pdf-toolbar");
     toolbar.setAttribute("data-candidate-pdf-toolbar", "");
-    const button = create("button", "btn btn-outline-primary btn-sm", copy.action);
+    // On Summary the existing generate button owns the action area; the
+    // download belongs immediately beside it, never above the report card.
+    const overviewActions = item.id === "overview"
+      ? source.querySelector(".ai-overview-header__actions") : null;
+    if (overviewActions) toolbar.classList.add("talena-candidate-pdf-toolbar--overview");
+
+    const button = create("button", "btn btn-icon btn-light talena-candidate-pdf-button");
     button.type = "button";
+    button.innerHTML = pdfIcon;
+    button.setAttribute("aria-label", copy.action);
+    button.title = copy.action;
     const message = create("span", "talena-candidate-pdf-message");
     message.setAttribute("role", "status");
     message.setAttribute("aria-live", "polite");
     toolbar.append(button, message);
-    source.insertBefore(toolbar, source.firstChild);
+    if (overviewActions) overviewActions.append(toolbar);
+    else source.insertBefore(toolbar, source.firstChild);
+
     button.addEventListener("click", async () => {
       if (button.disabled || exporting) return;
       button.disabled = true;
       button.setAttribute("aria-busy", "true");
-      button.textContent = copy.busy;
+      button.classList.add("is-loading");
       message.textContent = "";
+      message.classList.remove("is-error");
       try {
         await exportReport(item.id);
         message.textContent = copy.success;
       } catch (_) {
         message.textContent = copy.error;
+        message.classList.add("is-error");
       } finally {
         button.disabled = !isReady(item);
         button.removeAttribute("aria-busy");
-        button.textContent = copy.action;
+        button.classList.remove("is-loading");
       }
     });
   }
@@ -260,7 +283,7 @@
     queued = false;
     registry.forEach(item => {
       addToolbar(item);
-      const toolbar = getSource(item)?.querySelector(":scope > [data-candidate-pdf-toolbar]");
+      const toolbar = getSource(item)?.querySelector("[data-candidate-pdf-toolbar]");
       if (!toolbar) return;
       const button = toolbar.querySelector("button");
       const status = toolbar.querySelector('[role="status"]');
