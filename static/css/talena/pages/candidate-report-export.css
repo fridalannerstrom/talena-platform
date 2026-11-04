@@ -1,0 +1,50 @@
+/* #359: independent candidate PDF export UI and in-memory render stage.
+   Scoped to authorised candidate workspace, never affects saved source data. */
+[data-candidate-insights-workspace] .talena-candidate-pdf-toolbar {
+  display:flex; align-items:center; flex-wrap:wrap; justify-content:flex-end;
+  gap:10px; margin:0 0 15px; padding:0;
+}
+[data-candidate-insights-workspace] .talena-candidate-pdf-toolbar .btn {
+  font-size:.73rem; font-weight:600; white-space:nowrap;
+}
+[data-candidate-insights-workspace] .talena-candidate-pdf-toolbar .btn[disabled] {
+  cursor:not-allowed; opacity:.48;
+}
+[data-candidate-insights-workspace] .talena-candidate-pdf-message {
+  color:#7a7d82; font-size:.69rem; line-height:1.4;
+}
+@media(max-width:575px) {
+  [data-candidate-insights-workspace] .talena-candidate-pdf-toolbar {
+    justify-content:flex-start; gap:7px;
+  }
+}
+.talena-candidate-pdf-stage {
+  display:block !important; position:fixed; top:0; left:-10000px;
+  width:900px; max-width:none; margin:0; padding:0; border:0;
+  z-index:-1; background:#fff; pointer-events:none;
+  font-family:inherit; color:#252a2d;
+}
+.talena-candidate-pdf-stage .talena-candidate-pdf-body {
+  display:block !important; width:900px; max-width:none; padding:48px 54px;
+  background:#fff; overflow:visible;
+}
+.talena-candidate-pdf-stage .talena-candidate-pdf-heading {
+  font-size:23px; font-weight:700; margin:0 0 23px;
+}
+.talena-candidate-pdf-stage .candidate-insights-panel,
+.talena-candidate-pdf-stage .candidate-insights-subpanel,
+.talena-candidate-pdf-stage .after-interview-tab-panel {
+  display:block !important; position:static !important;
+  visibility:visible !important; width:100%; max-width:none;
+  margin:0; opacity:1;
+}
+.talena-candidate-pdf-stage .talena-candidate-pdf-chart {
+  display:block; width:100%; height:auto; object-fit:contain;
+}
+.talena-candidate-pdf-stage .card { box-shadow:none; }
+.talena-candidate-pdf-stage .after-interview-tab-card {
+  border:1px solid #e7e9ec; padding:20px; border-radius:12px;
+}
+.talena-candidate-pdf-stage .team-style-guidance-explainer[open] > * {
+  visibility:visible;
+}
