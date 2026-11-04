@@ -165,9 +165,14 @@
       canvas.replaceWith(image);
     });
     clone.querySelectorAll("details").forEach(details => { details.open = true; });
+    // aria-hidden is an accessibility attribute, NOT a CSS visibility rule.
+    // The personality indicator's decorative centre-line has aria-hidden=true
+    // yet occupies the middle column of a 3-column chart grid. Removing it
+    // collapses the right-hand five STEN steps into a one-pixel column.
+    // Preserve visible decorative layout nodes; strip aria-* attributes below.
     clone.querySelectorAll(
       'button, form, input, textarea, select, script, iframe, video, audio, ' +
-      '[data-candidate-pdf-toolbar], .modal, .offcanvas, [hidden], .d-none, [aria-hidden="true"], [contenteditable]'
+      '[data-candidate-pdf-toolbar], .modal, .offcanvas, [hidden], .d-none, [contenteditable]'
     ).forEach(element => element.remove());
     clone.querySelectorAll("a").forEach(link => {
       const plain = create("span", link.className, link.textContent || "");
