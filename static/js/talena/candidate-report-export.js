@@ -268,6 +268,9 @@
       ? source.querySelector(".ai-overview-header__actions")
       : generate?.parentElement;
     if (actions && generate) {
+      if (item.id === "overview") {
+        toolbar.classList.add("talena-candidate-pdf-toolbar--overview");
+      }
       const pair = create("span", "talena-candidate-report-button-pair");
       const parent = generate.parentNode;
       parent.insertBefore(pair, generate);
@@ -345,6 +348,9 @@
       const status = toolbar.querySelector('[role="status"]');
       const ready = isReady(item);
       if (!exporting) button.disabled = !ready;
+      const unavailable = item.outdated?.(getSource(item)) ? copy.outdated : copy.unavailable;
+      button.title = ready ? copy.action : unavailable;
+      button.setAttribute("aria-label", button.title);
       if (!status) return;
       if (!ready && !status.textContent.trim())
         status.textContent = item.outdated?.(getSource(item)) ? copy.outdated : copy.unavailable;
