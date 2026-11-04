@@ -71,6 +71,12 @@
       .map(([panel, id]) => ({
         id, selector: '[data-after-interview-tab-panel="' + panel + '"] .after-interview-tab-card',
         ready: element => {
+          // Helhetsbild has a separate structured renderer (#355), not
+          // necessarily the legacy .after-interview-tab-card__body hook.
+          if (id === "after-overview") {
+            return !!element.querySelector(".after-interview-overall__synthesis") &&
+              !element.querySelector(".after-interview-overall__source-warning");
+          }
           const body = element.querySelector(".after-interview-tab-card__body");
           return !!body && !body.classList.contains("after-interview-tab-empty") &&
             body.textContent.trim().length > 80;
@@ -156,7 +162,10 @@
     [clone, ...clone.querySelectorAll("*")].forEach(node => {
       [...node.attributes].forEach(attribute => {
         if (attribute.name.startsWith("data-") || attribute.name.startsWith("on") ||
-          attribute.name.startsWith("aria-") || ["href","id","title","for"].includes(attribute.name))
+          attribute.name.startsWith("aria-") ||
+          ["href","title","for"].includes(attribute.name) ||
+          // SVG ids may be referenced by chart fills, clips or markers.
+          (attribute.name === "id" && node.namespaceURI !== "http://www.w3.org/2000/svg"))
           node.removeAttribute(attribute.name);
       });
     });
