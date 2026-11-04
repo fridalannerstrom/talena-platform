@@ -48,4 +48,65 @@ assert.ok(!js.includes("window.open("), "PDF export must stay in the current aut
 const sandbox = { document: {querySelector: () => null}, window:{} };
 vm.runInNewContext(js, sandbox, {timeout:1000});
 assert.equal(sandbox.window.TalenaCandidateReports, undefined);
-console.log("Candidate PDF registry contract and scope OK");
+// A small browser-shaped runtime check verifies that only the current
+// authorised workspace can be exported and Blob mode never downloads.
+class FakeElement {
+  constructor(tag = "div", content = "") {
+    this.tag = tag;
+    this.textContent = content;
+    this.children = [];
+    this.dataset = {};
+    this.attributes = [];
+    this.hidden = false;
+    this.style = {setProperty() {}};
+    this.classList = {contains: () => false, remove() {}, add() {}};
+  }
+  querySelector() { return null; }
+  querySelectorAll() { return []; }
+  cloneNode() { return new FakeElement(this.tag, this.textContent); }
+  removeAttribute() {}
+  setAttribute() {}
+  remove() {}
+  append(...children) { this.children.push(...children); }
+  insertBefore(node) { this.children.unshift(node); }
+  addEventListener() {}
+}
+const overview = new FakeElement("section", "Synthetic assessment results ".repeat(20));
+const scope = new FakeElement();
+scope.querySelector = selector =>
+  selector === "#candidate-insights-panel-overview" ? overview : null;
+const browserDocument = {
+  documentElement: {lang: "sv"},
+  body: new FakeElement(),
+  createElement: tag => new FakeElement(tag),
+  querySelector: selector =>
+    selector === "[data-candidate-insights-workspace]" ? scope : null
+};
+let rendered = 0;
+const browserWindow = {
+  TalenaPdfExport: {
+    exportSections: async (_sections, options) => {
+      assert.equal(options.returnBlob, true);
+      rendered += 1;
+      return {type: "application/pdf", bytes: 42};
+    }
+  }
+};
+const context = {
+  document: browserDocument, window: browserWindow,
+  MutationObserver: class { observe() {} },
+  requestAnimationFrame: callback => callback(),
+  URL: {}, console
+};
+vm.runInNewContext(js, context, {timeout:1000});
+(async () => {
+  const api = browserWindow.TalenaCandidateReports;
+  const listed = api.getAvailableReports();
+  assert.equal(listed.length, 1);
+  assert.equal(listed[0].id, "overview");
+  const blob = await api.exportReport("overview", {returnBlob:true});
+  assert.equal(blob.type, "application/pdf");
+  assert.equal(rendered, 1);
+  await assert.rejects(api.exportReport("motivation-results", {returnBlob:true}));
+  console.log("Candidate PDF registry contract and safe Blob export OK");
+})().catch(error => { console.error(error); process.exitCode = 1; });
