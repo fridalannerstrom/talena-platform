@@ -216,6 +216,9 @@
     if(!ids.length||ids.some(id=>!registry.has(id)))return status(t.stale,true);
     const original=workspace;
     const format=dialog.querySelector('input[name="talena-package-mode"]:checked')?.value||"pdf";
+    // Resolve a safe filename from this candidate before asynchronous exports.
+    // ZIP entries already get their names from getAvailableReports().
+    const packageFilename=api().getPackageFilename(format);
     busy=true;refresh();
     dialog.querySelectorAll("button,input").forEach(e=>{e.disabled=true;});
     try{
@@ -243,7 +246,7 @@
         await merge(entries,await api().exportCover(t.cover));
       if(!current()||workspace!==original)throw Error(t.stale);
       if(!output?.size||output.size>MAX_BYTES)throw Error(t.large);
-      download(output,format==="zip"?"talena-rapporter.zip":"talena-rapportpaket.pdf");
+      download(output,packageFilename);
       status(t.done);
     }catch(err){
       status([t.stale,t.large].includes(err?.message)?err.message:t.error,true);
