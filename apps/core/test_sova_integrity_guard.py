@@ -419,6 +419,9 @@ class IntegrityGuardTemplateTests(SimpleTestCase):
         css = (Path(settings.BASE_DIR) / "static/css/talena/pages/integrity-guard.css").read_text(encoding="utf-8")
         self.assertIn("width:20px; height:20px; margin-left:5px", css)
         self.assertIn("width:24px; height:24px; border-radius:7px", css)
+        self.assertIn(".talena-ig-panel__body { font-size:0.7rem", css)
+        self.assertIn(".talena-ig-panel__title { font-size:0.8rem; }", css)
+        self.assertIn(".talena-ig-panel__check-name { font-size:0.77rem; }", css)
 
     def test_guide_is_collapsed_and_cautionary_in_both_languages(self):
         swedish = self.render_panel({"overall_status": 1})
