@@ -233,26 +233,78 @@
   }
   // Shared icon: native title/ARIA work even before Feather initialises an
   // AJAX-loaded candidate sheet. This is intentionally not a text-sized CTA.
-  const pdfIcon = '<svg width="18" height="18" viewBox="0 0 24 24" ' +
-    'fill="none" stroke="currentColor" stroke-width="1.8" ' +
+  const pdfIcon = '<svg width="22" height="22" viewBox="0 0 24 24" ' +
+    'fill="none" stroke="currentColor" stroke-width="2" ' +
     'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
     '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>' +
     '<polyline points="14 2 14 8 20 8"/>' +
     '<path d="M12 12v6m-3-3 3 3 3-3"/></svg>';
 
+  // Every download lives inside the heading/action row, rather than in a
+  // standalone top-of-panel row. Keep the native generate button and its
+  // listeners intact; only move it into a shared pair with the PDF action.
+  const generateSelector = [
+    ".js-regenerate-purpose-fit",
+    "[data-personality-ai-regenerate]",
+    "[data-personality-questions-regenerate]",
+    "[data-motivation-ai-regenerate]",
+    "[data-motivation-questions-regenerate]",
+    "[data-cognitive-interpretation-regenerate]",
+    "[data-cognitive-questions-regenerate]",
+    "[data-pre-interview-generate][data-regenerate='true']",
+    "[data-post-interview-generate][data-regenerate='true']"
+  ].join(", ");
+
+  function findHeading(source) {
+    return source.querySelector(
+      ".response-styles-header, .team-styles-header, " +
+      ".personality-questions-header, .candidate-insight-page-header"
+    );
+  }
+
+  function placeToolbar(source, item, toolbar) {
+    const generate = source.querySelector(generateSelector);
+    const actions = item.id === "overview"
+      ? source.querySelector(".ai-overview-header__actions")
+      : generate?.parentElement;
+    if (actions && generate) {
+      const pair = create("span", "talena-candidate-report-button-pair");
+      const parent = generate.parentNode;
+      parent.insertBefore(pair, generate);
+      pair.append(toolbar, generate);
+      generate.classList.add("talena-report-action-button");
+      toolbar.classList.add("talena-candidate-pdf-toolbar--inline");
+      return;
+    }
+    // A results-only tab has no Generate control. Reuse its existing
+    // heading rather than creating a 42px action row above the heading.
+    const header = findHeading(source);
+    if (header) {
+      header.classList.add("talena-candidate-report-heading-row");
+      if (header.classList.contains("team-styles-header") &&
+          !header.querySelector(".talena-candidate-report-heading")) {
+        // This header has two direct text blocks (h2 + description).
+        const heading = create("div", "talena-candidate-report-heading");
+        while (header.firstChild) heading.append(header.firstChild);
+        header.append(heading);
+      }
+      header.append(toolbar);
+      toolbar.classList.add("talena-candidate-pdf-toolbar--inline");
+      return;
+    }
+    // Some report fragments have no heading or Generate action yet.
+    toolbar.classList.add("talena-candidate-pdf-toolbar--standalone");
+    source.insertBefore(toolbar, source.firstChild);
+  }
+
   function addToolbar(item) {
-    if (item.existingButton) return; // Chefsrapport has its own download button.
+    if (item.existingButton) return; // Chefsrapport keeps its own PDF button.
     const source = getSource(item);
     if (!source || source.querySelector("[data-candidate-pdf-toolbar]")) return;
     const toolbar = create("div", "talena-candidate-pdf-toolbar");
     toolbar.setAttribute("data-candidate-pdf-toolbar", "");
-    // On Summary the existing generate button owns the action area; the
-    // download belongs immediately beside it, never above the report card.
-    const overviewActions = item.id === "overview"
-      ? source.querySelector(".ai-overview-header__actions") : null;
-    if (overviewActions) toolbar.classList.add("talena-candidate-pdf-toolbar--overview");
-
-    const button = create("button", "btn btn-icon btn-light talena-candidate-pdf-button");
+    const button = create("button",
+      "btn btn-icon btn-light talena-candidate-pdf-button talena-report-action-button");
     button.type = "button";
     button.innerHTML = pdfIcon;
     button.setAttribute("aria-label", copy.action);
@@ -261,8 +313,7 @@
     message.setAttribute("role", "status");
     message.setAttribute("aria-live", "polite");
     toolbar.append(button, message);
-    if (overviewActions) overviewActions.append(toolbar);
-    else source.insertBefore(toolbar, source.firstChild);
+    placeToolbar(source, item, toolbar);
 
     button.addEventListener("click", async () => {
       if (button.disabled || exporting) return;
