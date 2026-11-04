@@ -16,6 +16,17 @@ assert.ok(base.includes("css/talena/pages/candidate-report-export.css"));
 assert.ok(base.indexOf("candidate-report-export.js") > base.indexOf("pdf-export-core.js"));
 assert.ok(base.indexOf("candidate-report-export.js") > base.indexOf("after-interview-tabs.js"));
 assert.ok(css.includes(".talena-candidate-pdf-stage"));
+assert.ok(js.includes('source.querySelector(".ai-overview-header__actions")'),
+  "Overview PDF icon must be inserted beside Generate");
+assert.ok(js.includes('button.innerHTML = pdfIcon'),
+  "Export action must use the compact PDF icon");
+assert.ok(js.includes('stage.setAttribute("data-candidate-pdf-report", item.id)'),
+  "Temporary PDF stage must expose report identity for A4 layout styling");
+assert.ok(css.includes(".talena-candidate-pdf-toolbar--overview"),
+  "Overview action-row styles are missing");
+assert.ok(css.includes(".personality-trait-card__main") &&
+  css.includes(".personality-indicator-row__profile"),
+  "Personality PDF needs explicit A4-width chart grids");
 assert.ok(css.includes("left:-10000px"));
 assert.ok(core.includes("returnBlob"));
 assert.ok(js.includes("window.TalenaCandidateReports = Object.freeze"));
