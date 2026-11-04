@@ -18,6 +18,7 @@
     pdf:"En sammanslagen PDF",zip:"Separata PDF:er i ZIP",
     count:"Valda rapporter",close:"Stäng",download:"Ladda ner rapportpaket",
     empty:"Det finns inga färdiga teamrapporter att välja.",
+    unavailable:"Rapportexporten kunde inte läsas in. Uppdatera sidan och försök igen.",
     anonymous:"Stäng av anonymisering innan du skapar ett identifierande teamrapportpaket.",
     stale:"Teamets rapporter har ändrats. Öppna väljaren igen.",progress:"Skapar rapport",
     preparing:"Sammanställer rapportpaketet…",done:"Nedladdningen har startat.",
@@ -32,6 +33,7 @@
     pdf:"One merged PDF",zip:"Separate PDFs in ZIP",
     count:"Selected reports",close:"Close",download:"Download report package",
     empty:"No completed team reports are available.",
+    unavailable:"Report export could not be loaded. Refresh the page and try again.",
     anonymous:"Turn off anonymisation before creating an identifiable team report package.",
     stale:"Team reports changed. Reopen the picker.",progress:"Creating report",
     preparing:"Assembling report package…",done:"Download started.",
@@ -43,6 +45,13 @@
   const profileApi=()=>window.TalenaTeamProfilesExport;
   const teamApi=()=>window.TalenaTeamReportExport;
   const pack=()=>window.TalenaReportPackageCore;
+  // Distinguish an unavailable client PDF adapter (often an old cached JS
+  // file) from a genuinely empty team. Never report zero available reports
+  // when the picker was not connected to the existing exporters.
+  const adaptersReady=()=>
+    typeof profileApi()?.getAvailableProfiles==="function" &&
+    typeof teamApi()?.getAvailable==="function" &&
+    typeof pack()?.safeFilenamePart==="function";
   // Fail closed if the team anonymity switch is missing or not initialised.
   const isAnon=()=>page.querySelector("#teamAnonymityToggle")?.getAttribute("aria-checked")!=="false";
   const isCurrent=()=>page.isConnected &&
@@ -132,6 +141,7 @@
   function open() {
     if(busy||!isCurrent())return;
     if(isAnon()){status(t.anonymous,true,true);return;}
+    if(!adaptersReady()){status(t.unavailable,true,true);return;}
     const data=options();
     discard();order=data.map(x=>x.id);chosen=new Set(order);
     dialog=node("dialog","talena-package-dialog talena-team-package-dialog");
@@ -177,7 +187,7 @@
     if(list)draw();else refresh();
   }
   function requireCurrent() {
-    if(cancelled||!isCurrent()||isAnon()||!profileApi()?.isCurrent()||
+    if(cancelled||!adaptersReady()||!isCurrent()||isAnon()||!profileApi()?.isCurrent()||
       !teamApi()?.isCurrent())throw Error(isAnon()?t.anonymous:t.stale);
   }
   async function exportPackage() {
