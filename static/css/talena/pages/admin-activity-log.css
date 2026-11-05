@@ -1,0 +1,60 @@
+/* Talena #432: internal audit explorer; scoped to its admin page. */
+.talena-audit { --border: #e3e7e9; --muted: #6d777d; max-width: 1440px; margin: 0 auto 48px; color: #263238; }
+.talena-audit__hero { display:flex; justify-content:space-between; align-items:center; gap:24px; padding:0 0 24px; }
+.talena-audit__eyebrow { display:flex; align-items:center; gap:7px; color:#63716c; font-size:.74rem; font-weight:700; letter-spacing:.07em; text-transform:uppercase; }
+.talena-audit__eyebrow svg { width:15px; height:15px; }
+.talena-audit__hero h1 { font-weight:730; font-size:clamp(1.55rem,3vw,2.1rem); letter-spacing:-.035em; margin:12px 0 6px; }
+.talena-audit__hero p { font-size:.88rem; color:var(--muted); line-height:1.6; margin:0; }
+.talena-audit__export { display:inline-flex; align-items:center; gap:8px; border-radius:9px; font-size:.81rem; white-space:nowrap; }
+.talena-audit__export svg, .talena-audit__form-actions svg { width:15px; height:15px; }
+.talena-audit__stats { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; margin-bottom:20px; }
+.talena-audit__metric { padding:18px 20px; border:1px solid var(--border); background:white; border-radius:14px; box-shadow:0 2px 9px rgba(32,43,48,.025); }
+.talena-audit__metric > span, .talena-audit__metric > small { display:block; color:var(--muted); font-size:.73rem; }
+.talena-audit__metric > strong { display:block; margin:7px 0 4px; font-size:1.7rem; font-weight:750; font-variant-numeric:tabular-nums; }
+.talena-audit__metric > .talena-audit__metric-date { font-size:1.13rem; padding:5px 0 6px; letter-spacing:-.015em; }
+.talena-audit__filters, .talena-audit__panel { border:1px solid var(--border); border-radius:14px; background:white; box-shadow:0 2px 12px rgba(30,43,48,.03); }
+.talena-audit__filters { padding:20px 22px; margin-bottom:20px; }
+.talena-audit__filter-title { display:flex; align-items:center; gap:9px; margin-bottom:17px; font-size:.91rem; }
+.talena-audit__filter-title svg { width:17px; height:17px; color:#707e80; }
+.talena-audit__form-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px 16px; }
+.talena-audit__form-grid label { min-width:0; display:flex; flex-direction:column; gap:7px; font-size:.72rem; color:#647179; font-weight:650; }
+.talena-audit__form-grid .form-control,.talena-audit__form-grid .form-select { width:100%; min-width:0; font-size:.81rem; height:37px; border-radius:8px; border-color:#d9dee1; color:#37424a; background-color:#fff; }
+.talena-audit__form-actions { display:flex; align-items:center; gap:9px; margin-top:20px; flex-wrap:wrap; }
+.talena-audit__form-actions .btn { display:inline-flex; align-items:center; gap:8px; border-radius:8px; font-size:.78rem; min-height:36px; }
+.talena-audit__panel { overflow:hidden; }
+.talena-audit__panel-heading { padding:18px 22px; border-bottom:1px solid var(--border); }
+.talena-audit__panel-heading h2 { font-size:1rem; margin:0 0 5px; font-weight:720; }
+.talena-audit__panel-heading p { font-size:.73rem; color:var(--muted); margin:0; }
+.talena-audit__table-scroll { overflow:auto; max-width:100%; }
+.talena-audit__table { margin:0; min-width:810px; }
+.talena-audit__table th { background:#f8faf9; text-transform:uppercase; letter-spacing:.045em; font-size:.65rem; font-weight:700; color:#7b8688; padding:12px 18px; border-bottom:1px solid var(--border); white-space:nowrap; }
+.talena-audit__table td { padding:14px 18px; border-bottom:1px solid #eff1f2; vertical-align:middle; font-size:.76rem; line-height:1.5; color:#36444c; }
+.talena-audit__table tbody tr:last-child td { border-bottom:none; }
+.talena-audit__table tbody tr:hover td { background:#fafcfb; }
+.talena-audit__when { color:#77838a!important; white-space:nowrap; font-variant-numeric:tabular-nums; }
+.talena-audit__category { display:inline-flex; font-size:.62rem; font-weight:700; border-radius:99px; padding:2px 8px; background:#eff3f6; color:#5c6e7b; margin-bottom:6px; }
+.talena-audit__category.is-candidate,.talena-audit__category.is-portal { background:#eff5fb; color:#416b89; }
+.talena-audit__category.is-organisation { background:#f0f5ed; color:#5a7960; }
+.talena-audit__category.is-security,.talena-audit__category.is-audit { background:#f7f2e9; color:#856b3e; }
+.talena-audit__event-label { font-weight:650; font-size:.79rem; }
+.talena-audit__reference { color:#8a979c; font-size:.65rem; margin-top:2px; overflow-wrap:anywhere; }
+.talena-audit__empty { text-align:center; padding:50px 20px; color:var(--muted); }
+.talena-audit__empty svg { width:25px; height:25px; margin-bottom:13px; }
+.talena-audit__empty h3 { font-size:1rem; color:#3b454b; }
+.talena-audit__empty p { font-size:.8rem; max-width:460px; margin:9px auto 0; }
+.talena-audit__pagination { display:flex; justify-content:center; align-items:center; gap:13px; border-top:1px solid var(--border); padding:16px; font-size:.76rem; color:#6a757d; }
+.talena-audit__pagination .btn { font-size:.74rem; }
+.talena-audit__notice { display:flex; gap:12px; padding:18px 20px; margin-top:19px; border-radius:12px; border:1px solid #e2e7e6; background:#f9fbfa; }
+.talena-audit__notice svg { width:17px; height:17px; color:#71837b; flex:none; }
+.talena-audit__notice strong { font-size:.77rem; }
+.talena-audit__notice p { font-size:.74rem; line-height:1.65; color:#68767a; margin:5px 0 0; }
+@media (max-width:900px) { .talena-audit__form-grid {grid-template-columns:repeat(2,minmax(0,1fr));} }
+@media (max-width:600px) {
+  .talena-audit__hero {flex-direction:column; align-items:flex-start;}
+  .talena-audit__stats {grid-template-columns:1fr; gap:10px;}
+  .talena-audit__metric {padding:13px 16px;}
+  .talena-audit__metric > strong {font-size:1.3rem;}
+  .talena-audit__form-grid {grid-template-columns:1fr;}
+  .talena-audit__filters {padding:16px;}
+  .talena-audit__panel-heading {padding:15px;}
+}

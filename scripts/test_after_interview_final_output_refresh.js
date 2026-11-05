@@ -15,7 +15,7 @@ assert.notEqual(end, -1, "final output refresh function ends before its script t
 
 const functionSource = template.slice(start, end + 2);
 
-function createHarness({ responseOk = true, validRoot = true, hasAfterInterviewPanel = true, language = "sv" } = {}) {
+function createHarness({ responseOk = true, validRoot = true, hasAfterInterviewPanel = true, language = "sv", switchToSkillsWhileLoading = false } = {}) {
   const calls = { errors: [], order: [] };
   const actionButton = {};
   const currentSelectedTab = {
@@ -39,16 +39,21 @@ function createHarness({ responseOk = true, validRoot = true, hasAfterInterviewP
       calls.order.push("outer-tab");
     },
   };
+  const cognitiveTab = {
+    dataset: { insightsTab: "cognitive" },
+    click() { calls.skillsTabClicked = true; },
+  };
+  let currentInsightsTab = insightsTab;
   const insightsWorkspace = {
     querySelector(selector) {
       return selector.includes(".candidate-profile-tabs")
         && selector.includes(".is-active")
-        ? insightsTab
+        ? currentInsightsTab
         : null;
     },
     querySelectorAll(selector) {
       return selector.includes(".candidate-profile-tabs")
-        ? [insightsTab]
+        ? [insightsTab, cognitiveTab]
         : [];
     },
   };
@@ -104,10 +109,15 @@ function createHarness({ responseOk = true, validRoot = true, hasAfterInterviewP
     document,
     window,
     URL,
-    fetch: async () => ({
-      ok: responseOk,
-      text: async () => "<div data-final-output-root></div>",
-    }),
+    fetch: async () => {
+      // Simulate the recruiter switching to Skills during a pending
+      // After interview refresh, as happens when opening a percentile.
+      if (switchToSkillsWhileLoading) currentInsightsTab = cognitiveTab;
+      return {
+        ok: responseOk,
+        text: async () => "<div data-final-output-root></div>",
+      };
+    },
     console: { error: (...args) => calls.errors.push(args) },
   };
 
@@ -133,6 +143,17 @@ function createHarness({ responseOk = true, validRoot = true, hasAfterInterviewP
     assert.equal(calls.focus?.preventScroll, true, "restore focus to the active report tab");
     assert.equal(calls.errors.length, 0);
   }
+
+  const switched = createHarness({ switchToSkillsWhileLoading: true });
+  await switched.refresh({ querySelector: () => switched.currentRoot });
+  assert.equal(switched.calls.replacedWith, switched.refreshedRoot,
+    "refresh still updates After interview content in the background");
+  assert.equal(switched.calls.outerTabReactivated, undefined,
+    "a delayed refresh must not reopen After interview over the selected Skills tab");
+  assert.equal(switched.calls.skillsTabClicked, undefined,
+    "the refresh must not interfere with another currently selected tab");
+  assert.equal(switched.calls.focus, undefined,
+    "a background refresh must not steal focus back to an interview tab");
 
   for (const options of [
     { validRoot: false },

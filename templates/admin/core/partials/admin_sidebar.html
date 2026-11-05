@@ -33,6 +33,16 @@
           <span>{% trans "Admin dashboard" %}</span>
         </a>
 
+        {% if request.user.is_superuser or request.user.role == 'admin' %}
+        <a
+          class="nav-link sidebar-link {% if request.resolver_match.url_name == 'admin_activity_log' %}active{% endif %}"
+          href="{% url 'core:admin_activity_log' %}"
+        >
+          <div class="nav-link-icon"><i data-feather="activity"></i></div>
+          <span>{% get_current_language as AUDIT_SIDEBAR_LANGUAGE %}{% if AUDIT_SIDEBAR_LANGUAGE|slice:":2" == "sv" %}Aktivitetslogg{% else %}Activity log{% endif %}</span>
+        </a>
+        {% endif %}
+
         <a
           class="nav-link sidebar-link {% if request.resolver_match.url_name == 'settings' %}active{% endif %}"
           href="{% url 'portal:settings' %}?mode=admin"

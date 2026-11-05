@@ -162,3 +162,69 @@
   line-height: 1.35;
   font-weight: 400;
 }
+
+/* #447: a compact, clickable percentile replaces the completed skill tick. */
+.talena-assessment-state[hidden],
+.talena-assessment-state [hidden] {
+  display: none !important;
+}
+.talena-assessment-state--percentile {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #edf6f0;
+  border-color: #c5dfce;
+  color: #217248;
+  cursor: pointer;
+}
+.talena-assessment-state--percentile:hover {
+  background: #e1f1e6;
+  box-shadow: 0 0 0 3px rgba(34, 110, 67, .09);
+}
+.talena-assessment-state__percentile {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: none;
+  border-radius: inherit;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: .7rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  cursor: pointer;
+}
+.talena-assessment-state__percentile:focus-visible {
+  outline: 2px solid #286448;
+  outline-offset: 3px;
+}
+
+/* #447: completed Personality/Motivation icons remain visually unchanged,
+   but gain an accessible button covering the whole green check circle. */
+.talena-assessment-state--shortcut {
+  position: relative;
+  cursor: pointer;
+}
+.talena-assessment-state__icon-link {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+.talena-assessment-state__icon-link:focus-visible {
+  outline: 2px solid #286448;
+  outline-offset: 3px;
+}

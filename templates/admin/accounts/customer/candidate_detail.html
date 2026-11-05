@@ -26,6 +26,13 @@
     </div>
 
     <div class="d-flex flex-wrap gap-2">
+      {% if request.user.role == "admin" or request.user.is_superuser %}
+      <a class="btn btn-outline-dark btn-sm"
+         href="{% url 'core:admin_activity_log' %}?candidate={{ candidate.id }}&amp;process={{ process.id }}">
+        <i data-feather="clock" aria-hidden="true"></i>
+        {% if candidate_ui_language|slice:":2" == "sv" %}Visa historik{% else %}View history{% endif %}
+      </a>
+      {% endif %}
       <a
         class="btn btn-outline-secondary btn-sm"
         href="{% url 'accounts:admin_process_detail' pk=process.id %}">

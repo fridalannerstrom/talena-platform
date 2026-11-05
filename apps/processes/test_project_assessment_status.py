@@ -218,6 +218,69 @@ class ProjectAssessmentStatusUnitTests(SimpleTestCase):
         self.assertIsNone(test_key("Unrelated general activity"))
 
 
+    def test_447_completed_pq_mq_checkmarks_are_tab_shortcuts(self):
+        inv = self.invitation(activities=[
+            {"activity": "Personality Questionnaire", "status": "completed"},
+            {"activity": "Motivation Questionnaire", "status": "completed"},
+            {"activity": "Sova Verbal Reasoning Assessment", "status": "completed",
+             "competencies": []},
+        ])
+        results = self.result(inv, ("personality", "motivation", "verbal"))
+        self.assertTrue(results["personality"]["has_shortcut"])
+        self.assertTrue(results["motivation"]["has_shortcut"])
+        self.assertFalse(results["verbal"]["has_shortcut"])
+        self.assertEqual(results["personality"]["shortcut_label"], "Visa personlighet")
+        self.assertEqual(results["motivation"]["shortcut_label"], "Visa motivation")
+        english = self.result(inv, ("personality", "motivation"), "en")
+        self.assertEqual(english["personality"]["shortcut_label"], "View personality")
+        self.assertEqual(english["motivation"]["shortcut_label"], "View motivation")
+
+        # Overall completion, an invitation, or a started assessment cannot
+        # enable a checkmark shortcut for that specific assessment.
+        inv.sova_activities = [
+            {"activity": "Personality Questionnaire", "status": "started"},
+            {"activity": "Motivation Questionnaire", "status": "not started"},
+        ]
+        pending = self.result(inv, ("personality", "motivation"))
+        self.assertFalse(pending["personality"]["has_shortcut"])
+        self.assertFalse(pending["motivation"]["has_shortcut"])
+
+    def test_447_percentiles_only_for_completed_cognitive_results(self):
+        inv = self.invitation(status="completed", activities=[
+            {"activity": "Sova Logical Reasoning Assessment", "status": "completed",
+             "competencies": [{"percentile": 76}]},
+            {"activity": "Sova Numerical Reasoning Assessment", "status": "completed",
+             "competencies": []},
+            {"activity": "Sova Verbal Reasoning Assessment", "status": "started",
+             "competencies": [{"percentile": 91}]},
+            {"activity": "Sova Personality", "status": "completed",
+             "competencies": [{"percentile": 54}]},
+        ])
+        cells = self.result(inv, ("personality", "logical", "numerical", "verbal"))
+        self.assertEqual(cells["logical"]["percentile"], 76)
+        self.assertTrue(cells["logical"]["has_percentile"])
+        self.assertEqual(cells["logical"]["title"], "76:e percentilen. Visa resultat.")
+        for key in ("numerical", "verbal", "personality"):
+            self.assertIsNone(cells[key]["percentile"])
+            self.assertFalse(cells[key]["has_percentile"])
+        self.assertEqual(cells["numerical"]["state"], "completed")
+        self.assertEqual(cells["verbal"]["state"], "started")
+        en = self.result(inv, ("logical",), "en")
+        self.assertEqual(en["logical"]["title"], "76th percentile. View results.")
+
+    def test_447_percentile_zero_and_missing_status(self):
+        inv = self.invitation(activities=[
+            {"activity": "Sova Numerical Reasoning Assessment", "status": "completed",
+             "competencies": [{"percentile": 0}]},
+            {"activity": "Sova Logical Reasoning Assessment", "status": "unknown",
+             "competencies": [{"percentile": 83}]},
+        ])
+        cells = self.result(inv, ("numerical", "logical"))
+        self.assertEqual(cells["numerical"]["percentile"], 0)
+        self.assertTrue(cells["numerical"]["has_percentile"])
+        self.assertFalse(cells["logical"]["has_percentile"])
+
+
 class ProjectAssessmentStatusIntegrationTests(TestCase):
     def setUp(self):
         self.company = Company.objects.create(name="A")
@@ -406,6 +469,71 @@ class ProjectAssessmentStatusIntegrationTests(TestCase):
             "processes:process_invitation_statuses", args=[self.foreign_project.pk]
         )).json()
         self.assertEqual(result["invitations"][0]["assessments"][0]["state"], "started")
+
+    def test_447_customer_percentile_matches_authorized_project_and_polling(self):
+        self.project.selected_tests = ["personality", "logical", "numerical", "verbal"]
+        self.project.save(update_fields=["selected_tests"])
+        self.invitation.sova_activities = [
+            {"activity": "Sova Personality", "status": "completed"},
+            {"activity": "Sova Logical Reasoning Assessment", "status": "completed",
+             "competencies": [{"percentile": 76}]},
+            {"activity": "Sova Numerical Reasoning Assessment", "status": "completed",
+             "competencies": []},
+            {"activity": "Sova Verbal Reasoning Assessment", "status": "started",
+             "competencies": [{"percentile": 32}]},
+        ]
+        self.invitation.save(update_fields=["sova_activities"])
+
+        detail = self.client.get(reverse(
+            "processes:process_detail", args=[self.project.pk]
+        ), HTTP_ACCEPT_LANGUAGE="sv")
+        self.assertEqual(detail.status_code, 200)
+        markup = detail.content.decode("utf8")
+        self.assertIn('data-focus-test-key="logical"', markup)
+        self.assertIn('data-has-percentile="true"', markup)
+        self.assertIn('76:e percentilen. Visa resultat.', markup)
+        self.assertIn('data-assessment-percentile-button', markup)
+        statuses = self.client.get(reverse(
+            "processes:process_invitation_statuses", args=[self.project.pk]
+        ), HTTP_ACCEPT_LANGUAGE="sv").json()["invitations"][0]["assessments"]
+        by_key = {cell["key"]: cell for cell in statuses}
+        self.assertEqual(by_key["logical"]["percentile"], 76)
+        self.assertFalse(by_key["numerical"]["has_percentile"])
+        self.assertFalse(by_key["verbal"]["has_percentile"])
+        self.assertFalse(by_key["personality"]["has_percentile"])
+
+        self.client.force_login(self.outsider)
+        foreign = self.client.get(reverse(
+            "processes:process_invitation_statuses", args=[self.project.pk]
+        ))
+        self.assertIn(foreign.status_code, (403, 404))
+
+    def test_447_customer_completed_checkmarks_render_accessible_buttons(self):
+        self.invitation.sova_activities = [
+            {"activity": "Personality Questionnaire", "status": "completed"},
+            {"activity": "Motivation Questionnaire", "status": "completed"},
+        ]
+        self.invitation.save(update_fields=["sova_activities"])
+        for language, first, second in (
+            ("sv", "Visa personlighet", "Visa motivation"),
+            ("en", "View personality", "View motivation"),
+        ):
+            with self.subTest(language=language):
+                response = self.client.get(
+                    reverse("processes:process_detail", args=[self.project.pk]),
+                    HTTP_ACCEPT_LANGUAGE=language,
+                )
+                self.assertEqual(response.status_code, 200)
+                markup = response.content.decode("utf8")
+                self.assertEqual(markup.count('data-has-shortcut="true"'), 2)
+                self.assertIn('data-assessment-result-button', markup)
+                self.assertIn(f'aria-label="{first}"', markup)
+                self.assertIn(f'aria-label="{second}"', markup)
+
+        polling = self.client.get(reverse(
+            "processes:process_invitation_statuses", args=[self.project.pk]
+        )).json()["invitations"][0]["assessments"]
+        self.assertTrue(all(cell["has_shortcut"] for cell in polling))
 
     def test_admin_mirrors_have_per_test_headers(self):
         self.client.force_login(self.user)

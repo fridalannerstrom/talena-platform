@@ -212,8 +212,66 @@ def invitation_test_statuses(invitation, columns, language="sv"):
             else:
                 state = "unknown"
         states[key] = state
-    return [_cell(column["key"], states[column["key"]], language)
-            for column in columns]
+    cells = [_cell(column["key"], states[column["key"]], language)
+             for column in columns]
+
+    # #447: Use the same persisted Sova percentile source as the
+    # candidate's Skills > Results view. Never infer values from overall status
+    # and never display a number for a test not independently completed.
+    completed_cognitive = {
+        cell["key"] for cell in cells
+        if cell["state"] == "completed"
+        and cell["key"] in {"logical", "numerical", "verbal"}
+    }
+    percentiles = {}
+    if completed_cognitive:
+        from apps.processes.services.cognitive_insights import (
+            active_candidate_cognitive_percentiles,
+        )
+        for key, raw in active_candidate_cognitive_percentiles(invitation).items():
+            if key not in completed_cognitive:
+                continue
+            try:
+                # Same display rounding as build_cognitive_insight_results.
+                value = int(round(float(raw)))
+            except (TypeError, ValueError, OverflowError):
+                continue
+            if 0 <= value <= 100:
+                percentiles[key] = value
+
+    is_swedish = str(language or "").lower().startswith("sv")
+    for cell in cells:
+        percentile = percentiles.get(cell["key"])
+        cell["percentile"] = percentile
+        cell["has_percentile"] = percentile is not None
+
+        # A completed PQ/MQ checkmark doubles as a shortcut to its
+        # candidate insight tab. Other status icons stay informational.
+        cell["has_shortcut"] = (
+            cell["state"] == "completed"
+            and cell["key"] in {"personality", "motivation"}
+        )
+        if cell["key"] == "personality":
+            cell["shortcut_label"] = (
+                "Visa personlighet" if is_swedish else "View personality"
+            )
+        elif cell["key"] == "motivation":
+            cell["shortcut_label"] = (
+                "Visa motivation" if is_swedish else "View motivation"
+            )
+        else:
+            cell["shortcut_label"] = ""
+
+        if percentile is not None:
+            if is_swedish:
+                ordinal = "a" if percentile % 10 in (1, 2) and percentile % 100 not in (11, 12) else "e"
+                cell["title"] = f"{percentile}:{ordinal} percentilen. Visa resultat."
+            else:
+                ordinal = "th" if 10 <= percentile % 100 <= 20 else {
+                    1: "st", 2: "nd", 3: "rd",
+                }.get(percentile % 10, "th")
+                cell["title"] = f"{percentile}{ordinal} percentile. View results."
+    return cells
 
 
 def attach_test_statuses(invitations, columns, language):
