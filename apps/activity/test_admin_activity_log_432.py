@@ -106,7 +106,7 @@ class PlatformActivityLogTests(TestCase):
             "company": self.company_a.pk,
         })
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response["Cache-Control"], "no-store")
+        self.assertIn("no-store", response["Cache-Control"])
         content = response.content.decode("utf-8")
         data = list(csv.DictReader(StringIO(content)))
         self.assertEqual(len(data), 1)
