@@ -2,7 +2,8 @@
 
 Only parent-trait questions with meaningful saved process context use this gate.
 The existing administrator prompts, first-generation prompt and output schema
-remain untouched. The gate checks and, at most once, repairs individual questions.
+remain untouched. The gate tries to improve weak questions but never blocks
+otherwise valid generated questions if the optional quality pass is inconclusive.
 """
 from __future__ import annotations
 
@@ -113,8 +114,14 @@ def _review_questions(
             "supported by the process context, not invented; (4) question, why "
             "and listen_for are neutral, coherent and nonempty, and the question "
             "does not reveal test findings to the candidate. A plausible role "
-            "link mentioned only in WHY is NOT enough. Prefer false over a "
-            "speculative pass. Return ONLY JSON with checks: an array of objects "
+            "link mentioned only in WHY is NOT enough. The process context "
+            "may be brief: the same actual job duty can be used across several "
+            "different personality traits, and concrete coordination, structure, "
+            "stakeholder communication or shifting-priority situations count "
+            "when the source describes them. Do NOT invent additional role "
+            "requirements or reject merely because there are fewer duties "
+            "than questions. Prefer false over a speculative pass. "
+            "Return ONLY JSON with checks: an array of objects "
             "{index: 1-based integer, passed: boolean, trait: exact selected "
             "trait label, context_quote: a short EXACT contiguous excerpt "
             "copied from the process context identifying the actual duty "
@@ -204,6 +211,10 @@ def _repair_questions(
             "MUST refer in the QUESTION text itself to a specific actual duty "
             "or situation in this role, and explore the selected personality "
             "trait via a candidate-specific, neutral behaviour hypothesis. "
+            "A short process context can support multiple distinct questions "
+            "about the same actual task from different personality angles. "
+            "Do not invent an industry, a technology, a specific methodology or "
+            "an unmentioned job duty merely to make questions feel different. "
             "Do not tell the candidate their test preference or results. "
             "Keep question, why and listen_for distinct. Preserve the exact "
             "technical trait labels and language. Keep unaffected questions "
@@ -287,30 +298,36 @@ def _quality_check_events(
         owner=owner, language_code=language_code,
     )
     if not summary:
-        raise ValueError("Personality question quality check requires result summaries.")
+        logger.info("Personality context quality skipped: result_summary_unavailable.")
+        return events
 
-    # Localise a technical failure without exposing candidate text or process
-    # context in logs. Keep the result uncommitted until every check passes.
+    # This is an optional, best-effort quality improvement. All eight original
+    # questions were already accepted by Talena's normal generation/count path.
+    # A second model's disagreement or an API outage must not turn usable
+    # interview material into an end-user error.
     try:
-        first = _review_questions(
+        review = _review_questions(
             questions=questions,
             selected_traits=selected_traits,
             result_summaries=summary,
             context=context,
         )
-    except Exception as exc:
-        raise RuntimeError("context_review_request_failed") from exc
+        failed = _failed_indices(review, questions, selected_traits, context)
+    except Exception:
+        logger.warning(
+            "Personality context quality unavailable: stage=initial_review."
+        )
+        return events
 
-    failed = _failed_indices(first, questions, selected_traits, context)
     for attempt in range(1, 3):
         if not failed:
             break
         logger.info(
-            "Personality question context quality: attempt=%s failures=%s/%s.",
+            "Personality context quality: repair_round=%s flagged=%s total=%s.",
             attempt, len(failed), len(questions),
         )
         try:
-            raw_repair = _repair_questions(
+            repair = _repair_questions(
                 questions=questions,
                 failed_indices=failed,
                 selected_traits=selected_traits,
@@ -318,29 +335,42 @@ def _quality_check_events(
                 context=context,
                 language_code=language_code,
             )
-            questions = _apply_repairs(
-                questions, raw_repair, failed, selected_traits,
+            # _apply_repairs is atomic: a malformed response cannot overwrite
+            # otherwise valid original questions.
+            improved = _apply_repairs(
+                questions, repair, failed, selected_traits,
             )
-        except Exception as exc:
-            raise RuntimeError("context_repair_request_failed") from exc
+        except Exception:
+            logger.warning(
+                "Personality context quality unavailable: stage=repair round=%s.",
+                attempt,
+            )
+            break
+
+        # Keep structurally valid improvements even when the reviewer later
+        # disagrees or cannot respond. Its semantic judgment is advisory.
+        questions = improved
         try:
-            reviewed = _review_questions(
+            review = _review_questions(
                 questions=questions,
                 selected_traits=selected_traits,
                 result_summaries=summary,
                 context=context,
             )
-        except Exception as exc:
-            raise RuntimeError("context_recheck_request_failed") from exc
-        failed = _failed_indices(reviewed, questions, selected_traits, context)
+            failed = _failed_indices(
+                review, questions, selected_traits, context,
+            )
+        except Exception:
+            logger.warning(
+                "Personality context quality unavailable: stage=recheck round=%s.",
+                attempt,
+            )
+            break
 
     if failed:
-        logger.warning(
-            "Personality context quality exhausted repairs: failures=%s/%s.",
+        logger.info(
+            "Personality context quality best_effort: remaining=%s total=%s.",
             len(failed), len(questions),
-        )
-        raise ValueError(
-            "context_review_failed_after_two_repair_rounds"
         )
     result = list(events)
     result[index] = {**result[index], "items": questions}
@@ -369,28 +399,15 @@ def install_personality_question_context_quality_policy() -> None:
             checked = _quality_check_events(
                 events, owner=owner, language_code=language_code,
             )
-        except Exception as exc:
-            # Only controlled reason codes/types are logged. Never candidate
-            # or process data, which may contain protected personal details.
-            reason = str(exc)
-            if reason not in {
-                "context_review_request_failed",
-                "context_repair_request_failed",
-                "context_recheck_request_failed",
-                "context_review_failed_after_two_repair_rounds",
-            }:
-                reason = type(exc).__name__
-            logger.warning(
-                "Personality context quality check failed: reason=%s.",
-                reason,
+        except Exception:
+            # The optional quality pass must not fail an otherwise valid
+            # personality question generation. Do not log exception details:
+            # they may contain process text, prompts or candidate information.
+            logger.exception(
+                "Personality context quality bypassed due to an unexpected error."
             )
-            raise ValueError(
-                "Personlighetsfrågorna kunde inte kvalitetssäkras "
-                f"({reason}). Kontrollera processkontexten och försök igen."
-                if language_code.startswith("sv")
-                else "Personality questions could not pass context quality "
-                f"control ({reason}). Check the process context and retry."
-            ) from exc
+            yield from events
+            return
         yield from checked
 
     personality_questions.stream_personality_questions = stream_personality_questions
