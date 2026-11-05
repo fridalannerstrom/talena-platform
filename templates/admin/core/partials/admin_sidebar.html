@@ -39,7 +39,7 @@
           href="{% url 'core:admin_activity_log' %}"
         >
           <div class="nav-link-icon"><i data-feather="activity"></i></div>
-          <span>{% trans "Activity log" %}</span>
+          <span>{% get_current_language as AUDIT_SIDEBAR_LANGUAGE %}{% if AUDIT_SIDEBAR_LANGUAGE|slice:":2" == "sv" %}Aktivitetslogg{% else %}Activity log{% endif %}</span>
         </a>
         {% endif %}
 
