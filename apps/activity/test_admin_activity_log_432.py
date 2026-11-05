@@ -17,7 +17,8 @@ class PlatformActivityLogTests(TestCase):
             username="platform-admin", password="x", role=User.Role.ADMIN,
         )
         self.customer = User.objects.create_user(
-            username="customer-log", password="x", role=User.Role.CUSTOMER,
+            username="customer-log", password="x", email="customer@example.test",
+            role=User.Role.CUSTOMER,
         )
         self.staff_only = User.objects.create_user(
             username="staff-only", password="x", role=User.Role.CUSTOMER,
