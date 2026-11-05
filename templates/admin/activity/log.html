@@ -135,7 +135,15 @@
           <tr>
             <td class="talena-audit__when"><time datetime="{{ event.timestamp|date:'c' }}">{{ event.timestamp|date:"Y-m-d H:i" }}</time></td>
             <td>
-              <span class="talena-audit__category is-{{ event.category }}">{{ event.category }}</span>
+              <span class="talena-audit__category is-{{ event.category }}">
+                {% if event.category == "candidate" %}{% if LANGUAGE_CODE|slice:":2" == "sv" %}Kandidat / test{% else %}Candidate / assessment{% endif %}
+                {% elif event.category == "portal" %}{% if LANGUAGE_CODE|slice:":2" == "sv" %}Kandidatportal{% else %}Candidate portal{% endif %}
+                {% elif event.category == "organisation" %}{% if LANGUAGE_CODE|slice:":2" == "sv" %}Organisation{% else %}Organisation{% endif %}
+                {% elif event.category == "security" %}{% if LANGUAGE_CODE|slice:":2" == "sv" %}Säkerhet{% else %}Security{% endif %}
+                {% elif event.category == "audit" %}{% if LANGUAGE_CODE|slice:":2" == "sv" %}Loggåtkomst{% else %}Audit access{% endif %}
+                {% else %}{% if LANGUAGE_CODE|slice:":2" == "sv" %}Övrigt{% else %}Other{% endif %}
+                {% endif %}
+              </span>
               <div class="talena-audit__event-label">{{ event.label }}</div>
               <span class="talena-audit__reference">#{{ event.id }} · {{ event.verb }}</span>
             </td>
