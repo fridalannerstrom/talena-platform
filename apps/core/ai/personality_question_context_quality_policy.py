@@ -10,6 +10,7 @@ import hashlib
 import json
 import logging
 import re
+import unicodedata
 from functools import wraps
 from typing import Any, Iterable
 
@@ -115,11 +116,13 @@ def _review_questions(
             "link mentioned only in WHY is NOT enough. Prefer false over a "
             "speculative pass. Return ONLY JSON with checks: an array of objects "
             "{index: 1-based integer, passed: boolean, trait: exact selected "
-            "trait label, context_quote: short contiguous VERBATIM excerpt "
-            "of at least four words copied from the process context that "
-            "identifies the role-specific task}. Return one check per question. "
-            "For failed questions, use passed=false and context_quote=''. "
-            "Do not explain or copy personal names."
+            "trait label, context_quote: a short EXACT contiguous excerpt "
+            "copied from the process context identifying the actual duty "
+            "(even a single distinctive compound word such as 'användartester' "
+            "is acceptable). Quote the source as written: do not paraphrase. "
+            "Use the selected trait's TECHNICAL name, not a translated name. "
+            "Return one check per question. For failed questions, use "
+            "passed=false and context_quote=''. Do not copy personal names."
         ),
         {
             "selected_traits": selected_traits,
@@ -131,7 +134,13 @@ def _review_questions(
 
 
 def _normalise_space(value: Any) -> str:
-    return re.sub(r"\s+", " ", str(value or "")).strip().casefold()
+    """Match exact source excerpts despite punctuation and whitespace differences.
+
+    The model may omit quotation marks, line breaks or surrounding punctuation.
+    Require the exact sequence of source words, not a paraphrase.
+    """
+    text = unicodedata.normalize("NFKC", str(value or "")).casefold()
+    return " ".join(re.findall(r"\w+", text, flags=re.UNICODE))
 
 
 def _failed_indices(
@@ -157,16 +166,15 @@ def _failed_indices(
         item = checks_by_index.get(index, {})
         labels = question.get("traits") if isinstance(question, dict) else []
         labels = labels if isinstance(labels, list) else []
-        label = item.get("trait")
         quote = _normalise_space(item.get("context_quote"))
+        # Trait metadata was already normalised by Talena. The reviewer may
+        # translate the trait in its answer, so its redundant 'trait' field
+        # must not make a genuinely labelled question fail.
         passed = (
             item.get("passed") is True
-            and isinstance(label, str)
-            and label in allowed
-            and label in labels
+            and any(label in allowed for label in labels)
             and all(str(question.get(k) or "").strip() for k in ("question", "why", "listen_for"))
-            and len(quote) >= 16
-            and len(quote.split()) >= 4
+            and len(quote) >= 8
             and quote in source
         )
         if not passed:
@@ -281,37 +289,59 @@ def _quality_check_events(
     if not summary:
         raise ValueError("Personality question quality check requires result summaries.")
 
-    first = _review_questions(
-        questions=questions,
-        selected_traits=selected_traits,
-        result_summaries=summary,
-        context=context,
-    )
+    # Localise a technical failure without exposing candidate text or process
+    # context in logs. Keep the result uncommitted until every check passes.
+    try:
+        first = _review_questions(
+            questions=questions,
+            selected_traits=selected_traits,
+            result_summaries=summary,
+            context=context,
+        )
+    except Exception as exc:
+        raise RuntimeError("context_review_request_failed") from exc
+
     failed = _failed_indices(first, questions, selected_traits, context)
-    if failed:
+    for attempt in range(1, 3):
+        if not failed:
+            break
         logger.info(
-            "Personality question context quality: %s/%s questions need repair.",
+            "Personality question context quality: attempt=%s failures=%s/%s.",
+            attempt, len(failed), len(questions),
+        )
+        try:
+            raw_repair = _repair_questions(
+                questions=questions,
+                failed_indices=failed,
+                selected_traits=selected_traits,
+                result_summaries=summary,
+                context=context,
+                language_code=language_code,
+            )
+            questions = _apply_repairs(
+                questions, raw_repair, failed, selected_traits,
+            )
+        except Exception as exc:
+            raise RuntimeError("context_repair_request_failed") from exc
+        try:
+            reviewed = _review_questions(
+                questions=questions,
+                selected_traits=selected_traits,
+                result_summaries=summary,
+                context=context,
+            )
+        except Exception as exc:
+            raise RuntimeError("context_recheck_request_failed") from exc
+        failed = _failed_indices(reviewed, questions, selected_traits, context)
+
+    if failed:
+        logger.warning(
+            "Personality context quality exhausted repairs: failures=%s/%s.",
             len(failed), len(questions),
         )
-        raw_repair = _repair_questions(
-            questions=questions,
-            failed_indices=failed,
-            selected_traits=selected_traits,
-            result_summaries=summary,
-            context=context,
-            language_code=language_code,
+        raise ValueError(
+            "context_review_failed_after_two_repair_rounds"
         )
-        questions = _apply_repairs(questions, raw_repair, failed, selected_traits)
-        second = _review_questions(
-            questions=questions,
-            selected_traits=selected_traits,
-            result_summaries=summary,
-            context=context,
-        )
-        if _failed_indices(second, questions, selected_traits, context):
-            raise ValueError(
-                "Personality questions did not pass role-context quality control."
-            )
     result = list(events)
     result[index] = {**result[index], "items": questions}
     return result
@@ -340,12 +370,26 @@ def install_personality_question_context_quality_policy() -> None:
                 events, owner=owner, language_code=language_code,
             )
         except Exception as exc:
+            # Only controlled reason codes/types are logged. Never candidate
+            # or process data, which may contain protected personal details.
+            reason = str(exc)
+            if reason not in {
+                "context_review_request_failed",
+                "context_repair_request_failed",
+                "context_recheck_request_failed",
+                "context_review_failed_after_two_repair_rounds",
+            }:
+                reason = type(exc).__name__
             logger.warning(
-                "Personality context quality check failed (%s).",
-                type(exc).__name__,
+                "Personality context quality check failed: reason=%s.",
+                reason,
             )
             raise ValueError(
-                "Personality questions could not pass context quality control."
+                "Personlighetsfrågorna kunde inte kvalitetssäkras "
+                f"({reason}). Kontrollera processkontexten och försök igen."
+                if language_code.startswith("sv")
+                else "Personality questions could not pass context quality "
+                f"control ({reason}). Check the process context and retry."
             ) from exc
         yield from checked
 
