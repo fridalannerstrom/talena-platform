@@ -285,7 +285,7 @@ class PersonalityQuestionContextQualityTests(SimpleTestCase):
             return_value="Cooperative: result summary.",
         ), patch(
             "apps.core.ai.personality_question_context_quality_policy._review_questions",
-            return_value=review_for(questions, "", failing=(1,)),
+            return_value=review_for(questions, "Coordinate and execute user testing on an AI-based training platform", failing=(1,)),
         ), patch(
             "apps.core.ai.personality_question_context_quality_policy._repair_questions",
             side_effect=RuntimeError("repair failed"),
@@ -306,7 +306,7 @@ class PersonalityQuestionContextQualityTests(SimpleTestCase):
         ), patch(
             "apps.core.ai.personality_question_context_quality_policy._review_questions",
             side_effect=[
-                review_for(questions, "", failing=(1,)),
+                review_for(questions, "Coordinate and execute user testing on an AI-based training platform", failing=(1,)),
                 RuntimeError("review unavailable"),
             ],
         ), patch(
