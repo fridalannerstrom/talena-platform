@@ -5,10 +5,14 @@ from django.test import SimpleTestCase
 
 from apps.core.ai.personality_question_context_quality_policy import (
     _apply_repairs,
+    _duplicate_question_indices,
     _failed_indices,
     _quality_check_events,
     is_personality_question_context_outdated,
     personality_question_context_fingerprint,
+)
+from apps.core.ai.personality_question_role_anchors import (
+    extract_role_task_anchors,
 )
 
 
@@ -35,10 +39,23 @@ def owner_for(context: str, *, purpose="recruitment"):
 
 
 def sample_question(number, *, scenario="Coordinate and execute user testing"):
+    # Distinct source-backed work scenarios, so a test that expects valid
+    # questions does not accidentally contain eight near-duplicates.
+    contexts = (
+        "stakeholder expectations in an early discovery workshop",
+        "conflicting priorities during a remote usability study",
+        "research synthesis for a management review",
+        "design iteration following accessibility feedback",
+        "planning a prototype test across teams",
+        "handoff between clinical project stakeholders",
+        "challenging assumptions in a product planning meeting",
+        "facilitating feedback from student participants",
+    )
+    detail = contexts[(number - 1) % len(contexts)]
     return {
         "question": (
             f"Tell me about a time when you had to {scenario.lower()} "
-            f"while adapting your collaboration approach (example {number})."
+            f"while adapting your collaboration approach in {detail}."
         ),
         "traits": ["Cooperative"],
         "why": "Explore the candidate's profile-specific collaboration approach.",
@@ -68,6 +85,70 @@ class PersonalityQuestionContextQualityTests(SimpleTestCase):
             {"type": "questions", "items": questions},
             {"type": "done"},
         ]
+
+    def test_extract_role_anchors_from_realistic_ux_advert(self):
+        context = (
+            "Vi utvecklar virtuella patienter för kliniker och studenter.\n"
+            "Arbetsuppgifter\n"
+            "Designa användarcentrerade lösningar på den AI-baserade plattformen\n"
+            "Ta fram flöden för relevanta användarupplevelser\n"
+            "Koordinera, leda och utföra användartester av plattformen\n"
+            "Analysera, sammanställa och presentera resultat från användartester\n"
+            "Koordinera olika utvecklingsdelar inom projektet\n"
+            "Kvalifikationer\n"
+            "Krav på god svensk språkförmåga."
+        )
+        anchors = extract_role_task_anchors(context)
+        self.assertGreaterEqual(len(anchors), 4)
+        self.assertTrue(any("användartester" in item for item in anchors))
+        self.assertTrue(any("flöden" in item for item in anchors))
+        self.assertTrue(any("användarcentrerade" in item for item in anchors))
+        self.assertFalse(any("språkförmåga" in item for item in anchors))
+
+    def test_extract_role_anchors_from_short_coordinator_context(self):
+        context = (
+            "Rollen är intern projektkoordinator. Arbetet innebär att planera "
+            "och koordinera leveranser mellan flera funktioner, skapa struktur "
+            "i komplexa projekt, kommunicera med olika intressenter och hantera "
+            "förändrade prioriteringar. Begränsad numerisk analys ingår."
+        )
+        anchors = extract_role_task_anchors(context)
+        self.assertTrue(any("koordinera leveranser" in item for item in anchors))
+        self.assertTrue(any("struktur i komplexa projekt" in item for item in anchors))
+        self.assertTrue(any("förändrade prioriteringar" in item for item in anchors))
+        self.assertFalse(any("numerisk analys" in item for item in anchors))
+
+    def test_detects_duplicate_questions_from_project_coordinator_example(self):
+        questions = [
+            {"question": "Berätta om ett tillfälle då du skapade struktur i ett projekt."},
+            {"question": "Berätta om ett tillfälle då du kommunicerade med flera intressenter."},
+            {"question": "Kan du beskriva en situation där du behövde vara måldriven trots distraktioner i ett projekt? Hur lyckades du hålla fokus?"},
+            {"question": "Berätta om en gång när du behövde vara måldriven trots distraktioner i ett projekt med flera parallella leveranser. Hur lyckades du hålla fokus?"},
+            {"question": "Kan du ge ett exempel på när du behövde växla mellan att fokusera på detaljer och att se den större bilden i ett projekt? Hur hanterade du det?"},
+            {"question": "Kan du ge ett exempel på när du behövde växla mellan att fokusera på detaljer och att se den större bilden i ett komplext projekt? Hur hanterade du det?"},
+        ]
+        self.assertEqual(_duplicate_question_indices(questions), [4, 6])
+
+    def test_initial_prompt_exposes_concrete_role_anchors(self):
+        from apps.core.ai.personality_question_definition_grounding_policy import (
+            _build_final_result_summary_grounding,
+        )
+        owner = owner_for(UX_CONTEXT)
+        with patch(
+            "apps.core.ai.personality_question_definition_grounding_policy."
+            "_render_question_result_summaries",
+            return_value="Cooperative: a candidate-specific summary.",
+        ), patch(
+            "apps.core.ai.personality_question_definition_grounding_policy."
+            "build_shared_ai_context",
+            return_value={"context_text": UX_CONTEXT, "has_context": True},
+        ):
+            prompt = _build_final_result_summary_grounding(
+                owner=owner, language_code="sv",
+            )
+        self.assertIn("ROLE TASK ANCHORS", prompt)
+        self.assertIn("Coordinate and execute user testing", prompt)
+        self.assertIn("EVERY question must have", prompt)
 
     def test_recruitment_questions_pass_without_unnecessary_repair(self):
         owner = owner_for(RECRUITMENT_CONTEXT)
