@@ -6,6 +6,7 @@ from .personality_ai_evidence import (
     build_owner_personality_ai_evidence,
 )
 from .shared_context import build_shared_ai_context
+from .personality_question_role_anchors import extract_role_task_anchors
 
 
 _INSTALLED = False
@@ -172,12 +173,27 @@ def _build_final_result_summary_grounding(
         or ""
     ).strip()
 
+    role_anchors = (
+        extract_role_task_anchors(context_text)
+        if shared_context.get("has_context")
+        else []
+    )
+    anchor_text = "\n".join(
+        f"- {task}" for task in role_anchors
+    ) or "No distinct job-duty list could be extracted."
     context_requirement = (
-        "Meaningful process context is available. Use concrete situations, "
-        "responsibilities, tensions, tasks or demands from that context when "
-        "they make the selected personality hypothesis more relevant and "
-        "specific. The same candidate in a materially different process should "
-        "normally receive different questions."
+        "Meaningful process context is available. EVERY question must have "
+        "a concrete link to the specific real-world duties, activities or "
+        "responsibilities of this process in its QUESTION text. Generic "
+        "project/work/group examples are not sufficient when concrete "
+        "role duties are available. Prefer the verbatim duties in the "
+        "ROLE TASK ANCHORS list below, which are extracted only from the "
+        "actual process context. Never invent a technology, industry, "
+        "responsibility or requirement absent from that source. The same "
+        "candidate in a different process should receive different questions. "
+        "If the source lists fewer duties than the number of questions, "
+        "reuse a real duty for different personality hypotheses but ask "
+        "genuinely different questions, not superficial paraphrases."
         if shared_context.get("has_context")
         else (
             "No additional process context is available. Do not invent role "
@@ -200,6 +216,9 @@ primary personality evidence.
 
 PROCESS CONTEXT
 {context_text or "No additional process context supplied."}
+
+ROLE TASK ANCHORS (verbatim excerpts from the process context)
+{anchor_text}
 
 HOW TO USE THE EVIDENCE
 
@@ -267,9 +286,14 @@ Before returning each question, silently verify:
 2. Which supplied process detail made the scenario specific and relevant?
 3. Would a candidate with a meaningfully different Result Summary normally get
    a meaningfully different question?
+4. Does the actual QUESTION clearly describe a specific work task from the
+   context, rather than merely say project, team, deadline or problem?
+5. Are any two questions asking for essentially the same example or behaviour?
+   If so, rewrite the later question to explore a different supported situation
+   or distinct behavioural hypothesis.
 
-If the first answer is only the trait name, or relevant supplied context is
-ignored, rewrite the question before returning it.
+If the first answer is only the trait name, if relevant supplied context is
+ignored, or if two questions are near-duplicates, rewrite them before returning.
 """.strip()
 
 
