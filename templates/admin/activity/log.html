@@ -1,13 +1,14 @@
 {% extends "admin/core/layouts/admin_base.html" %}
 {% load static i18n %}
 {% get_current_language as LANGUAGE_CODE %}
-{% block title %}{% if LANGUAGE_CODE|slice:":2" == "sv" %}Aktivitetslogg{% else %}Activity log{% endif %} · Talena{% endblock %}
+{% block title %}{% get_current_language as LANGUAGE_CODE %}{% if LANGUAGE_CODE|slice:":2" == "sv" %}Aktivitetslogg{% else %}Activity log{% endif %} · Talena{% endblock %}
 {% block extra_css %}
   {{ block.super }}
   <link href="{% static 'css/talena/pages/admin-activity-log.css' %}?v=20261105-432a" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
+{% get_current_language as LANGUAGE_CODE %}
 <div class="talena-audit">
   <header class="talena-audit__hero">
     <div>
