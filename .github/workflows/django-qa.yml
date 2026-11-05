@@ -58,6 +58,12 @@ jobs:
           node --check static/js/talena/candidate-ai-badges.js
           node --check static/js/talena/project-assessment-status.js
           node scripts/test_structured_overall_picture_contract.js
+      - name: Verify personality question role-context quality gate
+        env:
+          DJANGO_DEBUG: 'True'
+          DJANGO_SECRET_KEY: local-qa-only
+          USE_AZURE_STORAGE: '0'
+        run: python manage.py test apps.core.test_personality_question_context_quality_policy --noinput
       - name: Run focused candidate result, interview, project pin, and account invite tests
         env:
           DJANGO_DEBUG: 'True'

@@ -212,6 +212,20 @@ def process_candidate_personality_questions_stream(
             ]
         )
 
+    # An unchanged purpose does not imply unchanged role context. Preserve
+    # the old questions for viewing, but mark them outdated for regeneration.
+    from apps.core.ai.personality_question_context_quality_policy import (
+        is_personality_question_context_outdated,
+    )
+    if (
+        saved_result
+        and current_status == "completed"
+        and is_personality_question_context_outdated(process, saved_result)
+    ):
+        current_status = "outdated"
+        invitation.ai_personality_questions_status = "outdated"
+        invitation.save(update_fields=["ai_personality_questions_status"])
+
     if (
         ai_content_language_matches(
             invitation,
