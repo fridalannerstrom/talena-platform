@@ -2,6 +2,7 @@ from django.urls import path
 from django.contrib.auth.views import LoginView, LogoutView
 from . import views
 from apps.core import webhooks
+from apps.activity import admin_views as activity_admin_views
 
 from .views import (
     customer_dashboard,
@@ -24,6 +25,10 @@ urlpatterns = [
 
     path("dashboard/", customer_dashboard, name="customer_dashboard"),
     path("admin-dashboard/", admin_dashboard, name="admin_dashboard"),
+    path("admin-activity/", activity_admin_views.platform_activity_log,
+         name="admin_activity_log"),
+    path("admin-activity/export/", activity_admin_views.platform_activity_export,
+         name="admin_activity_export"),
 
     path("webhooks/sova/", sova_webhook, name="sova_webhook"),
     path("search/", views.global_search, name="global_search"),
