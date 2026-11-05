@@ -204,3 +204,27 @@
   outline: 2px solid #286448;
   outline-offset: 3px;
 }
+
+/* #447: completed Personality/Motivation icons remain visually unchanged,
+   but gain an accessible button covering the whole green check circle. */
+.talena-assessment-state--shortcut {
+  position: relative;
+  cursor: pointer;
+}
+.talena-assessment-state__icon-link {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+.talena-assessment-state__icon-link:focus-visible {
+  outline: 2px solid #286448;
+  outline-offset: 3px;
+}
