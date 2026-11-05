@@ -47,7 +47,10 @@ def _meaningful_context(owner) -> str:
     context = str(context).strip()
     if len(context) < 20 or len(context.split()) < 5:
         return ""
-    return context
+    # The reviewer must validate quotations against the SAME privacy-screened
+    # text the model sees, not the original unmasked role description.
+    from .pii_sanitizer import sanitize_ai_text
+    return sanitize_ai_text(context)
 
 
 def _question_event(events: list[dict[str, Any]]) -> tuple[int, list[dict[str, Any]]]:
