@@ -6,6 +6,7 @@ from django.test import SimpleTestCase
 from apps.core.ai.personality_question_context_quality_policy import (
     _apply_repairs,
     _duplicate_question_indices,
+    _role_specificity_failures,
     _failed_indices,
     _quality_check_events,
     is_personality_question_context_outdated,
@@ -128,6 +129,45 @@ class PersonalityQuestionContextQualityTests(SimpleTestCase):
             {"question": "Kan du ge ett exempel på när du behövde växla mellan att fokusera på detaljer och att se den större bilden i ett komplext projekt? Hur hanterade du det?"},
         ]
         self.assertEqual(_duplicate_question_indices(questions), [4, 6])
+
+    def test_ux_questions_without_a_role_duty_are_flagged_for_repair(self):
+        role_anchors = [
+            "Designa användarcentrerade lösningar på plattformen",
+            "Koordinera, leda och utföra användartester av plattformen",
+            "Analysera och presentera resultat från användartester",
+        ]
+        questions = [
+            {"question": "Berätta om när du behövde involvera andra i ett projekt."},
+            {"question": "När planerade du användartester av plattformen tillsammans med utvecklare?"},
+            {"question": "Hur arbetar du med olika människors perspektiv i en grupp?"}
+        ]
+        self.assertEqual(
+            _role_specificity_failures(questions, role_anchors),
+            [1, 3],
+        )
+
+    def test_role_specificity_allows_different_inflections_and_real_recruitment(self):
+        role_anchors = [
+            "Koordinera användartester av plattformen",
+            "Analysera och sammanställa resultat från användartester",
+        ]
+        questions = [
+            {"question": "Beskriv en användartestning där olika målgrupper behövde höras."},
+            {"question": "Vad lärde du dig när du sammanställde användartesters resultat?"},
+        ]
+        self.assertEqual(
+            _role_specificity_failures(questions, role_anchors),
+            [],
+        )
+        recruiter = ["Genomföra rekryteringsprocesser för flera säljchefer"]
+        recruiter_questions = [
+            {"question": "Hur prioriterade du parallella rekryteringsprocesser?"},
+            {"question": "När behövde du presentera kandidater för säljchefer?"},
+        ]
+        self.assertEqual(
+            _role_specificity_failures(recruiter_questions, recruiter),
+            [],
+        )
 
     def test_initial_prompt_exposes_concrete_role_anchors(self):
         from apps.core.ai.personality_question_definition_grounding_policy import (
