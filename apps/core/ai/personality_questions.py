@@ -1467,6 +1467,14 @@ def save_personality_questions(
     reserved for an explicit user selection.
     """
 
+    # Bind cached questions to the exact purpose-specific process context.
+    # This is stored as an internal key, not returned as a new AI field.
+    from .personality_question_context_quality_policy import (
+        personality_question_context_fingerprint,
+    )
+    result["context_fingerprint"] = personality_question_context_fingerprint(
+        owner.process
+    )
     owner.ai_personality_questions = result
 
     owner.ai_personality_questions_status = (
