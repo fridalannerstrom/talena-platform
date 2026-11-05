@@ -212,8 +212,40 @@ def invitation_test_statuses(invitation, columns, language="sv"):
             else:
                 state = "unknown"
         states[key] = state
-    return [_cell(column["key"], states[column["key"]], language)
-            for column in columns]
+    cells = [_cell(column["key"], states[column["key"]], language)
+             for column in columns]
+
+    # #447: Use exactly the same persisted Sova percentile extraction as the
+    # candidate's Skills > Results view. Never infer values from overall status
+    # and never display a number for a test not independently completed.
+    completed_cognitive = {
+        cell["key"] for cell in cells
+        if cell["state"] == "completed"
+        and cell["key"] in {"logical", "numerical", "verbal"}
+    }
+    percentiles = {}
+    if completed_cognitive:
+        from apps.core.ai.cognitive_interpretation import extract_cognitive_results
+        for result in extract_cognitive_results(invitation):
+            key = result.get("key")
+            if key in completed_cognitive and key not in percentiles:
+                percentiles[key] = result["percentile"]
+
+    is_swedish = str(language or "").lower().startswith("sv")
+    for cell in cells:
+        percentile = percentiles.get(cell["key"])
+        cell["percentile"] = percentile
+        cell["has_percentile"] = percentile is not None
+        if percentile is not None:
+            if is_swedish:
+                ordinal = "a" if percentile % 10 in (1, 2) and percentile % 100 not in (11, 12) else "e"
+                cell["title"] = f"{percentile}:{ordinal} percentilen. Visa resultat."
+            else:
+                ordinal = "th" if 10 <= percentile % 100 <= 20 else {
+                    1: "st", 2: "nd", 3: "rd",
+                }.get(percentile % 10, "th")
+                cell["title"] = f"{percentile}{ordinal} percentile. View results."
+    return cells
 
 
 def attach_test_statuses(invitations, columns, language):
