@@ -41,7 +41,7 @@ NYTT: granska varje fråga mot Result Summary och rolluppgifter
           /                                     \
      Godkänd                                 Underkänd
           |                                     |
-          |                          Omarbeta endast dessa en gång
+          |                          Omarbeta bara underkända (högst två rundor)
           |                                     |
           |                          Granska alla frågor igen
           |                              /            \
@@ -152,7 +152,7 @@ Granskaren ska bedöma var och en av frågorna:
 4. Är frågan neutral, går den att ställa i intervju och har den konsekvent motivering/lyssnarguide?
 5. Skulle frågan vara lika generisk även om processkontexten byttes? I så fall ska den underkännas.
 
-Modellen svarar för varje fråga med index, godkänd/underkänd, vald dragetikett och ett **ordagrant citat från processkontexten** som stöder rollkopplingen. Talenas kod verifierar dessutom att citatet verkligen finns i **den maskerade version av processkontexten som skickas till granskaren**, att etiketten är vald och finns på frågan, och att fråga/motivering/lyssnarguide inte är tomma. Detta undviker fel när kandidatnamn eller andra identifierare har maskerats innan OpenAI tar emot texten.
+Modellen svarar för varje fråga med index, godkänd/underkänd, dragetikett och ett **ordagrant citat från processkontexten** som stöder rollkopplingen. Koden verifierar att citatet återfinns i **den maskerade version av processkontexten som modellen fick**, att frågan har minst ett korrekt valt personlighetsdrag och att fråga/motivering/lyssnarguide inte är tomma. Citatkontrollen accepterar källans skiljetecken och radbrytningar samt korta distinkta svenska sammansättningar som ”användartester”. Granskarens extra dragetikett får inte underkänna en fråga där Talenas egen tekniska etikett redan är korrekt.
 
 **Viktig begränsning:** citerad text bevisar att en källpassage finns. Den semantiska bedömningen av om frågan verkligen motsvarar passagen görs av en språkmodell och är därför inte en absolut garanti.
 
@@ -169,11 +169,11 @@ Om granskningen underkänner en eller flera frågor gör Talena ett reparationsa
 
 Modellen returnerar ett JSON-objekt med replacements, ett objekt per underkänt frågeindex, med samma fyra frågefält. Talena ersätter endast dessa objekt. Övriga, redan godkända frågor behålls exakt.
 
-Därefter körs **en ny kvalitetsgranskning på hela frågeuppsättningen**. Om någon fråga fortfarande inte håller måttet ger Talena ett tydligt genereringsfel och sparar inte detta resultat som lyckat.
+Därefter körs **en ny kvalitetsgranskning på hela frågeuppsättningen**. Om något fortfarande underkänns får endast återstående underkända frågor **en andra riktad omarbetning** och efterföljande omgranskning. Om resultatet fortfarande inte håller måttet får användaren ett tydligt genereringsfel med en säker felkod. Inga ofullständigt godkända frågor sparas som lyckat resultat. Konsolloggen visar bara kontrollsteg, felkod och antal, aldrig kandidat- eller kontexttext.
 
 ### Vad kostar det?
 
-När granskningen är aktiv tillkommer **ett extra OpenAI-anrop** för godkända frågor. Om någon fråga underkänns tillkommer dessutom **ett reparationsanrop och en andra granskning**. Befintliga reparationsanrop för antal/format kan också förekomma. Därmed ökar tokenkostnad och genereringstid. Faktiska tider och kostnader behöver mätas i dev/stage.
+När granskningen är aktiv tillkommer **ett extra OpenAI-anrop** för godkända frågor. Om någon fråga underkänns tillkommer **ett reparationsanrop och en andra granskning**. I svårare fall kan detta upprepas ytterligare en gång (totalt högst två reparationsrundor). Befintliga reparationsanrop för antal/format kan också förekomma. Därmed ökar tokenkostnad och genereringstid. Faktiska tider och kostnader behöver mätas i dev/stage.
 
 ## 7. Vad händer om processkontexten ändras?
 
