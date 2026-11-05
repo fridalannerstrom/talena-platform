@@ -152,7 +152,7 @@ Granskaren ska bedöma var och en av frågorna:
 4. Är frågan neutral, går den att ställa i intervju och har den konsekvent motivering/lyssnarguide?
 5. Skulle frågan vara lika generisk även om processkontexten byttes? I så fall ska den underkännas.
 
-Modellen svarar för varje fråga med index, godkänd/underkänd, vald dragetikett och ett **ordagrant citat från processkontexten** som stöder rollkopplingen. Talenas kod verifierar dessutom att citatet verkligen finns i den faktiska texten, att etiketten är vald och finns på frågan, och att fråga/motivering/lyssnarguide inte är tomma.
+Modellen svarar för varje fråga med index, godkänd/underkänd, vald dragetikett och ett **ordagrant citat från processkontexten** som stöder rollkopplingen. Talenas kod verifierar dessutom att citatet verkligen finns i **den maskerade version av processkontexten som skickas till granskaren**, att etiketten är vald och finns på frågan, och att fråga/motivering/lyssnarguide inte är tomma. Detta undviker fel när kandidatnamn eller andra identifierare har maskerats innan OpenAI tar emot texten.
 
 **Viktig begränsning:** citerad text bevisar att en källpassage finns. Den semantiska bedömningen av om frågan verkligen motsvarar passagen görs av en språkmodell och är därför inte en absolut garanti.
 
