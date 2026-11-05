@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from difflib import SequenceMatcher
 import logging
 import re
 import unicodedata
@@ -17,6 +18,7 @@ from typing import Any, Iterable
 
 from .openai_client import get_chat_model, get_openai_client
 from .shared_context import get_process_context, get_process_purpose_key
+from .personality_question_role_anchors import extract_role_task_anchors
 
 
 logger = logging.getLogger(__name__)
@@ -97,6 +99,7 @@ def _review_questions(
     selected_traits: list[str],
     result_summaries: str,
     context: str,
+    role_anchors: list[str] | None = None,
 ) -> dict[str, Any]:
     """Assess semantic fidelity; every passing item needs a literal role quote."""
     return _model_json(
@@ -120,7 +123,11 @@ def _review_questions(
             "stakeholder communication or shifting-priority situations count "
             "when the source describes them. Do NOT invent additional role "
             "requirements or reject merely because there are fewer duties "
-            "than questions. Prefer false over a speculative pass. "
+            "than questions. When judging the full set, identify any later "
+            "questions that are essentially paraphrases of earlier ones, "
+            "even when one adds a small project qualifier. Mark the later "
+            "question failed so it can explore a different real job duty or "
+            "distinct personality hypothesis. Prefer false over a speculative pass. "
             "Return ONLY JSON with checks: an array of objects "
             "{index: 1-based integer, passed: boolean, trait: exact selected "
             "trait label, context_quote: a short EXACT contiguous excerpt "
@@ -135,6 +142,7 @@ def _review_questions(
             "selected_traits": selected_traits,
             "personality_result_summaries": result_summaries,
             "process_context": context,
+            "role_task_anchors_from_context": role_anchors or [],
             "questions": questions,
         },
     )
@@ -148,6 +156,104 @@ def _normalise_space(value: Any) -> str:
     """
     text = unicodedata.normalize("NFKC", str(value or "")).casefold()
     return " ".join(re.findall(r"\w+", text, flags=re.UNICODE))
+
+
+# Ignore generic interview framing when looking for near-duplicate questions.
+_DUPLICATE_STOPWORDS = {
+    "berätta", "beskriva", "situation", "exempel", "gång", "när",
+    "behövde", "kan", "du", "om", "en", "ett", "på", "i", "där",
+    "hur", "hanterade", "det", "och", "som", "med", "flera", "att",
+    "ditt", "din", "fick", "resultat", "projekt", "arbete",
+    "tell", "me", "about", "time", "when", "you", "had", "to",
+    "how", "did", "the", "a", "an", "and", "or", "project", "work",
+}
+
+
+# Match role-specific nouns even when Swedish inflection differs (e.g.
+# användartester / användartestning). This is a REPAIR signal, not a blocker.
+_GENERIC_ROLE_WORDS = {
+    "projekt", "projektet", "arbetet", "arbete", "problemet", "problem",
+    "gruppen", "grupper", "personer", "människor", "situation",
+    "situationer", "uppgifter", "uppgiften", "andra", "olika",
+    "flera", "komplexa", "komplext", "generella", "leverera",
+    "resultat", "processer", "process", "arbeta",
+    "planera", "samordna", "koordinera", "kommunicera", "skapa",
+    "utföra", "genomföra", "hantera", "analysera", "utveckla",
+    "designa", "presentera", "deltagare", "mellan",
+    "project", "projects", "working", "groups", "group", "problems",
+    "various", "several", "complex", "process", "processes",
+    "manage", "coordinate", "execute", "create", "develop",
+    "analyse", "analyze", "design", "present", "conduct",
+    "different", "teams", "team",
+}
+
+
+def _role_specificity_failures(
+    questions: list[dict[str, Any]], role_anchors: list[str],
+) -> list[int]:
+    """Find generic questions lacking any distinctive role-task vocabulary.
+
+    Word stems are only a conservative heuristic: it helps the AI editor
+    notice missing role links, but never rejects the interview output.
+    """
+    def stems(text: str) -> set[str]:
+        tokens = re.findall(r"\w+", str(text or "").casefold(), re.UNICODE)
+        return {
+            (token[:8] if len(token) >= 8 else token)
+            for token in tokens
+            if len(token) >= 5 and token not in _GENERIC_ROLE_WORDS
+        }
+
+    anchor_terms = stems(" ".join(role_anchors))
+    if not anchor_terms:
+        return []
+    return [
+        index for index, item in enumerate(questions, start=1)
+        if isinstance(item, dict) and not (
+            stems(item.get("question", "")) & anchor_terms
+        )
+    ]
+
+
+def _duplicate_question_indices(
+    questions: list[dict[str, Any]],
+) -> list[int]:
+    """Find later questions exploring essentially the same behaviour.
+
+    Conservative similarity check. Never blocks questions; it only gives the
+    quality repair model a targeted list to improve.
+    """
+    previous: list[tuple[str, set[str]]] = []
+    duplicate_indices: list[int] = []
+    for index, item in enumerate(questions, start=1):
+        question = _normalise_space(
+            item.get("question") if isinstance(item, dict) else ""
+        )
+        words = {
+            word for word in question.split()
+            if word not in _DUPLICATE_STOPWORDS and len(word) > 2
+        }
+        if not question:
+            continue
+        is_duplicate = False
+        for earlier, earlier_words in previous:
+            overlap = len(words & earlier_words) / max(
+                1, len(words | earlier_words),
+            )
+            similarity = SequenceMatcher(
+                None, earlier, question,
+            ).ratio()
+            if similarity >= 0.87 or (
+                len(words) >= 4 and len(earlier_words) >= 4
+                and overlap >= 0.68
+            ):
+                is_duplicate = True
+                break
+        if is_duplicate:
+            duplicate_indices.append(index)
+        else:
+            previous.append((question, words))
+    return duplicate_indices
 
 
 def _failed_indices(
@@ -197,6 +303,7 @@ def _repair_questions(
     result_summaries: str,
     context: str,
     language_code: str,
+    role_anchors: list[str] | None = None,
 ) -> dict[str, Any]:
     from .prompt_templates import get_ai_prompt_instructions
 
@@ -215,6 +322,12 @@ def _repair_questions(
             "about the same actual task from different personality angles. "
             "Do not invent an industry, a technology, a specific methodology or "
             "an unmentioned job duty merely to make questions feel different. "
+            "Make a SUBSTANTIVE change to each failed question: tie its "
+            "candidate-facing question to a concrete quoted job duty from "
+            "ROLE TASK ANCHORS, not merely a vague project reference. "
+            "Compare the entire original question set. Do not write two "
+            "questions that request essentially the same example or behaviour. "
+            "When a trait repeats, explore a distinctly different facet. "
             "Do not tell the candidate their test preference or results. "
             "Keep question, why and listen_for distinct. Preserve the exact "
             "technical trait labels and language. Keep unaffected questions "
@@ -231,6 +344,7 @@ def _repair_questions(
             "selected_traits": selected_traits,
             "personality_result_summaries": result_summaries,
             "process_context": context,
+            "role_task_anchors_from_context": role_anchors or [],
             "failed_indices": failed_indices,
             "original_questions": questions,
         },
@@ -291,6 +405,15 @@ def _quality_check_events(
         return events
 
     index, questions = _question_event(events)
+    role_anchors = extract_role_task_anchors(context)
+    duplicate_indices = _duplicate_question_indices(questions)
+    generic_indices = _role_specificity_failures(questions, role_anchors)
+    logger.info(
+        "Personality context quality: context_present=true role_anchors=%s "
+        "question_count=%s duplicate_questions=%s ungrounded_questions=%s.",
+        len(role_anchors), len(questions), len(duplicate_indices),
+        len(generic_indices),
+    )
     from .personality_question_definition_grounding_policy import (
         _render_question_result_summaries,
     )
@@ -311,12 +434,17 @@ def _quality_check_events(
             selected_traits=selected_traits,
             result_summaries=summary,
             context=context,
+            role_anchors=role_anchors,
         )
         failed = _failed_indices(review, questions, selected_traits, context)
     except Exception:
         logger.warning(
             "Personality context quality unavailable: stage=initial_review."
         )
+        failed = []
+
+    failed = sorted(set(failed) | set(duplicate_indices) | set(generic_indices))
+    if not failed:
         return events
 
     for attempt in range(1, 3):
@@ -334,6 +462,7 @@ def _quality_check_events(
                 result_summaries=summary,
                 context=context,
                 language_code=language_code,
+                role_anchors=role_anchors,
             )
             # _apply_repairs is atomic: a malformed response cannot overwrite
             # otherwise valid original questions.
@@ -356,9 +485,12 @@ def _quality_check_events(
                 selected_traits=selected_traits,
                 result_summaries=summary,
                 context=context,
+                role_anchors=role_anchors,
             )
-            failed = _failed_indices(
-                review, questions, selected_traits, context,
+            failed = sorted(
+                set(_failed_indices(review, questions, selected_traits, context))
+                | set(_duplicate_question_indices(questions))
+                | set(_role_specificity_failures(questions, role_anchors))
             )
         except Exception:
             logger.warning(
@@ -368,7 +500,7 @@ def _quality_check_events(
             break
 
     if failed:
-        logger.info(
+        logger.warning(
             "Personality context quality best_effort: remaining=%s total=%s.",
             len(failed), len(questions),
         )
