@@ -1176,41 +1176,22 @@ def build_candidate_detail_context(process, invitation):
     motivation_development_areas = sorted_mq_asc[:2]
     personality_development_areas = sorted_personality_asc[:2]
 
-    numerical_percentile = None
-    logical_percentile = None
-    verbal_percentile = None
-
-    has_verbal_results = False
-    has_logical_results = False
-    has_numerical_results = False
-
-    for item in activities:
-        activity_name = item.get("activity", "")
-        competencies = item.get("competencies", []) or []
-        first_comp = competencies[0] if competencies else {}
-
-        percentile = first_comp.get("percentile")
-
-        if activity_name == "Sova Numerical Reasoning Assessment":
-            numerical_percentile = percentile
-            if percentile is not None:
-                has_numerical_results = True
-
-        elif activity_name == "Sova Logical Reasoning Assessment":
-            logical_percentile = percentile
-            if percentile is not None:
-                has_logical_results = True
-
-        elif activity_name == "Sova Verbal Reasoning Assessment":
-            verbal_percentile = percentile
-            if percentile is not None:
-                has_verbal_results = True
-
-    has_ability_results = (
-        has_verbal_results
-        or has_logical_results
-        or has_numerical_results
+    # Share the saved, first-competency Sova percentile source with the
+    # project list. UI normalization remains in build_cognitive_insight_results.
+    from apps.processes.services.cognitive_insights import (
+        active_candidate_cognitive_percentiles,
     )
+    cognitive_percentiles = active_candidate_cognitive_percentiles(invitation)
+    numerical_percentile = cognitive_percentiles.get("numerical")
+    logical_percentile = cognitive_percentiles.get("logical")
+    verbal_percentile = cognitive_percentiles.get("verbal")
+
+    has_verbal_results = verbal_percentile is not None
+    has_logical_results = logical_percentile is not None
+    has_numerical_results = numerical_percentile is not None
+    has_ability_results = any((
+        has_verbal_results, has_logical_results, has_numerical_results,
+    ))
 
     ability_reports_for_ui = {
         "overview": [],
