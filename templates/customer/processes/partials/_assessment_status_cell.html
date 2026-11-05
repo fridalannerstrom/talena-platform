@@ -1,24 +1,33 @@
 {% comment %}
-Compact per-assessment status, shared by customer and Talena-admin project views.
-Server-provided state, label and explanation remain available to assistive
-technology and as a native tooltip. The icon changes during status polling.
+Per-assessment project status shared by customer and admin project tables.
+A verified cognitive percentile replaces only the completed icon. The button
+opens the existing, authorized candidate sheet and focuses this specific test.
 {% endcomment %}
-<span class="talena-assessment-state talena-assessment-state--{{ cell.tone }}"
+<span class="talena-assessment-state talena-assessment-state--{{ cell.tone }}{% if cell.has_percentile %} talena-assessment-state--percentile{% endif %}"
       data-assessment-status
       data-state="{{ cell.state }}"
       data-invitation-id="{{ inv.id }}"
       data-test-key="{{ cell.key }}"
+      data-has-percentile="{% if cell.has_percentile %}true{% else %}false{% endif %}"
       title="{{ cell.title }}"
-      role="img"
+      role="{% if cell.has_percentile %}group{% else %}img{% endif %}"
       aria-label="{{ cell.title }}"
-      tabindex="0">
+      tabindex="{% if cell.has_percentile %}-1{% else %}0{% endif %}">
   <svg class="talena-assessment-state__symbol"
        xmlns="http://www.w3.org/2000/svg"
        width="16" height="16" viewBox="0 0 24 24"
        fill="none" stroke="currentColor" stroke-width="1.8"
        stroke-linecap="round" stroke-linejoin="round"
-       aria-hidden="true" focusable="false">
+       aria-hidden="true" focusable="false"
+       {% if cell.has_percentile %}hidden{% endif %}>
     <path d="{{ cell.icon_path }}"></path>
   </svg>
+  <button type="button"
+          class="talena-assessment-state__percentile"
+          data-assessment-percentile-button
+          data-focus-test-key="{{ cell.key }}"
+          title="{{ cell.title }}"
+          aria-label="{{ cell.title }}"
+          {% if not cell.has_percentile %}hidden{% endif %}>{{ cell.percentile|default_if_none:"" }}</button>
   <span class="visually-hidden talena-assessment-state__label">{{ cell.label }}</span>
 </span>
