@@ -15,6 +15,7 @@ from django.shortcuts import render
 from django.utils.dateparse import parse_date
 from django.utils.http import urlencode
 from django.views.decorators.http import require_GET
+from django.views.decorators.cache import never_cache
 from django.utils.translation import get_language
 
 from apps.activity.models import ActivityEvent
@@ -209,6 +210,7 @@ def _row(event, *, sv=True):
 
 
 @login_required
+@never_cache
 @require_GET
 def platform_activity_log(request):
     if not can_view_platform_audit(request.user):
@@ -239,10 +241,12 @@ def platform_activity_log(request):
     })
     # A failed template render should not be recorded as a successful view.
     _audit_access(request, ActivityEvent.Verb.ADMIN_LOG_ACCESSED, "list")
+    response["X-Robots-Tag"] = "noindex, nofollow"
     return response
 
 
 @login_required
+@never_cache
 @require_GET
 def platform_activity_export(request):
     if not can_view_platform_audit(request.user):
@@ -256,6 +260,7 @@ def platform_activity_export(request):
     response = HttpResponse(content_type="text/csv; charset=utf-8")
     response["Content-Disposition"] = 'attachment; filename="talena-activity.csv"'
     response["Cache-Control"] = "no-store"
+    response["X-Robots-Tag"] = "noindex, nofollow"
     writer = csv.writer(response)
     writer.writerow([
         "event_id", "occurred_at_utc", "event_type", "actor_id",
