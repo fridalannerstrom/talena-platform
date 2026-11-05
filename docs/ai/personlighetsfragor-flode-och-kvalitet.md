@@ -246,7 +246,25 @@ python manage.py test apps.core.test_personality_question_context_quality_policy
 
 Det nya steget är en **kvalitetskontroll för genererat intervjumaterial**, inte en psykometrisk validering och inte en automatisk bedömning av kandidatens lämplighet.
 
-## 12. Kodreferenser
+## 12. Förbättrad UX- och rollförankring (5 november, nästa branch)
+
+Vi upptäckte i produktion att de tidigare genererade UX-frågorna fortfarande kunde vara generella. Talena tog hänsyn till Result Summary men själva frågorna nämnde ofta bara ”projekt”, ”grupp” eller ”problem”, trots detaljerad processkontext om UX-design och användartester.
+
+Den kompletterande implementationen förbättrar detta i **koden**, inte i adminprompten eller globalprompten:
+
+1. `personality_question_role_anchors.py` identifierar upp till åtta **befintliga, ordagrant hämtade arbetsuppgifter** ur den sparade processkontexten. Den söker efter konkreta arbetsverb och delar upp uppräknade aktiviteter. Den hittar inte på nya krav. Exempel från CPF: användarcentrerad design, användarflöden, användartester samt analys och presentation av testresultat.
+2. För den **första genereringen** läggs en separat lista `ROLE TASK ANCHORS` till i Talenas egen tekniska evidensdel. Modellen uppmanas att i varje frågetext använda en konkret rolluppgift och undvika oprecisa projektfrågor. Admin- och globalprompten förblir oförändrade.
+3. Den efterföljande kvalitetsgranskningen får också se dessa befintliga arbetsuppgifter och granskar variationen **mellan hela frågeuppsättningen**, inte bara rollkopplingen i varje fråga.
+4. Talena gör dessutom en försiktig, lokal jämförelse av frågetexterna. Om två frågor nästan är samma fråga (även när den andra har ett litet extra tillägg) markeras den senare för omarbetning.
+5. Om AI-granskningen inte går att använda kan den lokala upprepningskontrollen fortfarande initiera en riktad förbättring. Om även denna misslyckas, behålls de bästa tekniskt giltiga frågorna. **Ingen blockerande röd ruta** ska komma enbart från det extra kvalitetsskyddet.
+
+**Begränsning:** Att arbetsuppgifter har extraherats ur kontexten är ingen garanti för att modellen använder dem korrekt. Därför måste vi fortfarande bedöma faktiska frågor i dev/stage för CPF och rekryteringsspecialisten. Korta rollbeskrivningar kan ge färre än åtta ankaruppgifter; då är det tillåtet att använda samma verkliga uppgift i flera frågor, men beteendeperspektiven ska skilja sig. Nya tester kontrollerar både rollankarna och upprepningar.
+
+### Felsökning utan känsliga data
+
+Den extra kontrollens loggar anger antal identifierade arbetsuppgifter, antal frågor, antal upptäckta upprepningar och hur många frågor som behöver förbättras. Loggarna ska inte innehålla kandidatnamn, testresultat, personuppgifter eller hela processkontexten. Om utdata fortfarande är generiska kan vi nu skilja på två problem: att inga användbara arbetsuppgifter upptäcktes, eller att AI:n fick uppgifterna men inte använde dem.
+
+## 13. Kodreferenser
 
 - apps/core/ai/shared_context.py
 - apps/core/ai/personality_questions.py
@@ -261,3 +279,5 @@ Det nya steget är en **kvalitetskontroll för genererat intervjumaterial**, int
 - **NY:** apps/core/test_personality_question_context_quality_policy.py
 
 **Dokumentets status:** beskriver implementerad kod på arbetsbranch. Verifiering med live-anrop i dev/stage behöver göras före merge.
+
+- **NY på aktuell branch:** apps/core/ai/personality_question_role_anchors.py (ordagranna rolluppgifter till generering och granskning)
