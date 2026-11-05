@@ -399,12 +399,13 @@ def install_personality_question_context_quality_policy() -> None:
             checked = _quality_check_events(
                 events, owner=owner, language_code=language_code,
             )
-        except Exception:
-            # The optional quality pass must not fail an otherwise valid
-            # personality question generation. Do not log exception details:
-            # they may contain process text, prompts or candidate information.
-            logger.exception(
-                "Personality context quality bypassed due to an unexpected error."
+        except Exception as exc:
+            # The optional audit never fails an otherwise valid question set.
+            # Log only exception type, not the exception text or traceback:
+            # those can contain model output or candidate/process context.
+            logger.warning(
+                "Personality context quality bypassed: error_type=%s.",
+                type(exc).__name__,
             )
             yield from events
             return
