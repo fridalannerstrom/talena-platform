@@ -244,6 +244,24 @@ def invitation_test_statuses(invitation, columns, language="sv"):
         percentile = percentiles.get(cell["key"])
         cell["percentile"] = percentile
         cell["has_percentile"] = percentile is not None
+
+        # A completed PQ/MQ checkmark doubles as a shortcut to its
+        # candidate insight tab. Other status icons stay informational.
+        cell["has_shortcut"] = (
+            cell["state"] == "completed"
+            and cell["key"] in {"personality", "motivation"}
+        )
+        if cell["key"] == "personality":
+            cell["shortcut_label"] = (
+                "Visa personlighet" if is_swedish else "View personality"
+            )
+        elif cell["key"] == "motivation":
+            cell["shortcut_label"] = (
+                "Visa motivation" if is_swedish else "View motivation"
+            )
+        else:
+            cell["shortcut_label"] = ""
+
         if percentile is not None:
             if is_swedish:
                 ordinal = "a" if percentile % 10 in (1, 2) and percentile % 100 not in (11, 12) else "e"
