@@ -443,6 +443,8 @@ def _quality_check_events(
         failed = []
 
     failed = sorted(set(failed) | set(duplicate_indices) | set(generic_indices))
+    if not failed:
+        return events
 
     for attempt in range(1, 3):
         if not failed:
