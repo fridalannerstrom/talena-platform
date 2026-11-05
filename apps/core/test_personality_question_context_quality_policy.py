@@ -146,6 +146,29 @@ class PersonalityQuestionContextQualityTests(SimpleTestCase):
             [1, 3],
         )
 
+    def test_actual_generic_ux_question_patterns_all_trigger_role_repair(self):
+        anchors = [
+            "Designa användarcentrerade lösningar på den AI-baserade plattformen",
+            "Ta fram flöden för relevanta användarupplevelser",
+            "Koordinera, leda och utföra användartester av plattformen",
+            "Analysera, sammanställa och presentera resultat från användartester",
+            "Koordinera olika utvecklingsdelar inom projektet",
+        ]
+        questions = [
+            {"question": "Berätta om en situation där du behövde involvera andra i ett projekt."},
+            {"question": "Kan du ge ett exempel då du behövde lyssna på andras perspektiv?"},
+            {"question": "Berätta om när du behövde nätverka med nya personer."},
+            {"question": "Beskriv när du behövde övertyga andra om en åsikt i en gruppdiskussion."},
+            {"question": "Berätta om en situation där du behövde skapa struktur i ett projekt."},
+            {"question": "När använde du både analytiska och intuitiva metoder för ett problem?"},
+            {"question": "Berätta om när du behövde tänka kreativt för att lösa ett problem."},
+            {"question": "Beskriv när du växlade mellan detaljer och den större bilden."},
+        ]
+        self.assertEqual(
+            _role_specificity_failures(questions, anchors),
+            list(range(1, 9)),
+        )
+
     def test_role_specificity_allows_different_inflections_and_real_recruitment(self):
         role_anchors = [
             "Koordinera användartester av plattformen",
