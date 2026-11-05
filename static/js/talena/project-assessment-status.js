@@ -7,6 +7,7 @@
     "expired", "failed", "activity_failed", "not_assigned", "unknown"
   ]);
   const COGNITIVE_KEYS = new Set(["logical", "numerical", "verbal"]);
+  const CHECKMARK_SHORTCUT_KEYS = new Set(["personality", "motivation"]);
   let pendingFocusObserver = null;
 
   function verifiedPercentile(assessment) {
@@ -17,37 +18,46 @@
       && assessment.percentile >= 0 && assessment.percentile <= 100;
   }
 
-  function focusCognitiveResultOnOpen(candidateLink, testKey) {
+  function focusAssessmentResultOnOpen(testKey) {
     const sheetBody = document.getElementById("candidateSheetBody");
-    if (!sheetBody || !COGNITIVE_KEYS.has(testKey)) return;
+    const panelKey = COGNITIVE_KEYS.has(testKey) ? "cognitive" : testKey;
+    if (!sheetBody || (!COGNITIVE_KEYS.has(testKey)
+        && !CHECKMARK_SHORTCUT_KEYS.has(testKey))) return;
     if (pendingFocusObserver) pendingFocusObserver.disconnect();
 
     let timeout;
     const observer = new MutationObserver(() => {
-      // Watch only sheet-body replacement, not the live charts/AI inside it.
-      const card = sheetBody.querySelector(
-        '[data-insights-panel="cognitive"] [data-manager-skill-key="' + testKey + '"]'
+      const workspace = sheetBody.querySelector("[data-candidate-insights-workspace]");
+      const panel = workspace && workspace.querySelector(
+        '[data-insights-panel="' + panelKey + '"]'
       );
-      if (!card) return;
+      const card = COGNITIVE_KEYS.has(testKey) && panel
+        ? panel.querySelector('[data-manager-skill-key="' + testKey + '"]')
+        : null;
+      if (!workspace || !panel || (COGNITIVE_KEYS.has(testKey) && !card)) return;
       observer.disconnect();
       pendingFocusObserver = null;
       window.clearTimeout(timeout);
 
-      // Candidate sheet handlers are bound after the AJAX HTML is inserted.
+      // The customer candidate sheet attaches handlers immediately after
+      // injecting HTML. Wait one frame before invoking its ordinary tab click.
       window.requestAnimationFrame(() => {
-        const workspace = card.closest("[data-candidate-insights-workspace]");
-        const tab = workspace && workspace.querySelector(
-          '.candidate-profile-tabs [data-insights-tab="cognitive"]'
+        if (!workspace.isConnected) return;
+        const tab = workspace.querySelector(
+          '.candidate-profile-tabs [data-insights-tab="' + panelKey + '"]'
         );
-        const subtab = card.closest('[data-insights-panel="cognitive"]')
-          ?.querySelector('[data-insights-subtab="results"]');
-        if (tab) tab.click();
-        if (subtab) subtab.click();
+        if (!tab) return;
+        tab.click();
+        const resultsTab = panel.querySelector('[data-insights-subtab="results"]');
+        if (resultsTab) resultsTab.click();
 
-        if (!card.closest("[hidden]")) {
+        if (card && !card.closest("[hidden]")) {
           card.tabIndex = -1;
           card.focus({ preventScroll: true });
           card.scrollIntoView({ behavior: "smooth", block: "center" });
+        } else {
+          // Keep keyboard focus on the destination when opening PQ or MQ.
+          tab.focus({ preventScroll: true });
         }
       });
     });
@@ -61,25 +71,35 @@
 
   function updateCell(cell, assessment, Tooltip) {
     const hasPercentile = verifiedPercentile(assessment);
+    const hasShortcut = assessment.state === "completed"
+      && CHECKMARK_SHORTCUT_KEYS.has(assessment.key)
+      && assessment.has_shortcut === true;
     const nextClass = "talena-assessment-state talena-assessment-state--"
-      + assessment.tone + (hasPercentile ? " talena-assessment-state--percentile" : "");
+      + assessment.tone + (hasPercentile ? " talena-assessment-state--percentile" : "")
+      + (hasShortcut ? " talena-assessment-state--shortcut" : "");
     const title = String(assessment.title || "");
     const label = cell.querySelector(".talena-assessment-state__label");
     const symbol = cell.querySelector(".talena-assessment-state__symbol");
     const path = symbol && symbol.querySelector("path");
     const percentileButton = cell.querySelector("[data-assessment-percentile-button]");
+    const checkmarkButton = cell.querySelector("[data-assessment-result-button]");
 
     if (cell.className !== nextClass) cell.className = nextClass;
     if (cell.dataset.state !== assessment.state) cell.dataset.state = assessment.state;
     cell.dataset.hasPercentile = hasPercentile ? "true" : "false";
-    cell.setAttribute("role", hasPercentile ? "group" : "img");
-    cell.tabIndex = hasPercentile ? -1 : 0;
+    cell.dataset.hasShortcut = hasShortcut ? "true" : "false";
+    cell.setAttribute("role", hasPercentile || hasShortcut ? "group" : "img");
+    cell.tabIndex = hasPercentile || hasShortcut ? -1 : 0;
     if (label && label.textContent !== assessment.label) label.textContent = assessment.label;
     if (path && typeof assessment.icon_path === "string"
         && path.getAttribute("d") !== assessment.icon_path) {
       path.setAttribute("d", assessment.icon_path);
     }
     if (symbol) symbol.hidden = hasPercentile;
+    if (checkmarkButton) {
+      checkmarkButton.hidden = !hasShortcut;
+      checkmarkButton.setAttribute("aria-label", assessment.shortcut_label || "");
+    }
     if (percentileButton) {
       percentileButton.hidden = !hasPercentile;
       percentileButton.textContent = hasPercentile ? String(assessment.percentile) : "";
@@ -124,7 +144,8 @@
           });
         }
         cell.addEventListener("click", event => {
-          if (cell.dataset.hasPercentile === "true") return;
+          if (cell.dataset.hasPercentile === "true"
+              || cell.dataset.hasShortcut === "true") return;
           if (!window.matchMedia || !window.matchMedia("(hover: none)").matches) return;
           event.stopPropagation();
           cell.focus();
@@ -136,13 +157,19 @@
     }
 
     root.addEventListener("click", event => {
-      const button = event.target.closest("[data-assessment-percentile-button]");
+      const button = event.target.closest(
+        "[data-assessment-percentile-button], [data-assessment-result-button]"
+      );
       if (!button || button.hidden) return;
+      const testKey = button.dataset.focusTestKey;
+      const cognitive = button.hasAttribute("data-assessment-percentile-button");
+      if (cognitive ? !COGNITIVE_KEYS.has(testKey)
+                    : !CHECKMARK_SHORTCUT_KEYS.has(testKey)) return;
       event.preventDefault();
       event.stopPropagation();
       const candidateLink = button.closest("tr")?.querySelector("a.js-open-candidate");
-      if (!candidateLink || !COGNITIVE_KEYS.has(button.dataset.focusTestKey)) return;
-      focusCognitiveResultOnOpen(candidateLink, button.dataset.focusTestKey);
+      if (!candidateLink) return;
+      focusAssessmentResultOnOpen(testKey);
       // Reuse the existing candidate-sheet handler and its project/tenant checks.
       candidateLink.click();
     });
