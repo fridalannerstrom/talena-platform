@@ -15,6 +15,7 @@ from django.shortcuts import render
 from django.utils.dateparse import parse_date
 from django.utils.http import urlencode
 from django.views.decorators.http import require_GET
+from django.utils.translation import get_language
 
 from apps.activity.models import ActivityEvent
 from apps.accounts.models import Company
@@ -57,6 +58,46 @@ CATEGORY_BY_VERB = {
     verb: key for key, values in CATEGORIES.items() for verb in values
 }
 
+# English interface labels. Source data and verb IDs remain unchanged.
+ENGLISH_VERB_LABELS = {
+    "process_created": "Project created",
+    "process_archived": "Project archived",
+    "process_deleted": "Project deleted",
+    "candidate_added": "Candidate added to project",
+    "candidate_removed": "Candidate removed from project",
+    "invite_sent": "Assessment invitation sent",
+    "test_started": "Assessment started",
+    "test_completed": "Assessment completed",
+    "all_tests_completed": "All assessments completed",
+    "status_changed": "Status changed",
+    "candidate_result_email_sent": "Candidate result email sent",
+    "candidate_result_email_failed": "Candidate result email failed",
+    "candidate_result_snapshot_created": "Candidate report created",
+    "candidate_result_link_opened": "Candidate report link opened",
+    "candidate_result_code_verified": "Candidate verification succeeded",
+    "candidate_result_code_failed": "Candidate verification failed",
+    "candidate_result_feedback_submitted": "Candidate feedback submitted",
+    "candidate_result_code_replaced": "Verification code replaced",
+    "candidate_result_access_revoked": "Candidate report access revoked",
+    "candidate_result_access_expired": "Candidate report access expired",
+    "company_created": "Company created",
+    "company_updated": "Company updated",
+    "company_deleted": "Company deleted",
+    "company_member_invited": "User invited",
+    "company_member_added": "User added",
+    "company_member_removed": "User removed",
+    "company_member_role_updated": "User role changed",
+    "company_invite_accepted": "Invitation accepted",
+    "orgunit_created": "Organisational unit created",
+    "orgunit_updated": "Organisational unit updated",
+    "orgunit_moved": "Organisational unit moved",
+    "orgunit_deleted": "Organisational unit deleted",
+    "user_access_updated": "User access updated",
+    "user_logged_in": "User logged in",
+    "admin_log_accessed": "Internal activity log accessed",
+    "admin_log_exported": "Internal activity log CSV prepared",
+}
+
 
 def can_view_platform_audit(user):
     """Staff-only is not enough; require the actual *platform* admin role."""
@@ -84,7 +125,10 @@ def _filters(request):
     if q:
         result["q"] = q
     for key in ("from", "to"):
-        date = parse_date((params.get(key) or "")[:10])
+        try:
+            date = parse_date((params.get(key) or "")[:10])
+        except ValueError:
+            date = None
         if date and 2020 <= date.year <= 2100:
             result[key] = date
     return result
@@ -138,7 +182,7 @@ def _audit_access(request, verb, scope):
     )
 
 
-def _row(event):
+def _row(event, *, sv=True):
     actor = event.actor
     actor_label = (
         (actor.get_full_name() or actor.get_username())
@@ -148,7 +192,10 @@ def _row(event):
         "id": event.pk,
         "timestamp": event.created_at,
         "verb": event.verb,
-        "label": event.get_verb_display() if event.verb in ALL_KNOWN_VERBS else event.verb,
+        "label": (
+            event.get_verb_display() if sv
+            else ENGLISH_VERB_LABELS.get(event.verb, event.verb)
+        ),
         "category": CATEGORY_BY_VERB.get(event.verb, "other"),
         "actor": actor_label,
         "actor_id": event.actor_id,
@@ -169,14 +216,13 @@ def platform_activity_log(request):
 
     filters = _filters(request)
     page = Paginator(_query(filters), 30).get_page(request.GET.get("page"))
-    _audit_access(request, ActivityEvent.Verb.ADMIN_LOG_ACCESSED, "list")
-    rows = [_row(e) for e in page.object_list]
-    sv = (request.LANGUAGE_CODE or "sv").startswith("sv")
+    sv = (get_language() or "sv").startswith("sv")
+    rows = [_row(e, sv=sv) for e in page.object_list]
     category_choices = [(key, label_sv if sv else label_en)
                         for key, label_sv, label_en in CATEGORY_CHOICES]
     # Preserve only validated fields in export and page links.
     clean_params = {key: str(value) for key, value in filters.items()}
-    return render(request, "admin/activity/log.html", {
+    response = render(request, "admin/activity/log.html", {
         "events": rows,
         "page_obj": page,
         "filters": clean_params,
@@ -191,6 +237,9 @@ def platform_activity_log(request):
             ).order_by("created_at").values_list("created_at", flat=True).first()
         ),
     })
+    # A failed template render should not be recorded as a successful view.
+    _audit_access(request, ActivityEvent.Verb.ADMIN_LOG_ACCESSED, "list")
+    return response
 
 
 @login_required
