@@ -72,7 +72,8 @@ def _selected_traits(events: list[dict[str, Any]]) -> list[str]:
 
 def _model_json(system: str, payload: dict[str, Any]) -> dict[str, Any]:
     """Use Talena's privacy-screened OpenAI entrypoint, not a direct client."""
-    response = get_openai_client().chat.completions.create(
+    client = get_openai_client()
+    response = client.chat.completions.create(
         model=get_chat_model(),
         messages=[
             {"role": "system", "content": system},
