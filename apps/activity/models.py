@@ -55,8 +55,16 @@ class ActivityEvent(models.Model):
         USER_ACCESS_UPDATED = "user_access_updated", "Användaråtkomst uppdaterad"
         USER_LOGGED_IN = "user_logged_in", "Användare loggade in"
 
+        # Internal access to audit records; actor and purpose only, no search text.
+        ADMIN_LOG_ACCESSED = "admin_log_accessed", "Administrativ loggåtkomst"
+        ADMIN_LOG_EXPORTED = "admin_log_exported", "Administrativ loggexport"
+
+    # A platform-admin audit lookup can cover all tenants; it does not
+    # belong to a particular customer. Existing customer events retain FK.
     company = models.ForeignKey(
         "accounts.Company",
+        null=True,
+        blank=True,
         on_delete=models.CASCADE,
         related_name="activity_events",
     )
