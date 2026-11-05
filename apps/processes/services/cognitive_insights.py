@@ -8,6 +8,35 @@ from apps.reports.libraries.cognitive.candidate_result_content import (
     candidate_cognitive_level_key,
 )
 
+# The same saved Sova values feed both the candidate's Skills > Results
+# cards and the compact percentile shortcuts in the project table (#447).
+# Do not derive percentile scores from status, a different competency, or AI.
+ACTIVE_COGNITIVE_ACTIVITIES = {
+    "Sova Logical Reasoning Assessment": "logical",
+    "Sova Numerical Reasoning Assessment": "numerical",
+    "Sova Verbal Reasoning Assessment": "verbal",
+}
+
+
+def active_candidate_cognitive_percentiles(invitation) -> dict[str, Any]:
+    """Return the first competency's stored percentile for each exact Sova test."""
+    values: dict[str, Any] = {}
+    for activity in getattr(invitation, "sova_activities", None) or []:
+        if not isinstance(activity, dict):
+            continue
+        key = ACTIVE_COGNITIVE_ACTIVITIES.get(activity.get("activity"))
+        if key is None:
+            continue
+        competencies = activity.get("competencies") or []
+        first = competencies[0] if isinstance(competencies, list) and competencies else {}
+        if not isinstance(first, dict):
+            continue
+        percentile = first.get("percentile")
+        if percentile is not None:
+            values[key] = percentile
+    return values
+
+
 # Talena cognitive results language batch 1
 def build_cognitive_insight_results(
     verbal_percentile=None,
