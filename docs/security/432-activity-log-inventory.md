@@ -49,7 +49,7 @@ av en eventrad är aldrig evidens för att ingen användare gjort handlingen.
 
 ## Retention och migrering
 
-Ny schemaändring: `activity.0007_platform_admin_audit_access`, som tillåter
+Migreringskedja: `activity.0007_alter_activityevent_verb` (befintlig lokal migration, nu versionshanterad) följs av schemaändringen `activity.0008_platform_admin_audit_access`, som tillåter
 `company=NULL` för platform events och registrerar två nya kontrollerade
 verb. **`python manage.py migrate` krävs** efter merge och före driftstart.
 Kundens befintliga events är oförändrade; ingen backfill av historik.
