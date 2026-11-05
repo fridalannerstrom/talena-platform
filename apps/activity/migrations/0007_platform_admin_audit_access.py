@@ -3,11 +3,6 @@ from django.db import migrations, models
 import django.db.models.deletion
 
 
-def add_platform_audit_verbs(apps, schema_editor):
-    # Choices are code-only metadata, no data backfill is necessary.
-    pass
-
-
 class Migration(migrations.Migration):
     dependencies = [
         ("activity", "0006_candidate_result_access_events"),
