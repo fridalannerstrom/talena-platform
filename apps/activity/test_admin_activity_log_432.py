@@ -79,15 +79,19 @@ class PlatformActivityLogTests(TestCase):
         }, HTTP_ACCEPT_LANGUAGE="sv")
         self.assertEqual(filtered.status_code, 200)
         html = filtered.content.decode("utf-8")
-        self.assertIn("Alpha customer", html)
-        self.assertNotIn("Beta customer", html)
+        self.assertEqual(
+            [row["company"] for row in filtered.context["events"]],
+            ["Alpha customer"],
+        )
         self.assertIn("Kandidat", html)
 
         by_verb = self.client.get(self.list_url, {
             "verb": ActivityEvent.Verb.COMPANY_UPDATED,
         })
-        self.assertIn("Beta customer", by_verb.content.decode("utf-8"))
-        self.assertNotIn("Alpha customer", by_verb.content.decode("utf-8"))
+        self.assertEqual(
+            [row["company"] for row in by_verb.context["events"]],
+            ["Beta customer"],
+        )
 
         # Raw meta isn't searchable, and untrusted query syntax is ignored.
         secret = self.client.get(
@@ -127,7 +131,7 @@ class PlatformActivityLogTests(TestCase):
         )
         html = response.content.decode("utf-8")
         self.assertContains(response, "Inga händelser för filtren")
-        self.assertNotIn("Alpha customer", html)
+        self.assertEqual(response.context["events"], [])
 
     def test_activity_log_does_not_call_message_or_expose_meta(self):
         self.client.force_login(self.platform_admin)
