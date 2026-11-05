@@ -169,6 +169,51 @@ _DUPLICATE_STOPWORDS = {
 }
 
 
+# Match role-specific nouns even when Swedish inflection differs (e.g.
+# användartester / användartestning). This is a REPAIR signal, not a blocker.
+_GENERIC_ROLE_WORDS = {
+    "projekt", "projektet", "arbetet", "arbete", "problemet", "problem",
+    "gruppen", "grupper", "personer", "människor", "situation",
+    "situationer", "uppgifter", "uppgiften", "andra", "olika",
+    "flera", "komplexa", "komplext", "generella", "leverera",
+    "resultat", "processer", "process", "arbeta",
+    "planera", "samordna", "koordinera", "kommunicera", "skapa",
+    "utföra", "genomföra", "hantera", "analysera", "utveckla",
+    "designa", "presentera", "deltagare", "mellan",
+    "project", "projects", "working", "groups", "group", "problems",
+    "various", "several", "complex", "process", "processes",
+    "manage", "coordinate", "execute", "create", "develop",
+    "analyse", "analyze", "design", "present", "conduct",
+    "different", "teams", "team",
+}
+
+
+def _role_specificity_failures(
+    questions: list[dict[str, Any]], role_anchors: list[str],
+) -> list[int]:
+    """Find generic questions lacking any distinctive role-task vocabulary.
+
+    Word stems are only a conservative heuristic: it helps the AI editor
+    notice missing role links, but never rejects the interview output.
+    """
+    def stems(text: str) -> set[str]:
+        tokens = re.findall(r"\w+", str(text or "").casefold(), re.UNICODE)
+        return {
+            token[:6] for token in tokens
+            if len(token) >= 7 and token not in _GENERIC_ROLE_WORDS
+        }
+
+    anchor_terms = stems(" ".join(role_anchors))
+    if not anchor_terms:
+        return []
+    return [
+        index for index, item in enumerate(questions, start=1)
+        if isinstance(item, dict) and not (
+            stems(item.get("question", "")) & anchor_terms
+        )
+    ]
+
+
 def _duplicate_question_indices(
     questions: list[dict[str, Any]],
 ) -> list[int]:
@@ -361,10 +406,12 @@ def _quality_check_events(
     index, questions = _question_event(events)
     role_anchors = extract_role_task_anchors(context)
     duplicate_indices = _duplicate_question_indices(questions)
+    generic_indices = _role_specificity_failures(questions, role_anchors)
     logger.info(
         "Personality context quality: context_present=true role_anchors=%s "
-        "question_count=%s duplicate_questions=%s.",
+        "question_count=%s duplicate_questions=%s ungrounded_questions=%s.",
         len(role_anchors), len(questions), len(duplicate_indices),
+        len(generic_indices),
     )
     from .personality_question_definition_grounding_policy import (
         _render_question_result_summaries,
@@ -395,7 +442,7 @@ def _quality_check_events(
         )
         failed = []
 
-    failed = sorted(set(failed) | set(duplicate_indices))
+    failed = sorted(set(failed) | set(duplicate_indices) | set(generic_indices))
 
     for attempt in range(1, 3):
         if not failed:
@@ -440,6 +487,7 @@ def _quality_check_events(
             failed = sorted(
                 set(_failed_indices(review, questions, selected_traits, context))
                 | set(_duplicate_question_indices(questions))
+                | set(_role_specificity_failures(questions, role_anchors))
             )
         except Exception:
             logger.warning(
