@@ -137,6 +137,50 @@ class PersonalityQuestionContextQualityTests(SimpleTestCase):
             [1],
         )
 
+    def test_short_distinctive_role_quote_can_pass(self):
+        # Swedish job adverts often use single compound words to name
+        # a concrete duty. Previously four words were required.
+        questions = [sample_question(1, scenario="coordinate användartester")]
+        review = review_for(questions, "användartester")
+        self.assertEqual(
+            _failed_indices(
+                review,
+                questions,
+                ["Cooperative"],
+                "Rollen omfattar planering av användartester och UX-flöden.",
+            ),
+            [],
+        )
+
+    def test_source_excerpt_matches_quotation_punctuation(self):
+        questions = [sample_question(1)]
+        review = review_for(
+            questions, "Koordinera, leda och utföra användartester",
+        )
+        self.assertEqual(
+            _failed_indices(
+                review,
+                questions,
+                ["Cooperative"],
+                "Koordinera leda och utföra användartester av plattformen.",
+            ),
+            [],
+        )
+
+    def test_reviewer_translation_of_trait_does_not_invalidate_correct_tag(self):
+        questions = [sample_question(1)]
+        review = review_for(questions, "användartester")
+        review["checks"][0]["trait"] = "Samverkande"
+        self.assertEqual(
+            _failed_indices(
+                review,
+                questions,
+                ["Cooperative"],
+                "Rollen innehåller koordination av användartester.",
+            ),
+            [],
+        )
+
     def test_missing_selected_trait_cannot_pass(self):
         questions = [sample_question(1)]
         questions[0]["traits"] = []
@@ -163,13 +207,14 @@ class PersonalityQuestionContextQualityTests(SimpleTestCase):
             side_effect=[
                 review_for(questions, role_quote, failing=(1,)),
                 review_for(questions, role_quote, failing=(1,)),
+                review_for(questions, role_quote, failing=(1,)),
             ],
         ), patch(
             "apps.core.ai.personality_question_context_quality_policy._repair_questions",
             return_value={"replacements": [{"index": 1, **corrected}]},
         ):
             with self.assertRaisesMessage(
-                ValueError, "did not pass role-context quality control",
+                ValueError, "context_review_failed_after_two_repair_rounds",
             ):
                 _quality_check_events(
                     self._events(questions), owner=owner, language_code="en",
