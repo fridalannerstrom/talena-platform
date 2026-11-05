@@ -59,6 +59,10 @@ class CoreConfig(AppConfig):
             install_personality_ai_input_contract_policy,
         )
 
+        from .ai.personality_question_context_quality_policy import (
+            install_personality_question_context_quality_policy,
+        )
+
         # Install product-level prompt and question policies at startup so
         # admin metadata, protected defaults and runtime behaviour stay in
         # sync across the application.
@@ -120,3 +124,7 @@ class CoreConfig(AppConfig):
         # and the feature-specific prompt for that exact box. Install last so it
         # can simplify older prompt layers without changing output schemas.
         install_personality_ai_input_contract_policy()
+
+        # Final semantic gate: preserve valid questions and repair generic
+        # questions with concrete task evidence from the saved process context.
+        install_personality_question_context_quality_policy()
