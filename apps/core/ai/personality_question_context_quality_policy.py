@@ -199,8 +199,9 @@ def _role_specificity_failures(
     def stems(text: str) -> set[str]:
         tokens = re.findall(r"\w+", str(text or "").casefold(), re.UNICODE)
         return {
-            token[:6] for token in tokens
-            if len(token) >= 7 and token not in _GENERIC_ROLE_WORDS
+            (token[:8] if len(token) >= 8 else token)
+            for token in tokens
+            if len(token) >= 5 and token not in _GENERIC_ROLE_WORDS
         }
 
     anchor_terms = stems(" ".join(role_anchors))
