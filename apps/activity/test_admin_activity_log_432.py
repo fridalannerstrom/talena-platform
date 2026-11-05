@@ -53,7 +53,9 @@ class PlatformActivityLogTests(TestCase):
             )
 
         self.client.force_login(self.platform_admin)
-        html = self.client.get(self.list_url).content.decode("utf-8")
+        html = self.client.get(
+            self.list_url, HTTP_ACCEPT_LANGUAGE="sv",
+        ).content.decode("utf-8")
         self.assertIn("Alpha customer", html)
         self.assertIn("Beta customer", html)
         self.assertIn("Aktivitetslogg", html)
@@ -74,7 +76,7 @@ class PlatformActivityLogTests(TestCase):
             "company": self.company_a.pk,
             "category": "candidate",
             "q": "Alpha",
-        })
+        }, HTTP_ACCEPT_LANGUAGE="sv")
         self.assertEqual(filtered.status_code, 200)
         html = filtered.content.decode("utf-8")
         self.assertIn("Alpha customer", html)
@@ -88,7 +90,9 @@ class PlatformActivityLogTests(TestCase):
         self.assertNotIn("Alpha customer", by_verb.content.decode("utf-8"))
 
         # Raw meta isn't searchable, and untrusted query syntax is ignored.
-        secret = self.client.get(self.list_url, {"q": "SECRET_API_TOKEN"})
+        secret = self.client.get(
+            self.list_url, {"q": "SECRET_API_TOKEN"}, HTTP_ACCEPT_LANGUAGE="sv",
+        )
         self.assertContains(secret, "Inga händelser för filtren")
         self.client.get(self.list_url, {"from": "nonsense", "page": "huge"})
 
@@ -118,7 +122,9 @@ class PlatformActivityLogTests(TestCase):
     def test_from_to_range_is_utc_and_does_not_backfill_history(self):
         self.client.force_login(self.platform_admin)
         tomorrow = (timezone.now() + timedelta(days=1)).date().isoformat()
-        response = self.client.get(self.list_url, {"from": tomorrow})
+        response = self.client.get(
+            self.list_url, {"from": tomorrow}, HTTP_ACCEPT_LANGUAGE="sv",
+        )
         html = response.content.decode("utf-8")
         self.assertContains(response, "Inga händelser för filtren")
         self.assertNotIn("Alpha customer", html)
