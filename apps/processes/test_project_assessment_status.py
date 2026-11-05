@@ -218,6 +218,33 @@ class ProjectAssessmentStatusUnitTests(SimpleTestCase):
         self.assertIsNone(test_key("Unrelated general activity"))
 
 
+    def test_447_completed_pq_mq_checkmarks_are_tab_shortcuts(self):
+        inv = self.invitation(activities=[
+            {"activity": "Personality Questionnaire", "status": "completed"},
+            {"activity": "Motivation Questionnaire", "status": "completed"},
+            {"activity": "Sova Verbal Reasoning Assessment", "status": "completed",
+             "competencies": []},
+        ])
+        results = self.result(inv, ("personality", "motivation", "verbal"))
+        self.assertTrue(results["personality"]["has_shortcut"])
+        self.assertTrue(results["motivation"]["has_shortcut"])
+        self.assertFalse(results["verbal"]["has_shortcut"])
+        self.assertEqual(results["personality"]["shortcut_label"], "Visa personlighet")
+        self.assertEqual(results["motivation"]["shortcut_label"], "Visa motivation")
+        english = self.result(inv, ("personality", "motivation"), "en")
+        self.assertEqual(english["personality"]["shortcut_label"], "View personality")
+        self.assertEqual(english["motivation"]["shortcut_label"], "View motivation")
+
+        # Overall completion, an invitation, or a started assessment cannot
+        # enable a checkmark shortcut for that specific assessment.
+        inv.sova_activities = [
+            {"activity": "Personality Questionnaire", "status": "started"},
+            {"activity": "Motivation Questionnaire", "status": "not started"},
+        ]
+        pending = self.result(inv, ("personality", "motivation"))
+        self.assertFalse(pending["personality"]["has_shortcut"])
+        self.assertFalse(pending["motivation"]["has_shortcut"])
+
     def test_447_percentiles_only_for_completed_cognitive_results(self):
         inv = self.invitation(status="completed", activities=[
             {"activity": "Sova Logical Reasoning Assessment", "status": "completed",
@@ -480,6 +507,33 @@ class ProjectAssessmentStatusIntegrationTests(TestCase):
             "processes:process_invitation_statuses", args=[self.project.pk]
         ))
         self.assertIn(foreign.status_code, (403, 404))
+
+    def test_447_customer_completed_checkmarks_render_accessible_buttons(self):
+        self.invitation.sova_activities = [
+            {"activity": "Personality Questionnaire", "status": "completed"},
+            {"activity": "Motivation Questionnaire", "status": "completed"},
+        ]
+        self.invitation.save(update_fields=["sova_activities"])
+        for language, first, second in (
+            ("sv", "Visa personlighet", "Visa motivation"),
+            ("en", "View personality", "View motivation"),
+        ):
+            with self.subTest(language=language):
+                response = self.client.get(
+                    reverse("processes:process_detail", args=[self.project.pk]),
+                    HTTP_ACCEPT_LANGUAGE=language,
+                )
+                self.assertEqual(response.status_code, 200)
+                markup = response.content.decode("utf8")
+                self.assertEqual(markup.count('data-has-shortcut="true"'), 2)
+                self.assertIn('data-assessment-result-button', markup)
+                self.assertIn(f'aria-label="{first}"', markup)
+                self.assertIn(f'aria-label="{second}"', markup)
+
+        polling = self.client.get(reverse(
+            "processes:process_invitation_statuses", args=[self.project.pk]
+        )).json()["invitations"][0]["assessments"]
+        self.assertTrue(all(cell["has_shortcut"] for cell in polling))
 
     def test_admin_mirrors_have_per_test_headers(self):
         self.client.force_login(self.user)
