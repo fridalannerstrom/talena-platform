@@ -215,7 +215,7 @@ def invitation_test_statuses(invitation, columns, language="sv"):
     cells = [_cell(column["key"], states[column["key"]], language)
              for column in columns]
 
-    # #447: Use exactly the same persisted Sova percentile extraction as the
+    # #447: Use the same persisted Sova percentile source as the
     # candidate's Skills > Results view. Never infer values from overall status
     # and never display a number for a test not independently completed.
     completed_cognitive = {
@@ -225,11 +225,19 @@ def invitation_test_statuses(invitation, columns, language="sv"):
     }
     percentiles = {}
     if completed_cognitive:
-        from apps.core.ai.cognitive_interpretation import extract_cognitive_results
-        for result in extract_cognitive_results(invitation):
-            key = result.get("key")
-            if key in completed_cognitive and key not in percentiles:
-                percentiles[key] = result["percentile"]
+        from apps.processes.services.cognitive_insights import (
+            active_candidate_cognitive_percentiles,
+        )
+        for key, raw in active_candidate_cognitive_percentiles(invitation).items():
+            if key not in completed_cognitive:
+                continue
+            try:
+                # Same display rounding as build_cognitive_insight_results.
+                value = int(round(float(raw)))
+            except (TypeError, ValueError, OverflowError):
+                continue
+            if 0 <= value <= 100:
+                percentiles[key] = value
 
     is_swedish = str(language or "").lower().startswith("sv")
     for cell in cells:
