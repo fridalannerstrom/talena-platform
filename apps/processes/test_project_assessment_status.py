@@ -220,13 +220,13 @@ class ProjectAssessmentStatusUnitTests(SimpleTestCase):
 
     def test_447_percentiles_only_for_completed_cognitive_results(self):
         inv = self.invitation(status="completed", activities=[
-            {"activity": "TQ Logical Reasoning", "status": "completed",
+            {"activity": "Sova Logical Reasoning Assessment", "status": "completed",
              "competencies": [{"percentile": 76}]},
-            {"activity": "TQ Numerical Reasoning", "status": "completed",
+            {"activity": "Sova Numerical Reasoning Assessment", "status": "completed",
              "competencies": []},
-            {"activity": "TQ Verbal Reasoning", "status": "started",
+            {"activity": "Sova Verbal Reasoning Assessment", "status": "started",
              "competencies": [{"percentile": 91}]},
-            {"activity": "TQ Personality", "status": "completed",
+            {"activity": "Sova Personality", "status": "completed",
              "competencies": [{"percentile": 54}]},
         ])
         cells = self.result(inv, ("personality", "logical", "numerical", "verbal"))
@@ -243,9 +243,9 @@ class ProjectAssessmentStatusUnitTests(SimpleTestCase):
 
     def test_447_percentile_zero_and_missing_status(self):
         inv = self.invitation(activities=[
-            {"activity": "Sova Numerical Reasoning", "status": "completed",
+            {"activity": "Sova Numerical Reasoning Assessment", "status": "completed",
              "competencies": [{"percentile": 0}]},
-            {"activity": "Sova Logical Reasoning", "status": "unknown",
+            {"activity": "Sova Logical Reasoning Assessment", "status": "unknown",
              "competencies": [{"percentile": 83}]},
         ])
         cells = self.result(inv, ("numerical", "logical"))
@@ -448,11 +448,11 @@ class ProjectAssessmentStatusIntegrationTests(TestCase):
         self.project.save(update_fields=["selected_tests"])
         self.invitation.sova_activities = [
             {"activity": "Sova Personality", "status": "completed"},
-            {"activity": "Sova Logical Reasoning", "status": "completed",
+            {"activity": "Sova Logical Reasoning Assessment", "status": "completed",
              "competencies": [{"percentile": 76}]},
-            {"activity": "Sova Numerical Reasoning", "status": "completed",
+            {"activity": "Sova Numerical Reasoning Assessment", "status": "completed",
              "competencies": []},
-            {"activity": "Sova Verbal Reasoning", "status": "started",
+            {"activity": "Sova Verbal Reasoning Assessment", "status": "started",
              "competencies": [{"percentile": 32}]},
         ]
         self.invitation.save(update_fields=["sova_activities"])
