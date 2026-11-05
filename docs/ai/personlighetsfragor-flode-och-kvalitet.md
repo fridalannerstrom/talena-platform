@@ -4,7 +4,7 @@
 **Datum:** 5 november 2026  
 **Branch:** feature/personality-question-context-quality-20261105
 
-Det här dokumentet beskriver vad Talena skickar till OpenAI, hur personlighetsresultat och processkontext kombineras, vad den nya kvalitetsgranskningen gör och vilka delar som styrs av kod respektive adminpromptar.
+Det här dokumentet beskriver vad Talena skickar till OpenAI, hur personlighetsresultat och processkontext kombineras, vad den nya kvalitetsgranskningen gör och vilka delar som styrs av kod respektive adminpromptar. **Kvalitetsgranskningen är stödjande, inte blockerande:** om en redan tekniskt giltig uppsättning frågor inte kan kvalitetsförbättras ska användaren fortfarande få sina frågor.
 
 > **Avgränsning:** Adminprompten och globalprompten är oförändrade i detta arbete. Deras aktuella innehåll hämtas fortfarande dynamiskt från Talenas admin. Dokumentet beskriver den tekniska sammansättningen, inte ett löfte om att adminpromptens text är statisk.
 
@@ -22,38 +22,34 @@ Exempel: I CPF:s UX-roll blir användartester, analys av användartestresultat o
 Kandidatens färdiga tester och process
                 |
                 v
-Valda personlighetsdrag + tolkad Result Summary
+Valda personlighetsdrag + översatt Result Summary
                 |
                 v
-Processens aktuella syfte + rätt sparad processkontext
+Rätt processkontext + aktuella adminpromptar
                 |
                 v
-Aktuell global prompt + adminprompt för personlighetsfrågor
-                |
-                v
-OpenAI genererar 8 frågor
+OpenAI genererar åtta frågor
                 |
                 v
 Befintlig teknisk kontroll och normalisering
                 |
                 v
-NYTT: granska varje fråga mot Result Summary och rolluppgifter
-          /                                     \
-     Godkänd                                 Underkänd
-          |                                     |
-          |                          Omarbeta bara underkända (högst två rundor)
-          |                                     |
-          |                          Granska alla frågor igen
-          |                              /            \
-          |                          Godkänd        Ej godkänd
-          |                              |               |
-          +------------------------------+               v
-          |                                      Genereringsfel
-          v
-Spara godkända frågor + fingeravtryck av processkontext
-                |
-                v
-Visa fråga / Varför detta är viktigt / Vad du ska lyssna efter
+NYTT: valfri kvalitetsgranskning av rollkoppling per fråga
+          /                            \
+     Godkänd                       Kan förbättras
+          |                            |
+          |                 Omarbeta underkända (högst två rundor)
+          |                            |
+          |                     Granska igen om möjligt
+          |                            |
+          +----------------------------+
+                       |
+                       v
+    Spara de bästa tillgängliga tekniskt giltiga frågorna
+    (ursprungliga vid fel i granskning eller omarbetning)
+                       |
+                       v
+               Visa frågorna i UI
 ~~~
 
 ## 3. Vilka uppgifter hämtas från Talena?
@@ -154,7 +150,7 @@ Granskaren ska bedöma var och en av frågorna:
 
 Modellen svarar för varje fråga med index, godkänd/underkänd, dragetikett och ett **ordagrant citat från processkontexten** som stöder rollkopplingen. Koden verifierar att citatet återfinns i **den maskerade version av processkontexten som modellen fick**, att frågan har minst ett korrekt valt personlighetsdrag och att fråga/motivering/lyssnarguide inte är tomma. Citatkontrollen accepterar källans skiljetecken och radbrytningar samt korta distinkta svenska sammansättningar som ”användartester”. Granskarens extra dragetikett får inte underkänna en fråga där Talenas egen tekniska etikett redan är korrekt.
 
-**Viktig begränsning:** citerad text bevisar att en källpassage finns. Den semantiska bedömningen av om frågan verkligen motsvarar passagen görs av en språkmodell och är därför inte en absolut garanti.
+**Viktig begränsning:** citerad text bevisar att en källpassage finns. Den semantiska bedömningen av om frågan verkligen motsvarar passagen görs av en språkmodell och är därför inte en absolut garanti. Om granskaren underkänner alla frågor även efter omarbetning innebär det inte att användaren får en röd felruta: Talena fortsätter med de bästa tekniskt giltiga frågorna.
 
 ## 6. Nytt AI-anrop vid behov: reparera bara svaga frågor
 
@@ -169,11 +165,11 @@ Om granskningen underkänner en eller flera frågor gör Talena ett reparationsa
 
 Modellen returnerar ett JSON-objekt med replacements, ett objekt per underkänt frågeindex, med samma fyra frågefält. Talena ersätter endast dessa objekt. Övriga, redan godkända frågor behålls exakt.
 
-Därefter körs **en ny kvalitetsgranskning på hela frågeuppsättningen**. Om något fortfarande underkänns får endast återstående underkända frågor **en andra riktad omarbetning** och efterföljande omgranskning. Om resultatet fortfarande inte håller måttet får användaren ett tydligt genereringsfel med en säker felkod. Inga ofullständigt godkända frågor sparas som lyckat resultat. Konsolloggen visar bara kontrollsteg, felkod och antal, aldrig kandidat- eller kontexttext.
+Därefter görs om möjligt **en ny kvalitetsgranskning på hela frågeuppsättningen**. Om något fortfarande underkänns får endast återstående underkända frågor **en andra riktad omarbetning** och efterföljande omgranskning. Om AI-granskaren fortfarande inte är nöjd eller om ett gransknings-/reparationsanrop misslyckas används de **bästa redan tekniskt giltiga frågorna** utan att användaren får ett blockerande fel. En strukturellt giltig ersättning kan behållas även om granskarens omdöme är osäkert. Om reparationssvaret däremot är trasigt behålls de ursprungliga/vidareförda frågorna. Det finns ingen kvalitetsgaranti efter denna reservväg. Loggarna innehåller endast skede, feltyp och antal, inte kandidat- eller processkontext.
 
 ### Vad kostar det?
 
-När granskningen är aktiv tillkommer **ett extra OpenAI-anrop** för godkända frågor. Om någon fråga underkänns tillkommer **ett reparationsanrop och en andra granskning**. I svårare fall kan detta upprepas ytterligare en gång (totalt högst två reparationsrundor). Befintliga reparationsanrop för antal/format kan också förekomma. Därmed ökar tokenkostnad och genereringstid. Faktiska tider och kostnader behöver mätas i dev/stage.
+När granskningen är aktiv tillkommer normalt **ett extra OpenAI-anrop** för godkända frågor. Om någon fråga underkänns kan **ett reparationsanrop och en andra granskning** tillkomma. I svårare fall kan detta upprepas ytterligare en gång (totalt högst två reparationsrundor), men vid fel faller Talena tillbaka till de redan genererade frågorna. Befintliga reparationsanrop för antal/format kan också förekomma. Därmed ökar tokenkostnad och genereringstid. Faktiska tider och kostnader behöver mätas i dev/stage.
 
 ## 7. Vad händer om processkontexten ändras?
 
@@ -209,6 +205,10 @@ Skyddet gäller i denna version **vanliga personlighetsdrag** med en sparad, men
 
 Det är viktigt att vara transparent med denna avgränsning. Vi kan inte kräva citat från en processkontext som faktiskt saknas.
 
+### Exempel: kort processkontext för projektkoordinator
+
+När processkontexten bara säger att rollen ska planera och koordinera leveranser, skapa struktur i komplexa projekt, kommunicera med intressenter och hantera ändrade prioriteringar, får Talena använda samma *faktiskt nämnda arbetsuppgift* i flera olika frågor med skilda personlighetsvinklar. Det vore fel att hitta på en bransch, ett specifikt verktyg eller kundtyp för att skapa artificiell variation. Frågorna ska bli så konkreta underlaget medger och aldrig stoppas bara för att åtta helt olika arbetsuppgifter saknas.
+
 ## 10. Tester, verifiering och förväntat resultat
 
 Nytt testpaket: apps/core/test_personality_question_context_quality_policy.py.
@@ -219,10 +219,12 @@ Automatiska testfall kontrollerar bland annat att:
 2. Generiska CPF/UX-frågor kan underkännas och ersättas **utan att redan bra frågor ändras**.
 3. Ett påhittat kontextcitat inte räcker för godkännande.
 4. Avsaknad av giltig personlighetsetikett inte godkänns.
-5. Underkännande även efter reparation ger ett fel.
+5. Underkännande även efter två reparationsrundor **inte blockerar visning av frågorna**.
 6. Saknad processkontext inte startar granskningsanrop.
 7. Oavsiktliga ändringar av andra frågor blockeras.
 8. Cachefingeravtrycket ändras när syfte eller text ändras.
+9. Granskningsanrop eller reparationsanrop som misslyckas bevarar frågorna.
+10. Kort svensk processkontext, exempelvis intern projektkoordinator, går att använda utan blockerande fel.
 
 Kör lokalt:
 
@@ -238,7 +240,7 @@ python manage.py test apps.core.test_personality_question_context_quality_policy
 | --- | --- |
 | Hämta rätt assessment-underlag och rätt processkontext | Django |
 | Sammanfoga tekniska instruktioner och versionshantera genererat resultat | Django |
-| Granska konkreta rollkopplingar och omarbeta underkända frågor | Ny kodpolicy + OpenAI |
+| Granska och försök förbättra rollkopplingar; behåll tekniskt giltiga frågor vid osäker granskning | Ny kodpolicy + OpenAI |
 | Språk, intervjumetod och formuleringar | Adminprompt och globalprompt, ansvar hos promptägaren |
 | Slutlig bedömning av frågans relevans i en rekrytering | Intervjuaren/Talena-teamet |
 
