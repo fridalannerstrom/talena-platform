@@ -193,7 +193,7 @@ class PersonalityQuestionContextQualityTests(SimpleTestCase):
             [1],
         )
 
-    def test_audit_stops_if_repair_does_not_pass_second_check(self):
+    def test_audit_keeps_best_available_questions_if_reviewer_still_disagrees(self):
         owner = owner_for(UX_CONTEXT)
         questions = [sample_question(i) for i in range(1, 9)]
         role_quote = "Coordinate and execute user testing on an AI-based training platform"
@@ -213,12 +213,127 @@ class PersonalityQuestionContextQualityTests(SimpleTestCase):
             "apps.core.ai.personality_question_context_quality_policy._repair_questions",
             return_value={"replacements": [{"index": 1, **corrected}]},
         ):
-            with self.assertRaisesMessage(
-                ValueError, "context_review_failed_after_two_repair_rounds",
-            ):
-                _quality_check_events(
-                    self._events(questions), owner=owner, language_code="en",
-                )
+            result = _quality_check_events(
+                self._events(questions), owner=owner, language_code="en",
+            )
+        self.assertEqual(len(result[2]["items"]), 8)
+        self.assertEqual(result[2]["items"][0], corrected)
+        self.assertEqual(result[2]["items"][1:], questions[1:])
+
+    def test_short_swedish_coordinator_context_never_blocks_valid_questions(self):
+        context = (
+            "Rollen är intern projektkoordinator. Arbetet innebär att planera "
+            "och koordinera leveranser mellan flera funktioner, skapa struktur "
+            "i komplexa projekt, kommunicera med olika intressenter och hantera "
+            "förändrade prioriteringar. Begränsad numerisk analys ingår."
+        )
+        owner = owner_for(context)
+        questions = [sample_question(i, scenario="coordinate deliverables") for i in range(1, 9)]
+        # When the critic keeps rejecting questions, the user still receives
+        # valid interview material rather than a full-page error.
+        initial = review_for(questions, "", failing=range(1, 9))
+        corrected = [
+            {"index": i, **sample_question(i, scenario="coordinate deliverables across teams")}
+            for i in range(1, 9)
+        ]
+        with patch(
+            "apps.core.ai.personality_question_definition_grounding_policy."
+            "_render_question_result_summaries",
+            return_value="Cooperative: candidate-specific Result Summary.",
+        ), patch(
+            "apps.core.ai.personality_question_context_quality_policy._review_questions",
+            return_value=initial,
+        ), patch(
+            "apps.core.ai.personality_question_context_quality_policy._repair_questions",
+            return_value={"replacements": corrected},
+        ) as repair:
+            result = _quality_check_events(
+                self._events(questions), owner=owner, language_code="sv",
+            )
+        self.assertEqual(len(result[2]["items"]), 8)
+        self.assertEqual(repair.call_count, 2)
+        self.assertEqual(result[2]["items"][0]["question"], corrected[0]["question"])
+        self.assertEqual(result[-1], {"type": "done"})
+
+    def test_initial_review_api_failure_returns_original_questions(self):
+        owner = owner_for(UX_CONTEXT)
+        questions = [sample_question(i) for i in range(1, 9)]
+        events = self._events(questions)
+        with patch(
+            "apps.core.ai.personality_question_definition_grounding_policy."
+            "_render_question_result_summaries",
+            return_value="Cooperative: result summary.",
+        ), patch(
+            "apps.core.ai.personality_question_context_quality_policy._review_questions",
+            side_effect=RuntimeError("external reviewer unavailable"),
+        ), patch(
+            "apps.core.ai.personality_question_context_quality_policy._repair_questions",
+        ) as repair:
+            self.assertIs(
+                _quality_check_events(events, owner=owner, language_code="en"),
+                events,
+            )
+        repair.assert_not_called()
+
+    def test_failed_repair_returns_unmodified_original_questions(self):
+        owner = owner_for(UX_CONTEXT)
+        questions = [sample_question(i) for i in range(1, 9)]
+        events = self._events(questions)
+        with patch(
+            "apps.core.ai.personality_question_definition_grounding_policy."
+            "_render_question_result_summaries",
+            return_value="Cooperative: result summary.",
+        ), patch(
+            "apps.core.ai.personality_question_context_quality_policy._review_questions",
+            return_value=review_for(questions, "", failing=(1,)),
+        ), patch(
+            "apps.core.ai.personality_question_context_quality_policy._repair_questions",
+            side_effect=RuntimeError("repair failed"),
+        ):
+            result = _quality_check_events(
+                events, owner=owner, language_code="sv",
+            )
+        self.assertEqual(result[2]["items"], questions)
+
+    def test_recheck_api_failure_keeps_structurally_valid_improvement(self):
+        owner = owner_for(UX_CONTEXT)
+        questions = [sample_question(i) for i in range(1, 9)]
+        corrected = sample_question(1, scenario="coordinate user testing")
+        with patch(
+            "apps.core.ai.personality_question_definition_grounding_policy."
+            "_render_question_result_summaries",
+            return_value="Cooperative: result summary.",
+        ), patch(
+            "apps.core.ai.personality_question_context_quality_policy._review_questions",
+            side_effect=[
+                review_for(questions, "", failing=(1,)),
+                RuntimeError("review unavailable"),
+            ],
+        ), patch(
+            "apps.core.ai.personality_question_context_quality_policy._repair_questions",
+            return_value={"replacements": [{"index": 1, **corrected}]},
+        ):
+            result = _quality_check_events(
+                self._events(questions), owner=owner, language_code="sv",
+            )
+        self.assertEqual(result[2]["items"][0], corrected)
+        self.assertEqual(result[2]["items"][1:], questions[1:])
+
+    def test_missing_result_summary_keeps_original_questions(self):
+        owner = owner_for(UX_CONTEXT)
+        questions = [sample_question(i) for i in range(1, 9)]
+        events = self._events(questions)
+        with patch(
+            "apps.core.ai.personality_question_definition_grounding_policy."
+            "_render_question_result_summaries", return_value="",
+        ), patch(
+            "apps.core.ai.personality_question_context_quality_policy._review_questions",
+        ) as review:
+            self.assertIs(
+                _quality_check_events(events, owner=owner, language_code="sv"),
+                events,
+            )
+        review.assert_not_called()
 
     def test_no_process_context_preserves_current_generation_behaviour(self):
         owner = owner_for("")
