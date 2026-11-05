@@ -218,6 +218,42 @@ class ProjectAssessmentStatusUnitTests(SimpleTestCase):
         self.assertIsNone(test_key("Unrelated general activity"))
 
 
+    def test_447_percentiles_only_for_completed_cognitive_results(self):
+        inv = self.invitation(status="completed", activities=[
+            {"activity": "TQ Logical Reasoning", "status": "completed",
+             "competencies": [{"percentile": 76}]},
+            {"activity": "TQ Numerical Reasoning", "status": "completed",
+             "competencies": []},
+            {"activity": "TQ Verbal Reasoning", "status": "started",
+             "competencies": [{"percentile": 91}]},
+            {"activity": "TQ Personality", "status": "completed",
+             "competencies": [{"percentile": 54}]},
+        ])
+        cells = self.result(inv, ("personality", "logical", "numerical", "verbal"))
+        self.assertEqual(cells["logical"]["percentile"], 76)
+        self.assertTrue(cells["logical"]["has_percentile"])
+        self.assertEqual(cells["logical"]["title"], "76:e percentilen. Visa resultat.")
+        for key in ("numerical", "verbal", "personality"):
+            self.assertIsNone(cells[key]["percentile"])
+            self.assertFalse(cells[key]["has_percentile"])
+        self.assertEqual(cells["numerical"]["state"], "completed")
+        self.assertEqual(cells["verbal"]["state"], "started")
+        en = self.result(inv, ("logical",), "en")
+        self.assertEqual(en["logical"]["title"], "76th percentile. View results.")
+
+    def test_447_percentile_zero_and_missing_status(self):
+        inv = self.invitation(activities=[
+            {"activity": "Sova Numerical Reasoning", "status": "completed",
+             "competencies": [{"percentile": 0}]},
+            {"activity": "Sova Logical Reasoning", "status": "unknown",
+             "competencies": [{"percentile": 83}]},
+        ])
+        cells = self.result(inv, ("numerical", "logical"))
+        self.assertEqual(cells["numerical"]["percentile"], 0)
+        self.assertTrue(cells["numerical"]["has_percentile"])
+        self.assertFalse(cells["logical"]["has_percentile"])
+
+
 class ProjectAssessmentStatusIntegrationTests(TestCase):
     def setUp(self):
         self.company = Company.objects.create(name="A")
@@ -406,6 +442,44 @@ class ProjectAssessmentStatusIntegrationTests(TestCase):
             "processes:process_invitation_statuses", args=[self.foreign_project.pk]
         )).json()
         self.assertEqual(result["invitations"][0]["assessments"][0]["state"], "started")
+
+    def test_447_customer_percentile_matches_authorized_project_and_polling(self):
+        self.project.selected_tests = ["personality", "logical", "numerical", "verbal"]
+        self.project.save(update_fields=["selected_tests"])
+        self.invitation.sova_activities = [
+            {"activity": "Sova Personality", "status": "completed"},
+            {"activity": "Sova Logical Reasoning", "status": "completed",
+             "competencies": [{"percentile": 76}]},
+            {"activity": "Sova Numerical Reasoning", "status": "completed",
+             "competencies": []},
+            {"activity": "Sova Verbal Reasoning", "status": "started",
+             "competencies": [{"percentile": 32}]},
+        ]
+        self.invitation.save(update_fields=["sova_activities"])
+
+        detail = self.client.get(reverse(
+            "processes:process_detail", args=[self.project.pk]
+        ), HTTP_ACCEPT_LANGUAGE="sv")
+        self.assertEqual(detail.status_code, 200)
+        markup = detail.content.decode("utf8")
+        self.assertIn('data-focus-test-key="logical"', markup)
+        self.assertIn('data-has-percentile="true"', markup)
+        self.assertIn('76:e percentilen. Visa resultat.', markup)
+        self.assertIn('data-assessment-percentile-button', markup)
+        statuses = self.client.get(reverse(
+            "processes:process_invitation_statuses", args=[self.project.pk]
+        ), HTTP_ACCEPT_LANGUAGE="sv").json()["invitations"][0]["assessments"]
+        by_key = {cell["key"]: cell for cell in statuses}
+        self.assertEqual(by_key["logical"]["percentile"], 76)
+        self.assertFalse(by_key["numerical"]["has_percentile"])
+        self.assertFalse(by_key["verbal"]["has_percentile"])
+        self.assertFalse(by_key["personality"]["has_percentile"])
+
+        self.client.force_login(self.outsider)
+        foreign = self.client.get(reverse(
+            "processes:process_invitation_statuses", args=[self.project.pk]
+        ))
+        self.assertIn(foreign.status_code, (403, 404))
 
     def test_admin_mirrors_have_per_test_headers(self):
         self.client.force_login(self.user)
