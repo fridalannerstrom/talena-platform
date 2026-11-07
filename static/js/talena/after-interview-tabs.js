@@ -763,6 +763,7 @@
           });
           state.edits.set(binding.key, data.edit);
           applyBinding(binding);
+          document.dispatchEvent(new CustomEvent("talena:manager-report-activity-changed"));
           announce(copy().editSaved);
           closeDialog();
         } catch (saveError) {
@@ -791,6 +792,7 @@
           });
           state.edits.delete(binding.key);
           applyBinding(binding);
+          document.dispatchEvent(new CustomEvent("talena:manager-report-activity-changed"));
           announce(copy().editSaved);
           closeDialog();
         } catch (restoreError) {
@@ -2178,6 +2180,12 @@
           const reportMetadata = await window.TalenaManagerReportPdf.prepare(outputRoot);
           window.TalenaManagerReportPdf.decorate(printableReport, reportMetadata);
           await renderElementAsPdf(printableReport, filename, outputRoot);
+          try {
+            await window.TalenaManagerReportPdf.recordGenerated(outputRoot, reportMetadata);
+          } catch (_auditError) {
+            // PDF succeeded. Audit-confirmation failure must not misreport export failure.
+            console.warn("Manager report PDF generation audit could not be recorded.");
+          }
         } catch (_error) {
           managerReportPdfError.textContent = copy().pdfGenerationFailed;
           managerReportPdfError.classList.remove("d-none");
@@ -2197,6 +2205,10 @@
     managerReportIntro.className = "after-interview-manager-report__intro";
     managerReportIntro.textContent = copy().managerReportIntro;
     managerReportCard.append(managerReportHeader, managerReportIntro, managerReportPdfError);
+    const managerReportAudit = document.createElement("div");
+    managerReportAudit.dataset.managerReportActivityUrl = outputRoot?.dataset.managerReportActivityUrl || "";
+    managerReportCard.appendChild(managerReportAudit);
+    window.TalenaManagerReportActivity?.mount(managerReportAudit);
 
     const managerSkills = document.createElement("section");
     managerSkills.className = "after-interview-manager-report__skills";
