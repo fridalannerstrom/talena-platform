@@ -233,11 +233,12 @@
     exporting = true;
     let stage;
     try {
+      let managerReportMetadata = null;
       const reportContent = copyContent(getSource(item));
       if (id === "manager-report") {
         if (!window.TalenaManagerReportPdf) throw Error(copy.error);
-        const metadata = await window.TalenaManagerReportPdf.prepare(workspace);
-        window.TalenaManagerReportPdf.decorate(reportContent, metadata);
+        managerReportMetadata = await window.TalenaManagerReportPdf.prepare(workspace);
+        window.TalenaManagerReportPdf.decorate(reportContent, managerReportMetadata);
       }
       const body = create("main", "talena-candidate-pdf-body candidate-insight-page");
       body.append(create("h1", "talena-candidate-pdf-heading", item.label),
@@ -252,6 +253,14 @@
         [{node:cover, cover:true}, {node:body, continuous:true}],
         {title:item.label, subject:item.label, returnBlob:true}
       );
+      if (managerReportMetadata) {
+        try {
+          await window.TalenaManagerReportPdf.recordGenerated(workspace, managerReportMetadata);
+        } catch (_auditError) {
+          // The PDF blob exists. Do not turn a logging error into a broken export.
+          console.warn("Manager report PDF generation audit could not be recorded.");
+        }
+      }
       if (options.returnBlob) return blob; // #360 consumes the exact same PDF Blob.
       const url = URL.createObjectURL(blob);
       const link = create("a");
