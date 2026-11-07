@@ -58,8 +58,11 @@ assert.ok(badges.includes(".after-interview-tab-card__header .after-interview-ta
 assert.ok(badges.includes('".after-interview-manager-report__personality-title"') &&
   badges.includes('".after-interview-manager-report__wellbeing-title"') &&
   badges.includes('field.dataset.managerReportManuallyEdited === "true"') &&
-  badges.includes("setBadge(section.querySelector(titleSelector), hasAi, hasManualEdit)"),
-  "Group editable AI provenance by Personality/Wellbeing, preserve assisted status");
+  badges.includes('personality?.querySelector(') &&
+  badges.includes('setBadge(') &&
+  badges.includes('hasAi,') &&
+  badges.includes('hasManualEdit,'),
+  "Single AI provenance badge covers Personality and Wellbeing; preserve manual-edit provenance");
 assert.ok(!badges.includes('field.parentNode.insertBefore(badge, field)'),
   "Do not repeat an AI badge for every manager personality paragraph");
 assert.ok(shell.includes("ticket442-v11") && shell.includes("retired-summary-v4"));
