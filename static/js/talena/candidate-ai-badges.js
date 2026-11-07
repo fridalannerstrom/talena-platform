@@ -77,6 +77,68 @@
       if (badge.hidden !== !visible) badge.hidden = !visible;
       if (visible) setLabel(badge, assisted);
     }
+    return badge;
+  }
+
+  // #428: explain the *scope* of the one Personality AI badge. Other
+  // headings retain the shared badge without a second tooltip system.
+  let personalityHelpSequence = 0;
+  const personalityHelpCopy = {
+    sv: {
+      generated: "Denna text är AI-genererad och avsedd som stöd för förståelse och vidare samtal. Granska alltid innehållet och använd det inte som en färdig bedömning eller rekommendation.",
+      assisted: "Avsnittets AI-genererade texter har redigerats manuellt. Granska alltid innehållet och använd det inte som en färdig bedömning eller rekommendation.",
+      scope: "AI-märkningen gäller sammanfattningarna under Testbild och Kandidaten beskriver. Statiska testresultat och övriga rapportavsnitt omfattas inte av denna märkning.",
+      show: "Visa information om AI-texten i Personlighet",
+    },
+    en: {
+      generated: "This text is AI-generated and intended to support understanding and further discussion. Always review the content and do not use it as a final assessment or recommendation.",
+      assisted: "AI-generated text in this section has been manually edited. Always review the content and do not use it as a final assessment or recommendation.",
+      scope: "The AI label covers the summaries under Test profile and The candidate describes. It does not label static assessment results or other report sections.",
+      show: "Show information about AI text in Personality",
+    },
+  };
+  function attachPersonalityHelp(badge, assisted) {
+    if (!badge) return;
+    const row = badge.parentElement;
+    row?.classList.add("talena-ai-title-row--personality-help");
+    const copy = isSwedish() ? personalityHelpCopy.sv : personalityHelpCopy.en;
+    let tip = row?.querySelector(":scope > .talena-ai-personality-help");
+    if (!tip) {
+      tip = document.createElement("span");
+      tip.className = "talena-ai-personality-help";
+      tip.id = "talena-ai-personality-help-" + (++personalityHelpSequence);
+      tip.setAttribute("role", "tooltip");
+      row.appendChild(tip);
+    }
+    const info = (assisted ? copy.assisted : copy.generated) + " " + copy.scope;
+    if (tip.textContent !== info) tip.textContent = info;
+    badge.dataset.personalityAiHelp = "true";
+    badge.tabIndex = 0;
+    badge.setAttribute("role", "button");
+    badge.setAttribute("aria-describedby", tip.id);
+    badge.setAttribute("aria-label", label(assisted) + ". " + copy.show);
+    badge.setAttribute("aria-expanded", String(badge.dataset.helpOpen === "true"));
+    if (badge.dataset.personalityAiHelpBound === "true") return;
+    badge.dataset.personalityAiHelpBound = "true";
+    const toggle = () => {
+      const opened = badge.dataset.helpOpen !== "true";
+      badge.dataset.helpOpen = String(opened);
+      badge.setAttribute("aria-expanded", String(opened));
+    };
+    badge.addEventListener("click", toggle);
+    badge.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        badge.dataset.helpOpen = "false";
+        badge.setAttribute("aria-expanded", "false");
+      } else if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        toggle();
+      }
+    });
+    badge.addEventListener("blur", () => {
+      badge.dataset.helpOpen = "false";
+      badge.setAttribute("aria-expanded", "false");
+    });
   }
 
   function removeLegacyKickers(root) {
@@ -177,7 +239,10 @@
         const hasManualEdit = fields.some((field) =>
           field.dataset.managerReportManuallyEdited === "true"
         );
-        setBadge(section.querySelector(titleSelector), hasAi, hasManualEdit);
+        const badge = setBadge(section.querySelector(titleSelector), hasAi, hasManualEdit);
+        if (sectionSelector === ".after-interview-manager-report__personality") {
+          attachPersonalityHelp(badge, hasManualEdit);
+        }
         // Remove legacy per-paragraph badges if a live partial was updated.
         fields.forEach((field) => {
           const previous = field.previousElementSibling;
