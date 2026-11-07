@@ -1,0 +1,75 @@
+/* #430: Compact Chefsrapport activity, shared by customer and platform admin. */
+.talena-report-audit {
+  margin: 0.95rem 0 1.35rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--talena-border, #e7e2de);
+  border-radius: 12px;
+  background: var(--talena-surface-soft, #faf9f8);
+  min-width: 0;
+}
+.talena-report-audit__title {
+  margin: 0 0 0.45rem;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  font-weight: 730;
+  color: var(--talena-ink, #191817);
+}
+.talena-report-audit__summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 1.4rem;
+}
+.talena-report-audit__meta,
+.talena-report-audit__empty {
+  font-size: 0.73rem;
+  line-height: 1.6;
+  color: var(--talena-text-muted, #716b67);
+}
+.talena-report-audit__details { margin-top: 0.55rem; }
+.talena-report-audit__details[hidden] { display: none; }
+.talena-report-audit__trigger {
+  width: fit-content;
+  font-size: 0.72rem;
+  color: var(--talena-ink, #191817);
+  cursor: pointer;
+  font-weight: 650;
+}
+.talena-report-audit__trigger:focus-visible {
+  outline: 2px solid var(--talena-coral-strong, #dc6357);
+  outline-offset: 3px;
+}
+.talena-report-audit__list {
+  list-style: none;
+  margin: 0.65rem 0 0;
+  padding: 0;
+  max-height: 340px;
+  overflow-y: auto;
+}
+.talena-report-audit__item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.75rem;
+  border-top: 1px solid var(--talena-border, #e7e2de);
+  padding: 0.56rem 0;
+  font-size: 0.73rem;
+  line-height: 1.4;
+}
+.talena-report-audit__event {
+  color: var(--talena-ink, #191817);
+  font-weight: 700;
+}
+.talena-report-audit__actor { color: var(--talena-ink, #191817); }
+.talena-report-audit__time { color: var(--talena-text-muted, #716b67); }
+.talena-report-audit__block {
+  flex-basis: 100%;
+  color: var(--talena-text-muted, #716b67);
+  font-size: 0.68rem;
+}
+@media (max-width: 600px) {
+  .talena-report-audit { padding: 0.75rem 0.85rem; }
+  .talena-report-audit__summary { flex-direction: column; gap: 0.15rem; }
+}
+@media print {
+  .talena-report-audit { display: none !important; }
+}
