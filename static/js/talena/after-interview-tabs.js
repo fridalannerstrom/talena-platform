@@ -1989,39 +1989,81 @@
       __PANEL__ .after-interview-manager-report__motivation-title {
         margin: 0 0 .85rem; color: var(--talena-ink, #191817); font-size: 1.15rem; font-weight: 750;
       }
+      /* Readable report rows: a factor's meaning on the left, guidance on the right. */
       __PANEL__ .after-interview-manager-report__motivation-grid {
-        display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .8rem;
+        display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem;
       }
       __PANEL__ .after-interview-manager-report__motivator {
-        min-width: 0; padding: 1rem; border: 1px solid var(--talena-border, #e5dfd8);
-        border-radius: 12px; background: #fff;
+        display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.8fr);
+        align-items: start; gap: 1.5rem; min-width: 0; padding: 1.3rem;
+        border: 1px solid var(--talena-border, #e5dfd8);
+        border-radius: 14px; background: #fff;
+      }
+      __PANEL__ .after-interview-manager-report__motivator-intro {
+        min-width: 0;
       }
       __PANEL__ .after-interview-manager-report__motivator-name {
-        margin: 0 0 .55rem; color: var(--talena-ink, #191817); font-size: .9rem; font-weight: 750;
+        margin: 0 0 .55rem; color: var(--talena-ink, #191817);
+        font-size: 1rem; font-weight: 750; line-height: 1.35;
       }
       __PANEL__ .after-interview-manager-report__motivator-definition {
-        margin: 0; color: var(--talena-text-muted, #766e68); font-size: .74rem; line-height: 1.55;
+        margin: 0; color: var(--talena-text-muted, #766e68);
+        font-size: .8rem; line-height: 1.7;
+      }
+      __PANEL__ .after-interview-manager-report__motivator-practical {
+        min-width: 0; border-left: 1px solid var(--talena-border, #e5dfd8);
+        padding-left: 1.5rem;
       }
       __PANEL__ .after-interview-manager-report__motivator-practical-title {
-        margin: .9rem 0 .35rem; padding-top: .7rem; border-top: 1px solid var(--talena-border, #e5dfd8);
-        color: var(--talena-ink, #191817); font-size: .76rem; font-weight: 700;
+        margin: 0 0 .75rem; color: var(--talena-ink, #191817);
+        font-size: .8rem; font-weight: 750;
       }
       __PANEL__ .after-interview-manager-report__motivator-practical-grid {
-        display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem;
+        display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem;
       }
       __PANEL__ .after-interview-manager-report__motivator-practical-box {
-        min-width: 0; padding: .65rem; border: 1px solid var(--talena-border, #e5dfd8);
-        border-radius: 9px; background: #fff;
+        min-width: 0; padding: 1rem; border: 1px solid #efebe6;
+        border-radius: 11px; background: #faf9f7;
+      }
+      __PANEL__ .after-interview-manager-report__motivator-practical-box--do {
+        background: #f7f9f7;
       }
       __PANEL__ .after-interview-manager-report__motivator-practical-box-title {
-        margin: 0 0 .35rem; color: var(--talena-ink, #191817); font-size: .7rem; font-weight: 700;
+        display: flex; gap: .4rem; align-items: center;
+        margin: 0 0 .6rem; color: var(--talena-ink, #191817);
+        font-size: .79rem; font-weight: 750;
+      }
+      __PANEL__ .after-interview-manager-report__motivator-practical-box-title svg {
+        flex-shrink: 0; width: 15px; height: 15px; stroke-width: 1.9;
+        color: #746c66;
+      }
+      __PANEL__ .after-interview-manager-report__motivator-practical-box--do svg {
+        color: #56816b;
       }
       __PANEL__ .after-interview-manager-report__motivator-practical-list {
-        margin: 0; padding-left: 1rem; color: var(--talena-text-muted, #766e68); font-size: .68rem; line-height: 1.45;
+        margin: 0; padding-left: 1.1rem; color: #615a54;
+        font-size: .76rem; line-height: 1.65;
       }
-      __PANEL__ .after-interview-manager-report__motivator-practical-list li + li { margin-top: .3rem; }
+      __PANEL__ .after-interview-manager-report__motivator-practical-list li {
+        padding-left: .1rem;
+      }
+      __PANEL__ .after-interview-manager-report__motivator-practical-list li + li {
+        margin-top: .55rem;
+      }
+      @media (max-width: 1050px) {
+        __PANEL__ .after-interview-manager-report__motivator {
+          grid-template-columns: minmax(0, 1fr); gap: 1rem;
+        }
+        __PANEL__ .after-interview-manager-report__motivator-practical {
+          border-left: 0; padding-left: 0; border-top: 1px solid var(--talena-border, #e5dfd8);
+          padding-top: 1rem;
+        }
+      }
       @media (max-width: 720px) {
-        __PANEL__ .after-interview-manager-report__motivator-practical-grid { grid-template-columns: 1fr; }
+        __PANEL__ .after-interview-manager-report__motivator-practical-grid {
+          grid-template-columns: minmax(0, 1fr);
+        }
+        __PANEL__ .after-interview-manager-report__motivator { padding: 1rem; }
       }
       __PANEL__ .after-interview-manager-report__motivation-empty {
         margin: 0; padding: 1rem; border: 1px dashed var(--talena-border, #e5dfd8);
@@ -2093,12 +2135,8 @@
       @media (max-width: 1050px) {
         __PANEL__ .after-interview-manager-report__levels { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       }
-      @media (max-width: 1050px) {
-        __PANEL__ .after-interview-manager-report__motivation-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      }
       @media (max-width: 720px) {
         __PANEL__ .after-interview-manager-report__guide-levels { grid-template-columns: 1fr; }
-        __PANEL__ .after-interview-manager-report__motivation-grid { grid-template-columns: 1fr; }
         __PANEL__ .after-interview-manager-report__personality-parts { grid-template-columns: 1fr; }
         __PANEL__ .after-interview-manager-report__personality-part + .after-interview-manager-report__personality-part {
           padding-left: 0; border-left: 0;
@@ -2604,8 +2642,13 @@
         definition.textContent = source.dataset.managerMotivationDefinition;
         const factorKey = source.dataset.managerMotivationKey;
         const advice = MOTIVATION_PRACTICAL_ADVICE[isSwedish() ? "sv" : "en"][factorKey];
-        motivator.append(name, definition);
+        const motivatorIntro = document.createElement("div");
+        motivatorIntro.className = "after-interview-manager-report__motivator-intro";
+        motivatorIntro.append(name, definition);
+        motivator.appendChild(motivatorIntro);
         if (advice) {
+          const practical = document.createElement("div");
+          practical.className = "after-interview-manager-report__motivator-practical";
           const practicalTitle = document.createElement("h6");
           practicalTitle.className = "after-interview-manager-report__motivator-practical-title";
           practicalTitle.textContent = copy().managerMotivationPracticalTitle;
@@ -2619,7 +2662,12 @@
             box.className = "after-interview-manager-report__motivator-practical-box after-interview-manager-report__motivator-practical-box--" + group.type;
             const heading = document.createElement("h6");
             heading.className = "after-interview-manager-report__motivator-practical-box-title";
-            heading.textContent = group.title;
+            const headingIcon = document.createElement("i");
+            headingIcon.setAttribute("data-feather", group.type === "do" ? "check-circle" : "alert-circle");
+            headingIcon.setAttribute("aria-hidden", "true");
+            const headingText = document.createElement("span");
+            headingText.textContent = group.title;
+            heading.append(headingIcon, headingText);
             const list = document.createElement("ul");
             list.className = "after-interview-manager-report__motivator-practical-list";
             group.items.forEach((item) => {
@@ -2630,7 +2678,8 @@
             box.append(heading, list);
             practicalGrid.appendChild(box);
           });
-          motivator.append(practicalTitle, practicalGrid);
+          practical.append(practicalTitle, practicalGrid);
+          motivator.appendChild(practical);
         }
         motivationGrid.appendChild(motivator);
       });
@@ -2965,6 +3014,11 @@
     evidenceIntro.append(evidenceKicker, evidenceHeading, evidenceLead, evidenceTip);
     evidenceCard.append(evidenceIntro, notesRoot, postSection);
     if (hasCompiledPostInterviewResult) {
+      // The original section must stay in the DOM for its native regeneration
+      // handler, but should not render another heading, status or spinner.
+      // The single visible "new compilation" action is immediately below.
+      postSection.classList.add("d-none");
+      postSection.setAttribute("aria-hidden", "true");
       const rebuildRow = document.createElement("div");
       rebuildRow.className = "after-interview-evidence-rebuild";
       const rebuildDescription = document.createElement("p");
