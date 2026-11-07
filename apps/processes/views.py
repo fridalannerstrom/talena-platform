@@ -5811,6 +5811,7 @@ def process_candidate_combined_questions(
             "candidate_insights/tabs/_questions.html"
         ),
         {
+            "invitation": invitation,
             "combined_questions": (
                 combined_questions
             ),
