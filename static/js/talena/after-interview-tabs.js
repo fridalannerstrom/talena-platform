@@ -454,7 +454,27 @@
           const matches = isOrdered
             ? item.match(/^\d+[.)]\s+(.+)$/)
             : item.match(/^[-*•]\s+(.+)$/);
-          if (!matches) break;
+          if (!matches) {
+            // AI Markdown frequently places a blank line between numbered
+            // items (sometimes writing "1." for every item). Keep those
+            // entries in ONE <ol> so the browser numbers them 1, 2, 3...
+            // instead of starting a fresh list at 1 after each blank line.
+            if (!item) {
+              let nextIndex = index;
+              while (nextIndex < lines.length && !lines[nextIndex].trim()) {
+                nextIndex += 1;
+              }
+              const next = lines[nextIndex]?.trim() || "";
+              const nextIsListItem = isOrdered
+                ? /^\\d+[.)]\\s+/.test(next)
+                : /^[-*•]\\s+/.test(next);
+              if (nextIsListItem) {
+                index = nextIndex;
+                continue;
+              }
+            }
+            break;
+          }
           const li = document.createElement("li");
           appendInlineMarkdown(li, matches[1]);
           list.appendChild(li);
@@ -1721,6 +1741,23 @@
       }
       __PANEL__ .after-interview-manager-report__personality-advice-text {
         margin-top: .55rem; color: var(--talena-text-muted, #766e68); font-size: .78rem; line-height: 1.65;
+      }
+      /* Tips för trivsel is a report section, not subdued helper text. */
+      __PANEL__ .after-interview-manager-report__wellbeing
+      .after-interview-manager-report__personality-advice-text {
+        color: #3d3834; font-size: .85rem; line-height: 1.72;
+      }
+      __PANEL__ .after-interview-manager-report__wellbeing
+      .after-interview-rich-text__paragraph,
+      __PANEL__ .after-interview-manager-report__wellbeing
+      .after-interview-rich-text__list,
+      __PANEL__ .after-interview-manager-report__wellbeing
+      .after-interview-rich-text__list li {
+        color: #3d3834;
+      }
+      __PANEL__ .after-interview-manager-report__wellbeing
+      ol.after-interview-rich-text__list {
+        list-style-type: decimal;
       }
       __PANEL__ .after-interview-manager-report__generate[aria-busy="true"] {
         opacity: .75; cursor: wait;
