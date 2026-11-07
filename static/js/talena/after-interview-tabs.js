@@ -49,7 +49,7 @@
       ],
       managerPersonalityTestbild: "Testbild",
       managerPersonalityCandidateDescribes: "Kandidaten beskriver",
-      managerPersonalityAdviceTitle: "För chefen",
+      managerPersonalityAdviceTitle: "Tips för trivsel",
       managerPersonalityTestMissing: "Ingen testtolkning är tillgänglig ännu.",
       managerPersonalityInterviewMissing: "Inga intervjuanteckningar är tillgängliga ännu.",
       managerSkillNames: { numerical: "Numeriskt", logical: "Logiskt", verbal: "Verbalt" },
@@ -190,7 +190,7 @@
       ],
       managerPersonalityTestbild: "Test profile",
       managerPersonalityCandidateDescribes: "The candidate describes",
-      managerPersonalityAdviceTitle: "For the manager",
+      managerPersonalityAdviceTitle: "Wellbeing tips",
       managerPersonalityTestMissing: "No test interpretation is available yet.",
       managerPersonalityInterviewMissing: "No interview notes are available yet.",
       managerSkillNames: { numerical: "Numerical", logical: "Logical", verbal: "Verbal" },
@@ -370,412 +370,19 @@
     );
   };
 
-  const MOTIVATION_PRACTICAL_ADVICE = {
-  "sv": {
-    "attachment": {
-      "do": [
-        "Skapa möjligheter till samarbete och gemensam problemlösning.",
-        "Avsätt tid för relationsbyggande och regelbundna avstämningar."
-      ],
-      "avoid": [
-        "Låta personen arbeta isolerat under längre perioder.",
-        "Enbart fokusera på uppgifter och resultat i era samtal."
-      ]
-    },
-    "authority": {
-      "do": [
-        "Ge tydligt ansvar för beslut, projekt eller arbetsområden.",
-        "Låt personen leda initiativ och samordna andras arbete."
-      ],
-      "avoid": [
-        "Ge ansvar utan mandat att påverka.",
-        "Detaljstyra eller fatta alla beslut åt personen."
-      ]
-    },
-    "achievement": {
-      "do": [
-        "Sätt tydliga, utmanande och uppföljningsbara mål.",
-        "Ge konkret återkoppling på resultat och framsteg."
-      ],
-      "avoid": [
-        "Ge otydliga mål eller uppgifter utan tydliga förväntningar.",
-        "Låta goda prestationer passera utan uppföljning."
-      ]
-    },
-    "curiosity": {
-      "do": [
-        "Ge utrymme att utforska nya idéer, metoder och perspektiv.",
-        "Involvera personen i nya frågeställningar och utvecklingsinitiativ."
-      ],
-      "avoid": [
-        "Begränsa arbetet till välbekanta rutiner utan utrymme för utforskande.",
-        "Avfärda frågor eller nya idéer innan de undersökts."
-      ]
-    },
-    "customer_service": {
-      "do": [
-        "Skapa möjligheter till direktkontakt med kunder eller mottagare.",
-        "Synliggör hur personens insatser hjälper andra och möter deras behov."
-      ],
-      "avoid": [
-        "Låta personen arbeta långt från dem som får nytta av arbetet.",
-        "Enbart mäta effektivitet utan att uppmärksamma kundupplevelsen."
-      ]
-    },
-    "acquisition": {
-      "do": [
-        "Var tydlig med hur prestation och ansvar kan påverka ersättningen.",
-        "Koppla belöningar till konkreta och påverkbara resultat där det är möjligt."
-      ],
-      "avoid": [
-        "Vara otydlig kring löneutveckling och ekonomiska möjligheter.",
-        "Förutsätta att uppskattning och beröm alltid ersätter ekonomiska incitament."
-      ]
-    },
-    "quality": {
-      "do": [
-        "Ge tydliga kvalitetskriterier och tid för noggrant arbete.",
-        "Involvera personen i förbättringar av arbetssätt och kvalitetssäkring."
-      ],
-      "avoid": [
-        "Prioritera snabbhet framför kvalitet i alla situationer.",
-        "Leverera vidare arbete utan möjlighet till rimlig kvalitetskontroll."
-      ]
-    },
-    "creativity": {
-      "do": [
-        "Ge utrymme att testa egna idéer och alternativa lösningar.",
-        "Involvera personen tidigt när nya lösningar behöver utvecklas."
-      ],
-      "avoid": [
-        "Styra exakt hur varje uppgift ska lösas.",
-        "Avfärda oprövade förslag enbart för att de skiljer sig från tidigare arbetssätt."
-      ]
-    },
-    "work_life_balance": {
-      "do": [
-        "Skapa tydliga förväntningar kring arbetstid och tillgänglighet.",
-        "Planera arbetsbelastning och deadlines med utrymme för återhämtning."
-      ],
-      "avoid": [
-        "Förvänta dig ständig tillgänglighet utanför arbetstid.",
-        "Normalisera återkommande övertid och sena omprioriteringar."
-      ]
-    },
-    "independence": {
-      "do": [
-        "Var tydlig med målet men låt personen välja arbetssätt.",
-        "Ge mandat att fatta egna beslut inom tydliga ramar."
-      ],
-      "avoid": [
-        "Detaljstyra hur och när varje arbetsmoment ska genomföras.",
-        "Kräva godkännande för beslut personen kan fatta själv."
-      ]
-    },
-    "learning": {
-      "do": [
-        "Erbjud nya utmaningar som utvecklar kunskap och färdigheter.",
-        "Avsätt tid för kompetensutveckling och möjlighet att tillämpa nya kunskaper."
-      ],
-      "avoid": [
-        "Låta personen fastna i enbart rutinmässiga uppgifter.",
-        "Erbjuda utbildning utan möjlighet att använda det som lärts."
-      ]
-    },
-    "enjoyment": {
-      "do": [
-        "Skapa utrymme för humor, gemenskap och en lättsam arbetsmiljö.",
-        "Uppmuntra sociala aktiviteter och ett klimat där man kan vara sig själv."
-      ],
-      "avoid": [
-        "Låta varje möte och samtal enbart handla om prestation och leverans.",
-        "Skapa en alltför formell miljö där spontanitet och personlighet begränsas."
-      ]
-    },
-    "people_development": {
-      "do": [
-        "Ge möjlighet att coacha, stötta eller introducera kollegor.",
-        "Synliggör hur personens stöd bidrar till andras framsteg."
-      ],
-      "avoid": [
-        "Begränsa rollen till individuella prestationer utan möjlighet att bidra till andra.",
-        "Ta personens hjälpande insatser för givna."
-      ]
-    },
-    "recognition": {
-      "do": [
-        "Ge konkret och personlig uppskattning för väl utfört arbete.",
-        "Synliggör personens bidrag inför andra när det är lämpligt."
-      ],
-      "avoid": [
-        "Enbart uppmärksamma resultat när något gått fel.",
-        "Låta viktiga insatser förbli osynliga i organisationen."
-      ]
-    },
-    "ethics": {
-      "do": [
-        "Var transparent med beslut och förklara hur de förhåller sig till organisationens värderingar.",
-        "Ge utrymme att lyfta etiska dilemman och diskutera svåra avvägningar."
-      ],
-      "avoid": [
-        "Fatta beslut som går emot uttalade värderingar utan förklaring.",
-        "Avfärda invändningar kring rättvisa, ansvar eller integritet."
-      ]
-    },
-    "variety": {
-      "do": [
-        "Erbjud en blandning av arbetsuppgifter, projekt och utmaningar.",
-        "Involvera personen i tvärfunktionella samarbeten och nya initiativ."
-      ],
-      "avoid": [
-        "Låta personen arbeta med samma typ av uppgifter under långa perioder.",
-        "Begränsa rollen till ett alltför snävt och repetitivt ansvarsområde."
-      ]
-    },
-    "stability": {
-      "do": [
-        "Kommunicera förändringar i god tid och skapa tydlighet kring vad som gäller.",
-        "Skapa förutsägbarhet genom tydliga roller, rutiner och prioriteringar."
-      ],
-      "avoid": [
-        "Göra plötsliga förändringar utan förklaring eller framförhållning.",
-        "Ändra förväntningar och prioriteringar utan att tydliggöra varför."
-      ]
-    },
-    "making_a_difference": {
-      "do": [
-        "Visa hur personens arbete bidrar till ett större syfte eller positiv förändring.",
-        "Ge möjlighet att bidra till initiativ som skapar värde för andra."
-      ],
-      "avoid": [
-        "Enbart fokusera på ekonomiska resultat utan att förklara nyttan.",
-        "Låta personen utföra uppgifter utan att förstå deras betydelse."
-      ]
-    },
-    "commercial_focus": {
-      "do": [
-        "Synliggör hur arbetet påverkar affärsresultat och lönsamhet.",
-        "Involvera personen i affärsmässiga prioriteringar och förbättringar."
-      ],
-      "avoid": [
-        "Undanhålla relevant information om verksamhetens ekonomiska resultat.",
-        "Presentera mål utan att visa kopplingen till verksamhetens affär."
-      ]
-    },
-    "risk": {
-      "do": [
-        "Ge utrymme att testa nya angreppssätt med genomtänkta risker.",
-        "Involvera personen i utmanande beslut där olika möjligheter behöver vägas mot varandra."
-      ],
-      "avoid": [
-        "Kräva fullständig säkerhet innan något nytt får prövas.",
-        "Skapa en miljö där varje misslyckande möts av kritik snarare än lärande."
-      ]
+  // The same canonical MQ library feeds both this UI and AI's prompt.
+  // Read at render time, because candidate fragments refresh over AJAX.
+  const getMotivationPracticalAdvice = (panel) => {
+    const source = panel.closest("[data-final-output-root]")?.querySelector(
+      "#talena-motivation-practical-advice"
+    );
+    if (!source) return { sv: {}, en: {} };
+    try {
+      return JSON.parse(source.textContent || "{}");
+    } catch (_) {
+      return { sv: {}, en: {} };
     }
-  },
-  "en": {
-    "attachment": {
-      "do": [
-        "Create opportunities for collaboration and shared problem-solving.",
-        "Set aside time to build relationships and check in regularly."
-      ],
-      "avoid": [
-        "Leave the person working in isolation for long periods.",
-        "Focus only on tasks and results in your conversations."
-      ]
-    },
-    "authority": {
-      "do": [
-        "Give clear responsibility for decisions, projects or areas of work.",
-        "Let the person lead initiatives and coordinate others’ work."
-      ],
-      "avoid": [
-        "Give responsibility without the authority to influence decisions.",
-        "Micromanage or make every decision for the person."
-      ]
-    },
-    "achievement": {
-      "do": [
-        "Set clear, challenging goals that can be followed up.",
-        "Give specific feedback on results and progress."
-      ],
-      "avoid": [
-        "Set vague goals or tasks without clear expectations.",
-        "Let good performance pass without follow-up."
-      ]
-    },
-    "curiosity": {
-      "do": [
-        "Make room to explore new ideas, methods and perspectives.",
-        "Involve the person in new questions and development initiatives."
-      ],
-      "avoid": [
-        "Limit work to familiar routines with no room to explore.",
-        "Dismiss questions or new ideas before examining them."
-      ]
-    },
-    "customer_service": {
-      "do": [
-        "Create opportunities for direct contact with customers or recipients.",
-        "Show how the person’s contribution helps others and meets their needs."
-      ],
-      "avoid": [
-        "Keep the person far from those who benefit from their work.",
-        "Measure efficiency alone without considering the customer experience."
-      ]
-    },
-    "acquisition": {
-      "do": [
-        "Be clear about how performance and responsibility can affect compensation.",
-        "Where possible, tie rewards to concrete results the person can influence."
-      ],
-      "avoid": [
-        "Be unclear about salary progression and financial opportunities.",
-        "Assume appreciation and praise always replace financial incentives."
-      ]
-    },
-    "quality": {
-      "do": [
-        "Set clear quality criteria and allow time for careful work.",
-        "Involve the person in improving ways of working and quality assurance."
-      ],
-      "avoid": [
-        "Prioritise speed over quality in every situation.",
-        "Pass work on without a reasonable opportunity for quality checks."
-      ]
-    },
-    "creativity": {
-      "do": [
-        "Give room to test personal ideas and alternative solutions.",
-        "Involve the person early when new solutions need to be developed."
-      ],
-      "avoid": [
-        "Dictate exactly how every task must be solved.",
-        "Dismiss untested suggestions only because they differ from past practice."
-      ]
-    },
-    "work_life_balance": {
-      "do": [
-        "Set clear expectations about working hours and availability.",
-        "Plan workload and deadlines with room for recovery."
-      ],
-      "avoid": [
-        "Expect constant availability outside working hours.",
-        "Normalise recurring overtime and late changes in priorities."
-      ]
-    },
-    "independence": {
-      "do": [
-        "Be clear about the goal while letting the person choose how to work.",
-        "Give authority to make independent decisions within clear boundaries."
-      ],
-      "avoid": [
-        "Micromanage how and when each step must be carried out.",
-        "Require approval for decisions the person can make independently."
-      ]
-    },
-    "learning": {
-      "do": [
-        "Offer new challenges that develop knowledge and skills.",
-        "Set aside time for learning and for applying new knowledge."
-      ],
-      "avoid": [
-        "Let the person get stuck doing only routine tasks.",
-        "Offer training without a chance to use what was learned."
-      ]
-    },
-    "enjoyment": {
-      "do": [
-        "Make room for humour, connection and a relaxed work environment.",
-        "Encourage social activities and an atmosphere where people can be themselves."
-      ],
-      "avoid": [
-        "Let every meeting and conversation focus only on performance and delivery.",
-        "Create an overly formal environment that limits spontaneity and personality."
-      ]
-    },
-    "people_development": {
-      "do": [
-        "Give opportunities to coach, support or onboard colleagues.",
-        "Show how the person’s support contributes to others’ progress."
-      ],
-      "avoid": [
-        "Limit the role to individual performance with no chance to contribute to others.",
-        "Take the person’s supportive contributions for granted."
-      ]
-    },
-    "recognition": {
-      "do": [
-        "Give specific, personal appreciation for work well done.",
-        "Make the person’s contribution visible to others when appropriate."
-      ],
-      "avoid": [
-        "Only draw attention to results when something has gone wrong.",
-        "Let important contributions remain invisible in the organisation."
-      ]
-    },
-    "ethics": {
-      "do": [
-        "Be transparent about decisions and explain how they align with organisational values.",
-        "Make room to raise ethical dilemmas and discuss difficult trade-offs."
-      ],
-      "avoid": [
-        "Make decisions that conflict with stated values without explanation.",
-        "Dismiss concerns about fairness, responsibility or integrity."
-      ]
-    },
-    "variety": {
-      "do": [
-        "Offer a mix of tasks, projects and challenges.",
-        "Involve the person in cross-functional collaboration and new initiatives."
-      ],
-      "avoid": [
-        "Have the person work on the same type of task for long periods.",
-        "Limit the role to an overly narrow and repetitive area of responsibility."
-      ]
-    },
-    "stability": {
-      "do": [
-        "Communicate changes early and make clear what to expect.",
-        "Create predictability through clear roles, routines and priorities."
-      ],
-      "avoid": [
-        "Make sudden changes without explanation or notice.",
-        "Change expectations and priorities without explaining why."
-      ]
-    },
-    "making_a_difference": {
-      "do": [
-        "Show how the person’s work contributes to a larger purpose or positive change.",
-        "Offer opportunities to contribute to initiatives that create value for others."
-      ],
-      "avoid": [
-        "Focus only on financial results without explaining their value.",
-        "Have the person carry out tasks without understanding their significance."
-      ]
-    },
-    "commercial_focus": {
-      "do": [
-        "Show how the work affects business results and profitability.",
-        "Involve the person in business priorities and improvements."
-      ],
-      "avoid": [
-        "Withhold relevant information about the organisation’s financial results.",
-        "Present goals without showing how they connect to the business."
-      ]
-    },
-    "risk": {
-      "do": [
-        "Give room to try new approaches with considered risks.",
-        "Involve the person in challenging decisions that require weighing different options."
-      ],
-      "avoid": [
-        "Require complete certainty before anything new can be tried.",
-        "Create an environment where every failure is criticised instead of treated as a learning opportunity."
-      ]
-    }
-  }
-};
+  };
 
   const isSwedish = () =>
     (document.documentElement.lang || "").toLowerCase().startsWith("sv");
@@ -2097,6 +1704,14 @@
         margin-top: 1rem; padding: 1rem; border: 1px solid var(--talena-border, #e5dfd8);
         border-radius: 12px; background: #fff;
       }
+      __PANEL__ .after-interview-manager-report__wellbeing {
+        margin-top: 1.8rem; padding-top: 1.35rem;
+        border-top: 1px solid var(--talena-border, #e5dfd8);
+      }
+      __PANEL__ .after-interview-manager-report__wellbeing-title {
+        margin: 0; color: var(--talena-ink, #191817);
+        font-size: 1.15rem; font-weight: 750;
+      }
       __PANEL__ .after-interview-manager-report__personality-advice-header {
         display: flex; align-items: center; justify-content: flex-start;
         flex-wrap: wrap; gap: .1rem .35rem;
@@ -2661,7 +2276,7 @@
         definition.className = "after-interview-manager-report__motivator-definition";
         definition.textContent = source.dataset.managerMotivationDefinition;
         const factorKey = source.dataset.managerMotivationKey;
-        const advice = MOTIVATION_PRACTICAL_ADVICE[isSwedish() ? "sv" : "en"][factorKey];
+        const advice = getMotivationPracticalAdvice(panel)[isSwedish() ? "sv" : "en"]?.[factorKey];
         const motivatorIntro = document.createElement("div");
         motivatorIntro.className = "after-interview-manager-report__motivator-intro";
         motivatorIntro.append(name, definition);
@@ -2908,11 +2523,11 @@
     });
 
     const managerAdvice = document.createElement("section");
-    managerAdvice.className = "after-interview-manager-report__personality-advice";
+    managerAdvice.className = "after-interview-manager-report__wellbeing";
     const managerAdviceHeader = document.createElement("div");
     managerAdviceHeader.className = "after-interview-manager-report__personality-advice-header";
-    const managerAdviceTitle = document.createElement("h5");
-    managerAdviceTitle.className = "after-interview-manager-report__personality-advice-title";
+    const managerAdviceTitle = document.createElement("h4");
+    managerAdviceTitle.className = "after-interview-manager-report__wellbeing-title";
     managerAdviceTitle.textContent = copy().managerPersonalityAdviceTitle;
     const managerAdviceBody =
       sourceContent(panel, "wellbeing_tips") || document.createElement("div");
@@ -2939,7 +2554,8 @@
     );
     managerAdviceHeader.append(managerAdviceTitle, managerAdviceEditControls);
     managerAdvice.append(managerAdviceHeader, managerAdviceBody, managerAdviceError);
-    managerPersonality.appendChild(managerAdvice);
+    // Render the existing wellbeing_tips block only once, as its own section.
+
     managerReportAiTasks.push(async () => {
       await generateContentBlock(
         panel,
@@ -2966,6 +2582,7 @@
     if (personalityRoot) {
       managerReportCard.appendChild(managerPersonality);
     }
+    managerReportCard.appendChild(managerAdvice);
     const managerReportEditsLoading = document.createElement("div");
     managerReportEditsLoading.className = "text-center text-muted py-4";
     managerReportEditsLoading.setAttribute("role", "status");
