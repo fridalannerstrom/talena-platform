@@ -61,6 +61,10 @@
   </div>
 
 
+  {# #430: Platform-only, tenant-scoped Chefsrapport audit panel. #}
+  <div class="talena-report-audit-host mb-4"
+       data-manager-report-activity-url="{% url 'processes:process_candidate_manager_report_activity_admin' process.id candidate.id %}"></div>
+
   <!-- ADMIN CONTEXT CARDS -->
   <div class="row g-3 mb-4">
 
