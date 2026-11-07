@@ -70,7 +70,7 @@
     { id: "prepare-interview",
       selector: "#candidate-insights-panel-prepare-interview [data-pre-interview-content]",
       ready: element => !element.classList.contains("d-none") && element.textContent.trim().length > 80 },
-    ...[["overview","after-overview"],["interview","after-interview"],["explore","after-explore"]]
+    ...[["overview","after-overview"],["explore","after-explore"]]
       .map(([panel, id]) => ({
         id, selector: '[data-after-interview-tab-panel="' + panel + '"] .after-interview-tab-card',
         ready: element => {
