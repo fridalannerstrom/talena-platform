@@ -45,9 +45,9 @@
                         </h4>
                         <p class="personality-overview-chart__intro">
                           {% if LANGUAGE_CODE|slice:":2" == "sv" %}
-                            Mitten är neutral; markörerna visar kandidatens läge från mitten åt vänster eller höger.
+                            Mitten är situationsbaserat, medan pilmarkörerna visar varsitt föredragna beteende.
                           {% else %}
-                            A visual overview of the complete profile. The centre is neutral; each marker shows the candidate's position towards the left or right pole.
+                            The centre indicates situation-dependent behaviour, while the arrow markers show each preferred behaviour.
                           {% endif %}
                         </p>
                       </div>
@@ -55,11 +55,6 @@
                               data-insights-tab="personality" aria-controls="candidate-insights-panel-personality">
                         {% if LANGUAGE_CODE|slice:":2" == "sv" %}Visa profil{% else %}View profile{% endif %} <span aria-hidden="true">→</span>
                       </button>
-                    </div>
-                    <div class="personality-overview-chart__legend">
-                      <span aria-hidden="true">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Vänster pol{% else %}Left pole{% endif %}</span>
-                      <span class="personality-overview-chart__legend-line" aria-hidden="true"></span>
-                      <span aria-hidden="true">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Höger pol{% else %}Right pole{% endif %}</span>
                     </div>
                   </div>
 
