@@ -24,16 +24,19 @@ def account_invitation_language(language):
 
 def account_invitation_copy(*, subject=None, message=None, language="en"):
     language = account_invitation_language(language)
-    if language == "sv":
-        # Keep manually edited copy intact. Only translate unchanged defaults.
-        if subject is None or subject == DEFAULT_INVITE_SUBJECT:
-            subject = DEFAULT_INVITE_SUBJECT_SV
-        if message is None or message == DEFAULT_INVITE_MESSAGE:
-            message = DEFAULT_INVITE_MESSAGE_SV
-    return (
-        subject if subject is not None else DEFAULT_INVITE_SUBJECT,
-        message if message is not None else DEFAULT_INVITE_MESSAGE,
+    # Keep preview and delivery consistent even when the form was initially
+    # filled in another language. Only replace untouched standard text.
+    default_subject = (
+        DEFAULT_INVITE_SUBJECT_SV if language == "sv" else DEFAULT_INVITE_SUBJECT
     )
+    default_message = (
+        DEFAULT_INVITE_MESSAGE_SV if language == "sv" else DEFAULT_INVITE_MESSAGE
+    )
+    if subject is None or subject in (DEFAULT_INVITE_SUBJECT, DEFAULT_INVITE_SUBJECT_SV):
+        subject = default_subject
+    if message is None or message in (DEFAULT_INVITE_MESSAGE, DEFAULT_INVITE_MESSAGE_SV):
+        message = default_message
+    return subject, message
 
 
 def account_invitation_context(
