@@ -4,6 +4,8 @@
   const PANEL_SELECTOR = "#candidate-insights-panel-after-interview";
   const STYLE_ID = "talena-after-interview-tabs-v1";
   const URL_PARAM = "afterTab";
+  let lastRenderedCandidate = null;
+  let lastRenderedCompiled = null;
 
   const COPY = {
     sv: {
@@ -121,6 +123,7 @@
       generatedComplete: "Sammanställning genererad",
       generatedCompleteDescription: "Sammanställningen är klar och övriga flikar är nu tillgängliga.",
       unavailable: "Det här innehållet blir tillgängligt när intervjuunderlaget har sammanställts.",
+      lockedTabsHint: "Spara intervjuunderlaget och välj Sammanställ underlag för att låsa upp de andra flikarna.",
     },
     en: {
       tabs: {
@@ -237,6 +240,7 @@
       generatedComplete: "Compilation generated",
       generatedCompleteDescription: "The compilation is ready and the other tabs are now available.",
       unavailable: "This content becomes available when the interview evidence has been compiled.",
+      lockedTabsHint: "Save the interview evidence and select Compile evidence to unlock the other tabs.",
     },
   };
 
@@ -1493,6 +1497,21 @@
         border-bottom-color: rgba(255, 111, 97, .28) !important;
         background: transparent !important; color: var(--talena-ink, #191817) !important;
       }
+      __PANEL__ .candidate-insights-view-option:disabled,
+      __PANEL__ .candidate-insights-view-option[aria-disabled="true"] {
+        color: #aaa29d !important; opacity: .6; cursor: not-allowed;
+        border-bottom-color: transparent !important;
+      }
+      __PANEL__ .candidate-insights-view-option:disabled:hover {
+        color: #aaa29d !important; border-bottom-color: transparent !important;
+      }
+      __PANEL__ .candidate-insights-view-option:disabled svg {
+        width: 12px; height: 12px; margin-right: .3rem; vertical-align: -2px;
+      }
+      __PANEL__ .after-interview-tabs__locked-hint {
+        color: var(--talena-text-muted, #766e68); font-size: .73rem;
+        line-height: 1.5; margin: .55rem 0 .8rem;
+      }
       __PANEL__ .candidate-insights-view-option.is-active,
       __PANEL__ .candidate-insights-view-option[aria-selected="true"] {
         border-bottom-color: var(--talena-coral, #ff6f61) !important;
@@ -1503,6 +1522,7 @@
       __PANEL__ .candidate-insights-subworkspace__panels { padding: 1.25rem 1.5rem 1.5rem; }
       __PANEL__ .after-interview-tab-panels { min-width: 0; }
       __PANEL__ .after-interview-tab-panel { display: grid; gap: 1rem; min-width: 0; }
+      __PANEL__ .after-interview-tab-panel[hidden] { display: none !important; }
       __PANEL__ .after-interview-tab-card {
         min-width: 0; padding: 1.25rem; border: 1px solid var(--talena-border, #e5dfd8);
         border-radius: 14px; background: #fff;
@@ -1910,13 +1930,24 @@
     const outputRoot = panel.closest("[data-final-output-root]");
     const hasPostInterviewResult =
       outputRoot?.dataset.hasPostInterviewResult === "true";
-    const hasCompletePostInterviewResult =
-      outputRoot?.dataset.postInterviewStatus === "completed";
+    const hasCompiledPostInterviewResult =
+      hasPostInterviewResult &&
+      ["completed", "outdated"].includes(outputRoot?.dataset.postInterviewStatus);
+    // A refreshed candidate fragment may have kept the old URL tab selection.
+    // On the first successful compilation (or a different candidate), use the
+    // proper default rather than restoring the previously selected Underlag.
+    const candidateIdentity = outputRoot?.dataset.refreshUrl || "";
+    const candidateChanged =
+      lastRenderedCandidate !== null && lastRenderedCandidate !== candidateIdentity;
+    const justCompiled =
+      !candidateChanged && lastRenderedCompiled === false && hasCompiledPostInterviewResult;
+    lastRenderedCandidate = candidateIdentity;
+    lastRenderedCompiled = hasCompiledPostInterviewResult;
 
     if (!card || !header || !notesRoot || !postSection) return;
 
     ensureStyles();
-    if (hasCompletePostInterviewResult) {
+    if (hasCompiledPostInterviewResult) {
       const generatedTitle = postSection.querySelector(".insight-summary-title");
       const generatedDescription = postSection.querySelector("p.text-muted.small.mb-0");
       if (generatedTitle) generatedTitle.textContent = copy().generatedComplete;
@@ -1943,15 +1974,31 @@
     navLayout.appendChild(nav);
     navSection.appendChild(navLayout);
 
+    if (!hasCompiledPostInterviewResult) {
+      const lockedHint = document.createElement("p");
+      lockedHint.className = "after-interview-tabs__locked-hint";
+      lockedHint.textContent = copy().lockedTabsHint;
+      navSection.appendChild(lockedHint);
+    }
+
     const tabPanels = document.createElement("div");
     tabPanels.className = "candidate-insights-subworkspace__panels";
 
-    const keys = ["overview", "interview", "explore", "managerReport", "evidence"];
+    const keys = ["evidence", "overview", "interview", "explore", "managerReport"];
     const buttons = new Map();
     const panels = new Map();
     keys.forEach((key) => {
       const id = "after-interview-tab-panel-" + key;
       const button = makeTab(key, copy().tabs[key], id);
+      if (key !== "evidence" && !hasCompiledPostInterviewResult) {
+        button.disabled = true;
+        button.setAttribute("aria-disabled", "true");
+        button.title = copy().lockedTabsHint;
+        const lock = document.createElement("i");
+        lock.setAttribute("data-feather", "lock");
+        lock.setAttribute("aria-hidden", "true");
+        button.prepend(lock);
+      }
       const tabPanel = makePanel(key, id);
       buttons.set(key, button);
       panels.set(key, tabPanel);
@@ -2602,7 +2649,8 @@
     }
 
     const activate = (key, updateUrl = true) => {
-      const activeKey = panels.has(key) ? key : "evidence";
+      const activeKey = panels.has(key) && (hasCompiledPostInterviewResult || key === "evidence")
+        ? key : "evidence";
       buttons.forEach((button, buttonKey) => {
         const active = buttonKey === activeKey;
         button.classList.toggle("is-active", active);
@@ -2618,16 +2666,20 @@
 
     nav.addEventListener("click", (event) => {
       const button = event.target.closest("[data-after-interview-tab]");
-      if (button) activate(button.dataset.afterInterviewTab);
+      if (button && !button.disabled) activate(button.dataset.afterInterviewTab);
     });
 
     const url = new URL(window.location.href);
     const requested = url.searchParams.get(URL_PARAM);
-    const initial = keys.includes(requested)
+    const restoreRequested =
+      !candidateChanged && !justCompiled &&
+      keys.includes(requested) &&
+      (hasCompiledPostInterviewResult || requested === "evidence");
+    const initial = restoreRequested
       ? requested
-      : hasPostInterviewResult ? "overview" : "evidence";
+      : hasCompiledPostInterviewResult ? "overview" : "evidence";
     activate(initial, false);
-    if (requested === "tests" || url.searchParams.has("afterTestTab")) {
+    if ((requested && requested !== initial) || url.searchParams.has("afterTestTab")) {
       url.searchParams.delete("afterTestTab");
       url.searchParams.set(URL_PARAM, initial);
       window.history.replaceState({}, "", url);
