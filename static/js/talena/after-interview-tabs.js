@@ -1534,50 +1534,19 @@
     const style = document.createElement("style");
     style.id = STYLE_ID;
     style.textContent = String.raw`
-      __PANEL__ .candidate-insights-subnavigation {
-        margin: 0 !important; padding: 0 1.5rem;
-        border-bottom: 1px solid var(--talena-border, #e5dfd8);
+      /* Match Talena's Resultat / AI-tolkning / Frågor tabs without
+         overriding their shared candidate-insights CSS. */
+      __PANEL__ .after-interview-primary-nav .candidate-insights-view-option:disabled,
+      __PANEL__ .after-interview-primary-nav .candidate-insights-view-option[aria-disabled="true"] {
+        opacity: .52; cursor: not-allowed;
       }
-      __PANEL__ .candidate-insights-subnavigation__layout { margin: 0 !important; }
-      __PANEL__ .candidate-insights-view-switcher {
-        display: flex; align-items: center; gap: 1.05rem; width: 100%;
-        padding: 0; border: 0; border-radius: 0; background: transparent;
-        overflow-x: auto; scrollbar-width: none;
-      }
-      __PANEL__ .candidate-insights-view-switcher::-webkit-scrollbar { display: none; }
-      __PANEL__ .candidate-insights-view-option {
-        position: relative; min-height: 45px; padding: 0 !important;
-        border: 0 !important; border-bottom: 2px solid transparent !important;
-        border-radius: 0 !important; background: transparent !important;
+      __PANEL__ .after-interview-primary-nav .candidate-insights-view-option:disabled:hover {
+        background: transparent !important;
         color: var(--talena-text-muted, #766e68) !important;
-        cursor: pointer; font: inherit; font-size: .7rem; font-weight: 550;
-        line-height: 1.25; white-space: nowrap; box-shadow: none !important;
-      }
-      __PANEL__ .candidate-insights-view-option:hover {
-        border-bottom-color: rgba(255, 111, 97, .28) !important;
-        background: transparent !important; color: var(--talena-ink, #191817) !important;
-      }
-      __PANEL__ .candidate-insights-view-option:disabled,
-      __PANEL__ .candidate-insights-view-option[aria-disabled="true"] {
-        color: #aaa29d !important; opacity: .6; cursor: not-allowed;
-        border-bottom-color: transparent !important;
-      }
-      __PANEL__ .candidate-insights-view-option:disabled:hover {
-        color: #aaa29d !important; border-bottom-color: transparent !important;
-      }
-      __PANEL__ .candidate-insights-view-option:disabled svg {
-        width: 12px; height: 12px; margin-right: .3rem; vertical-align: -2px;
       }
       __PANEL__ .after-interview-tabs__locked-hint {
         color: var(--talena-text-muted, #766e68); font-size: .73rem;
         line-height: 1.5; margin: .55rem 0 .8rem;
-      }
-      __PANEL__ .candidate-insights-view-option.is-active,
-      __PANEL__ .candidate-insights-view-option[aria-selected="true"] {
-        border-bottom-color: var(--talena-coral, #ff6f61) !important;
-        background: transparent !important;
-        color: var(--talena-coral-strong, #ed7468) !important;
-        font-weight: 550;
       }
       __PANEL__ .candidate-insights-subworkspace__panels { padding: 1.25rem 1.5rem 1.5rem; }
       __PANEL__ .after-interview-journey {
@@ -1651,15 +1620,7 @@
         __PANEL__ .after-interview-journey__step { padding: .65rem .75rem; }
         __PANEL__ .after-interview-evidence-intro__title { font-size: 1.1rem; }
       }
-      __PANEL__ .after-interview-primary-nav {
-        display: flex; gap: 1.2rem; align-items: center; width: 100%;
-      }
-      __PANEL__ .after-interview-primary-nav .candidate-insights-view-option {
-        font-size: .84rem; font-weight: 650; min-height: 52px;
-      }
-      __PANEL__ .after-interview-primary-nav .candidate-insights-view-option.is-active {
-        font-weight: 750;
-      }
+      /* Primary navigation inherits the shared candidate-insights styles. */
       __PANEL__ .after-interview-primary-nav .candidate-insights-view-option.needs-update::after {
         content: ""; display: inline-block; width: 7px; height: 7px;
         border-radius: 50%; background: #e17d54; margin-left: .45rem;
@@ -1698,28 +1659,13 @@
         background: #f8f7f5; color: #625b55; font-size: .78rem;
         line-height: 1.55;
       }
+      __PANEL__ .after-interview-reports__status[hidden] { display: none !important; }
       __PANEL__ .after-interview-reports__status.needs-update {
         background: #fff5ed; color: #775438; border: 1px solid #efdacb;
       }
       __PANEL__ .after-interview-reports__status-title { font-weight: 650; }
       __PANEL__ .after-interview-reports__status-detail { display: block; margin-top: .15rem; }
-      __PANEL__ .after-interview-report-switcher {
-        display: flex; align-items: center; gap: .45rem; padding-bottom: .85rem;
-        border-bottom: 1px solid var(--talena-border, #e5dfd8); margin-bottom: 1rem;
-        overflow-x: auto; scrollbar-width: none;
-      }
-      __PANEL__ .after-interview-report-switcher .candidate-insights-view-option {
-        min-height: 35px; padding: .45rem .75rem !important;
-        background: #f8f7f5 !important; border: 1px solid transparent !important;
-        border-radius: 9px !important; font-size: .74rem; font-weight: 600;
-      }
-      __PANEL__ .after-interview-report-switcher .candidate-insights-view-option:hover {
-        background: #f1ece8 !important; border-color: #eee6df !important;
-      }
-      __PANEL__ .after-interview-report-switcher .candidate-insights-view-option.is-active {
-        background: #fff3ef !important; color: #cd5347 !important;
-        border-color: #f4cfc9 !important;
-      }
+      /* Nested report navigation inherits personality-view-tabs styles. */
       __PANEL__ .after-interview-report-panels { min-width: 0; }
       __PANEL__ .after-interview-report-panels > [hidden] { display: none !important; }
       __PANEL__ .after-interview-evidence-card [data-post-interview-generate][data-regenerate="true"] {
@@ -2159,8 +2105,6 @@
       }
       @media (max-width: 767px) {
         __PANEL__ .candidate-insights-subnavigation { padding: 0 1rem; }
-        __PANEL__ .candidate-insights-view-switcher { gap: .9rem; }
-        __PANEL__ .candidate-insights-view-option { min-height: 2.7rem; }
         __PANEL__ .candidate-insights-subworkspace__panels { padding: 1rem; }
         __PANEL__ .after-interview-tab-card { padding: 1rem; border-radius: 12px; }
       }
