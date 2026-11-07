@@ -2205,10 +2205,6 @@
     managerReportIntro.className = "after-interview-manager-report__intro";
     managerReportIntro.textContent = copy().managerReportIntro;
     managerReportCard.append(managerReportHeader, managerReportIntro, managerReportPdfError);
-    const managerReportAudit = document.createElement("div");
-    managerReportAudit.dataset.managerReportActivityUrl = outputRoot?.dataset.managerReportActivityUrl || "";
-    managerReportCard.appendChild(managerReportAudit);
-    window.TalenaManagerReportActivity?.mount(managerReportAudit);
 
     const managerSkills = document.createElement("section");
     managerSkills.className = "after-interview-manager-report__skills";
@@ -2680,6 +2676,14 @@
       managerReportCard.appendChild(managerPersonality);
     }
     managerReportCard.appendChild(managerAdvice);
+
+    // Audit is supplementary report metadata, so it follows all content and
+    // the decision-support disclaimer instead of interrupting the report top.
+    const managerReportAudit = document.createElement("div");
+    managerReportAudit.dataset.managerReportActivityPanel = "";
+    managerReportAudit.dataset.managerReportActivityUrl = outputRoot?.dataset.managerReportActivityUrl || "";
+    managerReportCard.appendChild(managerReportAudit);
+
     const managerReportEditsLoading = document.createElement("div");
     managerReportEditsLoading.className = "text-center text-muted py-4";
     managerReportEditsLoading.setAttribute("role", "status");
@@ -2694,6 +2698,9 @@
     managerReportEditsRetry.hidden = true;
     managerReportEditsLoading.append(managerReportEditsLoadingText, managerReportEditsRetry);
     panels.get("managerReport").append(managerReportEditsLoading, managerReportCard);
+    // Mount after the report card is connected so the initial API response is
+    // not discarded by the history component's disconnected-node guard.
+    window.TalenaManagerReportActivity?.mount(managerReportAudit);
 
     const revealManagerReport = () => {
       managerReportEditController.applyAll();
