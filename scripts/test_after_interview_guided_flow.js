@@ -9,6 +9,7 @@ const view = fs.readFileSync("templates/customer/processes/partials/candidate_in
 const shell = fs.readFileSync("templates/customer/core/layouts/customer_base.html", "utf8");
 const header = fs.readFileSync("templates/customer/processes/_process_header.html", "utf8");
 const page = fs.readFileSync("templates/customer/processes/process_base.html", "utf8");
+const evidenceAvailability = fs.readFileSync("static/js/talena/post-interview-evidence-availability.js", "utf8");
 
 // Two primary tabs: Evidence and Reports. The existing four report keys
 // are nested rather than rewritten, preserving PDF, URL and refresh behavior.
@@ -62,6 +63,8 @@ for (const snippet of [
 assert.ok(!tabs.includes("legacyGlobalRegenerate?.remove()"),
   "Existing regeneration button must remain mounted as action target.");
 assert.ok(page.includes("window.saveCandidateInterviewNotes"), "Existing safe save action must remain available");
+assert.ok(evidenceAvailability.includes('url.searchParams.set("structured", "1")'), "Question-only compilation must use structured overall picture");
+assert.ok(evidenceAvailability.includes("drainPostInterviewStream(fullCompilationUrl(targetStreamUrl))"), "Full compile stream must preserve structured mode");
 assert.ok(page.includes('url.searchParams.set("afterTab", "overview")') ||
           page.includes('afterInterviewUrl.searchParams.set("afterTab", "overview")'),
           "Post-compile refresh must land on overall picture.");
