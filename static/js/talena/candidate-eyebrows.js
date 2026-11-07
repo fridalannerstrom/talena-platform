@@ -290,16 +290,16 @@
     const copy = isSwedish()
       ? {
           headerDescription:
-            "Samla intervjuunderlaget och jämför det med testresultaten och processkontexten för att skapa en mer komplett bild.",
+            "Här väger Talena samman testresultat, roll- och processkontext och det som kom fram under intervjun. Börja med underlaget och få sedan en helhetsbild, områden att följa upp och en chefsrapport.",
           notesTitle: "Intervjuunderlag",
           notesDescription:
-            "Samla relevanta exempel, svar och observationer från intervjun här.",
+            "Skriv eller klistra in dina anteckningar nedan. Svar som du sparat på intervjufrågorna hämtas automatiskt.",
           compileTitle: "Sammanställ underlag",
           compileDescription:
-            "Väg samman testresultat, intervjuunderlag och processkontext till ett gemensamt beslutsunderlag.",
+            "När underlaget är sparat kan du låta Talena sammanställa det tillsammans med testresultat och processkontext. Därefter öppnas analysflikarna.",
           compileButton: "Sammanställ underlag",
           updateButton: "Uppdatera sammanställningen",
-          readyTitle: "Redo att sammanställa",
+          readyTitle: "Nästa steg: skapa din sammanställning",
           overall: "Samlad tolkning",
           supports: "Stöd för rollen",
           supportsDescription:
@@ -325,16 +325,16 @@
         }
       : {
           headerDescription:
-            "Bring interview evidence together with assessment results and process context to create a more complete view.",
+            "Talena brings assessment results, role and process context, and interview insights together. Start with your evidence, then get an overall picture, follow-up areas and a manager report.",
           notesTitle: "Interview evidence",
           notesDescription:
-            "Capture relevant examples, answers and observations from the interview here.",
+            "Write or paste your notes below. Answers saved on interview questions will be included automatically.",
           compileTitle: "Compile evidence",
           compileDescription:
-            "Bring assessment results, interview evidence and process context together into one decision-support view.",
+            "Once the evidence is saved, let Talena combine it with assessment results and process context. The analysis tabs will then become available.",
           compileButton: "Compile evidence",
           updateButton: "Update compiled evidence",
-          readyTitle: "Ready to compile",
+          readyTitle: "Next: create your summary",
           overall: "Combined interpretation",
           supports: "Role support",
           supportsDescription:
@@ -390,11 +390,17 @@
     if (!postSection) return;
 
     const postHeader = postSection.firstElementChild;
-    setText(
-      postHeader?.querySelector("h3.insight-summary-title"),
-      copy.compileTitle,
-      copy.compileTitle
-    );
+    const outputRoot = panel.closest("[data-final-output-root]");
+    const compilationReady =
+      outputRoot?.dataset.hasPostInterviewResult === "true" &&
+      ["completed", "outdated"].includes(outputRoot?.dataset.postInterviewStatus);
+    if (!compilationReady) {
+      setText(
+        postHeader?.querySelector("h3.insight-summary-title"),
+        copy.compileTitle,
+        copy.compileTitle
+      );
+    }
     setText(
       postHeader?.querySelector("p.text-muted"),
       copy.compileDescription,
