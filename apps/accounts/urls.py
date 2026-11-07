@@ -33,6 +33,8 @@ urlpatterns = [
     path("invite/preview/", views.account_invitation_preview, name="account_invitation_preview"),
     path("companies/<int:company_pk>/invite/preview/", views.account_invitation_preview, name="company_account_invitation_preview"),
     path("invite/<uuid:invite_id>/", views.accept_invite_uuid, name="accept_invite_uuid"),
+    # A malformed/unknown token should reach the same helpful state, not 404.
+    path("invite/<path:invalid_path>", views.invalid_invite_link, name="invalid_invite_link"),
 
     # =========================================================================
     # COMPANIES (ADMIN)
