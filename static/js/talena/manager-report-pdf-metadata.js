@@ -33,6 +33,30 @@
     return metadata;
   }
 
+  async function recordGenerated(context, metadata) {
+    const root = getRoot(context);
+    const url = root?.dataset?.managerReportPdfGeneratedUrl;
+    if (!url || !Number.isInteger(metadata?.prepared_event_id)) {
+      throw new Error("Missing verified PDF preparation");
+    }
+    const response = await fetch(url, {
+      method: "POST",
+      credentials: "same-origin",
+      headers: {
+        "X-CSRFToken": csrfToken(),
+        "Content-Type": "application/json",
+        "X-Requested-With": "XMLHttpRequest",
+      },
+      body: JSON.stringify({prepared_event_id: metadata.prepared_event_id}),
+    });
+    const data = await response.json();
+    if (!response.ok || data?.ok !== true) {
+      throw new Error("Could not record generated PDF");
+    }
+    document.dispatchEvent(new CustomEvent("talena:manager-report-activity-changed"));
+    return data;
+  }
+
   function formattedDate(value, language) {
     const date = new Date(value);
     if (!value || !Number.isFinite(date.getTime())) return "";
@@ -52,7 +76,8 @@
     reportClone.querySelectorAll(
       ".talena-ai-generated-badge, .talena-ai-personality-help, " +
       ".after-interview-manager-report__edit-controls, " +
-      ".after-interview-manager-report__edited-badge"
+      ".after-interview-manager-report__edited-badge, " +
+      ".talena-report-audit"
     ).forEach(node => node.remove());
 
     const language = metadata.language === "sv" ? "sv" : "en";
@@ -80,5 +105,5 @@
     return note;
   }
 
-  window.TalenaManagerReportPdf = Object.freeze({prepare, decorate});
+  window.TalenaManagerReportPdf = Object.freeze({prepare, decorate, recordGenerated});
 })();
