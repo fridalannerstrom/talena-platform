@@ -34,6 +34,41 @@ assert.ok(history.includes("Europe/Stockholm"));
 assert.ok(history.includes("textContent = content"));
 assert.ok(history.includes("talena:manager-report-activity-changed"));
 
+assert.ok(history.includes("const PANEL_SELECTOR = \"[data-manager-report-activity-panel][data-manager-report-activity-url]\""));
+assert.ok(history.includes("container?.matches?.(PANEL_SELECTOR)"));
+assert.ok(history.includes("document.querySelectorAll(PANEL_SELECTOR)"));
+assert.ok(adminOne.includes("data-manager-report-activity-panel"));
+assert.ok(adminTwo.includes("data-manager-report-activity-panel"));
+
+const sourceRoot = read("templates/customer/processes/partials/candidate_insights/tabs/_final_output.html");
+assert.ok(sourceRoot.includes("data-manager-report-activity-url="));
+assert.ok(!sourceRoot.includes("data-manager-report-activity-panel"),
+  "the after-interview data root supplies an endpoint but must never become an audit panel");
+
+const reportBodyEnd = customer.indexOf("managerReportCard.appendChild(managerAdvice);");
+const auditPlacement = customer.indexOf("managerReportCard.appendChild(managerReportAudit);");
+const reportAttached = customer.indexOf('panels.get("managerReport").append(managerReportEditsLoading, managerReportCard);');
+const historyMounted = customer.indexOf("window.TalenaManagerReportActivity?.mount(managerReportAudit);");
+assert.ok(reportBodyEnd > 0 && auditPlacement > reportBodyEnd,
+  "history must follow every report section and disclaimer");
+assert.ok(reportAttached > auditPlacement && historyMounted > reportAttached,
+  "history must mount after its panel is connected to the DOM");
+assert.ok(customer.includes('managerReportAudit.dataset.managerReportActivityPanel = "";'));
+
+const vm = require("node:vm");
+const historyContext = {
+  window: {}, document: {readyState:"loading", addEventListener(){}}
+};
+vm.runInNewContext(history, historyContext);
+const accidentalRoot = {
+  dataset: {managerReportActivityUrl: "/api/report-history/"},
+  matches: () => false,
+  classList: {add() {throw Error("whole report root must not receive audit CSS");}},
+  append() {throw Error("whole report root must never receive audit HTML");}
+};
+assert.equal(historyContext.window.TalenaManagerReportActivity.mount(accidentalRoot), undefined);
+
+
 assert.ok(backend.includes("MANAGER_REPORT_PDF_GENERATED"));
 assert.ok(backend.includes("select_for_update()"));
 assert.ok(backend.includes("actor=request.user"));
