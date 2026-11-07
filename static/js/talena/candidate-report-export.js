@@ -233,9 +233,15 @@
     exporting = true;
     let stage;
     try {
+      const reportContent = copyContent(getSource(item));
+      if (id === "manager-report") {
+        if (!window.TalenaManagerReportPdf) throw Error(copy.error);
+        const metadata = await window.TalenaManagerReportPdf.prepare(workspace);
+        window.TalenaManagerReportPdf.decorate(reportContent, metadata);
+      }
       const body = create("main", "talena-candidate-pdf-body candidate-insight-page");
       body.append(create("h1", "talena-candidate-pdf-heading", item.label),
-        copyContent(getSource(item)));
+        reportContent);
       const cover = coverFor(item);
       stage = create("div", "process-page candidate-insights-workspace talena-candidate-pdf-stage");
       stage.setAttribute("data-candidate-pdf-report", item.id);
