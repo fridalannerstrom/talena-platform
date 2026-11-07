@@ -1,13 +1,22 @@
-{# #437: Always-visible, approved interviewer prompts. Never inside AI result hooks. #}
+{# #437: Approved static interviewer prompts, independent of AI-generated questions. #}
 {% if interview_meta.intro_questions %}
-  <section class="personality-questions-section interview-static-questions mt-4"
+  <section class="interview-static-questions mt-4"
            data-interview-static-questions="{{ interview_meta.key }}">
-    <h3 class="personality-questions-section-title mb-3">
-      {{ interview_meta.intro_questions_label }}
-    </h3>
-    <ol class="ps-4 mb-0">
+    <header class="interview-static-questions__header">
+      <span class="interview-static-questions__icon" aria-hidden="true">
+        <i data-feather="message-square"></i>
+      </span>
+      <h3 class="interview-static-questions__title">
+        {{ interview_meta.intro_questions_label }}
+      </h3>
+    </header>
+
+    <ol class="interview-static-questions__list">
       {% for question in interview_meta.intro_questions %}
-        <li class="mb-2 ps-1">{{ question }}</li>
+        <li class="interview-static-questions__item">
+          <span class="interview-static-questions__number" aria-hidden="true">{{ forloop.counter }}</span>
+          <span class="interview-static-questions__text">{{ question }}</span>
+        </li>
       {% endfor %}
     </ol>
   </section>
