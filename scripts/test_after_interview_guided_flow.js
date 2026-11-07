@@ -17,10 +17,10 @@ const reportTabStyles = fs.readFileSync("static/css/talena/pages/candidate-insig
 const teamReportsTabs = fs.readFileSync("templates/customer/processes/partials/candidate_insights/tabs/_reports.html", "utf8");
 const insightTabsCss = fs.readFileSync("static/css/talena/pages/candidate-insight-tabs.css", "utf8");
 
-// Two primary tabs: Evidence and Reports. The existing four report keys
+// Two primary tabs: Evidence and Reports. Three active report keys
 // are nested rather than rewritten, preserving PDF, URL and refresh behavior.
 for (const snippet of [
-  'const keys = ["evidence", "overview", "interview", "explore", "managerReport"]',
+  'const keys = ["evidence", "overview", "explore", "managerReport"]',
   'const reportKeys = keys.filter((key) => key !== "evidence")',
   'primaryNav.appendChild(evidenceButton)',
   'primaryNav.appendChild(reportsButton)',
@@ -81,8 +81,8 @@ for (const snippet of ["journeyTitle:", "journeySteps:", "evidenceHeading:", "ev
 }
 assert.ok(tabs.includes('reports: "Rapporter"'));
 assert.ok(tabs.includes('reports: "Reports"'));
-assert.ok(copy.includes("testresultat och processkontext"));
-assert.ok(copy.includes("assessment results and process context"));
+assert.ok(copy.includes("testresultat och rollkontext"));
+assert.ok(copy.includes("assessment results and role context"));
 assert.ok(view.includes("data-interview-notes-save") && view.includes("data-post-interview-generate"));
 assert.ok(view.includes('rows="8"'));
 assert.ok(shell.includes("after-interview-tabs.js") && shell.includes("all-report-headings-v10"));
