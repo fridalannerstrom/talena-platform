@@ -64,5 +64,6 @@ def interview_combined_sections(context) -> list[dict]:
             "description": "",
         })
         section["title"] = meta["area_label"]
+        section["description"] = meta["area_description"]
         sections.append(section)
     return sections
