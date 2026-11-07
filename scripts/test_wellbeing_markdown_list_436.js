@@ -24,17 +24,28 @@ const doc = {
 };
 const render = new Function(
   "document", "copy", src.slice(begin, end) + "\nreturn renderGeneratedMarkdown;"
-)(doc, () => ({ managerPersonalityAdviceTitle: "Tips för trivsel" }));
+)(doc, () => ({
+  managerPersonalityAdviceTitle: "Tips för trivsel",
+  tabs: {
+    overview: "Helhetsbild", interview: "Intervjusammanfattning",
+    explore: "Undersök vidare",
+  },
+}));
 
 function renderText(text, options = {}) {
   const names = new Set(options.classNames || []);
   const container = {
     textContent: text,
-    dataset: options.key ? { managerReportEditKey: options.key } : {},
+    dataset: options.sourceKey ? { afterInterviewSourceBlock: options.sourceKey }
+      : options.blockContentKey ? { afterInterviewBlockContent: options.blockContentKey }
+      : options.key ? { managerReportEditKey: options.key } : {},
     children: [],
     classList: { add(value) { names.add(value); }, contains(value) { return names.has(value); } },
     closest(selector) {
-      return options.sourceWellbeing && selector.includes("wellbeing_tips") ? {} : null;
+      if (options.sourceWellbeing && selector.includes("wellbeing_tips")) {
+        return { dataset: { afterInterviewBlock: "wellbeing_tips" } };
+      }
+      return null;
     },
     replaceChildren(fragment) { this.children = fragment.children; },
   };
@@ -87,9 +98,43 @@ assert.equal(other.children[0].type, "h3", "Other AI blocks must keep their head
 const custom = renderText("## Viktiga rekommendationer\n\nText.", { key: "wellbeing_tips" });
 assert.equal(custom.children[0].type, "h3", "Distinct wellbeing subheadings must remain");
 
+// Every report with its own visible title suppresses an identical first
+// Markdown heading, but keeps the raw AI text intact for regeneration/edits.
+for (const spec of [
+  { key: "interview_summary", heading: "## Intervjusammanfattning" },
+  { key: "interview_summary", heading: "**Interview summary**" },
+  { key: "explore_further", heading: "### Undersök vidare" },
+  { key: "explore_further", heading: "Investigate further:" },
+  { key: "overall_picture", heading: "# Helhetsbild" },
+]) {
+  const raw = spec.heading + "\n\nKandidatens svar och exempel:\nEtt konkret exempel.";
+  const result = renderText(raw, { sourceKey: spec.key });
+  assert.equal(result.children.length, 1,
+    "Duplicate first heading should be hidden for " + spec.key);
+  assert.equal(result.children[0].type, "p");
+  assert.equal(result.originalSource, raw, "Stored AI/edited text must be untouched");
+}
+const followup = renderText(
+  "Undersök vidare\n\n## Kvarstående osäkerheter\n\nEtt förslag.",
+  { blockContentKey: "explore_further" }
+);
+assert.equal(followup.children.length, 2,
+  "Meaningful nested headings should survive duplicate title removal");
+assert.equal(followup.children[0].type, "h3");
+const nonmatching = renderText("## Kandidatens svar och exempel\n\nText", {
+  sourceKey: "interview_summary",
+});
+assert.equal(nonmatching.children[0].type, "h3",
+  "Do not remove a meaningful heading that differs from the card title");
+const unrelated = renderText("## Intervjusammanfattning\n\nText");
+assert.equal(unrelated.children[0].type, "h3",
+  "Other AI text should keep its title");
+assert.ok(src.includes("content.dataset.afterInterviewSourceBlock = key;"),
+  "Source blocks must identify the section before Markdown is rendered");
+
 assert.ok(src.includes("color: #3d3834; font-size: .85rem; line-height: 1.72;"),
   "Wellbeing body must be darker than the muted helper text");
 assert.ok(src.includes("ol.after-interview-rich-text__list"),
   "Ordered-list markers must remain decimal");
 
-console.log("Wellbeing Markdown, heading deduplication and darker text regression passed.");
+console.log("After interview Markdown list and duplicate report heading regressions passed.");
