@@ -1606,7 +1606,7 @@
       __PANEL__ .after-interview-evidence-intro__tip svg {
         width: 15px; height: 15px; flex: 0 0 15px; margin-top: 1px;
       }
-      __PANEL__ .after-interview-evidence-card [data-interview-notes-root] {
+      __PANEL__.after-interview-simplified .after-interview-evidence-card [data-interview-notes-root] {
         margin-top: 0 !important;
       }
       @media (max-width: 767px) {
