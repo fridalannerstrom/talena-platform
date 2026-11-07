@@ -26,9 +26,11 @@
 
       <div>
         {% if cognitive_interpretation_language|slice:":2" == "sv" %}
-          AI-tolkningen bygger på kandidatens färdighetsresultat, processens syfte och tillgänglig kontext. Percentiler beskriver relativ prestation i specifika uppgifter och bör vägas samman med annat relevant underlag.
+          <p class="mb-2">AI-tolkningen bygger på personens färdighetsresultat och tillgänglig rollkontext. Percentiler visar prestationen i förhållande till en jämförelsegrupp och ska inte ses som ett mått på personens samlade förmåga eller kompetens.</p>
+          <p class="mb-0">Du ansvarar för att granska tolkningen, bedöma vad som är relevant och avgöra vilka slutsatser du väljer att använda.</p>
         {% else %}
-          The AI interpretation is based on the candidate's skills results, the project purpose and available context. Percentiles describe relative performance on specific tasks and should be considered alongside other relevant evidence.
+          <p class="mb-2">The AI interpretation is based on the person's skills assessment results and available role context. Percentiles show performance relative to a comparison group and should not be treated as a measure of the person's overall ability or competence.</p>
+          <p class="mb-0">You are responsible for reviewing the interpretation, assessing what is relevant and deciding which conclusions you choose to use.</p>
         {% endif %}
       </div>
     </div>
