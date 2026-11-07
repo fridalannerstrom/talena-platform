@@ -6,7 +6,7 @@ const read = path => fs.readFileSync(path, "utf8");
 const tabs = read("static/js/talena/after-interview-tabs.js");
 const labels = read("static/js/talena/candidate-eyebrows.js");
 const badges = read("static/js/talena/candidate-ai-badges.js");
-const exports = read("static/js/talena/candidate-report-export.js");
+const pdfRegistry = read("static/js/talena/candidate-report-export.js");
 const template = read("templates/customer/processes/partials/candidate_insights/tabs/_final_output.html");
 const ai = read("apps/core/ai/decision_support.py");
 const backend = read("apps/processes/interview_question_notes.py");
@@ -24,7 +24,7 @@ assert.ok(tabs.includes('keys.includes(requested)') &&
   "Old afterTab=interview links must resolve to a current tab");
 assert.ok(tabs.includes('copy().tabs.overview') && tabs.includes('copy().tabs.explore'),
   "Keep Helhetsbild and Undersök vidare");
-assert.ok(!exports.includes('["interview","after-interview"]'),
+assert.ok(!pdfRegistry.includes('["interview","after-interview"]'),
   "Retired interview summary PDF option must disappear");
 
 const approved = "Här samlas tillgängliga testresultat tillsammans med personens egna perspektiv och konkreta tips för att förstå och använda insikterna i praktiken.";
