@@ -130,9 +130,11 @@
 
           <div>
             {% if motivation_interpretation_language|slice:":2" == "sv" %}
-              AI-tolkningen bygger på motivationsprofilen, processens syfte och tillgänglig kontext. Resultaten beskriver möjliga drivkrafter och preferenser, inte styrkor eller svagheter i sig.
+              <p class="mb-2">AI-tolkningen bygger på personens motivationsresultat och tillgänglig rollkontext. Den beskriver möjliga drivkrafter och vad som kan ge eller ta energi, inte vad som med säkerhet kommer att motivera personen i en viss situation.</p>
+              <p class="mb-0">Du ansvarar för att granska tolkningen, bedöma vad som är relevant och avgöra vilka slutsatser du väljer att använda.</p>
             {% else %}
-              The AI interpretation is based on the motivation profile, the process purpose and available context. The results describe possible drivers and preferences, not strengths or weaknesses in themselves.
+              <p class="mb-2">The AI interpretation is based on the person's motivation results and available role context. It describes possible drivers and what may give or drain energy, not what will definitely motivate the person in a particular situation.</p>
+              <p class="mb-0">You are responsible for reviewing the interpretation, assessing what is relevant and deciding which conclusions you choose to use.</p>
             {% endif %}
           </div>
         </div>
