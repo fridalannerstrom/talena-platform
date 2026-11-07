@@ -54,8 +54,14 @@
     return isSwedish() ? "Rapporttext" : "Report text";
   };
 
+  // Only designated history panels may be styled or populated. The enclosing
+  // [data-final-output-root] also holds the endpoint URL for child components;
+  // mounting there would incorrectly wrap the entire After interview workspace.
+  const PANEL_SELECTOR = "[data-manager-report-activity-panel][data-manager-report-activity-url]";
+
   function mount(container) {
-    if (!container || container.dataset.talenaAuditMounted === "true") return;
+    if (!container?.matches?.(PANEL_SELECTOR) ||
+        container.dataset.talenaAuditMounted === "true") return;
     const url = container.dataset.managerReportActivityUrl;
     if (!url) return;
     container.dataset.talenaAuditMounted = "true";
@@ -124,8 +130,7 @@
   }
 
   window.TalenaManagerReportActivity = Object.freeze({mount});
-  const init = () => document.querySelectorAll("[data-manager-report-activity-url]")
-    .forEach(mount);
+  const init = () => document.querySelectorAll(PANEL_SELECTOR).forEach(mount);
   const attach = () => {
     init();
     if (!window.MutationObserver) return;
@@ -133,8 +138,8 @@
       records.forEach(record => {
         record.addedNodes.forEach(added => {
           if (added.nodeType !== 1) return;
-          if (added.matches?.("[data-manager-report-activity-url]")) mount(added);
-          added.querySelectorAll?.("[data-manager-report-activity-url]").forEach(mount);
+          if (added.matches?.(PANEL_SELECTOR)) mount(added);
+          added.querySelectorAll?.(PANEL_SELECTOR).forEach(mount);
         });
       });
     }).observe(document.body, {childList:true, subtree:true});
