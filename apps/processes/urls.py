@@ -1,7 +1,12 @@
 from django.urls import path
 
 from . import views
-from .manager_report_pdf import prepare_manager_report_pdf
+from .manager_report_pdf import (
+    prepare_manager_report_pdf, confirm_manager_report_pdf_generated,
+)
+from .manager_report_activity import (
+    customer_manager_report_activity, platform_manager_report_activity,
+)
 from .pinned_projects import toggle_pinned_project
 from .process_duplication import process_duplicate
 from .access_control import (
@@ -260,6 +265,21 @@ urlpatterns = [
         ),
         prepare_manager_report_pdf,
         name="process_candidate_manager_report_pdf_prepare",
+    ),
+    path(
+        "<int:process_id>/candidates/<int:candidate_id>/manager-report-pdf/generated/",
+        confirm_manager_report_pdf_generated,
+        name="process_candidate_manager_report_pdf_generated",
+    ),
+    path(
+        "<int:process_id>/candidates/<int:candidate_id>/manager-report-activity/",
+        customer_manager_report_activity,
+        name="process_candidate_manager_report_activity",
+    ),
+    path(
+        "<int:process_id>/candidates/<int:candidate_id>/manager-report-activity/admin/",
+        platform_manager_report_activity,
+        name="process_candidate_manager_report_activity_admin",
     ),
     path(
         (
