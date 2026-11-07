@@ -607,3 +607,86 @@ class InterviewQuestionNoteEndpointTests(TestCase):
         self.assertIs(removed.json()["possible_personal_data"], False)
         self.assertFalse(InterviewQuestionNote.objects.exists())
 
+    def test_429_pdf_metadata_only_reports_real_edits_and_current_export_actor(self):
+        from apps.activity.models import ActivityEvent
+
+        url = reverse(
+            "processes:process_candidate_manager_report_pdf_prepare",
+            kwargs={"process_id": self.process.id, "candidate_id": self.candidate.id},
+        )
+        self.user.first_name = "Anna"
+        self.user.last_name = "Andersson"
+        self.user.save(update_fields=["first_name", "last_name"])
+        first = self.client.post(url)
+        self.assertEqual(first.status_code, 200)
+        self.assertEqual(first["Cache-Control"], "private, no-store")
+        self.assertEqual(first.json()["exported_by"]["name"], "Anna Andersson")
+        self.assertIsNone(first.json()["last_edited_by"])
+        self.assertTrue(first.json()["exported_by"]["at"])
+        self.assertEqual(
+            ActivityEvent.objects.filter(verb=ActivityEvent.Verb.MANAGER_REPORT_PDF_PREPARED).count(),
+            1,
+        )
+
+        ManagerReportTextEdit.objects.create(
+            process=self.process,
+            candidate=self.candidate,
+            block_key="wellbeing_tips",
+            language_code="en",
+            text="Manually updated manager advice.",
+            version=1,
+            updated_by=self.user,
+        )
+        viewer = User.objects.create_user(
+            username="second-exporter",
+            first_name="Johan",
+            last_name="Svensson",
+            password="test-password",
+        )
+        CompanyMember.objects.create(
+            company=self.company,
+            user=viewer,
+            primary_org_unit=self.unit,
+            role=CompanyMember.ROLE_VIEWER,
+        )
+        UserOrgUnitAccess.objects.create(
+            user=viewer,
+            org_unit=self.unit,
+            permission=UserOrgUnitAccess.PERM_VIEWER,
+        )
+        self.client.force_login(viewer)
+        second = self.client.post(url)
+        self.assertEqual(second.status_code, 200)
+        self.assertEqual(second.json()["last_edited_by"]["name"], "Anna Andersson")
+        self.assertEqual(second.json()["exported_by"]["name"], "Johan Svensson")
+        self.assertEqual(
+            ActivityEvent.objects.filter(verb=ActivityEvent.Verb.MANAGER_REPORT_PDF_PREPARED).count(),
+            2,
+        )
+        last_event = ActivityEvent.objects.filter(
+            verb=ActivityEvent.Verb.MANAGER_REPORT_PDF_PREPARED
+        ).latest("created_at")
+        self.assertEqual(last_event.actor, viewer)
+        self.assertEqual(last_event.company, self.company)
+        self.assertEqual(last_event.candidate, self.candidate)
+        self.assertEqual(second.json()["exported_by"]["at"], last_event.created_at.isoformat())
+        self.assertEqual(last_event.meta["status"], "prepared")
+
+    def test_429_pdf_metadata_export_does_not_leak_across_tenants(self):
+        from apps.activity.models import ActivityEvent
+        url = reverse(
+            "processes:process_candidate_manager_report_pdf_prepare",
+            kwargs={"process_id": self.process.id, "candidate_id": self.candidate.id},
+        )
+        outsider = User.objects.create_user(
+            username="unrelated-pdf-user",
+            password="test-password",
+        )
+        self.client.force_login(outsider)
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, 403)
+        self.assertFalse(
+            ActivityEvent.objects.filter(verb=ActivityEvent.Verb.MANAGER_REPORT_PDF_PREPARED).exists()
+        )
+        self.client.force_login(self.user)
+        self.assertEqual(self.client.get(url).status_code, 405)
