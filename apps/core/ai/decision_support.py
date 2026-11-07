@@ -3580,7 +3580,7 @@ def save_post_interview_content_block(
 
         if all(
             _clean_text(result["content_blocks"].get(key))
-            for key in POST_INTERVIEW_CONTENT_BLOCK_KEYS
+            for key in ACTIVE_POST_INTERVIEW_CONTENT_BLOCK_KEYS
         ):
             result["overall_synthesis"] = result["content_blocks"][
                 "overall_picture"
