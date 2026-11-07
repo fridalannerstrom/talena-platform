@@ -227,9 +227,9 @@
             || (typeof item.intervjun === "string" && item.intervjun.trim())
           )
         );
-        // One AI badge per generated domain (Färdighet, Motivation,
-        // Personlighet), not beside every Testbild/Intervjun subheading.
-        if (key !== "synthesis" && sectionHasAI) {
+        // One AI badge at each generated section heading, including the
+        // final Helhetsbild. No badges beside Testbild/Intervjun subheadings.
+        if (sectionHasAI) {
           const generatedBadge = el("span", "talena-ai-generated-badge",
             "✦ " + tr("AI-genererat", "AI-generated"));
           generatedBadge.setAttribute("aria-label", tr("AI-genererat", "AI-generated"));
