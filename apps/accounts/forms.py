@@ -38,13 +38,21 @@ class InviteUserForm(forms.ModelForm):
         label="Email subject",
         max_length=160,
         initial=DEFAULT_INVITE_SUBJECT,
-        widget=forms.TextInput(attrs={"class": "form-control"}),
+        widget=forms.TextInput(attrs={
+            "class": "form-control",
+            "data-invite-default-en": DEFAULT_INVITE_SUBJECT,
+            "data-invite-default-sv": DEFAULT_INVITE_SUBJECT_SV,
+        }),
     )
     invite_message = forms.CharField(
         label="Email message",
         max_length=3000,
         initial=DEFAULT_INVITE_MESSAGE,
-        widget=forms.Textarea(attrs={"class": "form-control", "rows": 5}),
+        widget=forms.Textarea(attrs={
+            "class": "form-control", "rows": 5,
+            "data-invite-default-en": DEFAULT_INVITE_MESSAGE,
+            "data-invite-default-sv": DEFAULT_INVITE_MESSAGE_SV,
+        }),
     )
 
     def clean_invite_subject(self):
@@ -246,13 +254,21 @@ class CompanyInviteMemberForm(forms.Form):
         label="Email subject",
         max_length=160,
         initial=DEFAULT_INVITE_SUBJECT,
-        widget=forms.TextInput(attrs={"class": "form-control"}),
+        widget=forms.TextInput(attrs={
+            "class": "form-control",
+            "data-invite-default-en": DEFAULT_INVITE_SUBJECT,
+            "data-invite-default-sv": DEFAULT_INVITE_SUBJECT_SV,
+        }),
     )
     invite_message = forms.CharField(
         label="Email message",
         max_length=3000,
         initial=DEFAULT_INVITE_MESSAGE,
-        widget=forms.Textarea(attrs={"class": "form-control", "rows": 5}),
+        widget=forms.Textarea(attrs={
+            "class": "form-control", "rows": 5,
+            "data-invite-default-en": DEFAULT_INVITE_MESSAGE,
+            "data-invite-default-sv": DEFAULT_INVITE_MESSAGE_SV,
+        }),
     )
 
     def clean_invite_subject(self):
