@@ -426,12 +426,33 @@
     const lines = source.split("\n");
     let index = 0;
 
+    // The report already provides "Tips för trivsel" as a heading with edit
+    // controls. AI output sometimes starts with the same heading. Skip that
+    // *display-only* duplicate, without altering the stored AI/edited text.
+    const isWellbeingReport = container.dataset.managerReportEditKey === "wellbeing_tips"
+      || container.classList.contains("after-interview-manager-report__personality-advice-text")
+      || Boolean(container.closest?.('[data-after-interview-block="wellbeing_tips"]'));
+    const isDuplicateWellbeingHeading = (line) => {
+      const heading = line.replace(/^#{1,6}\s+/, "").trim();
+      const unwrapped = heading.replace(/^(?:\*\*|__)(.*?)(?:\*\*|__)$/, "$1").trim();
+      const normalized = (value) => value.replace(/:$/, "").trim().toLocaleLowerCase("sv-SE");
+      return [copy().managerPersonalityAdviceTitle, "Tips för trivsel", "Wellbeing tips", "For the manager"]
+        .some((label) => normalized(label) === normalized(unwrapped));
+    };
+    let firstContentLine = true;
+
     while (index < lines.length) {
       const line = lines[index].trim();
       if (!line) {
         index += 1;
         continue;
       }
+      if (firstContentLine && isWellbeingReport && isDuplicateWellbeingHeading(line)) {
+        index += 1;
+        firstContentLine = false;
+        continue;
+      }
+      firstContentLine = false;
 
       const heading = line.match(/^(#{1,6})\s+(.+)$/);
       if (heading) {
