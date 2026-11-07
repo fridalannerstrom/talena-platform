@@ -164,7 +164,7 @@ assert.ok(!tabs.includes('reportsButton.append(reportsIcon, reportsText)'));
 assert.ok(tabs.includes('reportNav.className = "personality-view-tabs"'),
   "Nested report tabs must retain the personality-style appearance.");
 
-assert.ok(/#candidate-insights-panel-after-interview\\s*>\\s*\\.final-output-card\\s*\\{\\s*padding:\\s*0\\s*!important/.test(insightTabsCss),
+assert.ok(/#candidate-insights-panel-after-interview\s*>\s*\.final-output-card\s*\{\s*padding:\s*0\s*!important/.test(insightTabsCss),
   "After interview outer card must not add a second padding layer.");
 assert.ok(insightTabsCss.includes('#candidate-insights-panel-after-interview > .final-output-card > div:first-child {') &&
   insightTabsCss.includes('margin: 0 !important;'),
