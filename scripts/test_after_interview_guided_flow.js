@@ -10,6 +10,9 @@ const shell = fs.readFileSync("templates/customer/core/layouts/customer_base.htm
 const header = fs.readFileSync("templates/customer/processes/_process_header.html", "utf8");
 const page = fs.readFileSync("templates/customer/processes/process_base.html", "utf8");
 const evidenceAvailability = fs.readFileSync("static/js/talena/post-interview-evidence-availability.js", "utf8");
+const personalitySubtabs = fs.readFileSync("templates/customer/processes/partials/candidate_insights/tabs/_personality.html", "utf8");
+const personalityResults = fs.readFileSync("templates/customer/processes/partials/candidate_insights/personality/_results.html", "utf8");
+const sharedAssessmentStyles = fs.readFileSync("static/css/talena/pages/candidate-assessments.css", "utf8");
 
 // Two primary tabs: Evidence and Reports. The existing four report keys
 // are nested rather than rewritten, preserving PDF, URL and refresh behavior.
@@ -21,7 +24,7 @@ for (const snippet of [
   'reportKeys.forEach((key) => {',
   'reportNav.appendChild(button)',
   'reportPanels.appendChild(tabPanel)',
-  'reportsArea.append(reportsHeader, reportStatus, reportNav, reportPanels)',
+  'reportsArea.append(reportsHeader, reportStatus, reportNavWrapper, reportPanels)',
   'tabs.append(journey, navSection, tabPanels)',
 ]) assert.ok(tabs.includes(snippet), "Two-level tab contract missing: " + snippet);
 
@@ -79,7 +82,7 @@ assert.ok(copy.includes("testresultat och processkontext"));
 assert.ok(copy.includes("assessment results and process context"));
 assert.ok(view.includes("data-interview-notes-save") && view.includes("data-post-interview-generate"));
 assert.ok(view.includes('rows="8"'));
-assert.ok(shell.includes("after-interview-tabs.js") && shell.includes("manager-motivation-v4"));
+assert.ok(shell.includes("after-interview-tabs.js") && shell.includes("shared-tabs-v5"));
 assert.ok(header.includes("candidate-eyebrows.js") && header.includes("two-tabs-v3"));
 
 // A compiled candidate sees only the single regenerate row on Evidence.
@@ -108,4 +111,37 @@ assert.ok(tabs.includes('group.type === "do" ? "check-circle" : "alert-circle"')
 assert.ok(/after-interview-manager-report__motivator-practical-grid\s*\{\s*grid-template-columns:\s*minmax\(0, 1fr\);/.test(tabs),
   "Advice boxes should stack on narrow screens.");
 
-console.log("After interview two-stage guided report flow contract passed.");
+// The two navigation levels must share their real components with the
+// Personality section, not just imitate them with a custom visual theme.
+for (const snippet of [
+  'primaryNav.className = "candidate-insights-view-switcher after-interview-primary-nav"',
+  'reportNavWrapper.className = "personality-view-controls"',
+  'reportNav.className = "personality-view-tabs"',
+  'kind === "report"',
+  '"personality-view-tab" : "candidate-insights-view-option"',
+  'const button = makeTab(key, copy().tabs[key], id, "report")',
+  'reportsButton.append(reportsIcon, reportsText)',
+]) assert.ok(tabs.includes(snippet), "Shared tab design is missing: " + snippet);
+
+assert.ok(personalitySubtabs.includes('class="candidate-insights-view-switcher"'));
+assert.ok(personalitySubtabs.includes('class="candidate-insights-view-option is-active"'));
+assert.ok(personalityResults.includes('class="personality-view-tabs"'));
+assert.ok(personalityResults.includes('class="personality-view-tab is-active"'));
+assert.ok(sharedAssessmentStyles.includes('.process-page .candidate-insights-view-option'));
+assert.ok(sharedAssessmentStyles.includes('.process-page .personality-view-tab'));
+assert.ok(!tabs.includes('__PANEL__ .candidate-insights-view-option {'),
+  "After interview must not override the shared primary tab appearance.");
+assert.ok(!tabs.includes('__PANEL__ .after-interview-report-switcher {'),
+  "After interview must not restyle the personality profile tabs.");
+
+// Hide the redundant current-status callout, while retaining warnings
+// for new or unsaved evidence and error feedback from regeneration.
+assert.ok(tabs.includes("reportStatus.hidden = true"));
+assert.ok(tabs.includes("reportStatus.hidden = !needsUpdate"));
+assert.ok(tabs.includes('reportStatusTitle.textContent = hasUnsavedNotes'));
+assert.ok(tabs.includes('reportStatus.hidden = false;'));
+assert.ok(tabs.includes(".after-interview-reports__status[hidden]"));
+assert.ok(!tabs.includes("reportStatusCurrent:"),
+  "No current-compilation status text should be shown.");
+
+console.log("After interview shared navigation and report freshness contract passed.");
