@@ -123,7 +123,19 @@
       generatedComplete: "Sammanställning genererad",
       generatedCompleteDescription: "Sammanställningen är klar och övriga flikar är nu tillgängliga.",
       unavailable: "Det här innehållet blir tillgängligt när intervjuunderlaget har sammanställts.",
-      lockedTabsHint: "Spara intervjuunderlaget och välj Sammanställ underlag för att låsa upp de andra flikarna.",
+      lockedTabsHint: "De andra flikarna öppnas när du väljer Sammanställ underlag.",
+      journeyTitle: "Så fungerar Efter intervju",
+      journeySteps: [
+        { title: "Samla underlag", description: "Lägg till anteckningar och sparade intervjusvar." },
+        { title: "Sammanställ", description: "Talena väger samman intervju, tester och processkontext." },
+        { title: "Använd resultatet", description: "Utforska helhetsbilden och ta fram en chefsrapport." },
+      ],
+      evidenceKicker: "STEG 1 · UNDERLAG",
+      evidenceHeading: "Börja med det som kom fram i intervjun",
+      evidenceHeadingReady: "Komplettera ditt intervjuunderlag",
+      evidenceLead: "Testresultat och rollkontext finns redan i Talena. Lägg till exempel, svar och observationer från samtalet här.",
+      evidenceLeadReady: "Du kan komplettera eller ändra anteckningarna här. Sammanställ på nytt för att uppdatera analysen och rapporterna.",
+      evidenceTip: "Tips: Beskriv konkreta situationer, vad kandidaten gjorde och vad som hände. Svar som sparats på intervjufrågorna följer med automatiskt.",
     },
     en: {
       tabs: {
@@ -240,7 +252,19 @@
       generatedComplete: "Compilation generated",
       generatedCompleteDescription: "The compilation is ready and the other tabs are now available.",
       unavailable: "This content becomes available when the interview evidence has been compiled.",
-      lockedTabsHint: "Save the interview evidence and select Compile evidence to unlock the other tabs.",
+      lockedTabsHint: "The other tabs unlock when you select Compile evidence.",
+      journeyTitle: "How After interview works",
+      journeySteps: [
+        { title: "Collect evidence", description: "Add notes and saved interview answers." },
+        { title: "Compile", description: "Talena combines the interview, tests and process context." },
+        { title: "Use the results", description: "Explore the overall picture and prepare a manager report." },
+      ],
+      evidenceKicker: "STEP 1 · EVIDENCE",
+      evidenceHeading: "Start with what you learned in the interview",
+      evidenceHeadingReady: "Update your interview evidence",
+      evidenceLead: "Talena already has the assessment results and role context. Add examples, answers and observations from the conversation here.",
+      evidenceLeadReady: "Add or change notes here, then compile again to update the analysis and reports.",
+      evidenceTip: "Tip: Describe specific situations, what the candidate did and what happened. Answers saved on interview questions are included automatically.",
     },
   };
 
@@ -1520,6 +1544,77 @@
         font-weight: 550;
       }
       __PANEL__ .candidate-insights-subworkspace__panels { padding: 1.25rem 1.5rem 1.5rem; }
+      __PANEL__ .after-interview-journey {
+        padding: 1.15rem 1.5rem; background: #fdfcfb;
+        border-bottom: 1px solid var(--talena-border, #e5dfd8);
+      }
+      __PANEL__ .after-interview-journey__title {
+        margin: 0 0 .7rem; font-size: .81rem; font-weight: 650;
+      }
+      __PANEL__ .after-interview-journey__steps {
+        display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: .75rem;
+      }
+      __PANEL__ .after-interview-journey__step {
+        display: flex; gap: .65rem; align-items: flex-start; min-width: 0;
+        padding: .8rem .85rem; border: 1px solid var(--talena-border, #e5dfd8);
+        background: #fff; border-radius: 11px;
+      }
+      __PANEL__ .after-interview-journey__step.is-current {
+        background: #fff7f5; border-color: rgba(255,111,97,.55);
+      }
+      __PANEL__ .after-interview-journey__number {
+        flex: 0 0 25px; width: 25px; height: 25px; display: flex;
+        align-items: center; justify-content: center;
+        border-radius: 50%; background: #f0edeb; color: #5d5550;
+        font-size: .74rem; font-weight: 700;
+      }
+      __PANEL__ .after-interview-journey__step.is-current .after-interview-journey__number {
+        background: var(--talena-coral, #ff6f61); color: white;
+      }
+      __PANEL__ .after-interview-journey__step.is-done .after-interview-journey__number {
+        background: #e8f1e8; color: #315e42;
+      }
+      __PANEL__ .after-interview-journey__step-title {
+        display: block; color: var(--talena-ink, #191817);
+        font-size: .78rem; font-weight: 650; line-height: 1.45;
+      }
+      __PANEL__ .after-interview-journey__step-text {
+        display: block; margin-top: .12rem;
+        color: var(--talena-text-muted, #766e68); font-size: .72rem; line-height: 1.55;
+      }
+      __PANEL__ .after-interview-evidence-card {
+        border: none !important; border-radius: 0 !important;
+        background: transparent !important; padding: .25rem 0 0 !important;
+      }
+      __PANEL__ .after-interview-evidence-intro { margin-bottom: 1.25rem; }
+      __PANEL__ .after-interview-evidence-intro__kicker {
+        margin: 0 0 .35rem; font-size: .68rem; font-weight: 700;
+        color: #d95d51; letter-spacing: .06em;
+      }
+      __PANEL__ .after-interview-evidence-intro__title {
+        margin: 0 0 .35rem; color: var(--talena-ink, #191817);
+        font-size: 1.26rem; font-weight: 700; line-height: 1.25;
+      }
+      __PANEL__ .after-interview-evidence-intro__description {
+        max-width: 780px; margin: 0; font-size: .85rem; line-height: 1.65;
+        color: var(--talena-text-muted, #766e68);
+      }
+      __PANEL__ .after-interview-evidence-intro__tip {
+        display: flex; gap: .5rem; align-items: flex-start; margin: .8rem 0 0;
+        font-size: .76rem; line-height: 1.55; color: #615954;
+      }
+      __PANEL__ .after-interview-evidence-intro__tip svg {
+        width: 15px; height: 15px; flex: 0 0 15px; margin-top: 1px;
+      }
+      __PANEL__ .after-interview-evidence-card [data-interview-notes-root] {
+        margin-top: 0 !important;
+      }
+      @media (max-width: 767px) {
+        __PANEL__ .after-interview-journey { padding: 1rem; }
+        __PANEL__ .after-interview-journey__steps { grid-template-columns: 1fr; gap: .5rem; }
+        __PANEL__ .after-interview-journey__step { padding: .65rem .75rem; }
+        __PANEL__ .after-interview-evidence-intro__title { font-size: 1.1rem; }
+      }
       __PANEL__ .after-interview-tab-panels { min-width: 0; }
       __PANEL__ .after-interview-tab-panel { display: grid; gap: 1rem; min-width: 0; }
       __PANEL__ .after-interview-tab-panel[hidden] { display: none !important; }
@@ -1960,6 +2055,39 @@
     const tabs = document.createElement("div");
     tabs.className = "candidate-insights-subworkspace after-interview-tabs";
 
+    const journey = document.createElement("section");
+    journey.className = "after-interview-journey";
+    journey.setAttribute("aria-label", copy().journeyTitle);
+    const journeyHeading = document.createElement("h3");
+    journeyHeading.className = "after-interview-journey__title";
+    journeyHeading.textContent = copy().journeyTitle;
+    const journeySteps = document.createElement("div");
+    journeySteps.className = "after-interview-journey__steps";
+    copy().journeySteps.forEach((step, index) => {
+      const item = document.createElement("div");
+      item.className = "after-interview-journey__step";
+      if (index === (hasCompiledPostInterviewResult ? 2 : 0)) {
+        item.classList.add("is-current");
+        item.setAttribute("aria-current", "step");
+      } else if (hasCompiledPostInterviewResult && index < 2) {
+        item.classList.add("is-done");
+      }
+      const number = document.createElement("span");
+      number.className = "after-interview-journey__number";
+      number.textContent = String(index + 1);
+      const description = document.createElement("div");
+      const title = document.createElement("span");
+      title.className = "after-interview-journey__step-title";
+      title.textContent = step.title;
+      const body = document.createElement("span");
+      body.className = "after-interview-journey__step-text";
+      body.textContent = step.description;
+      description.append(title, body);
+      item.append(number, description);
+      journeySteps.appendChild(item);
+    });
+    journey.append(journeyHeading, journeySteps);
+
     const navSection = document.createElement("section");
     navSection.className = "candidate-insights-subnavigation";
 
@@ -2005,7 +2133,7 @@
       nav.appendChild(button);
       tabPanels.appendChild(tabPanel);
     });
-    tabs.append(navSection, tabPanels);
+    tabs.append(journey, navSection, tabPanels);
     header.insertAdjacentElement("afterend", tabs);
 
     const summary = postContent?.querySelector(":scope > .purpose-fit-section:first-child");
@@ -2639,7 +2767,29 @@
 
     const evidenceCard = document.createElement("section");
     evidenceCard.className = "after-interview-tab-card after-interview-evidence-card";
-    evidenceCard.append(notesRoot, postSection);
+    const evidenceIntro = document.createElement("div");
+    evidenceIntro.className = "after-interview-evidence-intro";
+    const evidenceKicker = document.createElement("p");
+    evidenceKicker.className = "after-interview-evidence-intro__kicker";
+    evidenceKicker.textContent = copy().evidenceKicker;
+    const evidenceHeading = document.createElement("h3");
+    evidenceHeading.className = "after-interview-evidence-intro__title";
+    evidenceHeading.textContent = hasCompiledPostInterviewResult
+      ? copy().evidenceHeadingReady : copy().evidenceHeading;
+    const evidenceLead = document.createElement("p");
+    evidenceLead.className = "after-interview-evidence-intro__description";
+    evidenceLead.textContent = hasCompiledPostInterviewResult
+      ? copy().evidenceLeadReady : copy().evidenceLead;
+    const evidenceTip = document.createElement("p");
+    evidenceTip.className = "after-interview-evidence-intro__tip";
+    const tipIcon = document.createElement("i");
+    tipIcon.setAttribute("data-feather", "info");
+    tipIcon.setAttribute("aria-hidden", "true");
+    const tipText = document.createElement("span");
+    tipText.textContent = copy().evidenceTip;
+    evidenceTip.append(tipIcon, tipText);
+    evidenceIntro.append(evidenceKicker, evidenceHeading, evidenceLead, evidenceTip);
+    evidenceCard.append(evidenceIntro, notesRoot, postSection);
     panels.get("evidence").appendChild(evidenceCard);
 
     if (contextNote?.isConnected) panels.get("overview").appendChild(contextNote);
