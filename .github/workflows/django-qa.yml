@@ -55,6 +55,8 @@ jobs:
           node scripts/test_candidate_report_packages_contract.js
           node scripts/test_manager_report_branding_contract.js
           node --check static/js/talena/structured-overall-picture.js
+          node --check static/js/talena/account-invite-language.js
+          node scripts/test_account_invite_language.js
           node --check static/js/talena/candidate-ai-badges.js
           node --check static/js/talena/project-assessment-status.js
           node scripts/test_structured_overall_picture_contract.js
