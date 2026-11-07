@@ -4,10 +4,13 @@
   const PANEL_SELECTOR = "#candidate-insights-panel-after-interview";
   const STYLE_ID = "talena-after-interview-tabs-v1";
   const URL_PARAM = "afterTab";
+  let lastRenderedCandidate = null;
+  let lastRenderedCompiled = null;
 
   const COPY = {
     sv: {
       tabs: {
+        reports: "Rapporter",
         overview: "Helhetsbild",
         interview: "Intervjusammanfattning",
         explore: "Undersök vidare",
@@ -15,14 +18,14 @@
         evidence: "Underlag",
       },
       descriptions: {
-        overview: "En samlad bild av testresultat, intervjuunderlag och processkontext.",
+        overview: "En samlad bild av testresultat, intervjuunderlag och rollkontext.",
         interview: "Vad intervjun bekräftar, nyanserar eller tillför till testresultaten.",
         explore: "Frågor och områden där ytterligare underlag kan ge en mer komplett bild.",
         managerReport: "Ett samlat stöd för rekryteraren och ansvarig chef, med fokus på kandidatens resultat och relevanta frågor att följa upp.",
         evidence: "Intervjuanteckningar och svar som Talena använder som underlag.",
       },
       managerReportTitle: "Chefsrapport",
-      managerReportIntro: "Chefsrapporten är ett stöd för rekryteraren och ansvarig chef. Här samlas kandidatens testresultat och sådant som kan vara värdefullt att följa upp i samtal.",
+      managerReportIntro: "Här samlas tillgängliga testresultat tillsammans med personens egna perspektiv och konkreta tips för att förstå och använda insikterna i praktiken.",
       savePdf: "Spara som PDF",
       creatingPdf: "Skapar PDF…",
       pdfGenerationFailed: "PDF:en kunde inte skapas. Försök igen.",
@@ -46,7 +49,7 @@
       ],
       managerPersonalityTestbild: "Testbild",
       managerPersonalityCandidateDescribes: "Kandidaten beskriver",
-      managerPersonalityAdviceTitle: "För chefen",
+      managerPersonalityAdviceTitle: "Tips för trivsel",
       managerPersonalityTestMissing: "Ingen testtolkning är tillgänglig ännu.",
       managerPersonalityInterviewMissing: "Inga intervjuanteckningar är tillgängliga ännu.",
       managerSkillNames: { numerical: "Numeriskt", logical: "Logiskt", verbal: "Verbalt" },
@@ -119,11 +122,36 @@
       confirmRegenerationCancel: "Avbryt",
       confirmRegenerationContinue: "Fortsätt",
       generatedComplete: "Sammanställning genererad",
-      generatedCompleteDescription: "Sammanställningen är klar och övriga flikar är nu tillgängliga.",
+      generatedCompleteDescription: "Sammanställningen är klar. Du hittar resultat och rapporter under Rapporter.",
       unavailable: "Det här innehållet blir tillgängligt när intervjuunderlaget har sammanställts.",
+      lockedTabsHint: "De andra flikarna öppnas när du väljer Sammanställ underlag.",
+      journeyTitle: "Så fungerar Efter intervju",
+      journeySteps: [
+        { title: "Samla underlag", description: "Lägg till anteckningar och sparade intervjusvar." },
+        { title: "Sammanställ", description: "Talena väger samman intervju, tester och rollkontext." },
+        { title: "Använd resultatet", description: "Utforska helhetsbilden och ta fram en chefsrapport." },
+      ],
+      evidenceKicker: "STEG 1 · UNDERLAG",
+      evidenceHeading: "Börja med det som kom fram i intervjun",
+      evidenceHeadingReady: "Komplettera ditt intervjuunderlag",
+      evidenceLead: "Testresultat och rollkontext finns redan i Talena. Lägg till exempel, svar och observationer från samtalet här.",
+      evidenceLeadReady: "Du kan komplettera eller ändra anteckningarna här. Sammanställ på nytt för att uppdatera analysen och rapporterna.",
+      evidenceTip: "Tips: Beskriv konkreta situationer, vad kandidaten gjorde och vad som hände. Svar som sparats på intervjufrågorna följer med automatiskt.",
+      reportsIntro: "Här hittar du de sammanställda resultaten och rapporterna. Underlaget kan alltid kompletteras i fliken Underlag.",
+      reportStatusOutdated: "Underlaget har ändrats sedan rapporterna skapades.",
+      reportStatusUnsaved: "Du har osparade intervjuanteckningar. Skapa en ny sammanställning för att uppdatera rapporterna.",
+      reportStatusDetail: "Rapporterna visar fortfarande den tidigare versionen tills du skapar en ny sammanställning.",
+      reportRebuild: "Skapa ny sammanställning",
+      reportRebuildShort: "Uppdatera rapporterna",
+      reportGenerateUnavailable: "Lägg till och spara intervjuunderlag för att skapa rapporter.",
+      reportGenerating: "Sammanställer…",
+      reportError: "Det gick inte att uppdatera rapporterna. Försök igen.",
+      reportOverviewTitle: "Dina rapporter",
+      evidenceRebuildHint: "Du kan alltid skapa en ny sammanställning om intervjuunderlaget har förändrats.",
     },
     en: {
       tabs: {
+        reports: "Reports",
         overview: "Overall picture",
         interview: "Interview summary",
         explore: "Explore further",
@@ -131,14 +159,14 @@
         evidence: "Evidence",
       },
       descriptions: {
-        overview: "A combined view of assessment results, interview evidence and process context.",
+        overview: "A combined view of assessment results, interview evidence and role context.",
         interview: "What the interview confirms, nuances or adds to the assessment results.",
         explore: "Questions and areas where additional evidence may create a more complete view.",
         managerReport: "A practical overview for the recruiter and manager, focused on the candidate’s results and relevant topics to follow up.",
         evidence: "Interview notes and answers used by Talena as evidence.",
       },
       managerReportTitle: "Manager report",
-      managerReportIntro: "The manager report is a practical resource for the recruiter and hiring manager. It brings together the candidate’s assessment results and topics that may be useful to explore in conversation.",
+      managerReportIntro: "This report brings together available assessment results, the person's own perspectives and practical tips for understanding and applying the insights.",
       savePdf: "Save as PDF",
       creatingPdf: "Creating PDF…",
       pdfGenerationFailed: "The PDF could not be created. Please try again.",
@@ -162,7 +190,7 @@
       ],
       managerPersonalityTestbild: "Test profile",
       managerPersonalityCandidateDescribes: "The candidate describes",
-      managerPersonalityAdviceTitle: "For the manager",
+      managerPersonalityAdviceTitle: "Wellbeing tips",
       managerPersonalityTestMissing: "No test interpretation is available yet.",
       managerPersonalityInterviewMissing: "No interview notes are available yet.",
       managerSkillNames: { numerical: "Numerical", logical: "Logical", verbal: "Verbal" },
@@ -235,8 +263,32 @@
       confirmRegenerationCancel: "Cancel",
       confirmRegenerationContinue: "Continue",
       generatedComplete: "Compilation generated",
-      generatedCompleteDescription: "The compilation is ready and the other tabs are now available.",
+      generatedCompleteDescription: "The compilation is ready. Open Reports to explore the results.",
       unavailable: "This content becomes available when the interview evidence has been compiled.",
+      lockedTabsHint: "The other tabs unlock when you select Compile evidence.",
+      journeyTitle: "How After interview works",
+      journeySteps: [
+        { title: "Collect evidence", description: "Add notes and saved interview answers." },
+        { title: "Compile", description: "Talena combines the interview, tests and role context." },
+        { title: "Use the results", description: "Explore the overall picture and prepare a manager report." },
+      ],
+      evidenceKicker: "STEP 1 · EVIDENCE",
+      evidenceHeading: "Start with what you learned in the interview",
+      evidenceHeadingReady: "Update your interview evidence",
+      evidenceLead: "Talena already has the assessment results and role context. Add examples, answers and observations from the conversation here.",
+      evidenceLeadReady: "Add or change notes here, then compile again to update the analysis and reports.",
+      evidenceTip: "Tip: Describe specific situations, what the candidate did and what happened. Answers saved on interview questions are included automatically.",
+      reportsIntro: "Find all compiled results and reports here. You can always update the evidence in the Evidence tab.",
+      reportStatusOutdated: "The evidence has changed since these reports were created.",
+      reportStatusUnsaved: "You have unsaved interview notes. Create a new compilation to update the reports.",
+      reportStatusDetail: "The reports still show the previous version until you create a new compilation.",
+      reportRebuild: "Create new compilation",
+      reportRebuildShort: "Update reports",
+      reportGenerateUnavailable: "Add and save interview evidence to generate reports.",
+      reportGenerating: "Compiling…",
+      reportError: "Could not update the reports. Please try again.",
+      reportOverviewTitle: "Your reports",
+      evidenceRebuildHint: "Create a new compilation whenever the interview evidence changes.",
     },
   };
 
@@ -318,412 +370,19 @@
     );
   };
 
-  const MOTIVATION_PRACTICAL_ADVICE = {
-  "sv": {
-    "attachment": {
-      "do": [
-        "Skapa möjligheter till samarbete och gemensam problemlösning.",
-        "Avsätt tid för relationsbyggande och regelbundna avstämningar."
-      ],
-      "avoid": [
-        "Låta personen arbeta isolerat under längre perioder.",
-        "Enbart fokusera på uppgifter och resultat i era samtal."
-      ]
-    },
-    "authority": {
-      "do": [
-        "Ge tydligt ansvar för beslut, projekt eller arbetsområden.",
-        "Låt personen leda initiativ och samordna andras arbete."
-      ],
-      "avoid": [
-        "Ge ansvar utan mandat att påverka.",
-        "Detaljstyra eller fatta alla beslut åt personen."
-      ]
-    },
-    "achievement": {
-      "do": [
-        "Sätt tydliga, utmanande och uppföljningsbara mål.",
-        "Ge konkret återkoppling på resultat och framsteg."
-      ],
-      "avoid": [
-        "Ge otydliga mål eller uppgifter utan tydliga förväntningar.",
-        "Låta goda prestationer passera utan uppföljning."
-      ]
-    },
-    "curiosity": {
-      "do": [
-        "Ge utrymme att utforska nya idéer, metoder och perspektiv.",
-        "Involvera personen i nya frågeställningar och utvecklingsinitiativ."
-      ],
-      "avoid": [
-        "Begränsa arbetet till välbekanta rutiner utan utrymme för utforskande.",
-        "Avfärda frågor eller nya idéer innan de undersökts."
-      ]
-    },
-    "customer_service": {
-      "do": [
-        "Skapa möjligheter till direktkontakt med kunder eller mottagare.",
-        "Synliggör hur personens insatser hjälper andra och möter deras behov."
-      ],
-      "avoid": [
-        "Låta personen arbeta långt från dem som får nytta av arbetet.",
-        "Enbart mäta effektivitet utan att uppmärksamma kundupplevelsen."
-      ]
-    },
-    "acquisition": {
-      "do": [
-        "Var tydlig med hur prestation och ansvar kan påverka ersättningen.",
-        "Koppla belöningar till konkreta och påverkbara resultat där det är möjligt."
-      ],
-      "avoid": [
-        "Vara otydlig kring löneutveckling och ekonomiska möjligheter.",
-        "Förutsätta att uppskattning och beröm alltid ersätter ekonomiska incitament."
-      ]
-    },
-    "quality": {
-      "do": [
-        "Ge tydliga kvalitetskriterier och tid för noggrant arbete.",
-        "Involvera personen i förbättringar av arbetssätt och kvalitetssäkring."
-      ],
-      "avoid": [
-        "Prioritera snabbhet framför kvalitet i alla situationer.",
-        "Leverera vidare arbete utan möjlighet till rimlig kvalitetskontroll."
-      ]
-    },
-    "creativity": {
-      "do": [
-        "Ge utrymme att testa egna idéer och alternativa lösningar.",
-        "Involvera personen tidigt när nya lösningar behöver utvecklas."
-      ],
-      "avoid": [
-        "Styra exakt hur varje uppgift ska lösas.",
-        "Avfärda oprövade förslag enbart för att de skiljer sig från tidigare arbetssätt."
-      ]
-    },
-    "work_life_balance": {
-      "do": [
-        "Skapa tydliga förväntningar kring arbetstid och tillgänglighet.",
-        "Planera arbetsbelastning och deadlines med utrymme för återhämtning."
-      ],
-      "avoid": [
-        "Förvänta dig ständig tillgänglighet utanför arbetstid.",
-        "Normalisera återkommande övertid och sena omprioriteringar."
-      ]
-    },
-    "independence": {
-      "do": [
-        "Var tydlig med målet men låt personen välja arbetssätt.",
-        "Ge mandat att fatta egna beslut inom tydliga ramar."
-      ],
-      "avoid": [
-        "Detaljstyra hur och när varje arbetsmoment ska genomföras.",
-        "Kräva godkännande för beslut personen kan fatta själv."
-      ]
-    },
-    "learning": {
-      "do": [
-        "Erbjud nya utmaningar som utvecklar kunskap och färdigheter.",
-        "Avsätt tid för kompetensutveckling och möjlighet att tillämpa nya kunskaper."
-      ],
-      "avoid": [
-        "Låta personen fastna i enbart rutinmässiga uppgifter.",
-        "Erbjuda utbildning utan möjlighet att använda det som lärts."
-      ]
-    },
-    "enjoyment": {
-      "do": [
-        "Skapa utrymme för humor, gemenskap och en lättsam arbetsmiljö.",
-        "Uppmuntra sociala aktiviteter och ett klimat där man kan vara sig själv."
-      ],
-      "avoid": [
-        "Låta varje möte och samtal enbart handla om prestation och leverans.",
-        "Skapa en alltför formell miljö där spontanitet och personlighet begränsas."
-      ]
-    },
-    "people_development": {
-      "do": [
-        "Ge möjlighet att coacha, stötta eller introducera kollegor.",
-        "Synliggör hur personens stöd bidrar till andras framsteg."
-      ],
-      "avoid": [
-        "Begränsa rollen till individuella prestationer utan möjlighet att bidra till andra.",
-        "Ta personens hjälpande insatser för givna."
-      ]
-    },
-    "recognition": {
-      "do": [
-        "Ge konkret och personlig uppskattning för väl utfört arbete.",
-        "Synliggör personens bidrag inför andra när det är lämpligt."
-      ],
-      "avoid": [
-        "Enbart uppmärksamma resultat när något gått fel.",
-        "Låta viktiga insatser förbli osynliga i organisationen."
-      ]
-    },
-    "ethics": {
-      "do": [
-        "Var transparent med beslut och förklara hur de förhåller sig till organisationens värderingar.",
-        "Ge utrymme att lyfta etiska dilemman och diskutera svåra avvägningar."
-      ],
-      "avoid": [
-        "Fatta beslut som går emot uttalade värderingar utan förklaring.",
-        "Avfärda invändningar kring rättvisa, ansvar eller integritet."
-      ]
-    },
-    "variety": {
-      "do": [
-        "Erbjud en blandning av arbetsuppgifter, projekt och utmaningar.",
-        "Involvera personen i tvärfunktionella samarbeten och nya initiativ."
-      ],
-      "avoid": [
-        "Låta personen arbeta med samma typ av uppgifter under långa perioder.",
-        "Begränsa rollen till ett alltför snävt och repetitivt ansvarsområde."
-      ]
-    },
-    "stability": {
-      "do": [
-        "Kommunicera förändringar i god tid och skapa tydlighet kring vad som gäller.",
-        "Skapa förutsägbarhet genom tydliga roller, rutiner och prioriteringar."
-      ],
-      "avoid": [
-        "Göra plötsliga förändringar utan förklaring eller framförhållning.",
-        "Ändra förväntningar och prioriteringar utan att tydliggöra varför."
-      ]
-    },
-    "making_a_difference": {
-      "do": [
-        "Visa hur personens arbete bidrar till ett större syfte eller positiv förändring.",
-        "Ge möjlighet att bidra till initiativ som skapar värde för andra."
-      ],
-      "avoid": [
-        "Enbart fokusera på ekonomiska resultat utan att förklara nyttan.",
-        "Låta personen utföra uppgifter utan att förstå deras betydelse."
-      ]
-    },
-    "commercial_focus": {
-      "do": [
-        "Synliggör hur arbetet påverkar affärsresultat och lönsamhet.",
-        "Involvera personen i affärsmässiga prioriteringar och förbättringar."
-      ],
-      "avoid": [
-        "Undanhålla relevant information om verksamhetens ekonomiska resultat.",
-        "Presentera mål utan att visa kopplingen till verksamhetens affär."
-      ]
-    },
-    "risk": {
-      "do": [
-        "Ge utrymme att testa nya angreppssätt med genomtänkta risker.",
-        "Involvera personen i utmanande beslut där olika möjligheter behöver vägas mot varandra."
-      ],
-      "avoid": [
-        "Kräva fullständig säkerhet innan något nytt får prövas.",
-        "Skapa en miljö där varje misslyckande möts av kritik snarare än lärande."
-      ]
+  // The same canonical MQ library feeds both this UI and AI's prompt.
+  // Read at render time, because candidate fragments refresh over AJAX.
+  const getMotivationPracticalAdvice = (panel) => {
+    const source = panel.closest("[data-final-output-root]")?.querySelector(
+      "#talena-motivation-practical-advice"
+    );
+    if (!source) return { sv: {}, en: {} };
+    try {
+      return JSON.parse(source.textContent || "{}");
+    } catch (_) {
+      return { sv: {}, en: {} };
     }
-  },
-  "en": {
-    "attachment": {
-      "do": [
-        "Create opportunities for collaboration and shared problem-solving.",
-        "Set aside time to build relationships and check in regularly."
-      ],
-      "avoid": [
-        "Leave the person working in isolation for long periods.",
-        "Focus only on tasks and results in your conversations."
-      ]
-    },
-    "authority": {
-      "do": [
-        "Give clear responsibility for decisions, projects or areas of work.",
-        "Let the person lead initiatives and coordinate others’ work."
-      ],
-      "avoid": [
-        "Give responsibility without the authority to influence decisions.",
-        "Micromanage or make every decision for the person."
-      ]
-    },
-    "achievement": {
-      "do": [
-        "Set clear, challenging goals that can be followed up.",
-        "Give specific feedback on results and progress."
-      ],
-      "avoid": [
-        "Set vague goals or tasks without clear expectations.",
-        "Let good performance pass without follow-up."
-      ]
-    },
-    "curiosity": {
-      "do": [
-        "Make room to explore new ideas, methods and perspectives.",
-        "Involve the person in new questions and development initiatives."
-      ],
-      "avoid": [
-        "Limit work to familiar routines with no room to explore.",
-        "Dismiss questions or new ideas before examining them."
-      ]
-    },
-    "customer_service": {
-      "do": [
-        "Create opportunities for direct contact with customers or recipients.",
-        "Show how the person’s contribution helps others and meets their needs."
-      ],
-      "avoid": [
-        "Keep the person far from those who benefit from their work.",
-        "Measure efficiency alone without considering the customer experience."
-      ]
-    },
-    "acquisition": {
-      "do": [
-        "Be clear about how performance and responsibility can affect compensation.",
-        "Where possible, tie rewards to concrete results the person can influence."
-      ],
-      "avoid": [
-        "Be unclear about salary progression and financial opportunities.",
-        "Assume appreciation and praise always replace financial incentives."
-      ]
-    },
-    "quality": {
-      "do": [
-        "Set clear quality criteria and allow time for careful work.",
-        "Involve the person in improving ways of working and quality assurance."
-      ],
-      "avoid": [
-        "Prioritise speed over quality in every situation.",
-        "Pass work on without a reasonable opportunity for quality checks."
-      ]
-    },
-    "creativity": {
-      "do": [
-        "Give room to test personal ideas and alternative solutions.",
-        "Involve the person early when new solutions need to be developed."
-      ],
-      "avoid": [
-        "Dictate exactly how every task must be solved.",
-        "Dismiss untested suggestions only because they differ from past practice."
-      ]
-    },
-    "work_life_balance": {
-      "do": [
-        "Set clear expectations about working hours and availability.",
-        "Plan workload and deadlines with room for recovery."
-      ],
-      "avoid": [
-        "Expect constant availability outside working hours.",
-        "Normalise recurring overtime and late changes in priorities."
-      ]
-    },
-    "independence": {
-      "do": [
-        "Be clear about the goal while letting the person choose how to work.",
-        "Give authority to make independent decisions within clear boundaries."
-      ],
-      "avoid": [
-        "Micromanage how and when each step must be carried out.",
-        "Require approval for decisions the person can make independently."
-      ]
-    },
-    "learning": {
-      "do": [
-        "Offer new challenges that develop knowledge and skills.",
-        "Set aside time for learning and for applying new knowledge."
-      ],
-      "avoid": [
-        "Let the person get stuck doing only routine tasks.",
-        "Offer training without a chance to use what was learned."
-      ]
-    },
-    "enjoyment": {
-      "do": [
-        "Make room for humour, connection and a relaxed work environment.",
-        "Encourage social activities and an atmosphere where people can be themselves."
-      ],
-      "avoid": [
-        "Let every meeting and conversation focus only on performance and delivery.",
-        "Create an overly formal environment that limits spontaneity and personality."
-      ]
-    },
-    "people_development": {
-      "do": [
-        "Give opportunities to coach, support or onboard colleagues.",
-        "Show how the person’s support contributes to others’ progress."
-      ],
-      "avoid": [
-        "Limit the role to individual performance with no chance to contribute to others.",
-        "Take the person’s supportive contributions for granted."
-      ]
-    },
-    "recognition": {
-      "do": [
-        "Give specific, personal appreciation for work well done.",
-        "Make the person’s contribution visible to others when appropriate."
-      ],
-      "avoid": [
-        "Only draw attention to results when something has gone wrong.",
-        "Let important contributions remain invisible in the organisation."
-      ]
-    },
-    "ethics": {
-      "do": [
-        "Be transparent about decisions and explain how they align with organisational values.",
-        "Make room to raise ethical dilemmas and discuss difficult trade-offs."
-      ],
-      "avoid": [
-        "Make decisions that conflict with stated values without explanation.",
-        "Dismiss concerns about fairness, responsibility or integrity."
-      ]
-    },
-    "variety": {
-      "do": [
-        "Offer a mix of tasks, projects and challenges.",
-        "Involve the person in cross-functional collaboration and new initiatives."
-      ],
-      "avoid": [
-        "Have the person work on the same type of task for long periods.",
-        "Limit the role to an overly narrow and repetitive area of responsibility."
-      ]
-    },
-    "stability": {
-      "do": [
-        "Communicate changes early and make clear what to expect.",
-        "Create predictability through clear roles, routines and priorities."
-      ],
-      "avoid": [
-        "Make sudden changes without explanation or notice.",
-        "Change expectations and priorities without explaining why."
-      ]
-    },
-    "making_a_difference": {
-      "do": [
-        "Show how the person’s work contributes to a larger purpose or positive change.",
-        "Offer opportunities to contribute to initiatives that create value for others."
-      ],
-      "avoid": [
-        "Focus only on financial results without explaining their value.",
-        "Have the person carry out tasks without understanding their significance."
-      ]
-    },
-    "commercial_focus": {
-      "do": [
-        "Show how the work affects business results and profitability.",
-        "Involve the person in business priorities and improvements."
-      ],
-      "avoid": [
-        "Withhold relevant information about the organisation’s financial results.",
-        "Present goals without showing how they connect to the business."
-      ]
-    },
-    "risk": {
-      "do": [
-        "Give room to try new approaches with considered risks.",
-        "Involve the person in challenging decisions that require weighing different options."
-      ],
-      "avoid": [
-        "Require complete certainty before anything new can be tried.",
-        "Create an environment where every failure is criticised instead of treated as a learning opportunity."
-      ]
-    }
-  }
-};
+  };
 
   const isSwedish = () =>
     (document.documentElement.lang || "").toLowerCase().startsWith("sv");
@@ -767,12 +426,42 @@
     const lines = source.split("\n");
     let index = 0;
 
+    // A report already has a heading. AI content can begin with the exact
+    // same title, creating two titles and duplicate AI tags. Suppress only
+    // that first displayed heading, never change saved/edited source text.
+    const blockKey = container.dataset.afterInterviewSourceBlock
+      || container.dataset.afterInterviewBlockContent
+      || container.dataset.managerReportEditKey
+      || container.closest?.("[data-after-interview-block]")?.dataset?.afterInterviewBlock
+      || (container.classList.contains("after-interview-manager-report__personality-advice-text")
+        ? "wellbeing_tips" : "");
+    const duplicateHeadingLabels = {
+      overall_picture: [copy().tabs.overview, "Helhetsbild", "Overall picture"],
+      interview_summary: [copy().tabs.interview, "Intervjusammanfattning", "Interview summary"],
+      explore_further: [copy().tabs.explore, "Undersök vidare", "Explore further", "Investigate further"],
+      wellbeing_tips: [copy().managerPersonalityAdviceTitle, "Tips för trivsel", "Wellbeing tips", "For the manager"],
+    };
+    const isDuplicateBlockHeading = (line) => {
+      const heading = line.replace(/^#{1,6}\s+/, "").trim();
+      const unwrapped = heading.replace(/^(?:\*\*|__)(.*?)(?:\*\*|__)$/, "$1").trim();
+      const normalized = (value) => value.replace(/:$/, "").trim().toLocaleLowerCase("sv-SE");
+      return (duplicateHeadingLabels[blockKey] || [])
+        .some((label) => normalized(label) === normalized(unwrapped));
+    };
+    let firstContentLine = true;
+
     while (index < lines.length) {
       const line = lines[index].trim();
       if (!line) {
         index += 1;
         continue;
       }
+      if (firstContentLine && isDuplicateBlockHeading(line)) {
+        index += 1;
+        firstContentLine = false;
+        continue;
+      }
+      firstContentLine = false;
 
       const heading = line.match(/^(#{1,6})\s+(.+)$/);
       if (heading) {
@@ -795,7 +484,27 @@
           const matches = isOrdered
             ? item.match(/^\d+[.)]\s+(.+)$/)
             : item.match(/^[-*•]\s+(.+)$/);
-          if (!matches) break;
+          if (!matches) {
+            // AI Markdown frequently places a blank line between numbered
+            // items (sometimes writing "1." for every item). Keep those
+            // entries in ONE <ol> so the browser numbers them 1, 2, 3...
+            // instead of starting a fresh list at 1 after each blank line.
+            if (!item) {
+              let nextIndex = index;
+              while (nextIndex < lines.length && !lines[nextIndex].trim()) {
+                nextIndex += 1;
+              }
+              const next = lines[nextIndex]?.trim() || "";
+              const nextIsListItem = isOrdered
+                ? /^\d+[.)]\s+/.test(next)
+                : /^[-*•]\s+/.test(next);
+              if (nextIsListItem) {
+                index = nextIndex;
+                continue;
+              }
+            }
+            break;
+          }
           const li = document.createElement("li");
           appendInlineMarkdown(li, matches[1]);
           list.appendChild(li);
@@ -828,6 +537,7 @@
     const source = sourceBlock(panel, key);
     const content = source?.querySelector("[data-after-interview-block-content]") || null;
     if (!content || !content.textContent.trim()) return null;
+    content.dataset.afterInterviewSourceBlock = key;
     renderGeneratedMarkdown(content);
     return content;
   };
@@ -1443,15 +1153,33 @@
     }
   };
 
-  const makeTab = (key, label, panelId) => {
+  // The two navigation levels reuse the same components as the other
+  // candidate views: candidate-insights-view-option and personality-view-tab.
+  const makeTab = (key, label, panelId, kind = "primary") => {
     const button = document.createElement("button");
     button.type = "button";
-    button.className = "candidate-insights-view-option";
+    button.className = kind === "report"
+      ? "personality-view-tab" : "candidate-insights-view-option";
     button.dataset.afterInterviewTab = key;
     button.setAttribute("role", "tab");
     button.setAttribute("aria-controls", panelId);
     button.setAttribute("aria-selected", "false");
-    button.textContent = label;
+    const icons = {
+      evidence: "clipboard", overview: "layers", interview: "message-square",
+      explore: "search", managerReport: "file-text",
+    };
+    if (kind === "report") {
+      const icon = document.createElement("i");
+      icon.setAttribute("data-feather", icons[key] || "file-text");
+      icon.setAttribute("aria-hidden", "true");
+      const text = document.createElement("span");
+      text.textContent = label;
+      button.append(icon, text);
+    } else {
+      // Same text-only markup as Teamrapport / Ledarskapsrapport /
+      // Urspårningsrapport, with no icon or rounded pill styling.
+      button.textContent = label;
+    }
     return button;
   };
 
@@ -1470,39 +1198,217 @@
     const style = document.createElement("style");
     style.id = STYLE_ID;
     style.textContent = String.raw`
+      /* Exact navigation styling from candidate-insight-tabs.css, used by
+         Teamrapport / Ledarskapsrapport / Urspårningsrapport.
+         The scoped rules prevent the assessment pill switcher from winning
+         when After interview is rendered outside .candidate-insight-page. */
       __PANEL__ .candidate-insights-subnavigation {
-        margin: 0 !important; padding: 0 1.5rem;
-        border-bottom: 1px solid var(--talena-border, #e5dfd8);
+        margin: 0 !important;
+        padding: 0 1.5rem !important;
+        border-bottom: 1px solid var(--talena-border, #e5dfd8) !important;
       }
-      __PANEL__ .candidate-insights-subnavigation__layout { margin: 0 !important; }
-      __PANEL__ .candidate-insights-view-switcher {
-        display: flex; align-items: center; gap: 1.05rem; width: 100%;
-        padding: 0; border: 0; border-radius: 0; background: transparent;
-        overflow-x: auto; scrollbar-width: none;
+      __PANEL__ .candidate-insights-subnavigation__layout {
+        margin: 0 !important;
       }
-      __PANEL__ .candidate-insights-view-switcher::-webkit-scrollbar { display: none; }
-      __PANEL__ .candidate-insights-view-option {
-        position: relative; min-height: 45px; padding: 0 !important;
-        border: 0 !important; border-bottom: 2px solid transparent !important;
-        border-radius: 0 !important; background: transparent !important;
+      __PANEL__ .after-interview-primary-nav {
+        display: flex !important;
+        align-items: center !important;
+        gap: 1.05rem !important;
+        width: 100% !important;
+        padding: 0 !important;
+        border: 0 !important;
+        border-radius: 0 !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        overflow-x: auto;
+        scrollbar-width: none;
+      }
+      __PANEL__ .after-interview-primary-nav::-webkit-scrollbar {
+        display: none;
+      }
+      __PANEL__ .after-interview-primary-nav .candidate-insights-view-option {
+        position: relative;
+        flex: 0 0 auto;
+        display: inline-flex;
+        align-items: center;
+        min-height: 45px !important;
+        padding: 0 !important;
+        border: 0 !important;
+        border-bottom: 2px solid transparent !important;
+        border-radius: 0 !important;
+        background: transparent !important;
         color: var(--talena-text-muted, #766e68) !important;
-        cursor: pointer; font: inherit; font-size: .7rem; font-weight: 550;
-        line-height: 1.25; white-space: nowrap; box-shadow: none !important;
+        font-size: .7rem !important;
+        font-weight: 550 !important;
+        line-height: 1.25;
+        white-space: nowrap;
+        box-shadow: none !important;
       }
-      __PANEL__ .candidate-insights-view-option:hover {
+      __PANEL__ .after-interview-primary-nav .candidate-insights-view-option:hover:not(:disabled) {
         border-bottom-color: rgba(255, 111, 97, .28) !important;
-        background: transparent !important; color: var(--talena-ink, #191817) !important;
+        background: transparent !important;
+        color: var(--talena-ink, #191817) !important;
       }
-      __PANEL__ .candidate-insights-view-option.is-active,
-      __PANEL__ .candidate-insights-view-option[aria-selected="true"] {
+      __PANEL__ .after-interview-primary-nav .candidate-insights-view-option.is-active,
+      __PANEL__ .after-interview-primary-nav .candidate-insights-view-option[aria-selected="true"] {
         border-bottom-color: var(--talena-coral, #ff6f61) !important;
         background: transparent !important;
         color: var(--talena-coral-strong, #ed7468) !important;
-        font-weight: 550;
+        font-weight: 550 !important;
+      }
+      __PANEL__ .after-interview-primary-nav .candidate-insights-view-option:disabled,
+      __PANEL__ .after-interview-primary-nav .candidate-insights-view-option[aria-disabled="true"] {
+        opacity: .52; cursor: not-allowed;
+      }
+      __PANEL__ .after-interview-primary-nav .candidate-insights-view-option:disabled:hover {
+        border-bottom-color: transparent !important;
+        color: var(--talena-text-muted, #766e68) !important;
+      }
+      __PANEL__ .after-interview-tabs__locked-hint {
+        color: var(--talena-text-muted, #766e68); font-size: .73rem;
+        line-height: 1.5; margin: .55rem 0 .8rem;
       }
       __PANEL__ .candidate-insights-subworkspace__panels { padding: 1.25rem 1.5rem 1.5rem; }
+      __PANEL__ .after-interview-journey {
+        padding: 1.15rem 1.5rem; background: #fdfcfb;
+        border-bottom: 1px solid var(--talena-border, #e5dfd8);
+      }
+      __PANEL__ .after-interview-journey__title {
+        margin: 0 0 .7rem; font-size: .81rem; font-weight: 650;
+      }
+      __PANEL__ .after-interview-journey__steps {
+        display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: .75rem;
+      }
+      __PANEL__ .after-interview-journey__step {
+        display: flex; gap: .65rem; align-items: flex-start; min-width: 0;
+        padding: .8rem .85rem; border: 1px solid var(--talena-border, #e5dfd8);
+        background: #fff; border-radius: 11px;
+      }
+      __PANEL__ .after-interview-journey__step.is-current {
+        background: #fff7f5; border-color: rgba(255,111,97,.55);
+      }
+      __PANEL__ .after-interview-journey__number {
+        flex: 0 0 25px; width: 25px; height: 25px; display: flex;
+        align-items: center; justify-content: center;
+        border-radius: 50%; background: #f0edeb; color: #5d5550;
+        font-size: .74rem; font-weight: 700;
+      }
+      __PANEL__ .after-interview-journey__step.is-current .after-interview-journey__number {
+        background: var(--talena-coral, #ff6f61); color: white;
+      }
+      __PANEL__ .after-interview-journey__step.is-done .after-interview-journey__number {
+        background: #e8f1e8; color: #315e42;
+      }
+      __PANEL__ .after-interview-journey__step-title {
+        display: block; color: var(--talena-ink, #191817);
+        font-size: .78rem; font-weight: 650; line-height: 1.45;
+      }
+      __PANEL__ .after-interview-journey__step-text {
+        display: block; margin-top: .12rem;
+        color: var(--talena-text-muted, #766e68); font-size: .72rem; line-height: 1.55;
+      }
+      __PANEL__ .after-interview-evidence-card {
+        border: none !important; border-radius: 0 !important;
+        background: transparent !important; padding: .25rem 0 0 !important;
+      }
+      __PANEL__ .after-interview-evidence-intro { margin-bottom: 1.25rem; }
+      __PANEL__ .after-interview-evidence-intro__kicker {
+        margin: 0 0 .35rem; font-size: .68rem; font-weight: 700;
+        color: #d95d51; letter-spacing: .06em;
+      }
+      __PANEL__ .after-interview-evidence-intro__title {
+        margin: 0 0 .35rem; color: var(--talena-ink, #191817);
+        font-size: 1.26rem; font-weight: 700; line-height: 1.25;
+      }
+      __PANEL__ .after-interview-evidence-intro__description {
+        max-width: 780px; margin: 0; font-size: .85rem; line-height: 1.65;
+        color: var(--talena-text-muted, #766e68);
+      }
+      __PANEL__ .after-interview-evidence-intro__tip {
+        display: flex; gap: .5rem; align-items: flex-start; margin: .8rem 0 0;
+        font-size: .76rem; line-height: 1.55; color: #615954;
+      }
+      __PANEL__ .after-interview-evidence-intro__tip svg {
+        width: 15px; height: 15px; flex: 0 0 15px; margin-top: 1px;
+      }
+      __PANEL__.after-interview-simplified .after-interview-evidence-card [data-interview-notes-root] {
+        margin-top: 0 !important;
+      }
+      @media (max-width: 767px) {
+        __PANEL__ .after-interview-journey { padding: 1rem; }
+        __PANEL__ .after-interview-journey__steps { grid-template-columns: 1fr; gap: .5rem; }
+        __PANEL__ .after-interview-journey__step { padding: .65rem .75rem; }
+        __PANEL__ .after-interview-evidence-intro__title { font-size: 1.1rem; }
+      }
+      /* Primary navigation inherits the shared candidate-insights styles. */
+      __PANEL__ .after-interview-primary-nav .candidate-insights-view-option.needs-update::after {
+        content: ""; display: inline-block; width: 7px; height: 7px;
+        border-radius: 50%; background: #e17d54; margin-left: .45rem;
+        vertical-align: middle;
+      }
+      __PANEL__ .after-interview-reports { min-width: 0; }
+      __PANEL__ .after-interview-reports[hidden] { display: none !important; }
+      __PANEL__ .after-interview-reports__header {
+        display: flex; align-items: flex-start; justify-content: space-between;
+        gap: 1rem; margin: .15rem 0 1rem;
+      }
+      __PANEL__ .after-interview-reports__title {
+        margin: 0 0 .3rem; color: var(--talena-ink, #191817);
+        font-size: 1.28rem; font-weight: 750;
+      }
+      __PANEL__ .after-interview-reports__description {
+        margin: 0; color: var(--talena-text-muted, #766e68);
+        font-size: .8rem; line-height: 1.6;
+      }
+      __PANEL__ .after-interview-reports__refresh {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 38px; height: 38px; min-width: 38px; border-radius: 10px;
+        border: 1px solid var(--talena-border, #e5dfd8);
+        background: #fff; color: var(--talena-text-muted, #766e68);
+      }
+      __PANEL__ .after-interview-reports__refresh svg { width: 16px; height: 16px; }
+      __PANEL__ .after-interview-reports__refresh.needs-update {
+        border-color: rgba(255,111,97,.55); background: #fff5f2; color: #cb5348;
+      }
+      __PANEL__ .after-interview-reports__refresh:hover {
+        background: #fff5f2; color: #cb5348;
+      }
+      __PANEL__ .after-interview-reports__refresh[disabled] { opacity: .5; cursor: not-allowed; }
+      __PANEL__ .after-interview-reports__status {
+        margin: 0 0 1rem; padding: .8rem 1rem; border-radius: 10px;
+        background: #f8f7f5; color: #625b55; font-size: .78rem;
+        line-height: 1.55;
+      }
+      __PANEL__ .after-interview-reports__status[hidden] { display: none !important; }
+      __PANEL__ .after-interview-reports__status.needs-update {
+        background: #fff5ed; color: #775438; border: 1px solid #efdacb;
+      }
+      __PANEL__ .after-interview-reports__status-title { font-weight: 650; }
+      __PANEL__ .after-interview-reports__status-detail { display: block; margin-top: .15rem; }
+      /* Nested report navigation inherits personality-view-tabs styles. */
+      __PANEL__ .after-interview-report-panels { min-width: 0; }
+      __PANEL__ .after-interview-report-panels > [hidden] { display: none !important; }
+      __PANEL__ .after-interview-evidence-card [data-post-interview-generate][data-regenerate="true"] {
+        display: none !important;
+      }
+      __PANEL__ .after-interview-evidence-rebuild {
+        margin: 1rem 0 0; display: flex; gap: .75rem;
+        align-items: center; justify-content: space-between; flex-wrap: wrap;
+        padding: .9rem 1rem; border: 1px solid var(--talena-border, #e5dfd8);
+        border-radius: 11px; background: #faf9f7;
+      }
+      __PANEL__ .after-interview-evidence-rebuild .btn { white-space: normal; }
+      __PANEL__ .after-interview-evidence-rebuild__text {
+        margin: 0; color: var(--talena-text-muted, #766e68);
+        font-size: .76rem; line-height: 1.5;
+      }
+      @media (max-width: 767px) {
+        __PANEL__ .after-interview-reports__header { flex-wrap: wrap; }
+        __PANEL__ .after-interview-evidence-rebuild { align-items: flex-start; }
+      }
       __PANEL__ .after-interview-tab-panels { min-width: 0; }
       __PANEL__ .after-interview-tab-panel { display: grid; gap: 1rem; min-width: 0; }
+      __PANEL__ .after-interview-tab-panel[hidden] { display: none !important; }
       __PANEL__ .after-interview-tab-card {
         min-width: 0; padding: 1.25rem; border: 1px solid var(--talena-border, #e5dfd8);
         border-radius: 14px; background: #fff;
@@ -1759,39 +1665,81 @@
       __PANEL__ .after-interview-manager-report__motivation-title {
         margin: 0 0 .85rem; color: var(--talena-ink, #191817); font-size: 1.15rem; font-weight: 750;
       }
+      /* Readable report rows: a factor's meaning on the left, guidance on the right. */
       __PANEL__ .after-interview-manager-report__motivation-grid {
-        display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .8rem;
+        display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem;
       }
       __PANEL__ .after-interview-manager-report__motivator {
-        min-width: 0; padding: 1rem; border: 1px solid var(--talena-border, #e5dfd8);
-        border-radius: 12px; background: #fff;
+        display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.8fr);
+        align-items: start; gap: 1.5rem; min-width: 0; padding: 1.3rem;
+        border: 1px solid var(--talena-border, #e5dfd8);
+        border-radius: 14px; background: #fff;
+      }
+      __PANEL__ .after-interview-manager-report__motivator-intro {
+        min-width: 0;
       }
       __PANEL__ .after-interview-manager-report__motivator-name {
-        margin: 0 0 .55rem; color: var(--talena-ink, #191817); font-size: .9rem; font-weight: 750;
+        margin: 0 0 .55rem; color: var(--talena-ink, #191817);
+        font-size: 1rem; font-weight: 750; line-height: 1.35;
       }
       __PANEL__ .after-interview-manager-report__motivator-definition {
-        margin: 0; color: var(--talena-text-muted, #766e68); font-size: .74rem; line-height: 1.55;
+        margin: 0; color: var(--talena-text-muted, #766e68);
+        font-size: .8rem; line-height: 1.7;
+      }
+      __PANEL__ .after-interview-manager-report__motivator-practical {
+        min-width: 0; border-left: 1px solid var(--talena-border, #e5dfd8);
+        padding-left: 1.5rem;
       }
       __PANEL__ .after-interview-manager-report__motivator-practical-title {
-        margin: .9rem 0 .35rem; padding-top: .7rem; border-top: 1px solid var(--talena-border, #e5dfd8);
-        color: var(--talena-ink, #191817); font-size: .76rem; font-weight: 700;
+        margin: 0 0 .75rem; color: var(--talena-ink, #191817);
+        font-size: .8rem; font-weight: 750;
       }
       __PANEL__ .after-interview-manager-report__motivator-practical-grid {
-        display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem;
+        display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem;
       }
       __PANEL__ .after-interview-manager-report__motivator-practical-box {
-        min-width: 0; padding: .65rem; border: 1px solid var(--talena-border, #e5dfd8);
-        border-radius: 9px; background: #fff;
+        min-width: 0; padding: 1rem; border: 1px solid #efebe6;
+        border-radius: 11px; background: #faf9f7;
+      }
+      __PANEL__ .after-interview-manager-report__motivator-practical-box--do {
+        background: #f7f9f7;
       }
       __PANEL__ .after-interview-manager-report__motivator-practical-box-title {
-        margin: 0 0 .35rem; color: var(--talena-ink, #191817); font-size: .7rem; font-weight: 700;
+        display: flex; gap: .4rem; align-items: center;
+        margin: 0 0 .6rem; color: var(--talena-ink, #191817);
+        font-size: .79rem; font-weight: 750;
+      }
+      __PANEL__ .after-interview-manager-report__motivator-practical-box-title svg {
+        flex-shrink: 0; width: 15px; height: 15px; stroke-width: 1.9;
+        color: #746c66;
+      }
+      __PANEL__ .after-interview-manager-report__motivator-practical-box--do svg {
+        color: #56816b;
       }
       __PANEL__ .after-interview-manager-report__motivator-practical-list {
-        margin: 0; padding-left: 1rem; color: var(--talena-text-muted, #766e68); font-size: .68rem; line-height: 1.45;
+        margin: 0; padding-left: 1.1rem; color: #615a54;
+        font-size: .76rem; line-height: 1.65;
       }
-      __PANEL__ .after-interview-manager-report__motivator-practical-list li + li { margin-top: .3rem; }
+      __PANEL__ .after-interview-manager-report__motivator-practical-list li {
+        padding-left: .1rem;
+      }
+      __PANEL__ .after-interview-manager-report__motivator-practical-list li + li {
+        margin-top: .55rem;
+      }
+      @media (max-width: 1050px) {
+        __PANEL__ .after-interview-manager-report__motivator {
+          grid-template-columns: minmax(0, 1fr); gap: 1rem;
+        }
+        __PANEL__ .after-interview-manager-report__motivator-practical {
+          border-left: 0; padding-left: 0; border-top: 1px solid var(--talena-border, #e5dfd8);
+          padding-top: 1rem;
+        }
+      }
       @media (max-width: 720px) {
-        __PANEL__ .after-interview-manager-report__motivator-practical-grid { grid-template-columns: 1fr; }
+        __PANEL__ .after-interview-manager-report__motivator-practical-grid {
+          grid-template-columns: minmax(0, 1fr);
+        }
+        __PANEL__ .after-interview-manager-report__motivator { padding: 1rem; }
       }
       __PANEL__ .after-interview-manager-report__motivation-empty {
         margin: 0; padding: 1rem; border: 1px dashed var(--talena-border, #e5dfd8);
@@ -1807,6 +1755,14 @@
         margin-top: 1rem; padding: 1rem; border: 1px solid var(--talena-border, #e5dfd8);
         border-radius: 12px; background: #fff;
       }
+      __PANEL__ .after-interview-manager-report__wellbeing {
+        margin-top: 1.8rem; padding-top: 1.35rem;
+        border-top: 1px solid var(--talena-border, #e5dfd8);
+      }
+      __PANEL__ .after-interview-manager-report__wellbeing-title {
+        margin: 0; color: var(--talena-ink, #191817);
+        font-size: 1.15rem; font-weight: 750;
+      }
       __PANEL__ .after-interview-manager-report__personality-advice-header {
         display: flex; align-items: center; justify-content: flex-start;
         flex-wrap: wrap; gap: .1rem .35rem;
@@ -1816,6 +1772,23 @@
       }
       __PANEL__ .after-interview-manager-report__personality-advice-text {
         margin-top: .55rem; color: var(--talena-text-muted, #766e68); font-size: .78rem; line-height: 1.65;
+      }
+      /* Tips för trivsel is a report section, not subdued helper text. */
+      __PANEL__ .after-interview-manager-report__wellbeing
+      .after-interview-manager-report__personality-advice-text {
+        color: #3d3834; font-size: .85rem; line-height: 1.72;
+      }
+      __PANEL__ .after-interview-manager-report__wellbeing
+      .after-interview-rich-text__paragraph,
+      __PANEL__ .after-interview-manager-report__wellbeing
+      .after-interview-rich-text__list,
+      __PANEL__ .after-interview-manager-report__wellbeing
+      .after-interview-rich-text__list li {
+        color: #3d3834;
+      }
+      __PANEL__ .after-interview-manager-report__wellbeing
+      ol.after-interview-rich-text__list {
+        list-style-type: decimal;
       }
       __PANEL__ .after-interview-manager-report__generate[aria-busy="true"] {
         opacity: .75; cursor: wait;
@@ -1863,12 +1836,8 @@
       @media (max-width: 1050px) {
         __PANEL__ .after-interview-manager-report__levels { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       }
-      @media (max-width: 1050px) {
-        __PANEL__ .after-interview-manager-report__motivation-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      }
       @media (max-width: 720px) {
         __PANEL__ .after-interview-manager-report__guide-levels { grid-template-columns: 1fr; }
-        __PANEL__ .after-interview-manager-report__motivation-grid { grid-template-columns: 1fr; }
         __PANEL__ .after-interview-manager-report__personality-parts { grid-template-columns: 1fr; }
         __PANEL__ .after-interview-manager-report__personality-part + .after-interview-manager-report__personality-part {
           padding-left: 0; border-left: 0;
@@ -1881,8 +1850,6 @@
       }
       @media (max-width: 767px) {
         __PANEL__ .candidate-insights-subnavigation { padding: 0 1rem; }
-        __PANEL__ .candidate-insights-view-switcher { gap: .9rem; }
-        __PANEL__ .candidate-insights-view-option { min-height: 2.7rem; }
         __PANEL__ .candidate-insights-subworkspace__panels { padding: 1rem; }
         __PANEL__ .after-interview-tab-card { padding: 1rem; border-radius: 12px; }
       }
@@ -1902,21 +1869,31 @@
     const header = card?.querySelector(":scope > div:first-child");
     const notesRoot = card?.querySelector("[data-interview-notes-root]");
     const postSection = card?.querySelector("[data-post-interview-section]");
-    const legacyGlobalRegenerate = postSection?.querySelector(
-      '[data-post-interview-generate][data-regenerate="true"]'
-    );
-    legacyGlobalRegenerate?.remove();
+    // Keep the native full-compilation action in the DOM. The new Evidence
+    // and Reports actions delegate to it so its existing privacy, save,
+    // streaming and manual-edit confirmation protections keep working.
     const postContent = postSection?.querySelector("[data-post-interview-content]");
     const outputRoot = panel.closest("[data-final-output-root]");
     const hasPostInterviewResult =
       outputRoot?.dataset.hasPostInterviewResult === "true";
-    const hasCompletePostInterviewResult =
-      outputRoot?.dataset.postInterviewStatus === "completed";
+    const hasCompiledPostInterviewResult =
+      hasPostInterviewResult &&
+      ["completed", "outdated"].includes(outputRoot?.dataset.postInterviewStatus);
+    // A refreshed candidate fragment may have kept the old URL tab selection.
+    // On the first successful compilation (or a different candidate), use the
+    // proper default rather than restoring the previously selected Underlag.
+    const candidateIdentity = outputRoot?.dataset.refreshUrl || "";
+    const candidateChanged =
+      lastRenderedCandidate !== null && lastRenderedCandidate !== candidateIdentity;
+    const justCompiled =
+      !candidateChanged && lastRenderedCompiled === false && hasCompiledPostInterviewResult;
+    lastRenderedCandidate = candidateIdentity;
+    lastRenderedCompiled = hasCompiledPostInterviewResult;
 
     if (!card || !header || !notesRoot || !postSection) return;
 
     ensureStyles();
-    if (hasCompletePostInterviewResult) {
+    if (hasCompiledPostInterviewResult) {
       const generatedTitle = postSection.querySelector(".insight-summary-title");
       const generatedDescription = postSection.querySelector("p.text-muted.small.mb-0");
       if (generatedTitle) generatedTitle.textContent = copy().generatedComplete;
@@ -1929,40 +1906,154 @@
     const tabs = document.createElement("div");
     tabs.className = "candidate-insights-subworkspace after-interview-tabs";
 
+    const journey = document.createElement("section");
+    journey.className = "after-interview-journey";
+    journey.setAttribute("aria-label", copy().journeyTitle);
+    const journeyHeading = document.createElement("h3");
+    journeyHeading.className = "after-interview-journey__title";
+    journeyHeading.textContent = copy().journeyTitle;
+    const journeySteps = document.createElement("div");
+    journeySteps.className = "after-interview-journey__steps";
+    copy().journeySteps.forEach((step, index) => {
+      const item = document.createElement("div");
+      item.className = "after-interview-journey__step";
+      if (index === (hasCompiledPostInterviewResult ? 2 : 0)) {
+        item.classList.add("is-current");
+        item.setAttribute("aria-current", "step");
+      } else if (hasCompiledPostInterviewResult && index < 2) {
+        item.classList.add("is-done");
+      }
+      const number = document.createElement("span");
+      number.className = "after-interview-journey__number";
+      number.textContent = String(index + 1);
+      const description = document.createElement("div");
+      const title = document.createElement("span");
+      title.className = "after-interview-journey__step-title";
+      title.textContent = step.title;
+      const body = document.createElement("span");
+      body.className = "after-interview-journey__step-text";
+      body.textContent = step.description;
+      description.append(title, body);
+      item.append(number, description);
+      journeySteps.appendChild(item);
+    });
+    journey.append(journeyHeading, journeySteps);
+
     const navSection = document.createElement("section");
     navSection.className = "candidate-insights-subnavigation";
-
     const navLayout = document.createElement("div");
     navLayout.className = "candidate-insights-subnavigation__layout mb-4";
 
-    const nav = document.createElement("div");
-    nav.className = "candidate-insights-view-switcher";
-    nav.setAttribute("role", "tablist");
-    nav.setAttribute("aria-label", copy().tabs.evidence);
-
-    navLayout.appendChild(nav);
-    navSection.appendChild(navLayout);
+    const primaryNav = document.createElement("div");
+    primaryNav.className = "candidate-insights-view-switcher after-interview-primary-nav";
+    primaryNav.setAttribute("role", "tablist");
+    primaryNav.setAttribute("aria-label", copy().journeyTitle);
 
     const tabPanels = document.createElement("div");
     tabPanels.className = "candidate-insights-subworkspace__panels";
 
-    const keys = ["overview", "interview", "explore", "managerReport", "evidence"];
+    // Keep the existing report keys and URL values for bookmarks, PDF actions
+    // and the final-output refresh helper. Only the visual navigation changes.
+    // Keep historical interview_summary data on the server, but this tab is
+    // retired (#442). Old afterTab=interview URLs fall back to Helhetsbild.
+    const keys = ["evidence", "overview", "explore", "managerReport"];
+    const reportKeys = keys.filter((key) => key !== "evidence");
     const buttons = new Map();
     const panels = new Map();
-    keys.forEach((key) => {
+
+    const evidenceButton = makeTab("evidence", copy().tabs.evidence, "after-interview-tab-panel-evidence");
+    const evidencePanel = makePanel("evidence", "after-interview-tab-panel-evidence");
+    buttons.set("evidence", evidenceButton);
+    panels.set("evidence", evidencePanel);
+    primaryNav.appendChild(evidenceButton);
+    tabPanels.appendChild(evidencePanel);
+
+    const reportsArea = document.createElement("section");
+    reportsArea.id = "after-interview-reports";
+    reportsArea.className = "after-interview-reports";
+    reportsArea.hidden = true;
+
+    const reportsButton = document.createElement("button");
+    reportsButton.type = "button";
+    reportsButton.className = "candidate-insights-view-option";
+    reportsButton.dataset.afterInterviewPrimaryTab = "reports";
+    reportsButton.setAttribute("role", "tab");
+    reportsButton.setAttribute("aria-controls", reportsArea.id);
+    reportsButton.setAttribute("aria-selected", "false");
+    reportsButton.textContent = copy().tabs.reports;
+    if (!hasCompiledPostInterviewResult) {
+      reportsButton.disabled = true;
+      reportsButton.setAttribute("aria-disabled", "true");
+      reportsButton.title = copy().lockedTabsHint;
+    }
+    primaryNav.appendChild(reportsButton);
+
+    const reportsHeader = document.createElement("div");
+    reportsHeader.className = "after-interview-reports__header";
+    const reportsHeading = document.createElement("div");
+    const reportsTitle = document.createElement("h3");
+    reportsTitle.className = "after-interview-reports__title";
+    reportsTitle.textContent = copy().reportOverviewTitle;
+    const reportsIntro = document.createElement("p");
+    reportsIntro.className = "after-interview-reports__description";
+    reportsIntro.textContent = copy().reportsIntro;
+    reportsHeading.append(reportsTitle, reportsIntro);
+    const reportsRefresh = document.createElement("button");
+    reportsRefresh.type = "button";
+    reportsRefresh.className = "after-interview-reports__refresh";
+    reportsRefresh.dataset.afterInterviewRebuild = "reports";
+    reportsRefresh.title = copy().reportRebuildShort;
+    reportsRefresh.setAttribute("aria-label", copy().reportRebuildShort);
+    const reportsRefreshIcon = document.createElement("i");
+    reportsRefreshIcon.setAttribute("data-feather", "refresh-cw");
+    reportsRefresh.appendChild(reportsRefreshIcon);
+    reportsHeader.append(reportsHeading, reportsRefresh);
+
+    const reportStatus = document.createElement("div");
+    reportStatus.className = "after-interview-reports__status";
+    reportStatus.setAttribute("role", "status");
+    reportStatus.setAttribute("aria-live", "polite");
+    const reportStatusTitle = document.createElement("span");
+    reportStatusTitle.className = "after-interview-reports__status-title";
+    const reportStatusDetail = document.createElement("span");
+    reportStatusDetail.className = "after-interview-reports__status-detail";
+    reportStatus.append(reportStatusTitle, reportStatusDetail);
+    reportStatus.hidden = true;
+
+    const reportNavWrapper = document.createElement("div");
+    reportNavWrapper.className = "personality-view-controls";
+    const reportNav = document.createElement("div");
+    reportNav.className = "personality-view-tabs";
+    reportNav.setAttribute("role", "tablist");
+    reportNav.setAttribute("aria-label", copy().tabs.reports);
+    const reportPanels = document.createElement("div");
+    reportPanels.className = "after-interview-report-panels";
+
+    reportKeys.forEach((key) => {
       const id = "after-interview-tab-panel-" + key;
-      const button = makeTab(key, copy().tabs[key], id);
+      const button = makeTab(key, copy().tabs[key], id, "report");
       const tabPanel = makePanel(key, id);
       buttons.set(key, button);
       panels.set(key, tabPanel);
-      nav.appendChild(button);
-      tabPanels.appendChild(tabPanel);
+      reportNav.appendChild(button);
+      reportPanels.appendChild(tabPanel);
     });
-    tabs.append(navSection, tabPanels);
+    reportNavWrapper.appendChild(reportNav);
+    reportsArea.append(reportsHeader, reportStatus, reportNavWrapper, reportPanels);
+    tabPanels.appendChild(reportsArea);
+
+    navLayout.appendChild(primaryNav);
+    navSection.appendChild(navLayout);
+    if (!hasCompiledPostInterviewResult) {
+      const lockedHint = document.createElement("p");
+      lockedHint.className = "after-interview-tabs__locked-hint";
+      lockedHint.textContent = copy().lockedTabsHint;
+      navSection.appendChild(lockedHint);
+    }
+    tabs.append(journey, navSection, tabPanels);
     header.insertAdjacentElement("afterend", tabs);
 
     const summary = postContent?.querySelector(":scope > .purpose-fit-section:first-child");
-    const evidenceGrid = postContent?.querySelector(":scope > .post-evidence-grid");
     const contentChildren = postContent ? [...postContent.children] : [];
     const contradictions = contentChildren.find((node) =>
       ["Contradictions or tensions to consider", "Motsägelser eller spänningar att beakta"]
@@ -1992,9 +2083,6 @@
         makeCard(panel, "overall_picture", copy().tabs.overview, copy().descriptions.overview, summary, "overall_picture"),
       );
     }
-    panels.get("interview").appendChild(
-      makeCard(panel, "interview_summary", copy().tabs.interview, copy().descriptions.interview, evidenceGrid, "interview_summary"),
-    );
     panels.get("explore").appendChild(
       makeCard(panel, "explore_further", copy().tabs.explore, copy().descriptions.explore, exploreFallback.childNodes.length ? exploreFallback : null, "explore_further"),
     );
@@ -2011,12 +2099,26 @@
     const managerReportAiTasks = [];
     const pdfButton = document.createElement("button");
     pdfButton.type = "button";
-    pdfButton.className = "btn btn-outline-primary d-inline-flex align-items-center gap-2";
+    // Match the small PDF action used in Personality, Motivation and Skills.
+    pdfButton.className = "btn btn-icon btn-light talena-report-action-button after-interview-manager-report__pdf-button";
     pdfButton.disabled = true;
     pdfButton.setAttribute("aria-label", copy().savePdf);
-    const pdfIcon = document.createElement("i");
-    pdfIcon.setAttribute("data-feather", "download");
+    pdfButton.title = copy().savePdf;
+    const pdfIcon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    pdfIcon.setAttribute("viewBox", "0 0 24 24");
+    pdfIcon.setAttribute("width", "19");
+    pdfIcon.setAttribute("height", "19");
+    pdfIcon.setAttribute("fill", "none");
+    pdfIcon.setAttribute("stroke", "currentColor");
+    pdfIcon.setAttribute("stroke-width", "1.75");
+    pdfIcon.setAttribute("stroke-linecap", "round");
+    pdfIcon.setAttribute("stroke-linejoin", "round");
+    pdfIcon.setAttribute("aria-hidden", "true");
+    pdfIcon.innerHTML = '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>' +
+      '<polyline points="14 2 14 8 20 8"/>' +
+      '<path d="M12 12v6m-3-3 3 3 3-3"/>';
     const pdfLabel = document.createElement("span");
+    pdfLabel.className = "visually-hidden";
     pdfLabel.textContent = copy().savePdf;
     pdfButton.append(pdfIcon, pdfLabel);
     const managerReportPdfError = document.createElement("div");
@@ -2254,9 +2356,14 @@
         definition.className = "after-interview-manager-report__motivator-definition";
         definition.textContent = source.dataset.managerMotivationDefinition;
         const factorKey = source.dataset.managerMotivationKey;
-        const advice = MOTIVATION_PRACTICAL_ADVICE[isSwedish() ? "sv" : "en"][factorKey];
-        motivator.append(name, definition);
+        const advice = getMotivationPracticalAdvice(panel)[isSwedish() ? "sv" : "en"]?.[factorKey];
+        const motivatorIntro = document.createElement("div");
+        motivatorIntro.className = "after-interview-manager-report__motivator-intro";
+        motivatorIntro.append(name, definition);
+        motivator.appendChild(motivatorIntro);
         if (advice) {
+          const practical = document.createElement("div");
+          practical.className = "after-interview-manager-report__motivator-practical";
           const practicalTitle = document.createElement("h6");
           practicalTitle.className = "after-interview-manager-report__motivator-practical-title";
           practicalTitle.textContent = copy().managerMotivationPracticalTitle;
@@ -2270,7 +2377,12 @@
             box.className = "after-interview-manager-report__motivator-practical-box after-interview-manager-report__motivator-practical-box--" + group.type;
             const heading = document.createElement("h6");
             heading.className = "after-interview-manager-report__motivator-practical-box-title";
-            heading.textContent = group.title;
+            const headingIcon = document.createElement("i");
+            headingIcon.setAttribute("data-feather", group.type === "do" ? "check-circle" : "alert-circle");
+            headingIcon.setAttribute("aria-hidden", "true");
+            const headingText = document.createElement("span");
+            headingText.textContent = group.title;
+            heading.append(headingIcon, headingText);
             const list = document.createElement("ul");
             list.className = "after-interview-manager-report__motivator-practical-list";
             group.items.forEach((item) => {
@@ -2281,7 +2393,8 @@
             box.append(heading, list);
             practicalGrid.appendChild(box);
           });
-          motivator.append(practicalTitle, practicalGrid);
+          practical.append(practicalTitle, practicalGrid);
+          motivator.appendChild(practical);
         }
         motivationGrid.appendChild(motivator);
       });
@@ -2338,14 +2451,16 @@
 
     managerReportGenerateButton = document.createElement("button");
     managerReportGenerateButton.type = "button";
-    managerReportGenerateButton.className = "btn btn-outline-primary d-inline-flex align-items-center gap-2 after-interview-manager-report__generate";
+    managerReportGenerateButton.className = "btn btn-icon btn-light talena-report-action-button after-interview-manager-report__generate";
     managerReportGenerateButton.dataset.postInterviewGenerate = "";
     managerReportGenerateIcon = document.createElement("i");
     managerReportGenerateIcon.setAttribute("data-feather", "refresh-cw");
     managerReportGenerateIcon.setAttribute("aria-hidden", "true");
     managerReportGenerateLabel = document.createElement("span");
+    managerReportGenerateLabel.className = "visually-hidden";
     managerReportGenerateButton.append(managerReportGenerateIcon, managerReportGenerateLabel);
-    managerReportActions.insertBefore(managerReportGenerateButton, pdfButton);
+    // Consistent action order throughout Talena: PDF, then regenerate.
+    managerReportActions.appendChild(managerReportGenerateButton);
 
     managerReportGenerateError = document.createElement("div");
     managerReportGenerateError.className = "alert alert-danger d-none mt-3 mb-3";
@@ -2490,11 +2605,11 @@
     });
 
     const managerAdvice = document.createElement("section");
-    managerAdvice.className = "after-interview-manager-report__personality-advice";
+    managerAdvice.className = "after-interview-manager-report__wellbeing";
     const managerAdviceHeader = document.createElement("div");
     managerAdviceHeader.className = "after-interview-manager-report__personality-advice-header";
-    const managerAdviceTitle = document.createElement("h5");
-    managerAdviceTitle.className = "after-interview-manager-report__personality-advice-title";
+    const managerAdviceTitle = document.createElement("h4");
+    managerAdviceTitle.className = "after-interview-manager-report__wellbeing-title";
     managerAdviceTitle.textContent = copy().managerPersonalityAdviceTitle;
     const managerAdviceBody =
       sourceContent(panel, "wellbeing_tips") || document.createElement("div");
@@ -2521,7 +2636,8 @@
     );
     managerAdviceHeader.append(managerAdviceTitle, managerAdviceEditControls);
     managerAdvice.append(managerAdviceHeader, managerAdviceBody, managerAdviceError);
-    managerPersonality.appendChild(managerAdvice);
+    // Render the existing wellbeing_tips block only once, as its own section.
+
     managerReportAiTasks.push(async () => {
       await generateContentBlock(
         panel,
@@ -2548,6 +2664,7 @@
     if (personalityRoot) {
       managerReportCard.appendChild(managerPersonality);
     }
+    managerReportCard.appendChild(managerAdvice);
     const managerReportEditsLoading = document.createElement("div");
     managerReportEditsLoading.className = "text-center text-muted py-4";
     managerReportEditsLoading.setAttribute("role", "status");
@@ -2592,7 +2709,48 @@
 
     const evidenceCard = document.createElement("section");
     evidenceCard.className = "after-interview-tab-card after-interview-evidence-card";
-    evidenceCard.append(notesRoot, postSection);
+    const evidenceIntro = document.createElement("div");
+    evidenceIntro.className = "after-interview-evidence-intro";
+    const evidenceKicker = document.createElement("p");
+    evidenceKicker.className = "after-interview-evidence-intro__kicker";
+    evidenceKicker.textContent = copy().evidenceKicker;
+    const evidenceHeading = document.createElement("h3");
+    evidenceHeading.className = "after-interview-evidence-intro__title";
+    evidenceHeading.textContent = hasCompiledPostInterviewResult
+      ? copy().evidenceHeadingReady : copy().evidenceHeading;
+    const evidenceLead = document.createElement("p");
+    evidenceLead.className = "after-interview-evidence-intro__description";
+    evidenceLead.textContent = hasCompiledPostInterviewResult
+      ? copy().evidenceLeadReady : copy().evidenceLead;
+    const evidenceTip = document.createElement("p");
+    evidenceTip.className = "after-interview-evidence-intro__tip";
+    const tipIcon = document.createElement("i");
+    tipIcon.setAttribute("data-feather", "info");
+    tipIcon.setAttribute("aria-hidden", "true");
+    const tipText = document.createElement("span");
+    tipText.textContent = copy().evidenceTip;
+    evidenceTip.append(tipIcon, tipText);
+    evidenceIntro.append(evidenceKicker, evidenceHeading, evidenceLead, evidenceTip);
+    evidenceCard.append(evidenceIntro, notesRoot, postSection);
+    if (hasCompiledPostInterviewResult) {
+      // The original section must stay in the DOM for its native regeneration
+      // handler, but should not render another heading, status or spinner.
+      // The single visible "new compilation" action is immediately below.
+      postSection.classList.add("d-none");
+      postSection.setAttribute("aria-hidden", "true");
+      const rebuildRow = document.createElement("div");
+      rebuildRow.className = "after-interview-evidence-rebuild";
+      const rebuildDescription = document.createElement("p");
+      rebuildDescription.className = "after-interview-evidence-rebuild__text";
+      rebuildDescription.textContent = copy().evidenceRebuildHint;
+      const rebuildButton = document.createElement("button");
+      rebuildButton.type = "button";
+      rebuildButton.className = "btn btn-primary";
+      rebuildButton.dataset.afterInterviewRebuild = "evidence";
+      rebuildButton.textContent = copy().reportRebuild;
+      rebuildRow.append(rebuildDescription, rebuildButton);
+      evidenceCard.appendChild(rebuildRow);
+    }
     panels.get("evidence").appendChild(evidenceCard);
 
     if (contextNote?.isConnected) panels.get("overview").appendChild(contextNote);
@@ -2601,14 +2759,143 @@
       postContent.replaceChildren();
     }
 
+    const notesInput = notesRoot.querySelector("[data-interview-notes-input]");
+    const originalSavedNotes = notesInput?.value || "";
+    const updateReportStatus = () => {
+      if (!hasCompiledPostInterviewResult) return;
+      const hasUnsavedNotes = Boolean(notesInput && notesInput.value !== originalSavedNotes);
+      const isOutdated = outputRoot?.dataset.postInterviewStatus === "outdated";
+      const needsUpdate = hasUnsavedNotes || isOutdated;
+      const currentJourneyStep = needsUpdate ? 1 : 2;
+      journeySteps.querySelectorAll(".after-interview-journey__step").forEach((step, index) => {
+        step.classList.toggle("is-current", index === currentJourneyStep);
+        step.classList.toggle("is-done", index < currentJourneyStep);
+        if (index === currentJourneyStep) step.setAttribute("aria-current", "step");
+        else step.removeAttribute("aria-current");
+      });
+      // Keep the status box out of view while reports are current.
+      // Changed input still displays its existing actionable warning.
+      reportStatus.hidden = !needsUpdate;
+      reportStatus.classList.toggle("needs-update", needsUpdate);
+      reportsRefresh.classList.toggle("needs-update", needsUpdate);
+      reportsButton.classList.toggle("needs-update", needsUpdate);
+      reportsButton.title = needsUpdate ? copy().reportStatusOutdated : "";
+      reportsButton.setAttribute("aria-label", needsUpdate
+        ? copy().tabs.reports + ". " + copy().reportStatusOutdated
+        : copy().tabs.reports);
+      reportStatusTitle.textContent = hasUnsavedNotes
+        ? copy().reportStatusUnsaved : needsUpdate ? copy().reportStatusOutdated : "";
+      reportStatusDetail.textContent = needsUpdate ? copy().reportStatusDetail : "";
+      reportStatusDetail.hidden = !needsUpdate;
+      reportsRefresh.title = needsUpdate ? copy().reportRebuildShort : copy().reportRebuild;
+      reportsRefresh.setAttribute("aria-label", reportsRefresh.title);
+    };
+    updateReportStatus();
+    notesInput?.addEventListener("input", updateReportStatus);
+    document.addEventListener("candidate-interview-question-note-updated", (event) => {
+      if (!outputRoot.isConnected) return;
+      const changedNotesUrl = event.detail?.notesUrl || "";
+      const ownNotesUrl = outputRoot.dataset.questionEvidenceNotesUrl || "";
+      if (changedNotesUrl && ownNotesUrl && changedNotesUrl !== ownNotesUrl) return;
+      updateReportStatus();
+    });
+
+    const runFullCompilation = (trigger) => {
+      const nativeButton = postSection.querySelector(
+        '[data-post-interview-generate][data-regenerate="true"]'
+      );
+      if (!nativeButton || nativeButton.disabled) {
+        if (trigger.dataset.afterInterviewRebuild === "reports") {
+          reportStatus.hidden = false;
+          reportStatusTitle.textContent = copy().reportGenerateUnavailable;
+          reportStatusDetail.textContent = "";
+        } else {
+          const error = postSection.querySelector("[data-post-interview-error]");
+          if (error) {
+            error.textContent = copy().reportGenerateUnavailable;
+            error.classList.remove("d-none");
+          }
+        }
+        return;
+      }
+      trigger.disabled = true;
+      trigger.setAttribute("aria-busy", "true");
+      const previousContents = [...trigger.childNodes];
+      const spinner = document.createElement("span");
+      spinner.className = "spinner-border spinner-border-sm";
+      spinner.setAttribute("role", "status");
+      spinner.setAttribute("aria-label", copy().reportGenerating);
+      trigger.replaceChildren(spinner);
+      const restoreTrigger = () => {
+        trigger.disabled = false;
+        trigger.removeAttribute("aria-busy");
+        trigger.replaceChildren(...previousContents);
+      };
+      // Native generation still saves the interview notes and runs the
+      // manager report manual-edit confirmation before it begins.
+      nativeButton.click();
+      // The native stream swaps this entire fragment on success. On an error,
+      // it restores its thinking state, so restore our action as well.
+      const thinking = postSection.querySelector("[data-post-interview-thinking]");
+      if (!thinking) {
+        restoreTrigger();
+        return;
+      }
+      let started = !thinking.classList.contains("d-none");
+      const watcher = new MutationObserver(() => {
+        if (!outputRoot.isConnected) {
+          watcher.disconnect();
+          return;
+        }
+        if (!thinking.classList.contains("d-none")) {
+          started = true;
+        } else if (started) {
+          restoreTrigger();
+          watcher.disconnect();
+          const error = postSection.querySelector("[data-post-interview-error]");
+          if (error && !error.classList.contains("d-none")) {
+            reportStatus.hidden = false;
+            reportStatus.classList.add("needs-update");
+            reportStatusTitle.textContent = error.textContent.trim() || copy().reportError;
+            reportStatusDetail.textContent = copy().reportStatusDetail;
+          } else {
+            updateReportStatus();
+          }
+        }
+      });
+      watcher.observe(thinking, { attributes: true, attributeFilter: ["class"] });
+      // A confirmation dialog may delay the original click. Do not retain a
+      // disabled proxy while the user is deciding whether to regenerate.
+      if (!started) {
+        restoreTrigger();
+        watcher.disconnect();
+      }
+    };
+    tabs.querySelectorAll("[data-after-interview-rebuild]").forEach((trigger) => {
+      trigger.addEventListener("click", () => runFullCompilation(trigger));
+    });
+
+    let activeReportKey = "overview";
     const activate = (key, updateUrl = true) => {
-      const activeKey = panels.has(key) ? key : "evidence";
-      buttons.forEach((button, buttonKey) => {
-        const active = buttonKey === activeKey;
+      const activeKey = keys.includes(key) &&
+        (hasCompiledPostInterviewResult || key === "evidence")
+        ? key : "evidence";
+      const reportsActive = activeKey !== "evidence";
+      if (reportsActive) activeReportKey = activeKey;
+      evidenceButton.classList.toggle("is-active", !reportsActive);
+      evidenceButton.setAttribute("aria-selected", String(!reportsActive));
+      reportsButton.classList.toggle("is-active", reportsActive);
+      reportsButton.setAttribute("aria-selected", String(reportsActive));
+      evidencePanel.hidden = reportsActive;
+      reportsArea.hidden = !reportsActive;
+      reportKeys.forEach((reportKey) => {
+        const button = buttons.get(reportKey);
+        const active = reportsActive && reportKey === activeKey;
         button.classList.toggle("is-active", active);
         button.setAttribute("aria-selected", String(active));
+        panels.get(reportKey).hidden = !active;
       });
-      panels.forEach((tabPanel, panelKey) => { tabPanel.hidden = panelKey !== activeKey; });
+      updateReportStatus();
       if (updateUrl) {
         const url = new URL(window.location.href);
         url.searchParams.set(URL_PARAM, activeKey);
@@ -2616,18 +2903,31 @@
       }
     };
 
-    nav.addEventListener("click", (event) => {
+    primaryNav.addEventListener("click", (event) => {
+      const target = event.target.closest("[data-after-interview-primary-tab], [data-after-interview-tab]");
+      if (!target || target.disabled) return;
+      if (target.dataset.afterInterviewPrimaryTab === "reports") {
+        activate(activeReportKey);
+      } else if (target.dataset.afterInterviewTab === "evidence") {
+        activate("evidence");
+      }
+    });
+    reportNav.addEventListener("click", (event) => {
       const button = event.target.closest("[data-after-interview-tab]");
-      if (button) activate(button.dataset.afterInterviewTab);
+      if (button && !button.disabled) activate(button.dataset.afterInterviewTab);
     });
 
     const url = new URL(window.location.href);
     const requested = url.searchParams.get(URL_PARAM);
-    const initial = keys.includes(requested)
+    const restoreRequested =
+      !candidateChanged && !justCompiled &&
+      keys.includes(requested) &&
+      (hasCompiledPostInterviewResult || requested === "evidence");
+    const initial = restoreRequested
       ? requested
-      : hasPostInterviewResult ? "overview" : "evidence";
+      : hasCompiledPostInterviewResult ? "overview" : "evidence";
     activate(initial, false);
-    if (requested === "tests" || url.searchParams.has("afterTestTab")) {
+    if ((requested && requested !== initial) || url.searchParams.has("afterTestTab")) {
       url.searchParams.delete("afterTestTab");
       url.searchParams.set(URL_PARAM, initial);
       window.history.replaceState({}, "", url);

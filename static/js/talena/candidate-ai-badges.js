@@ -28,10 +28,10 @@
     return (document.documentElement.lang || "").toLowerCase().startsWith("sv");
   }
 
-  function label(assisted) {
-    return assisted
-      ? (isSwedish() ? "AI-assisterat" : "AI-assisted")
-      : (isSwedish() ? "AI-genererat" : "AI-generated");
+  function label(_assisted) {
+    // Provenance stays AI-generated even when a user subsequently edits it.
+    // Editing details belong in the explanation, never in a second badge label.
+    return isSwedish() ? "AI-genererat" : "AI-generated";
   }
 
   function setLabel(badge, assisted) {
@@ -77,6 +77,69 @@
       if (badge.hidden !== !visible) badge.hidden = !visible;
       if (visible) setLabel(badge, assisted);
     }
+    return badge;
+  }
+
+  // #428: explain the *scope* of the one Personality AI badge. Other
+  // headings retain the shared badge without a second tooltip system.
+  let personalityHelpSequence = 0;
+  const personalityHelpCopy = {
+    sv: {
+      generated: "Denna text är AI-genererad och avsedd som stöd för förståelse och vidare samtal. Granska alltid innehållet och använd det inte som en färdig bedömning eller rekommendation.",
+      assisted: "Avsnittets AI-genererade texter har redigerats manuellt. Granska alltid innehållet och använd det inte som en färdig bedömning eller rekommendation.",
+      scope: "AI-märkningen gäller personlighetsavsnittets sammanfattningar och de genererade Tips för trivsel. Färdighet och Motivation visar testresultat och fasta råd, inte AI-genererad text.",
+      show: "Visa information om AI-texten i Personlighet",
+    },
+    en: {
+      generated: "This text is AI-generated and intended to support understanding and further discussion. Always review the content and do not use it as a final assessment or recommendation.",
+      assisted: "AI-generated text in this section has been manually edited. Always review the content and do not use it as a final assessment or recommendation.",
+      scope: "The AI label covers the Personality summaries and generated Wellbeing tips. Skills and Motivation show test results and fixed guidance, not AI-generated text.",
+      show: "Show information about AI text in Personality",
+    },
+  };
+  function attachPersonalityHelp(badge, assisted) {
+    if (!badge) return;
+    const row = badge.parentElement;
+    row?.classList.add("talena-ai-title-row--personality-help");
+    const copy = isSwedish() ? personalityHelpCopy.sv : personalityHelpCopy.en;
+    let tip = row?.querySelector(":scope > .talena-ai-personality-help");
+    if (!tip) {
+      tip = document.createElement("span");
+      tip.className = "talena-ai-personality-help";
+      tip.id = "talena-ai-personality-help-" + (++personalityHelpSequence);
+      tip.setAttribute("role", "tooltip");
+      row.appendChild(tip);
+    }
+    const info = copy.generated + " " +
+      (assisted ? copy.assisted + " " : "") + copy.scope;
+    if (tip.textContent !== info) tip.textContent = info;
+    badge.dataset.personalityAiHelp = "true";
+    badge.tabIndex = 0;
+    badge.setAttribute("role", "button");
+    badge.setAttribute("aria-describedby", tip.id);
+    badge.setAttribute("aria-label", label(assisted) + ". " + copy.show);
+    badge.setAttribute("aria-expanded", String(badge.dataset.helpOpen === "true"));
+    if (badge.dataset.personalityAiHelpBound === "true") return;
+    badge.dataset.personalityAiHelpBound = "true";
+    const toggle = () => {
+      const opened = badge.dataset.helpOpen !== "true";
+      badge.dataset.helpOpen = String(opened);
+      badge.setAttribute("aria-expanded", String(opened));
+    };
+    badge.addEventListener("click", toggle);
+    badge.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        badge.dataset.helpOpen = "false";
+        badge.setAttribute("aria-expanded", "false");
+      } else if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        toggle();
+      }
+    });
+    badge.addEventListener("blur", () => {
+      badge.dataset.helpOpen = "false";
+      badge.setAttribute("aria-expanded", "false");
+    });
   }
 
   function removeLegacyKickers(root) {
@@ -137,40 +200,70 @@
   }
 
   function markRichTextHeadings() {
-    // Generated Markdown can have its own headings. Mark those only when
-    // generated prose follows immediately, not the surrounding tab/card title.
+    // #442: one discreet AI tag per *generated report section*. Do not
+    // label every generated Markdown subheading as a separate AI result.
     document.querySelectorAll(
-      '[data-candidate-insights-workspace] [data-after-interview-block-content][data-after-interview-ai-origin="true"]'
-    ).forEach((block) => {
-      if (!hasGeneratedText(block)) return;
-      block.querySelectorAll(".after-interview-rich-text__heading").forEach((heading) => {
-        // Already-badged headings have been wrapped in the title row.
-        const row = heading.closest("." + ROW_CLASS);
-        const next = row ? row.nextElementSibling : heading.nextElementSibling;
-        const hasProse = Boolean(next &&
-          !next.matches("h2, h3, h4, h5, h6, .after-interview-rich-text__heading") &&
-          hasGeneratedText(next));
-        setBadge(heading, hasProse, false);
-      });
+      '[data-candidate-insights-workspace] .after-interview-tab-card'
+    ).forEach((card) => {
+      const body = card.querySelector(
+        '[data-after-interview-block-content][data-after-interview-ai-origin="true"]'
+      );
+      const heading = card.querySelector(
+        ".after-interview-tab-card__header .after-interview-tab-card__title"
+      );
+      if (!heading) return;
+      setBadge(heading, hasGeneratedText(body), false);
     });
   }
 
   function markManagerReportBlocks() {
-    // These text fields are explicitly tracked by the editable AI block
-    // controller. Manual edits retain the AI-assisted provenance.
+    // Only indicate genuinely AI-originated content at the section level.
+    // Skills and Motivation are static Sova results/reference guidance here,
+    // so never mislabel them as AI-generated.
     document.querySelectorAll(
-      "[data-candidate-insights-workspace] [data-manager-report-edit-key][data-manager-report-ai-text]"
-    ).forEach((field) => {
-      const aiValue = (field.dataset.managerReportAiText || "").trim();
-      const edited = field.dataset.managerReportManuallyEdited === "true";
-      let badge = field.previousElementSibling;
-      if (!badge?.classList.contains("talena-ai-field-badge")) {
-        badge = document.createElement("span");
-        badge.className = BADGE_CLASS + " talena-ai-field-badge";
-        field.parentNode.insertBefore(badge, field);
-      }
-      if (badge.hidden !== !aiValue) badge.hidden = !aiValue;
-      if (aiValue) setLabel(badge, edited);
+      "[data-candidate-insights-workspace] .after-interview-manager-report"
+    ).forEach((report) => {
+      const personality = report.querySelector(
+        ".after-interview-manager-report__personality"
+      );
+      const wellbeing = report.querySelector(
+        ".after-interview-manager-report__wellbeing"
+      );
+      const sources = [personality, wellbeing].filter(Boolean);
+      const fields = sources.flatMap((section) => [
+        ...section.querySelectorAll(
+          "[data-manager-report-edit-key][data-manager-report-ai-text]"
+        ),
+      ]);
+      const hasAi = fields.some((field) =>
+        (field.dataset.managerReportAiText || "").trim()
+      );
+      const hasManualEdit = fields.some((field) =>
+        field.dataset.managerReportManuallyEdited === "true"
+      );
+      const badge = setBadge(
+        personality?.querySelector(
+          ".after-interview-manager-report__personality-title"
+        ),
+        hasAi,
+        hasManualEdit,
+      );
+      attachPersonalityHelp(badge, hasManualEdit);
+      // Historical layouts may still have a badge next to Tips for trivsel.
+      // Keep a single badge for the whole AI-generated personality guidance.
+      setBadge(
+        wellbeing?.querySelector(
+          ".after-interview-manager-report__wellbeing-title"
+        ),
+        false,
+        false,
+      );
+      fields.forEach((field) => {
+        const previous = field.previousElementSibling;
+        if (previous?.classList.contains("talena-ai-field-badge")) {
+          previous.remove();
+        }
+      });
     });
   }
 

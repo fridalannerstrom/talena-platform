@@ -169,6 +169,17 @@
   background: #fff;
 }
 
+/* After interview is now a complete page with its own header, step guide
+   and tab panels. Unlike the legacy card, it must not have a second padding
+   layer around the entire page. Keep spacing inside each section. */
+.process-page #candidate-insights-panel-after-interview > .final-output-card {
+  padding: 0 !important;
+}
+.process-page #candidate-insights-panel-after-interview > .final-output-card > div:first-child {
+  margin: 0 !important;
+  padding: 1.5rem 1.5rem 1.15rem !important;
+}
+
 .process-page #candidate-insights-panel-prepare-interview > .final-output-card > .d-flex:first-child .insight-summary-kicker,
 .process-page #candidate-insights-panel-after-interview > .final-output-card > div:first-child .insight-summary-kicker {
   margin-bottom: 0.55rem !important;

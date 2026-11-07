@@ -70,7 +70,7 @@
     { id: "prepare-interview",
       selector: "#candidate-insights-panel-prepare-interview [data-pre-interview-content]",
       ready: element => !element.classList.contains("d-none") && element.textContent.trim().length > 80 },
-    ...[["overview","after-overview"],["interview","after-interview"],["explore","after-explore"]]
+    ...[["overview","after-overview"],["explore","after-explore"]]
       .map(([panel, id]) => ({
         id, selector: '[data-after-interview-tab-panel="' + panel + '"] .after-interview-tab-card',
         ready: element => {
@@ -304,7 +304,14 @@
     "[data-cognitive-interpretation-regenerate]",
     "[data-cognitive-questions-regenerate]",
     "[data-pre-interview-generate][data-regenerate='true']",
-    "[data-post-interview-generate][data-regenerate='true']"
+    "[data-post-interview-generate][data-regenerate='true']",
+    // After interview's individual report cards have their own refresh
+    // buttons inside the title toolbar. Pair the PDF export with that
+    // existing action instead of inserting a separate row above the card.
+    "[data-after-interview-regenerate]",
+    // Helhetsbild's structured card has its own refresh action.
+    // Pair the existing PDF control with it instead of creating a toolbar row.
+    "[data-overall-picture-generate]"
   ].join(", ");
 
   function findHeading(source) {

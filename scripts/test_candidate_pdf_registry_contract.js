@@ -28,6 +28,20 @@ assert.ok(js.includes('const generateSelector = [') &&
   js.includes('source.querySelector(generateSelector)') &&
   js.includes('pair.append(toolbar, generate)'),
   "PDF and Generate must render side by side in the same action pair");
+assert.ok(js.includes('"[data-overall-picture-generate]"') &&
+  js.includes('["overview","after-overview"]'),
+  "Structured Helhetsbild must share its action pair with the PDF button");
+assert.ok(js.includes('"[data-after-interview-regenerate]"') &&
+  js.includes('source.querySelector(generateSelector)') &&
+  js.includes('pair.append(toolbar, generate)'),
+  "Undersök vidare must pair PDF and refresh in its title toolbar");
+assert.ok(!js.includes('["interview","after-interview"]'),
+  "Retired Interview summary must not be offered as a PDF option");
+const afterInterviewCards = read("static/js/talena/after-interview-tabs.js");
+assert.ok(afterInterviewCards.includes('button.dataset.afterInterviewRegenerate = blockKey;') &&
+  afterInterviewCards.includes('toolbar.appendChild(button);') &&
+  afterInterviewCards.includes('toolbar.className = "after-interview-tab-card__toolbar"'),
+  "The inline refresh button must remain attached to the report heading toolbar");
 assert.ok(js.includes('findHeading(source)') &&
   js.includes('header.append(toolbar)'),
   "Results PDF must be inside the report heading, not a separate top row");
@@ -76,7 +90,7 @@ assert.ok(js.includes("if (!item || !isReady(item)) throw Error(copy.unavailable
 for (const id of [
   "overview", "personality", "motivation", "cognitive", "team-report",
   "leadership-report", "derailment-report", "prepare-interview",
-  "after-overview", "after-interview", "after-explore", "manager-report"
+  "after-overview", "after-explore", "manager-report"
 ]) {
   assert.ok(js.includes(id), "Registry missing " + id);
 }

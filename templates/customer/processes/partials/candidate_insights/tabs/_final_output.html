@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n motivation_practical_advice %}
 
 <div
   data-final-output-root
@@ -23,6 +23,10 @@
   data-manager-report-edits-url="{% url 'processes:process_candidate_manager_report_text_edits' process.id candidate.id %}"
   data-manager-report-edit-save-url="{% url 'processes:process_candidate_manager_report_text_edit_update' process.id candidate.id %}"
 >
+
+  {# Canonical library consumed by Chefsrapport; never written to candidate data. #}
+  {% talena_motivation_practical_advice as mq_practical_advice %}
+  {{ mq_practical_advice|json_script:"talena-motivation-practical-advice" }}
 
   <!-- ================================================== -->
   <!-- PREPARE FOR INTERVIEW -->
@@ -467,7 +471,7 @@
         <textarea
           id="candidate-interview-notes"
           class="form-control"
-          rows="12"
+          rows="8"
           maxlength="30000"
           placeholder="{% trans 'Paste interview notes, candidate examples and relevant observations here…' %}"
           data-interview-notes-input

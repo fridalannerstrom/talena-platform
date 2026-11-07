@@ -302,7 +302,6 @@ class PostInterviewQuestionEvidenceTests(TestCase):
             key: f"Generated {key} content."
             for key in (
                 "overall_picture",
-                "interview_summary",
                 "explore_further",
                 "wellbeing_tips",
             )
@@ -310,7 +309,7 @@ class PostInterviewQuestionEvidenceTests(TestCase):
         # The After interview UI now generates each tab independently. The
         # previous test mocked the retired combined stream, so Django attempted
         # real OpenAI requests and incorrectly reported a failed generation.
-        # Return deterministic content from the *current* four-block stream.
+        # Return deterministic content from the three visible sections.
         def stream_section(*, owner, block_key, language_code):
             yield {
                 "type": "content_block_delta",
@@ -353,12 +352,68 @@ class PostInterviewQuestionEvidenceTests(TestCase):
             ],
             content_blocks["overall_picture"],
         )
+        stored_blocks = self.owner.ai_post_interview_decision_support["content_blocks"]
+        for key, value in content_blocks.items():
+            self.assertEqual(stored_blocks[key], value)
+        # The legacy key is retained in storage, not generated or required.
+        self.assertEqual(stored_blocks.get("interview_summary", ""), "")
+        self.assertNotIn("interview_summary", [call.kwargs["block_key"]
+                                            for call in generate_section.call_args_list])
+
+    def test_legacy_interview_summary_is_preserved_but_not_regenerated(self):
+        # Existing customers retain historical summaries and saved answers.
+        self.owner.ai_post_interview_decision_support = {
+            "content_blocks": {"interview_summary": "Historic interview summary"}
+        }
+        self.owner.save(update_fields=["ai_post_interview_decision_support"])
+
+        def stream_section(*, owner, block_key, language_code):
+            yield {
+                "type": "content_block_delta",
+                "block": block_key,
+                "text": f"New {block_key} content",
+            }
+            yield {"type": "content_block_done", "block": block_key}
+
+        with (
+            patch(
+                "apps.core.ai.decision_support.stream_post_interview_content_block",
+                side_effect=stream_section,
+            ) as generate_section,
+            patch(
+                "apps.processes.interview_question_notes._manager_report_personality_events",
+                return_value=iter(()),
+            ),
+        ):
+            response = self.client.get(
+                self._post_stream_url() + "?force=1",
+                HTTP_ACCEPT="application/x-ndjson",
+            )
+            body = b"".join(response.streaming_content).decode("utf-8")
+
+        self.assertNotIn('"type": "error"', body)
+        self.owner.refresh_from_db()
         self.assertEqual(
-            self.owner.ai_post_interview_decision_support[
-                "content_blocks"
-            ],
-            content_blocks,
+            self.owner.ai_post_interview_decision_support_status,
+            "completed",
         )
+        self.assertEqual(
+            self.owner.ai_post_interview_decision_support["content_blocks"]["interview_summary"],
+            "Historic interview summary",
+        )
+        self.assertNotIn(
+            "interview_summary",
+            [call.kwargs["block_key"] for call in generate_section.call_args_list],
+        )
+
+    def test_legacy_interview_summary_cannot_be_requested_directly(self):
+        for suffix, method in (
+            ("?block=interview_summary", self.client.get),
+            ("?block=interview_summary", self.client.post),
+        ):
+            url = self._post_stream_url() if method == self.client.get else self._post_regenerate_url()
+            response = method(url + suffix)
+            self.assertEqual(response.status_code, 400)
 
     def test_regenerate_endpoint_rejects_when_all_interview_evidence_is_empty(self):
         InterviewQuestionNote.objects.filter(

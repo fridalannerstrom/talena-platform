@@ -227,8 +227,9 @@
             || (typeof item.intervjun === "string" && item.intervjun.trim())
           )
         );
-        // Other sections contain Testbild/Intervjun text at a deeper level.
-        if (key === "synthesis" && sectionHasAI) {
+        // One AI badge at each generated section heading, including the
+        // final Helhetsbild. No badges beside Testbild/Intervjun subheadings.
+        if (sectionHasAI) {
           const generatedBadge = el("span", "talena-ai-generated-badge",
             "✦ " + tr("AI-genererat", "AI-generated"));
           generatedBadge.setAttribute("aria-label", tr("AI-genererat", "AI-generated"));
@@ -264,13 +265,8 @@
                   || statusText.not_started));
             }
             const addAiText = (subtitle, content) => {
-              const titleRow = el("div", "talena-ai-title-row");
-              titleRow.appendChild(el("h6", "after-interview-overall__subheading", subtitle));
-              const badge = el("span", "talena-ai-generated-badge",
-                "✦ " + tr("AI-genererat", "AI-generated"));
-              badge.setAttribute("aria-label", tr("AI-genererat", "AI-generated"));
-              titleRow.appendChild(badge);
-              box.appendChild(titleRow);
+              // The group's one label already covers these generated texts.
+              box.appendChild(el("h6", "after-interview-overall__subheading", subtitle));
               addParagraphs(box, content);
             };
             if (item.testbild && !isRawSourceDump(item.testbild)) {

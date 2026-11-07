@@ -226,7 +226,9 @@
         border-left: 0 !important;
         border-radius: 0 !important;
         background: transparent !important;
-        padding: 1rem 0 0 !important;
+        /* Outer card is flush; keep the decision-support footer aligned
+           with the page header and the inner content instead. */
+        padding: 1rem 1.5rem 1.15rem !important;
       }
 
       @media (max-width: 767px) {
@@ -290,26 +292,26 @@
     const copy = isSwedish()
       ? {
           headerDescription:
-            "Samla intervjuunderlaget och jämför det med testresultaten och processkontexten för att skapa en mer komplett bild.",
+            "Här samlar du det som kom fram i intervjun. Talena väger sedan samman anteckningarna med testresultat och rollkontext, så att du får helhetsbild, uppföljningsområden och chefsrapport under Rapporter.",
           notesTitle: "Intervjuunderlag",
           notesDescription:
-            "Samla relevanta exempel, svar och observationer från intervjun här.",
+            "Skriv eller klistra in dina anteckningar nedan. Svar som du sparat på intervjufrågorna hämtas automatiskt.",
           compileTitle: "Sammanställ underlag",
           compileDescription:
-            "Väg samman testresultat, intervjuunderlag och processkontext till ett gemensamt beslutsunderlag.",
+            "När underlaget är sparat kan du låta Talena sammanställa det tillsammans med testresultat och rollkontext. Därefter öppnas rapportflikarna.",
           compileButton: "Sammanställ underlag",
           updateButton: "Uppdatera sammanställningen",
-          readyTitle: "Redo att sammanställa",
+          readyTitle: "Nästa steg: skapa din sammanställning",
           overall: "Samlad tolkning",
           supports: "Stöd för rollen",
           supportsDescription:
-            "Områden där det samlade underlaget ger relevant stöd i relation till den faktiska roll- eller processkontexten.",
+            "Områden där det samlade underlaget ger relevant stöd i relation till rollkontexten.",
           nuances: "Ytterligare nyans",
           nuancesDescription:
             "Bakgrundsnyans som används i den samlade tolkningen.",
           contradictions: "Områden att utforska",
           contradictionsDescription:
-            "Viktiga områden i roll- eller processkontexten där underlaget är tunt, blandat eller fortfarande behöver valideras.",
+            "Viktiga områden i rollkontexten där underlaget är tunt, blandat eller fortfarande behöver valideras.",
           remains: "Kvar att utforska",
           remainsDescription:
             "Information som fortfarande saknas för att skapa en mer komplett bild.",
@@ -320,31 +322,31 @@
           combined: "Samlad tolkning",
           disclaimerTitle: "Beslutsstöd, inte ett beslut",
           outdatedTitle: "Intervjuunderlaget har ändrats",
-          loading: "Väger samman testresultat, intervjuunderlag och processkontext…",
+          loading: "Väger samman testresultat, intervjuunderlag och rollkontext…",
           error: "Underlaget kunde inte sammanställas."
         }
       : {
           headerDescription:
-            "Bring interview evidence together with assessment results and process context to create a more complete view.",
+            "Add what you learned in the interview. Talena combines your notes with assessment results and role context, then provides an overall picture, follow-up topics and manager report under Reports.",
           notesTitle: "Interview evidence",
           notesDescription:
-            "Capture relevant examples, answers and observations from the interview here.",
+            "Write or paste your notes below. Answers saved on interview questions will be included automatically.",
           compileTitle: "Compile evidence",
           compileDescription:
-            "Bring assessment results, interview evidence and process context together into one decision-support view.",
+            "Once the evidence is saved, let Talena combine it with assessment results and role context. The report tabs will then become available.",
           compileButton: "Compile evidence",
           updateButton: "Update compiled evidence",
-          readyTitle: "Ready to compile",
+          readyTitle: "Next: create your summary",
           overall: "Combined interpretation",
           supports: "Role support",
           supportsDescription:
-            "Areas where the combined evidence provides relevant support in relation to the actual role or process context.",
+            "Areas where the combined evidence provides relevant support in relation to the role context.",
           nuances: "Additional nuance",
           nuancesDescription:
             "Background nuance used in the combined interpretation.",
           contradictions: "Areas to explore",
           contradictionsDescription:
-            "Important role or process-context areas where the evidence is limited, mixed or still needs validation.",
+            "Important areas of the role context where the evidence is limited, mixed or still needs validation.",
           remains: "What remains to explore",
           remainsDescription:
             "Information that is still missing for a more complete view.",
@@ -355,7 +357,7 @@
           combined: "Combined interpretation",
           disclaimerTitle: "Decision support, not a decision",
           outdatedTitle: "The interview evidence has changed",
-          loading: "Bringing assessment results, interview evidence and process context together…",
+          loading: "Bringing assessment results, interview evidence and role context together…",
           error: "The evidence could not be compiled."
         };
 
@@ -390,11 +392,17 @@
     if (!postSection) return;
 
     const postHeader = postSection.firstElementChild;
-    setText(
-      postHeader?.querySelector("h3.insight-summary-title"),
-      copy.compileTitle,
-      copy.compileTitle
-    );
+    const outputRoot = panel.closest("[data-final-output-root]");
+    const compilationReady =
+      outputRoot?.dataset.hasPostInterviewResult === "true" &&
+      ["completed", "outdated"].includes(outputRoot?.dataset.postInterviewStatus);
+    if (!compilationReady) {
+      setText(
+        postHeader?.querySelector("h3.insight-summary-title"),
+        copy.compileTitle,
+        copy.compileTitle
+      );
+    }
     setText(
       postHeader?.querySelector("p.text-muted"),
       copy.compileDescription,

@@ -708,6 +708,7 @@ def process_candidate_post_interview_decision_support_stream_with_evidence(
         )
 
     from apps.core.ai.decision_support import (
+        ACTIVE_POST_INTERVIEW_CONTENT_BLOCK_KEYS,
         POST_INTERVIEW_CONTENT_BLOCK_KEYS,
         save_post_interview_content_block,
         set_post_interview_content_block_status,
@@ -729,7 +730,7 @@ def process_candidate_post_interview_decision_support_stream_with_evidence(
         or block_key != "overall_picture"
     ):
         return JsonResponse({"error": "Invalid structured report section."}, status=400)
-    if block_key and block_key not in POST_INTERVIEW_CONTENT_BLOCK_KEYS:
+    if block_key and block_key not in ACTIVE_POST_INTERVIEW_CONTENT_BLOCK_KEYS:
         return JsonResponse({"error": "Unknown After interview section."}, status=400)
 
     mark_ai_content_outdated_if_language_changed(
@@ -856,7 +857,9 @@ def process_candidate_post_interview_decision_support_stream_with_evidence(
             owner.save(update_fields=["ai_post_interview_decision_support"])
 
     force = request.GET.get("force") == "1"
-    selected_keys = [block_key] if block_key else list(POST_INTERVIEW_CONTENT_BLOCK_KEYS)
+    # No hidden Intervjusammanfattning generation. The legacy key remains in
+    # saved content for audit/history, but is not a required active report.
+    selected_keys = [block_key] if block_key else list(ACTIVE_POST_INTERVIEW_CONTENT_BLOCK_KEYS)
     blocks_ready = all(str(saved_blocks.get(key) or "").strip() for key in selected_keys)
     if structured:
         blocks_ready = False  # Legacy Markdown does not prove the new typed report is current.
@@ -1070,7 +1073,7 @@ def process_candidate_post_interview_decision_support_stream_with_evidence(
                     key,
                     "completed" if current_status == "completed" else "not_started",
                 ) == "completed"
-                for key in POST_INTERVIEW_CONTENT_BLOCK_KEYS
+                for key in ACTIVE_POST_INTERVIEW_CONTENT_BLOCK_KEYS
             )
             if structured:
                 structured_state = final_result.get("overall_picture_structured") or {}
@@ -1158,7 +1161,7 @@ def process_candidate_post_interview_decision_support_regenerate_with_evidence(
     if error_response is not None:
         return error_response
 
-    from apps.core.ai.decision_support import POST_INTERVIEW_CONTENT_BLOCK_KEYS
+    from apps.core.ai.decision_support import ACTIVE_POST_INTERVIEW_CONTENT_BLOCK_KEYS
 
     block_key = str(request.GET.get("block") or "").strip()
     structured = request.GET.get("structured") == "1"
@@ -1168,7 +1171,7 @@ def process_candidate_post_interview_decision_support_regenerate_with_evidence(
         or block_key != "overall_picture"
     ):
         return JsonResponse({"error": "Invalid structured report section."}, status=400)
-    if block_key and block_key not in POST_INTERVIEW_CONTENT_BLOCK_KEYS:
+    if block_key and block_key not in ACTIVE_POST_INTERVIEW_CONTENT_BLOCK_KEYS:
         return JsonResponse({"error": "Unknown After interview section."}, status=400)
 
     if block_key:
