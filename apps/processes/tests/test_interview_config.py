@@ -223,3 +223,33 @@ class InterviewSectionConfigTests(SimpleTestCase):
         self.assertEqual(html.count("De AI-genererade frågorna är tänkta"), 1)
         self.assertIn("Tips på motivationsfrågor", html)
         self.assertIn("AI-fråga", html)
+
+    def test_437_historical_candidate_uses_imported_completed_abilities(self):
+        from django.template import Context
+        from apps.processes.templatetags.interview_config import (
+            interview_combined_sections,
+            interview_section_meta,
+        )
+
+        context = Context({
+            "historical_candidate": object(),
+            "invitation": None,
+            "has_personality_results": True,
+            "has_motivation_results": False,
+            "has_completed_cognitive_results": True,
+            "assessment_keys_in_process": {"logical", "numerical"},
+            "candidate_insights": {"cognitive_results": [
+                {"key": "logical", "completed": True},
+                {"key": "numerical", "completed": True},
+                {"key": "verbal", "completed": True},
+            ]},
+            "LANGUAGE_CODE": "sv",
+            "combined_question_sections": [],
+        })
+        sections = interview_combined_sections(context)
+        self.assertEqual(
+            [section["key"] for section in sections],
+            ["cognitive", "personality"],
+        )
+        meta = interview_section_meta(context, "cognitive")
+        self.assertEqual(len(meta["intro_questions"]), 4)
