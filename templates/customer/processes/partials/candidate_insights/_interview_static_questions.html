@@ -1,0 +1,14 @@
+{# #437: Always-visible, approved interviewer prompts. Never inside AI result hooks. #}
+{% if interview_meta.intro_questions %}
+  <section class="personality-questions-section interview-static-questions mt-4"
+           data-interview-static-questions="{{ interview_meta.key }}">
+    <h3 class="personality-questions-section-title mb-3">
+      {{ interview_meta.intro_questions_label }}
+    </h3>
+    <ol class="ps-4 mb-0">
+      {% for question in interview_meta.intro_questions %}
+        <li class="mb-2 ps-1">{{ question }}</li>
+      {% endfor %}
+    </ol>
+  </section>
+{% endif %}
