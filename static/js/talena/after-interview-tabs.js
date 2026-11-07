@@ -138,7 +138,6 @@
       evidenceLeadReady: "Du kan komplettera eller ändra anteckningarna här. Sammanställ på nytt för att uppdatera analysen och rapporterna.",
       evidenceTip: "Tips: Beskriv konkreta situationer, vad kandidaten gjorde och vad som hände. Svar som sparats på intervjufrågorna följer med automatiskt.",
       reportsIntro: "Här hittar du de sammanställda resultaten och rapporterna. Underlaget kan alltid kompletteras i fliken Underlag.",
-      reportStatusCurrent: "Bygger på den senaste sammanställningen",
       reportStatusOutdated: "Underlaget har ändrats sedan rapporterna skapades.",
       reportStatusUnsaved: "Du har osparade intervjuanteckningar. Skapa en ny sammanställning för att uppdatera rapporterna.",
       reportStatusDetail: "Rapporterna visar fortfarande den tidigare versionen tills du skapar en ny sammanställning.",
@@ -280,7 +279,6 @@
       evidenceLeadReady: "Add or change notes here, then compile again to update the analysis and reports.",
       evidenceTip: "Tip: Describe specific situations, what the candidate did and what happened. Answers saved on interview questions are included automatically.",
       reportsIntro: "Find all compiled results and reports here. You can always update the evidence in the Evidence tab.",
-      reportStatusCurrent: "Based on the latest compilation",
       reportStatusOutdated: "The evidence has changed since these reports were created.",
       reportStatusUnsaved: "You have unsaved interview notes. Create a new compilation to update the reports.",
       reportStatusDetail: "The reports still show the previous version until you create a new compilation.",
@@ -1497,15 +1495,27 @@
     }
   };
 
-  const makeTab = (key, label, panelId) => {
+  // The two navigation levels reuse the same components as the other
+  // candidate views: candidate-insights-view-option and personality-view-tab.
+  const makeTab = (key, label, panelId, kind = "primary") => {
     const button = document.createElement("button");
     button.type = "button";
-    button.className = "candidate-insights-view-option";
+    button.className = kind === "report"
+      ? "personality-view-tab" : "candidate-insights-view-option";
     button.dataset.afterInterviewTab = key;
     button.setAttribute("role", "tab");
     button.setAttribute("aria-controls", panelId);
     button.setAttribute("aria-selected", "false");
-    button.textContent = label;
+    const icons = {
+      evidence: "clipboard", overview: "layers", interview: "message-square",
+      explore: "search", managerReport: "file-text",
+    };
+    const icon = document.createElement("i");
+    icon.setAttribute("data-feather", icons[key] || "file-text");
+    icon.setAttribute("aria-hidden", "true");
+    const text = document.createElement("span");
+    text.textContent = label;
+    button.append(icon, text);
     return button;
   };
 
@@ -2279,7 +2289,12 @@
     reportsButton.setAttribute("role", "tab");
     reportsButton.setAttribute("aria-controls", reportsArea.id);
     reportsButton.setAttribute("aria-selected", "false");
-    reportsButton.textContent = copy().tabs.reports;
+    const reportsIcon = document.createElement("i");
+    reportsIcon.setAttribute("data-feather", "file-text");
+    reportsIcon.setAttribute("aria-hidden", "true");
+    const reportsText = document.createElement("span");
+    reportsText.textContent = copy().tabs.reports;
+    reportsButton.append(reportsIcon, reportsText);
     if (!hasCompiledPostInterviewResult) {
       reportsButton.disabled = true;
       reportsButton.setAttribute("aria-disabled", "true");
@@ -2317,9 +2332,12 @@
     const reportStatusDetail = document.createElement("span");
     reportStatusDetail.className = "after-interview-reports__status-detail";
     reportStatus.append(reportStatusTitle, reportStatusDetail);
+    reportStatus.hidden = true;
 
+    const reportNavWrapper = document.createElement("div");
+    reportNavWrapper.className = "personality-view-controls";
     const reportNav = document.createElement("div");
-    reportNav.className = "after-interview-report-switcher";
+    reportNav.className = "personality-view-tabs";
     reportNav.setAttribute("role", "tablist");
     reportNav.setAttribute("aria-label", copy().tabs.reports);
     const reportPanels = document.createElement("div");
@@ -2327,14 +2345,15 @@
 
     reportKeys.forEach((key) => {
       const id = "after-interview-tab-panel-" + key;
-      const button = makeTab(key, copy().tabs[key], id);
+      const button = makeTab(key, copy().tabs[key], id, "report");
       const tabPanel = makePanel(key, id);
       buttons.set(key, button);
       panels.set(key, tabPanel);
       reportNav.appendChild(button);
       reportPanels.appendChild(tabPanel);
     });
-    reportsArea.append(reportsHeader, reportStatus, reportNav, reportPanels);
+    reportNavWrapper.appendChild(reportNav);
+    reportsArea.append(reportsHeader, reportStatus, reportNavWrapper, reportPanels);
     tabPanels.appendChild(reportsArea);
 
     navLayout.appendChild(primaryNav);
@@ -3054,6 +3073,9 @@
         if (index === currentJourneyStep) step.setAttribute("aria-current", "step");
         else step.removeAttribute("aria-current");
       });
+      // Keep the status box out of view while reports are current.
+      // Changed input still displays its existing actionable warning.
+      reportStatus.hidden = !needsUpdate;
       reportStatus.classList.toggle("needs-update", needsUpdate);
       reportsRefresh.classList.toggle("needs-update", needsUpdate);
       reportsButton.classList.toggle("needs-update", needsUpdate);
@@ -3062,8 +3084,7 @@
         ? copy().tabs.reports + ". " + copy().reportStatusOutdated
         : copy().tabs.reports);
       reportStatusTitle.textContent = hasUnsavedNotes
-        ? copy().reportStatusUnsaved
-        : needsUpdate ? copy().reportStatusOutdated : copy().reportStatusCurrent;
+        ? copy().reportStatusUnsaved : needsUpdate ? copy().reportStatusOutdated : "";
       reportStatusDetail.textContent = needsUpdate ? copy().reportStatusDetail : "";
       reportStatusDetail.hidden = !needsUpdate;
       reportsRefresh.title = needsUpdate ? copy().reportRebuildShort : copy().reportRebuild;
@@ -3085,6 +3106,7 @@
       );
       if (!nativeButton || nativeButton.disabled) {
         if (trigger.dataset.afterInterviewRebuild === "reports") {
+          reportStatus.hidden = false;
           reportStatusTitle.textContent = copy().reportGenerateUnavailable;
           reportStatusDetail.textContent = "";
         } else {
@@ -3132,6 +3154,7 @@
           watcher.disconnect();
           const error = postSection.querySelector("[data-post-interview-error]");
           if (error && !error.classList.contains("d-none")) {
+            reportStatus.hidden = false;
             reportStatus.classList.add("needs-update");
             reportStatusTitle.textContent = error.textContent.trim() || copy().reportError;
             reportStatusDetail.textContent = copy().reportStatusDetail;
