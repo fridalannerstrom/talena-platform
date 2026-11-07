@@ -6,10 +6,7 @@
   // Candidate reports, static test interpretations and interviewer notes have
   // no corresponding rules, so they cannot be marked by this code.
   const RULES = [
-    ["#purposeFitResult", ".purpose-fit-section:first-child .purpose-fit-section-title", "#purposeFitSummary"],
-    [".personality-overview-summary", ".personality-overview-summary__title", "[data-personality-area-summary]"],
-    [".purpose-fit-list-card--positive", ".purpose-fit-section-title", "#purposeFitAlignment li"],
-    [".purpose-fit-list-card--verify", ".purpose-fit-section-title", "#purposeFitVerify li"],
+    ["[data-overview-interpretation-card]", "[data-overview-interpretation-title]", "[data-overview-interpretation-content]"],
     ["[data-personality-ai-root] .personality-interpretation__overall", ".purpose-fit-section-title", "[data-personality-ai-interpretation]"],
     ["[data-motivation-ai-root] .purpose-fit-section", ".purpose-fit-section-title", "[data-motivation-ai-interpretation]"],
     ["[data-cognitive-interpretation-root] .purpose-fit-section", ".purpose-fit-section-title", "[data-cognitive-ai-interpretation]"],
@@ -103,6 +100,42 @@
     });
   }
 
+  // #431 / #401: the Overview mirrors each area tab's own current AI text.
+  // The area streams can finish after Overview was first rendered; mirror the
+  // DOM source without an extra request or a second interpretation lifecycle.
+  function syncOverviewInterpretations() {
+    const definitions = [
+      ["cognitive", "[data-cognitive-interpretation-root]", "[data-cognitive-ai-interpretation]"],
+      ["personality", "[data-personality-ai-root]", "[data-personality-ai-interpretation]"],
+      ["motivation", "[data-motivation-ai-root]", "[data-motivation-ai-interpretation]"],
+    ];
+    document.querySelectorAll("[data-candidate-insights-workspace]").forEach((workspace) => {
+      definitions.forEach(([key, rootSelector, textSelector]) => {
+        const card = workspace.querySelector('[data-overview-interpretation-card="' + key + '"]');
+        if (!card) return;
+        const content = card.querySelector("[data-overview-interpretation-content]");
+        const empty = card.querySelector("[data-overview-interpretation-empty]");
+        const message = card.querySelector("[data-overview-interpretation-empty-text]");
+        const sourceRoot = workspace.querySelector(rootSelector);
+        const sourceText = sourceRoot?.querySelector(textSelector)?.textContent.trim() || "";
+        const outdated = sourceRoot?.dataset.status === "outdated";
+        const current = sourceRoot?.dataset.hasResult === "true" &&
+          !["outdated", "generating"].includes(sourceRoot?.dataset.status);
+        const value = current ? sourceText : "";
+        if (content && content.textContent !== value) content.textContent = value;
+        if (content) content.classList.toggle("d-none", !value);
+        if (empty) empty.classList.toggle("d-none", Boolean(value));
+        if (message) {
+          const sv = isSwedish();
+          const newMessage = outdated
+            ? (sv ? "Tolkningen behöver uppdateras innan den kan visas här." : "Update the interpretation before viewing it here.")
+            : (sv ? "Ingen tolkning har skapats för detta område ännu." : "No interpretation has been generated for this area yet.");
+          if (message.textContent.trim() !== newMessage) message.textContent = newMessage;
+        }
+      });
+    });
+  }
+
   function markRichTextHeadings() {
     // Generated Markdown can have its own headings. Mark those only when
     // generated prose follows immediately, not the surrounding tab/card title.
@@ -145,6 +178,7 @@
   function scan() {
     if (!document.querySelector("[data-candidate-insights-workspace]")) return;
     document.querySelectorAll("[data-candidate-insights-workspace]").forEach(removeLegacyKickers);
+    syncOverviewInterpretations();
     RULES.forEach((rule) => markRule(...rule));
     markRichTextHeadings();
     markManagerReportBlocks();
@@ -166,14 +200,14 @@
         change.type === "characterData" ||
         change.type === "childList" ||
         (change.type === "attributes" &&
-          ["class", "hidden", "data-has-result", "data-manager-report-ai-text"].includes(change.attributeName))
+          ["class", "hidden", "data-has-result", "data-status", "data-manager-report-ai-text"].includes(change.attributeName))
       )) {
         schedule();
       }
     });
     observer.observe(document.body, {
       subtree: true, childList: true, characterData: true,
-      attributes: true, attributeFilter: ["class", "hidden", "data-has-result", "data-manager-report-ai-text"]
+      attributes: true, attributeFilter: ["class", "hidden", "data-has-result", "data-status", "data-manager-report-ai-text"]
     });
   }
   if (document.readyState === "loading") {

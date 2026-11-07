@@ -36,9 +36,9 @@ class CandidateAiProvenanceTests(SimpleTestCase):
 
     def test_badges_use_ai_output_selectors_not_heading_keywords(self):
         script = self.source("static/js/talena/candidate-ai-badges.js")
-        self.assertIn('["#purposeFitResult",', script)
+        self.assertIn('["[data-overview-interpretation-card]",', script)
         self.assertNotIn('["#purposeFitCard", "#purposeFitTitle"', script)
-        self.assertIn('"#purposeFitSummary"', script)
+        self.assertNotIn('"#purposeFitSummary"', script)
         self.assertIn("[data-personality-ai-interpretation]", script)
         self.assertIn("[data-motivation-ai-interpretation]", script)
         self.assertIn("[data-cognitive-ai-interpretation]", script)

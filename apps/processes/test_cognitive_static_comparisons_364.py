@@ -106,7 +106,7 @@ class CognitiveStaticComparisonTests(SimpleTestCase):
         scoped = stylesheet[start:]
         self.assertIn("--talena-summary-body-size: 0.75rem", scoped)
         self.assertIn("--talena-summary-body-line-height: 1.62", scoped)
-        self.assertIn("#purposeFitCard #purposeFitSummary", scoped)
+        self.assertIn("#purposeFitCard .talena-overview-interpretations__text", scoped)
         for selector in (
             "candidate-result-overview__motivation-card-description",
             "candidate-result-overview__skill-interpretation",

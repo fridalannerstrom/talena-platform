@@ -319,6 +319,13 @@
     const actions = item.id === "overview"
       ? source.querySelector(".ai-overview-header__actions")
       : generate?.parentElement;
+    // Overview now reuses existing interpretations and has no Generate action.
+    // Keep its PDF control in the existing header action area.
+    if (item.id === "overview" && actions && !generate) {
+      actions.append(toolbar);
+      toolbar.classList.add("talena-candidate-pdf-toolbar--inline", "talena-candidate-pdf-toolbar--overview");
+      return;
+    }
     if (actions && generate) {
       if (item.id === "overview") {
         toolbar.classList.add("talena-candidate-pdf-toolbar--overview");
