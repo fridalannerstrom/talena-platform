@@ -113,4 +113,8 @@ class PersonalityCopy439Tests(SimpleTestCase):
         self.assertNotIn(
             '{% trans "Explore the candidate’s overall personality traits', workspace,
         )
-        self.assertIn("candidate-insights-panel-prepare-interview", workspace)
+        # The panel is provided through the included _final_output partial.
+        self.assertIn(
+            '{% include "customer/processes/partials/candidate_insights/tabs/_final_output.html" %}',
+            workspace,
+        )
