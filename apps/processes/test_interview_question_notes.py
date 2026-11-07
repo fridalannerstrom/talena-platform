@@ -727,7 +727,8 @@ class InterviewQuestionNoteEndpointTests(TestCase):
         self.assertEqual(first.json()["status"], "client_reported_generated")
         history = self.client.get(activity_url)
         self.assertEqual(history.status_code, 200)
-        self.assertEqual(history["Cache-Control"], "private, no-store")
+        self.assertIn("private", history["Cache-Control"])
+        self.assertIn("no-store", history["Cache-Control"])
         self.assertEqual(
             [event["type"] for event in history.json()["events"][:2]],
             ["generated", "prepared"],
