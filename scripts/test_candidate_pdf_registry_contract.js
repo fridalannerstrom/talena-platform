@@ -31,6 +31,15 @@ assert.ok(js.includes('const generateSelector = [') &&
 assert.ok(js.includes('"[data-overall-picture-generate]"') &&
   js.includes('["overview","after-overview"]'),
   "Structured Helhetsbild must share its action pair with the PDF button");
+assert.ok(js.includes('"[data-after-interview-regenerate]"') &&
+  js.includes('source.querySelector(generateSelector)') &&
+  js.includes('pair.append(toolbar, generate)'),
+  "Intervjusammanfattning and Undersök vidare must pair PDF and refresh in their title toolbars");
+const afterInterviewCards = read("static/js/talena/after-interview-tabs.js");
+assert.ok(afterInterviewCards.includes('button.dataset.afterInterviewRegenerate = blockKey;') &&
+  afterInterviewCards.includes('toolbar.appendChild(button);') &&
+  afterInterviewCards.includes('toolbar.className = "after-interview-tab-card__toolbar"'),
+  "The inline refresh button must remain attached to the report heading toolbar");
 assert.ok(js.includes('findHeading(source)') &&
   js.includes('header.append(toolbar)'),
   "Results PDF must be inside the report heading, not a separate top row");
