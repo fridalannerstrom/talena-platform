@@ -105,7 +105,7 @@ assert.ok(tabs.includes('after-interview-manager-report__motivator-practical'));
 assert.ok(tabs.includes('motivatorIntro.append(name, definition)'));
 assert.ok(tabs.includes('practical.append(practicalTitle, practicalGrid)'));
 assert.ok(tabs.includes('group.type === "do" ? "check-circle" : "alert-circle"'));
-assert.ok(tabs.includes('after-interview-manager-report__motivator-practical-grid {\\n          grid-template-columns: minmax(0, 1fr);'),
+assert.ok(/after-interview-manager-report__motivator-practical-grid\\s*\\{\\s*grid-template-columns:\\s*minmax\\(0, 1fr\\);/.test(tabs),
   "Advice boxes should stack on narrow screens.");
 
 console.log("After interview two-stage guided report flow contract passed.");
