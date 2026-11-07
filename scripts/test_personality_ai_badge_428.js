@@ -61,7 +61,9 @@ badge.listeners.blur();
 assert.equal(badge.getAttribute("aria-expanded"), "false", "Blur closes help");
 attach(badge, true);
 assert.ok(row.children[1].textContent.includes("redigerats manuellt"));
-assert.ok(badge.getAttribute("aria-label").includes("AI-assisterat"));
+assert.ok(badge.getAttribute("aria-label").includes("AI-genererat"));
+assert.ok(!badge.getAttribute("aria-label").includes("AI-assisterat"),
+  "An edited AI text keeps the visible label AI-genererat");
 for (const selector of [
   '.talena-ai-generated-badge:hover ~ .talena-ai-personality-help',
   '.talena-ai-generated-badge:focus-visible ~ .talena-ai-personality-help',
