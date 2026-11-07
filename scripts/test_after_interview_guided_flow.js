@@ -174,11 +174,10 @@ assert.ok(header.includes('candidate-insight-tabs.css') &&
 
 // The outer card is now flush. Its decision-support footer still needs
 // its own horizontal padding, without restoring padding to the whole card.
-const footerStyle = copy.match(
-  /#candidate-insights-panel-after-interview\\.after-interview-simplified\\s*\\.personality-questions-context-note:last-child\\s*\\{([^}]+)\\}/
-);
-assert.ok(footerStyle, "After interview decision-support footer styles missing");
-assert.ok(footerStyle[1].includes("padding: 1rem 1.5rem 1.15rem !important;"),
+const footerStart = copy.indexOf(".personality-questions-context-note:last-child {");
+assert.ok(footerStart >= 0, "After interview decision-support footer styles missing");
+const footerStyle = copy.slice(footerStart, copy.indexOf("}", footerStart));
+assert.ok(footerStyle.includes("padding: 1rem 1.5rem 1.15rem !important;"),
   "Decision-support footer must have its own page-aligned padding.");
 
 console.log("After interview Teamreport-style primary tabs contract passed.");
