@@ -122,7 +122,7 @@
       confirmRegenerationCancel: "Avbryt",
       confirmRegenerationContinue: "Fortsätt",
       generatedComplete: "Sammanställning genererad",
-      generatedCompleteDescription: "Sammanställningen är klar och övriga flikar är nu tillgängliga.",
+      generatedCompleteDescription: "Sammanställningen är klar. Du hittar resultat och rapporter under Rapporter.",
       unavailable: "Det här innehållet blir tillgängligt när intervjuunderlaget har sammanställts.",
       lockedTabsHint: "De andra flikarna öppnas när du väljer Sammanställ underlag.",
       journeyTitle: "Så fungerar Efter intervju",
@@ -264,7 +264,7 @@
       confirmRegenerationCancel: "Cancel",
       confirmRegenerationContinue: "Continue",
       generatedComplete: "Compilation generated",
-      generatedCompleteDescription: "The compilation is ready and the other tabs are now available.",
+      generatedCompleteDescription: "The compilation is ready. Open Reports to explore the results.",
       unavailable: "This content becomes available when the interview evidence has been compiled.",
       lockedTabsHint: "The other tabs unlock when you select Compile evidence.",
       journeyTitle: "How After interview works",
@@ -2988,6 +2988,13 @@
       const hasUnsavedNotes = Boolean(notesInput && notesInput.value !== originalSavedNotes);
       const isOutdated = outputRoot?.dataset.postInterviewStatus === "outdated";
       const needsUpdate = hasUnsavedNotes || isOutdated;
+      const currentJourneyStep = needsUpdate ? 1 : 2;
+      journeySteps.querySelectorAll(".after-interview-journey__step").forEach((step, index) => {
+        step.classList.toggle("is-current", index === currentJourneyStep);
+        step.classList.toggle("is-done", index < currentJourneyStep);
+        if (index === currentJourneyStep) step.setAttribute("aria-current", "step");
+        else step.removeAttribute("aria-current");
+      });
       reportStatus.classList.toggle("needs-update", needsUpdate);
       reportsRefresh.classList.toggle("needs-update", needsUpdate);
       reportStatusTitle.textContent = hasUnsavedNotes
