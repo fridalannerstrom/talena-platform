@@ -31,7 +31,7 @@ class FakeElement {
 const document = { createElement: name => new FakeElement(name) };
 const attach = new Function("document", "isSwedish", "label",
   source.slice(begin, end) + "return attachPersonalityHelp;")(
-    document, () => true, assisted => assisted ? "AI-assisterat" : "AI-genererat"
+    document, () => true, () => "AI-genererat"
   );
 const row = new FakeElement("div");
 const badge = new FakeElement("span");
