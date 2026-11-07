@@ -137,40 +137,55 @@
   }
 
   function markRichTextHeadings() {
-    // Generated Markdown can have its own headings. Mark those only when
-    // generated prose follows immediately, not the surrounding tab/card title.
+    // #442: one discreet AI tag per *generated report section*. Do not
+    // label every generated Markdown subheading as a separate AI result.
     document.querySelectorAll(
-      '[data-candidate-insights-workspace] [data-after-interview-block-content][data-after-interview-ai-origin="true"]'
-    ).forEach((block) => {
-      if (!hasGeneratedText(block)) return;
-      block.querySelectorAll(".after-interview-rich-text__heading").forEach((heading) => {
-        // Already-badged headings have been wrapped in the title row.
-        const row = heading.closest("." + ROW_CLASS);
-        const next = row ? row.nextElementSibling : heading.nextElementSibling;
-        const hasProse = Boolean(next &&
-          !next.matches("h2, h3, h4, h5, h6, .after-interview-rich-text__heading") &&
-          hasGeneratedText(next));
-        setBadge(heading, hasProse, false);
-      });
+      '[data-candidate-insights-workspace] .after-interview-tab-card'
+    ).forEach((card) => {
+      const body = card.querySelector(
+        '[data-after-interview-block-content][data-after-interview-ai-origin="true"]'
+      );
+      const heading = card.querySelector(
+        ".after-interview-tab-card__header .after-interview-tab-card__title"
+      );
+      if (!heading) return;
+      setBadge(heading, hasGeneratedText(body), false);
     });
   }
 
   function markManagerReportBlocks() {
-    // These text fields are explicitly tracked by the editable AI block
-    // controller. Manual edits retain the AI-assisted provenance.
+    // Group the six editable Personality texts under ONE provenance tag on
+    // "Personlighet", and the single wellbeing_tips text under its title.
+    // Static skills and MQ reference cards must never carry AI badges.
     document.querySelectorAll(
-      "[data-candidate-insights-workspace] [data-manager-report-edit-key][data-manager-report-ai-text]"
-    ).forEach((field) => {
-      const aiValue = (field.dataset.managerReportAiText || "").trim();
-      const edited = field.dataset.managerReportManuallyEdited === "true";
-      let badge = field.previousElementSibling;
-      if (!badge?.classList.contains("talena-ai-field-badge")) {
-        badge = document.createElement("span");
-        badge.className = BADGE_CLASS + " talena-ai-field-badge";
-        field.parentNode.insertBefore(badge, field);
-      }
-      if (badge.hidden !== !aiValue) badge.hidden = !aiValue;
-      if (aiValue) setLabel(badge, edited);
+      "[data-candidate-insights-workspace] .after-interview-manager-report"
+    ).forEach((report) => {
+      [
+        [".after-interview-manager-report__personality",
+          ".after-interview-manager-report__personality-title"],
+        [".after-interview-manager-report__wellbeing",
+          ".after-interview-manager-report__wellbeing-title"],
+      ].forEach(([sectionSelector, titleSelector]) => {
+        const section = report.querySelector(sectionSelector);
+        if (!section) return;
+        const fields = [...section.querySelectorAll(
+          "[data-manager-report-edit-key][data-manager-report-ai-text]"
+        )];
+        const hasAi = fields.some((field) =>
+          (field.dataset.managerReportAiText || "").trim()
+        );
+        const hasManualEdit = fields.some((field) =>
+          field.dataset.managerReportManuallyEdited === "true"
+        );
+        setBadge(section.querySelector(titleSelector), hasAi, hasManualEdit);
+        // Remove legacy per-paragraph badges if a live partial was updated.
+        fields.forEach((field) => {
+          const previous = field.previousElementSibling;
+          if (previous?.classList.contains("talena-ai-field-badge")) {
+            previous.remove();
+          }
+        });
+      });
     });
   }
 
