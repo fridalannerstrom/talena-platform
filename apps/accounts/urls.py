@@ -30,6 +30,8 @@ urlpatterns = [
     # INVITES (PUBLIC)
     # =========================================================================
     path("invite/accept/<uidb64>/<token>/", views.accept_invite, name="accept_invite"),
+    path("invite/preview/", views.account_invitation_preview, name="account_invitation_preview"),
+    path("companies/<int:company_pk>/invite/preview/", views.account_invitation_preview, name="company_account_invitation_preview"),
     path("invite/<uuid:invite_id>/", views.accept_invite_uuid, name="accept_invite_uuid"),
 
     # =========================================================================
