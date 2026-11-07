@@ -2174,6 +2174,9 @@
       const filename = (copy().managerReportTitle.replace(/[\\/:*?"<>|]+/g, " ").trim() || "Manager report") + ".pdf";
       window.requestAnimationFrame(async () => {
         try {
+          if (!window.TalenaManagerReportPdf) throw new Error("Manager PDF metadata helper unavailable");
+          const reportMetadata = await window.TalenaManagerReportPdf.prepare(outputRoot);
+          window.TalenaManagerReportPdf.decorate(printableReport, reportMetadata);
           await renderElementAsPdf(printableReport, filename, outputRoot);
         } catch (_error) {
           managerReportPdfError.textContent = copy().pdfGenerationFailed;
