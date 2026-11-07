@@ -123,9 +123,22 @@
   window.TalenaManagerReportActivity = Object.freeze({mount});
   const init = () => document.querySelectorAll("[data-manager-report-activity-url]")
     .forEach(mount);
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init, {once:true});
-  } else {
+  const attach = () => {
     init();
+    if (!window.MutationObserver) return;
+    new MutationObserver(records => {
+      records.forEach(record => {
+        record.addedNodes.forEach(added => {
+          if (added.nodeType !== 1) return;
+          if (added.matches?.("[data-manager-report-activity-url]")) mount(added);
+          added.querySelectorAll?.("[data-manager-report-activity-url]").forEach(mount);
+        });
+      });
+    }).observe(document.body, {childList:true, subtree:true});
+  };
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", attach, {once:true});
+  } else {
+    attach();
   }
 })();
