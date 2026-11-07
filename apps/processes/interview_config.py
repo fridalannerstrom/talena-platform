@@ -20,6 +20,7 @@ INTERVIEW_AREA_COPY = {
     "cognitive": {
         "sv": {
             "area_label": "Färdighet",
+            "area_description": "Utforska hur färdighetsresultaten kan relateras till praktiska krav och arbetssätt.",
             "questions_label": "Tips på färdighetsfrågor",
             "intro_questions": (
                 "Har du gjort något liknande test innan?",
@@ -30,6 +31,7 @@ INTERVIEW_AREA_COPY = {
         },
         "en": {
             "area_label": "Skills",
+            "area_description": "Explore how skills assessment results relate to practical demands and working methods.",
             "questions_label": "Suggested skills questions",
             "intro_questions": (
                 "Have you taken a similar test before?",
@@ -42,6 +44,7 @@ INTERVIEW_AREA_COPY = {
     "motivation": {
         "sv": {
             "area_label": "Motivation",
+            "area_description": "Utforska vad som kan skapa energi, engagemang och hållbar motivation.",
             "questions_label": "Tips på motivationsfrågor",
             "intro_questions": (
                 "Hur kändes det att svara på formuläret - var det lätt eller svårt att ta ställning?",
@@ -49,6 +52,7 @@ INTERVIEW_AREA_COPY = {
         },
         "en": {
             "area_label": "Motivation",
+            "area_description": "Explore what may create energy, engagement and sustainable motivation.",
             "questions_label": "Suggested motivation questions",
             "intro_questions": (
                 "How did it feel to complete the questionnaire - was it easy or difficult to make a choice?",
@@ -58,6 +62,7 @@ INTERVIEW_AREA_COPY = {
     "personality": {
         "sv": {
             "area_label": "Personlighet",
+            "area_description": "Utforska hur personlighetspreferenser visar sig i praktiska situationer.",
             "questions_label": "Tips på personlighetsfrågor",
             "intro_questions": (
                 "Hur kändes det att svara på formuläret - var det lätt eller svårt att ta ställning?",
@@ -65,6 +70,7 @@ INTERVIEW_AREA_COPY = {
         },
         "en": {
             "area_label": "Personality",
+            "area_description": "Explore how relevant personality preferences appear in practical situations.",
             "questions_label": "Suggested personality questions",
             "intro_questions": (
                 "How did it feel to complete the questionnaire - was it easy or difficult to make a choice?",
@@ -294,6 +300,7 @@ def get_interview_section_config(
         "common_guidance": COMMON_INTERVIEW_GUIDANCE[language],
         "guidance": str(section_copy.get("guidance") or ""),
         "area_label": str(area_copy.get("area_label") or ""),
+        "area_description": str(area_copy.get("area_description") or ""),
         "questions_label": str(area_copy.get("questions_label") or ""),
         "intro_questions_label": INTRO_QUESTIONS_LABEL[language],
         "intro_questions": opening_questions,
