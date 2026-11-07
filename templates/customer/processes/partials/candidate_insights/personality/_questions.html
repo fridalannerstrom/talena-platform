@@ -15,14 +15,17 @@
     data-question-basis="{{ question_basis }}"
   >
 
+    {% include "customer/processes/partials/candidate_insights/_interview_guidance.html" with interview_meta=interview_meta %}
+    {% include "customer/processes/partials/candidate_insights/_interview_static_questions.html" with interview_meta=interview_meta %}
+
     <div class="personality-questions-header mt-4">
       <div>
         <div class="insight-summary-kicker mt-4">
-          ✨ {% trans "AI-supported questions" %}
+          {% if LANGUAGE_CODE|slice:":2" == "sv" %}AI-genererat{% else %}AI-generated{% endif %}
         </div>
 
         <h2 class="insight-summary-title mb-1">
-          {% trans "Personality questions" %}
+          {{ interview_meta.questions_label }}
         </h2>
 
         <p class="text-muted small mb-0">
@@ -83,7 +86,7 @@
 
     <div class="{% if not personality_questions %}d-none{% endif %}" data-personality-questions-content>
 
-      {% include "customer/processes/partials/candidate_insights/_interview_guidance.html" with interview_meta=interview_meta %}
+      
 
       <section class="personality-questions-section mt-4" data-personality-questions-list-section>
         <div class="personality-question-list" data-personality-questions-list>
