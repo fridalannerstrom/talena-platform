@@ -251,12 +251,16 @@
   <i data-feather="info"></i>
 
   <div>
-    {% blocktrans trimmed %}
-      Use these questions to gather concrete examples of how the candidate
-      works with information and approaches problems. Cognitive assessment
-      results provide supporting evidence and should not replace information
-      from relevant experience, structured interviews or other assessment
-      methods.
-    {% endblocktrans %}
+    {% get_current_language as LANGUAGE_CODE %}
+    {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+      Använd frågorna för att få konkreta exempel på hur kandidaten hanterar information och löser problem.
+      Resultat från färdighetstester är ett kompletterande underlag och ersätter inte erfarenhet,
+      strukturerade intervjuer eller andra bedömningsmetoder.
+    {% else %}
+      Use these questions to gather concrete examples of how the candidate works
+      with information and approaches problems. Skills assessment results are
+      supporting evidence and should not replace relevant experience, structured
+      interviews or other assessment methods.
+    {% endif %}
   </div>
 </div>

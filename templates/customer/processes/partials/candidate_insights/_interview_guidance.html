@@ -10,6 +10,11 @@
           {{ interview_meta.guidance_label }}
         </div>
 
+        {% if interview_meta.common_guidance %}
+          <p class="mb-2" data-interview-common-guidance>
+            {{ interview_meta.common_guidance }}
+          </p>
+        {% endif %}
         <div>
           {{ interview_meta.guidance }}
         </div>

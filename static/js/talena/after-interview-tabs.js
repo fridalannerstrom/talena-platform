@@ -763,6 +763,7 @@
           });
           state.edits.set(binding.key, data.edit);
           applyBinding(binding);
+          document.dispatchEvent(new CustomEvent("talena:manager-report-activity-changed"));
           announce(copy().editSaved);
           closeDialog();
         } catch (saveError) {
@@ -791,6 +792,7 @@
           });
           state.edits.delete(binding.key);
           applyBinding(binding);
+          document.dispatchEvent(new CustomEvent("talena:manager-report-activity-changed"));
           announce(copy().editSaved);
           closeDialog();
         } catch (restoreError) {
@@ -2174,7 +2176,16 @@
       const filename = (copy().managerReportTitle.replace(/[\\/:*?"<>|]+/g, " ").trim() || "Manager report") + ".pdf";
       window.requestAnimationFrame(async () => {
         try {
+          if (!window.TalenaManagerReportPdf) throw new Error("Manager PDF metadata helper unavailable");
+          const reportMetadata = await window.TalenaManagerReportPdf.prepare(outputRoot);
+          window.TalenaManagerReportPdf.decorate(printableReport, reportMetadata);
           await renderElementAsPdf(printableReport, filename, outputRoot);
+          try {
+            await window.TalenaManagerReportPdf.recordGenerated(outputRoot, reportMetadata);
+          } catch (_auditError) {
+            // PDF succeeded. Audit-confirmation failure must not misreport export failure.
+            console.warn("Manager report PDF generation audit could not be recorded.");
+          }
         } catch (_error) {
           managerReportPdfError.textContent = copy().pdfGenerationFailed;
           managerReportPdfError.classList.remove("d-none");
@@ -2665,6 +2676,14 @@
       managerReportCard.appendChild(managerPersonality);
     }
     managerReportCard.appendChild(managerAdvice);
+
+    // Audit is supplementary report metadata, so it follows all content and
+    // the decision-support disclaimer instead of interrupting the report top.
+    const managerReportAudit = document.createElement("div");
+    managerReportAudit.dataset.managerReportActivityPanel = "";
+    managerReportAudit.dataset.managerReportActivityUrl = outputRoot?.dataset.managerReportActivityUrl || "";
+    managerReportCard.appendChild(managerReportAudit);
+
     const managerReportEditsLoading = document.createElement("div");
     managerReportEditsLoading.className = "text-center text-muted py-4";
     managerReportEditsLoading.setAttribute("role", "status");
@@ -2679,6 +2698,9 @@
     managerReportEditsRetry.hidden = true;
     managerReportEditsLoading.append(managerReportEditsLoadingText, managerReportEditsRetry);
     panels.get("managerReport").append(managerReportEditsLoading, managerReportCard);
+    // Mount after the report card is connected so the initial API response is
+    // not discarded by the history component's disconnected-node guard.
+    window.TalenaManagerReportActivity?.mount(managerReportAudit);
 
     const revealManagerReport = () => {
       managerReportEditController.applyAll();

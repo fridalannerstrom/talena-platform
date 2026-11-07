@@ -128,16 +128,19 @@
           data-has-result="{% if motivation_questions.questions %}true{% else %}false{% endif %}"
         >
 
+    {% include "customer/processes/partials/candidate_insights/_interview_guidance.html" with interview_meta=motivation_interview_meta %}
+    {% include "customer/processes/partials/candidate_insights/_interview_static_questions.html" with interview_meta=motivation_interview_meta %}
+
           <!-- QUESTIONS HEADER -->
           <div class="personality-questions-header mt-4">
 
             <div>
               <div class="insight-summary-kicker mt-4">
-                ✨ {% trans "AI-supported questions" %}
+                {% if LANGUAGE_CODE|slice:":2" == "sv" %}AI-genererat{% else %}AI-generated{% endif %}
               </div>
 
               <h2 class="insight-summary-title mb-1">
-                {% trans "Motivation questions" %}
+                {{ motivation_interview_meta.questions_label }}
               </h2>
 
               <p class="text-muted small mb-0">
@@ -212,7 +215,7 @@
             class="{% if not motivation_questions.questions %}d-none{% endif %}"
             data-motivation-questions-content
           >
-            {% include "customer/processes/partials/candidate_insights/_interview_guidance.html" with interview_meta=motivation_interview_meta %}
+            
             {% include "customer/processes/partials/candidate_insights/motivation/_questions.html" %}
           </div>
 

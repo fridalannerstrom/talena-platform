@@ -10,8 +10,8 @@
   const copy = () =>
     isSwedish()
       ? {
-          briefingKicker: "Kandidatspecifik briefing",
-          summaryTitle: "Kandidatbild inför intervjun",
+          briefingKicker: "Anpassad förberedelse",
+          summaryTitle: "Sammanfattning inför intervjun",
           focusTitle: "Viktigaste indikationerna",
           focusIntro:
             "De här mönstren framträder som mest relevanta i kandidatens testunderlag och den tillgängliga processkontexten.",
@@ -21,12 +21,12 @@
           cautionReason: "Varför det behöver valideras",
           approachTitle: "Så når du fram i samtalet",
           approachIntro:
-            "Hur du kan anpassa ton, direkthet, tempo och uppföljning för att få fram en så rättvis och nyanserad bild som möjligt.",
+            "Tips på hur du kan anpassa kommunikationen inför samtalet",
           approachSectionTitle: "Kommunikationsstrategi",
         }
       : {
-          briefingKicker: "Candidate-specific briefing",
-          summaryTitle: "Candidate briefing before the interview",
+          briefingKicker: "Tailored preparation",
+          summaryTitle: "Interview preparation summary",
           focusTitle: "Key indications",
           focusIntro:
             "These patterns emerge as most relevant in the candidate's assessment evidence and available process context.",
@@ -36,7 +36,7 @@
           cautionReason: "Why this needs validation",
           approachTitle: "How to reach this candidate in conversation",
           approachIntro:
-            "How to adapt tone, directness, pace and follow-up to obtain the fairest and most nuanced picture possible.",
+            "Tips on how to adapt your communication before the conversation.",
           approachSectionTitle: "Communication strategy",
         };
 

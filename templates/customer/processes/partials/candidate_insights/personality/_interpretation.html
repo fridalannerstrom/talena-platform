@@ -157,9 +157,11 @@
 
               <div>
                 {% if personality_interpretation_language|slice:":2" == "sv" %}
-                  AI-tolkningen bygger på personlighetstestet, processens syfte och tillgänglig kontext. Se resultaten som indikationer som bör vägas samman med annat relevant underlag.
+                  <p class="mb-2">AI-tolkningen bygger på personens personlighetsresultat och tillgänglig rollkontext. Den beskriver möjliga beteenden och arbetssätt, inte fastställda egenskaper eller hur personen kommer att agera i en viss situation.</p>
+                  <p class="mb-0">Du ansvarar för att granska tolkningen, bedöma vad som är relevant och avgöra vilka slutsatser du väljer att använda.</p>
                 {% else %}
-                  The AI interpretation is based on the personality assessment, the process purpose and available context. Treat the results as indications to consider alongside other relevant evidence.
+                  <p class="mb-2">The AI interpretation is based on the person's personality results and available role context. It describes possible behaviours and ways of working, not established characteristics or how the person will act in a particular situation.</p>
+                  <p class="mb-0">You are responsible for reviewing the interpretation, assessing what is relevant and deciding which conclusions you choose to use.</p>
                 {% endif %}
               </div>
             </div>

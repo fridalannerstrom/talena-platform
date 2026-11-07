@@ -1,5 +1,6 @@
 {% load i18n interview_config %}
 {% get_current_language as LANGUAGE_CODE %}
+{% interview_combined_sections as displayed_interview_sections %}
 {# Talena candidate i18n batch 1 #}
 
 <style>
@@ -207,7 +208,7 @@
 </h2>
 
 <p class="text-muted small mb-0">
-  {% blocktrans %}This page brings together all saved questions from Personality, Motivation and Cognitive in one place. The same questions are also available inside each assessment category.{% endblocktrans %}
+  {% if LANGUAGE_CODE|slice:":2" == "sv" %}Här samlas inledande frågor och sparade intervjufrågor för Personlighet, Motivation och Färdighet. Frågorna finns också i respektive testområde.{% else %}This page brings together opening questions and saved interview questions for Personality, Motivation and Skills. The questions are also available within each assessment area.{% endif %}
 </p>
 
     </div>
@@ -232,12 +233,12 @@
   </div>
 
 
-  {% if has_combined_questions %}
+  {% if displayed_interview_sections %}
 
     <!-- QUESTION SECTIONS -->
     <div class="combined-question-sections mt-4">
 
-      {% for section in combined_question_sections|dictsort:"key" %}
+      {% for section in displayed_interview_sections %}
         {% interview_section_meta section.key as section_interview_meta %}
 
         <section>
@@ -261,17 +262,19 @@
 
             <div class="combined-question-section__badges">
 
-              <span class="personality-trait-pill text-nowrap">
-                {% if LANGUAGE_CODE|slice:":2" == "sv" %}
-                  {% if section.question_count == 1 %}1 fråga{% else %}{{ section.question_count }} frågor{% endif %}
-                {% else %}
-                  {% blocktrans count question_count=section.question_count %}
-                    {{ question_count }} question
-                  {% plural %}
-                    {{ question_count }} questions
-                  {% endblocktrans %}
-                {% endif %}
-              </span>
+              {% if section.question_count %}
+                <span class="personality-trait-pill text-nowrap">
+                  {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+                    {% if section.question_count == 1 %}1 fråga{% else %}{{ section.question_count }} frågor{% endif %}
+                  {% else %}
+                    {% blocktrans count question_count=section.question_count %}
+                      {{ question_count }} question
+                    {% plural %}
+                      {{ question_count }} questions
+                    {% endblocktrans %}
+                  {% endif %}
+                </span>
+              {% endif %}
 
               <span class="personality-trait-pill text-nowrap">
                 <i data-feather="clock"></i>
@@ -283,8 +286,13 @@
           </header>
 
           {% include "customer/processes/partials/candidate_insights/_interview_guidance.html" with interview_meta=section_interview_meta %}
+          {% include "customer/processes/partials/candidate_insights/_interview_static_questions.html" with interview_meta=section_interview_meta %}
 
-          <!-- QUESTIONS -->
+          {% if section.questions %}
+            <h4 class="personality-questions-section-title mt-4 mb-3">
+              {{ section_interview_meta.questions_label }}
+            </h4>
+          <!-- AI QUESTIONS -->
           <div class="personality-question-list mt-3">
 
             {% for item in section.questions %}
@@ -370,6 +378,7 @@
             {% endfor %}
 
           </div>
+          {% endif %}
 
         </section>
 
@@ -383,7 +392,7 @@
       <i data-feather="info"></i>
 
       <div>
-        {% blocktrans %}These questions bring together the currently saved question sets from the available assessment areas. Use them to explore and validate assessment indications rather than as standalone evidence.{% endblocktrans %}
+        {% if LANGUAGE_CODE|slice:":2" == "sv" %}Använd frågorna som stöd i intervjun och utforska testresultaten tillsammans med kandidatens egna exempel. Testresultat ska inte användas som ensamt beslutsunderlag.{% else %}Use these questions to support the interview and explore assessment results alongside the candidate's own examples. Assessment results should not be used as standalone decision evidence.{% endif %}
       </div>
 
     </div>

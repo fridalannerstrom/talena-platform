@@ -55,6 +55,6 @@ assert.ok(actionsCss.includes('.talena-report-action-button.btn-icon') &&
   actionsCss.includes('height:42px !important') &&
   actionsCss.includes('border-radius:12px !important'));
 assert.ok(shell.includes('three-ai-headings-v2'));
-assert.ok(shell.includes('manager-icon-actions-v12'));
+assert.ok(shell.includes('430-footer-v13'));
 assert.ok(processHeader.includes('ai-generated-only-v4'));
 console.log("AI-only provenance labels and 42px manager icon actions contract passed.");

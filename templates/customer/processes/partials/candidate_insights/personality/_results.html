@@ -18,7 +18,7 @@
           </h2>
 
           <p class="text-muted small mb-0">
-   {% blocktrans %}Explore the candidate’s overall personality traits and the detailed indicators that contribute to each result.{% endblocktrans %}
+   {% if LANGUAGE_CODE|slice:":2" == "sv" %}Utforska personens övergripande personlighetsdrag och underliggande indikatorer.{% else %}Explore the person's main personality traits and underlying indicators.{% endif %}
           </p>
         </div>
 
@@ -410,16 +410,11 @@
       </h3>
       <p class="personality-overview-chart__intro">
         {% if LANGUAGE_CODE|slice:":2" == "sv" %}
-          Mitten är neutral; markörerna visar kandidatens läge från mitten åt vänster eller höger.
+          Mitten är situationsbaserat, medan pilmarkörerna visar varsitt föredragna beteende.
         {% else %}
-          {% trans "A visual fingerprint of the complete profile. The centre is the midpoint; each marker shows the candidate's position towards the left or right pole." %}
+          The centre indicates situation-dependent behaviour, while the arrow markers show each preferred behaviour.
         {% endif %}
       </p>
-    </div>
-    <div class="personality-overview-chart__legend" aria-hidden="true">
-      <span>{% trans "Left pole" %}</span>
-      <span class="personality-overview-chart__legend-line"></span>
-      <span>{% trans "Right pole" %}</span>
     </div>
   </div>
 

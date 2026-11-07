@@ -607,3 +607,222 @@ class InterviewQuestionNoteEndpointTests(TestCase):
         self.assertIs(removed.json()["possible_personal_data"], False)
         self.assertFalse(InterviewQuestionNote.objects.exists())
 
+    def test_429_pdf_metadata_only_reports_real_edits_and_current_export_actor(self):
+        from apps.activity.models import ActivityEvent
+
+        url = reverse(
+            "processes:process_candidate_manager_report_pdf_prepare",
+            kwargs={"process_id": self.process.id, "candidate_id": self.candidate.id},
+        )
+        self.user.first_name = "Anna"
+        self.user.last_name = "Andersson"
+        self.user.save(update_fields=["first_name", "last_name"])
+        first = self.client.post(url)
+        self.assertEqual(first.status_code, 200)
+        self.assertEqual(first["Cache-Control"], "private, no-store")
+        self.assertEqual(first.json()["exported_by"]["name"], "Anna Andersson")
+        self.assertIsNone(first.json()["last_edited_by"])
+        self.assertTrue(first.json()["exported_by"]["at"])
+        self.assertEqual(
+            ActivityEvent.objects.filter(verb=ActivityEvent.Verb.MANAGER_REPORT_PDF_PREPARED).count(),
+            1,
+        )
+
+        ManagerReportTextEdit.objects.create(
+            process=self.process,
+            candidate=self.candidate,
+            block_key="wellbeing_tips",
+            language_code="en",
+            text="Manually updated manager advice.",
+            version=1,
+            updated_by=self.user,
+        )
+        viewer = User.objects.create_user(
+            username="second-exporter",
+            first_name="Johan",
+            last_name="Svensson",
+            password="test-password",
+        )
+        CompanyMember.objects.create(
+            company=self.company,
+            user=viewer,
+            primary_org_unit=self.unit,
+            role=CompanyMember.ROLE_VIEWER,
+        )
+        UserOrgUnitAccess.objects.create(
+            user=viewer,
+            org_unit=self.unit,
+            permission=UserOrgUnitAccess.PERM_VIEWER,
+        )
+        self.client.force_login(viewer)
+        second = self.client.post(url)
+        self.assertEqual(second.status_code, 200)
+        self.assertEqual(second.json()["last_edited_by"]["name"], "Anna Andersson")
+        self.assertEqual(second.json()["exported_by"]["name"], "Johan Svensson")
+        self.assertEqual(
+            ActivityEvent.objects.filter(verb=ActivityEvent.Verb.MANAGER_REPORT_PDF_PREPARED).count(),
+            2,
+        )
+        last_event = ActivityEvent.objects.filter(
+            verb=ActivityEvent.Verb.MANAGER_REPORT_PDF_PREPARED
+        ).latest("created_at")
+        self.assertEqual(last_event.actor, viewer)
+        self.assertEqual(last_event.company, self.company)
+        self.assertEqual(last_event.candidate, self.candidate)
+        self.assertEqual(second.json()["exported_by"]["at"], last_event.created_at.isoformat())
+        self.assertEqual(last_event.meta["status"], "prepared")
+
+    def test_429_pdf_metadata_export_does_not_leak_across_tenants(self):
+        from apps.activity.models import ActivityEvent
+        url = reverse(
+            "processes:process_candidate_manager_report_pdf_prepare",
+            kwargs={"process_id": self.process.id, "candidate_id": self.candidate.id},
+        )
+        outsider = User.objects.create_user(
+            username="unrelated-pdf-user",
+            password="test-password",
+        )
+        self.client.force_login(outsider)
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, 403)
+        self.assertFalse(
+            ActivityEvent.objects.filter(verb=ActivityEvent.Verb.MANAGER_REPORT_PDF_PREPARED).exists()
+        )
+        self.client.force_login(self.user)
+        self.assertEqual(self.client.get(url).status_code, 405)
+
+    def test_430_pdf_generated_is_separate_idempotent_and_actor_verified(self):
+        from apps.activity.models import ActivityEvent
+
+        prepare_url = reverse(
+            "processes:process_candidate_manager_report_pdf_prepare",
+            kwargs={"process_id": self.process.id, "candidate_id": self.candidate.id},
+        )
+        generated_url = reverse(
+            "processes:process_candidate_manager_report_pdf_generated",
+            kwargs={"process_id": self.process.id, "candidate_id": self.candidate.id},
+        )
+        activity_url = reverse(
+            "processes:process_candidate_manager_report_activity",
+            kwargs={"process_id": self.process.id, "candidate_id": self.candidate.id},
+        )
+        prepared = self.client.post(prepare_url).json()
+        self.assertTrue(prepared["ok"])
+        self.assertGreater(prepared["prepared_event_id"], 0)
+        self.assertEqual(ActivityEvent.objects.filter(
+            verb=ActivityEvent.Verb.MANAGER_REPORT_PDF_GENERATED,
+        ).count(), 0)
+        payload = {"prepared_event_id": prepared["prepared_event_id"]}
+        first = self.client.post(
+            generated_url, data=json.dumps(payload), content_type="application/json",
+        )
+        second = self.client.post(
+            generated_url, data=json.dumps(payload), content_type="application/json",
+        )
+        self.assertEqual(first.status_code, 200)
+        self.assertEqual(first.json()["generated_at"], second.json()["generated_at"])
+        self.assertEqual(ActivityEvent.objects.filter(
+            verb=ActivityEvent.Verb.MANAGER_REPORT_PDF_GENERATED,
+        ).count(), 1)
+        self.assertEqual(first.json()["status"], "client_reported_generated")
+        history = self.client.get(activity_url)
+        self.assertEqual(history.status_code, 200)
+        self.assertIn("private", history["Cache-Control"])
+        self.assertIn("no-store", history["Cache-Control"])
+        self.assertEqual(
+            [event["type"] for event in history.json()["events"][:2]],
+            ["generated", "prepared"],
+        )
+        self.assertIsNotNone(history.json()["last_export"])
+        self.assertNotIn("Existing manager advice.", history.content.decode("utf-8"))
+        outsider = User.objects.create_user(
+            username="other-person-430", password="test-password",
+        )
+        self.client.force_login(outsider)
+        self.assertEqual(
+            self.client.post(
+                generated_url, data=json.dumps(payload),
+                content_type="application/json",
+            ).status_code,
+            403,
+        )
+        self.assertEqual(self.client.get(activity_url).status_code, 403)
+
+    def test_430_report_timeline_tracks_edit_restore_and_export_in_order(self):
+        from apps.activity.models import ActivityEvent
+        from django.utils import timezone
+
+        url = reverse(
+            "processes:process_candidate_manager_report_activity_admin",
+            kwargs={"process_id": self.process.id, "candidate_id": self.candidate.id},
+        )
+        ManagerReportTextEditEvent.objects.create(
+            process=self.process, candidate=self.candidate, actor=self.user,
+            block_key="wellbeing_tips", language_code="en",
+            action=ManagerReportTextEditEvent.Action.SAVED,
+            version=1,
+        )
+        ManagerReportTextEditEvent.objects.create(
+            process=self.process, candidate=self.candidate, actor=self.user,
+            block_key="wellbeing_tips", language_code="en",
+            action=ManagerReportTextEditEvent.Action.RESTORED_AI,
+            version=1,
+        )
+        ActivityEvent.objects.create(
+            company=self.company, actor=self.user,
+            process=self.process, candidate=self.candidate,
+            verb=ActivityEvent.Verb.MANAGER_REPORT_PDF_PREPARED,
+            meta={"report": "manager_report", "language": "en", "status": "prepared"},
+        )
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            {event["type"] for event in response.json()["events"]},
+            {"edited", "restored", "prepared"},
+        )
+        self.assertTrue(response.json()["last_edited"])
+        self.assertIsNone(response.json()["last_export"])
+        self.assertNotIn("Existing manager advice.", response.content.decode("utf-8"))
+        self.assertNotIn("question-notes-admin@example.com", response.content.decode("utf-8"))
+
+        unprivileged = User.objects.create_user(
+            username="staff-only-report-audit-430",
+            role=User.Role.CUSTOMER, is_staff=True,
+            password="test-password",
+        )
+        self.client.force_login(unprivileged)
+        self.assertEqual(self.client.get(url).status_code, 403)
+
+    def test_430_export_confirmation_cannot_reuse_someone_elses_preparation(self):
+        prepare_url = reverse(
+            "processes:process_candidate_manager_report_pdf_prepare",
+            kwargs={"process_id": self.process.id, "candidate_id": self.candidate.id},
+        )
+        generated_url = reverse(
+            "processes:process_candidate_manager_report_pdf_generated",
+            kwargs={"process_id": self.process.id, "candidate_id": self.candidate.id},
+        )
+        prepared = self.client.post(prepare_url).json()
+        user = User.objects.create_user(
+            username="another-430-exporter", password="test-password",
+        )
+        CompanyMember.objects.create(
+            company=self.company, user=user, primary_org_unit=self.unit,
+            role=CompanyMember.ROLE_VIEWER,
+        )
+        UserOrgUnitAccess.objects.create(
+            user=user, org_unit=self.unit,
+            permission=UserOrgUnitAccess.PERM_VIEWER,
+        )
+        self.client.force_login(user)
+        response = self.client.post(
+            generated_url,
+            data=json.dumps({"prepared_event_id": prepared["prepared_event_id"]}),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(self.client.post(
+            generated_url,
+            data=json.dumps({"prepared_event_id": "not-an-id"}),
+            content_type="application/json",
+        ).status_code, 400)
