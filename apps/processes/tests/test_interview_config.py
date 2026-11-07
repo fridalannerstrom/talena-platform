@@ -139,6 +139,9 @@ class InterviewSectionConfigTests(SimpleTestCase):
         )
         self.assertIn("Inledande frågor", html)
         self.assertIn("Har du gjort något liknande test innan?", html)
+        self.assertIn('class="interview-static-questions mt-4"', html)
+        self.assertIn('class="interview-static-questions__header"', html)
+        self.assertEqual(html.count('class="interview-static-questions__item"'), 3)
         self.assertNotIn("Kändes något lättare än det andra?", html)
         self.assertNotIn("AI-genererat", html)
 
