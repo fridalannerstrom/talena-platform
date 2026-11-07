@@ -172,6 +172,11 @@ class InvitationEmailTests(TestCase):
         invite.save(update_fields=["revoked_at", "accepted_at"])
         self.assertEqual(self.client.get(url).status_code, 400)
 
+    def test_malformed_invite_path_uses_the_same_safe_recovery_page(self):
+        response = self.client.get("/accounts/invite/not-a-real-token/")
+        self.assertEqual(response.status_code, 400)
+        self.assertContains(response, "Sign in to Talena", status_code=400)
+
     def test_used_invite_can_sign_in_without_reusing_token(self):
         company = Company.objects.create(name="Activation journey")
         user = get_user_model().objects.create_user(
@@ -192,7 +197,8 @@ class InvitationEmailTests(TestCase):
             "username": user.email,
             "password": "ExamplePassword-123!",
         })
-        self.assertNotEqual(login_response.status_code, 403)
+        self.assertEqual(login_response.status_code, 302)
+        self.assertEqual(self.client.session.get("_auth_user_id"), str(user.pk))
 
     def test_subject_rejects_line_breaks(self):
         form = CompanyInviteMemberForm({
