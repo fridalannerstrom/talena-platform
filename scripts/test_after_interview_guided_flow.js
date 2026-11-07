@@ -86,7 +86,7 @@ assert.ok(copy.includes("assessment results and process context"));
 assert.ok(view.includes("data-interview-notes-save") && view.includes("data-post-interview-generate"));
 assert.ok(view.includes('rows="8"'));
 assert.ok(shell.includes("after-interview-tabs.js") && shell.includes("underlined-tabs-v6"));
-assert.ok(header.includes("candidate-eyebrows.js") && header.includes("two-tabs-v3"));
+assert.ok(header.includes("candidate-eyebrows.js") && header.includes("footer-padding-v4"));
 
 // A compiled candidate sees only the single regenerate row on Evidence.
 // Keep the original section hidden, not removed, so its stream handler stays active.
@@ -171,5 +171,14 @@ assert.ok(insightTabsCss.includes('#candidate-insights-panel-after-interview > .
   "After interview header must reset the legacy negative margin.");
 assert.ok(header.includes('candidate-insight-tabs.css') &&
   header.includes('after-interview-flush-padding'), "New scoped CSS must bypass old browser cache.");
+
+// The outer card is now flush. Its decision-support footer still needs
+// its own horizontal padding, without restoring padding to the whole card.
+const footerStyle = copy.match(
+  /#candidate-insights-panel-after-interview\\.after-interview-simplified\\s*\\.personality-questions-context-note:last-child\\s*\\{([^}]+)\\}/
+);
+assert.ok(footerStyle, "After interview decision-support footer styles missing");
+assert.ok(footerStyle[1].includes("padding: 1rem 1.5rem 1.15rem !important;"),
+  "Decision-support footer must have its own page-aligned padding.");
 
 console.log("After interview Teamreport-style primary tabs contract passed.");
