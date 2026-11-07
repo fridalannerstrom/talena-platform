@@ -1,13 +1,18 @@
-Hi{% if user.first_name %} {{ user.first_name }}{% endif %}!
+{% if language == "sv" %}Hej{% else %}Hi{% endif %}{% if user.first_name %} {{ user.first_name }}{% endif %}!
 
-You have been invited to Talena for {{ company_name }}.
+{% if language == "sv" %}Du har blivit inbjuden till Talena för{% else %}You have been invited to Talena for{% endif %} {{ company_name }}.
 
 {% autoescape off %}{{ invite_message }}{% endautoescape %}
 
-Create your password using the link below to activate your account:
+{% if language == "sv" %}Skapa ditt lösenord och aktivera kontot med den här länken (använd den bara för att komma igång):{% else %}Create your password and activate your account using this link (for initial setup only):{% endif %}
 
 {{ invite_link }}
 
-Invited by: {{ invited_by }}
+{% if language == "sv" %}Har du redan ett konto? Logga in som vanligt här:{% else %}Already have an account? Sign in normally here:{% endif %}
+{{ login_url }}
 
-Welcome to Talena!
+{% if language == "sv" %}Framtida inloggningar görs via den vanliga inloggningssidan ovan.{% else %}For future visits, use the regular sign-in page above.{% endif %}
+
+{% if language == "sv" %}Inbjuden av:{% else %}Invited by:{% endif %} {{ invited_by }}
+
+Talena · {% if language == "sv" %}Utvecklad av{% else %}Developed by{% endif %} Talent Qode

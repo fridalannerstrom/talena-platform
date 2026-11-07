@@ -11,6 +11,13 @@ DEFAULT_INVITE_MESSAGE = (
     "You've received a Talena account, bringing assessment processes, results "
     "and AI-supported insights together in one clear workflow."
 )
+DEFAULT_INVITE_SUBJECT_SV = "Välkommen till Talena"
+DEFAULT_INVITE_MESSAGE_SV = (
+    "Du har blivit inbjuden till Talena, där du kan arbeta med "
+    "testresultat, insikter och rekryteringsprojekt på ett och samma ställe."
+)
+INVITE_LANGUAGE_CHOICES = (("en", "English"), ("sv", "Svenska"))
+
 
 
 def clean_invite_subject(value):
@@ -20,6 +27,13 @@ def clean_invite_subject(value):
 
 
 class InviteUserForm(forms.ModelForm):
+    invite_language = forms.ChoiceField(
+        label="Email language",
+        choices=INVITE_LANGUAGE_CHOICES,
+        required=False,
+        initial="en",
+        widget=forms.Select(attrs={"class": "form-select"}),
+    )
     invite_subject = forms.CharField(
         label="Email subject",
         max_length=160,
@@ -221,6 +235,13 @@ class CompanyForm(forms.ModelForm):
     
 
 class CompanyInviteMemberForm(forms.Form):
+    invite_language = forms.ChoiceField(
+        label="Email language",
+        choices=INVITE_LANGUAGE_CHOICES,
+        required=False,
+        initial="en",
+        widget=forms.Select(attrs={"class": "form-select"}),
+    )
     invite_subject = forms.CharField(
         label="Email subject",
         max_length=160,

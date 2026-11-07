@@ -343,6 +343,9 @@ DEFAULT_FROM_EMAIL = os.getenv(
 
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
+# Duration of UUID account activation invitations. Does not affect login links.
+TALENA_ACCOUNT_INVITE_EXPIRY_DAYS = int(os.getenv("TALENA_ACCOUNT_INVITE_EXPIRY_DAYS", "14"))
+
 EMAIL_TIMEOUT = 30
 
 LOGGING = {
