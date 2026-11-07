@@ -10,14 +10,15 @@ const actionsCss = read("static/css/talena/pages/candidate-report-export.css");
 const shell = read("templates/customer/core/layouts/customer_base.html");
 const processHeader = read("templates/customer/processes/_process_header.html");
 
-// Helhetsbild: one label at Färdighet, Motivation and Personlighet headings,
-// only if the corresponding section actually contains generated AI prose.
-assert.ok(overall.includes('if (key !== "synthesis" && sectionHasAI)'));
+// Helhetsbild: one label at Färdighet, Motivation, Personlighet and the
+// concluding Helhetsbild, only if the section contains generated AI prose.
+assert.ok(overall.includes("if (sectionHasAI) {"),
+  "The final Helhetsbild synthesis needs the same AI label as other generated sections");
 assert.ok(overall.includes('["skills", "Färdighet", "Skills"]'));
 assert.ok(overall.includes('["motivation", "Motivation", "Motivation"]'));
 assert.ok(overall.includes('["personality", "Personlighet", "Personality"]'));
 assert.equal((overall.match(/talena-ai-generated-badge/g) || []).length, 1,
-  "Nested Testbild/Intervjun and Helhetsbild synthesis must not repeat AI badges");
+  "All four headings share one render path; nested Testbild/Intervjun must not repeat AI badges");
 assert.ok(overall.includes('box.appendChild(el("h6", "after-interview-overall__subheading", subtitle))'));
 assert.ok(overall.includes('!hasRawSourceLeak(section)'), "Never badge malformed model output");
 
