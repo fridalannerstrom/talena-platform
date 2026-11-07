@@ -3383,7 +3383,7 @@ def build_post_interview_content_block_prompt(
     )
 
     wellbeing_reference = (
-        "ADDITIONAL REFERENCE EVIDENCE FOR WELLBEING TIPS ONLY\\n"
+        "ADDITIONAL REFERENCE EVIDENCE FOR WELLBEING TIPS ONLY\n"
         + _build_wellbeing_tips_reference_evidence(owner, language_code=language_code)
         if block_key == "wellbeing_tips"
         else ""
