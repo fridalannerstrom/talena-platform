@@ -305,13 +305,13 @@
           overall: "Samlad tolkning",
           supports: "Stöd för rollen",
           supportsDescription:
-            "Områden där det samlade underlaget ger relevant stöd i relation till den faktiska roll- eller processkontexten.",
+            "Områden där det samlade underlaget ger relevant stöd i relation till rollkontexten.",
           nuances: "Ytterligare nyans",
           nuancesDescription:
             "Bakgrundsnyans som används i den samlade tolkningen.",
           contradictions: "Områden att utforska",
           contradictionsDescription:
-            "Viktiga områden i roll- eller processkontexten där underlaget är tunt, blandat eller fortfarande behöver valideras.",
+            "Viktiga områden i rollkontexten där underlaget är tunt, blandat eller fortfarande behöver valideras.",
           remains: "Kvar att utforska",
           remainsDescription:
             "Information som fortfarande saknas för att skapa en mer komplett bild.",
@@ -340,13 +340,13 @@
           overall: "Combined interpretation",
           supports: "Role support",
           supportsDescription:
-            "Areas where the combined evidence provides relevant support in relation to the actual role or process context.",
+            "Areas where the combined evidence provides relevant support in relation to the role context.",
           nuances: "Additional nuance",
           nuancesDescription:
             "Background nuance used in the combined interpretation.",
           contradictions: "Areas to explore",
           contradictionsDescription:
-            "Important role or process-context areas where the evidence is limited, mixed or still needs validation.",
+            "Important areas of the role context where the evidence is limited, mixed or still needs validation.",
           remains: "What remains to explore",
           remainsDescription:
             "Information that is still missing for a more complete view.",
