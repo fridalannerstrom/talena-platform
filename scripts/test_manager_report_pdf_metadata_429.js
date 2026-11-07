@@ -16,7 +16,7 @@ assert.ok(single.includes("window.TalenaManagerReportPdf.prepare(outputRoot)"));
 assert.ok(single.includes("window.TalenaManagerReportPdf.decorate(printableReport, reportMetadata)"));
 assert.ok(packageExport.includes('if (id === "manager-report")'));
 assert.ok(packageExport.includes("window.TalenaManagerReportPdf.prepare(workspace)"));
-assert.ok(packageExport.includes("window.TalenaManagerReportPdf.decorate(reportContent, metadata)"));
+assert.ok(packageExport.includes("window.TalenaManagerReportPdf.decorate(reportContent, managerReportMetadata)"));
 assert.ok(urls.includes('name="process_candidate_manager_report_pdf_prepare"'));
 assert.ok(template.includes("data-manager-report-pdf-prepare-url="));
 assert.ok(base.includes("js/talena/manager-report-pdf-metadata.js"));
