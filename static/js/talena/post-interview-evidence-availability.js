@@ -462,6 +462,15 @@
     if (buffer.trim()) handleLine(buffer);
   };
 
+  const fullCompilationUrl = (value) => {
+    if (!value) return "";
+    const url = new URL(value, window.location.origin);
+    // Question-only evidence must generate the same structured Helhetsbild as
+    // the normal full-compilation action in process_base.html.
+    url.searchParams.set("structured", "1");
+    return url.toString();
+  };
+
   const generateFromInjectedButton = async (button) => {
     if (
       button.disabled ||
@@ -508,7 +517,7 @@
 
       if (shouldRegenerate) {
         const response = await fetch(
-          regenerateUrl,
+          fullCompilationUrl(regenerateUrl),
           {
             method: "POST",
             headers: {
@@ -539,7 +548,7 @@
         throw new Error(copy().error);
       }
 
-      await drainPostInterviewStream(targetStreamUrl);
+      await drainPostInterviewStream(fullCompilationUrl(targetStreamUrl));
       await refreshFinalOutput(root);
     } catch (error) {
       console.error(
