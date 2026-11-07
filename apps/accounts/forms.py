@@ -30,6 +30,7 @@ class InviteUserForm(forms.ModelForm):
     invite_language = forms.ChoiceField(
         label="Email language",
         choices=INVITE_LANGUAGE_CHOICES,
+        required=False,
         initial="en",
         widget=forms.Select(attrs={"class": "form-select"}),
     )
@@ -237,6 +238,7 @@ class CompanyInviteMemberForm(forms.Form):
     invite_language = forms.ChoiceField(
         label="Email language",
         choices=INVITE_LANGUAGE_CHOICES,
+        required=False,
         initial="en",
         widget=forms.Select(attrs={"class": "form-select"}),
     )
