@@ -23,10 +23,11 @@
         <div class="alert alert-light border d-flex align-items-start gap-3 mb-4">
           <div class="flex-shrink-0"><i data-feather="clock"></i></div>
           <div class="small text-muted">
-            {% blocktrans with completed=tests_completed_count total=tests_sent_count %}
-              {{ completed }} of {{ total }} assessments are complete.
-              Only available results are shown here. Additional results will appear as assessments are completed.
-            {% endblocktrans %}
+            {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+              {{ tests_completed_count }} av {{ tests_sent_count }} tester är genomförda. Vi visar de resultat som finns tillgängliga. Fler resultat visas när resterande tester är klara.
+            {% else %}
+              {{ tests_completed_count }} of {{ tests_sent_count }} assessments are complete. Only available results are shown here; additional results will appear once more assessments have been completed.
+            {% endif %}
           </div>
         </div>
       {% endif %}
