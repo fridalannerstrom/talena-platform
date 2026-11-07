@@ -3263,6 +3263,79 @@ def set_post_interview_content_block_status(
     return result
 
 
+def _build_wellbeing_tips_reference_evidence(
+    owner,
+    *,
+    language_code: str,
+) -> str:
+    """Authoritative MQ top-three guidance and scored PQ indicator meanings.
+
+    Only used by the existing wellbeing_tips generator. Never embeds the
+    candidate's name, contact details, or a copy of advice for all 20 factors.
+    """
+    from .motivation_interpretation import _owner_motivation_results
+    from .motivation_practical_advice import get_motivation_practical_advice
+    from .personality_ai_evidence import build_owner_personality_ai_evidence
+
+    language = "sv" if language_code == "sv" else "en"
+    guidance = get_motivation_practical_advice()[language]
+    results = sorted(
+        _owner_motivation_results(owner),
+        key=lambda item: (-item["score"], item["key"]),
+    )[:3]
+    lines = [
+        "APPROVED MQ REFERENCE: TOP THREE SOVA MOTIVATORS ONLY",
+        "These are fixed, approved reference tips, NOT AI-created findings. "
+        "Use as context, do not copy the lists as the generated answer.",
+    ]
+    if not results:
+        lines.append("No authoritative MQ top-three results available. "
+                     "Do not infer motivation factors from interviews or PQ.")
+    for rank, item in enumerate(results, start=1):
+        key = item["key"]
+        label = get_motivation_factor_display_name(
+            item["name"], language_code=language,
+        )
+        lines.append(f"{rank}. {label} [MQ factor key: {key}; STIVE {item['score']}/5]")
+        tips = guidance.get(key)
+        if not tips:
+            lines.append("No approved practical advice for this factor. Do not invent tips.")
+            continue
+        for tip in tips["do"]:
+            lines.append(f"   DO: {tip}")
+        for tip in tips["avoid"]:
+            lines.append(f"   AVOID: {tip}")
+
+    lines.append(
+        "\nCANDIDATE-SPECIFIC PQ INDICATORS (APPROVED SCORE-BAND TEXTS)"
+    )
+    rows = build_owner_personality_ai_evidence(owner, language_code=language)
+    if not rows:
+        lines.append("No scored PQ indicator evidence available. Do not guess.")
+    else:
+        for row in rows:
+            indicators = [
+                indicator for indicator in row.get("indicators", [])
+                if indicator.get("text")
+            ]
+            if not indicators:
+                continue
+            lines.append(f"TRAIT: {row.get('label') or row.get('name')}")
+            for indicator in indicators:
+                lines.append(
+                    f"- {indicator.get('label') or indicator.get('name')} "
+                    f"(STEN {indicator.get('sten')}/10): "
+                    f"{indicator['text']}"
+                )
+    lines.append(
+        "Use only PQ indications genuinely relevant to the role/context "
+        "and supported or nuanced by interview evidence. Neutral or middle "
+        "scores are not deficits. Separate test indications, interview "
+        "examples and tentative practical hypotheses."
+    )
+    return "\n".join(lines)
+
+
 def build_post_interview_content_block_prompt(
     owner,
     *,
@@ -3309,6 +3382,13 @@ def build_post_interview_content_block_prompt(
         else "Question-specific interview evidence: NOT PROVIDED"
     )
 
+    wellbeing_reference = (
+        "ADDITIONAL REFERENCE EVIDENCE FOR WELLBEING TIPS ONLY\\n"
+        + _build_wellbeing_tips_reference_evidence(owner, language_code=language_code)
+        if block_key == "wellbeing_tips"
+        else ""
+    )
+
     include_assessment_evidence = block_key != "interview_summary"
     assessment_text = (
         evidence.get("evidence_text") or "No assessment interpretation evidence."
@@ -3343,6 +3423,8 @@ Purpose: {shared_context["purpose_label"]}
 
 ASSESSMENT INDICATIONS
 {assessment_text}
+
+{wellbeing_reference}
 
 INTERVIEW EVIDENCE STATUS
 {evidence_status}
