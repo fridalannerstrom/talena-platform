@@ -1650,6 +1650,11 @@
       __PANEL__ .after-interview-primary-nav .candidate-insights-view-option.is-active {
         font-weight: 750;
       }
+      __PANEL__ .after-interview-primary-nav .candidate-insights-view-option.needs-update::after {
+        content: ""; display: inline-block; width: 7px; height: 7px;
+        border-radius: 50%; background: #e17d54; margin-left: .45rem;
+        vertical-align: middle;
+      }
       __PANEL__ .after-interview-reports { min-width: 0; }
       __PANEL__ .after-interview-reports[hidden] { display: none !important; }
       __PANEL__ .after-interview-reports__header {
@@ -2997,6 +3002,11 @@
       });
       reportStatus.classList.toggle("needs-update", needsUpdate);
       reportsRefresh.classList.toggle("needs-update", needsUpdate);
+      reportsButton.classList.toggle("needs-update", needsUpdate);
+      reportsButton.title = needsUpdate ? copy().reportStatusOutdated : "";
+      reportsButton.setAttribute("aria-label", needsUpdate
+        ? copy().tabs.reports + ". " + copy().reportStatusOutdated
+        : copy().tabs.reports);
       reportStatusTitle.textContent = hasUnsavedNotes
         ? copy().reportStatusUnsaved
         : needsUpdate ? copy().reportStatusOutdated : copy().reportStatusCurrent;
@@ -3019,9 +3029,32 @@
       const nativeButton = postSection.querySelector(
         '[data-post-interview-generate][data-regenerate="true"]'
       );
-      if (!nativeButton || nativeButton.disabled) return;
+      if (!nativeButton || nativeButton.disabled) {
+        if (trigger.dataset.afterInterviewRebuild === "reports") {
+          reportStatusTitle.textContent = copy().reportGenerateUnavailable;
+          reportStatusDetail.textContent = "";
+        } else {
+          const error = postSection.querySelector("[data-post-interview-error]");
+          if (error) {
+            error.textContent = copy().reportGenerateUnavailable;
+            error.classList.remove("d-none");
+          }
+        }
+        return;
+      }
       trigger.disabled = true;
       trigger.setAttribute("aria-busy", "true");
+      const previousContents = [...trigger.childNodes];
+      const spinner = document.createElement("span");
+      spinner.className = "spinner-border spinner-border-sm";
+      spinner.setAttribute("role", "status");
+      spinner.setAttribute("aria-label", copy().reportGenerating);
+      trigger.replaceChildren(spinner);
+      const restoreTrigger = () => {
+        trigger.disabled = false;
+        trigger.removeAttribute("aria-busy");
+        trigger.replaceChildren(...previousContents);
+      };
       // Native generation still saves the interview notes and runs the
       // manager report manual-edit confirmation before it begins.
       nativeButton.click();
@@ -3029,8 +3062,7 @@
       // it restores its thinking state, so restore our action as well.
       const thinking = postSection.querySelector("[data-post-interview-thinking]");
       if (!thinking) {
-        trigger.disabled = false;
-        trigger.removeAttribute("aria-busy");
+        restoreTrigger();
         return;
       }
       let started = !thinking.classList.contains("d-none");
@@ -3042,18 +3074,23 @@
         if (!thinking.classList.contains("d-none")) {
           started = true;
         } else if (started) {
-          trigger.disabled = false;
-          trigger.removeAttribute("aria-busy");
+          restoreTrigger();
           watcher.disconnect();
-          updateReportStatus();
+          const error = postSection.querySelector("[data-post-interview-error]");
+          if (error && !error.classList.contains("d-none")) {
+            reportStatus.classList.add("needs-update");
+            reportStatusTitle.textContent = error.textContent.trim() || copy().reportError;
+            reportStatusDetail.textContent = copy().reportStatusDetail;
+          } else {
+            updateReportStatus();
+          }
         }
       });
       watcher.observe(thinking, { attributes: true, attributeFilter: ["class"] });
       // A confirmation dialog may delay the original click. Do not retain a
       // disabled proxy while the user is deciding whether to regenerate.
       if (!started) {
-        trigger.disabled = false;
-        trigger.removeAttribute("aria-busy");
+        restoreTrigger();
         watcher.disconnect();
       }
     };
