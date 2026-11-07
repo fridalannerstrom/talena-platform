@@ -82,14 +82,17 @@
         if (!data.ok || !Array.isArray(data.events)) throw Error("Invalid report history");
         summary.replaceChildren();
         for (const [entry, label] of [
-          [data.last_edited, labels().edited], [data.last_export, labels().exported]
+          [data.last_edited, labels().edited],
+          [data.last_export, labels().exported],
+          [!data.last_export ? data.last_prepared : null, labels().prepared]
         ]) {
           if (!entry) continue;
           summary.append(node("span", "talena-report-audit__meta",
             label + ": " + entry.actor + " · " + fmt(entry.at)));
         }
         if (!summary.childElementCount) {
-          summary.append(node("span", "talena-report-audit__empty", labels().noEvents));
+          summary.append(node("span", "talena-report-audit__empty",
+            data.events.length ? labels().previous : labels().noEvents));
         }
         list.replaceChildren();
         data.events.forEach(row => {
