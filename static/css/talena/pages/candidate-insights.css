@@ -2173,6 +2173,78 @@
   }
 }
 
+/* #431 / #401: a result-led Overview with secondary area interpretations. */
+.process-page #purposeFitCard .talena-overview-content {
+  padding: 1.25rem 1.4rem 1.5rem;
+}
+.process-page #purposeFitCard .candidate-result-overview {
+  margin-bottom: 0 !important;
+}
+.process-page #purposeFitCard .talena-overview-interpretations {
+  margin-top: 1.65rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--talena-border);
+}
+.process-page #purposeFitCard .talena-overview-interpretations__heading {
+  max-width: 790px;
+  margin-bottom: 1rem;
+}
+.process-page #purposeFitCard .talena-overview-interpretations__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.85rem;
+  align-items: start;
+}
+.process-page #purposeFitCard .talena-overview-interpretations__card {
+  min-width: 0;
+  padding: 1.05rem;
+  border: 1px solid var(--talena-border);
+  border-radius: 11px;
+  background: #fcfbfa;
+}
+.process-page #purposeFitCard .talena-overview-interpretations__card-title {
+  margin: 0 0 0.7rem;
+  color: var(--talena-ink);
+  font-size: 0.85rem;
+  line-height: 1.4;
+  font-weight: 650;
+}
+.process-page #purposeFitCard .talena-overview-interpretations__card .talena-ai-title-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.7rem;
+}
+.process-page #purposeFitCard .talena-overview-interpretations__card .talena-ai-title-row
+.talena-overview-interpretations__card-title {
+  margin-bottom: 0;
+}
+.process-page #purposeFitCard .talena-overview-interpretations__text {
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+}
+.process-page #purposeFitCard .talena-overview-interpretations__empty {
+  line-height: 1.55;
+}
+@media (max-width: 1080px) {
+  .process-page #purposeFitCard .talena-overview-interpretations__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 620px) {
+  .process-page #purposeFitCard .talena-overview-content {
+    padding: 1rem;
+  }
+  .process-page #purposeFitCard .talena-overview-interpretations {
+    margin-top: 1.25rem;
+    padding-top: 1rem;
+  }
+  .process-page #purposeFitCard .talena-overview-interpretations__card {
+    padding: 0.9rem;
+  }
+}
+
 /* #364 – Summary-only typography scale.
    The body copy beneath "Sammanfattande tolkning" is the reference size.
    Keep this scoped to the overview card so Personality, Skills and other
