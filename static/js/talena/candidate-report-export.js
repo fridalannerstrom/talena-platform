@@ -305,6 +305,10 @@
     "[data-cognitive-questions-regenerate]",
     "[data-pre-interview-generate][data-regenerate='true']",
     "[data-post-interview-generate][data-regenerate='true']",
+    // After interview's individual report cards have their own refresh
+    // buttons inside the title toolbar. Pair the PDF export with that
+    // existing action instead of inserting a separate row above the card.
+    "[data-after-interview-regenerate]",
     // Helhetsbild's structured card has its own refresh action.
     // Pair the existing PDF control with it instead of creating a toolbar row.
     "[data-overall-picture-generate]"
