@@ -1,211 +1,37 @@
 {% load i18n l10n motivation_i18n personality_i18n %}
-{# Talena candidate i18n batch 1 #}
-
-{% with overview_owner=historical_candidate|default:invitation %}
-
-
+{# #431 + #401: Test evidence before area-specific interpretations. #}
 {% if has_any_results %}
+  <section class="purpose-fit-card ai-overview-card" id="purposeFitCard">
+    <header class="ai-overview-header">
+      <div class="ai-overview-header__content">
+        <h2 class="insight-summary-title mb-1">
+          {% if LANGUAGE_CODE|slice:":2" == "sv" %}Resultat i korthet{% else %}Results at a glance{% endif %}
+        </h2>
+        <p class="text-muted small mb-0">
+          {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+            Här visas personens tillgängliga testresultat. De övergripande tolkningarna från respektive område finns längre ned.
+          {% else %}
+            Explore the available assessment results. The overall interpretation from each assessment area appears further down.
+          {% endif %}
+        </p>
+      </div>
+      <div class="ai-overview-header__actions"></div>
+    </header>
 
-    <section
-      class="purpose-fit-card ai-overview-card"
-      id="purposeFitCard"
-    >
-
-      <!-- ================================================== -->
-      <!-- HEADER -->
-      <!-- ================================================== -->
-
-      <div class="ai-overview-header">
-
-        <div class="ai-overview-header__content">
-
-          <div class="insight-summary-kicker">
-            {% trans "AI-generated insight" %}
+    <div class="talena-overview-content">
+      {% if not is_historical and not all_assessments_completed %}
+        <div class="alert alert-light border d-flex align-items-start gap-3 mb-4">
+          <div class="flex-shrink-0"><i data-feather="clock"></i></div>
+          <div class="small text-muted">
+            {% blocktrans with completed=tests_completed_count total=tests_sent_count %}
+              {{ completed }} of {{ total }} assessments are complete.
+              Only available results are shown here. Additional results will appear as assessments are completed.
+            {% endblocktrans %}
           </div>
-
-<h2
-  class="insight-summary-title mb-1"
-  id="purposeFitTitle"
->
-  {% if not is_historical and not all_assessments_completed %}
-    {% trans "Preliminary summary" %}
-  {% else %}
-    {% trans "Summary" %}
-  {% endif %}
-</h2>
-
-          <div class="text-muted small">
-
-            {% if is_historical %}
-
-{% blocktrans trimmed %}
-  A combined interpretation of the candidate’s available
-  imported assessment results.
-{% endblocktrans %}
-
-            {% else %}
-
-{% blocktrans trimmed %}
-  A combined interpretation of the candidate’s available
-  assessment results, selected project purpose and any
-  added project context.
-{% endblocktrans %}
-
-            {% endif %}
-
-          </div>
-
         </div>
+      {% endif %}
 
-
-        <div class="ai-overview-header__actions">
-
-          <span
-            id="purposeFitStatusBadge"
-            class="
-              badge
-              rounded-pill
-
-              {% if overview_owner.ai_purpose_fit_status == 'outdated' %}
-                bg-warning-subtle
-                text-warning-emphasis
-              {% else %}
-                d-none
-              {% endif %}
-            "
-          >
-            {% if overview_owner.ai_purpose_fit_status == "outdated" %}
-              {% trans "Needs update" %}
-            {% endif %}
-          </span>
-
-
-          <button
-            type="button"
-            class="btn btn-icon btn-light js-regenerate-purpose-fit"
-            data-regenerate-url="{% url 'processes:process_candidate_purpose_fit_regenerate' process.id candidate.id %}"
-            data-bs-toggle="tooltip"
-            data-bs-placement="top"
-            title="{% trans 'Generate a new overview using the latest assessment results, purpose and project context.' %}"
-            aria-label="{% trans 'Generate a new AI overview' %}"
-          >
-            <i data-feather="refresh-cw"></i>
-          </button>
-
-        </div>
-
-{% if not is_historical and not all_assessments_completed %}
-
-  <div class="alert alert-light border d-flex align-items-start gap-3 mb-4">
-
-    <div class="flex-shrink-0">
-      <i data-feather="clock"></i>
-    </div>
-
-    <div>
-      <div class="fw-semibold mb-1">
-        {% trans "Preliminary summary" %}
-      </div>
-
-      <div class="small text-muted">
-        {% blocktrans with completed=tests_completed_count total=tests_sent_count %}
-          {{ completed }} of {{ total }} assessments are complete.
-          This summary is based only on the assessment results currently available.
-        {% endblocktrans %}
-      </div>
-
-      <div class="small text-muted mt-1">
-        {% trans "Refresh the summary when additional assessment results become available." %}
-      </div>
-    </div>
-
-  </div>
-
-{% endif %}
-
-      </div>
-
-
-      <!-- ================================================== -->
-      <!-- OUTDATED WARNING HOOK -->
-      <!-- ================================================== -->
-
-      <div
-        id="purposeFitOutdatedWarning"
-        class="d-none"
-        aria-hidden="true"
-      ></div>
-
-
-      <!-- ================================================== -->
-      <!-- LOADING -->
-      <!-- ================================================== -->
-
-      <div
-        id="purposeFitLoading"
-        class="{% if overview_owner.ai_purpose_fit %}d-none{% endif %}"
-      >
-
-        <div class="purpose-fit-loading">
-
-          <span
-            class="spinner-border spinner-border-sm"
-            role="status"
-            aria-hidden="true"
-          ></span>
-
-          <span id="purposeFitLoadingText">
-
-            {% if is_historical %}
-
-              {% trans "Analysing imported assessment results…" %}
-
-            {% else %}
-
-              {% trans "Analysing assessment results and project context…" %}
-
-            {% endif %}
-
-          </span>
-
-        </div>
-
-      </div>
-
-
-      <!-- ================================================== -->
-      <!-- RESULT -->
-      <!-- ================================================== -->
-
-      <div
-        id="purposeFitResult"
-        class="{% if not overview_owner.ai_purpose_fit %}d-none{% endif %}"
-        data-generation-url="{% url 'processes:process_candidate_purpose_fit_stream' process.id candidate.id %}"
-        data-has-fit="{% if overview_owner.ai_purpose_fit %}true{% else %}false{% endif %}"
-        data-fit-status="{{ overview_owner.ai_purpose_fit_status|default:'not_started' }}"
-      >
-
-
-        <!-- ================================================== -->
-        <!-- OVERALL INTERPRETATION -->
-        <!-- ================================================== -->
-
-        <section class="purpose-fit-section mb-3">
-
-          <div class="purpose-fit-section-title">
-            {% if LANGUAGE_CODE|slice:":2" == "sv" %}Sammanfattande tolkning{% else %}Summary interpretation{% endif %}
-          </div>
-
-          <div
-            class="purpose-fit-summary"
-            id="purposeFitSummary"
-          >{{ overview_owner.ai_purpose_fit.summary }}</div>
-
-        </section>
-
-
-        <!-- ================================================== -->
-        <!-- COMPACT FACTUAL ASSESSMENT OVERVIEW -->
+      <!-- Results remain first: no AI overview generation is required. -->
         <section class="candidate-result-overview mb-4" >
           <div class="candidate-result-overview__grid">
             {% if has_personality_assessment_in_process and has_personality_results and personality_profile.sections %}
@@ -264,29 +90,6 @@
                   </div>
 
                 </section>
-            {% endif %}
-
-            {% if has_personality_assessment_in_process and has_personality_results and personality_profile.sections %}
-              <section class="personality-area-summaries mb-2" aria-labelledby="personalityAreaSummariesTitle">
-                <h4 id="personalityAreaSummariesTitle" class="personality-area-summaries__title">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Personlighet per område{% else %}Personality by area{% endif %}</h4>
-                    <div class="personality-overview-summaries" aria-label="{% if LANGUAGE_CODE|slice:":2" == "sv" %}Personlighetssammanfattningar{% else %}Personality summaries{% endif %}">
-                      <article class="personality-overview-summary">
-                        <h5 class="personality-overview-summary__title">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Leda och arbeta med andra{% else %}Leading and working with others{% endif %}</h5>
-                        <p class="personality-overview-summary__text{% if not overview_owner.ai_purpose_fit.personality_area_summaries.leadership %} d-none{% endif %}" data-personality-area-summary="leadership">{{ overview_owner.ai_purpose_fit.personality_area_summaries.leadership }}</p>
-                        <p class="personality-overview-summary__placeholder{% if overview_owner.ai_purpose_fit.personality_area_summaries.leadership %} d-none{% endif %}">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Sammanfattningen skapas när AI-översikten uppdateras.{% else %}This summary will appear when the AI overview is generated.{% endif %}</p>
-                      </article>
-                      <article class="personality-overview-summary">
-                        <h5 class="personality-overview-summary__title">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Organisering och tankemönster{% else %}Organisation and thinking style{% endif %}</h5>
-                        <p class="personality-overview-summary__text{% if not overview_owner.ai_purpose_fit.personality_area_summaries.organisation %} d-none{% endif %}" data-personality-area-summary="organisation">{{ overview_owner.ai_purpose_fit.personality_area_summaries.organisation }}</p>
-                        <p class="personality-overview-summary__placeholder{% if overview_owner.ai_purpose_fit.personality_area_summaries.organisation %} d-none{% endif %}">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Sammanfattningen skapas när AI-översikten uppdateras.{% else %}This summary will appear when the AI overview is generated.{% endif %}</p>
-                      </article>
-                      <article class="personality-overview-summary">
-                        <h5 class="personality-overview-summary__title">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Interaktion och känslohantering{% else %}Interaction and emotional management{% endif %}</h5>
-                        <p class="personality-overview-summary__text{% if not overview_owner.ai_purpose_fit.personality_area_summaries.interaction %} d-none{% endif %}" data-personality-area-summary="interaction">{{ overview_owner.ai_purpose_fit.personality_area_summaries.interaction }}</p>
-                        <p class="personality-overview-summary__placeholder{% if overview_owner.ai_purpose_fit.personality_area_summaries.interaction %} d-none{% endif %}">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Sammanfattningen skapas när AI-översikten uppdateras.{% else %}This summary will appear when the AI overview is generated.{% endif %}</p>
-                      </article>
-                    </div>
-              </section>
             {% endif %}
 
             {% if has_motivation_assessment_in_process and has_motivation_results and motivation_insights.motivators or has_cognitive_assessments_in_process and has_completed_cognitive_results %}
@@ -386,362 +189,110 @@
         </section>
 
 
-        <!-- SUPPORT + EXPLORE -->
-        <!-- ================================================== -->
-
-        <div class="row g-4 mb-4">
-
-
-          <!-- SUPPORT -->
-
-          <div class="col-lg-6">
-
-            <div
-              class="
-                purpose-fit-list-card
-                purpose-fit-list-card--positive
-                h-100
-              "
-            >
-
-              <div
-                class="
-                  purpose-fit-section-title
-                  purpose-fit-section-title--with-help
-                "
-              >
-
-                <span>
-                  {% if is_historical %}
-                    {% trans "Potentially supportive patterns" %}
-                  {% else %}
-                    {% trans "What supports the purpose" %}
-                  {% endif %}
-                </span>
-
-
-                <button
-                  type="button"
-                  class="purpose-fit-help"
-                  data-bs-toggle="tooltip"
-                  data-bs-placement="top"
-
-                  {% if is_historical %}
-                    title="{% trans 'Assessment patterns that may be useful or supportive in some workplace situations. They are not guarantees of performance.' %}"
-                  {% else %}
-                    title="{% trans 'Assessment patterns that may be relevant to and support the selected purpose. They are not guarantees of performance.' %}"
-                  {% endif %}
-
-                  aria-label="{% trans 'More information about supporting evidence' %}"
-                >
-                  <i data-feather="info"></i>
-                </button>
-
-              </div>
-
-
-              <ul
-                class="purpose-fit-list"
-                id="purposeFitAlignment"
-              >
-
-                {% for item in overview_owner.ai_purpose_fit.key_alignment %}
-
-                  <li>
-
-                    <span class="purpose-fit-list-icon">
-                      <i data-feather="check"></i>
-                    </span>
-
-                    <span>
-                      {{ item }}
-                    </span>
-
-                  </li>
-
-                {% endfor %}
-
-              </ul>
-
-            </div>
-
-          </div>
-
-
-          <!-- EXPLORE -->
-
-          <div class="col-lg-6">
-
-            <div
-              class="
-                purpose-fit-list-card
-                purpose-fit-list-card--verify
-                h-100
-              "
-            >
-
-              <div
-                class="
-                  purpose-fit-section-title
-                  purpose-fit-section-title--with-help
-                "
-              >
-
-                <span>
-                  {% trans "What to explore or consider" %}
-                </span>
-
-
-                <button
-                  type="button"
-                  class="purpose-fit-help"
-                  data-bs-toggle="tooltip"
-                  data-bs-placement="top"
-                  title="{% trans 'Topics that may be useful to explore, consider or follow up through relevant conversations or other evidence. They are not confirmed weaknesses.' %}"
-                  aria-label="{% trans 'More information about areas to explore' %}"
-                >
-                  <i data-feather="info"></i>
-                </button>
-
-              </div>
-
-
-              <ul
-                class="purpose-fit-list"
-                id="purposeFitVerify"
-              >
-
-                {% for item in overview_owner.ai_purpose_fit.areas_to_verify %}
-
-                  <li>
-
-                    <span class="purpose-fit-list-icon">
-                      <i data-feather="search"></i>
-                    </span>
-
-                    <span>
-                      {{ item }}
-                    </span>
-
-                  </li>
-
-                {% endfor %}
-
-              </ul>
-
-            </div>
-
-          </div>
-
-        </div>
-
-
-        <!-- ================================================== -->
-        <!-- HOW THIS INSIGHT WAS CREATED -->
-        <!-- ================================================== -->
-
-        <details class="purpose-fit-explainer mb-4">
-
-          <summary class="purpose-fit-explainer__title">
-            {% trans "How Talena created this summary" %}
-          </summary>
-
-
-          <div class="purpose-fit-explainer__content mt-3">
-
-            <div
-              class="purpose-fit-explainer__text"
-              id="purposeFitContextNote"
-            >
-              {{ overview_owner.ai_purpose_fit.context_note }}
-            </div>
-
-
-            <div class="purpose-fit-inputs mt-3">
-
-              <span class="purpose-fit-inputs__label">
-                {% trans "Based on" %}
-              </span>
-
-
-              <span class="purpose-fit-input-pill">
-                {% trans "Assessment results" %}
-              </span>
-
-
-              {% if is_historical %}
-
-                <span class="purpose-fit-input-pill">
-                  {% trans "Imported SOVA data" %}
-                </span>
-
-                <span
-                  class="
-                    purpose-fit-input-pill
-                    purpose-fit-input-pill--muted
-                  "
-                >
-                  {% trans "No original project context" %}
-                </span>
-
+      <!-- Reuse the three stored area interpretations, never a fourth AI synthesis. -->
+      {% if has_cognitive_assessments_in_process and has_completed_cognitive_results or has_personality_assessment_in_process and has_personality_results or has_motivation_assessment_in_process and has_motivation_results %}
+        <section class="talena-overview-interpretations" aria-labelledby="talenaOverviewInterpretationHeading">
+          <div class="talena-overview-interpretations__heading">
+            <h3 class="purpose-fit-section-title mb-1" id="talenaOverviewInterpretationHeading">
+              {% if LANGUAGE_CODE|slice:":2" == "sv" %}Sammanfattande tolkning{% else %}Summary interpretation{% endif %}
+            </h3>
+            <p class="small text-muted mb-0">
+              {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+                Tolkningarna nedan är hämtade från de tre testområdena och är stöd för vidare utforskning, inte en samlad bedömning.
               {% else %}
-
-                <span class="purpose-fit-input-pill">
-                  {% trans "Selected purpose" %}
-                </span>
-
-
-                {% if has_purpose_context %}
-
-                  <span class="purpose-fit-input-pill">
-                    {% trans "Project context" %}
-                  </span>
-
-                {% else %}
-
-                  <span
-                    class="
-                      purpose-fit-input-pill
-                      purpose-fit-input-pill--muted
-                    "
-                    data-bs-toggle="tooltip"
-                    data-bs-placement="top"
-                    title="{% trans 'No additional project context has been added.' %}"
-                  >
-                    {% trans "No added context" %}
-                  </span>
-
-                {% endif %}
-
+                These interpretations come directly from the assessment areas and support further exploration rather than providing a final evaluation.
               {% endif %}
-
-            </div>
-
+            </p>
           </div>
+          <div class="talena-overview-interpretations__grid">
 
-        </details>
+            {% if has_cognitive_assessments_in_process and has_completed_cognitive_results %}
+              <article class="talena-overview-interpretations__card" data-overview-interpretation-card="cognitive">
+                <h4 class="talena-overview-interpretations__card-title" data-overview-interpretation-title>
+                  {% if LANGUAGE_CODE|slice:":2" == "sv" %}Färdighet{% else %}Skills{% endif %}
+                </h4>
+                <div class="purpose-fit-summary talena-overview-interpretations__text{% if not cognitive_interpretation.interpretation or cognitive_interpretation_status == 'outdated' %} d-none{% endif %}"
+                     data-overview-interpretation-content="cognitive">{{ cognitive_interpretation.interpretation|default:'' }}</div>
+                <div class="talena-overview-interpretations__empty{% if cognitive_interpretation.interpretation and cognitive_interpretation_status != 'outdated' %} d-none{% endif %}"
+                     data-overview-interpretation-empty="cognitive">
+                  <p class="small text-muted mb-2" data-overview-interpretation-empty-text>
+                    {% if cognitive_interpretation_status == 'outdated' %}
+                      {% if LANGUAGE_CODE|slice:":2" == "sv" %}Tolkningen behöver uppdateras innan den kan visas här.{% else %}Update the interpretation before viewing it here.{% endif %}
+                    {% else %}
+                      {% if LANGUAGE_CODE|slice:":2" == "sv" %}Ingen tolkning har skapats för detta område ännu.{% else %}No interpretation has been generated for this area yet.{% endif %}
+                    {% endif %}
+                  </p>
+                  <button type="button" class="candidate-result-overview__open" data-insights-tab="cognitive" aria-controls="candidate-insights-panel-cognitive">
+                    {% if LANGUAGE_CODE|slice:":2" == "sv" %}Gå till Färdighet{% else %}View Skills{% endif %} <span aria-hidden="true">→</span>
+                  </button>
+                </div>
+              </article>
+            {% endif %}
 
+            {% if has_personality_assessment_in_process and has_personality_results %}
+              <article class="talena-overview-interpretations__card" data-overview-interpretation-card="personality">
+                <h4 class="talena-overview-interpretations__card-title" data-overview-interpretation-title>
+                  {% if LANGUAGE_CODE|slice:":2" == "sv" %}Personlighet{% else %}Personality{% endif %}
+                </h4>
+                <div class="purpose-fit-summary talena-overview-interpretations__text{% if not personality_interpretation.interpretation or personality_interpretation_status == 'outdated' %} d-none{% endif %}"
+                     data-overview-interpretation-content="personality">{{ personality_interpretation.interpretation|default:'' }}</div>
+                <div class="talena-overview-interpretations__empty{% if personality_interpretation.interpretation and personality_interpretation_status != 'outdated' %} d-none{% endif %}"
+                     data-overview-interpretation-empty="personality">
+                  <p class="small text-muted mb-2" data-overview-interpretation-empty-text>
+                    {% if personality_interpretation_status == 'outdated' %}
+                      {% if LANGUAGE_CODE|slice:":2" == "sv" %}Tolkningen behöver uppdateras innan den kan visas här.{% else %}Update the interpretation before viewing it here.{% endif %}
+                    {% else %}
+                      {% if LANGUAGE_CODE|slice:":2" == "sv" %}Ingen tolkning har skapats för detta område ännu.{% else %}No interpretation has been generated for this area yet.{% endif %}
+                    {% endif %}
+                  </p>
+                  <button type="button" class="candidate-result-overview__open" data-insights-tab="personality" aria-controls="candidate-insights-panel-personality">
+                    {% if LANGUAGE_CODE|slice:":2" == "sv" %}Gå till Personlighet{% else %}View Personality{% endif %} <span aria-hidden="true">→</span>
+                  </button>
+                </div>
+              </article>
+            {% endif %}
 
-        <!-- ================================================== -->
-        <!-- DISCLAIMER -->
-        <!-- ================================================== -->
-
-        <div class="purpose-fit-disclaimer border-top pt-3">
-
-          <i data-feather="info"></i>
-
-          <div>
-            {% blocktrans %}
-              This is an AI-generated interpretation of assessment evidence,
-              not a final decision or prediction of future performance.
-              Use it together with relevant conversations, experience and
-              other available information.
-            {% endblocktrans %}
+            {% if has_motivation_assessment_in_process and has_motivation_results %}
+              <article class="talena-overview-interpretations__card" data-overview-interpretation-card="motivation">
+                <h4 class="talena-overview-interpretations__card-title" data-overview-interpretation-title>
+                  {% if LANGUAGE_CODE|slice:":2" == "sv" %}Motivation{% else %}Motivation{% endif %}
+                </h4>
+                <div class="purpose-fit-summary talena-overview-interpretations__text{% if not motivation_interpretation.interpretation or motivation_interpretation_status == 'outdated' %} d-none{% endif %}"
+                     data-overview-interpretation-content="motivation">{{ motivation_interpretation.interpretation|default:'' }}</div>
+                <div class="talena-overview-interpretations__empty{% if motivation_interpretation.interpretation and motivation_interpretation_status != 'outdated' %} d-none{% endif %}"
+                     data-overview-interpretation-empty="motivation">
+                  <p class="small text-muted mb-2" data-overview-interpretation-empty-text>
+                    {% if motivation_interpretation_status == 'outdated' %}
+                      {% if LANGUAGE_CODE|slice:":2" == "sv" %}Tolkningen behöver uppdateras innan den kan visas här.{% else %}Update the interpretation before viewing it here.{% endif %}
+                    {% else %}
+                      {% if LANGUAGE_CODE|slice:":2" == "sv" %}Ingen tolkning har skapats för detta område ännu.{% else %}No interpretation has been generated for this area yet.{% endif %}
+                    {% endif %}
+                  </p>
+                  <button type="button" class="candidate-result-overview__open" data-insights-tab="motivation" aria-controls="candidate-insights-panel-motivation">
+                    {% if LANGUAGE_CODE|slice:":2" == "sv" %}Gå till Motivation{% else %}View Motivation{% endif %} <span aria-hidden="true">→</span>
+                  </button>
+                </div>
+              </article>
+            {% endif %}
           </div>
-
-        </div>
-
-      </div>
-
-
-      <!-- ================================================== -->
-      <!-- ERROR -->
-      <!-- ================================================== -->
-
-      <div
-        class="alert alert-danger d-none mb-0"
-        id="purposeFitError"
-      >
-        {% blocktrans %}
-          The purpose-fit interpretation could not be generated.
-          Use the refresh button to try again.
-        {% endblocktrans %}
-      </div>
-
-    </section>
-
-
-  {% else %}
-
-
-    <!-- ================================================== -->
-    <!-- NO COMPLETE RESULTS YET -->
-    <!-- ================================================== -->
-
-    {% if is_historical %}
-
-      <section class="combined-questions-empty-state mb-4">
-
-        <div class="combined-questions-empty-state__icon">
-          <i data-feather="database"></i>
-        </div>
-
-        <div class="insight-summary-kicker mb-2">
-          {% trans "Assessment overview" %}
-        </div>
-
-        <h2 class="personality-questions-section-title mb-2">
-          {% trans "No imported assessment results available" %}
-        </h2>
-
-        <p
-          class="text-muted small mb-0 mx-auto"
-          style="max-width: 620px;"
-        >
-          {% blocktrans %}
-            No structured historical assessment results are currently
-            available for this candidate.
-          {% endblocktrans %}
-        </p>
-
-      </section>
-
-
-    {% else %}
-
-
-      <section class="combined-questions-empty-state mb-4">
-
-        <div class="combined-questions-empty-state__icon">
-          <i data-feather="clock"></i>
-        </div>
-
-        <div class="insight-summary-kicker mb-2">
-          {% trans "Assessment overview" %}
-        </div>
-
-        <h2 class="personality-questions-section-title mb-2">
-          {% trans "Summary is waiting for the remaining assessments" %}
-        </h2>
-
-        <p
-          class="text-muted small mb-2 mx-auto"
-          style="max-width: 620px;"
-        >
-          {% blocktrans with completed=tests_completed_count total=tests_sent_count %}
-            {{ completed }} of {{ total }} assessments are complete.
-            The combined AI summary will be generated when all assessments
-            in the project have been completed.
-          {% endblocktrans %}
-        </p>
-
-        <p
-          class="text-muted small mb-0 mx-auto"
-          style="max-width: 620px;"
-        >
-          {% blocktrans %}
-            Results that are already available can be explored through
-            the assessment tabs above while the remaining assessments
-            are being completed.
-          {% endblocktrans %}
-        </p>
-
-      </section>
-
-    {% endif %}
-
-
-  {% endif %}
-
-
-{% endwith %}
+        </section>
+      {% endif %}
+    </div>
+  </section>
+{% else %}
+  <section class="combined-questions-empty-state mb-4">
+    <div class="combined-questions-empty-state__icon">
+      <i data-feather="{% if is_historical %}database{% else %}clock{% endif %}"></i>
+    </div>
+    <h2 class="personality-questions-section-title mb-2">
+      {% if LANGUAGE_CODE|slice:":2" == "sv" %}Inga testresultat tillgängliga ännu{% else %}No assessment results available yet{% endif %}
+    </h2>
+    <p class="text-muted small mb-0 mx-auto" style="max-width: 620px;">
+      {% if is_historical %}
+        {% if LANGUAGE_CODE|slice:":2" == "sv" %}Det finns inga strukturerade historiska testresultat för den här personen.{% else %}No structured historical assessment results are available for this person.{% endif %}
+      {% else %}
+        {% if LANGUAGE_CODE|slice:":2" == "sv" %}Resultat visas här så snart ett av de tilldelade testerna är genomfört.{% else %}Results will appear here once an assigned assessment has been completed.{% endif %}
+      {% endif %}
+    </p>
+  </section>
+{% endif %}
