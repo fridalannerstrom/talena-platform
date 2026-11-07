@@ -226,7 +226,9 @@
         border-left: 0 !important;
         border-radius: 0 !important;
         background: transparent !important;
-        padding: 1rem 0 0 !important;
+        /* Outer card is flush; keep the decision-support footer aligned
+           with the page header and the inner content instead. */
+        padding: 1rem 1.5rem 1.15rem !important;
       }
 
       @media (max-width: 767px) {
