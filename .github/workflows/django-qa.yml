@@ -64,6 +64,8 @@ jobs:
           node --check static/js/talena/candidate-report-packages.js
           node scripts/test_candidate_report_packages_contract.js
           node scripts/test_manager_report_branding_contract.js
+          node --check static/js/talena/manager-report-pdf-metadata.js
+          node scripts/test_manager_report_pdf_metadata_429.js
           node --check static/js/talena/structured-overall-picture.js
           node --check static/js/talena/account-invite-language.js
           node scripts/test_account_invite_language.js
