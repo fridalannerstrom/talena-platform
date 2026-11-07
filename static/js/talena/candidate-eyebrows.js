@@ -292,13 +292,13 @@
     const copy = isSwedish()
       ? {
           headerDescription:
-            "Här samlar du det som kom fram i intervjun. Talena väger sedan samman anteckningarna med testresultat och processkontext, så att du får helhetsbild, uppföljningsområden och chefsrapport under Rapporter.",
+            "Här samlar du det som kom fram i intervjun. Talena väger sedan samman anteckningarna med testresultat och rollkontext, så att du får helhetsbild, uppföljningsområden och chefsrapport under Rapporter.",
           notesTitle: "Intervjuunderlag",
           notesDescription:
             "Skriv eller klistra in dina anteckningar nedan. Svar som du sparat på intervjufrågorna hämtas automatiskt.",
           compileTitle: "Sammanställ underlag",
           compileDescription:
-            "När underlaget är sparat kan du låta Talena sammanställa det tillsammans med testresultat och processkontext. Därefter öppnas analysflikarna.",
+            "När underlaget är sparat kan du låta Talena sammanställa det tillsammans med testresultat och rollkontext. Därefter öppnas rapportflikarna.",
           compileButton: "Sammanställ underlag",
           updateButton: "Uppdatera sammanställningen",
           readyTitle: "Nästa steg: skapa din sammanställning",
@@ -322,18 +322,18 @@
           combined: "Samlad tolkning",
           disclaimerTitle: "Beslutsstöd, inte ett beslut",
           outdatedTitle: "Intervjuunderlaget har ändrats",
-          loading: "Väger samman testresultat, intervjuunderlag och processkontext…",
+          loading: "Väger samman testresultat, intervjuunderlag och rollkontext…",
           error: "Underlaget kunde inte sammanställas."
         }
       : {
           headerDescription:
-            "Add what you learned in the interview. Talena combines your notes with assessment results and process context, then provides an overall picture, follow-up topics and manager report under Reports.",
+            "Add what you learned in the interview. Talena combines your notes with assessment results and role context, then provides an overall picture, follow-up topics and manager report under Reports.",
           notesTitle: "Interview evidence",
           notesDescription:
             "Write or paste your notes below. Answers saved on interview questions will be included automatically.",
           compileTitle: "Compile evidence",
           compileDescription:
-            "Once the evidence is saved, let Talena combine it with assessment results and process context. The analysis tabs will then become available.",
+            "Once the evidence is saved, let Talena combine it with assessment results and role context. The report tabs will then become available.",
           compileButton: "Compile evidence",
           updateButton: "Update compiled evidence",
           readyTitle: "Next: create your summary",
@@ -357,7 +357,7 @@
           combined: "Combined interpretation",
           disclaimerTitle: "Decision support, not a decision",
           outdatedTitle: "The interview evidence has changed",
-          loading: "Bringing assessment results, interview evidence and process context together…",
+          loading: "Bringing assessment results, interview evidence and role context together…",
           error: "The evidence could not be compiled."
         };
 
