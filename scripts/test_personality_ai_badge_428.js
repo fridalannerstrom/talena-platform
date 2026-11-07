@@ -71,6 +71,6 @@ for (const selector of [
 ]) assert.ok(css.includes(selector), "Missing access path " + selector);
 assert.ok(css.includes(".talena-ai-personality-help {"));
 assert.ok(css.includes("@media print"));
-assert.ok(header.includes("428-personality-help-v3"));
+assert.ok(header.includes("ai-generated-only-v4"));
 assert.ok(header.includes("428-tooltip-v1"));
 console.log("Ticket #428: one Personality badge with accessible mouse, keyboard and touch help passed.");
