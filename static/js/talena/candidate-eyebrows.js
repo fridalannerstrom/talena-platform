@@ -290,7 +290,7 @@
     const copy = isSwedish()
       ? {
           headerDescription:
-            "Här väger Talena samman testresultat, roll- och processkontext och det som kom fram under intervjun. Börja med underlaget och få sedan en helhetsbild, områden att följa upp och en chefsrapport.",
+            "Här samlar du det som kom fram i intervjun. Talena väger sedan samman anteckningarna med testresultat och processkontext, så att du får helhetsbild, uppföljningsområden och chefsrapport under Rapporter.",
           notesTitle: "Intervjuunderlag",
           notesDescription:
             "Skriv eller klistra in dina anteckningar nedan. Svar som du sparat på intervjufrågorna hämtas automatiskt.",
@@ -325,7 +325,7 @@
         }
       : {
           headerDescription:
-            "Talena brings assessment results, role and process context, and interview insights together. Start with your evidence, then get an overall picture, follow-up areas and a manager report.",
+            "Add what you learned in the interview. Talena combines your notes with assessment results and process context, then provides an overall picture, follow-up topics and manager report under Reports.",
           notesTitle: "Interview evidence",
           notesDescription:
             "Write or paste your notes below. Answers saved on interview questions will be included automatically.",
