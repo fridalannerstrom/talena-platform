@@ -3,6 +3,10 @@
 {% get_current_language as candidate_ui_language %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+{# #430: Report events are fetched only from the authenticated platform-admin API. #}
+<div class="talena-report-audit-host mb-3"
+     data-manager-report-activity-url="{% url 'processes:process_candidate_manager_report_activity_admin' process.id candidate.id %}"></div>
+
 {% if is_historical %}
 
 <div class="container-fluid px-2 px-md-3">
