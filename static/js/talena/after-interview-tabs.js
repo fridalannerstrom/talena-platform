@@ -426,17 +426,26 @@
     const lines = source.split("\n");
     let index = 0;
 
-    // The report already provides "Tips för trivsel" as a heading with edit
-    // controls. AI output sometimes starts with the same heading. Skip that
-    // *display-only* duplicate, without altering the stored AI/edited text.
-    const isWellbeingReport = container.dataset.managerReportEditKey === "wellbeing_tips"
-      || container.classList.contains("after-interview-manager-report__personality-advice-text")
-      || Boolean(container.closest?.('[data-after-interview-block="wellbeing_tips"]'));
-    const isDuplicateWellbeingHeading = (line) => {
+    // A report already has a heading. AI content can begin with the exact
+    // same title, creating two titles and duplicate AI tags. Suppress only
+    // that first displayed heading, never change saved/edited source text.
+    const blockKey = container.dataset.afterInterviewSourceBlock
+      || container.dataset.afterInterviewBlockContent
+      || container.dataset.managerReportEditKey
+      || container.closest?.("[data-after-interview-block]")?.dataset?.afterInterviewBlock
+      || (container.classList.contains("after-interview-manager-report__personality-advice-text")
+        ? "wellbeing_tips" : "");
+    const duplicateHeadingLabels = {
+      overall_picture: [copy().tabs.overview, "Helhetsbild", "Overall picture"],
+      interview_summary: [copy().tabs.interview, "Intervjusammanfattning", "Interview summary"],
+      explore_further: [copy().tabs.explore, "Undersök vidare", "Explore further", "Investigate further"],
+      wellbeing_tips: [copy().managerPersonalityAdviceTitle, "Tips för trivsel", "Wellbeing tips", "For the manager"],
+    };
+    const isDuplicateBlockHeading = (line) => {
       const heading = line.replace(/^#{1,6}\s+/, "").trim();
       const unwrapped = heading.replace(/^(?:\*\*|__)(.*?)(?:\*\*|__)$/, "$1").trim();
       const normalized = (value) => value.replace(/:$/, "").trim().toLocaleLowerCase("sv-SE");
-      return [copy().managerPersonalityAdviceTitle, "Tips för trivsel", "Wellbeing tips", "For the manager"]
+      return (duplicateHeadingLabels[blockKey] || [])
         .some((label) => normalized(label) === normalized(unwrapped));
     };
     let firstContentLine = true;
@@ -447,7 +456,7 @@
         index += 1;
         continue;
       }
-      if (firstContentLine && isWellbeingReport && isDuplicateWellbeingHeading(line)) {
+      if (firstContentLine && isDuplicateBlockHeading(line)) {
         index += 1;
         firstContentLine = false;
         continue;
@@ -528,6 +537,7 @@
     const source = sourceBlock(panel, key);
     const content = source?.querySelector("[data-after-interview-block-content]") || null;
     if (!content || !content.textContent.trim()) return null;
+    content.dataset.afterInterviewSourceBlock = key;
     renderGeneratedMarkdown(content);
     return content;
   };
