@@ -59,6 +59,7 @@ class ActivityEvent(models.Model):
         ADMIN_LOG_ACCESSED = "admin_log_accessed", "Administrativ loggåtkomst"
         ADMIN_LOG_EXPORTED = "admin_log_exported", "Administrativ loggexport"
         MANAGER_REPORT_PDF_PREPARED = "manager_report_pdf_prepared", "Chefsrapport PDF förberedd"
+        MANAGER_REPORT_PDF_GENERATED = "manager_report_pdf_generated", "Chefsrapport PDF genererad (webbläsare)"
 
     # A platform-admin audit lookup can cover all tenants; it does not
     # belong to a particular customer. Existing customer events retain FK.
