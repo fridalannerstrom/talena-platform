@@ -1,6 +1,7 @@
 from django.urls import path
 
 from . import views
+from .manager_report_pdf import prepare_manager_report_pdf
 from .pinned_projects import toggle_pinned_project
 from .process_duplication import process_duplicate
 from .access_control import (
@@ -251,6 +252,14 @@ urlpatterns = [
         ),
         process_candidate_interview_question_note_update,
         name="process_candidate_interview_question_note_update",
+    ),
+    path(
+        (
+            "<int:process_id>/candidates/"
+            "<int:candidate_id>/manager-report-pdf/prepare/"
+        ),
+        prepare_manager_report_pdf,
+        name="process_candidate_manager_report_pdf_prepare",
     ),
     path(
         (
