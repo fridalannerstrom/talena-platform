@@ -2392,9 +2392,18 @@ def save_post_interview_decision_support(
         )
     )
 
+    # The retired interview_summary is historical data, not a new
+    # generation target. A legacy combined regeneration must not silently
+    # wipe the previous summary when the new model omits this field.
+    previous_blocks = (
+        (owner.ai_post_interview_decision_support or {}).get("content_blocks") or {}
+    )
+    incoming_blocks = result.get("content_blocks") or {}
     result["content_blocks"] = {
-        key: _clean_text(
-            (result.get("content_blocks") or {}).get(key)
+        key: (
+            _clean_text(previous_blocks.get(key))
+            if key == "interview_summary" and _clean_text(previous_blocks.get(key))
+            else _clean_text(incoming_blocks.get(key))
         )
         for key in POST_INTERVIEW_CONTENT_BLOCK_KEYS
     }
