@@ -258,7 +258,7 @@ class InvitationEmailTests(TestCase):
         logo = Path(settings.BASE_DIR) / "static/images/talena-logo-v8.png"
         self.assertTrue(logo.is_file())
         with logo.open("rb") as image:
-            self.assertEqual(image.read(8), b"\\x89PNG\\r\\n\\x1a\\n")
+            self.assertEqual(image.read(8), b"\x89PNG\r\n\x1a\n")
 
         company = Company.objects.create(name="Brand check")
         self.client.post(reverse("accounts:company_invite_member", args=[company.pk]), {
