@@ -266,7 +266,7 @@
       </h2>
 
       <p class="text-muted small mb-0">
-        {% blocktrans %}Practical questions for exploring how the cognitive results may relate to relevant work situations.{% endblocktrans %}
+        {% if LANGUAGE_CODE|slice:":2" == "sv" %}Praktiska frågor för att utforska hur färdighetsresultaten kan relateras till relevanta arbetssituationer.{% else %}Practical questions for exploring how the skills assessment results may relate to relevant work situations.{% endif %}
       </p>
 
     </div>
