@@ -42,7 +42,7 @@ function renderText(text, options = {}) {
     children: [],
     classList: { add(value) { names.add(value); }, contains(value) { return names.has(value); } },
     closest(selector) {
-      if (options.sourceWellbeing && selector.includes("wellbeing_tips")) {
+      if (options.sourceWellbeing && selector.includes("data-after-interview-block")) {
         return { dataset: { afterInterviewBlock: "wellbeing_tips" } };
       }
       return null;
