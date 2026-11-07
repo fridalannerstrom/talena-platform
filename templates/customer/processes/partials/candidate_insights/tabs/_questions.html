@@ -208,7 +208,7 @@
 </h2>
 
 <p class="text-muted small mb-0">
-  {% blocktrans %}This page brings together all saved questions from Personality, Motivation and Cognitive in one place. The same questions are also available inside each assessment category.{% endblocktrans %}
+  {% if LANGUAGE_CODE|slice:":2" == "sv" %}Här samlas inledande frågor och sparade intervjufrågor för Personlighet, Motivation och Färdighet. Frågorna finns också i respektive testområde.{% else %}This page brings together opening questions and saved interview questions for Personality, Motivation and Skills. The questions are also available within each assessment area.{% endif %}
 </p>
 
     </div>
@@ -392,7 +392,7 @@
       <i data-feather="info"></i>
 
       <div>
-        {% blocktrans %}These questions bring together the currently saved question sets from the available assessment areas. Use them to explore and validate assessment indications rather than as standalone evidence.{% endblocktrans %}
+        {% if LANGUAGE_CODE|slice:":2" == "sv" %}Använd frågorna som stöd i intervjun och utforska testresultaten tillsammans med kandidatens egna exempel. Testresultat ska inte användas som ensamt beslutsunderlag.{% else %}Use these questions to support the interview and explore assessment results alongside the candidate's own examples. Assessment results should not be used as standalone decision evidence.{% endif %}
       </div>
 
     </div>
