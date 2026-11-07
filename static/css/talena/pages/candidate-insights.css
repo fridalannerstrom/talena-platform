@@ -2256,7 +2256,7 @@
 }
 
 /* Long-form, meaningful copy gets one size throughout the summary. */
-.process-page #purposeFitCard #purposeFitSummary,
+.process-page #purposeFitCard .talena-overview-interpretations__text,
 .process-page #purposeFitCard .purpose-fit-summary,
 .process-page #purposeFitCard .purpose-fit-list li,
 .process-page #purposeFitCard .candidate-result-overview__motivation-card-description,
