@@ -103,7 +103,7 @@
       ".team-style-profile-card, .team-styles-section, .team-profile-pdf-heading, " +
       ".after-interview-manager-report__skill, .after-interview-manager-report__guide-level, " +
       ".after-interview-manager-report__motivator, .after-interview-manager-report__personality-theme, " +
-      ".after-interview-manager-report__personality-advice, " +
+      ".after-interview-manager-report__personality-advice, .after-interview-manager-report__wellbeing, " +
       // Trait cards may be taller than a page, so rows and summaries must
       // also be possible breakpoints. Never split an indicator's text/scale.
       ".personality-profile-section__header, .personality-trait-card__header, " +
