@@ -2161,6 +2161,11 @@ def company_create(request):
         "is_create": True,
     })
 
+def invalid_invite_link(request, invalid_path):
+    """Uniform, non-enumerating fallback for malformed account invite URLs."""
+    return render(request, "accounts/invite_invalid.html", status=400)
+
+
 def accept_invite_uuid(request, invite_id):
     # Do not disclose whether an account exists or which invite state failed.
     # The same helpful page is used for unknown, revoked, used and expired links.
