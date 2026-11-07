@@ -614,7 +614,7 @@ html[lang^="sv"] #layoutSidenav_content main .process-page
 
 #layoutSidenav_content main .process-page .interview-static-questions__number {
   display: inline-flex;
-  flex: 0 0 28px;
+  flex: 0 0 25px;
   align-items: center;
   justify-content: center;
   width: 25px;
