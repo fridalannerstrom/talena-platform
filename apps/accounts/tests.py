@@ -173,7 +173,7 @@ class InvitationEmailTests(TestCase):
         self.assertEqual(self.client.get(url).status_code, 400)
 
     def test_malformed_invite_path_uses_the_same_safe_recovery_page(self):
-        response = self.client.get("/accounts/invite/not-a-real-token/")
+        response = self.client.get("/tq-admin/invite/not-a-real-token/")
         self.assertEqual(response.status_code, 400)
         self.assertContains(response, "Sign in to Talena", status_code=400)
 
