@@ -2099,12 +2099,26 @@
     const managerReportAiTasks = [];
     const pdfButton = document.createElement("button");
     pdfButton.type = "button";
-    pdfButton.className = "btn btn-outline-primary d-inline-flex align-items-center gap-2";
+    // Match the small PDF action used in Personality, Motivation and Skills.
+    pdfButton.className = "btn btn-icon btn-light talena-report-action-button after-interview-manager-report__pdf-button";
     pdfButton.disabled = true;
     pdfButton.setAttribute("aria-label", copy().savePdf);
-    const pdfIcon = document.createElement("i");
-    pdfIcon.setAttribute("data-feather", "download");
+    pdfButton.title = copy().savePdf;
+    const pdfIcon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    pdfIcon.setAttribute("viewBox", "0 0 24 24");
+    pdfIcon.setAttribute("width", "19");
+    pdfIcon.setAttribute("height", "19");
+    pdfIcon.setAttribute("fill", "none");
+    pdfIcon.setAttribute("stroke", "currentColor");
+    pdfIcon.setAttribute("stroke-width", "1.75");
+    pdfIcon.setAttribute("stroke-linecap", "round");
+    pdfIcon.setAttribute("stroke-linejoin", "round");
+    pdfIcon.setAttribute("aria-hidden", "true");
+    pdfIcon.innerHTML = '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>' +
+      '<polyline points="14 2 14 8 20 8"/>' +
+      '<path d="M12 12v6m-3-3 3 3 3-3"/>';
     const pdfLabel = document.createElement("span");
+    pdfLabel.className = "visually-hidden";
     pdfLabel.textContent = copy().savePdf;
     pdfButton.append(pdfIcon, pdfLabel);
     const managerReportPdfError = document.createElement("div");
@@ -2437,14 +2451,16 @@
 
     managerReportGenerateButton = document.createElement("button");
     managerReportGenerateButton.type = "button";
-    managerReportGenerateButton.className = "btn btn-outline-primary d-inline-flex align-items-center gap-2 after-interview-manager-report__generate";
+    managerReportGenerateButton.className = "btn btn-icon btn-light talena-report-action-button after-interview-manager-report__generate";
     managerReportGenerateButton.dataset.postInterviewGenerate = "";
     managerReportGenerateIcon = document.createElement("i");
     managerReportGenerateIcon.setAttribute("data-feather", "refresh-cw");
     managerReportGenerateIcon.setAttribute("aria-hidden", "true");
     managerReportGenerateLabel = document.createElement("span");
+    managerReportGenerateLabel.className = "visually-hidden";
     managerReportGenerateButton.append(managerReportGenerateIcon, managerReportGenerateLabel);
-    managerReportActions.insertBefore(managerReportGenerateButton, pdfButton);
+    // Consistent action order throughout Talena: PDF, then regenerate.
+    managerReportActions.appendChild(managerReportGenerateButton);
 
     managerReportGenerateError = document.createElement("div");
     managerReportGenerateError.className = "alert alert-danger d-none mt-3 mb-3";
