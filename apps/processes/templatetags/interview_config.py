@@ -16,15 +16,37 @@ def _language(context):
 
 
 def _owner(context):
-    return context.get("invitation") or context.get("inv")
+    return (
+        context.get("invitation")
+        or context.get("inv")
+        or context.get("historical_candidate")
+    )
+
+
+def _completed_cognitive_keys(context):
+    owner = _owner(context)
+    keys = get_completed_cognitive_test_keys(owner) if owner is not None else set()
+    insights = context.get("candidate_insights") or {}
+    if isinstance(insights, dict):
+        permitted_keys = set(context.get("assessment_keys_in_process") or ())
+        for result in (insights.get("cognitive_results") or []):
+            if not isinstance(result, dict):
+                continue
+            key = result.get("key")
+            if (
+                result.get("completed")
+                and key in {"logical", "numerical", "verbal"}
+                and (not permitted_keys or key in permitted_keys)
+            ):
+                keys.add(key)
+    return keys
 
 
 @register.simple_tag(takes_context=True)
 def interview_section_meta(context, key: str) -> dict:
-    owner = _owner(context)
     completed_cognitive = (
-        len(get_completed_cognitive_test_keys(owner))
-        if key == "cognitive" and owner is not None
+        len(_completed_cognitive_keys(context))
+        if key == "cognitive"
         else 0
     )
     return get_interview_section_config(
@@ -48,6 +70,12 @@ def interview_combined_sections(context) -> list[dict]:
     }
     owner = _owner(context)
     available = get_available_interview_areas(owner) if owner is not None else set()
+    if context.get("has_personality_results"):
+        available.add("personality")
+    if context.get("has_motivation_results"):
+        available.add("motivation")
+    if context.get("has_completed_cognitive_results") or _completed_cognitive_keys(context):
+        available.add("cognitive")
     sections = []
     for key, defaults in sorted(
         INTERVIEW_SECTION_DEFAULTS.items(),
