@@ -15,6 +15,7 @@ const personalityResults = fs.readFileSync("templates/customer/processes/partial
 const sharedAssessmentStyles = fs.readFileSync("static/css/talena/pages/candidate-assessments.css", "utf8");
 const reportTabStyles = fs.readFileSync("static/css/talena/pages/candidate-insight-tabs.css", "utf8");
 const teamReportsTabs = fs.readFileSync("templates/customer/processes/partials/candidate_insights/tabs/_reports.html", "utf8");
+const insightTabsCss = fs.readFileSync("static/css/talena/pages/candidate-insight-tabs.css", "utf8");
 
 // Two primary tabs: Evidence and Reports. The existing four report keys
 // are nested rather than rewritten, preserving PDF, URL and refresh behavior.
@@ -162,5 +163,13 @@ for (const snippet of [
 assert.ok(!tabs.includes('reportsButton.append(reportsIcon, reportsText)'));
 assert.ok(tabs.includes('reportNav.className = "personality-view-tabs"'),
   "Nested report tabs must retain the personality-style appearance.");
+
+assert.ok(/#candidate-insights-panel-after-interview\\s*>\\s*\\.final-output-card\\s*\\{\\s*padding:\\s*0\\s*!important/.test(insightTabsCss),
+  "After interview outer card must not add a second padding layer.");
+assert.ok(insightTabsCss.includes('#candidate-insights-panel-after-interview > .final-output-card > div:first-child {') &&
+  insightTabsCss.includes('margin: 0 !important;'),
+  "After interview header must reset the legacy negative margin.");
+assert.ok(header.includes('candidate-insight-tabs.css') &&
+  header.includes('after-interview-flush-padding'), "New scoped CSS must bypass old browser cache.");
 
 console.log("After interview Teamreport-style primary tabs contract passed.");
