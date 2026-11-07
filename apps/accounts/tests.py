@@ -1,4 +1,7 @@
 from datetime import timedelta
+from pathlib import Path
+
+from django.conf import settings
 import uuid
 
 from django.core import mail
@@ -7,7 +10,12 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
-from apps.accounts.forms import CompanyInviteMemberForm
+from apps.accounts.forms import (
+    CompanyInviteMemberForm, InviteUserForm,
+    DEFAULT_INVITE_SUBJECT, DEFAULT_INVITE_SUBJECT_SV,
+    DEFAULT_INVITE_MESSAGE, DEFAULT_INVITE_MESSAGE_SV,
+)
+from apps.accounts.services.invites import account_invitation_copy
 from apps.accounts.models import Company, UserInvite
 
 
@@ -199,6 +207,75 @@ class InvitationEmailTests(TestCase):
         })
         self.assertEqual(login_response.status_code, 302)
         self.assertEqual(self.client.session.get("_auth_user_id"), str(user.pk))
+
+    def test_default_copy_switches_in_both_directions_on_server(self):
+        self.assertEqual(
+            account_invitation_copy(
+                subject=DEFAULT_INVITE_SUBJECT,
+                message=DEFAULT_INVITE_MESSAGE,
+                language="sv",
+            ),
+            (DEFAULT_INVITE_SUBJECT_SV, DEFAULT_INVITE_MESSAGE_SV),
+        )
+        self.assertEqual(
+            account_invitation_copy(
+                subject=DEFAULT_INVITE_SUBJECT_SV,
+                message=DEFAULT_INVITE_MESSAGE_SV,
+                language="en",
+            ),
+            (DEFAULT_INVITE_SUBJECT, DEFAULT_INVITE_MESSAGE),
+        )
+        self.assertEqual(
+            account_invitation_copy(
+                subject="Anpassad ämnesrad", message="Mitt personliga mejl",
+                language="en",
+            ),
+            ("Anpassad ämnesrad", "Mitt personliga mejl"),
+        )
+
+    def test_both_invitation_forms_expose_exact_bilingual_defaults(self):
+        for form_class in (CompanyInviteMemberForm, InviteUserForm):
+            with self.subTest(form=form_class):
+                form = form_class()
+                for field_name, expected_en, expected_sv in (
+                    ("invite_subject", DEFAULT_INVITE_SUBJECT, DEFAULT_INVITE_SUBJECT_SV),
+                    ("invite_message", DEFAULT_INVITE_MESSAGE, DEFAULT_INVITE_MESSAGE_SV),
+                ):
+                    widget = form.fields[field_name].widget
+                    self.assertEqual(widget.attrs["data-invite-default-en"], expected_en)
+                    self.assertEqual(widget.attrs["data-invite-default-sv"], expected_sv)
+
+        base = Path(settings.BASE_DIR)
+        for template in (
+            "templates/admin/accounts/companies/_invite_user_modal.html",
+            "templates/admin/accounts/customer/customers_create.html",
+        ):
+            with self.subTest(template=template):
+                html = (base / template).read_text(encoding="utf-8")
+                self.assertIn("account-invite-language.js", html)
+
+    def test_email_and_preview_use_uploaded_talena_v8_png_logo(self):
+        logo = Path(settings.BASE_DIR) / "static/images/talena-logo-v8.png"
+        self.assertTrue(logo.is_file())
+        with logo.open("rb") as image:
+            self.assertEqual(image.read(8), b"\x89PNG\r\n\x1a\n")
+
+        company = Company.objects.create(name="Brand check")
+        self.client.post(reverse("accounts:company_invite_member", args=[company.pk]), {
+            "email": "brandcheck@example.com",
+            "invite_subject": DEFAULT_INVITE_SUBJECT,
+            "invite_message": DEFAULT_INVITE_MESSAGE,
+            "invite_language": "sv",
+        })
+        sent_html = mail.outbox[-1].alternatives[0][0]
+        self.assertIn("talena-logo-v8.png", sent_html)
+        self.assertNotIn("talena-logo-email.png", sent_html)
+        preview = self.client.post(
+            reverse("accounts:company_account_invitation_preview", args=[company.pk]),
+            {"invite_subject": DEFAULT_INVITE_SUBJECT,
+             "invite_message": DEFAULT_INVITE_MESSAGE, "invite_language": "sv"},
+        )
+        self.assertContains(preview, "talena-logo-v8.png")
 
     def test_subject_rejects_line_breaks(self):
         form = CompanyInviteMemberForm({

@@ -1,4 +1,5 @@
 {% extends "admin/core/layouts/admin_base.html" %}
+{% load static %}
 {% block title %}Skapa ny kund | Talena{% endblock %}
 
 {% block content %}
@@ -42,4 +43,5 @@
 <style>
   input[type="text"], input[type="email"], input[type="password"], select, textarea { width: 100%; }
 </style>
+<script src="{% static 'js/talena/account-invite-language.js' %}?v=20261107-454-language-sync" defer></script>
 {% endblock %}
