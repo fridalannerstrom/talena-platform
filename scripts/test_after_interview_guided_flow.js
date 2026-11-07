@@ -82,4 +82,30 @@ assert.ok(view.includes('rows="8"'));
 assert.ok(shell.includes("after-interview-tabs.js") && shell.includes("two-tabs-v3"));
 assert.ok(header.includes("candidate-eyebrows.js") && header.includes("two-tabs-v3"));
 
+// A compiled candidate sees only the single regenerate row on Evidence.
+// Keep the original section hidden, not removed, so its stream handler stays active.
+assert.ok(tabs.includes('if (hasCompiledPostInterviewResult) {\\n      // The original section')
+  || tabs.includes('postSection.classList.add("d-none")'),
+  "Compiled evidence should hide the duplicate post-interview section.");
+assert.ok(tabs.includes('postSection.setAttribute("aria-hidden", "true")'),
+  "Hidden internal regeneration controls should not enter the accessibility tree.");
+assert.ok(tabs.includes('evidenceCard.append(evidenceIntro, notesRoot, postSection)'),
+  "Original post-interview section must stay mounted.");
+assert.ok(tabs.includes('rebuildDescription.textContent = copy().evidenceRebuildHint'),
+  "Keep the single visible regeneration explanation.");
+assert.ok(tabs.includes('rebuildButton.dataset.afterInterviewRebuild = "evidence"'),
+  "Keep the regeneration action on the visible row.");
+
+// Motivation layout: each factor gets a readable explanation and two guidance
+// columns instead of placing three cramped cards side by side.
+assert.ok(tabs.includes('grid-template-columns: minmax(0, 1fr); gap: 1rem;'),
+  "Motivation factors should stack vertically.");
+assert.ok(tabs.includes('after-interview-manager-report__motivator-intro'));
+assert.ok(tabs.includes('after-interview-manager-report__motivator-practical'));
+assert.ok(tabs.includes('motivatorIntro.append(name, definition)'));
+assert.ok(tabs.includes('practical.append(practicalTitle, practicalGrid)'));
+assert.ok(tabs.includes('group.type === "do" ? "check-circle" : "alert-circle"'));
+assert.ok(tabs.includes('after-interview-manager-report__motivator-practical-grid {\\n          grid-template-columns: minmax(0, 1fr);'),
+  "Advice boxes should stack on narrow screens.");
+
 console.log("After interview two-stage guided report flow contract passed.");
