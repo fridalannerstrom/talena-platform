@@ -52,7 +52,7 @@ def account_invitation_context(
         "invite_link": invite_link,
         "login_url": request.build_absolute_uri(reverse("core:login")),
         "invited_by": request.user.get_full_name() or request.user.email,
-        "logo_url": request.build_absolute_uri(static("images/talena-logo-email.png")),
+        "logo_url": request.build_absolute_uri(static("images/talena-logo-v8.png")),
         "invite_message": message,
         "language": account_invitation_language(language),
     }
