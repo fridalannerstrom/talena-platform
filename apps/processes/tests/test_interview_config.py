@@ -177,3 +177,49 @@ class InterviewSectionConfigTests(SimpleTestCase):
             self.assertIn("The AI-generated questions", meta["common_guidance"])
             self.assertTrue(meta["intro_questions"])
             self.assertNotIn("Hur kändes", " ".join(meta["intro_questions"]))
+
+    def test_437_combined_template_renders_static_without_ai_and_no_duplicates(self):
+        from django.template.loader import render_to_string
+        from django.utils.translation import override
+        from types import SimpleNamespace
+
+        owner = SimpleNamespace(sova_activities=[{
+            "activity": "Sova Motivation Questionnaire",
+            "status": "completed",
+            "competencies": [{"stive": 6}],
+        }])
+        context = {
+            "invitation": owner,
+            "combined_question_sections": [],
+            "combined_question_count": 0,
+            "has_combined_questions": False,
+        }
+        with override("sv"):
+            html = render_to_string(
+                "customer/processes/partials/candidate_insights/tabs/_questions.html",
+                context,
+            )
+        self.assertEqual(html.count('data-interview-static-questions="motivation"'), 1)
+        self.assertIn("Inledande frågor", html)
+        self.assertIn("Hur kändes det att svara på formuläret", html)
+        self.assertNotIn("No assessment questions are available yet", html)
+
+        context["combined_question_sections"] = [{
+            "key": "motivation",
+            "title": "Motivation questions",
+            "description": "Old description",
+            "questions": [{"question": "AI-fråga", "why": "", "listen_for": ""}],
+            "question_count": 1,
+            "estimated_minutes": 10,
+        }]
+        context["has_combined_questions"] = True
+        context["combined_question_count"] = 1
+        with override("sv"):
+            html = render_to_string(
+                "customer/processes/partials/candidate_insights/tabs/_questions.html",
+                context,
+            )
+        self.assertEqual(html.count('data-interview-static-questions="motivation"'), 1)
+        self.assertEqual(html.count("De AI-genererade frågorna är tänkta"), 1)
+        self.assertIn("Tips på motivationsfrågor", html)
+        self.assertIn("AI-fråga", html)
