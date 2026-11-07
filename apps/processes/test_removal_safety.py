@@ -7,6 +7,7 @@ from django.contrib.messages import get_messages
 from django.test import TestCase
 from django.urls import reverse
 from django.utils.translation import gettext, override
+from django.utils import timezone
 
 from apps.accounts.models import Company, CompanyMember, OrgUnit, User, UserOrgUnitAccess
 from apps.processes.models import AssessmentUsage, Candidate, TestInvitation, TestProcess
@@ -254,11 +255,11 @@ class ScopedRemovalTests(TestCase):
                 self.assertContains(response, "Borttagen")
                 self.assertContains(response, "Spärrning hos Sova ej bekräftad")
                 self.assertContains(
-                    response, self.invitation.created_at.strftime("%Y-%m-%d")
+                    response, timezone.localtime(self.invitation.created_at).strftime("%Y-%m-%d")
                 )
                 self.assertContains(
                     response,
-                    self.invitation.removed_from_process_at.strftime("%Y-%m-%d"),
+                    timezone.localtime(self.invitation.removed_from_process_at).strftime("%Y-%m-%d"),
                 )
 
     def test_customer_activity_excludes_removed_candidates_but_keeps_audit_events(self):
