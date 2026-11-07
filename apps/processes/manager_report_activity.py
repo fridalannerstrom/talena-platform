@@ -28,11 +28,39 @@ def actor_label(user, language="sv"):
     )
 
 
+def _edit_row(event, language):
+    if event is None:
+        return None
+    return {
+        "type": "edited" if event.action == ManagerReportTextEditEvent.Action.SAVED else "restored",
+        "actor": actor_label(event.actor, language or "sv"),
+        "actor_id": event.actor_id,
+        "at": event.created_at,
+        "block": event.block_key,
+        "version": event.version,
+        "language": event.language_code,
+    }
+
+
+def _pdf_row(event, language):
+    if event is None:
+        return None
+    return {
+        "type": "generated" if event.verb == ActivityEvent.Verb.MANAGER_REPORT_PDF_GENERATED else "prepared",
+        "actor": actor_label(event.actor, language or "sv"),
+        "actor_id": event.actor_id,
+        "at": event.created_at,
+        "block": "",
+        "version": (event.meta or {}).get("edited_block_version"),
+        "language": (event.meta or {}).get("language") or "",
+    }
+
+
 def report_activity(process, candidate, *, language=None, limit=100):
     """Two existing audit stores, one sorted metadata-only timeline.
 
-    A restored override stays in event history but does not become a current
-    editor. No notes, report texts, AI prompts or PDF bytes are ever exposed.
+    Fetch latest type-specific rows independently of pagination. A history
+    dominated by repeated exports must never hide the actual latest editor.
     """
     language = language if language in {"sv", "en"} else None
     edits = ManagerReportTextEditEvent.objects.filter(
@@ -46,35 +74,27 @@ def report_activity(process, candidate, *, language=None, limit=100):
         edits = edits.filter(language_code=language)
         exports = exports.filter(meta__language=language)
 
-    rows = []
-    for e in edits.select_related("actor").order_by("-created_at", "-pk")[:limit]:
-        rows.append({
-            "type": "edited" if e.action == ManagerReportTextEditEvent.Action.SAVED else "restored",
-            "actor": actor_label(e.actor, language or "sv"),
-            "actor_id": e.actor_id,
-            "at": e.created_at,
-            "block": e.block_key,  # allowlisted by update endpoint
-            "version": e.version,
-            "language": e.language_code,
-        })
-    for e in exports.select_related("actor").order_by("-created_at", "-pk")[:limit]:
-        rows.append({
-            "type": "generated" if e.verb == ActivityEvent.Verb.MANAGER_REPORT_PDF_GENERATED else "prepared",
-            "actor": actor_label(e.actor, language or "sv"),
-            "actor_id": e.actor_id,
-            "at": e.created_at,
-            "block": "",
-            "version": (e.meta or {}).get("edited_block_version"),
-            "language": (e.meta or {}).get("language") or "",
-        })
-
+    ordered_edits = edits.select_related("actor").order_by("-created_at", "-pk")
+    ordered_exports = exports.select_related("actor").order_by("-created_at", "-pk")
+    rows = (
+        [_edit_row(e, language) for e in ordered_edits[:limit]]
+        + [_pdf_row(e, language) for e in ordered_exports[:limit]]
+    )
     rows.sort(key=lambda row: row["at"], reverse=True)
-    rows = rows[:limit]
     return {
-        "events": rows,
-        "last_edited": next((r for r in rows if r["type"] == "edited"), None),
-        "last_export": next((r for r in rows if r["type"] == "generated"), None),
-        "last_prepared": next((r for r in rows if r["type"] == "prepared"), None),
+        "events": rows[:limit],
+        "last_edited": _edit_row(
+            ordered_edits.filter(action=ManagerReportTextEditEvent.Action.SAVED).first(),
+            language,
+        ),
+        "last_export": _pdf_row(
+            ordered_exports.filter(verb=ActivityEvent.Verb.MANAGER_REPORT_PDF_GENERATED).first(),
+            language,
+        ),
+        "last_prepared": _pdf_row(
+            ordered_exports.filter(verb=ActivityEvent.Verb.MANAGER_REPORT_PDF_PREPARED).first(),
+            language,
+        ),
     }
 
 
