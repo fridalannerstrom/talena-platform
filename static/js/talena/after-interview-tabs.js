@@ -1510,12 +1510,18 @@
       evidence: "clipboard", overview: "layers", interview: "message-square",
       explore: "search", managerReport: "file-text",
     };
-    const icon = document.createElement("i");
-    icon.setAttribute("data-feather", icons[key] || "file-text");
-    icon.setAttribute("aria-hidden", "true");
-    const text = document.createElement("span");
-    text.textContent = label;
-    button.append(icon, text);
+    if (kind === "report") {
+      const icon = document.createElement("i");
+      icon.setAttribute("data-feather", icons[key] || "file-text");
+      icon.setAttribute("aria-hidden", "true");
+      const text = document.createElement("span");
+      text.textContent = label;
+      button.append(icon, text);
+    } else {
+      // Same text-only markup as Teamrapport / Ledarskapsrapport /
+      // Urspårningsrapport, with no icon or rounded pill styling.
+      button.textContent = label;
+    }
     return button;
   };
 
@@ -1534,14 +1540,70 @@
     const style = document.createElement("style");
     style.id = STYLE_ID;
     style.textContent = String.raw`
-      /* Match Talena's Resultat / AI-tolkning / Frågor tabs without
-         overriding their shared candidate-insights CSS. */
+      /* Exact navigation styling from candidate-insight-tabs.css, used by
+         Teamrapport / Ledarskapsrapport / Urspårningsrapport.
+         The scoped rules prevent the assessment pill switcher from winning
+         when After interview is rendered outside .candidate-insight-page. */
+      __PANEL__ .candidate-insights-subnavigation {
+        margin: 0 !important;
+        padding: 0 1.5rem !important;
+        border-bottom: 1px solid var(--talena-border, #e5dfd8) !important;
+      }
+      __PANEL__ .candidate-insights-subnavigation__layout {
+        margin: 0 !important;
+      }
+      __PANEL__ .after-interview-primary-nav {
+        display: flex !important;
+        align-items: center !important;
+        gap: 1.05rem !important;
+        width: 100% !important;
+        padding: 0 !important;
+        border: 0 !important;
+        border-radius: 0 !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        overflow-x: auto;
+        scrollbar-width: none;
+      }
+      __PANEL__ .after-interview-primary-nav::-webkit-scrollbar {
+        display: none;
+      }
+      __PANEL__ .after-interview-primary-nav .candidate-insights-view-option {
+        position: relative;
+        flex: 0 0 auto;
+        display: inline-flex;
+        align-items: center;
+        min-height: 45px !important;
+        padding: 0 !important;
+        border: 0 !important;
+        border-bottom: 2px solid transparent !important;
+        border-radius: 0 !important;
+        background: transparent !important;
+        color: var(--talena-text-muted, #766e68) !important;
+        font-size: .7rem !important;
+        font-weight: 550 !important;
+        line-height: 1.25;
+        white-space: nowrap;
+        box-shadow: none !important;
+      }
+      __PANEL__ .after-interview-primary-nav .candidate-insights-view-option:hover:not(:disabled) {
+        border-bottom-color: rgba(255, 111, 97, .28) !important;
+        background: transparent !important;
+        color: var(--talena-ink, #191817) !important;
+      }
+      __PANEL__ .after-interview-primary-nav .candidate-insights-view-option.is-active,
+      __PANEL__ .after-interview-primary-nav .candidate-insights-view-option[aria-selected="true"] {
+        border-bottom-color: var(--talena-coral, #ff6f61) !important;
+        background: transparent !important;
+        color: var(--talena-coral-strong, #ed7468) !important;
+        font-weight: 550 !important;
+      }
       __PANEL__ .after-interview-primary-nav .candidate-insights-view-option:disabled,
       __PANEL__ .after-interview-primary-nav .candidate-insights-view-option[aria-disabled="true"] {
         opacity: .52; cursor: not-allowed;
       }
       __PANEL__ .after-interview-primary-nav .candidate-insights-view-option:disabled:hover {
-        background: transparent !important;
+        border-bottom-color: transparent !important;
         color: var(--talena-text-muted, #766e68) !important;
       }
       __PANEL__ .after-interview-tabs__locked-hint {
@@ -2233,12 +2295,7 @@
     reportsButton.setAttribute("role", "tab");
     reportsButton.setAttribute("aria-controls", reportsArea.id);
     reportsButton.setAttribute("aria-selected", "false");
-    const reportsIcon = document.createElement("i");
-    reportsIcon.setAttribute("data-feather", "file-text");
-    reportsIcon.setAttribute("aria-hidden", "true");
-    const reportsText = document.createElement("span");
-    reportsText.textContent = copy().tabs.reports;
-    reportsButton.append(reportsIcon, reportsText);
+    reportsButton.textContent = copy().tabs.reports;
     if (!hasCompiledPostInterviewResult) {
       reportsButton.disabled = true;
       reportsButton.setAttribute("aria-disabled", "true");
