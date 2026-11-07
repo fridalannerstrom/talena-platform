@@ -74,6 +74,43 @@
   text-transform: none;
 }
 .talena-ai-generated-badge[hidden] { display: none !important; }
+/* #428: one accessible explanation next to the Personality section badge. */
+.talena-ai-title-row--personality-help { position: relative; }
+.talena-ai-title-row--personality-help .talena-ai-generated-badge {
+  cursor: help;
+}
+.talena-ai-title-row--personality-help .talena-ai-generated-badge:focus-visible {
+  outline: 2px solid #3f67a3;
+  outline-offset: 3px;
+}
+.talena-ai-personality-help {
+  position: absolute;
+  top: calc(100% + .35rem);
+  left: 0;
+  z-index: 25;
+  width: min(26rem, calc(100vw - 3rem));
+  padding: .7rem .85rem;
+  border-radius: .55rem;
+  background: #24272c;
+  color: #fff;
+  box-shadow: 0 7px 24px rgb(0 0 0 / 16%);
+  font-size: .78rem;
+  line-height: 1.5;
+  font-weight: 400;
+  white-space: normal;
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+.talena-ai-title-row--personality-help .talena-ai-generated-badge:hover ~ .talena-ai-personality-help,
+.talena-ai-title-row--personality-help .talena-ai-generated-badge:focus-visible ~ .talena-ai-personality-help,
+.talena-ai-title-row--personality-help .talena-ai-generated-badge[data-help-open="true"] ~ .talena-ai-personality-help {
+  visibility: visible;
+  opacity: 1;
+}
+@media print {
+  .talena-ai-personality-help { display: none !important; }
+}
 .talena-ai-field-badge {
   margin: .15rem 0 .45rem;
 }
