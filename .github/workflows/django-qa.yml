@@ -37,6 +37,7 @@ jobs:
       - name: Verify guided After interview journey and locked analysis tabs
         run: |
           node scripts/test_after_interview_guided_flow.js
+          node scripts/test_pre_interview_briefing_copy_196.js
           node scripts/test_after_interview_ticket_442_contract.js
           node scripts/test_personality_ai_badge_428.js
           node scripts/test_after_interview_ai_labels_and_buttons.js
