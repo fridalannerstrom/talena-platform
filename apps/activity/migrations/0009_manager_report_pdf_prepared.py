@@ -50,6 +50,7 @@ class Migration(migrations.Migration):
                     ("admin_log_accessed", "Administrativ loggåtkomst"),
                     ("admin_log_exported", "Administrativ loggexport"),
                     ("manager_report_pdf_prepared", "Chefsrapport PDF förberedd"),
+                    ("manager_report_pdf_generated", "Chefsrapport PDF genererad (webbläsare)"),
                 ],
             ),
         ),
