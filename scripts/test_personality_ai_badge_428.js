@@ -46,7 +46,7 @@ assert.equal(badge.getAttribute("aria-describedby"), row.children[1].id);
 assert.ok(row.children[1].textContent.includes(
   "Denna text är AI-genererad och avsedd som stöd för förståelse och vidare samtal."
 ));
-assert.ok(row.children[1].textContent.includes("Statiska testresultat"));
+assert.ok(row.children[1].textContent.includes("Färdighet och Motivation visar testresultat"));
 attach(badge, false);
 assert.equal(row.children.length, 2, "Re-scan must reuse the same tooltip");
 badge.listeners.click();
