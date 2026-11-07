@@ -5,7 +5,11 @@
 {% trans "Add context" as add_context_fallback %}
 {% trans "Candidate insights" as candidate_insights_eyebrow %}
 {% trans "Personality" as personality_panel_title %}
-{% trans "Explore the candidate’s overall personality traits and the detailed indicators that contribute to each result." as personality_panel_description %}
+{% if LANGUAGE_CODE|slice:":2" == "sv" %}
+  {% trans "Utforska insikter kopplat till personens personlighetsresultat." as personality_panel_description %}
+{% else %}
+  {% trans "Explore insights based on the person's personality assessment results." as personality_panel_description %}
+{% endif %}
 {% trans "Motivation" as motivation_panel_title %}
 {% trans "The profile highlights the candidate's more prominent and less central motivational drivers, followed by the complete motivation profile. Results use Sova's rounded five-point STIVE scale." as motivation_panel_description %}
 {% if LANGUAGE_CODE|slice:":2" == "sv" %}
