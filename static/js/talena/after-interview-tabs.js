@@ -466,8 +466,8 @@
               }
               const next = lines[nextIndex]?.trim() || "";
               const nextIsListItem = isOrdered
-                ? /^\\d+[.)]\\s+/.test(next)
-                : /^[-*•]\\s+/.test(next);
+                ? /^\d+[.)]\s+/.test(next)
+                : /^[-*•]\s+/.test(next);
               if (nextIsListItem) {
                 index = nextIndex;
                 continue;
