@@ -79,9 +79,15 @@ class AIInterpretationNoticeCopyTests(SimpleTestCase):
         with override(language):
             html = render_to_string(config["template"], context)
         self.assertIn("<!-- AI / EVIDENCE NOTE -->", html)
-        self.assertIn("<!-- OVERALL INTERPRETATION -->", html)
+        # The skills area deliberately calls its main section Practical
+        # interpretation, while PQ/MQ use Overall interpretation.
+        next_section = (
+            "<!-- PRACTICAL INTERPRETATION -->"
+            if area == "cognitive" else "<!-- OVERALL INTERPRETATION -->"
+        )
+        self.assertIn(next_section, html)
         return html.split("<!-- AI / EVIDENCE NOTE -->", 1)[1].split(
-            "<!-- OVERALL INTERPRETATION -->", 1,
+            next_section, 1,
         )[0]
 
     def test_exact_swedish_copy_and_two_paragraphs_with_unchanged_info_box(self):
