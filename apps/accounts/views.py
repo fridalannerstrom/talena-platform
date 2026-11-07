@@ -1,3 +1,5 @@
+from django.conf import settings
+from types import SimpleNamespace
 from django.contrib import messages
 from django.contrib.auth import get_user_model, login
 from django.contrib.auth.decorators import login_required
@@ -72,7 +74,7 @@ from apps.processes.services.process_recommendations import (
 
 from apps.processes.forms import HistoricalTestProcessForm, HistoricalCandidateForm
 
-from datetime import datetime, date, time
+from datetime import datetime, date, time, timedelta
 from apps.activity.services import log_event
 
 from apps.processes.views import build_cognitive_reports_for_test
@@ -84,7 +86,7 @@ from apps.core.utils.auth import is_admin
 from apps.processes.models import TestProcess, TestInvitation, Candidate
 
 from .forms import InviteUserForm, OrgUnitForm, UserOrgUnitAccessForm
-from .services.invites import send_invite_email
+from .services.invites import send_invite_email, render_account_invitation
 from .decorators import admin_required
 from apps.portal.forms import AccountForm as PortalAccountForm, ProfileImageForm
 from .utils.permissions import get_user_accessible_accounts
@@ -1780,6 +1782,7 @@ def admin_customers_create(request):
                 invite_link=build_invite_link(request, user),
                 subject=form.cleaned_data["invite_subject"],
                 message=form.cleaned_data["invite_message"],
+                language=form.cleaned_data["invite_language"],
             )
             messages.success(request, f"Invite sent to {user.email}.")
             return redirect("accounts:admin_customers_list")
@@ -2159,18 +2162,20 @@ def company_create(request):
     })
 
 def accept_invite_uuid(request, invite_id):
-    invite = get_object_or_404(UserInvite, id=invite_id)
+    # Do not disclose whether an account exists or which invite state failed.
+    # The same helpful page is used for unknown, revoked, used and expired links.
+    invite = UserInvite.objects.select_related("user", "company").filter(id=invite_id).first()
+    if invite is None:
+        return render(request, "accounts/invite_invalid.html", status=400)
 
-    # Ogiltig om revoked eller redan accepterad
-    if invite.revoked_at is not None or invite.accepted_at is not None:
+    max_age = timedelta(days=max(1, int(getattr(settings, "TALENA_ACCOUNT_INVITE_EXPIRY_DAYS", 14))))
+    expired = timezone.now() >= invite.created_at + max_age
+    if invite.revoked_at is not None or invite.accepted_at is not None or expired:
         return render(request, "accounts/invite_invalid.html", status=400)
 
     user = invite.user
-
-    # Om användaren redan är aktiv: låt den logga in istället
     if user.is_active:
-        messages.info(request, "Kontot är redan aktiverat. Logga in.")
-        return redirect("login")
+        return render(request, "accounts/invite_invalid.html", status=400)
 
     if request.method == "POST":
         form = SetPasswordForm(user, request.POST)
@@ -2178,7 +2183,6 @@ def accept_invite_uuid(request, invite_id):
             form.save()
             user.is_active = True
             user.save(update_fields=["is_active"])
-
             invite.accepted_at = timezone.now()
             invite.save(update_fields=["accepted_at"])
 
@@ -2195,7 +2199,6 @@ def accept_invite_uuid(request, invite_id):
                     "invite_id": str(invite.id),
                 },
             )
-
             login(request, user)
             return redirect("core:post_login_redirect")
     else:
@@ -4121,6 +4124,32 @@ def company_process_delete(request, company_pk, process_pk):
 @login_required
 @admin_required
 @require_POST
+def account_invitation_preview(request, company_pk=None):
+    """Admin-only, no-send preview of the real account invitation markup."""
+    company = get_object_or_404(Company, pk=company_pk) if company_pk is not None else None
+    # Show only synthetic recipient data; never generate or reveal real tokens.
+    example_user = SimpleNamespace(first_name="Alex", email="alex@example.com")
+    sample_invitation_url = request.build_absolute_uri(
+        reverse("accounts:accept_invite_uuid", kwargs={"invite_id": uuid.UUID(int=0)})
+    )
+    subject, _text, email_html = render_account_invitation(
+        request, example_user, sample_invitation_url, company,
+        subject=(request.POST.get("invite_subject") or "")[:160] or None,
+        message=(request.POST.get("invite_message") or "")[:3000] or None,
+        language=request.POST.get("invite_language") or "en",
+    )
+    response = render(request, "admin/accounts/account_invite_preview.html", {
+        "subject": subject,
+        "email_html": email_html,
+    })
+    response["Cache-Control"] = "no-store, private"
+    response["Referrer-Policy"] = "no-referrer"
+    return response
+
+
+@login_required
+@admin_required
+@require_POST
 def company_invite_member(request, company_pk):
     company = get_object_or_404(Company, pk=company_pk)
 
@@ -4203,6 +4232,7 @@ def company_invite_member(request, company_pk):
                 company=company,
                 subject=invite_form.cleaned_data["invite_subject"],
                 message=invite_form.cleaned_data["invite_message"],
+                language=invite_form.cleaned_data["invite_language"],
             )
 
             log_event(
