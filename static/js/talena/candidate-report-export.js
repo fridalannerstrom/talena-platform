@@ -304,7 +304,10 @@
     "[data-cognitive-interpretation-regenerate]",
     "[data-cognitive-questions-regenerate]",
     "[data-pre-interview-generate][data-regenerate='true']",
-    "[data-post-interview-generate][data-regenerate='true']"
+    "[data-post-interview-generate][data-regenerate='true']",
+    // Helhetsbild's structured card has its own refresh action.
+    // Pair the existing PDF control with it instead of creating a toolbar row.
+    "[data-overall-picture-generate]"
   ].join(", ");
 
   function findHeading(source) {
