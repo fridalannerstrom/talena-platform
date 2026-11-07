@@ -72,11 +72,11 @@ for (const snippet of ["journeyTitle:", "journeySteps:", "evidenceHeading:", "ev
 }
 assert.ok(tabs.includes('reports: "Rapporter"'));
 assert.ok(tabs.includes('reports: "Reports"'));
-assert.ok(copy.includes("testresultat, roll- och processkontext"));
-assert.ok(copy.includes("assessment results, role and process context"));
+assert.ok(copy.includes("testresultat och processkontext"));
+assert.ok(copy.includes("assessment results and process context"));
 assert.ok(view.includes("data-interview-notes-save") && view.includes("data-post-interview-generate"));
 assert.ok(view.includes('rows="8"'));
-assert.ok(shell.includes("after-interview-tabs.js"));
-assert.ok(header.includes("candidate-eyebrows.js"));
+assert.ok(shell.includes("after-interview-tabs.js") && shell.includes("two-tabs-v3"));
+assert.ok(header.includes("candidate-eyebrows.js") && header.includes("two-tabs-v3"));
 
 console.log("After interview two-stage guided report flow contract passed.");
