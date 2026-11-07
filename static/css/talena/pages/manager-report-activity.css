@@ -73,3 +73,23 @@
 @media print {
   .talena-report-audit { display: none !important; }
 }
+
+/* Within the Chefsrapport, audit details belong to the quiet footer area,
+   not in another prominent card competing with the actual results. */
+.after-interview-manager-report > .talena-report-audit {
+  margin: 1.65rem 0 0;
+  padding: 0.95rem 0 0;
+  border: 0;
+  border-top: 1px solid var(--talena-border, #e7e2de);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.after-interview-manager-report > .talena-report-audit .talena-report-audit__title {
+  margin-bottom: 0.35rem;
+  font-size: 0.73rem;
+  font-weight: 700;
+}
+.after-interview-manager-report > .talena-report-audit .talena-report-audit__details {
+  margin-top: 0.35rem;
+}
