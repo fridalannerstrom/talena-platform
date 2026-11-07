@@ -38,7 +38,14 @@ from .prompt_templates import (
 
 POST_INTERVIEW_CONTENT_BLOCK_KEYS = (
     "overall_picture",
-    "interview_summary",
+    "interview_summary",  # Legacy: retained for saved history/admin prompts.
+    "explore_further",
+    "wellbeing_tips",
+)
+# #442: only visible sections are required in new compilations. Historic
+# interview_summary text remains in the stored content_blocks contract.
+ACTIVE_POST_INTERVIEW_CONTENT_BLOCK_KEYS = (
+    "overall_picture",
     "explore_further",
     "wellbeing_tips",
 )
@@ -2394,7 +2401,7 @@ def save_post_interview_decision_support(
 
     missing_content_blocks = [
         key
-        for key in POST_INTERVIEW_CONTENT_BLOCK_KEYS
+        for key in ACTIVE_POST_INTERVIEW_CONTENT_BLOCK_KEYS
         if not result["content_blocks"].get(key)
     ]
 
@@ -2823,11 +2830,11 @@ def build_post_interview_decision_support_prompt(
             key=key,
             language=language_code,
         )
-        for key in POST_INTERVIEW_CONTENT_BLOCK_KEYS
+        for key in ACTIVE_POST_INTERVIEW_CONTENT_BLOCK_KEYS
     }
     content_blocks_guidance = "\n\n".join(
         f"{key.upper()} GUIDANCE\n{content_block_instructions[key]}"
-        for key in POST_INTERVIEW_CONTENT_BLOCK_KEYS
+        for key in ACTIVE_POST_INTERVIEW_CONTENT_BLOCK_KEYS
     )
 
     shared_context = build_shared_ai_context(
@@ -3016,7 +3023,8 @@ instruction for that block's user-facing text.
 
 Return one JSON object with type "content_blocks" and a blocks object.
 The blocks object must contain every required key exactly once:
-overall_picture, interview_summary, explore_further and wellbeing_tips.
+overall_picture, explore_further and wellbeing_tips.
+The retired interview_summary is not required and must not be generated.
 Each value must be a string generated according to the administrator prompt
 for that key. Do not add, remove, shorten or reshape the generated text
 because of any code-defined content preference.
