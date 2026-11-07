@@ -85,7 +85,7 @@ assert.ok(copy.includes("testresultat och rollkontext"));
 assert.ok(copy.includes("assessment results and role context"));
 assert.ok(view.includes("data-interview-notes-save") && view.includes("data-post-interview-generate"));
 assert.ok(view.includes('rows="8"'));
-assert.ok(shell.includes("after-interview-tabs.js") && shell.includes("manager-icon-actions-v12"));
+assert.ok(shell.includes("after-interview-tabs.js") && shell.includes("430-footer-v13"));
 assert.ok(header.includes("candidate-eyebrows.js") && header.includes("rolecontext-v6"));
 
 // A compiled candidate sees only the single regenerate row on Evidence.
