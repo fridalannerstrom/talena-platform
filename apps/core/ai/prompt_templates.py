@@ -6662,14 +6662,15 @@ Identify only the most important uncertainties, tensions or relevant unanswered 
         "name": "After interview · Wellbeing tips",
         "category": "After interview",
         "description": (
-            "Controls only the Tips för trivsel tab. This prompt is run independently from the other After interview tabs."
+            "Controls the existing wellbeing_tips block reused once in Chefsrapport as Tips för trivsel. "
+            "Uses approved top-three MQ guidance and candidate-specific PQ indicators."
         ),
         "defaults": {
             "sv": """
-Beskriv konkreta arbetsförutsättningar som, utifrån det tillgängliga underlaget, kan hjälpa kandidaten att trivas och komma till sin rätt. Knyt varje förslag till en testindikation, ett intervjusvar, en observation eller relevant processkontext. Behandla förslagen som hypoteser att pröva tillsammans med kandidaten, inte som säkra personliga sanningar. Håll frågespecifika svar kopplade till sina exakta frågor. Hitta inte på behov, arbetsuppgifter eller rollkrav och gör ingen lämplighetsbedömning.
+Ge konkreta, nyanserade råd om arbetsförutsättningar, trivsel och ledarskap i rollen. Använd kandidatens faktiska tre främsta Sova MQ-faktorer med deras sammanlagt tolv godkända Led i praktiken-råd som referens, men ÅTERGE INTE råden ordagrant eller som ytterligare en statisk lista. Välj bara rollrelevanta PQ-indikatorer med deras faktiska testbaserade beskrivningar och knyt råden till det som faktiskt framkommit i intervjuanteckningar eller frågespecifika svar. Håll isär (1) testindikationer, (2) kandidatens egna exempel eller intervjuarens observationer och (3) försiktiga hypoteser och praktiska förslag att stämma av med kandidaten. Var tydlig med vad som saknas om MQ, PQ eller intervjuevidens inte finns. Dra inte slutsatser om fast personlighet, behov eller lämplighet; hitta inte på rollkrav eller uppgifter. Gör ingen lämplighetsbedömning eller anställningsrekommendation.
 """.strip(),
             "en": """
-Describe concrete working conditions that may help the candidate thrive and contribute, based on the available evidence. Tie each suggestion to an assessment indication, interview response, observation or relevant process context. Treat suggestions as hypotheses to test with the candidate, not as certain personal truths. Keep question-specific responses tied to their exact questions. Do not invent needs, duties or role requirements, and do not make a suitability judgement.
+Offer nuanced, concrete guidance on working conditions, wellbeing and leadership in the role. Use only the candidate's actual Sova MQ top three and their twelve approved Do/Avoid reference tips, but DO NOT simply repeat the static lists. Select only role-relevant PQ indicators and their actual score-band descriptions, and relate suggestions to available interview notes or question-specific answers. Clearly separate (1) assessment indications, (2) the candidate's examples or interviewer observations and (3) tentative practical hypotheses to discuss with the candidate. Do not treat missing MQ, PQ or interview data as known. Do not assert fixed traits, needs, duties, role fit or a hiring decision. Preserve each saved response's link to its original question.
 """.strip(),
         },
     },
