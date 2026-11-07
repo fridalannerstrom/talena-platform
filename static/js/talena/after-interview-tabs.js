@@ -1954,7 +1954,9 @@
 
     // Keep the existing report keys and URL values for bookmarks, PDF actions
     // and the final-output refresh helper. Only the visual navigation changes.
-    const keys = ["evidence", "overview", "interview", "explore", "managerReport"];
+    // Keep historical interview_summary data on the server, but this tab is
+    // retired (#442). Old afterTab=interview URLs fall back to Helhetsbild.
+    const keys = ["evidence", "overview", "explore", "managerReport"];
     const reportKeys = keys.filter((key) => key !== "evidence");
     const buttons = new Map();
     const panels = new Map();
@@ -2052,7 +2054,6 @@
     header.insertAdjacentElement("afterend", tabs);
 
     const summary = postContent?.querySelector(":scope > .purpose-fit-section:first-child");
-    const evidenceGrid = postContent?.querySelector(":scope > .post-evidence-grid");
     const contentChildren = postContent ? [...postContent.children] : [];
     const contradictions = contentChildren.find((node) =>
       ["Contradictions or tensions to consider", "Motsägelser eller spänningar att beakta"]
@@ -2082,9 +2083,6 @@
         makeCard(panel, "overall_picture", copy().tabs.overview, copy().descriptions.overview, summary, "overall_picture"),
       );
     }
-    panels.get("interview").appendChild(
-      makeCard(panel, "interview_summary", copy().tabs.interview, copy().descriptions.interview, evidenceGrid, "interview_summary"),
-    );
     panels.get("explore").appendChild(
       makeCard(panel, "explore_further", copy().tabs.explore, copy().descriptions.explore, exploreFallback.childNodes.length ? exploreFallback : null, "explore_further"),
     );
