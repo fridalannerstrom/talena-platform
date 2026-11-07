@@ -71,20 +71,20 @@ assert.equal(separated.filter(node => node.type === "ol").length, 2,
 // A generated heading may repeat the section title. It is skipped only
 // in the wellbeing block and only if it is the very first content line.
 // The original source remains available to the edit dialog and PDF.
-const original = "## Tips för trivsel\\n\\nFörslag till arbetssätt.\\n\\n1. Först\\n2. Sedan";
+const original = "## Tips för trivsel\n\nFörslag till arbetssätt.\n\n1. Först\n2. Sedan";
 const wellbeing = renderText(original, { sourceWellbeing: true });
 assert.equal(wellbeing.children.length, 2, "Duplicate heading should not be shown");
 assert.equal(wellbeing.children[0].type, "p");
 assert.equal(wellbeing.children[1].type, "ol");
 assert.equal(wellbeing.originalSource, original, "Never strip text from stored AI content");
-const edited = renderText("**Tips för trivsel**\\n\\nEtt konkret råd.", { key: "wellbeing_tips" });
+const edited = renderText("**Tips för trivsel**\n\nEtt konkret råd.", { key: "wellbeing_tips" });
 assert.equal(edited.children.length, 1, "Manually edited heading should be deduplicated");
 assert.equal(edited.children[0].type, "p");
-const english = renderText("# Wellbeing tips\\n\\nOne recommendation.", { key: "wellbeing_tips" });
+const english = renderText("# Wellbeing tips\n\nOne recommendation.", { key: "wellbeing_tips" });
 assert.equal(english.children.length, 1, "English report heading should be deduplicated");
-const other = renderText("## Tips för trivsel\\n\\nAndra rubriker.", {});
+const other = renderText("## Tips för trivsel\n\nAndra rubriker.", {});
 assert.equal(other.children[0].type, "h3", "Other AI blocks must keep their headings");
-const custom = renderText("## Viktiga rekommendationer\\n\\nText.", { key: "wellbeing_tips" });
+const custom = renderText("## Viktiga rekommendationer\n\nText.", { key: "wellbeing_tips" });
 assert.equal(custom.children[0].type, "h3", "Distinct wellbeing subheadings must remain");
 
 assert.ok(src.includes("color: #3d3834; font-size: .85rem; line-height: 1.72;"),
