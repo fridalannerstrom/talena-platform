@@ -28,6 +28,10 @@ assert.ok(js.includes('const generateSelector = [') &&
   js.includes('source.querySelector(generateSelector)') &&
   js.includes('pair.append(toolbar, generate)'),
   "PDF and Generate must render side by side in the same action pair");
+assert.ok(js.includes('"[data-overall-picture-generate]"') &&
+  js.includes('id: "after-overview"') === false &&
+  js.includes('["overview","after-overview"]'),
+  "Structured Helhetsbild must share its action pair with the PDF button");
 assert.ok(js.includes('findHeading(source)') &&
   js.includes('header.append(toolbar)'),
   "Results PDF must be inside the report heading, not a separate top row");
