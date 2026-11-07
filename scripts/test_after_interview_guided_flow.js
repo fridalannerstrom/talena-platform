@@ -13,6 +13,8 @@ const evidenceAvailability = fs.readFileSync("static/js/talena/post-interview-ev
 const personalitySubtabs = fs.readFileSync("templates/customer/processes/partials/candidate_insights/tabs/_personality.html", "utf8");
 const personalityResults = fs.readFileSync("templates/customer/processes/partials/candidate_insights/personality/_results.html", "utf8");
 const sharedAssessmentStyles = fs.readFileSync("static/css/talena/pages/candidate-assessments.css", "utf8");
+const reportTabStyles = fs.readFileSync("static/css/talena/pages/candidate-insight-tabs.css", "utf8");
+const teamReportsTabs = fs.readFileSync("templates/customer/processes/partials/candidate_insights/tabs/_reports.html", "utf8");
 
 // Two primary tabs: Evidence and Reports. The existing four report keys
 // are nested rather than rewritten, preserving PDF, URL and refresh behavior.
@@ -82,7 +84,7 @@ assert.ok(copy.includes("testresultat och processkontext"));
 assert.ok(copy.includes("assessment results and process context"));
 assert.ok(view.includes("data-interview-notes-save") && view.includes("data-post-interview-generate"));
 assert.ok(view.includes('rows="8"'));
-assert.ok(shell.includes("after-interview-tabs.js") && shell.includes("shared-tabs-v5"));
+assert.ok(shell.includes("after-interview-tabs.js") && shell.includes("underlined-tabs-v6"));
 assert.ok(header.includes("candidate-eyebrows.js") && header.includes("two-tabs-v3"));
 
 // A compiled candidate sees only the single regenerate row on Evidence.
@@ -120,7 +122,7 @@ for (const snippet of [
   'kind === "report"',
   '"personality-view-tab" : "candidate-insights-view-option"',
   'const button = makeTab(key, copy().tabs[key], id, "report")',
-  'reportsButton.append(reportsIcon, reportsText)',
+  'reportsButton.textContent = copy().tabs.reports',
 ]) assert.ok(tabs.includes(snippet), "Shared tab design is missing: " + snippet);
 
 assert.ok(personalitySubtabs.includes('class="candidate-insights-view-switcher"'));
@@ -144,4 +146,21 @@ assert.ok(tabs.includes(".after-interview-reports__status[hidden]"));
 assert.ok(!tabs.includes("reportStatusCurrent:"),
   "No current-compilation status text should be shown.");
 
-console.log("After interview shared navigation and report freshness contract passed.");
+// Primary tabs must match the text-only Team/Leadership/Derailment report tabs
+// and override the rounded-pill assessment CSS only in After interview.
+assert.ok(teamReportsTabs.includes('class="candidate-insights-view-option is-active"'));
+assert.ok(reportTabStyles.includes('.candidate-insight-page .candidate-insights-view-option'));
+for (const snippet of [
+  'button.textContent = label;',
+  'reportsButton.textContent = copy().tabs.reports;',
+  'after-interview-primary-nav .candidate-insights-view-option.is-active',
+  'border-bottom: 2px solid transparent !important;',
+  'border-bottom-color: var(--talena-coral, #ff6f61) !important;',
+  'border-radius: 0 !important;',
+  'background: transparent !important;',
+]) assert.ok(tabs.includes(snippet), "Text-underlined tabs: " + snippet);
+assert.ok(!tabs.includes('reportsButton.append(reportsIcon, reportsText)'));
+assert.ok(tabs.includes('reportNav.className = "personality-view-tabs"'),
+  "Nested report tabs must retain the personality-style appearance.");
+
+console.log("After interview Teamreport-style primary tabs contract passed.");
