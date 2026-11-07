@@ -37,7 +37,9 @@ jobs:
       - name: Verify guided After interview journey and locked analysis tabs
         run: node scripts/test_after_interview_guided_flow.js
       - name: Verify shared MQ wellbeing guidance and single manager-report section
-        run: node scripts/test_wellbeing_tips_436_contract.js
+        run: |
+          node scripts/test_wellbeing_tips_436_contract.js
+          node scripts/test_wellbeing_markdown_list_436.js
       - name: Verify shared team PDF export and anonymous privacy contract
         run: |
           node --check static/js/talena/pdf-export-core.js
