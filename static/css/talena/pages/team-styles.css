@@ -761,6 +761,10 @@
   color: #ac685f;
   background: #efe7e1;
 }
+.process-page #reports-subpanel-leadership-report .leadership-report__intro-copy {
+  width: 100%;
+  min-width: 0;
+}
 .process-page #reports-subpanel-leadership-report .leadership-report__intro .leadership-report__eyebrow {
   margin-bottom: 0.3rem;
   font-size: 0.61rem;
@@ -772,7 +776,8 @@
   line-height: 1.3;
 }
 .process-page #reports-subpanel-leadership-report .leadership-report__intro-text {
-  max-width: 84ch;
+  max-width: none;
+  width: 100%;
   color: #716a67;
   font-size: 0.7rem;
   font-weight: 400;
@@ -961,6 +966,72 @@
 }
 @media (max-width: 420px) {
   .process-page #reports-subpanel-leadership-report .leadership-report__intro {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* #441: Leadership's competency meter is a linear 1-5 sequence.
+   Like Team, colour every preceding step from the LEFT, and keep the
+   selected step's existing coral outline. Never fill from the centre. */
+.process-page #reports-subpanel-leadership-report .leadership-report__competency-scale .response-style-scale__segment {
+  background: var(--talena-chart-track, #ebe8e5) !important;
+}
+.process-page #reports-subpanel-leadership-report .leadership-report__competency-scale .response-style-scale__segment--filled,
+.process-page #reports-subpanel-leadership-report .leadership-report__competency-scale .response-style-scale__segment--marker {
+  background: var(--talena-coral, #ff6f61) !important;
+}
+
+/* #441: Both report introductions share one calm, solid warm surface.
+   Keep the text column fully fluid and the text size at 0.70rem. */
+.process-page #reports-subpanel-derailment-report .derailment-report__intro {
+  display: grid;
+  grid-template-columns: 2.3rem minmax(0, 1fr);
+  gap: 0.95rem;
+  padding: 1.2rem 1.35rem;
+  border: 1px solid #e9e2db;
+  border-radius: 17px;
+  background: #f8f5f2;
+  box-shadow: none;
+}
+.process-page #reports-subpanel-derailment-report .derailment-report__intro-icon {
+  display: grid;
+  place-items: center;
+  width: 2.3rem;
+  height: 2.3rem;
+  border-radius: 11px;
+  color: #ac685f;
+  background: #efe7e1;
+}
+.process-page #reports-subpanel-derailment-report .derailment-report__intro-copy {
+  width: 100%;
+  min-width: 0;
+}
+.process-page #reports-subpanel-derailment-report .derailment-report__intro h3 {
+  margin: 0 0 0.75rem;
+  font-size: 0.92rem;
+  line-height: 1.3;
+}
+.process-page #reports-subpanel-derailment-report .derailment-report__intro-text {
+  width: 100%;
+  max-width: none;
+  color: #716a67;
+  font-size: 0.7rem;
+  font-weight: 400;
+  line-height: 1.64;
+}
+.process-page #reports-subpanel-derailment-report .derailment-report__intro-text p {
+  margin: 0;
+  color: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+@media (max-width: 760px) {
+  .process-page #reports-subpanel-derailment-report .derailment-report__intro {
+    padding: 1rem;
+  }
+}
+@media (max-width: 420px) {
+  .process-page #reports-subpanel-derailment-report .derailment-report__intro {
     grid-template-columns: minmax(0, 1fr);
   }
 }
