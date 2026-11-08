@@ -99,7 +99,12 @@ class ReportUi441Tests(SimpleTestCase):
         self.assertIn('aria-valuemin="1"', html)
         self.assertIn('aria-valuemax="10"', html)
         self.assertIn("Resultat 7 av 10", html)
-        self.assertEqual(html.count("is-marker"), 1)
+        self.assertEqual(html.count("personality-indicator-scale__segment--selected"), 1)
+        self.assertEqual(html.count('data-score="'), 10)
+        self.assertIn("personality-indicator-scale__center-line", html)
+        self.assertIn("personality-indicator-scale__side--left", html)
+        self.assertIn("personality-indicator-scale__side--right", html)
+        self.assertIn("personality-indicator-scale__labels", html)
         self.assertNotIn("14 / 14", html)
         self.assertNotIn("Lägre poäng", html)
         self.assertNotIn("Högre poäng", html)
@@ -114,11 +119,45 @@ class ReportUi441Tests(SimpleTestCase):
         self.assertIn("leadership_report_content.chart_svg|safe", source)
         self.assertIn('role="meter"', source)
 
-    def test_derailment_css_centers_boundary_between_five_and_six(self):
-        css = self.source("static/css/talena/pages/team-styles.css")
-        self.assertIn(".derailment-report__scale-segments::after", css)
-        self.assertIn("left:50%", css)
-        self.assertIn("repeat(10,minmax(0,1fr))", css)
+    def test_derailment_reuses_exact_personality_scale_styles(self):
+        template = self.source(
+            "templates/customer/processes/partials/candidate_insights/tabs/_derailment_report.html"
+        )
+        old_css = self.source("static/css/talena/pages/team-styles.css")
+        shared_css = self.source(
+            "static/css/talena/pages/personality-trait-scale-experiment.css"
+        )
+        self.assertIn("derailment-report__scale-segments personality-indicator-scale", template)
+        self.assertNotIn(".derailment-report__scale-segments::after", old_css)
+        self.assertIn(".personality-indicator-scale__segment--selected", shared_css)
+        self.assertIn(".personality-indicator-scale__center-line", shared_css)
+        self.assertIn(".personality-indicator-scale__segment--filled", shared_css)
+        self.assertIn("rgba(255, 111, 97, 0.25)", shared_css)
+        self.assertIn("background: #ff8a7d", shared_css)
+        self.assertIn("background: #f25549", shared_css)
+
+    def test_visual_segment_classes_follow_midpoint_for_all_scores(self):
+        from html import unescape
+        import re
+
+        selected = re.compile(
+            r'<span\\s+class="([^"]*personality-indicator-scale__segment[^"]*)"'
+            r'\\s+data-score="(\\d+)"',
+        )
+        for score in range(1, 11):
+            with self.subTest(score=score):
+                rendered = unescape(render_to_string(
+                    "customer/processes/partials/candidate_insights/tabs/_derailment_report.html",
+                    {"derailment_report_content": self.report(score)},
+                ))
+                segments = selected.findall(rendered)
+                self.assertEqual(len(segments), 10)
+                markers = [int(value) for classes, value in segments
+                           if "personality-indicator-scale__segment--selected" in classes]
+                fills = [int(value) for classes, value in segments
+                         if "personality-indicator-scale__segment--filled" in classes]
+                self.assertEqual(markers, [score])
+                self.assertEqual(fills, self.report(score)["factors"][0]["scale_filled_segments"])
 
     def test_missing_results_do_not_generate_an_interpretation(self):
         result = build_derailment_report_content("sv", [])
