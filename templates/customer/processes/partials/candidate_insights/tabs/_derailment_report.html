@@ -14,13 +14,15 @@
       </div>
     </header>
 
-    <header class="derailment-report__intro">
+    <section class="derailment-report__intro" aria-labelledby="derailment-intro-title">
       <div class="derailment-report__intro-icon" aria-hidden="true"><i data-feather="info"></i></div>
-      <div>
-        <h3>{{ derailment_report_content.introduction_title }}</h3>
-        <p>{{ derailment_report_content.introduction }}</p>
+      <div class="derailment-report__intro-copy">
+        <h3 id="derailment-intro-title">{{ derailment_report_content.introduction_title }}</h3>
+        <div class="derailment-report__intro-text">
+          <p>{{ derailment_report_content.introduction }}</p>
+        </div>
       </div>
-    </header>
+    </section>
 
     <section class="derailment-report__overview" aria-label="{{ derailment_report_content.profile_section_title }}">
       <div class="derailment-report__profile-list">
