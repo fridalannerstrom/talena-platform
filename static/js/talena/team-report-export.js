@@ -40,7 +40,11 @@
       if (text !== undefined) node.textContent = text;
       return node;
     }
-    function sanitizeStage(node) {
+    function sanitizeStage(node, anonymous) {
+      // Identity-bearing extremum attribution is part of the visible named
+      // report only. Anonymous export must never clone it, including hidden
+      // panels, initials, tooltips and original-text attributes.
+      if (anonymous) node.querySelectorAll("[data-team-chart-person-details]").forEach(x => x.remove());
       node.querySelectorAll("button, form, a, input, textarea, select, .team-insight-actions, .team-member-profile-toolbar, [data-team-insight-status]").forEach(x => x.remove());
       const sourceCanvases = node.querySelectorAll("canvas");
       sourceCanvases.forEach(canvas => {
@@ -161,7 +165,7 @@
         const parts = sources.map(source => {
           const node = newElement("section", "team-report-pdf-part");
           node.append(source.cloneNode(true));
-          sanitizeStage(node);
+          sanitizeStage(node, anonymous);
           return node;
         });
         const body = newElement("main", "team-report-pdf-body");
