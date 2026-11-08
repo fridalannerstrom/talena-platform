@@ -2202,7 +2202,9 @@ const chartInstance = new window.TeamStyleChartJS(
           beginAtZero: true,
           min: 0,
           max: 5,
-          startAngle: -22.5,
+          // Align the candidate Team report's four axes at the cardinal
+          // points. Embedded team charts retain their original orientation.
+          startAngle: canvas.closest("#reports-subpanel-team-report") ? 0 : -22.5,
 
           ticks: {
             display: true,
