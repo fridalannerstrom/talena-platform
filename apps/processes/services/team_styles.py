@@ -502,6 +502,67 @@ def _build_team_style_relevance(display_value):
     }
 
 
+def _build_candidate_team_style_svg(chart_styles):
+    """Use the exact Leadership flower renderer for the candidate Team report.
+
+    SOVA STIVE scores and the separately ranked interpretation list remain
+    untouched. The legacy Chart.js chart remains available to other team views.
+    """
+    from apps.reports.services.leadership_report import _build_leadership_chart_svg
+
+    styles_by_key = {style["key"]: style for style in chart_styles}
+    # Pair the two team styles that belong to each compass quadrant.  The
+    # source config starts at Catalyst but Connector completes the upper-left
+    # quadrant, so the display order intentionally differs from the source
+    # data order without changing data, ranking or assessment interpretation.
+    groups = (
+        ("connector", "catalyst"),        # Explore / Utforskande
+        ("director", "energiser"),        # Lead / Ledning
+        ("architect", "harmoniser"),      # Deliver / Genomförande
+        ("analyst", "auditor"),           # Critically review / Kritisk granskning
+    )
+    quadrants = []
+    scores_by_key = {}
+    source_keys = []
+
+    for keys in groups:
+        group_styles = [styles_by_key[key] for key in keys]
+        quadrants.append({
+            "title": group_styles[0]["quadrant_label"],
+            "competencies": [{"title": style["title"]} for style in group_styles],
+        })
+        for style in group_styles:
+            key = style["key"]
+            source_keys.append(key)
+            if style["available"]:
+                scores_by_key[key] = (
+                    style["raw_value"], style["display_value"]
+                )
+
+    spoken_scores = "; ".join(
+        f'{style["title"]}: {style["display_value"]} / 5'
+        for keys in groups
+        for key in keys
+        for style in [styles_by_key[key]]
+        if style["available"]
+    )
+    content = {
+        "chart_intro": {
+            "title": _("Team role profile chart"),
+            "body": spoken_scores,
+        },
+        "quadrants": quadrants,
+    }
+    return _build_leadership_chart_svg(
+        content,
+        scores_by_key,
+        "",
+        source_keys=source_keys,
+        svg_id_prefix="team-style-wheel",
+        svg_extra_class="team-style-flower__wheel",
+    )
+
+
 def build_team_style_profile(personality_competencies):
     """
     Build Talena's team-style presentation from Sova personality results.
@@ -701,6 +762,10 @@ def build_team_style_profile(personality_competencies):
         "complete": len(available_styles) == len(TEAM_STYLE_CONFIG),
         "styles": ranked_styles,
         "chart_styles": chart_styles,
+        "chart_svg": (
+            _build_candidate_team_style_svg(chart_styles)
+            if available_styles else ""
+        ),
         "polygon_points": polygon_points,
         "rings": rings,
         "chart": {
