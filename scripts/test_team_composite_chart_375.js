@@ -137,4 +137,44 @@ assert.equal(inner.attrs.visibility, "visible");
 // The complete source list can contain names, but only when allowed.
 // Anonymous export must remove both visible and hidden identity-bearing DOM.
 assert.ok(pdf.includes('"[data-team-chart-person-details], [data-team-wheel-person], .team-wheel-overflow"'));
+
+// Execute the real anonymous sanitiser, not only a string assertion.
+const extract = (name) => {
+  const start = pdf.indexOf("    function " + name + "(");
+  assert.ok(start >= 0);
+  const begin = pdf.indexOf("{", start);
+  let depth = 0;
+  for (let i = begin; i < pdf.length; i++) {
+    if (pdf[i] === "{") depth++;
+    if (pdf[i] === "}" && --depth === 0) {
+      return pdf.slice(start, i + 1);
+    }
+  }
+  throw new Error("Unterminated function: " + name);
+};
+const sanitize = vm.runInNewContext("(" + extract("sanitizeStage") + ")", {
+  document: { createElement: () => ({ style: {} }) }
+});
+function stage() {
+  const removed = [];
+  return {
+    removed,
+    querySelectorAll(selector) {
+      if (selector.includes("[data-team-wheel-person]")) {
+        return [
+          { remove() { removed.push("wheel-initial"); } },
+          { remove() { removed.push("full-list"); } }
+        ];
+      }
+      return [];
+    }
+  };
+}
+const anonymousStage = stage();
+sanitize(anonymousStage, true);
+assert.deepEqual(anonymousStage.removed, ["wheel-initial", "full-list"]);
+const namedStage = stage();
+sanitize(namedStage, false);
+assert.equal(namedStage.removed.length, 0);
+
 console.log("Team wheel #375: sectors, in-wheel initials, modes and privacy contract OK");
