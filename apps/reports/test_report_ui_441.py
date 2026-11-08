@@ -159,6 +159,31 @@ class ReportUi441Tests(SimpleTestCase):
                 self.assertEqual(markers, [score])
                 self.assertEqual(fills, self.report(score)["factors"][0]["scale_filled_segments"])
 
+    def test_derailment_density_matches_personality_without_touching_shared_scale(self):
+        css = self.source("static/css/talena/pages/team-styles.css")
+        personality = self.source(
+            "static/css/talena/pages/personality-trait-scale-experiment.css"
+        )
+        self.assertIn(
+            "grid-template-columns:minmax(0,1fr) minmax(260px,1.7fr) minmax(0,1fr)",
+            css,
+        )
+        self.assertIn(
+            "color:#656f81;font-size:.72rem;line-height:1.45", css
+        )
+        self.assertIn("gap:16px;padding:13px 0", css)
+        self.assertIn(
+            "display:flex;justify-content:center;align-items:center", css
+        )
+        self.assertIn(
+            ".derailment-report__profile-result-heading span{position:absolute",
+            css,
+        )
+        self.assertIn("@media(max-width:900px)", css)
+        self.assertIn("@media(max-width:600px)", css)
+        self.assertIn(".process-page .personality-indicator-scale__segment", personality)
+        self.assertNotIn(".derailment-report__scale-segment.is-filled", css)
+
     def test_missing_results_do_not_generate_an_interpretation(self):
         result = build_derailment_report_content("sv", [])
         self.assertFalse(result["has_results"])
