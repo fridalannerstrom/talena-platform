@@ -196,12 +196,12 @@ class ReportUi441Tests(SimpleTestCase):
         css = self.source("static/css/talena/pages/candidate-insight-tabs.css")
         self.assertIn(
             ".process-page #candidate-insights-panel-reports "
-            ".candidate-insights-subworkspace__panels {\\n  padding: 0 !important;",
+            ".candidate-insights-subworkspace__panels {\n  padding: 0 !important;",
             css,
         )
         self.assertIn(
             ".process-page .candidate-insight-page "
-            ".candidate-insights-subworkspace__panels {\\n  padding: 1.25rem",
+            ".candidate-insights-subworkspace__panels {\n  padding: 1.25rem",
             css,
         )
 
