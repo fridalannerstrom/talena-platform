@@ -23,6 +23,8 @@ assert.ok(!pages.includes("initTeamStyleChart()"), "composite radar must not ini
 assert.ok(pages.includes('getElementById("teamStylePreferenceWheel")'),
   "team guidance should still find the composite chart");
 assert.ok(backend.includes('"chart_min_values"'), "numeric extrema must remain available");
+assert.ok(backend.includes('"preference_wheel_rows"'), "member preferences must come from backend");
+assert.ok(template.includes('team_style_stats.preference_wheel_rows'), "template should not show group extrema as member preferences");
 assert.ok(pdf.includes("[data-team-wheel-person]"), "anonymous PDF must strip SVG initials");
 assert.ok(pdf.includes("[data-team-chart-person-details]"),
   "anonymous PDF must exclude the full person list");
