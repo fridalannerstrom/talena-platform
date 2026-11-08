@@ -93,7 +93,15 @@ def _wrap_svg_label(value: str, limit: int = 16) -> list[str]:
     return lines
 
 
-def _build_leadership_chart_svg(content: dict, scores_by_key: dict, language: str) -> str:
+def _build_leadership_chart_svg(
+    content: dict,
+    scores_by_key: dict,
+    language: str,
+    *,
+    source_keys: list[str] | None = None,
+    svg_id_prefix: str = "leadership-wheel",
+    svg_extra_class: str = "",
+) -> str:
     """Render a balanced eight-petal leadership profile from SOVA 1–5 scores.
 
     Same four-area flower language as the candidate Team report.  The SVG is
@@ -101,7 +109,7 @@ def _build_leadership_chart_svg(content: dict, scores_by_key: dict, language: st
     """
     width, height = 900, 780
     cx, cy, radius = 450, 390, 245
-    source_keys = list(_SOURCE_NAMES)
+    source_keys = list(source_keys) if source_keys is not None else list(_SOURCE_NAMES)
     quadrant_colors = ("#ef978f", "#dbada7", "#a0baae", "#d9bc90")
 
     def point(distance: float, angle: float) -> tuple[float, float]:
@@ -148,11 +156,12 @@ def _build_leadership_chart_svg(content: dict, scores_by_key: dict, language: st
         )
 
     parts = [
-        f'<svg class="leadership-report__wheel" viewBox="0 0 {width} {height}" '
-        f'role="img" aria-labelledby="leadership-wheel-title leadership-wheel-desc" '
+        f'<svg class="leadership-report__wheel{(" " + svg_extra_class) if svg_extra_class else ""}" '
+        f'viewBox="0 0 {width} {height}" role="img" '
+        f'aria-labelledby="{svg_id_prefix}-title {svg_id_prefix}-desc" '
         f'xmlns="http://www.w3.org/2000/svg">',
-        f'<title id="leadership-wheel-title">{escape(content["chart_intro"]["title"])}</title>',
-        f'<desc id="leadership-wheel-desc">{escape(content["chart_intro"]["body"]).replace(chr(10), " ")}</desc>',
+        f'<title id="{svg_id_prefix}-title">{escape(content["chart_intro"]["title"])}</title>',
+        f'<desc id="{svg_id_prefix}-desc">{escape(content["chart_intro"]["body"]).replace(chr(10), " ")}</desc>',
     ]
 
     flattened = [
