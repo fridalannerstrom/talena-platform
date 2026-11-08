@@ -367,6 +367,96 @@ class ReportUi441Tests(SimpleTestCase):
                     html.index('class="derailment-report__intro"'),
                 )
 
+    def test_team_and_leadership_reports_share_heading_and_pdf_mount(self):
+        team = self.source(
+            "templates/customer/processes/partials/candidate_insights/tabs/_team_styles.html"
+        )
+        leadership = self.source(
+            "templates/customer/processes/partials/candidate_insights/tabs/_leadership_report.html"
+        )
+        derailment = self.source(
+            "templates/customer/processes/partials/candidate_insights/tabs/_derailment_report.html"
+        )
+        js = self.source("static/js/talena/candidate-report-export.js")
+        css = self.source("static/css/talena/pages/team-styles.css")
+        pdf_css = self.source("static/css/talena/pages/candidate-report-export.css")
+
+        for report, source in (
+            ("team-report", team),
+            ("leadership-report", leadership),
+            ("derailment-report", derailment),
+        ):
+            with self.subTest(report=report):
+                self.assertIn(f'class="{report}__page-header"', source)
+                self.assertIn('class="insight-summary-kicker"', source)
+                self.assertIn(f'class="{report}__page-title"', source)
+                self.assertIn(f".{report}__page-header", js)
+                self.assertIn(f".{report}__page-header", css)
+                self.assertIn(f".{report}__page-title", css)
+                self.assertIn(
+                    f'[data-candidate-pdf-report="{report}"] .{report}__page-header',
+                    pdf_css,
+                )
+
+        self.assertIn('header.append(toolbar);', js)
+        self.assertIn("talena-candidate-pdf-toolbar--inline", js)
+        self.assertIn('source.querySelector("[data-candidate-pdf-toolbar]")', js)
+        self.assertIn('create("h1", "talena-candidate-pdf-heading"', js)
+        self.assertIn("get_current_language as LANGUAGE_CODE", team)
+        self.assertIn("get_current_language as leadership_language", leadership)
+        # In the customer report view, the shared team-style component
+        # keeps its existing hidden header and isn't modified globally.
+        self.assertIn(
+            '{% include "customer/processes/partials/_team_styles.html" %}',
+            team,
+        )
+
+    def test_team_leadership_headers_render_in_both_languages(self):
+        from django.utils.translation import override
+
+        team_profile = {
+            "available": True,
+            "styles": [],
+            "chart_styles": [],
+            "chart": {
+                "labels": [], "values": [],
+                "backgrounds": [], "border_colors": [],
+            },
+        }
+        leadership_content = {
+            "has_results": True,
+            "aria_label": "Leadership report",
+            "profile_eyebrow": "Leadership profile",
+            "chart_intro": {"title": "Competency profile"},
+            "chart_svg": "<svg></svg>",
+            "introduction": {"title": "About leadership", "body": "Explanation"},
+            "quadrants": [],
+        }
+        for language, team_title, leadership_title, eyebrow in (
+            ("sv", "Teamrapport", "Ledarskapsrapport", "Ledarskap"),
+            ("en", "Team report", "Leadership report", "Leadership"),
+        ):
+            with self.subTest(language=language), override(language):
+                team_html = render_to_string(
+                    "customer/processes/partials/candidate_insights/tabs/_team_styles.html",
+                    {"team_style_profile": team_profile, "team_style_embedded": False},
+                )
+                leader_html = render_to_string(
+                    "customer/processes/partials/candidate_insights/tabs/_leadership_report.html",
+                    {"leadership_report_content": leadership_content},
+                )
+                self.assertIn(team_title, team_html)
+                self.assertIn(leadership_title, leader_html)
+                self.assertIn(eyebrow, leader_html)
+                self.assertIn('class="team-report__page-header"', team_html)
+                self.assertIn('class="leadership-report__page-header"', leader_html)
+                self.assertLess(
+                    leader_html.index('class="leadership-report__page-header"'),
+                    leader_html.index('class="leadership-report__score-overview"'),
+                )
+                self.assertNotIn("{#", team_html)
+                self.assertNotIn("{#", leader_html)
+
     def test_missing_results_do_not_generate_an_interpretation(self):
         result = build_derailment_report_content("sv", [])
         self.assertFalse(result["has_results"])
