@@ -308,7 +308,74 @@
 
     <div class="card-body">
       {% if team_style_stats.members_with_scores %}
-        <div class="team-analytics-grid">
+        <div class="team-analytics-grid team-analytics-grid--composite">
+          <div class="team-analytics-panel team-analytics-panel--composite">
+            <div class="team-composite-chart-header">
+              <div>
+                <h3 class="team-composite-chart-title">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Teamets sammansatta profil{% else %}Composite team profile{% endif %}</h3>
+                <p class="team-composite-chart-copy" data-team-chart-description aria-live="polite">
+                  {% if LANGUAGE_CODE|slice:":2" == "sv" %}Medelvärde av tillgängliga resultat per teamstil.{% else %}Average of available scores for each team style.{% endif %}
+                </p>
+              </div>
+              <div class="team-composite-chart-modes" role="group" aria-label="{% if LANGUAGE_CODE|slice:":2" == "sv" %}Välj sammanställning{% else %}Select summary{% endif %}">
+                <button type="button" class="team-composite-chart-mode is-active" data-team-chart-mode="average" aria-pressed="true">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Medelvärde{% else %}Average{% endif %}</button>
+                <button type="button" class="team-composite-chart-mode" data-team-chart-mode="minimum" aria-pressed="false">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Minimum{% else %}Minimum{% endif %}</button>
+                <button type="button" class="team-composite-chart-mode" data-team-chart-mode="maximum" aria-pressed="false">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Maximum{% else %}Maximum{% endif %}</button>
+              </div>
+            </div>
+
+            <div class="team-style-chart-box team-style-chart-box--composite">
+              <canvas
+                id="teamStyleAverageChart"
+                data-average-label="{{ chart_average_label|escape }}"
+                data-minimum-label="{% trans 'Minimum' %}"
+                data-maximum-label="{{ chart_maximum_label|escape }}"
+                data-average-help="{% if LANGUAGE_CODE|slice:":2" == "sv" %}Medelvärde av tillgängliga resultat per teamstil.{% else %}Average of available scores for each team style.{% endif %}"
+                data-minimum-help="{% if LANGUAGE_CODE|slice:":2" == "sv" %}Lägsta observerade poäng per teamstil. Personkoppling visas under diagrammet.{% else %}Lowest observed score for each style. See contributing members below.{% endif %}"
+                data-maximum-help="{% if LANGUAGE_CODE|slice:":2" == "sv" %}Högsta observerade poäng per teamstil. Personkoppling visas under diagrammet.{% else %}Highest observed score for each style. See contributing members below.{% endif %}"
+                data-style-connector="{% trans 'Connector' %}"
+                data-style-catalyst="{% trans 'Catalyst' %}"
+                data-style-director="{% trans 'Director' %}"
+                data-style-energiser="{% trans 'Energiser' %}"
+                data-style-architect="{% trans 'Architect' %}"
+                data-style-harmoniser="{% trans 'Harmoniser' %}"
+                data-style-analyst="{% trans 'Analyst' %}"
+                data-style-auditor="{% trans 'Auditor' %}"
+                role="img"
+                aria-label="{% if LANGUAGE_CODE|slice:":2" == "sv" %}Radardiagram över teamets åtta teamstilar{% else %}Radar chart of the team's eight styles{% endif %}"
+              ></canvas>
+            </div>
+
+            <div class="team-composite-chart-people" data-team-chart-person-details hidden>
+              <div class="team-composite-chart-people-heading">
+                <h4>{% if LANGUAGE_CODE|slice:":2" == "sv" %}Personer bakom värdena{% else %}Members behind the values{% endif %}</h4>
+                <p>{% if LANGUAGE_CODE|slice:":2" == "sv" %}Initialerna visar de personer som har det högsta eller lägsta observerade värdet i varje teamstil. Delade värden visas tillsammans.{% else %}Initials identify the members with the highest or lowest observed score in each style. Ties are shown together.{% endif %}</p>
+              </div>
+              <div class="team-composite-chart-people-list" data-team-chart-people-mode="minimum" hidden>
+                {% for row in team_style_stats.most_least_rows %}
+                  <div class="team-composite-chart-person-row">
+                    <span class="team-composite-chart-person-style">{% trans row.style %}</span>
+                    <span class="team-composite-chart-person-badges">
+                      {% for person in row.least %}<span class="team-score-badge" title="{{ person.name }}">{{ person.initials }}</span>{% empty %}<span class="text-muted">—</span>{% endfor %}
+                    </span>
+                    <span class="team-composite-chart-person-value">{% if row.min is not None %}{{ row.min }} / 5{% else %}—{% endif %}</span>
+                  </div>
+                {% endfor %}
+              </div>
+              <div class="team-composite-chart-people-list" data-team-chart-people-mode="maximum" hidden>
+                {% for row in team_style_stats.most_least_rows %}
+                  <div class="team-composite-chart-person-row">
+                    <span class="team-composite-chart-person-style">{% trans row.style %}</span>
+                    <span class="team-composite-chart-person-badges">
+                      {% for person in row.most %}<span class="team-score-badge" title="{{ person.name }}">{{ person.initials }}</span>{% empty %}<span class="text-muted">—</span>{% endfor %}
+                    </span>
+                    <span class="team-composite-chart-person-value">{% if row.max is not None %}{{ row.max }} / 5{% else %}—{% endif %}</span>
+                  </div>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+
           <div class="team-analytics-panel">
             <div class="fw-semibold">{% trans "Average profile" %}</div>
             <div class="text-muted small">
@@ -687,6 +754,7 @@
 
   {{ team_style_stats.chart_labels|json_script:"team-style-chart-labels" }}
   {{ team_style_stats.chart_average_values|json_script:"team-style-chart-averages" }}
+  {{ team_style_stats.chart_min_values|json_script:"team-style-chart-min" }}
   {{ team_style_stats.chart_max_values|json_script:"team-style-chart-max" }}
 
 </div>
