@@ -192,6 +192,7 @@
     }
 
     const compact = canvas.clientWidth < 620;
+    const candidateReport = Boolean(canvas.closest("#reports-subpanel-team-report"));
     const colours = items.map(teamStylePaletteFor);
 
     dataset.backgroundColor = colours;
@@ -200,8 +201,8 @@
     dataset.hoverBorderColor = "#ffffff";
     dataset.borderWidth = compact ? 2 : 3;
     dataset.hoverBorderWidth = dataset.borderWidth;
-    dataset.borderRadius = compact ? 7 : 12;
-    dataset.spacing = compact ? 1 : 2;
+    dataset.borderRadius = candidateReport ? (compact ? 18 : 26) : (compact ? 7 : 12);
+    dataset.spacing = candidateReport ? (compact ? 3 : 5) : (compact ? 1 : 2);
     dataset.hoverOffset = 0;
 
     applyRenderedArcTheme(chart, colours);
@@ -498,8 +499,8 @@
       ctx.fillStyle = candidateReport ? "#353238" : "#171312";
       ctx.font = candidateReport
         ? compact
-          ? "700 11px Inter, system-ui, sans-serif"
-          : "700 13px Inter, system-ui, sans-serif"
+          ? "800 14px Inter, system-ui, sans-serif"
+          : "800 18px Inter, system-ui, sans-serif"
         : compact
           ? "800 12px Inter, system-ui, sans-serif"
           : "800 16px Inter, system-ui, sans-serif";
