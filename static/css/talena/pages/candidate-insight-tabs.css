@@ -113,6 +113,13 @@
   padding: 1.25rem 1.5rem 1.5rem;
 }
 
+/* #441: Reports have their own internal card spacing. Avoid a second
+   outer inset around the complete Team / Leadership / Derailment reports.
+   Keep the standard spacing for other candidate-insight tabs. */
+.process-page #candidate-insights-panel-reports .candidate-insights-subworkspace__panels {
+  padding: 0 !important;
+}
+
 .process-page .candidate-insight-page .candidate-insights-subpanel > .purpose-fit-card,
 .process-page .candidate-insight-page .candidate-insights-subpanel > .personality-questions-card {
   margin-top: 0 !important;
