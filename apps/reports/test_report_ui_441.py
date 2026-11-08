@@ -594,6 +594,109 @@ class ReportUi441Tests(SimpleTestCase):
         self.assertIn('data: numericValues', base)
         self.assertNotIn("dataset.data =", theme)
 
+    def test_leadership_graph_removes_duplicate_heading_but_keeps_accessibility(self):
+        from apps.reports.services.leadership_report import build_leadership_report_content
+
+        template = self.source(
+            "templates/customer/processes/partials/candidate_insights/tabs/_leadership_report.html"
+        )
+        css = self.source("static/css/talena/pages/team-styles.css")
+        self.assertNotIn('id="leadership-score-heading"', template)
+        self.assertNotIn("leadership-report__score-overview-heading", template)
+        self.assertNotIn("{{ leadership_report_content.profile_eyebrow }}", template.split(
+            '<div class="leadership-report__wheel-wrap">'
+        )[0])
+        self.assertIn('aria-label="{{ leadership_report_content.chart_intro.title }}"', template)
+        self.assertIn('class="leadership-report__page-header"', template)
+        self.assertIn("max-width:780px", css)
+        self.assertIn(".leadership-wheel__quadrant{font:800 16px", css)
+        self.assertIn(".leadership-wheel__trait{font:600 12px", css)
+
+        report = build_leadership_report_content(
+            "sv", [{"competency": "Creates the Vision", "stive": 2}]
+        )
+        rendered = render_to_string(
+            "customer/processes/partials/candidate_insights/tabs/_leadership_report.html",
+            {"leadership_report_content": report},
+        )
+        self.assertIn('class="leadership-report__wheel"', rendered)
+        self.assertIn('id="leadership-wheel-title"', rendered)
+        self.assertNotIn('id="leadership-score-heading"', rendered)
+
+    def test_leadership_svg_is_valid_flower_with_eight_original_scores(self):
+        from xml.etree import ElementTree
+        from apps.reports.services.leadership_report import (
+            _SOURCE_NAMES,
+            build_leadership_report_content,
+        )
+
+        scores = [1, 2, 3, 4, 5, 2, 3, 4]
+        names = list(_SOURCE_NAMES.values())
+        assessments = [
+            {"competency": name[0], "stive": score, "stive_rounded": score}
+            for name, score in zip(names, scores)
+        ]
+        namespace = "{http://www.w3.org/2000/svg}"
+
+        for language in ("sv", "en"):
+            with self.subTest(language=language):
+                report = build_leadership_report_content(language, assessments)
+                self.assertTrue(report["has_results"])
+                self.assertEqual(report["scores_count"], 8)
+                self.assertEqual(
+                    [competency["score_rounded"]
+                     for quadrant in report["quadrants"]
+                     for competency in quadrant["competencies"]],
+                    scores,
+                )
+                self.assertEqual(
+                    [competency["score_percent"]
+                     for quadrant in report["quadrants"]
+                     for competency in quadrant["competencies"]],
+                    [score * 20 for score in scores],
+                )
+                svg = ElementTree.fromstring(report["chart_svg"])
+                self.assertEqual(svg.tag, f"{namespace}svg")
+                self.assertEqual(svg.attrib["role"], "img")
+                self.assertEqual(
+                    len(svg.findall(f".//{namespace}path[@class='leadership-wheel__petal']")),
+                    8,
+                )
+                tracks = svg.findall(
+                    f".//{namespace}path[@class='leadership-wheel__track']"
+                )
+                self.assertEqual(len(tracks), 8)
+                self.assertTrue(all(t.attrib["fill-opacity"] == "0.045" for t in tracks))
+                petals = svg.findall(
+                    f".//{namespace}path[@class='leadership-wheel__petal']"
+                )
+                for score, petal in zip(scores, petals):
+                    self.assertIn("Q ", petal.attrib["d"])
+                    self.assertIn(f"A {49 * score} {49 * score}", petal.attrib["d"])
+                hubs = svg.findall(
+                    f".//{namespace}circle[@class='leadership-wheel__hub']"
+                )
+                self.assertEqual(len(hubs), 1)
+                self.assertEqual(hubs[0].attrib["r"], "19")
+                self.assertEqual(
+                    len(svg.findall(f".//{namespace}text[@class='leadership-wheel__score']")),
+                    8,
+                )
+                self.assertEqual(
+                    len(svg.findall(f".//{namespace}text[@class='leadership-wheel__trait']")),
+                    8,
+                )
+                self.assertEqual(
+                    len(svg.findall(f".//{namespace}text[@class='leadership-wheel__quadrant']")),
+                    4,
+                )
+                self.assertEqual(
+                    len(svg.findall(f".//{namespace}line")),
+                    4,
+                )
+                self.assertIsNotNone(svg.find(f"{namespace}title"))
+                self.assertIsNotNone(svg.find(f"{namespace}desc"))
+
     def test_missing_results_do_not_generate_an_interpretation(self):
         result = build_derailment_report_content("sv", [])
         self.assertFalse(result["has_results"])
