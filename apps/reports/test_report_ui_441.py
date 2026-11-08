@@ -249,6 +249,68 @@ class ReportUi441Tests(SimpleTestCase):
                 self.assertIn(f"Resultat {score} av 10", rendered)
                 self.assertNotIn('derailment-report__score-pill', rendered)
 
+    def test_derailment_interpretations_match_personality_summary_layout(self):
+        source = self.source(
+            "templates/customer/processes/partials/candidate_insights/tabs/_derailment_report.html"
+        )
+        css = self.source("static/css/talena/pages/team-styles.css")
+        self.assertIn('class="derailment-report__interpretation-list"', source)
+        self.assertIn('class="derailment-report__interpretation-list-header"', source)
+        self.assertIn('class="derailment-report__interpretation-item"', source)
+        self.assertIn('class="derailment-report__interpretation-text"', source)
+        self.assertNotIn('class="derailment-report__factor-card"', source)
+        self.assertNotIn("<details", source)
+        self.assertNotIn("derailment_report_content.guidance_label", source)
+        self.assertNotIn("derailment-report__factor-card", css)
+        self.assertIn(".derailment-report__interpretation-item:last-child{border-bottom:0}", css)
+        self.assertIn("background:var(--talena-surface-soft", css)
+
+    def test_all_14_interpretations_visible_without_expanding(self):
+        from html import unescape
+        from apps.reports.services.derailment_report import _SOURCE_NAMES
+
+        for language in ("sv", "en"):
+            competencies = [
+                {"competency": names[0], "sten_rounded": (index % 10) + 1}
+                for index, names in enumerate(_SOURCE_NAMES.values())
+            ]
+            report = build_derailment_report_content(language, competencies)
+            rendered = unescape(render_to_string(
+                "customer/processes/partials/candidate_insights/tabs/_derailment_report.html",
+                {"derailment_report_content": report},
+            ))
+            with self.subTest(language=language):
+                self.assertEqual(len(report["factors"]), 14)
+                self.assertEqual(
+                    rendered.count('class="derailment-report__interpretation-item"'),
+                    14,
+                )
+                self.assertNotIn("<details", rendered)
+                self.assertNotIn("Resultatbeskrivning", rendered)
+                self.assertNotIn('derailment-report__score-pill', rendered)
+                for factor in report["factors"]:
+                    self.assertIn(factor["title"], rendered)
+                    for interpretation in factor["interpretations"]:
+                        self.assertIn(interpretation["text"], rendered)
+
+    def test_missing_approved_text_shown_without_inventing_copy(self):
+        from copy import deepcopy
+
+        data = deepcopy(_load_data())
+        data["sv"]["factors"][0]["levels"]["mid"] = ""
+        with patch(
+            "apps.reports.services.derailment_report._load_data",
+            return_value=data,
+        ):
+            report = self.report(3)
+        rendered = render_to_string(
+            "customer/processes/partials/candidate_insights/tabs/_derailment_report.html",
+            {"derailment_report_content": report},
+        )
+        self.assertIn(report["missing_interpretation_label"], rendered)
+        self.assertIn("derailment-report__interpretation-text--missing", rendered)
+        self.assertNotIn("<details", rendered)
+
     def test_missing_results_do_not_generate_an_interpretation(self):
         result = build_derailment_report_content("sv", [])
         self.assertFalse(result["has_results"])
