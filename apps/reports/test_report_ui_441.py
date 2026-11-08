@@ -408,7 +408,7 @@ class ReportUi441Tests(SimpleTestCase):
         # In the customer report view, the shared team-style component
         # keeps its existing hidden header and isn't modified globally.
         self.assertIn(
-            '{% include "customer/processes/partials/_team_styles.html" %}',
+            '{% include "customer/processes/partials/_team_styles.html" with team_style_hide_footer=True %}',
             team,
         )
 
