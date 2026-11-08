@@ -61,7 +61,7 @@
 
       <button
         type="button"
-        class="candidate-tab"
+        class="candidate-tab {% if not has_personality_results %}opacity-50{% endif %}"
         role="tab"
         aria-selected="false"
         aria-controls="candidate-insights-panel-reports"
