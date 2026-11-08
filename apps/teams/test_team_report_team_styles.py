@@ -128,6 +128,69 @@ class TeamReportTeamStyleDataTests(TestCase):
         self.assertEqual(connector_average["average"], 4.4)
         self.assertEqual(connector_average["average_percent"], 88.0)
 
+    def test_composite_chart_uses_true_extrema_and_individual_wheel_order(self):
+        second = Candidate.objects.create(
+            first_name="Second",
+            last_name="Member",
+            email="second-team-member@example.com",
+        )
+        TeamMembership.objects.create(
+            team=self.team,
+            candidate=second,
+            source="manual",
+        )
+        TestInvitation.objects.create(
+            process=self.process,
+            candidate=self.candidate,
+            status="completed",
+            sova_activities=[{"competencies": [
+                {"competency": "Catalyst", "stive": 3.2},
+                {"competency": "Connector", "stive": 4.4},
+                {"competency": "Director", "stive": 3.8},
+            ]}],
+        )
+        TestInvitation.objects.create(
+            process=self.process,
+            candidate=second,
+            status="completed",
+            sova_activities=[{"competencies": [
+                {"competency": "Catalyst", "stive": 2.4},
+                {"competency": "Connector", "stive": 1.6},
+                {"competency": "Director", "stive": 4.8},
+            ]}],
+        )
+
+        stats = build_team_style_statistics(
+            self.team,
+            candidate_ids={self.candidate.id, second.id},
+            process_ids=[self.process.id],
+        )
+
+        self.assertEqual(stats["chart_labels"], [
+            "Catalyst", "Director", "Energiser", "Architect",
+            "Harmoniser", "Analyst", "Auditor", "Connector",
+        ])
+        self.assertEqual(stats["chart_average_values"][0], 2.8)
+        self.assertEqual(stats["chart_min_values"][0], 2.4)
+        self.assertEqual(stats["chart_max_values"][0], 3.2)
+        self.assertEqual(stats["chart_average_values"][-1], 3.0)
+        self.assertEqual(stats["chart_min_values"][-1], 1.6)
+        self.assertEqual(stats["chart_max_values"][-1], 4.4)
+        self.assertIsNone(stats["chart_min_values"][3])
+        self.assertIsNone(stats["chart_max_values"][3])
+        minimum_connector = next(
+            row for row in stats["minimum_rows"]
+            if row["style"] == "Connector"
+        )
+        self.assertEqual(minimum_connector["minimum"], 1.6)
+        self.assertEqual(minimum_connector["count"], 2)
+        connector_extremes = next(
+            row for row in stats["most_least_rows"]
+            if row["style"] == "Connector"
+        )
+        self.assertEqual(connector_extremes["least"][0]["name"], "Second Member")
+        self.assertEqual(connector_extremes["most"][0]["name"], "Live Candidate")
+
     def test_historical_sten_team_style_is_normalised_to_five_point_scale(self):
         now = timezone.now()
         historical_candidate = HistoricalProcessCandidate.objects.create(
