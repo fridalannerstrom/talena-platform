@@ -101,10 +101,6 @@
       </div>
     </section>
   {% else %}
-    <section class="derailment-report__empty">
-      <span class="derailment-report__empty-icon" aria-hidden="true"><i data-feather="activity"></i></span>
-      <h3>{{ derailment_report_content.empty_title }}</h3>
-      <p>{{ derailment_report_content.empty_body }}</p>
-    </section>
+    {% include "customer/processes/partials/candidate_insights/_missing_assessment.html" with missing_icon="activity" missing_title=derailment_report_content.empty_title missing_description=derailment_report_content.empty_body %}
   {% endif %}
 </section>
