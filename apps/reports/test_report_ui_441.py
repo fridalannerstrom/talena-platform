@@ -546,22 +546,52 @@ class ReportUi441Tests(SimpleTestCase):
         # for the candidate report. Embedded team charts remain unchanged.
         for source in (base, theme):
             self.assertIn(
-                "candidateReport ? (compact ? 18 : 26) : (compact ? 7 : 12)",
+                "candidateReport ? (compact ? 26 : 40) : (compact ? 7 : 12)",
                 source,
             )
             self.assertIn(
-                "candidateReport ? (compact ? 3 : 5) : (compact ? 1 : 2)",
+                "candidateReport ? (compact ? 5 : 8) : (compact ? 1 : 2)",
                 source,
             )
         self.assertIn(
-            '"800 18px Inter, system-ui, sans-serif"', theme
+            '"800 16px Inter, system-ui, sans-serif"', theme
         )
         self.assertIn(
-            '"800 14px Inter, system-ui, sans-serif"', theme
+            '"800 13px Inter, system-ui, sans-serif"', theme
         )
         self.assertIn('canvas.closest("#reports-subpanel-team-report")', base)
         self.assertIn('canvas.closest("#reports-subpanel-team-report")', theme)
         self.assertIn("data: numericValues", base)
+        self.assertNotIn("dataset.data =", theme)
+
+    def test_team_flower_uses_white_center_and_smaller_labels(self):
+        theme = self.source("static/js/talena/candidate-chart-theme.js")
+        base = self.source("templates/customer/processes/process_base.html")
+        start = theme.index("  function drawTeamStyleOverlay(chart) {")
+        end = theme.index("  function findLocalLabelsPlugin(", start)
+        overlay = theme[start:end]
+
+        self.assertIn(
+            'if (candidateReport) {\\n      ctx.beginPath();\\n'
+            '      ctx.arc(centerX, centerY, compact ? 11 : 19, 0, Math.PI * 2);',
+            overlay,
+        )
+        self.assertIn('ctx.fillStyle = "#ffffff";', overlay)
+        self.assertLess(
+            overlay.index('ctx.arc(centerX, centerY, compact ? 11 : 19'),
+            overlay.index('ctx.fillText(String(item.score), scoreX, scoreY);'),
+        )
+        # Candidate-only font reductions; shared team chart numbers unchanged.
+        self.assertIn('"600 11px Inter, system-ui, sans-serif"', overlay)
+        self.assertIn('"700 10px Inter, system-ui, sans-serif"', overlay)
+        self.assertIn('"700 8px Inter, system-ui, sans-serif"', overlay)
+        self.assertIn('"800 16px Inter, system-ui, sans-serif"', overlay)
+        self.assertIn('"800 13px Inter, system-ui, sans-serif"', overlay)
+        self.assertIn(
+            'ctx.fillStyle = `rgba(${palette.rgb.join(", ")}, 0.035)`;',
+            theme,
+        )
+        self.assertIn('data: numericValues', base)
         self.assertNotIn("dataset.data =", theme)
 
     def test_missing_results_do_not_generate_an_interpretation(self):
