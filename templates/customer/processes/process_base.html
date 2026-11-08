@@ -87,9 +87,22 @@
 {% trans "The motivation questions could not be generated." as js_motivation_questions_could_not_be_generated %}
 {% trans "The motivation questions are already being generated." as js_motivation_questions_already_generating %}
 {% trans "The motivation questions could not be regenerated." as js_motivation_questions_could_not_be_regenerated %}
-{% trans "Cognitive interpretation" as js_cognitive_interpretation %}
-{% trans "The cognitive interpretation could not be generated." as js_cognitive_interpretation_could_not_be_generated %}
-{% trans "The cognitive interpretation is already being generated." as js_cognitive_interpretation_already_generating %}
+{% get_current_language as process_ui_language %}
+{% if process_ui_language|slice:":2" == "sv" %}
+  {% trans "Färdighetstolkning" as js_cognitive_interpretation %}
+{% else %}
+  {% trans "Cognitive interpretation" as js_cognitive_interpretation %}
+{% endif %}
+{% if process_ui_language|slice:":2" == "sv" %}
+  {% trans "Färdighetstolkningen kunde inte genereras." as js_cognitive_interpretation_could_not_be_generated %}
+{% else %}
+  {% trans "The cognitive interpretation could not be generated." as js_cognitive_interpretation_could_not_be_generated %}
+{% endif %}
+{% if process_ui_language|slice:":2" == "sv" %}
+  {% trans "Färdighetstolkningen håller redan på att genereras." as js_cognitive_interpretation_already_generating %}
+{% else %}
+  {% trans "The cognitive interpretation is already being generated." as js_cognitive_interpretation_already_generating %}
+{% endif %}
 {% trans "Cognitive questions" as js_cognitive_questions %}
 {% trans "The cognitive questions could not be generated." as js_cognitive_questions_could_not_be_generated %}
 {% trans "The cognitive questions are already being generated." as js_cognitive_questions_already_generating %}
