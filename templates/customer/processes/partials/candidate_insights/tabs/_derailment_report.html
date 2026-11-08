@@ -38,12 +38,35 @@
                 aria-valuemax="10"
                 aria-valuenow="{{ factor.score }}"
               >
-                <div class="derailment-report__scale-segments">
-                  {% for segment in factor.scale_segments %}
-                    <span class="derailment-report__scale-segment{% if segment == factor.score %} is-marker{% endif %}{% if segment in factor.scale_filled_segments %} is-filled{% endif %}"></span>
-                  {% endfor %}
+                {# Reuse the exact segmented personality scale design for visual consistency. #}
+                <div class="derailment-report__scale-segments personality-indicator-scale" aria-hidden="true">
+                  <div class="personality-indicator-scale__side personality-indicator-scale__side--left">
+                    {% for segment in factor.scale_segments %}
+                      {% if segment <= 5 %}
+                        <span
+                          class="personality-indicator-scale__segment{% if segment in factor.scale_filled_segments %} personality-indicator-scale__segment--filled{% endif %}{% if segment == factor.score %} personality-indicator-scale__segment--selected{% endif %}"
+                          data-score="{{ segment }}"
+                        ></span>
+                      {% endif %}
+                    {% endfor %}
+                  </div>
+                  <span class="personality-indicator-scale__center-line" aria-hidden="true"></span>
+                  <div class="personality-indicator-scale__side personality-indicator-scale__side--right">
+                    {% for segment in factor.scale_segments %}
+                      {% if segment >= 6 %}
+                        <span
+                          class="personality-indicator-scale__segment{% if segment in factor.scale_filled_segments %} personality-indicator-scale__segment--filled{% endif %}{% if segment == factor.score %} personality-indicator-scale__segment--selected{% endif %}"
+                          data-score="{{ segment }}"
+                        ></span>
+                      {% endif %}
+                    {% endfor %}
+                  </div>
                 </div>
-                <div class="derailment-report__scale-labels" aria-hidden="true"><span>1</span><span>10</span></div>
+                <div class="derailment-report__scale-labels personality-indicator-scale__labels" aria-hidden="true">
+                  <span class="personality-indicator-scale__label--left">{% trans "Left" %}</span>
+                  <span class="personality-indicator-scale__label--center">{% trans "Average" %}</span>
+                  <span class="personality-indicator-scale__label--right">{% trans "Right" %}</span>
+                </div>
               </div>
             </div>
             <div class="derailment-report__profile-copy derailment-report__profile-copy--higher">
