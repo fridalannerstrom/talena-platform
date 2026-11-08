@@ -224,6 +224,7 @@
 
       </div>
 
+      {% if not team_style_hide_footer %}
       <footer class="team-styles-footer">
         {% blocktrans trimmed %}
           Team-style results describe likely preferences rather than fixed
@@ -232,6 +233,7 @@
           should not be overinterpreted.
         {% endblocktrans %}
       </footer>
+      {% endif %}
 
     </div>
   </section>
