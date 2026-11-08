@@ -8,14 +8,10 @@
           <span class="leadership-report__eyebrow">{{ leadership_report_content.profile_eyebrow }}</span>
           <h3 id="leadership-score-heading">{{ leadership_report_content.chart_intro.title }}</h3>
         </div>
-        <span class="leadership-report__score-count">
-          {{ leadership_report_content.scores_count }} {{ leadership_report_content.score_count_label }}
-        </span>
       </div>
       <div class="leadership-report__wheel-wrap">
         {{ leadership_report_content.chart_svg|safe }}
       </div>
-      <p class="leadership-report__score-scale">{{ leadership_report_content.score_scale_label }}</p>
     </section>
 
     <header class="leadership-report__intro">

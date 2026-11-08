@@ -620,17 +620,18 @@
 .derailment-report__profile-list{margin-top:18px}
 .derailment-report__profile-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(190px,.85fr) minmax(0,1fr);align-items:center;gap:20px;padding:17px 0;border-top:1px solid #eee9e6}
 .derailment-report__profile-copy{min-width:0;color:#65616b;font-size:.82rem;line-height:1.5}
-.derailment-report__profile-copy>span{display:block;margin-bottom:4px;color:#89827f;font-size:.68rem;font-weight:750;letter-spacing:.04em;text-transform:uppercase}
 .derailment-report__profile-copy p{margin:0}
 .derailment-report__profile-copy--higher{text-align:right}
 .derailment-report__profile-result{min-width:0}
 .derailment-report__profile-result-heading{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:9px}
 .derailment-report__profile-result-heading strong{color:#302e36;font-size:.88rem}
 .derailment-report__profile-result-heading span{white-space:nowrap;color:#51429a;font-size:.75rem;font-weight:750}
-.derailment-report__scale-segments{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:4px}
+.derailment-report__scale-segments{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:4px;position:relative;isolation:isolate}
+/* Centre is the boundary between segments 5 and 6, not an invented score. */
+.derailment-report__scale-segments::after{content:"";position:absolute;top:-5px;bottom:-5px;left:50%;width:2px;transform:translateX(-50%);background:#706a68;border-radius:2px;z-index:2;pointer-events:none}
 .derailment-report__scale-segment{height:10px;border-radius:99px;background:#eeeae8;position:relative}
 .derailment-report__scale-segment.is-filled{background:#d9d4d1}
-.derailment-report__scale-segment.is-marker{background:#f36d62;box-shadow:0 0 0 2px white,0 0 0 4px #f36d62;z-index:1}
+.derailment-report__scale-segment.is-marker{background:#f36d62;box-shadow:0 0 0 2px white,0 0 0 4px #f36d62;z-index:3}
 .derailment-report__scale-labels{display:flex;justify-content:space-between;margin-top:7px;color:#928b88;font-size:.68rem}
 .derailment-report__scale-note{margin:14px 0 0;text-align:right;color:#89827f;font-size:.76rem}
 .derailment-report__intro{display:flex;gap:15px;padding:22px;margin:0 0 24px}
