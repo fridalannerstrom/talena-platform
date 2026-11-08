@@ -328,6 +328,37 @@
     return lines.slice(0, 2);
   }
 
+  // Full-radius, very pale guides make small scores legible without
+  // changing their actual polar-area wedge size or numeric value.
+  function drawTeamStyleTracks(chart) {
+    const canvas = chart?.canvas;
+    if (!canvas?.closest("#reports-subpanel-team-report")) return;
+
+    const items = getTeamStyleItems(canvas);
+    const arcs = chart.getDatasetMeta(0)?.data || [];
+    const scale = chart.scales?.r;
+    if (!items.length || !arcs.length || !scale) return;
+
+    const ctx = chart.ctx;
+    ctx.save();
+    items.forEach((item, index) => {
+      const arc = arcs[index];
+      if (!arc) return;
+      const palette = TEAM_STYLE_PALETTE[item.quadrantKey] || DOMAIN_PALETTE[0];
+      ctx.beginPath();
+      ctx.moveTo(scale.xCenter, scale.yCenter);
+      ctx.arc(scale.xCenter, scale.yCenter, scale.drawingArea,
+        arc.startAngle, arc.endAngle);
+      ctx.closePath();
+      ctx.fillStyle = `rgba(${palette.rgb.join(", ")}, 0.055)`;
+      ctx.fill();
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.9)";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    });
+    ctx.restore();
+  }
+
   function drawTeamStyleOverlay(chart) {
     const canvas = chart?.canvas;
 
@@ -344,11 +375,12 @@
     }
 
     const compact = canvas.clientWidth < 620;
+    const candidateReport = Boolean(canvas.closest("#reports-subpanel-team-report"));
     const centerX = radialScale.xCenter;
     const centerY = radialScale.yCenter;
     const drawingArea = radialScale.drawingArea;
-    const styleLabelRadius = drawingArea + (compact ? 18 : 28);
-    const quadrantLabelRadius = drawingArea + (compact ? 48 : 68);
+    const styleLabelRadius = drawingArea + (compact ? 16 : candidateReport ? 23 : 28);
+    const quadrantLabelRadius = drawingArea + (compact ? 43 : candidateReport ? 65 : 68);
     const ctx = chart.ctx;
 
     ctx.save();
@@ -370,8 +402,9 @@
         centerX + Math.cos(angle) * drawingArea,
         centerY + Math.sin(angle) * drawingArea
       );
-      ctx.strokeStyle = "rgba(23, 19, 18, 0.26)";
-      ctx.lineWidth = compact ? 1.6 : 2.1;
+      ctx.strokeStyle = candidateReport
+        ? "rgba(90, 87, 93, 0.19)" : "rgba(23, 19, 18, 0.26)";
+      ctx.lineWidth = candidateReport ? 1.1 : (compact ? 1.6 : 2.1);
       ctx.stroke();
     });
 
@@ -402,9 +435,11 @@
       ctx.fillStyle = "#475467";
       ctx.font = compact
         ? "600 9px Inter, system-ui, sans-serif"
-        : "600 11px Inter, system-ui, sans-serif";
+        : candidateReport
+          ? "600 12px Inter, system-ui, sans-serif"
+          : "600 11px Inter, system-ui, sans-serif";
 
-      const lineHeight = compact ? 11 : 14;
+      const lineHeight = compact ? 11 : 15;
       const firstLineY = labelY - ((labelLines.length - 1) * lineHeight) / 2;
 
       labelLines.forEach((line, lineIndex) => {
@@ -460,11 +495,20 @@
 
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillStyle = "#171312";
-      ctx.font = compact
-        ? "800 12px Inter, system-ui, sans-serif"
-        : "800 16px Inter, system-ui, sans-serif";
-      ctx.fillText(String(quadrant.label || ""), x, y);
+      ctx.fillStyle = candidateReport ? "#353238" : "#171312";
+      ctx.font = candidateReport
+        ? compact
+          ? "700 11px Inter, system-ui, sans-serif"
+          : "700 13px Inter, system-ui, sans-serif"
+        : compact
+          ? "800 12px Inter, system-ui, sans-serif"
+          : "800 16px Inter, system-ui, sans-serif";
+      const label = String(quadrant.label || "");
+      // Keep long quadrant labels within the canvas on mobile.
+      const inset = ctx.measureText(label).width / 2 + 12;
+      const safeX = Math.max(inset, Math.min(chart.width - inset, x));
+      const safeY = Math.max(18, Math.min(chart.height - 18, y));
+      ctx.fillText(label, safeX, safeY);
     });
 
     ctx.restore();
@@ -525,6 +569,10 @@
       return false;
     }
 
+    /* Full-radius guides are behind the actual score wedges. */
+    plugin.beforeDatasetsDraw = function talenaTeamStyleBeforeDatasetsDraw(currentChart) {
+      drawTeamStyleTracks(currentChart);
+    };
     /* Replace the legacy coloured corner headings with the Talena rose hierarchy. */
     plugin.afterDraw = function talenaTeamStyleAfterDraw(currentChart) {
       drawTeamStyleOverlay(currentChart);
@@ -625,6 +673,7 @@
     }
 
     const compact = canvas.clientWidth < 620;
+    const candidateReport = Boolean(canvas.closest("#reports-subpanel-team-report"));
 
     applyTeamStyleDatasetTheme(chart);
     const patched = patchTeamStyleLabelsPlugin(chart);
@@ -637,6 +686,7 @@
         radial.ticks.color = "#9c938e";
         radial.ticks.backdropColor = "rgba(255, 255, 255, 0.9)";
         radial.ticks.backdropPadding = 2;
+        if (candidateReport) radial.ticks.display = false;
         radial.ticks.font = {
           ...(radial.ticks.font || {}),
           size: compact ? 9 : 10,
@@ -644,8 +694,11 @@
       }
 
       if (radial.grid) {
-        radial.grid.color = "rgba(23, 19, 18, 0.10)";
+        radial.grid.color = candidateReport
+          ? "rgba(55, 57, 65, 0.10)" : "rgba(23, 19, 18, 0.10)";
       }
+
+      if (candidateReport) radial.startAngle = 0;
 
       if (radial.angleLines) {
         radial.angleLines.display = false;
