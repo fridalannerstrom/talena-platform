@@ -153,4 +153,9 @@ def build_derailment_report_content(
         "has_results": bool(factors),
         "scores_count": len(factors),
         "total_factors": 14,
+        "missing_interpretation_label": (
+            "Ingen godkänd tolkning finns för detta resultat."
+            if language == "sv"
+            else "No approved interpretation is available for this result."
+        ),
     }
