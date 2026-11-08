@@ -72,6 +72,83 @@ def _clean_display_text(value: str | None) -> str:
     return re.sub(r"\s+", " ", (value or "").strip())
 
 
+def _structure_leadership_introduction(body: str | None, language: str) -> dict:
+    """Restore meaningful paragraphs from hard-wrapped approved Sova copy.
+
+    The source library contains manual line wraps from its original report.
+    Treat them as whitespace, but preserve the paragraph and quadrant
+    boundaries so the user can read the same words in a calmer layout.
+    """
+    language = "sv" if language == "sv" else "en"
+    section_heading = (
+        "TQs ledarskapsmodell" if language == "sv"
+        else "The Sova Leadership Model"
+    )
+    paragraph_starts = (
+        (
+            "Modellen har utvecklats",
+            "Dina resultat har beräknats",
+            "Vår ledarskapsmodell",
+            "I modellen finns",
+        ) if language == "sv" else (
+            "The model has been developed",
+            "Your results have been calculated",
+            "The Sova Leadership model is split",
+            "Within the model",
+        )
+    )
+    sections = {
+        "paragraphs": [],
+        "model_heading": "",
+        "model_paragraphs": [],
+        "quadrants": [],
+    }
+    active_lines: list[str] = []
+    part = "paragraphs"
+
+    def flush() -> None:
+        nonlocal active_lines
+        if not active_lines:
+            return
+        content = " ".join(active_lines)
+        if part == "quadrants":
+            title, separator, description = content.partition(": ")
+            if separator:
+                sections["quadrants"].append({
+                    "title": title.removeprefix("• ").strip(),
+                    "description": description.strip(),
+                })
+            else:
+                sections["model_paragraphs"].append(content)
+        else:
+            sections[part].append(content)
+        active_lines = []
+
+    for raw_line in (body or "").splitlines():
+        line = raw_line.strip()
+        if not line:
+            continue
+        if line == section_heading:
+            flush()
+            sections["model_heading"] = line
+            part = "model_paragraphs"
+        elif line.startswith("• "):
+            flush()
+            part = "quadrants"
+            active_lines.append(line)
+        elif line.startswith(paragraph_starts):
+            flush()
+            if part != "quadrants":
+                active_lines.append(line)
+            else:
+                part = "model_paragraphs"
+                active_lines.append(line)
+        else:
+            active_lines.append(line)
+    flush()
+    return sections
+
+
 def _split_reflection_questions(value: str | None) -> list[str]:
     pieces = re.split(r"(?:^|\n)\s*•\s*", (value or "").strip())
     return [_clean_display_text(piece) for piece in pieces if _clean_display_text(piece)]
@@ -93,11 +170,24 @@ def _wrap_svg_label(value: str, limit: int = 16) -> list[str]:
     return lines
 
 
-def _build_leadership_chart_svg(content: dict, scores_by_key: dict, language: str) -> str:
+def _build_leadership_chart_svg(
+    content: dict,
+    scores_by_key: dict,
+    language: str,
+    *,
+    source_keys: list[str] | None = None,
+    svg_id_prefix: str = "leadership-wheel",
+    svg_extra_class: str = "",
+) -> str:
+    """Render a balanced eight-petal leadership profile from SOVA 1–5 scores.
+
+    Same four-area flower language as the candidate Team report.  The SVG is
+    generated server-side (not by Chart.js); only presentation is changed.
+    """
     width, height = 900, 780
-    cx, cy, radius = 450, 390, 250
-    source_keys = list(_SOURCE_NAMES)
-    quadrant_colors = ["#e99a91", "#dfaaa5", "#9db9ad", "#e1d1b2"]
+    cx, cy, radius = 450, 390, 245
+    source_keys = list(source_keys) if source_keys is not None else list(_SOURCE_NAMES)
+    quadrant_colors = ("#ef978f", "#dbada7", "#a0baae", "#d9bc90")
 
     def point(distance: float, angle: float) -> tuple[float, float]:
         radians = math.radians(angle)
@@ -106,10 +196,49 @@ def _build_leadership_chart_svg(content: dict, scores_by_key: dict, language: st
     def fmt(value: float) -> str:
         return f"{value:.2f}".rstrip("0").rstrip(".")
 
+    def radial_sector(start_angle: float, end_angle: float, sector_radius: float) -> str:
+        """Straight radial sector used only for faint full-scale guides."""
+        start_x, start_y = point(sector_radius, start_angle)
+        end_x, end_y = point(sector_radius, end_angle)
+        return (
+            f"M {cx} {cy} L {fmt(start_x)} {fmt(start_y)} "
+            f"A {fmt(sector_radius)} {fmt(sector_radius)} 0 0 1 "
+            f"{fmt(end_x)} {fmt(end_y)} Z"
+        )
+
+    def petal_path(index: int, sector_radius: float) -> str:
+        """Round the outer corners of a radial sector without changing its reach."""
+        # Two neighbouring petals have a little space around their edges.
+        start_angle = -135 + index * 45 + 2.5
+        end_angle = -90 + index * 45 - 2.5
+        shoulder_radius = max(22.0, sector_radius - 16.0)
+        corner_angle = min(10.0, math.degrees(15.0 / sector_radius))
+
+        shoulder_start = point(shoulder_radius, start_angle)
+        tip_start = point(sector_radius, start_angle)
+        arc_start = point(sector_radius, start_angle + corner_angle)
+        arc_end = point(sector_radius, end_angle - corner_angle)
+        tip_end = point(sector_radius, end_angle)
+        shoulder_end = point(shoulder_radius, end_angle)
+
+        return (
+            f"M {cx} {cy} "
+            f"L {fmt(shoulder_start[0])} {fmt(shoulder_start[1])} "
+            f"Q {fmt(tip_start[0])} {fmt(tip_start[1])} "
+            f"{fmt(arc_start[0])} {fmt(arc_start[1])} "
+            f"A {fmt(sector_radius)} {fmt(sector_radius)} 0 0 1 "
+            f"{fmt(arc_end[0])} {fmt(arc_end[1])} "
+            f"Q {fmt(tip_end[0])} {fmt(tip_end[1])} "
+            f"{fmt(shoulder_end[0])} {fmt(shoulder_end[1])} Z"
+        )
+
     parts = [
-        f'<svg class="leadership-report__wheel" viewBox="0 0 {width} {height}" role="img" aria-labelledby="leadership-wheel-title leadership-wheel-desc" xmlns="http://www.w3.org/2000/svg">',
-        f'<title id="leadership-wheel-title">{escape(content["chart_intro"]["title"])}</title>',
-        f'<desc id="leadership-wheel-desc">{escape(content["chart_intro"]["body"]).replace(chr(10), " ")}</desc>',
+        f'<svg class="leadership-report__wheel{(" " + svg_extra_class) if svg_extra_class else ""}" '
+        f'viewBox="0 0 {width} {height}" role="img" '
+        f'aria-labelledby="{svg_id_prefix}-title {svg_id_prefix}-desc" '
+        f'xmlns="http://www.w3.org/2000/svg">',
+        f'<title id="{svg_id_prefix}-title">{escape(content["chart_intro"]["title"])}</title>',
+        f'<desc id="{svg_id_prefix}-desc">{escape(content["chart_intro"]["body"]).replace(chr(10), " ")}</desc>',
     ]
 
     flattened = [
@@ -117,63 +246,84 @@ def _build_leadership_chart_svg(content: dict, scores_by_key: dict, language: st
         for quadrant_index, quadrant in enumerate(content["quadrants"])
         for competency in quadrant["competencies"]
     ]
-    for index, (quadrant_index, competency) in enumerate(flattened[:8]):
-        result = scores_by_key.get(source_keys[index])
-        if result is None:
-            continue
-        score, rounded_score = result
-        sector_radius = radius * rounded_score / 5
-        start = point(sector_radius, -112.5 + index * 45)
-        end = point(sector_radius, -67.5 + index * 45)
+
+    # Pale guide petals retain the full extent of the 1–5 scale, even when
+    # a person's individual preferences are lower. The actual scores are
+    # represented only by the opaque foreground petals further below.
+    for index, (quadrant_index, _competency) in enumerate(flattened[:8]):
+        angle_start = -135 + index * 45
         parts.append(
-            f'<path d="M {cx} {cy} L {fmt(start[0])} {fmt(start[1])} '
-            f'A {fmt(sector_radius)} {fmt(sector_radius)} 0 0 1 '
-            f'{fmt(end[0])} {fmt(end[1])} Z" fill="{quadrant_colors[quadrant_index]}" '
-            f'stroke="#fff" stroke-width="3"/>'
+            f'<path class="leadership-wheel__track" '
+            f'd="{radial_sector(angle_start, angle_start + 45, radius)}" '
+            f'fill="{quadrant_colors[quadrant_index]}" fill-opacity="0.045"/>'
         )
 
     for level in range(1, 6):
         ring_radius = radius * level / 5
         parts.append(
-            f'<circle cx="{cx}" cy="{cy}" r="{fmt(ring_radius)}" fill="none" '
-            f'stroke="#dedede" stroke-width="1.2"/>'
+            f'<circle cx="{cx}" cy="{cy}" r="{fmt(ring_radius)}" '
+            f'fill="none" stroke="#e5e4e3" stroke-width="1.15"/>'
         )
-        label_x, label_y = point(ring_radius, -112)
+        # The top gap between the two first petals is clearer than the
+        # previous diagonal, where the ring numbers overlapped competence text.
+        label_x, label_y = point(ring_radius, -90)
         parts.append(
-            f'<text class="leadership-wheel__ring-label" x="{fmt(label_x)}" y="{fmt(label_y)}" '
-            f'text-anchor="middle">{level}</text>'
+            f'<text class="leadership-wheel__ring-label" x="{fmt(label_x)}" '
+            f'y="{fmt(label_y - 1)}" text-anchor="middle">{level}</text>'
         )
 
-    for boundary in range(8):
-        angle = -112.5 + boundary * 45
+    # Four diagonal boundaries distinguish areas without heavy spokes
+    # crossing the score petals.
+    for boundary in range(4):
+        angle = -135 + boundary * 90
         x, y = point(radius, angle)
-        strong = boundary % 2 == 0
-        line_color = "#b9b9b9" if strong else "#ffffff"
-        line_width = "2.6" if strong else "1.6"
         parts.append(
             f'<line x1="{cx}" y1="{cy}" x2="{fmt(x)}" y2="{fmt(y)}" '
-            f'stroke="{line_color}" stroke-width="{line_width}"/>'
+            f'stroke="#aaa8a8" stroke-opacity="0.28" stroke-width="1.2"/>'
         )
+
+    for index, (quadrant_index, _competency) in enumerate(flattened[:8]):
+        result = scores_by_key.get(source_keys[index])
+        if result is None:
+            continue
+        _score, rounded_score = result
+        sector_radius = radius * rounded_score / 5
+        parts.append(
+            f'<path class="leadership-wheel__petal" '
+            f'd="{petal_path(index, sector_radius)}" '
+            f'fill="{quadrant_colors[quadrant_index]}" '
+            f'stroke="#fff" stroke-width="2.2" stroke-linejoin="round"/>'
+        )
+
+    # The center is a quiet hub, as in the Team report. It covers the sharp
+    # starts of the petals, but never obscures score numbers.
+    parts.append(
+        f'<circle class="leadership-wheel__hub" cx="{cx}" cy="{cy}" '
+        f'r="19" fill="#fff"/>'
+    )
 
     for index, (_quadrant_index, _competency) in enumerate(flattened[:8]):
         result = scores_by_key.get(source_keys[index])
         if result is None:
             continue
         _score, rounded_score = result
-        score_x, score_y = point(max(29, radius * rounded_score / 5 * 0.67), -90 + index * 45)
-        score_text = str(rounded_score)
+        score_radius = radius * rounded_score / 5
+        score_x, score_y = point(
+            max(34, score_radius * 0.66), -112.5 + index * 45
+        )
         parts.append(
-            f'<text class="leadership-wheel__score" x="{fmt(score_x)}" y="{fmt(score_y)}" '
-            f'text-anchor="middle" dominant-baseline="central">{escape(score_text)}</text>'
+            f'<text class="leadership-wheel__score" x="{fmt(score_x)}" '
+            f'y="{fmt(score_y)}" text-anchor="middle" '
+            f'dominant-baseline="central">{rounded_score}</text>'
         )
 
     for index, (_quadrant_index, competency) in enumerate(flattened[:8]):
-        angle = -90 + index * 45
-        label_x, label_y = point(radius + 45, angle)
+        angle = -112.5 + index * 45
+        label_x, label_y = point(radius + 39, angle)
         cosine = math.cos(math.radians(angle))
         anchor = "middle" if abs(cosine) < 0.26 else ("start" if cosine > 0 else "end")
-        lines = _wrap_svg_label(competency["title"])
-        line_height = 15
+        lines = _wrap_svg_label(competency["title"], limit=16)
+        line_height = 14
         first_y = label_y - (len(lines) - 1) * line_height / 2
         parts.append(f'<text class="leadership-wheel__trait" text-anchor="{anchor}">')
         for line_index, line in enumerate(lines):
@@ -183,17 +333,18 @@ def _build_leadership_chart_svg(content: dict, scores_by_key: dict, language: st
             )
         parts.append("</text>")
 
-    quadrant_positions = [
-        (cx, 24, "middle"),
-        (width - 8, cy, "end"),
-        (cx, height - 15, "middle"),
-        (8, cy, "start"),
-    ]
+    quadrant_positions = (
+        (cx, 45, "middle"),
+        (width - 14, cy, "end"),
+        (cx, height - 44, "middle"),
+        (14, cy, "start"),
+    )
     for index, quadrant in enumerate(content["quadrants"][:4]):
         x, y, anchor = quadrant_positions[index]
         parts.append(
             f'<text class="leadership-wheel__quadrant" x="{x}" y="{y}" '
-            f'text-anchor="{anchor}" dominant-baseline="central">{escape(quadrant["title"])}</text>'
+            f'text-anchor="{anchor}" dominant-baseline="central">'
+            f'{escape(quadrant["title"])}</text>'
         )
 
     parts.append("</svg>")
@@ -276,6 +427,9 @@ def build_leadership_report_content(
     return {
         **content,
         "quadrants": quadrants,
+        "introduction_sections": _structure_leadership_introduction(
+            content["introduction"]["body"], language
+        ),
         "chart_svg": _build_leadership_chart_svg(content, scores_by_key, language),
         "has_results": bool(all_competencies),
         "scores_count": len(all_competencies),

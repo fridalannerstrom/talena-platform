@@ -332,7 +332,9 @@
   function findHeading(source) {
     return source.querySelector(
       ".response-styles-header, .team-styles-header, " +
-      ".personality-questions-header, .candidate-insight-page-header"
+      ".personality-questions-header, .team-report__page-header, " +
+      ".leadership-report__page-header, .derailment-report__page-header, " +
+      ".candidate-insight-page-header"
     );
   }
 

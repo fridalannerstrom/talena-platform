@@ -113,6 +113,9 @@
   padding: 1.25rem 1.5rem 1.5rem;
 }
 
+/* #441: Report tabs stay flush with the outer page, while their panel
+   content uses the same inset as other candidate-insight subtabs. */
+
 .process-page .candidate-insight-page .candidate-insights-subpanel > .purpose-fit-card,
 .process-page .candidate-insight-page .candidate-insights-subpanel > .personality-questions-card {
   margin-top: 0 !important;
@@ -125,8 +128,10 @@
    The page header now lives above the existing team content.
    --------------------------------------------------------- */
 
+/* #441: The report page body wraps BOTH report subtabs and their content.
+   Do not inset that entire area; each subcomponent owns its own spacing. */
 .process-page .candidate-insight-page-body {
-  padding: 1.25rem 1.5rem 1.5rem;
+  padding: 0;
 }
 
 .process-page #candidate-insights-panel-reports .team-styles-section {
@@ -208,8 +213,12 @@
     gap: 0.9rem;
   }
 
-  .process-page .candidate-insight-page .candidate-insights-subworkspace__panels,
-  .process-page .candidate-insight-page-body {
+  .process-page .candidate-insight-page .candidate-insights-subworkspace__panels {
     padding: 1rem;
+  }
+
+  /* Keep the surrounding page wrapper flush on mobile too. */
+  .process-page .candidate-insight-page-body {
+    padding: 0;
   }
 }

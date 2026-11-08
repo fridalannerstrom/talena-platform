@@ -73,8 +73,15 @@ jobs:
           node --check static/js/talena/account-invite-language.js
           node scripts/test_account_invite_language.js
           node --check static/js/talena/candidate-ai-badges.js
+          node --check static/js/talena/candidate-chart-theme.js
           node --check static/js/talena/project-assessment-status.js
           node scripts/test_structured_overall_picture_contract.js
+      - name: Verify report scale mapping and interpretation copy (#441)
+        env:
+          DJANGO_DEBUG: 'True'
+          DJANGO_SECRET_KEY: local-qa-only
+          USE_AZURE_STORAGE: '0'
+        run: python manage.py test apps.reports.test_report_ui_441 --noinput
       - name: Verify personality question role-context quality gate
         env:
           DJANGO_DEBUG: 'True'

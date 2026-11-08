@@ -3,7 +3,11 @@
 {# Talena candidate insights workspace #}
 {% trans "context" as context_fallback %}
 {% trans "Add context" as add_context_fallback %}
-{% trans "Candidate insights" as candidate_insights_eyebrow %}
+{% if LANGUAGE_CODE|slice:":2" == "sv" %}
+  {% trans "Insikter" as candidate_insights_eyebrow %}
+{% else %}
+  {% trans "Candidate insights" as candidate_insights_eyebrow %}
+{% endif %}
 {% trans "Personality" as personality_panel_title %}
 {% if LANGUAGE_CODE|slice:":2" == "sv" %}
   {% trans "Utforska insikter kopplat till personens personlighetsresultat." as personality_panel_description %}
@@ -11,13 +15,21 @@
   {% trans "Explore insights based on the person's personality assessment results." as personality_panel_description %}
 {% endif %}
 {% trans "Motivation" as motivation_panel_title %}
-{% trans "The profile highlights the candidate's more prominent and less central motivational drivers, followed by the complete motivation profile. Results use Sova's rounded five-point STIVE scale." as motivation_panel_description %}
+{% if LANGUAGE_CODE|slice:":2" == "sv" %}
+  {% trans "Utforska insikter kopplat till personens motivationsresultat." as motivation_panel_description %}
+{% else %}
+  {% trans "Explore insights based on the person's motivation assessment results." as motivation_panel_description %}
+{% endif %}
 {% if LANGUAGE_CODE|slice:":2" == "sv" %}
   {% trans "Färdighet" as cognitive_panel_title %}
 {% else %}
   {% trans "Skills" as cognitive_panel_title %}
 {% endif %}
-{% trans "A practical interpretation of the available cognitive results in relation to the selected purpose and project context." as cognitive_panel_description %}
+{% if LANGUAGE_CODE|slice:":2" == "sv" %}
+  {% trans "Utforska insikter kopplat till personens färdighetsresultat." as cognitive_panel_description %}
+{% else %}
+  {% trans "Explore insights based on the person's skills assessment results." as cognitive_panel_description %}
+{% endif %}
 {% trans "Reports" as reports_panel_title %}
 {% if LANGUAGE_CODE|slice:":2" == "sv" %}
   {% trans "Rapporter för team, ledarskap och beteendemönster." as reports_panel_description %}
@@ -213,7 +225,7 @@
               data-bs-toggle="collapse" data-bs-target="#candidateAssessmentReports"
               aria-expanded="false" aria-controls="candidateAssessmentReports">
         <span class="fw-semibold">
-          {% if LANGUAGE_CODE|slice:":2" == "sv" %}Testrapporter{% else %}Assessment report files{% endif %}
+          {% if LANGUAGE_CODE|slice:":2" == "sv" %}Sovas originalrapporter{% else %}Original Sova reports{% endif %}
         </span>
         <span class="reports-toggle__right">
           <span class="badge rounded-pill text-bg-light border">

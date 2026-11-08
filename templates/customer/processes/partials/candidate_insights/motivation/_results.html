@@ -15,7 +15,7 @@
         </h2>
 
         <p class="text-muted small mb-0">
-          {% blocktrans %}The profile highlights the candidate's more prominent and less central motivational drivers, followed by the complete motivation profile. Results use Sova's precise five-point STIVE values.{% endblocktrans %}
+          {% if motivation_language|slice:":2" == "sv" %}Profilen visar personens mer framträdande och mindre centrala motivationsfaktorer, följt av den fullständiga motivationsprofilen. Resultaten visas med Sovas exakta femgradiga STIVE-värden.{% else %}{% blocktrans %}The profile highlights the candidate's more prominent and less central motivational drivers, followed by the complete motivation profile. Results use Sova's precise five-point STIVE values.{% endblocktrans %}{% endif %}
         </p>
 
       </header>
@@ -37,7 +37,7 @@
             <canvas
               data-motivation-rose-chart
               role="img"
-              aria-label="{% blocktrans %}Circular overview of the candidate's motivation profile{% endblocktrans %}"
+              aria-label="{% if motivation_language|slice:":2" == "sv" %}Cirkulär översikt över personens motivationsprofil{% else %}{% blocktrans %}Circular overview of the candidate's motivation profile{% endblocktrans %}{% endif %}"
             ></canvas>
           </div>
 
@@ -270,7 +270,7 @@
 
       <!-- FOOTER -->
       <footer class="team-styles-footer motivation-profile-footer">
-        {% blocktrans %}Motivation scores describe relative sources of energy and preference. Lower results do not indicate poor performance, weak values or limited capability. Results should be considered alongside role context, interview evidence and the candidate's own reflections.{% endblocktrans %}
+        {% if motivation_language|slice:":2" == "sv" %}Motivationsresultaten beskriver relativa källor till energi och preferenser. Lägre resultat innebär inte svag prestation, bristande värderingar eller begränsad förmåga. Resultaten bör vägas samman med rollkontext, underlag från intervjun och personens egna reflektioner.{% else %}{% blocktrans %}Motivation scores describe relative sources of energy and preference. Lower results do not indicate poor performance, weak values or limited capability. Results should be considered alongside role context, interview evidence and the candidate's own reflections.{% endblocktrans %}{% endif %}
       </footer>
 
     </div>
