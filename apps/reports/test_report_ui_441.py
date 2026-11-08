@@ -458,6 +458,51 @@ class ReportUi441Tests(SimpleTestCase):
                 self.assertNotIn("{#", team_html)
                 self.assertNotIn("{#", leader_html)
 
+    def test_team_report_drops_only_redundant_frame_and_centers_canvas(self):
+        css = self.source("static/css/talena/pages/team-styles.css")
+        html = self.source("templates/customer/processes/partials/_team_styles.html")
+
+        self.assertIn(
+            "#reports-subpanel-team-report > .team-styles-section", css
+        )
+        self.assertIn("border: 0 !important;", css)
+        self.assertIn("box-shadow: none !important;", css)
+        self.assertIn(
+            "#reports-subpanel-team-report .team-style-chart-card", css
+        )
+        self.assertIn("max-width: 780px;", css)
+        self.assertIn("height: clamp(430px, 59vw, 650px);", css)
+        self.assertIn("height: clamp(340px, 103vw, 460px);", css)
+        self.assertIn(
+            'class="team-style-chart-card mb-4"', html
+        )
+        self.assertIn("data-team-style-chart", html)
+        self.assertIn("data-style-score", html)
+
+    def test_team_polar_chart_uses_upright_axes_and_no_data_changes(self):
+        base = self.source("templates/customer/processes/process_base.html")
+        theme = self.source("static/js/talena/candidate-chart-theme.js")
+        self.assertIn(
+            'startAngle: canvas.closest("#reports-subpanel-team-report") ? 0 : -22.5,',
+            base,
+        )
+        self.assertIn('type: "polarArea"', base)
+        self.assertIn("data: numericValues", base)
+        self.assertIn('max: 5,', base)
+        self.assertIn("function drawTeamStyleTracks(chart)", theme)
+        self.assertIn(
+            'canvas?.closest("#reports-subpanel-team-report")', theme
+        )
+        self.assertIn(
+            "plugin.beforeDatasetsDraw = function talenaTeamStyleBeforeDatasetsDraw",
+            theme,
+        )
+        self.assertIn('ctx.fillStyle = `rgba(', theme)
+        self.assertIn("if (candidateReport) radial.startAngle = 0", theme)
+        self.assertIn("if (candidateReport) radial.ticks.display = false;", theme)
+        self.assertIn("drawTeamStyleOverlay(currentChart);", theme)
+        self.assertNotIn("dataset.data =", theme)
+
     def test_missing_results_do_not_generate_an_interpretation(self):
         result = build_derailment_report_content("sv", [])
         self.assertFalse(result["has_results"])
