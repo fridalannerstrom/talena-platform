@@ -626,14 +626,10 @@
 .derailment-report__profile-result-heading{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:9px}
 .derailment-report__profile-result-heading strong{color:#302e36;font-size:.88rem}
 .derailment-report__profile-result-heading span{white-space:nowrap;color:#51429a;font-size:.75rem;font-weight:750}
-.derailment-report__scale-segments{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:4px;position:relative;isolation:isolate}
-/* Centre is the boundary between segments 5 and 6, not an invented score. */
-.derailment-report__scale-segments::after{content:"";position:absolute;top:-5px;bottom:-5px;left:50%;width:2px;transform:translateX(-50%);background:#706a68;border-radius:2px;z-index:2;pointer-events:none}
-.derailment-report__scale-segment{height:10px;border-radius:99px;background:#eeeae8;position:relative}
-.derailment-report__scale-segment.is-filled{background:#d9d4d1}
-.derailment-report__scale-segment.is-marker{background:#f36d62;box-shadow:0 0 0 2px white,0 0 0 4px #f36d62;z-index:3}
-.derailment-report__scale-labels{display:flex;justify-content:space-between;margin-top:7px;color:#928b88;font-size:.68rem}
-.derailment-report__scale-note{margin:14px 0 0;text-align:right;color:#89827f;font-size:.76rem}
+/* #441: The derailment profile uses the personality indicator's shared 5|5
+   midpoint scale, selected segment ring and coral edge-gradient.
+   Do not restyle its segments here: keep both report types in sync. */
+.derailment-report__scale{min-width:0}
 .derailment-report__intro{display:flex;gap:15px;padding:22px;margin:0 0 24px}
 .derailment-report__intro-icon{display:flex;align-items:center;justify-content:center;flex:0 0 40px;height:40px;border-radius:13px;background:#f8f2ef;color:#c35d54}
 .derailment-report__intro h3{margin:0 0 7px;font-size:1.02rem}
