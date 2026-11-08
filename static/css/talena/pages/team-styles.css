@@ -612,36 +612,48 @@
 .derailment-report__intro,
 .derailment-report__factor-card,
 .derailment-report__empty{background:#fff;border:1px solid #e9e5e2;border-radius:18px;box-shadow:0 7px 22px rgba(30,27,75,.045)}
-.derailment-report__overview{padding:24px;margin:0 0 22px}
+.derailment-report__overview{padding:20px 22px;margin:0 0 22px}
 .derailment-report__overview-heading,.derailment-report__factor-heading{display:flex;align-items:center;justify-content:space-between;gap:16px}
-.derailment-report__eyebrow{display:block;color:#827b76;font-size:.73rem;font-weight:750;letter-spacing:.08em;text-transform:uppercase}
-.derailment-report__overview-heading h3,.derailment-report__section-heading h3{margin:5px 0 0;color:#242126;font-size:1.2rem}
+.derailment-report__eyebrow{display:block;color:#827b76;font-size:.67rem;font-weight:750;letter-spacing:.08em;text-transform:uppercase}
+.derailment-report__overview-heading h3,.derailment-report__section-heading h3{margin:5px 0 0;color:#242126;font-size:1.08rem}
 .derailment-report__score-count,.derailment-report__score-pill{white-space:nowrap;font-weight:750;color:#51429a;background:#f1effa;border-radius:999px;padding:7px 11px;font-size:.82rem}
-.derailment-report__profile-list{margin-top:18px}
-.derailment-report__profile-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(190px,.85fr) minmax(0,1fr);align-items:center;gap:20px;padding:17px 0;border-top:1px solid #eee9e6}
-.derailment-report__profile-copy{min-width:0;color:#65616b;font-size:.82rem;line-height:1.5}
+.derailment-report__profile-list{margin-top:15px}
+.derailment-report__profile-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(260px,1.7fr) minmax(0,1fr);align-items:center;gap:16px;padding:13px 0;border-top:1px solid #eee9e6}
+.derailment-report__profile-copy{min-width:0;color:#656f81;font-size:.72rem;line-height:1.45}
 .derailment-report__profile-copy p{margin:0}
 .derailment-report__profile-copy--higher{text-align:right}
 .derailment-report__profile-result{min-width:0}
-.derailment-report__profile-result-heading{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:9px}
-.derailment-report__profile-result-heading strong{color:#302e36;font-size:.88rem}
-.derailment-report__profile-result-heading span{white-space:nowrap;color:#51429a;font-size:.75rem;font-weight:750}
+.derailment-report__profile-result-heading{position:relative;display:flex;justify-content:center;align-items:center;min-height:18px;margin-bottom:6px;text-align:center}
+.derailment-report__profile-result-heading strong{max-width:calc(100% - 45px);color:#302e36;font-size:.79rem;font-weight:700;line-height:1.3}
+.derailment-report__profile-result-heading span{position:absolute;right:0;top:50%;transform:translateY(-50%);white-space:nowrap;color:#756f78;font-size:.68rem;font-weight:700}
 /* #441: The derailment profile uses the personality indicator's shared 5|5
    midpoint scale, selected segment ring and coral edge-gradient.
    Do not restyle its segments here: keep both report types in sync. */
-.derailment-report__scale{min-width:0}
-.derailment-report__intro{display:flex;gap:15px;padding:22px;margin:0 0 24px}
-.derailment-report__intro-icon{display:flex;align-items:center;justify-content:center;flex:0 0 40px;height:40px;border-radius:13px;background:#f8f2ef;color:#c35d54}
-.derailment-report__intro h3{margin:0 0 7px;font-size:1.02rem}
-.derailment-report__intro p{margin:0;color:#625e67;line-height:1.65}
+.derailment-report__scale{min-width:0;width:100%;margin:0 auto}
+.derailment-report__intro{display:flex;gap:14px;padding:19px 21px;margin:0 0 22px}
+.derailment-report__intro-icon{display:flex;align-items:center;justify-content:center;flex:0 0 36px;height:36px;border-radius:12px;background:#f8f2ef;color:#c35d54}
+.derailment-report__intro h3{margin:0 0 6px;font-size:.95rem}
+.derailment-report__intro p{margin:0;color:#656f81;font-size:.83rem;line-height:1.55}
 .derailment-report__section-heading{margin:0 0 14px}
-.derailment-report__factor-card{padding:19px 21px;margin-bottom:14px}
+.derailment-report__factor-card{padding:17px 19px;margin-bottom:12px}
 .derailment-report__factor-heading{margin-bottom:13px}
-.derailment-report__factor-heading h4{margin:0;font-size:1rem}
+.derailment-report__factor-heading h4{margin:0;font-size:.9rem}
 .derailment-report .team-style-guidance__header{padding:18px 20px;border:1px solid #ece8e5;border-radius:14px;background:#fff}
-.derailment-report .team-style-guidance__header p{margin:0;color:#625e67;line-height:1.65}
+.derailment-report .team-style-guidance__header p{margin:0;color:#656f81;font-size:.79rem;line-height:1.55}
 .derailment-report__empty{text-align:center;padding:48px 24px;border-style:dashed}
 .derailment-report__empty h3{margin:10px 0 8px}
 .derailment-report__empty p{max-width:560px;margin:0 auto;color:#706c7f;line-height:1.6}
-@media(max-width:900px){.derailment-report__profile-row{grid-template-columns:1fr 1fr;gap:12px}.derailment-report__profile-result{grid-column:1/-1;grid-row:1}.derailment-report__profile-copy--higher{text-align:left}}
-@media(max-width:600px){.derailment-report__overview{padding:16px 14px}.derailment-report__profile-row{grid-template-columns:1fr}.derailment-report__profile-result{grid-column:auto;grid-row:auto}.derailment-report__profile-copy--higher{text-align:left}.derailment-report__intro{padding:17px}.derailment-report__factor-card{padding:17px 15px}.derailment-report__overview-heading{align-items:flex-start}}
+@media(max-width:900px){
+  .derailment-report__profile-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:11px 18px;padding:16px 0}
+  .derailment-report__profile-result{grid-column:1/-1;grid-row:1;width:100%;max-width:530px;margin:0 auto}
+  .derailment-report__profile-copy--higher{text-align:right}
+}
+@media(max-width:600px){
+  .derailment-report__overview{padding:16px 14px}
+  .derailment-report__profile-row{grid-template-columns:minmax(0,1fr);gap:10px;padding:14px 0}
+  .derailment-report__profile-result{grid-column:1;grid-row:1;max-width:none}
+  .derailment-report__profile-copy--higher{text-align:left}
+  .derailment-report__intro{padding:16px}
+  .derailment-report__factor-card{padding:16px 15px}
+  .derailment-report__overview-heading{align-items:flex-start}
+}
