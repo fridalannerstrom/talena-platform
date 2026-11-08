@@ -850,6 +850,7 @@ class ReportUi441Tests(SimpleTestCase):
                     self.assertIn('aria-controls="candidate-insights-panel-reports"', html)
 
     def test_report_empty_states_match_team_empty_state_in_both_languages(self):
+        from html import unescape
         from django.utils.translation import override
         from apps.reports.services.leadership_report import (
             build_leadership_report_content,
@@ -908,9 +909,9 @@ class ReportUi441Tests(SimpleTestCase):
                         self.assertIn("text-muted small mb-0 mx-auto", html)
                         if name == "leadership":
                             self.assertIn(leadership["empty_title"], html)
-                            self.assertIn(leadership["empty_body"], html)
+                            self.assertIn(leadership["empty_body"], unescape(html))
                             self.assertNotIn("leadership-report__empty", html)
                         if name == "derailment":
                             self.assertIn(derailment["empty_title"], html)
-                            self.assertIn(derailment["empty_body"], html)
+                            self.assertIn(derailment["empty_body"], unescape(html))
                             self.assertNotIn("derailment-report__empty", html)
