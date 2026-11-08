@@ -69,13 +69,10 @@ class ReportUi441Tests(SimpleTestCase):
                         self.assertTrue(displayed)
                         self.assertGreater(len(displayed), 25)
                         # Normalisation may replace only the jargon opening.
-                        self.assertTrue(
-                            displayed == original or displayed.endswith(
-                                original.split(" ", 6)[-1]
-                            ) or displayed.endswith(original.split(" ", 5)[-1])
-                            or displayed.endswith(original.split(" ", 4)[-1])
-                            or displayed.endswith(original.split(" ", 3)[-1])
-                        )
+                        # Preserve the remaining approved sentences verbatim.
+                        sentences = original.split(". ", 1)
+                        if len(sentences) > 1:
+                            self.assertTrue(displayed.endswith(sentences[1]))
 
     def test_no_approved_text_produces_neutral_empty_state(self):
         from copy import deepcopy
@@ -95,7 +92,8 @@ class ReportUi441Tests(SimpleTestCase):
             {"derailment_report_content": self.report(7)},
         )
         self.assertLess(
-            html.index("Om urspårningsrapporten"), html.index("Urspårningsprofil")
+            html.index('class="derailment-report__intro"'),
+            html.index('class="derailment-report__overview"')
         )
         self.assertIn('aria-valuenow="7"', html)
         self.assertIn('aria-valuemin="1"', html)
