@@ -145,6 +145,54 @@
 }
 
 
+/* #441: Team report is already inside the candidate report workspace.
+   Remove only its redundant purpose-fit-card frame. Keep one restrained
+   border around the chart and leave embedded team/profile views alone. */
+.process-page #reports-subpanel-team-report > .team-styles-section {
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow: visible !important;
+}
+
+.process-page #reports-subpanel-team-report .team-style-chart-card {
+  width: 100%;
+  padding: 18px 12px;
+  margin-bottom: 1.25rem !important;
+  border: 1px solid var(--talena-border, #e9e5e2);
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 6px 24px rgba(23, 19, 18, 0.025);
+  overflow: hidden;
+}
+
+.process-page #reports-subpanel-team-report .team-style-polar-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 780px;
+  height: clamp(430px, 59vw, 650px);
+  margin: 0 auto;
+}
+
+.process-page #reports-subpanel-team-report [data-team-style-chart] {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+@media (max-width: 620px) {
+  .process-page #reports-subpanel-team-report .team-style-chart-card {
+    padding: 12px 4px;
+    border-radius: 14px;
+  }
+  .process-page #reports-subpanel-team-report .team-style-polar-wrap {
+    height: clamp(340px, 103vw, 460px);
+  }
+}
+
 /* ---------------------------------------------------------
    LEADERSHIP REPORT
    Keep the supplied interpretation library compact and
