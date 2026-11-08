@@ -192,7 +192,7 @@ class ReportUi441Tests(SimpleTestCase):
         self.assertIn(".process-page .personality-indicator-scale__segment", personality)
         self.assertNotIn(".derailment-report__scale-segment.is-filled", css)
 
-    def test_report_padding_removed_from_outer_body_and_inner_panels(self):
+    def test_report_padding_keeps_outer_body_flush_and_restores_inner_panels(self):
         css = self.source("static/css/talena/pages/candidate-insight-tabs.css")
         reports = self.source(
             "templates/customer/processes/partials/candidate_insights/tabs/_reports.html"
@@ -201,8 +201,8 @@ class ReportUi441Tests(SimpleTestCase):
             "templates/customer/processes/partials/candidate_insights/_workspace.html"
         )
 
-        # The wrapper highlighted in DevTools encloses both the tab bar and
-        # all three reports, so zero padding here applies to every subtab.
+        # The page body includes both tabs and content: keep that wrapper
+        # flush, but restore the normal inset around each report panel.
         self.assertIn(
             ".process-page .candidate-insight-page-body {\n  padding: 0;",
             css,
@@ -212,14 +212,18 @@ class ReportUi441Tests(SimpleTestCase):
             "  .process-page .candidate-insight-page-body {\n    padding: 0;",
             css,
         )
-        self.assertIn(
-            ".process-page #candidate-insights-panel-reports "
-            ".candidate-insights-subworkspace__panels {\n  padding: 0 !important;",
+        self.assertNotIn(
+            "#candidate-insights-panel-reports .candidate-insights-subworkspace__panels {",
             css,
         )
         self.assertIn(
             ".process-page .candidate-insight-page "
             ".candidate-insights-subworkspace__panels {\n  padding: 1.25rem",
+            css,
+        )
+        self.assertIn(
+            "  .process-page .candidate-insight-page "
+            ".candidate-insights-subworkspace__panels {\n    padding: 1rem;",
             css,
         )
         self.assertEqual(workspace.count('class="candidate-insight-page-body"'), 1)
