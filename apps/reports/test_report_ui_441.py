@@ -816,6 +816,113 @@ class ReportUi441Tests(SimpleTestCase):
         self.assertIn('const clone = source.cloneNode(true);', pdf)
         self.assertIn('const liveCanvases = source.querySelectorAll("canvas");', pdf)
 
+    def test_leadership_introduction_preserves_copy_in_readable_sections(self):
+        import re
+        from apps.reports.services.leadership_report import (
+            _load_leadership_report_data,
+            _structure_leadership_introduction,
+            build_leadership_report_content,
+        )
+
+        for language in ("sv", "en"):
+            with self.subTest(language=language):
+                original = _load_leadership_report_data()[language]["introduction"]["body"]
+                structured = _structure_leadership_introduction(original, language)
+                report = build_leadership_report_content(language, [])
+
+                self.assertEqual(report["introduction_sections"], structured)
+                self.assertEqual(len(structured["paragraphs"]), 3)
+                self.assertEqual(len(structured["model_paragraphs"]), 2)
+                self.assertEqual(len(structured["quadrants"]), 4)
+                self.assertTrue(structured["model_heading"])
+                self.assertTrue(all(x["title"] and x["description"]
+                                    for x in structured["quadrants"]))
+
+                # Every original word remains in the same order; only the
+                # PDF-era line wraps are replaced with readable paragraphs.
+                displayed = [
+                    *structured["paragraphs"],
+                    structured["model_heading"],
+                    *structured["model_paragraphs"],
+                    *(f'• {item["title"]}: {item["description"]}'
+                      for item in structured["quadrants"]),
+                ]
+                self.assertEqual(
+                    re.sub(r"\\s+", " ", original.strip()),
+                    " ".join(displayed),
+                )
+
+    def test_leadership_quadrants_use_one_frame_and_two_rows(self):
+        from django.utils.translation import override
+        from apps.reports.services.leadership_report import (
+            _SOURCE_NAMES,
+            build_leadership_report_content,
+        )
+
+        path = (
+            "customer/processes/partials/candidate_insights/"
+            "tabs/_leadership_report.html"
+        )
+        source = self.source("templates/" + path)
+        css = self.source("static/css/talena/pages/team-styles.css")
+        scores = [
+            {"competency": names[0], "stive": 3}
+            for names in _SOURCE_NAMES.values()
+        ]
+        for language in ("sv", "en"):
+            with self.subTest(language=language), override(language):
+                report = build_leadership_report_content(language, scores)
+                self.assertTrue(report["has_results"])
+                html = render_to_string(
+                    path, {"leadership_report_content": report}
+                )
+                self.assertEqual(
+                    html.count('class="leadership-report__quadrant '), 4
+                )
+                self.assertEqual(
+                    html.count('class="leadership-report__competency-card"'), 8
+                )
+                self.assertEqual(
+                    html.count('class="leadership-report__competency-name"'), 8
+                )
+                self.assertEqual(
+                    html.count('class="leadership-report__guidance-explainer"'), 8
+                )
+                self.assertEqual(
+                    html.count('class="leadership-report__guidance-summary"'), 8
+                )
+                self.assertEqual(html.count('role="meter"'), 8)
+                self.assertEqual(html.count('aria-valuenow="3"'), 8)
+                self.assertEqual(html.count('class="leadership-report__model-quadrant"'), 4)
+                self.assertEqual(html.count('<p>'), 5)
+                self.assertNotIn("insight-summary-content mb-4 team-style-profile-card", html)
+                self.assertNotIn('class="team-style-ranked-list"', html)
+                self.assertIn("leadership-report__model-title", html)
+                self.assertIn("leadership-report__model-quadrants", html)
+                self.assertIn(
+                    report["introduction_sections"]["quadrants"][0]["description"],
+                    html,
+                )
+
+        # CSS is scoped to the Leadership report, not Team, personality,
+        # Motivation or other candidate sections.
+        self.assertIn(
+            "#reports-subpanel-leadership-report .leadership-report__intro {",
+            css,
+        )
+        self.assertIn("background: #f8f5f2;", css)
+        self.assertIn("font-size: 0.7rem;", css)
+        self.assertIn(
+            "#reports-subpanel-leadership-report .leadership-report__competency-card + "
+            ".leadership-report__competency-card", css,
+        )
+        self.assertIn("border-top: 1px solid #eee9e5;", css)
+        self.assertIn(
+            "#reports-subpanel-leadership-report .leadership-report__quadrant-heading", css
+        )
+        self.assertIn("grid-template-columns: repeat(2, minmax(0, 1fr));", css)
+        self.assertIn("@media (max-width: 420px)", css)
+
     def test_missing_results_do_not_generate_an_interpretation(self):
         result = build_derailment_report_content("sv", [])
         self.assertFalse(result["has_results"])
