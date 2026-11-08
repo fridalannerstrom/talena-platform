@@ -192,8 +192,26 @@ class ReportUi441Tests(SimpleTestCase):
         self.assertIn(".process-page .personality-indicator-scale__segment", personality)
         self.assertNotIn(".derailment-report__scale-segment.is-filled", css)
 
-    def test_report_padding_removed_only_for_reports_tab(self):
+    def test_report_padding_removed_from_outer_body_and_inner_panels(self):
         css = self.source("static/css/talena/pages/candidate-insight-tabs.css")
+        reports = self.source(
+            "templates/customer/processes/partials/candidate_insights/tabs/_reports.html"
+        )
+        workspace = self.source(
+            "templates/customer/processes/partials/candidate_insights/_workspace.html"
+        )
+
+        # The wrapper highlighted in DevTools encloses both the tab bar and
+        # all three reports, so zero padding here applies to every subtab.
+        self.assertIn(
+            ".process-page .candidate-insight-page-body {\n  padding: 0;",
+            css,
+        )
+        self.assertIn(
+            "/* Keep the surrounding page wrapper flush on mobile too. */\n"
+            "  .process-page .candidate-insight-page-body {\n    padding: 0;",
+            css,
+        )
         self.assertIn(
             ".process-page #candidate-insights-panel-reports "
             ".candidate-insights-subworkspace__panels {\n  padding: 0 !important;",
@@ -204,6 +222,11 @@ class ReportUi441Tests(SimpleTestCase):
             ".candidate-insights-subworkspace__panels {\n  padding: 1.25rem",
             css,
         )
+        self.assertEqual(workspace.count('class="candidate-insight-page-body"'), 1)
+        self.assertIn('class="candidate-insights-subnavigation"', reports)
+        for subtab in ("team-report", "leadership-report", "derailment-report"):
+            with self.subTest(tab=subtab):
+                self.assertIn(f'data-insights-subpanel="{subtab}"', reports)
 
     def test_no_visible_derailment_sten_scores_but_accessible_result(self):
         template = self.source(
