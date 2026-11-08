@@ -610,12 +610,11 @@
 /* Candidate-specific Derailment Report */
 .derailment-report__overview,
 .derailment-report__intro,
-.derailment-report__factor-card,
 .derailment-report__empty{background:#fff;border:1px solid #e9e5e2;border-radius:18px;box-shadow:0 7px 22px rgba(30,27,75,.045)}
 .derailment-report__overview{padding:20px 22px;margin:0 0 22px}
-.derailment-report__overview-heading,.derailment-report__factor-heading{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.derailment-report__overview-heading{display:flex;align-items:center;justify-content:space-between;gap:16px}
 .derailment-report__eyebrow{display:block;color:#827b76;font-size:.67rem;font-weight:750;letter-spacing:.08em;text-transform:uppercase}
-.derailment-report__overview-heading h3,.derailment-report__section-heading h3{margin:5px 0 0;color:#242126;font-size:1.08rem}
+.derailment-report__overview-heading h3{margin:5px 0 0;color:#242126;font-size:1.08rem}
 .derailment-report__profile-list{margin-top:15px}
 .derailment-report__profile-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(260px,1.7fr) minmax(0,1fr);align-items:center;gap:16px;padding:13px 0;border-top:1px solid #eee9e6}
 .derailment-report__profile-copy{min-width:0;color:#656f81;font-size:.58rem;line-height:1.45}
@@ -632,12 +631,17 @@
 .derailment-report__intro-icon{display:flex;align-items:center;justify-content:center;flex:0 0 36px;height:36px;border-radius:12px;background:#f8f2ef;color:#c35d54}
 .derailment-report__intro h3{margin:0 0 6px;font-size:.95rem}
 .derailment-report__intro p{margin:0;color:#656f81;font-size:.83rem;line-height:1.55}
-.derailment-report__section-heading{margin:0 0 14px}
-.derailment-report__factor-card{padding:17px 19px;margin-bottom:12px}
-.derailment-report__factor-heading{margin-bottom:13px}
-.derailment-report__factor-heading h4{margin:0;font-size:.9rem}
-.derailment-report .team-style-guidance__header{padding:18px 20px;border:1px solid #ece8e5;border-radius:14px;background:#fff}
-.derailment-report .team-style-guidance__header p{margin:0;color:#656f81;font-size:.79rem;line-height:1.55}
+/* #441: A single, readable summary, matching Personality > Resultatsammanfattning.
+   Each factor is one row. No nested cards, accordions or repetitive labels. */
+.derailment-report__interpretation-list{overflow:hidden;background:#fff;border:1px solid #e9e5e2;border-radius:16px;box-shadow:0 7px 22px rgba(30,27,75,.035)}
+.derailment-report__interpretation-list-header{display:flex;align-items:center;min-height:42px;padding:.72rem .95rem;background:var(--talena-surface-soft,#faf9f7);border-bottom:1px solid var(--talena-border,#e9e5e2)}
+.derailment-report__interpretation-list-header h3{margin:0;color:var(--talena-ink,#252428);font-size:.69rem;font-weight:700;line-height:1.25;letter-spacing:.04em;text-transform:uppercase}
+.derailment-report__interpretation-item{padding:15px 19px;border-bottom:1px solid #e9edf1}
+.derailment-report__interpretation-item:last-child{border-bottom:0}
+.derailment-report__interpretation-title{margin:0 0 5px;color:#302e36;font-size:.82rem;font-weight:700;line-height:1.35}
+.derailment-report__interpretation-text{margin:0;color:#656f81;font-size:.8rem;line-height:1.55}
+.derailment-report__interpretation-text + .derailment-report__interpretation-text{margin-top:8px}
+.derailment-report__interpretation-text--missing{color:#817b80;font-style:italic}
 .derailment-report__empty{text-align:center;padding:48px 24px;border-style:dashed}
 .derailment-report__empty h3{margin:10px 0 8px}
 .derailment-report__empty p{max-width:560px;margin:0 auto;color:#706c7f;line-height:1.6}
@@ -652,6 +656,6 @@
   .derailment-report__profile-result{grid-column:1;grid-row:1;max-width:none}
   .derailment-report__profile-copy--higher{text-align:left}
   .derailment-report__intro{padding:16px}
-  .derailment-report__factor-card{padding:16px 15px}
+  .derailment-report__interpretation-item{padding:14px 15px}
   .derailment-report__overview-heading{align-items:flex-start}
 }
