@@ -99,10 +99,6 @@
       {% endfor %}
     </div>
   {% else %}
-    <section class="leadership-report__empty">
-      <span class="leadership-report__empty-icon" aria-hidden="true"><i data-feather="bar-chart-2"></i></span>
-      <h3>{{ leadership_report_content.empty_title }}</h3>
-      <p>{{ leadership_report_content.empty_body }}</p>
-    </section>
+    {% include "customer/processes/partials/candidate_insights/_missing_assessment.html" with missing_icon="compass" missing_title=leadership_report_content.empty_title missing_description=leadership_report_content.empty_body %}
   {% endif %}
 </section>
