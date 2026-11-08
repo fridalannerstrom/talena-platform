@@ -76,29 +76,26 @@
       </div>
     </section>
 
+    {# Same compact, grouped reading pattern as the personality result summary.
+       Every approved scale interpretation is readable without opening a panel. #}
     <section class="derailment-report__interpretations" aria-labelledby="derailment-interpretations-title">
-      <header class="derailment-report__section-heading">
-        <h3 id="derailment-interpretations-title">{{ derailment_report_content.details_section_title }}</h3>
-      </header>
-      {% for factor in derailment_report_content.factors %}
-        <article class="derailment-report__factor-card">
-          <div class="derailment-report__factor-heading">
-            <h4>{{ factor.title }}</h4>
-          </div>
-          <details class="purpose-fit-explainer team-style-guidance-explainer mb-0">
-            <summary class="purpose-fit-explainer__title team-style-guidance-explainer__title">
-              {{ derailment_report_content.guidance_label }}
-            </summary>
-            <div class="purpose-fit-explainer__content team-style-guidance-explainer__content mt-3">
+      <div class="derailment-report__interpretation-list">
+        <header class="derailment-report__interpretation-list-header">
+          <h3 id="derailment-interpretations-title">{{ derailment_report_content.details_section_title }}</h3>
+        </header>
+        <div class="derailment-report__interpretation-items">
+          {% for factor in derailment_report_content.factors %}
+            <article class="derailment-report__interpretation-item">
+              <h4 class="derailment-report__interpretation-title">{{ factor.title }}</h4>
               {% for interpretation in factor.interpretations %}
-                <div class="team-style-guidance__header"><p>{{ interpretation.text }}</p></div>
+                <p class="derailment-report__interpretation-text">{{ interpretation.text }}</p>
               {% empty %}
-                <div class="team-style-guidance__header"><p>{{ derailment_report_content.missing_interpretation_label }}</p></div>
+                <p class="derailment-report__interpretation-text derailment-report__interpretation-text--missing">{{ derailment_report_content.missing_interpretation_label }}</p>
               {% endfor %}
-            </div>
-          </details>
-        </article>
-      {% endfor %}
+            </article>
+          {% endfor %}
+        </div>
+      </div>
     </section>
   {% else %}
     <section class="derailment-report__empty">
