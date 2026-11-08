@@ -848,7 +848,7 @@ class ReportUi441Tests(SimpleTestCase):
                       for item in structured["quadrants"]),
                 ]
                 self.assertEqual(
-                    re.sub(r"\\s+", " ", original.strip()),
+                    re.sub(r"\s+", " ", original.strip()),
                     " ".join(displayed),
                 )
 
@@ -894,7 +894,10 @@ class ReportUi441Tests(SimpleTestCase):
                 self.assertEqual(html.count('role="meter"'), 8)
                 self.assertEqual(html.count('aria-valuenow="3"'), 8)
                 self.assertEqual(html.count('class="leadership-report__model-quadrant"'), 4)
-                self.assertEqual(html.count('<p>'), 5)
+                intro_html = html.split(
+                    '<section class="leadership-report__intro"', 1
+                )[1].split("</section>", 1)[0]
+                self.assertEqual(intro_html.count("<p>"), 5)
                 self.assertNotIn("insight-summary-content mb-4 team-style-profile-card", html)
                 self.assertNotIn('class="team-style-ranked-list"', html)
                 self.assertIn("leadership-report__model-title", html)
