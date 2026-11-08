@@ -820,3 +820,97 @@ class ReportUi441Tests(SimpleTestCase):
         result = build_derailment_report_content("sv", [])
         self.assertFalse(result["has_results"])
         self.assertEqual(result["factors"], [])
+
+    def test_reports_tab_grey_when_personality_missing_like_personality_tab(self):
+        from django.utils.translation import override
+
+        path = "customer/processes/partials/candidate_insights/_navigation.html"
+        for language in ("sv", "en"):
+            with self.subTest(language=language), override(language):
+                for has_personality in (False, True):
+                    html = render_to_string(path, {
+                        "has_personality_results": has_personality,
+                        "has_motivation_results": True,
+                        "has_ability_results": True,
+                    })
+                    for tab in ("personality", "reports", "motivation", "cognitive"):
+                        with self.subTest(tab=tab, has_personality=has_personality):
+                            before_tab = html.split(
+                                'data-insights-tab="' + tab + '"'
+                            )[0].rsplit("<button", 1)[-1]
+                            self.assertIn('role="tab"', before_tab)
+                            should_be_muted = (
+                                not has_personality
+                                and tab in ("personality", "reports")
+                            )
+                            self.assertEqual(
+                                "opacity-50" in before_tab,
+                                should_be_muted,
+                            )
+                    self.assertIn('aria-controls="candidate-insights-panel-reports"', html)
+
+    def test_report_empty_states_match_team_empty_state_in_both_languages(self):
+        from django.utils.translation import override
+        from apps.reports.services.leadership_report import (
+            build_leadership_report_content,
+        )
+
+        shared = (
+            'include "customer/processes/partials/'
+            'candidate_insights/_missing_assessment.html"'
+        )
+        for path in (
+            "templates/customer/processes/partials/candidate_insights/"
+            "tabs/_team_styles.html",
+            "templates/customer/processes/partials/candidate_insights/"
+            "tabs/_leadership_report.html",
+            "templates/customer/processes/partials/candidate_insights/"
+            "tabs/_derailment_report.html",
+        ):
+            self.assertIn(shared, self.source(path))
+
+        for language in ("sv", "en"):
+            with self.subTest(language=language), override(language):
+                leadership = build_leadership_report_content(language, [])
+                derailment = build_derailment_report_content(language, [])
+                self.assertFalse(leadership["has_results"])
+                self.assertFalse(derailment["has_results"])
+
+                reports = (
+                    (
+                        "team",
+                        "customer/processes/partials/candidate_insights/tabs/_team_styles.html",
+                        {"team_style_profile": {"available": False}},
+                        "users",
+                    ),
+                    (
+                        "leadership",
+                        "customer/processes/partials/candidate_insights/tabs/_leadership_report.html",
+                        {"leadership_report_content": leadership},
+                        "compass",
+                    ),
+                    (
+                        "derailment",
+                        "customer/processes/partials/candidate_insights/tabs/_derailment_report.html",
+                        {"derailment_report_content": derailment},
+                        "activity",
+                    ),
+                )
+                for name, template, context, icon in reports:
+                    with self.subTest(report=name):
+                        html = render_to_string(template, context)
+                        self.assertEqual(
+                            html.count("combined-questions-empty-state__icon"), 1
+                        )
+                        self.assertIn("combined-questions-empty-state", html)
+                        self.assertIn(f'data-feather="{icon}"', html)
+                        self.assertIn("personality-questions-section-title", html)
+                        self.assertIn("text-muted small mb-0 mx-auto", html)
+                        if name == "leadership":
+                            self.assertIn(leadership["empty_title"], html)
+                            self.assertIn(leadership["empty_body"], html)
+                            self.assertNotIn("leadership-report__empty", html)
+                        if name == "derailment":
+                            self.assertIn(derailment["empty_title"], html)
+                            self.assertIn(derailment["empty_body"], html)
+                            self.assertNotIn("derailment-report__empty", html)
