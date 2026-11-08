@@ -250,6 +250,7 @@ def build_team_style_statistics(team, candidate_ids=None, process_ids=None):
         )
 
     average_rows = []
+    minimum_rows = []
     maximum_rows = []
     most_least_rows = []
 
@@ -311,6 +312,24 @@ def build_team_style_statistics(team, candidate_ids=None, process_ids=None):
                 "average_percent": (
                     min(max(round((avg_value / 5) * 100, 1), 0), 100)
                     if avg_value is not None
+                    else 0
+                ),
+                "count": len(numeric_values),
+            }
+        )
+
+        minimum_rows.append(
+            {
+                "style": style,
+                "quadrant": TEAM_STYLE_QUADRANTS.get(style, ""),
+                "minimum": (
+                    round(min_value, 1)
+                    if min_value is not None
+                    else None
+                ),
+                "minimum_percent": (
+                    min(max(round((min_value / 5) * 100, 1), 0), 100)
+                    if min_value is not None
                     else 0
                 ),
                 "count": len(numeric_values),
@@ -390,9 +409,20 @@ def build_team_style_statistics(team, candidate_ids=None, process_ids=None):
         else None
     )
 
+    # Keep aggregate tables in their existing order. Only the chart follows
+    # the clockwise position of the individual Sova/Talena eight-style wheel.
+    chart_order = [
+        "Catalyst", "Director", "Energiser", "Architect",
+        "Harmoniser", "Analyst", "Auditor", "Connector",
+    ]
+    average_by_style = {row["style"]: row["average"] for row in average_rows}
+    minimum_by_style = {row["style"]: row["minimum"] for row in minimum_rows}
+    maximum_by_style = {row["style"]: row["maximum"] for row in maximum_rows}
+
     return {
         "styles": TEAM_STYLE_ORDER,
         "average_rows": average_rows,
+        "minimum_rows": minimum_rows,
         "maximum_rows": maximum_rows,
         "ranked_averages": ranked_averages,
         "ranked_maximums": ranked_maximums,
@@ -402,14 +432,15 @@ def build_team_style_statistics(team, candidate_ids=None, process_ids=None):
         "members_with_scores": members_with_scores,
         "strongest_average": strongest_average,
         "lowest_average": lowest_average,
-        "chart_labels": TEAM_STYLE_ORDER,
+        "chart_labels": chart_order,
         "chart_average_values": [
-            row["average"] if row["average"] is not None else 0
-            for row in average_rows
+            average_by_style[style] for style in chart_order
+        ],
+        "chart_min_values": [
+            minimum_by_style[style] for style in chart_order
         ],
         "chart_max_values": [
-            row["maximum"] if row["maximum"] is not None else 0
-            for row in maximum_rows
+            maximum_by_style[style] for style in chart_order
         ],
     }
 
