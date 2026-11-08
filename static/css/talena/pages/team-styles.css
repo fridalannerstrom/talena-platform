@@ -573,7 +573,7 @@
 
 
 /* Candidate-specific Leadership Report */
-.leadership-report__score-overview{background:#fff;border:1px solid #e5e7eb;border-radius:18px;padding:24px;margin:0 0 24px;box-shadow:0 8px 24px rgba(30,27,75,.05)}
+.leadership-report__score-overview{background:#fff;border:1px solid var(--talena-border,#e9e5e2);border-radius:18px;padding:18px 12px;margin:0 0 24px;box-shadow:0 6px 24px rgba(23,19,18,.025)}
 .leadership-report__score-overview-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:18px}
 .leadership-report__score-overview-heading h3{margin:5px 0 0;font-size:1.2rem}
 .leadership-report__score-count,.leadership-report__score-value,.leadership-report__score-pill{white-space:nowrap;font-weight:700;color:#51429a}
@@ -607,12 +607,12 @@
 
 
 /* Circular, SOVA-inspired leadership competency score wheel */
-.leadership-report__wheel-wrap{width:100%;max-width:940px;margin:0 auto;overflow:visible}
-.leadership-report__wheel{display:block;width:100%;height:auto;max-height:820px;overflow:visible}
-.leadership-wheel__ring-label{font:500 13px/1 sans-serif;fill:#8a8585}
-.leadership-wheel__score{font:700 17px/1 sans-serif;fill:#fff}
-.leadership-wheel__trait{font:600 13px/1.2 sans-serif;fill:#526071}
-.leadership-wheel__quadrant{font:700 20px/1 sans-serif;fill:#191919}
+.leadership-report__wheel-wrap{width:100%;max-width:780px;margin:0 auto;overflow:visible}
+.leadership-report__wheel{display:block;width:100%;height:auto;max-height:720px;overflow:visible}
+.leadership-wheel__ring-label{font:500 10px/1 Inter,system-ui,sans-serif;fill:#9d9896}
+.leadership-wheel__score{font:700 12px/1 Inter,system-ui,sans-serif;fill:#fff}
+.leadership-wheel__trait{font:600 12px/1.2 Inter,system-ui,sans-serif;fill:#526071}
+.leadership-wheel__quadrant{font:800 16px/1 Inter,system-ui,sans-serif;fill:#353238}
 @media(max-width:760px){.leadership-report__score-overview{padding:12px 6px}.leadership-report__wheel{min-width:620px}.leadership-report__wheel-wrap{overflow-x:auto;overflow-y:hidden}.leadership-report__score-overview-heading{padding:0 12px}}
 
 
