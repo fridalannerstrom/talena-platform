@@ -741,3 +741,226 @@
   .leadership-report__page-title,
   .derailment-report__page-title{font-size:1.3rem}
 }
+
+
+/* #441: Leadership introduction and section hierarchy.
+   Scope to the candidate report: no restyling of reusable team cards. */
+.process-page #reports-subpanel-leadership-report .leadership-report__intro {
+  grid-template-columns: 2.3rem minmax(0, 1fr);
+  gap: 0.95rem;
+  padding: 1.2rem 1.35rem;
+  border: 1px solid #e9e2db;
+  border-radius: 17px;
+  background: #f8f5f2;
+  box-shadow: none;
+}
+.process-page #reports-subpanel-leadership-report .leadership-report__intro-icon {
+  width: 2.3rem;
+  height: 2.3rem;
+  border-radius: 11px;
+  color: #ac685f;
+  background: #efe7e1;
+}
+.process-page #reports-subpanel-leadership-report .leadership-report__intro .leadership-report__eyebrow {
+  margin-bottom: 0.3rem;
+  font-size: 0.61rem;
+  letter-spacing: 0.06em;
+}
+.process-page #reports-subpanel-leadership-report .leadership-report__intro h3 {
+  margin: 0 0 0.75rem;
+  font-size: 0.92rem;
+  line-height: 1.3;
+}
+.process-page #reports-subpanel-leadership-report .leadership-report__intro-text {
+  max-width: 84ch;
+  color: #716a67;
+  font-size: 0.7rem;
+  font-weight: 400;
+  line-height: 1.64;
+}
+.process-page #reports-subpanel-leadership-report .leadership-report__intro-text p {
+  margin: 0 0 0.72rem;
+  color: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+.process-page #reports-subpanel-leadership-report .leadership-report__intro-text p:last-child {
+  margin-bottom: 0;
+}
+.process-page #reports-subpanel-leadership-report .leadership-report__model-title {
+  margin: 1.15rem 0 0.4rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid #e6ddd5;
+  color: #393431;
+  font-size: 0.77rem;
+  font-weight: 730;
+}
+.process-page #reports-subpanel-leadership-report .leadership-report__model-quadrants {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.3rem 1.15rem;
+  margin: 0.75rem 0 0;
+}
+.process-page #reports-subpanel-leadership-report .leadership-report__model-quadrant {
+  padding: 0.55rem 0;
+  border-top: 1px solid #e9e1da;
+}
+.process-page #reports-subpanel-leadership-report .leadership-report__model-quadrant dt {
+  margin-bottom: 0.2rem;
+  color: #3c3735;
+  font-size: 0.69rem;
+  font-weight: 720;
+}
+.process-page #reports-subpanel-leadership-report .leadership-report__model-quadrant dd {
+  margin: 0;
+  color: #756f6b;
+  font-size: 0.67rem;
+  line-height: 1.57;
+}
+
+/* One clear frame per quadrant, with two rows instead of nested cards. */
+.process-page #reports-subpanel-leadership-report .leadership-report__quadrants {
+  gap: 1.25rem;
+}
+.process-page #reports-subpanel-leadership-report .leadership-report__quadrant {
+  overflow: hidden;
+  border: 1px solid #e9e4df;
+  border-radius: 17px;
+  background: #fff;
+  box-shadow: 0 4px 16px rgba(23, 19, 18, 0.025);
+}
+.process-page #reports-subpanel-leadership-report .leadership-report__quadrant-heading {
+  gap: 0.7rem;
+  padding: 0.86rem 1.2rem;
+  border-bottom: 1px solid #e9e4df;
+  background: #f8f5f2;
+}
+.process-page #reports-subpanel-leadership-report .leadership-report__quadrant-index {
+  width: 1.8rem;
+  height: 1.8rem;
+  flex: 0 0 1.8rem;
+  border-radius: 9px;
+  background: #f1e7e2;
+  color: #b8655d;
+  font-size: 0.67rem;
+}
+.process-page #reports-subpanel-leadership-report .leadership-report__quadrant-heading h3 {
+  font-size: 0.85rem;
+  font-weight: 730;
+}
+.process-page #reports-subpanel-leadership-report .leadership-report__competencies {
+  display: block;
+  padding: 0;
+  gap: 0;
+}
+.process-page #reports-subpanel-leadership-report .leadership-report__competency-card {
+  display: block;
+  width: 100%;
+  padding: 1rem 1.25rem;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: #fff;
+  box-shadow: none;
+}
+.process-page #reports-subpanel-leadership-report .leadership-report__competency-card + .leadership-report__competency-card {
+  border-top: 1px solid #eee9e5;
+}
+.process-page #reports-subpanel-leadership-report .leadership-report__competency-name {
+  margin: 0 0 0.28rem;
+  color: #302c2e;
+  font-size: 0.78rem;
+  font-weight: 730;
+  line-height: 1.35;
+}
+.process-page #reports-subpanel-leadership-report .leadership-report__competency-description {
+  max-width: 100%;
+  margin: 0;
+  color: #77716f;
+  font-size: 0.68rem;
+  line-height: 1.56;
+}
+.process-page #reports-subpanel-leadership-report .leadership-report__competency-scale {
+  width: 100%;
+  margin: 0.8rem 0 0;
+}
+.process-page #reports-subpanel-leadership-report .leadership-report__competency-scale .response-style-scale__segments {
+  width: 100%;
+}
+.process-page #reports-subpanel-leadership-report .leadership-report__competency-scale .response-style-scale__labels {
+  margin-top: 0.38rem;
+  color: var(--talena-text-subtle);
+  font-size: 0.52rem;
+}
+.process-page #reports-subpanel-leadership-report .leadership-report__guidance-explainer {
+  width: 100%;
+  margin-top: 0.72rem;
+  border-top: 1px solid #eee9e5;
+}
+.process-page #reports-subpanel-leadership-report .leadership-report__guidance-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.72rem 0.1rem 0;
+  color: #686260;
+  font-size: 0.66rem;
+  font-weight: 680;
+  cursor: pointer;
+  list-style: none;
+}
+.process-page #reports-subpanel-leadership-report .leadership-report__guidance-summary::-webkit-details-marker {
+  display: none;
+}
+.process-page #reports-subpanel-leadership-report .leadership-report__guidance-summary::marker {
+  content: "";
+}
+.process-page #reports-subpanel-leadership-report .leadership-report__guidance-summary::after {
+  content: "";
+  width: 0.45rem;
+  height: 0.45rem;
+  flex: 0 0 0.45rem;
+  margin-right: 0.18rem;
+  border-right: 1.5px solid #88817d;
+  border-bottom: 1.5px solid #88817d;
+  transform: rotate(45deg);
+}
+.process-page #reports-subpanel-leadership-report .leadership-report__guidance-explainer[open] .leadership-report__guidance-summary::after {
+  transform: rotate(225deg);
+}
+.process-page #reports-subpanel-leadership-report .leadership-report__guidance-content {
+  margin-top: 0.75rem;
+  padding: 0.85rem 0;
+  border-top: 1px solid #f1ece8;
+}
+.process-page #reports-subpanel-leadership-report .leadership-report__guidance-content .team-style-guidance__header {
+  padding: 0 0 0.75rem;
+  border: 0;
+  background: transparent;
+}
+.process-page #reports-subpanel-leadership-report .leadership-report__guidance-content .team-style-guidance__header p {
+  margin: 0;
+  color: #6c6563;
+  font-size: 0.7rem;
+  line-height: 1.58;
+}
+@media (max-width: 760px) {
+  .process-page #reports-subpanel-leadership-report .leadership-report__intro {
+    grid-template-columns: 2.3rem minmax(0, 1fr);
+    padding: 1rem;
+  }
+  .process-page #reports-subpanel-leadership-report .leadership-report__model-quadrants {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .process-page #reports-subpanel-leadership-report .leadership-report__competency-card {
+    padding: 0.92rem 1rem;
+  }
+  .process-page #reports-subpanel-leadership-report .leadership-report__quadrant-heading {
+    padding: 0.78rem 1rem;
+  }
+}
+@media (max-width: 420px) {
+  .process-page #reports-subpanel-leadership-report .leadership-report__intro {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
