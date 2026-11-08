@@ -3,6 +3,17 @@
 
 <section class="derailment-report" aria-label="{{ derailment_report_content.title }}">
   {% if derailment_report_content.has_results %}
+    <header class="derailment-report__page-header">
+      <div class="derailment-report__page-heading">
+        <div class="insight-summary-kicker">
+          {% if reports_language|slice:":2" == "sv" %}Urspårning{% else %}Derailment{% endif %}
+        </div>
+        <h2 id="derailment-report-title" class="derailment-report__page-title">
+          {% if reports_language|slice:":2" == "sv" %}Urspårningsrapport{% else %}Derailment report{% endif %}
+        </h2>
+      </div>
+    </header>
+
     <header class="derailment-report__intro">
       <div class="derailment-report__intro-icon" aria-hidden="true"><i data-feather="info"></i></div>
       <div>
@@ -11,14 +22,7 @@
       </div>
     </header>
 
-    <section class="derailment-report__overview" aria-labelledby="derailment-profile-title">
-      <header class="derailment-report__overview-heading">
-        <div>
-          <span class="derailment-report__eyebrow">{{ derailment_report_content.title }}</span>
-          <h3 id="derailment-profile-title">{{ derailment_report_content.profile_section_title }}</h3>
-        </div>
-      </header>
-
+    <section class="derailment-report__overview" aria-label="{{ derailment_report_content.profile_section_title }}">
       <div class="derailment-report__profile-list">
         {% for factor in derailment_report_content.factors %}
           <article class="derailment-report__profile-row">
@@ -76,8 +80,7 @@
       </div>
     </section>
 
-    {# Same compact, grouped reading pattern as the personality result summary.
-       Every approved scale interpretation is readable without opening a panel. #}
+    {% comment %}Keep the compact interpretation list visible without accordions.{% endcomment %}
     <section class="derailment-report__interpretations" aria-labelledby="derailment-interpretations-title">
       <div class="derailment-report__interpretation-list">
         <header class="derailment-report__interpretation-list-header">
