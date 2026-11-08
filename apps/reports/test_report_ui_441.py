@@ -408,7 +408,7 @@ class ReportUi441Tests(SimpleTestCase):
         # In the customer report view, the shared team-style component
         # keeps its existing hidden header and isn't modified globally.
         self.assertIn(
-            '{% include "customer/processes/partials/_team_styles.html" with team_style_hide_footer=True %}',
+            '{% include "customer/processes/partials/_team_styles.html" with team_style_hide_footer=True team_style_use_svg=True %}',
             team,
         )
 
@@ -520,6 +520,7 @@ class ReportUi441Tests(SimpleTestCase):
             "available": True,
             "styles": [],
             "chart_styles": [],
+            "chart_svg": '<svg class="leadership-report__wheel team-style-flower__wheel"></svg>',
             "chart": {
                 "labels": [], "values": [],
                 "backgrounds": [], "border_colors": [],
@@ -536,7 +537,9 @@ class ReportUi441Tests(SimpleTestCase):
             )
         self.assertNotIn('class="team-styles-footer"', report)
         self.assertIn('class="team-styles-footer"', reused)
-        self.assertIn("data-team-style-chart", report)
+        self.assertIn("team-style-flower__wheel", report)
+        self.assertNotIn("<canvas", report)
+        self.assertIn("data-team-style-chart", reused)
 
     def test_team_chart_petals_and_larger_quadrant_titles_are_candidate_only(self):
         base = self.source("templates/customer/processes/process_base.html")
@@ -696,6 +699,122 @@ class ReportUi441Tests(SimpleTestCase):
                 )
                 self.assertIsNotNone(svg.find(f"{namespace}title"))
                 self.assertIsNotNone(svg.find(f"{namespace}desc"))
+
+    def test_team_flower_reuses_leadership_svg_exactly_and_retains_stive_scores(self):
+        from xml.etree import ElementTree
+        from django.utils.translation import override
+        from apps.processes.services.team_styles import build_team_style_profile
+
+        # Source order is not the chart order: Connector belongs to the
+        # upper-left quadrant and must sit next to Catalyst in the flower.
+        source_scores = {
+            "Catalyst": (2.3, 2),
+            "Director": (1.4, 1),
+            "Energiser": (4.3, 4),
+            "Architect": (5, 5),
+            "Harmoniser": (3.2, 3),
+            "Analyst": (1.8, 2),
+            "Auditor": (2.5, 3),
+            "Connector": (4.7, 5),
+        }
+        competencies = [
+            {
+                "competency": name,
+                "stive": raw,
+                "stive_rounded": displayed,
+            }
+            for name, (raw, displayed) in source_scores.items()
+        ]
+        svg_ns = "{http://www.w3.org/2000/svg}"
+        expected_display_order = [5, 2, 1, 4, 5, 3, 2, 3]
+
+        for language in ("sv", "en"):
+            with self.subTest(language=language), override(language):
+                profile = build_team_style_profile(competencies)
+                self.assertTrue(profile["available"])
+                self.assertTrue(profile["complete"])
+                self.assertEqual(len(profile["styles"]), 8)
+                self.assertEqual(len(profile["chart_styles"]), 8)
+                # STIVE source and result ranking remain independent of
+                # the visual order and the SVG itself.
+                self.assertEqual(
+                    {
+                        style["key"]: style["raw_value"]
+                        for style in profile["chart_styles"]
+                    },
+                    {
+                        "catalyst": 2.3, "director": 1.4, "energiser": 4.3,
+                        "architect": 5.0, "harmoniser": 3.2, "analyst": 1.8,
+                        "auditor": 2.5, "connector": 4.7,
+                    },
+                )
+                self.assertEqual(
+                    [style["key"] for style in profile["styles"]],
+                    [
+                        "architect", "connector", "energiser", "harmoniser",
+                        "auditor", "catalyst", "analyst", "director",
+                    ],
+                )
+                svg = ElementTree.fromstring(profile["chart_svg"])
+                self.assertEqual(svg.tag, f"{svg_ns}svg")
+                self.assertIn("leadership-report__wheel", svg.attrib["class"])
+                self.assertIn("team-style-flower__wheel", svg.attrib["class"])
+                self.assertEqual(
+                    svg.attrib["aria-labelledby"],
+                    "team-style-wheel-title team-style-wheel-desc",
+                )
+                self.assertEqual(
+                    len(svg.findall(f".//{svg_ns}path[@class='leadership-wheel__petal']")),
+                    8,
+                )
+                self.assertEqual(
+                    len(svg.findall(f".//{svg_ns}path[@class='leadership-wheel__track']")),
+                    8,
+                )
+                rendered_scores = [
+                    int(node.text)
+                    for node in svg.findall(
+                        f".//{svg_ns}text[@class='leadership-wheel__score']"
+                    )
+                ]
+                self.assertEqual(rendered_scores, expected_display_order)
+                self.assertEqual(
+                    len(svg.findall(f".//{svg_ns}text[@class='leadership-wheel__quadrant']")),
+                    4,
+                )
+                self.assertEqual(
+                    len(svg.findall(f".//{svg_ns}circle[@class='leadership-wheel__hub']")),
+                    1,
+                )
+                rendered = render_to_string(
+                    "customer/processes/partials/candidate_insights/tabs/_team_styles.html",
+                    {"team_style_profile": profile},
+                )
+                self.assertIn('class="leadership-report__wheel team-style-flower__wheel"', rendered)
+                self.assertNotIn("<canvas", rendered)
+                self.assertNotIn('class="team-styles-footer"', rendered)
+                self.assertNotIn('id="team-style-chart-values"', rendered)
+                self.assertIn('class="team-report__page-header"', rendered)
+
+    def test_team_svg_matches_leadership_visuals_and_pdf_export(self):
+        team = self.source(
+            "templates/customer/processes/partials/_team_styles.html"
+        )
+        styles = self.source("static/css/talena/pages/team-styles.css")
+        svg_builder = self.source("apps/reports/services/leadership_report.py")
+        pdf = self.source("static/js/talena/candidate-report-export.js")
+        self.assertIn("{% if team_style_use_svg %}", team)
+        self.assertIn("{{ team_style_profile.chart_svg|safe }}", team)
+        self.assertIn("{% else %}", team)
+        self.assertIn("data-team-style-chart", team)
+        self.assertIn(".team-style-polar-wrap.team-style-polar-wrap--svg", styles)
+        self.assertIn(".team-style-flower__wheel", styles)
+        self.assertIn("min-width: 0;", styles)
+        self.assertIn("svg_id_prefix: str =", svg_builder)
+        self.assertIn('svg_extra_class: str =', svg_builder)
+        self.assertIn('team-report", selector: "#reports-subpanel-team-report"', pdf)
+        self.assertIn('const clone = source.cloneNode(true);', pdf)
+        self.assertIn('const liveCanvases = source.querySelectorAll("canvas");', pdf)
 
     def test_missing_results_do_not_generate_an_interpretation(self):
         result = build_derailment_report_content("sv", [])
