@@ -21,14 +21,42 @@
       </div>
     </section>
 
-    <header class="leadership-report__intro">
+    <section class="leadership-report__intro" aria-labelledby="leadership-intro-title">
       <div class="leadership-report__intro-icon" aria-hidden="true"><i data-feather="compass"></i></div>
       <div class="leadership-report__intro-copy">
         <span class="leadership-report__eyebrow">{{ leadership_report_content.profile_eyebrow }}</span>
-        <h3>{{ leadership_report_content.introduction.title }}</h3>
-        <div class="leadership-report__intro-text">{{ leadership_report_content.introduction.body|linebreaksbr }}</div>
+        <h3 id="leadership-intro-title">{{ leadership_report_content.introduction.title }}</h3>
+        {% with sections=leadership_report_content.introduction_sections %}
+          {% if sections %}
+            <div class="leadership-report__intro-text">
+              {% for paragraph in sections.paragraphs %}
+                <p>{{ paragraph }}</p>
+              {% endfor %}
+              {% if sections.model_heading %}
+                <h4 class="leadership-report__model-title">{{ sections.model_heading }}</h4>
+              {% endif %}
+              {% for paragraph in sections.model_paragraphs %}
+                <p>{{ paragraph }}</p>
+              {% endfor %}
+              {% if sections.quadrants %}
+                <dl class="leadership-report__model-quadrants">
+                  {% for quadrant in sections.quadrants %}
+                    <div class="leadership-report__model-quadrant">
+                      <dt>{{ quadrant.title }}</dt>
+                      <dd>{{ quadrant.description }}</dd>
+                    </div>
+                  {% endfor %}
+                </dl>
+              {% endif %}
+            </div>
+          {% else %}
+            <div class="leadership-report__intro-text">
+              {{ leadership_report_content.introduction.body|linebreaksbr }}
+            </div>
+          {% endif %}
+        {% endwith %}
       </div>
-    </header>
+    </section>
 
     <div class="leadership-report__quadrants">
       {% for quadrant in leadership_report_content.quadrants %}
@@ -38,18 +66,16 @@
               <span class="leadership-report__quadrant-index">0{{ forloop.counter }}</span>
               <h3>{{ quadrant.title }}</h3>
             </header>
-            <div class="team-style-ranked-list">
+            <div class="leadership-report__competencies">
               {% for competency in quadrant.competencies %}
-                <article class="insight-summary-content mb-4 team-style-profile-card leadership-report__competency-card">
-                  <div class="team-style-profile-card__intro">
-                    <h4 class="response-style-item__title team-style-profile-card__title">
-                      {{ competency.title }}
-                    </h4>
-                    <p class="team-style-profile-card__definition">{{ competency.definition_display }}</p>
+                <article class="leadership-report__competency-card">
+                  <div class="leadership-report__competency-copy">
+                    <h4 class="leadership-report__competency-name">{{ competency.title }}</h4>
+                    <p class="leadership-report__competency-description">{{ competency.definition_display }}</p>
                   </div>
 
                   <div
-                    class="response-style-scale response-style-scale--linear team-style-result__scale team-style-profile-card__scale"
+                    class="response-style-scale response-style-scale--linear team-style-result__scale leadership-report__competency-scale"
                     role="meter"
                     aria-label="{{ competency.title }}: {{ competency.score_display }}"
                     aria-valuemin="1"
@@ -68,11 +94,11 @@
                     </div>
                   </div>
 
-                  <details class="purpose-fit-explainer team-style-guidance-explainer mb-0">
-                    <summary class="purpose-fit-explainer__title team-style-guidance-explainer__title">
+                  <details class="leadership-report__guidance-explainer">
+                    <summary class="leadership-report__guidance-summary">
                       {{ leadership_report_content.guidance_title }}
                     </summary>
-                    <div class="purpose-fit-explainer__content team-style-guidance-explainer__content mt-3">
+                    <div class="leadership-report__guidance-content">
                       <div class="team-style-guidance">
                         <div class="team-style-guidance__header">
                           <p>{{ competency.interpretation_display }}</p>
