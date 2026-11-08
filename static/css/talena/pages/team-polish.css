@@ -843,62 +843,65 @@
 }
 
 
-/* #375: the shared team overview uses the full width, never three overlapping
-   radar datasets. Initials are separate from the plotted scores. */
+
+/* #375: aggregate SVG team wheel, distinct from the individual team radar. */
 .talena-team-page .team-analytics-grid--composite {
   grid-template-columns: minmax(0, 1fr);
+  gap: 1.25rem;
 }
 
 .talena-team-page .team-analytics-panel--composite {
   min-width: 0;
-  padding: clamp(1rem, 2vw, 1.65rem);
+  padding: clamp(1.1rem, 2.2vw, 1.85rem);
+  border-radius: 19px;
   background: #fff;
 }
 
 .talena-team-page .team-composite-chart-header {
   display: flex;
-  align-items: start;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 1.1rem;
   flex-wrap: wrap;
+  gap: 1.15rem;
 }
 
 .talena-team-page .team-composite-chart-title {
-  margin: 0 0 0.38rem;
+  margin: 0 0 0.45rem;
   color: var(--talena-ink);
-  font-size: 0.95rem;
-  font-weight: 740;
+  font-size: clamp(0.9rem, 1.15vw, 1.08rem);
+  font-weight: 760;
 }
 
 .talena-team-page .team-composite-chart-copy {
   margin: 0;
   max-width: 42rem;
   color: var(--talena-text-muted);
-  font-size: 0.71rem;
-  line-height: 1.55;
+  font-size: 0.72rem;
+  line-height: 1.6;
 }
 
 .talena-team-page .team-composite-chart-modes {
   display: inline-flex;
   flex-wrap: wrap;
-  gap: 0.25rem;
-  padding: 0.25rem;
+  gap: 0.22rem;
+  padding: 0.24rem;
   border: 1px solid var(--talena-border);
   border-radius: 12px;
   background: var(--talena-surface-soft);
 }
 
 .talena-team-page .team-composite-chart-mode {
-  min-height: 35px;
-  padding: 0.48rem 0.85rem;
+  min-height: 36px;
+  padding: 0.48rem 0.78rem;
   border: 1px solid transparent;
   border-radius: 9px;
   background: transparent;
   color: var(--talena-text-muted);
   font: inherit;
-  font-size: 0.7rem;
-  font-weight: 690;
+  font-size: 0.68rem;
+  font-weight: 700;
   cursor: pointer;
+  transition: background 140ms ease, color 140ms ease, box-shadow 140ms ease;
 }
 
 .talena-team-page .team-composite-chart-mode:hover {
@@ -906,81 +909,186 @@
 }
 
 .talena-team-page .team-composite-chart-mode.is-active {
+  border-color: rgba(255, 111, 97, 0.2);
   background: #fff;
-  border-color: rgba(255, 111, 97, 0.18);
   color: var(--talena-coral-strong);
-  box-shadow: 0 2px 8px rgba(52,39,34,0.055);
+  box-shadow: 0 2px 7px rgba(56,40,34,0.06);
 }
 
-.talena-team-page .team-composite-chart-mode:focus-visible {
+.talena-team-page .team-composite-chart-mode:focus-visible,
+.talena-team-page .team-composite-wheel-details summary:focus-visible {
   outline: 2px solid var(--talena-coral);
-  outline-offset: 2px;
+  outline-offset: 3px;
+}
+
+.talena-team-page .team-composite-wheel-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.6rem 1.65rem;
+  margin: 1.35rem 0 0;
+  padding: 0.85rem;
+  border: 1px solid #efeae7;
+  border-radius: 12px;
+  background: #fcfbfa;
+}
+
+.talena-team-page .team-composite-wheel-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.48rem;
+  color: #534c48;
+  font-size: 0.67rem;
+  font-weight: 650;
+}
+
+.talena-team-page .team-composite-wheel-swatch {
+  display: inline-block;
+  width: 15px;
+  height: 15px;
+  border-radius: 5px;
+  flex: 0 0 15px;
+  border: 1px solid rgba(55, 42, 38, 0.07);
+}
+
+.talena-team-page .team-composite-wheel-swatch--most {
+  background: #b8e1cd;
+}
+
+.talena-team-page .team-composite-wheel-swatch--least {
+  background: #f1c1cb;
 }
 
 .talena-team-page .team-style-chart-box--composite {
-  height: clamp(340px, 49vw, 520px);
-  margin: 0.65rem auto 0;
+  height: auto;
+  min-height: 0;
+  margin: 0.35rem 0 0;
+  padding: 0.2rem 0.25rem 0.8rem;
+  overflow-x: auto;
+  scrollbar-width: thin;
 }
 
-.talena-team-page .team-composite-chart-people {
-  margin-top: 0.5rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--talena-border);
+.talena-team-page .team-composite-wheel {
+  width: 100%;
+  max-width: 900px;
+  min-width: 570px;
+  margin: 0 auto;
 }
 
-.talena-team-page .team-composite-chart-people[hidden],
-.talena-team-page .team-composite-chart-people-list[hidden] {
-  display: none !important;
+.talena-team-page .team-preference-wheel-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  overflow: visible;
+  font-family: inherit;
 }
 
-.talena-team-page .team-composite-chart-people-heading h4 {
-  margin: 0 0 0.28rem;
+.talena-team-page .team-wheel-person rect {
+  stroke: rgba(255, 255, 255, 0.58);
+  stroke-width: 1;
+}
+
+.talena-team-page .team-wheel-person {
+  cursor: help;
+}
+
+.talena-team-page .team-composite-wheel-details {
+  margin: 0.15rem 0 0;
+  border: 1px solid var(--talena-border);
+  border-radius: 12px;
+  background: #fcfbfa;
+}
+
+.talena-team-page .team-composite-wheel-details summary {
+  list-style: none;
+  position: relative;
+  padding: 0.86rem 1.15rem;
   color: var(--talena-ink);
-  font-size: 0.78rem;
+  font-size: 0.71rem;
   font-weight: 720;
+  cursor: pointer;
 }
 
-.talena-team-page .team-composite-chart-people-heading p {
-  margin: 0 0 0.85rem;
+.talena-team-page .team-composite-wheel-details summary::-webkit-details-marker {
+  display: none;
+}
+
+.talena-team-page .team-composite-wheel-details summary::after {
+  content: "+";
+  position: absolute;
+  right: 1.12rem;
+  color: #877c76;
+  font-weight: 700;
+}
+
+.talena-team-page .team-composite-wheel-details[open] summary::after {
+  content: "−";
+}
+
+.talena-team-page .team-composite-wheel-details-copy {
+  margin: 0;
+  padding: 0 1.15rem 0.85rem;
   color: var(--talena-text-muted);
-  font-size: 0.68rem;
-  line-height: 1.5;
+  font-size: 0.67rem;
+  line-height: 1.58;
 }
 
-.talena-team-page .team-composite-chart-people-list {
+.talena-team-page .team-composite-chart-people-list--both {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.5rem 1.15rem;
+  gap: 0.55rem 0.85rem;
+  padding: 0 0.85rem 0.95rem;
 }
 
 .talena-team-page .team-composite-chart-person-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(54px, auto) auto;
-  align-items: center;
-  gap: 0.55rem;
+  display: flex;
+  flex-direction: column;
   min-width: 0;
-  padding: 0.62rem 0.72rem;
+  gap: 0.55rem;
+  padding: 0.7rem 0.8rem;
   border: 1px solid var(--talena-border);
   border-radius: 10px;
-  background: #fcfbfa;
+  background: #fff;
 }
 
 .talena-team-page .team-composite-chart-person-style {
   color: var(--talena-ink);
-  font-size: 0.7rem;
-  font-weight: 690;
+  font-size: 0.72rem;
+  font-weight: 750;
 }
 
-.talena-team-page .team-composite-chart-person-badges {
+.talena-team-page .team-composite-chart-person-extremes {
+  display: grid;
+  gap: 0.38rem;
+}
+
+.talena-team-page .team-composite-chart-person-extremes > div {
   display: flex;
   flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 0.2rem;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.talena-team-page .team-composite-chart-person-dot {
+  display: inline-block;
+  width: 0.52rem;
+  height: 0.52rem;
+  flex: 0 0 0.52rem;
+  border-radius: 50%;
+}
+
+.talena-team-page .team-composite-chart-person-dot--most {
+  background: #a5d4bc;
+}
+
+.talena-team-page .team-composite-chart-person-dot--least {
+  background: #ecc0ca;
 }
 
 .talena-team-page .team-composite-chart-person-value {
+  margin-left: auto;
   color: var(--talena-text-muted);
-  font-size: 0.65rem;
+  font-size: 0.64rem;
   white-space: nowrap;
 }
 
@@ -992,20 +1100,17 @@
   .talena-team-page .team-composite-chart-modes {
     align-self: flex-start;
   }
-  .talena-team-page .team-composite-chart-people-list {
+  .talena-team-page .team-composite-chart-people-list--both {
     grid-template-columns: minmax(0, 1fr);
   }
   .talena-team-page .team-style-chart-box--composite {
-    height: 350px;
+    margin-left: -0.6rem;
+    margin-right: -0.6rem;
   }
 }
 
-@media (max-width: 420px) {
-  .talena-team-page .team-style-chart-box--composite {
-    height: 305px;
-  }
+@media (prefers-reduced-motion: reduce) {
   .talena-team-page .team-composite-chart-mode {
-    padding: 0.45rem 0.62rem;
-    font-size: 0.64rem;
+    transition: none;
   }
 }
