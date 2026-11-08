@@ -2,8 +2,13 @@
 {% get_current_language as LANGUAGE_CODE %}
 {% interview_section_meta "cognitive" as cognitive_interview_meta %}
 {# Talena candidate i18n batch 1 #}
-{% trans "No cognitive assessment results available" as no_cognitive_title %}
-{% trans "Cognitive assessments could provide additional evidence about performance on specific reasoning and problem-solving tasks." as no_cognitive_description %}
+{% if LANGUAGE_CODE|slice:":2" == "sv" %}
+  {% trans "Inga färdighetsresultat tillgängliga" as no_cognitive_title %}
+  {% trans "Färdighetstester kan ge ytterligare underlag om prestation i specifika uppgifter som rör resonemang och problemlösning." as no_cognitive_description %}
+{% else %}
+  {% trans "No cognitive assessment results available" as no_cognitive_title %}
+  {% trans "Cognitive assessments could provide additional evidence about performance on specific reasoning and problem-solving tasks." as no_cognitive_description %}
+{% endif %}
 
 {% if has_ability_results %}
 
@@ -20,7 +25,7 @@
     <div
       class="candidate-insights-view-switcher"
       role="tablist"
-      aria-label="{% trans 'Cognitive insight areas' %}"
+      aria-label="{% if LANGUAGE_CODE|slice:":2" == "sv" %}Områden för färdighetsinsikter{% else %}{% trans 'Cognitive insight areas' %}{% endif %}"
     >
 
 <button
@@ -138,11 +143,11 @@
           </div>
 
           <h2 class="insight-summary-title mb-1">
-            {% trans "Cognitive interpretation" %}
+            {% if LANGUAGE_CODE|slice:":2" == "sv" %}Färdighetstolkning{% else %}{% trans "Cognitive interpretation" %}{% endif %}
           </h2>
 
           <p class="text-muted small mb-0">
-            {% blocktrans %}A practical interpretation of the available cognitive results in relation to the selected purpose and project context.{% endblocktrans %}
+            {% if LANGUAGE_CODE|slice:":2" == "sv" %}En praktisk tolkning av de tillgängliga färdighetsresultaten i relation till valt syfte och projektkontext.{% else %}{% blocktrans %}A practical interpretation of the available cognitive results in relation to the selected purpose and project context.{% endblocktrans %}{% endif %}
           </p>
 
         </div>
@@ -169,8 +174,8 @@
             type="button"
             class="btn btn-icon btn-light"
             data-cognitive-interpretation-regenerate
-            title="{% trans 'Generate a new cognitive interpretation' %}"
-            aria-label="{% trans 'Generate a new cognitive interpretation' %}"
+            title="{% if LANGUAGE_CODE|slice:":2" == "sv" %}Generera en ny färdighetstolkning{% else %}{% trans 'Generate a new cognitive interpretation' %}{% endif %}"
+            aria-label="{% if LANGUAGE_CODE|slice:":2" == "sv" %}Generera en ny färdighetstolkning{% else %}{% trans 'Generate a new cognitive interpretation' %}{% endif %}"
           >
             <i data-feather="refresh-cw"></i>
           </button>
@@ -201,7 +206,7 @@
           ></span>
 
           <span>
-            {% trans "Interpreting the cognitive assessment results…" %}
+            {% if LANGUAGE_CODE|slice:":2" == "sv" %}Tolkar färdighetsresultaten…{% else %}{% trans "Interpreting the cognitive assessment results…" %}{% endif %}
           </span>
 
         </div>
@@ -214,7 +219,7 @@
         class="alert alert-danger d-none mt-4"
         data-cognitive-interpretation-error
       >
-        {% trans "The cognitive interpretation could not be generated." %}
+        {% if LANGUAGE_CODE|slice:":2" == "sv" %}Färdighetstolkningen kunde inte genereras.{% else %}{% trans "The cognitive interpretation could not be generated." %}{% endif %}
       </div>
 
 
