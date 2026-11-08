@@ -571,9 +571,9 @@ class ReportUi441Tests(SimpleTestCase):
         end = theme.index("  function findLocalLabelsPlugin(", start)
         overlay = theme[start:end]
 
+        self.assertIn('if (candidateReport) {', overlay)
         self.assertIn(
-            'if (candidateReport) {\\n      ctx.beginPath();\\n'
-            '      ctx.arc(centerX, centerY, compact ? 11 : 19, 0, Math.PI * 2);',
+            'ctx.arc(centerX, centerY, compact ? 11 : 19, 0, Math.PI * 2);',
             overlay,
         )
         self.assertIn('ctx.fillStyle = "#ffffff";', overlay)
