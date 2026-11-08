@@ -117,40 +117,6 @@
     }
   }
 
-  function readTeamStyleMinimumValues(expectedCount) {
-    const tables = document.querySelectorAll(
-      ".talena-team-page .team-table"
-    );
-
-    for (const table of tables) {
-      const headers = table.querySelectorAll("thead th");
-      const rows = table.querySelectorAll("tbody tr");
-
-      if (headers.length !== 3 || rows.length !== expectedCount) {
-        continue;
-      }
-
-      const values = Array.from(rows).map(function (row) {
-        const cells = row.querySelectorAll("td");
-
-        if (cells.length < 3) {
-          return null;
-        }
-
-        return parseScoreOutOfFive(cells[2].textContent || "");
-      });
-
-      if (
-        values.length === expectedCount
-        && values.every(function (value) { return value !== null; })
-      ) {
-        return values;
-      }
-    }
-
-    return [];
-  }
-
   function getTeamStyleLabelMap(chartElement) {
     return {
       Connector: chartElement.dataset.styleConnector || "Connector",
