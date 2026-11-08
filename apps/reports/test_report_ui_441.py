@@ -141,8 +141,8 @@ class ReportUi441Tests(SimpleTestCase):
         import re
 
         selected = re.compile(
-            r'<span\\s+class="([^"]*personality-indicator-scale__segment[^"]*)"'
-            r'\\s+data-score="(\\d+)"',
+            r'<span\s+class="([^"]*personality-indicator-scale__segment[^"]*)"'
+            r'\s+data-score="(\d+)"',
         )
         for score in range(1, 11):
             with self.subTest(score=score):
