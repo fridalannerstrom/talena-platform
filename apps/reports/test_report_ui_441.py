@@ -933,12 +933,12 @@ class ReportUi441Tests(SimpleTestCase):
             "tabs/_leadership_report.html"
         )
         self.assertIn(
-            ".leadership-report__intro-text {\\n  max-width: none;\\n  width: 100%;",
+            ".leadership-report__intro-text {\n  max-width: none;\n  width: 100%;",
             css,
         )
         self.assertNotIn("max-width: 84ch;", css)
         self.assertIn(
-            ".leadership-report__intro-copy {\\n  width: 100%;\\n  min-width: 0;",
+            ".leadership-report__intro-copy {\n  width: 100%;\n  min-width: 0;",
             css,
         )
         self.assertIn('class="leadership-report__intro-copy"', template)
@@ -983,7 +983,7 @@ class ReportUi441Tests(SimpleTestCase):
                     meters = re.findall(
                         r'class="response-style-scale response-style-scale--linear '
                         r'team-style-result__scale leadership-report__competency-scale"'
-                        r'[^>]*aria-valuenow="(\\d+)"[^>]*>\\s*'
+                        r'[^>]*aria-valuenow="(\d+)"[^>]*>\s*'
                         r'<div class="response-style-scale__segments">(.*?)</div>',
                         html, re.S,
                     )
@@ -1011,6 +1011,7 @@ class ReportUi441Tests(SimpleTestCase):
                         )
 
     def test_derailment_intro_matches_leadership_warm_box_in_both_languages(self):
+        from html import unescape
         from django.utils.translation import override
 
         css = self.source("static/css/talena/pages/team-styles.css")
@@ -1031,7 +1032,7 @@ class ReportUi441Tests(SimpleTestCase):
             css,
         )
         self.assertIn(
-            "width: 100%;\\n  max-width: none;\\n  color: #716a67;\\n"
+            "width: 100%;\n  max-width: none;\n  color: #716a67;\n"
             "  font-size: 0.7rem;",
             css,
         )
@@ -1058,7 +1059,7 @@ class ReportUi441Tests(SimpleTestCase):
                     html.count('class="derailment-report__intro"'), 1
                 )
                 self.assertIn(report["introduction_title"], html)
-                self.assertIn(report["introduction"], html)
+                self.assertIn(report["introduction"], unescape(html))
                 self.assertIn('aria-labelledby="derailment-intro-title"', html)
 
     def test_missing_results_do_not_generate_an_interpretation(self):
