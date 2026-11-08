@@ -1,7 +1,19 @@
 {% load i18n %}
+{% get_current_language as leadership_language %}
 
 <section class="leadership-report" aria-label="{{ leadership_report_content.aria_label }}">
   {% if leadership_report_content.has_results %}
+    <header class="leadership-report__page-header">
+      <div class="leadership-report__page-heading">
+        <div class="insight-summary-kicker">
+          {% if leadership_language|slice:":2" == "sv" %}Ledarskap{% else %}Leadership{% endif %}
+        </div>
+        <h2 class="leadership-report__page-title">
+          {% if leadership_language|slice:":2" == "sv" %}Ledarskapsrapport{% else %}Leadership report{% endif %}
+        </h2>
+      </div>
+    </header>
+
     <section class="leadership-report__score-overview" aria-labelledby="leadership-score-heading">
       <div class="leadership-report__score-overview-heading">
         <div>
