@@ -926,6 +926,141 @@ class ReportUi441Tests(SimpleTestCase):
         self.assertIn("grid-template-columns: repeat(2, minmax(0, 1fr));", css)
         self.assertIn("@media (max-width: 420px)", css)
 
+    def test_leadership_introduction_uses_full_card_width(self):
+        css = self.source("static/css/talena/pages/team-styles.css")
+        template = self.source(
+            "templates/customer/processes/partials/candidate_insights/"
+            "tabs/_leadership_report.html"
+        )
+        self.assertIn(
+            ".leadership-report__intro-text {\\n  max-width: none;\\n  width: 100%;",
+            css,
+        )
+        self.assertNotIn("max-width: 84ch;", css)
+        self.assertIn(
+            ".leadership-report__intro-copy {\\n  width: 100%;\\n  min-width: 0;",
+            css,
+        )
+        self.assertIn('class="leadership-report__intro-copy"', template)
+        self.assertIn('class="leadership-report__intro-text"', template)
+
+    def test_leadership_meter_segments_fill_from_left_for_all_scores(self):
+        import re
+        from apps.reports.services.leadership_report import (
+            _SOURCE_NAMES,
+            build_leadership_report_content,
+        )
+
+        css = self.source("static/css/talena/pages/team-styles.css")
+        template = self.source(
+            "templates/customer/processes/partials/candidate_insights/"
+            "tabs/_leadership_report.html"
+        )
+        self.assertIn("segment <= competency.score_rounded", template)
+        self.assertIn("segment == competency.score_rounded", template)
+        self.assertIn(
+            ".leadership-report__competency-scale .response-style-scale__segment--filled,",
+            css,
+        )
+        self.assertIn(
+            "background: var(--talena-coral, #ff6f61) !important;",
+            css,
+        )
+
+        for score in range(1, 6):
+            for language in ("sv", "en"):
+                with self.subTest(score=score, language=language):
+                    competencies = [
+                        {"competency": aliases[0], "stive": score}
+                        for aliases in _SOURCE_NAMES.values()
+                    ]
+                    report = build_leadership_report_content(language, competencies)
+                    html = render_to_string(
+                        "customer/processes/partials/candidate_insights/"
+                        "tabs/_leadership_report.html",
+                        {"leadership_report_content": report},
+                    )
+                    meters = re.findall(
+                        r'class="response-style-scale response-style-scale--linear '
+                        r'team-style-result__scale leadership-report__competency-scale"'
+                        r'[^>]*aria-valuenow="(\\d+)"[^>]*>\\s*'
+                        r'<div class="response-style-scale__segments">(.*?)</div>',
+                        html, re.S,
+                    )
+                    self.assertEqual(len(meters), 8)
+                    for now, segments_html in meters:
+                        self.assertEqual(int(now), score)
+                        segments = re.findall(
+                            r'<span class="response-style-scale__segment([^"]*)"',
+                            segments_html,
+                        )
+                        self.assertEqual(len(segments), 5)
+                        self.assertEqual(
+                            [
+                                index + 1 for index, classes in enumerate(segments)
+                                if "response-style-scale__segment--filled" in classes
+                            ],
+                            list(range(1, score + 1)),
+                        )
+                        self.assertEqual(
+                            [
+                                index + 1 for index, classes in enumerate(segments)
+                                if "response-style-scale__segment--marker" in classes
+                            ],
+                            [score],
+                        )
+
+    def test_derailment_intro_matches_leadership_warm_box_in_both_languages(self):
+        from django.utils.translation import override
+
+        css = self.source("static/css/talena/pages/team-styles.css")
+        tmpl = self.source(
+            "templates/customer/processes/partials/candidate_insights/"
+            "tabs/_derailment_report.html"
+        )
+        self.assertIn('class="derailment-report__intro-copy"', tmpl)
+        self.assertIn('class="derailment-report__intro-text"', tmpl)
+        self.assertIn('id="derailment-intro-title"', tmpl)
+        self.assertIn("background: #f8f5f2;", css)
+        self.assertIn(
+            "#reports-subpanel-derailment-report .derailment-report__intro {",
+            css,
+        )
+        self.assertIn(
+            "#reports-subpanel-derailment-report .derailment-report__intro-text {",
+            css,
+        )
+        self.assertIn(
+            "width: 100%;\\n  max-width: none;\\n  color: #716a67;\\n"
+            "  font-size: 0.7rem;",
+            css,
+        )
+        self.assertIn(
+            "#reports-subpanel-derailment-report .derailment-report__intro-copy {",
+            css,
+        )
+        self.assertIn(
+            "grid-template-columns: 2.3rem minmax(0, 1fr);",
+            css,
+        )
+
+        for language in ("sv", "en"):
+            with self.subTest(language=language), override(language):
+                report = build_derailment_report_content(language, [
+                    {"competency": "Dependent", "sten_rounded": 7}
+                ])
+                html = render_to_string(
+                    "customer/processes/partials/candidate_insights/"
+                    "tabs/_derailment_report.html",
+                    {"derailment_report_content": report},
+                )
+                self.assertEqual(
+                    html.count('class="derailment-report__intro"'), 1
+                )
+                self.assertIn(report["introduction_title"], html)
+                self.assertIn(report["introduction"], html)
+                self.assertIn('aria-labelledby="derailment-intro-title"', html)
+
     def test_missing_results_do_not_generate_an_interpretation(self):
         result = build_derailment_report_content("sv", [])
         self.assertFalse(result["has_results"])
