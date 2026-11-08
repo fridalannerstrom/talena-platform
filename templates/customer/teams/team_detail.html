@@ -312,91 +312,62 @@
           <div class="team-analytics-panel team-analytics-panel--composite">
             <div class="team-composite-chart-header">
               <div>
-                <h3 class="team-composite-chart-title">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Teamets sammansatta profil{% else %}Composite team profile{% endif %}</h3>
-                <p class="team-composite-chart-copy" data-team-chart-description aria-live="polite">
-                  {% if LANGUAGE_CODE|slice:":2" == "sv" %}Medelvärde av tillgängliga resultat per teamstil.{% else %}Average of available scores for each team style.{% endif %}
+                <h3 class="team-composite-chart-title">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Teamets preferenskarta{% else %}Team preference wheel{% endif %}</h3>
+                <p class="team-composite-chart-copy">
+                  {% if LANGUAGE_CODE|slice:":2" == "sv" %}Se vilka personer som har högst och lägst observerat resultat för varje teamstil. Initialerna visas i respektive sektor.{% else %}See which members have the highest and lowest observed score for each team style. Initials appear directly in each sector.{% endif %}
                 </p>
               </div>
-              <div class="team-composite-chart-modes" role="group" aria-label="{% if LANGUAGE_CODE|slice:":2" == "sv" %}Välj sammanställning{% else %}Select summary{% endif %}">
-                <button type="button" class="team-composite-chart-mode is-active" data-team-chart-mode="average" aria-pressed="true">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Medelvärde{% else %}Average{% endif %}</button>
-                <button type="button" class="team-composite-chart-mode" data-team-chart-mode="minimum" aria-pressed="false">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Minimum{% else %}Minimum{% endif %}</button>
-                <button type="button" class="team-composite-chart-mode" data-team-chart-mode="maximum" aria-pressed="false">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Maximum{% else %}Maximum{% endif %}</button>
+              <div class="team-composite-chart-modes" role="group" aria-label="{% if LANGUAGE_CODE|slice:":2" == "sv" %}Visa preferenser{% else %}Show preferences{% endif %}">
+                <button type="button" class="team-composite-chart-mode is-active" data-team-wheel-mode="both" aria-pressed="true">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Visa båda{% else %}Show both{% endif %}</button>
+                <button type="button" class="team-composite-chart-mode" data-team-wheel-mode="most" aria-pressed="false">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Mest föredragen{% else %}Most preferred{% endif %}</button>
+                <button type="button" class="team-composite-chart-mode" data-team-wheel-mode="least" aria-pressed="false">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Minst föredragen{% else %}Least preferred{% endif %}</button>
               </div>
+            </div>
+
+            <div class="team-composite-wheel-legend" aria-label="{% if LANGUAGE_CODE|slice:":2" == "sv" %}Förklaring till ringarna{% else %}Ring legend{% endif %}">
+              <span><i class="team-composite-wheel-swatch team-composite-wheel-swatch--most" aria-hidden="true"></i>{% if LANGUAGE_CODE|slice:":2" == "sv" %}Mest föredragen (högsta värdet){% else %}Most preferred (highest score){% endif %}</span>
+              <span><i class="team-composite-wheel-swatch team-composite-wheel-swatch--least" aria-hidden="true"></i>{% if LANGUAGE_CODE|slice:":2" == "sv" %}Minst föredragen (lägsta värdet){% else %}Least preferred (lowest score){% endif %}</span>
             </div>
 
             <div class="team-style-chart-box team-style-chart-box--composite">
-              <canvas
-                id="teamStyleAverageChart"
-                data-average-label="{{ chart_average_label|escape }}"
-                data-minimum-label="{% trans 'Minimum' %}"
-                data-maximum-label="{{ chart_maximum_label|escape }}"
-                data-average-help="{% if LANGUAGE_CODE|slice:":2" == "sv" %}Medelvärde av tillgängliga resultat per teamstil.{% else %}Average of available scores for each team style.{% endif %}"
-                data-minimum-help="{% if LANGUAGE_CODE|slice:":2" == "sv" %}Lägsta observerade poäng per teamstil. Personkoppling visas under diagrammet.{% else %}Lowest observed score for each style. See contributing members below.{% endif %}"
-                data-maximum-help="{% if LANGUAGE_CODE|slice:":2" == "sv" %}Högsta observerade poäng per teamstil. Personkoppling visas under diagrammet.{% else %}Highest observed score for each style. See contributing members below.{% endif %}"
-                data-style-connector="{% trans 'Connector' %}"
-                data-style-catalyst="{% trans 'Catalyst' %}"
-                data-style-director="{% trans 'Director' %}"
-                data-style-energiser="{% trans 'Energiser' %}"
-                data-style-architect="{% trans 'Architect' %}"
-                data-style-harmoniser="{% trans 'Harmoniser' %}"
-                data-style-analyst="{% trans 'Analyst' %}"
-                data-style-auditor="{% trans 'Auditor' %}"
-                role="img"
-                aria-label="{% if LANGUAGE_CODE|slice:":2" == "sv" %}Radardiagram över teamets åtta teamstilar{% else %}Radar chart of the team's eight styles{% endif %}"
-              ></canvas>
+              <div id="teamStylePreferenceWheel" class="team-composite-wheel"
+                   data-style-connector="{% trans 'Connector' %}"
+                   data-style-catalyst="{% trans 'Catalyst' %}"
+                   data-style-director="{% trans 'Director' %}"
+                   data-style-energiser="{% trans 'Energiser' %}"
+                   data-style-architect="{% trans 'Architect' %}"
+                   data-style-harmoniser="{% trans 'Harmoniser' %}"
+                   data-style-analyst="{% trans 'Analyst' %}"
+                   data-style-auditor="{% trans 'Auditor' %}"
+                   data-members-count="{{ team_style_stats.members_with_scores }}"
+                   data-wheel-label="{% if LANGUAGE_CODE|slice:":2" == "sv" %}Teamets cirkulära preferenskarta{% else %}Circular team preference wheel{% endif %}"
+                   data-wheel-member-label="{% if LANGUAGE_CODE|slice:":2" == "sv" %}med resultat{% else %}with results{% endif %}"
+                   data-wheel-overflow-label="{% if LANGUAGE_CODE|slice:":2" == "sv" %}Fler personer finns i listan nedanför{% else %}More members are listed below{% endif %}">
+                <p class="text-muted small mb-0">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Teamkartan visas när sidan har laddats färdigt.{% else %}The team wheel appears when the page finishes loading.{% endif %}</p>
+              </div>
             </div>
 
-            <div class="team-composite-chart-people" data-team-chart-person-details hidden>
-              <div class="team-composite-chart-people-heading">
-                <h4>{% if LANGUAGE_CODE|slice:":2" == "sv" %}Personer bakom värdena{% else %}Members behind the values{% endif %}</h4>
-                <p>{% if LANGUAGE_CODE|slice:":2" == "sv" %}Initialerna visar de personer som har det högsta eller lägsta observerade värdet i varje teamstil. Delade värden visas tillsammans.{% else %}Initials identify the members with the highest or lowest observed score in each style. Ties are shown together.{% endif %}</p>
-              </div>
-              <div class="team-composite-chart-people-list" data-team-chart-people-mode="minimum" hidden>
+            <details class="team-composite-wheel-details" data-team-chart-person-details>
+              <summary>{% if LANGUAGE_CODE|slice:":2" == "sv" %}Visa alla initialer och värden per teamstil{% else %}Show all initials and scores by team style{% endif %}</summary>
+              <p class="team-composite-wheel-details-copy">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Grönt visar personen eller personerna med högst resultat inom teamet för en viss stil. Rosa visar lägst resultat. Flera personer kan dela samma värde.{% else %}Green shows the member(s) with the highest score within the team for each style. Pink shows the lowest. Multiple members may share a value.{% endif %}</p>
+              <div class="team-composite-chart-people-list team-composite-chart-people-list--both">
                 {% for row in team_style_stats.most_least_rows %}
                   <div class="team-composite-chart-person-row">
                     <span class="team-composite-chart-person-style">{% trans row.style %}</span>
-                    <span class="team-composite-chart-person-badges">
-                      {% for person in row.least %}<span class="team-score-badge" title="{{ person.name }}">{{ person.initials }}</span>{% empty %}<span class="text-muted">—</span>{% endfor %}
-                    </span>
-                    <span class="team-composite-chart-person-value">{% if row.min is not None %}{{ row.min }} / 5{% else %}—{% endif %}</span>
+                    <div class="team-composite-chart-person-extremes">
+                      <div><span class="team-composite-chart-person-dot team-composite-chart-person-dot--most" aria-hidden="true"></span>
+                        {% for person in row.most %}<span class="team-score-badge" title="{{ person.name }}">{{ person.initials }}</span>{% empty %}<span class="text-muted">—</span>{% endfor %}
+                        <span class="team-composite-chart-person-value">{% if row.max is not None %}{{ row.max }} / 5{% else %}—{% endif %}</span>
+                      </div>
+                      <div><span class="team-composite-chart-person-dot team-composite-chart-person-dot--least" aria-hidden="true"></span>
+                        {% for person in row.least %}<span class="team-score-badge" title="{{ person.name }}">{{ person.initials }}</span>{% empty %}<span class="text-muted">—</span>{% endfor %}
+                        <span class="team-composite-chart-person-value">{% if row.min is not None %}{{ row.min }} / 5{% else %}—{% endif %}</span>
+                      </div>
+                    </div>
                   </div>
                 {% endfor %}
               </div>
-              <div class="team-composite-chart-people-list" data-team-chart-people-mode="maximum" hidden>
-                {% for row in team_style_stats.most_least_rows %}
-                  <div class="team-composite-chart-person-row">
-                    <span class="team-composite-chart-person-style">{% trans row.style %}</span>
-                    <span class="team-composite-chart-person-badges">
-                      {% for person in row.most %}<span class="team-score-badge" title="{{ person.name }}">{{ person.initials }}</span>{% empty %}<span class="text-muted">—</span>{% endfor %}
-                    </span>
-                    <span class="team-composite-chart-person-value">{% if row.max is not None %}{{ row.max }} / 5{% else %}—{% endif %}</span>
-                  </div>
-                {% endfor %}
-              </div>
-            </div>
-          </div>
-
-          <div class="team-analytics-panel">
-            <div class="fw-semibold">{% trans "Average profile" %}</div>
-            <div class="text-muted small">
-              {% trans "Average score across selected team members." %}
-            </div>
-
-            <div class="team-style-chart-box">
-              <canvas
-                id="teamStyleAverageChart"
-                data-average-label="{{ chart_average_label|escape }}"
-                data-maximum-label="{{ chart_maximum_label|escape }}"
-                data-style-connector="{% trans 'Connector' %}"
-                data-style-catalyst="{% trans 'Catalyst' %}"
-                data-style-director="{% trans 'Director' %}"
-                data-style-energiser="{% trans 'Energiser' %}"
-                data-style-architect="{% trans 'Architect' %}"
-                data-style-harmoniser="{% trans 'Harmoniser' %}"
-                data-style-analyst="{% trans 'Analyst' %}"
-                data-style-auditor="{% trans 'Auditor' %}"
-              ></canvas>
-            </div>
+            </details>
           </div>
 
           <div class="team-analytics-panel">
@@ -754,6 +725,7 @@
 
   {{ team_style_stats.chart_labels|json_script:"team-style-chart-labels" }}
   {{ team_style_stats.chart_average_values|json_script:"team-style-chart-averages" }}
+  {{ team_style_stats.most_least_rows|json_script:"team-style-wheel-people" }}
   {{ team_style_stats.chart_min_values|json_script:"team-style-chart-min" }}
   {{ team_style_stats.chart_max_values|json_script:"team-style-chart-max" }}
 
