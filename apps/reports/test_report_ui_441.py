@@ -92,9 +92,15 @@ class ReportUi441Tests(SimpleTestCase):
             {"derailment_report_content": self.report(7)},
         )
         self.assertLess(
+            html.index('class="derailment-report__page-header"'),
             html.index('class="derailment-report__intro"'),
-            html.index('class="derailment-report__overview"')
         )
+        self.assertLess(
+            html.index('class="derailment-report__intro"'),
+            html.index('class="derailment-report__overview"'),
+        )
+        self.assertNotIn("Same compact, grouped reading pattern", html)
+        self.assertNotIn("{#", html)
         self.assertIn('aria-valuenow="7"', html)
         self.assertIn('aria-valuemin="1"', html)
         self.assertIn('aria-valuemax="10"', html)
@@ -310,6 +316,56 @@ class ReportUi441Tests(SimpleTestCase):
         self.assertIn(report["missing_interpretation_label"], rendered)
         self.assertIn("derailment-report__interpretation-text--missing", rendered)
         self.assertNotIn("<details", rendered)
+
+    def test_derailment_page_heading_and_pdf_action_share_same_row(self):
+        template = self.source(
+            "templates/customer/processes/partials/candidate_insights/tabs/_derailment_report.html"
+        )
+        js = self.source("static/js/talena/candidate-report-export.js")
+        css = self.source("static/css/talena/pages/team-styles.css")
+        pdf_css = self.source("static/css/talena/pages/candidate-report-export.css")
+
+        self.assertIn('class="derailment-report__page-header"', template)
+        self.assertIn('class="insight-summary-kicker"', template)
+        self.assertIn('id="derailment-report-title"', template)
+        self.assertIn("Urspårningsrapport", template)
+        self.assertIn("Derailment report", template)
+        self.assertNotIn('derailment-report__overview-heading', template)
+        self.assertNotIn('derailment-report__eyebrow', template)
+        self.assertNotIn("derailment-profile-title", template)
+        self.assertIn(".derailment-report__page-header, .candidate-insight-page-header", js)
+        self.assertIn('header.append(toolbar);', js)
+        self.assertIn("talena-candidate-pdf-toolbar--inline", js)
+        self.assertIn(".derailment-report__page-title", css)
+        self.assertIn(".derailment-report__profile-row:first-child{border-top:0", css)
+        self.assertIn(
+            '[data-candidate-pdf-report="derailment-report"] .derailment-report__page-header',
+            pdf_css,
+        )
+
+    def test_derailment_new_header_localized_and_comment_not_rendered(self):
+        from django.utils.translation import override
+
+        for language, expected_title, expected_eyebrow in (
+            ("sv", "Urspårningsrapport", "Urspårning"),
+            ("en", "Derailment report", "Derailment"),
+        ):
+            with self.subTest(language=language), override(language):
+                html = render_to_string(
+                    "customer/processes/partials/candidate_insights/tabs/_derailment_report.html",
+                    {"derailment_report_content": self.report(7, language)},
+                )
+                self.assertIn(expected_title, html)
+                self.assertIn(expected_eyebrow, html)
+                self.assertEqual(html.count('id="derailment-report-title"'), 1)
+                self.assertEqual(html.count('class="derailment-report__page-header"'), 1)
+                self.assertNotIn("Same compact, grouped reading pattern", html)
+                self.assertNotIn("Every approved scale interpretation", html)
+                self.assertNotIn("{#", html)
+                self.assertLess(
+                    html.index('class="derailment-report__page-header"'),
+                    html.index('class="derailment-report__intro"'),
+                )
 
     def test_missing_results_do_not_generate_an_interpretation(self):
         result = build_derailment_report_content("sv", [])
