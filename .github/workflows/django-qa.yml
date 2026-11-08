@@ -50,6 +50,8 @@ jobs:
           node --check static/js/talena/pdf-export-core.js
           node --check static/js/talena/team-report-export.js
           node --check static/js/talena/team-profile-export.js
+          node --check static/js/talena/team-pages.js
+          node scripts/test_team_composite_chart_375.js
           node scripts/test_team_report_pdf_contract.js
           node scripts/test_team_report_anonymous_runtime.js
           node scripts/test_team_profile_branding_contract.js
