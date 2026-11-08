@@ -503,6 +503,67 @@ class ReportUi441Tests(SimpleTestCase):
         self.assertIn("drawTeamStyleOverlay(currentChart);", theme)
         self.assertNotIn("dataset.data =", theme)
 
+    def test_team_report_hides_footer_without_changing_reused_component(self):
+        from django.utils.translation import override
+
+        wrapper = self.source(
+            "templates/customer/processes/partials/candidate_insights/tabs/_team_styles.html"
+        )
+        shared = self.source(
+            "templates/customer/processes/partials/_team_styles.html"
+        )
+        self.assertIn("with team_style_hide_footer=True", wrapper)
+        self.assertIn("{% if not team_style_hide_footer %}", shared)
+        self.assertIn('class="team-styles-footer"', shared)
+
+        profile = {
+            "available": True,
+            "styles": [],
+            "chart_styles": [],
+            "chart": {
+                "labels": [], "values": [],
+                "backgrounds": [], "border_colors": [],
+            },
+        }
+        with override("sv"):
+            report = render_to_string(
+                "customer/processes/partials/candidate_insights/tabs/_team_styles.html",
+                {"team_style_profile": profile, "team_style_embedded": False},
+            )
+            reused = render_to_string(
+                "customer/processes/partials/_team_styles.html",
+                {"team_style_profile": profile, "team_style_embedded": True},
+            )
+        self.assertNotIn('class="team-styles-footer"', report)
+        self.assertIn('class="team-styles-footer"', reused)
+        self.assertIn("data-team-style-chart", report)
+
+    def test_team_chart_petals_and_larger_quadrant_titles_are_candidate_only(self):
+        base = self.source("templates/customer/processes/process_base.html")
+        theme = self.source("static/js/talena/candidate-chart-theme.js")
+
+        # The Chart.js dataset and canvas theme use the same rounded ends
+        # for the candidate report. Embedded team charts remain unchanged.
+        for source in (base, theme):
+            self.assertIn(
+                "candidateReport ? (compact ? 18 : 26) : (compact ? 7 : 12)",
+                source,
+            )
+            self.assertIn(
+                "candidateReport ? (compact ? 3 : 5) : (compact ? 1 : 2)",
+                source,
+            )
+        self.assertIn(
+            '"800 18px Inter, system-ui, sans-serif"', theme
+        )
+        self.assertIn(
+            '"800 14px Inter, system-ui, sans-serif"', theme
+        )
+        self.assertIn('canvas.closest("#reports-subpanel-team-report")', base)
+        self.assertIn('canvas.closest("#reports-subpanel-team-report")', theme)
+        self.assertIn("data: numericValues", base)
+        self.assertNotIn("dataset.data =", theme)
+
     def test_missing_results_do_not_generate_an_interpretation(self):
         result = build_derailment_report_content("sv", [])
         self.assertFalse(result["has_results"])
