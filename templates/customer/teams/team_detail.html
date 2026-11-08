@@ -735,6 +735,7 @@
 
 {% block extra_js %}
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <script src="{% static 'js/talena/team-preference-wheel.js' %}?v=20261108-375-wheel-1"></script>
   <script src="{% static 'js/talena/team-pages.js' %}"></script>
   <script src="{% static 'js/talena/team-profile-export.js' %}?v=20261104-449-adapters-2"></script>
   <script src="{% static 'js/talena/pdf-export-core.js' %}"></script>
@@ -866,6 +867,17 @@
           }
           storeText(badge, person.initials);
           storeTitle(badge, person.alias);
+        });
+
+        // The SVG wheel contains member initials and native title tooltips.
+        // Reuse the existing team anonymity mapping for both. Unmatched
+        // identities are hidden rather than exposing raw initials.
+        page.querySelectorAll("[data-team-wheel-person]").forEach(function (marker) {
+          const person = byName.get(normalize(marker.dataset.personName));
+          const initials = marker.querySelector("[data-team-wheel-initial]");
+          const title = marker.querySelector("title");
+          storeText(initials, person ? person.initials : "");
+          storeText(title, person ? person.alias : strings.hidden);
         });
 
         function apply(anonymous) {
