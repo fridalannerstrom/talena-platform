@@ -83,7 +83,8 @@
       "fill": kind === "most" ? "#245946" : "#873E52",
       "data-team-wheel-initial": ""
     }, person.initials || "?"));
-    g.appendChild(node("title", {}, person.name || person.initials || ""));
+    g.appendChild(node("title", {}, (person.name || person.initials || "") +
+      (person.score == null ? "" : " · " + person.score + " / 5")));
     layer.appendChild(g);
   }
 
@@ -164,8 +165,7 @@
         "data-team-wheel-sector": style, "data-wheel-preference": "most"
       });
       highSegment.appendChild(node("title", {},
-        (labels[style] || style) + ": " +
-        (entry.max == null ? "—" : entry.max + " / 5")));
+        (labels[style] || style) + (swedish ? " · mest föredragen" : " · most preferred")));
       outer.appendChild(highSegment);
       initialCluster(outer, high, 234, angle, "most", overflowLabel);
 
@@ -174,8 +174,7 @@
         "data-team-wheel-sector": style, "data-wheel-preference": "least"
       });
       lowSegment.appendChild(node("title", {},
-        (labels[style] || style) + ": " +
-        (entry.min == null ? "—" : entry.min + " / 5")));
+        (labels[style] || style) + (swedish ? " · minst föredragen" : " · least preferred")));
       inner.appendChild(lowSegment);
       initialCluster(inner, low, 133, angle, "least", overflowLabel);
 
