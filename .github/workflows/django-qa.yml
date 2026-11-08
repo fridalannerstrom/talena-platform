@@ -73,6 +73,7 @@ jobs:
           node --check static/js/talena/account-invite-language.js
           node scripts/test_account_invite_language.js
           node --check static/js/talena/candidate-ai-badges.js
+          node --check static/js/talena/candidate-chart-theme.js
           node --check static/js/talena/project-assessment-status.js
           node scripts/test_structured_overall_picture_contract.js
       - name: Verify report scale mapping and interpretation copy (#441)
