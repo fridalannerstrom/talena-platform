@@ -102,210 +102,8 @@
     });
   }
 
-  function readJsonScript(id) {
-    const element = document.getElementById(id);
-
-    if (!element) {
-      return [];
-    }
-
-    try {
-      return JSON.parse(element.textContent || "[]");
-    } catch (error) {
-      console.warn(`Could not parse ${id}.`, error);
-      return [];
-    }
-  }
-
-  function readTeamStyleMinimumValues(expectedCount) {
-    const tables = document.querySelectorAll(
-      ".talena-team-page .team-table"
-    );
-
-    for (const table of tables) {
-      const headers = table.querySelectorAll("thead th");
-      const rows = table.querySelectorAll("tbody tr");
-
-      if (headers.length !== 3 || rows.length !== expectedCount) {
-        continue;
-      }
-
-      const values = Array.from(rows).map(function (row) {
-        const cells = row.querySelectorAll("td");
-
-        if (cells.length < 3) {
-          return null;
-        }
-
-        return parseScoreOutOfFive(cells[2].textContent || "");
-      });
-
-      if (
-        values.length === expectedCount
-        && values.every(function (value) { return value !== null; })
-      ) {
-        return values;
-      }
-    }
-
-    return [];
-  }
-
-  function getTeamStyleLabelMap(chartElement) {
-    return {
-      Connector: chartElement.dataset.styleConnector || "Connector",
-      Catalyst: chartElement.dataset.styleCatalyst || "Catalyst",
-      Director: chartElement.dataset.styleDirector || "Director",
-      Energiser: chartElement.dataset.styleEnergiser || "Energiser",
-      Architect: chartElement.dataset.styleArchitect || "Architect",
-      Harmoniser: chartElement.dataset.styleHarmoniser || "Harmoniser",
-      Analyst: chartElement.dataset.styleAnalyst || "Analyst",
-      Auditor: chartElement.dataset.styleAuditor || "Auditor"
-    };
-  }
-
-  function initTeamStyleChart() {
-    const chartElement = document.getElementById("teamStyleAverageChart");
-
-    if (!chartElement || typeof window.Chart === "undefined") {
-      return;
-    }
-
-    const labels = readJsonScript("team-style-chart-labels");
-    const averageValues = readJsonScript("team-style-chart-averages");
-    const maxValues = readJsonScript("team-style-chart-max");
-
-    if (!labels.length) {
-      return;
-    }
-
-    const minimumValues = readTeamStyleMinimumValues(labels.length);
-    const styleLabelMap = getTeamStyleLabelMap(chartElement);
-    const displayLabels = labels.map(function (label) {
-      return styleLabelMap[label] || label;
-    });
-
-    const averageLabel = chartElement.dataset.averageLabel || "Average";
-    const minimumLabel = chartElement.dataset.minimumLabel || "Minimum";
-    const maximumLabel = chartElement.dataset.maximumLabel || "Maximum";
-
-    const datasets = [
-      {
-        label: averageLabel,
-        data: averageValues,
-        borderColor: "#FF6F61",
-        backgroundColor: "rgba(255, 111, 97, 0.11)",
-        pointBackgroundColor: "#FF6F61",
-        pointBorderColor: "#ffffff",
-        pointBorderWidth: 2,
-        pointRadius: 3,
-        pointHoverRadius: 4,
-        borderWidth: 2,
-        fill: true
-      }
-    ];
-
-    if (minimumValues.length === labels.length) {
-      datasets.push({
-        label: minimumLabel,
-        data: minimumValues,
-        borderColor: "#B7A99E",
-        backgroundColor: "rgba(183, 169, 158, 0.02)",
-        pointBackgroundColor: "#B7A99E",
-        pointBorderColor: "#ffffff",
-        pointBorderWidth: 2,
-        pointRadius: 2.5,
-        pointHoverRadius: 3.5,
-        borderWidth: 1.5,
-        borderDash: [2, 4],
-        fill: false
-      });
-    }
-
-    datasets.push({
-      label: maximumLabel,
-      data: maxValues,
-      borderColor: "#8FAF98",
-      backgroundColor: "rgba(143, 175, 152, 0.03)",
-      pointBackgroundColor: "#8FAF98",
-      pointBorderColor: "#ffffff",
-      pointBorderWidth: 2,
-      pointRadius: 2.5,
-      pointHoverRadius: 3.5,
-      borderWidth: 1.5,
-      borderDash: [5, 4],
-      fill: false
-    });
-
-    new window.Chart(chartElement, {
-      type: "radar",
-      data: {
-        labels: displayLabels,
-        datasets: datasets
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        interaction: {
-          intersect: false,
-          mode: "nearest"
-        },
-        scales: {
-          r: {
-            min: 0,
-            max: 5,
-            angleLines: {
-              color: "rgba(117, 105, 99, 0.10)"
-            },
-            grid: {
-              color: "rgba(117, 105, 99, 0.10)"
-            },
-            pointLabels: {
-              color: "#6F6762",
-              padding: 10,
-              font: {
-                size: 10,
-                weight: 600
-              }
-            },
-            ticks: {
-              display: false,
-              stepSize: 1
-            }
-          }
-        },
-        plugins: {
-          legend: {
-            position: "bottom",
-            labels: {
-              color: "#6F6762",
-              boxWidth: 12,
-              boxHeight: 12,
-              usePointStyle: true,
-              pointStyle: "circle",
-              padding: 18,
-              font: {
-                size: 10,
-                weight: 600
-              }
-            }
-          },
-          tooltip: {
-            displayColors: true,
-            padding: 10,
-            callbacks: {
-              label: function (context) {
-                return `${context.dataset.label}: ${context.formattedValue} / 5`;
-              }
-            }
-          }
-        }
-      }
-    });
-  }
-
   function initTeamModelGuide() {
-    const chartElement = document.getElementById("teamStyleAverageChart");
+    const chartElement = document.getElementById("teamStylePreferenceWheel");
     const analyticsCard = chartElement && chartElement.closest(".card");
 
     if (!analyticsCard || document.querySelector(".team-model-guide-card")) {
@@ -642,7 +440,7 @@
   }
 
   function initTeamStyleGuide() {
-    const chartElement = document.getElementById("teamStyleAverageChart");
+    const chartElement = document.getElementById("teamStylePreferenceWheel");
     const page = chartElement && chartElement.closest(".talena-team-page");
 
     if (!chartElement || !page || document.querySelector(".team-style-guide-card")) {
@@ -707,7 +505,6 @@
   document.addEventListener("DOMContentLoaded", function () {
     initCandidateSearch();
     initTeamStyleRankBars();
-    initTeamStyleChart();
     initTeamModelGuide();
     initTeamMemberProfiles();
     initTeamStyleGuide();

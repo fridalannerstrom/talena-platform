@@ -249,7 +249,50 @@ def build_team_style_statistics(team, candidate_ids=None, process_ids=None):
             }
         )
 
+    # The wheel mirrors the preference concept in the individual report:
+    # each person's two highest and two lowest available style results.
+    # Include cutoff ties, but never put the same tied middle result in both
+    # rings. No team-level extrema or artificial threshold is substituted.
+    preference_wheel_by_style = {
+        style: {"style": style, "most": [], "least": []}
+        for style in TEAM_STYLE_ORDER
+    }
+    preference_wheel_member_count = 0
+    for member in member_profiles:
+        available = [
+            (item["style"], item["score"])
+            for item in member["scores"] if item["score"] is not None
+        ]
+        if len(available) < 4:
+            continue
+        values = sorted(value for _, value in available)
+        lowest_cutoff = values[1]
+        highest_cutoff = values[-2]
+        if values[0] == values[-1]:
+            continue
+
+        candidate = member["candidate"]
+        name = (
+            f"{candidate.first_name} {candidate.last_name}"
+        ).strip() or candidate.email
+        added = False
+        for style, score in available:
+            attribution = {
+                "name": name,
+                "initials": member["initials"],
+                "score": score,
+            }
+            if score >= highest_cutoff and score > lowest_cutoff:
+                preference_wheel_by_style[style]["most"].append(attribution)
+                added = True
+            if score <= lowest_cutoff and score < highest_cutoff:
+                preference_wheel_by_style[style]["least"].append(attribution)
+                added = True
+        if added:
+            preference_wheel_member_count += 1
+
     average_rows = []
+    minimum_rows = []
     maximum_rows = []
     most_least_rows = []
 
@@ -311,6 +354,24 @@ def build_team_style_statistics(team, candidate_ids=None, process_ids=None):
                 "average_percent": (
                     min(max(round((avg_value / 5) * 100, 1), 0), 100)
                     if avg_value is not None
+                    else 0
+                ),
+                "count": len(numeric_values),
+            }
+        )
+
+        minimum_rows.append(
+            {
+                "style": style,
+                "quadrant": TEAM_STYLE_QUADRANTS.get(style, ""),
+                "minimum": (
+                    round(min_value, 1)
+                    if min_value is not None
+                    else None
+                ),
+                "minimum_percent": (
+                    min(max(round((min_value / 5) * 100, 1), 0), 100)
+                    if min_value is not None
                     else 0
                 ),
                 "count": len(numeric_values),
@@ -390,26 +451,42 @@ def build_team_style_statistics(team, candidate_ids=None, process_ids=None):
         else None
     )
 
+    # Keep aggregate tables in their existing order. Only the chart follows
+    # the clockwise position of the individual Sova/Talena eight-style wheel.
+    chart_order = [
+        "Catalyst", "Director", "Energiser", "Architect",
+        "Harmoniser", "Analyst", "Auditor", "Connector",
+    ]
+    average_by_style = {row["style"]: row["average"] for row in average_rows}
+    minimum_by_style = {row["style"]: row["minimum"] for row in minimum_rows}
+    maximum_by_style = {row["style"]: row["maximum"] for row in maximum_rows}
+
     return {
         "styles": TEAM_STYLE_ORDER,
         "average_rows": average_rows,
+        "minimum_rows": minimum_rows,
         "maximum_rows": maximum_rows,
         "ranked_averages": ranked_averages,
         "ranked_maximums": ranked_maximums,
         "most_least_rows": most_least_rows,
+        "preference_wheel_rows": [
+            preference_wheel_by_style[style] for style in chart_order
+        ],
+        "preference_wheel_member_count": preference_wheel_member_count,
         "member_profiles": member_profiles,
         "members_total": len(candidates),
         "members_with_scores": members_with_scores,
         "strongest_average": strongest_average,
         "lowest_average": lowest_average,
-        "chart_labels": TEAM_STYLE_ORDER,
+        "chart_labels": chart_order,
         "chart_average_values": [
-            row["average"] if row["average"] is not None else 0
-            for row in average_rows
+            average_by_style[style] for style in chart_order
+        ],
+        "chart_min_values": [
+            minimum_by_style[style] for style in chart_order
         ],
         "chart_max_values": [
-            row["maximum"] if row["maximum"] is not None else 0
-            for row in maximum_rows
+            maximum_by_style[style] for style in chart_order
         ],
     }
 

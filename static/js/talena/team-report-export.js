@@ -40,7 +40,15 @@
       if (text !== undefined) node.textContent = text;
       return node;
     }
-    function sanitizeStage(node) {
+    function sanitizeStage(node, anonymous) {
+      // Identity-bearing extremum attribution is part of the visible named
+      // report only. Anonymous export must never clone it, including hidden
+      // panels, initials, tooltips and original-text attributes.
+      // The wheel includes identifying initials inside SVG. Remove all member
+      // markers (including their names/tooltips) before any anonymous capture.
+      if (anonymous) node.querySelectorAll(
+        "[data-team-chart-person-details], [data-team-wheel-person], .team-wheel-overflow"
+      ).forEach(x => x.remove());
       node.querySelectorAll("button, form, a, input, textarea, select, .team-insight-actions, .team-member-profile-toolbar, [data-team-insight-status]").forEach(x => x.remove());
       const sourceCanvases = node.querySelectorAll("canvas");
       sourceCanvases.forEach(canvas => {
@@ -127,7 +135,7 @@
         throw new Error(copy.privacy);
       }
       // All candidate/member elements must stay outside the anonymous stage.
-      if (node.querySelector("[data-team-member-profile], .team-score-badge, .team-member-profile-name, .team-member-profile-email, .team-table, [data-team-report-members]")) {
+      if (node.querySelector("[data-team-member-profile], .team-score-badge, .team-member-profile-name, .team-member-profile-email, .team-table, [data-team-report-members], [data-team-wheel-person], [data-team-chart-person-details], [data-person-name]")) {
         throw new Error(copy.privacy);
       }
     }
@@ -161,7 +169,7 @@
         const parts = sources.map(source => {
           const node = newElement("section", "team-report-pdf-part");
           node.append(source.cloneNode(true));
-          sanitizeStage(node);
+          sanitizeStage(node, anonymous);
           return node;
         });
         const body = newElement("main", "team-report-pdf-body");
