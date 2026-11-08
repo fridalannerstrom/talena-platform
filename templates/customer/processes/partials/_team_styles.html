@@ -23,14 +23,19 @@
 
       <!-- FULL-WIDTH POLAR CHART -->
       <div class="team-style-chart-card mb-4" data-team-style-chart-root>
-        <div class="team-style-polar-wrap">
-          <canvas
-            id="{% if team_style_embedded %}teamStylePolarChart-{{ team_style_member_id }}{% else %}teamStylePolarChart{% endif %}"
-            data-team-style-chart
-            aria-label="{% trans 'Team role profile chart' %}"
-          ></canvas>
+        <div class="team-style-polar-wrap{% if team_style_use_svg %} team-style-polar-wrap--svg{% endif %}">
+          {% if team_style_use_svg %}
+            {{ team_style_profile.chart_svg|safe }}
+          {% else %}
+            <canvas
+              id="{% if team_style_embedded %}teamStylePolarChart-{{ team_style_member_id }}{% else %}teamStylePolarChart{% endif %}"
+              data-team-style-chart
+              aria-label="{% trans 'Team role profile chart' %}"
+            ></canvas>
+          {% endif %}
         </div>
 
+        {% if not team_style_use_svg %}
         <div class="d-none" aria-hidden="true">
           {% for style in team_style_profile.chart_styles %}
             {% if style.available %}
@@ -44,9 +49,10 @@
             {% endif %}
           {% endfor %}
         </div>
+        {% endif %}
       </div>
 
-      {% if not team_style_embedded %}
+      {% if not team_style_embedded and not team_style_use_svg %}
       {{ team_style_profile.chart.labels|json_script:"team-style-chart-labels" }}
       {{ team_style_profile.chart.values|json_script:"team-style-chart-values" }}
       {{ team_style_profile.chart.backgrounds|json_script:"team-style-chart-backgrounds" }}
