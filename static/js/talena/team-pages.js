@@ -166,142 +166,140 @@
 
   function initTeamStyleChart() {
     const chartElement = document.getElementById("teamStyleAverageChart");
+    const section = chartElement?.closest("[data-team-report-composite]");
 
-    if (!chartElement || typeof window.Chart === "undefined") {
+    if (!chartElement || !section || typeof window.Chart === "undefined") {
       return;
     }
 
     const labels = readJsonScript("team-style-chart-labels");
-    const averageValues = readJsonScript("team-style-chart-averages");
-    const maxValues = readJsonScript("team-style-chart-max");
+    const valuesByMode = {
+      average: readJsonScript("team-style-chart-averages"),
+      minimum: readJsonScript("team-style-chart-min"),
+      maximum: readJsonScript("team-style-chart-max")
+    };
 
-    if (!labels.length) {
+    // The server provides data in the clockwise order used by the individual
+    // team-style wheel. Never infer minimum scores from the rendered table.
+    if (!labels.length || Object.values(valuesByMode).some(function (values) {
+      return values.length !== labels.length;
+    })) {
       return;
     }
 
-    const minimumValues = readTeamStyleMinimumValues(labels.length);
     const styleLabelMap = getTeamStyleLabelMap(chartElement);
-    const displayLabels = labels.map(function (label) {
-      return styleLabelMap[label] || label;
+    const displayLabels = labels.map(function (style) {
+      return styleLabelMap[style] || style;
     });
+    const labelsByMode = {
+      average: chartElement.dataset.averageLabel || "Average",
+      minimum: chartElement.dataset.minimumLabel || "Minimum",
+      maximum: chartElement.dataset.maximumLabel || "Maximum"
+    };
+    const appearanceByMode = {
+      average: { border: "#ED7065", background: "rgba(237,112,101,0.15)" },
+      minimum: { border: "#AF9488", background: "rgba(175,148,136,0.15)" },
+      maximum: { border: "#638F7D", background: "rgba(99,143,125,0.16)" }
+    };
+    const controls = Array.from(section.querySelectorAll("[data-team-chart-mode]"));
+    const description = section.querySelector("[data-team-chart-description]");
+    const people = section.querySelector("[data-team-chart-person-details]");
+    const personModes = people
+      ? Array.from(people.querySelectorAll("[data-team-chart-people-mode]"))
+      : [];
 
-    const averageLabel = chartElement.dataset.averageLabel || "Average";
-    const minimumLabel = chartElement.dataset.minimumLabel || "Minimum";
-    const maximumLabel = chartElement.dataset.maximumLabel || "Maximum";
-
-    const datasets = [
-      {
-        label: averageLabel,
-        data: averageValues,
-        borderColor: "#FF6F61",
-        backgroundColor: "rgba(255, 111, 97, 0.11)",
-        pointBackgroundColor: "#FF6F61",
-        pointBorderColor: "#ffffff",
-        pointBorderWidth: 2,
-        pointRadius: 3,
-        pointHoverRadius: 4,
-        borderWidth: 2,
-        fill: true
-      }
-    ];
-
-    if (minimumValues.length === labels.length) {
-      datasets.push({
-        label: minimumLabel,
-        data: minimumValues,
-        borderColor: "#B7A99E",
-        backgroundColor: "rgba(183, 169, 158, 0.02)",
-        pointBackgroundColor: "#B7A99E",
-        pointBorderColor: "#ffffff",
-        pointBorderWidth: 2,
-        pointRadius: 2.5,
-        pointHoverRadius: 3.5,
-        borderWidth: 1.5,
-        borderDash: [2, 4],
-        fill: false
-      });
-    }
-
-    datasets.push({
-      label: maximumLabel,
-      data: maxValues,
-      borderColor: "#8FAF98",
-      backgroundColor: "rgba(143, 175, 152, 0.03)",
-      pointBackgroundColor: "#8FAF98",
+    const dataset = {
+      label: labelsByMode.average,
+      data: valuesByMode.average,
+      borderColor: appearanceByMode.average.border,
+      backgroundColor: appearanceByMode.average.background,
+      pointBackgroundColor: appearanceByMode.average.border,
       pointBorderColor: "#ffffff",
       pointBorderWidth: 2,
-      pointRadius: 2.5,
-      pointHoverRadius: 3.5,
-      borderWidth: 1.5,
-      borderDash: [5, 4],
-      fill: false
-    });
+      pointRadius: 4,
+      pointHoverRadius: 6,
+      borderWidth: 2.5,
+      fill: true,
+      spanGaps: false
+    };
 
-    new window.Chart(chartElement, {
+    const chart = new window.Chart(chartElement, {
       type: "radar",
       data: {
         labels: displayLabels,
-        datasets: datasets
+        datasets: [dataset]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        interaction: {
-          intersect: false,
-          mode: "nearest"
-        },
+        interaction: { intersect: false, mode: "nearest" },
         scales: {
           r: {
             min: 0,
             max: 5,
-            angleLines: {
-              color: "rgba(117, 105, 99, 0.10)"
-            },
-            grid: {
-              color: "rgba(117, 105, 99, 0.10)"
-            },
+            // Sova/Talena's individual wheel starts with Catalyst upper-left.
+            startAngle: -22.5,
+            angleLines: { color: "rgba(117,105,99,0.10)" },
+            grid: { color: "rgba(117,105,99,0.10)" },
             pointLabels: {
-              color: "#6F6762",
-              padding: 10,
-              font: {
-                size: 10,
-                weight: 600
-              }
+              color: "#554C47",
+              padding: 15,
+              font: { size: 12, weight: 600 }
             },
-            ticks: {
-              display: false,
-              stepSize: 1
-            }
+            ticks: { display: false, stepSize: 1 }
           }
         },
         plugins: {
-          legend: {
-            position: "bottom",
-            labels: {
-              color: "#6F6762",
-              boxWidth: 12,
-              boxHeight: 12,
-              usePointStyle: true,
-              pointStyle: "circle",
-              padding: 18,
-              font: {
-                size: 10,
-                weight: 600
-              }
-            }
-          },
+          legend: { display: false },
           tooltip: {
-            displayColors: true,
-            padding: 10,
+            displayColors: false,
+            padding: 11,
             callbacks: {
               label: function (context) {
-                return `${context.dataset.label}: ${context.formattedValue} / 5`;
+                return context.parsed.r === null
+                  ? labelsByMode[section.dataset.teamChartActiveMode || "average"] + ": —"
+                  : `${context.dataset.label}: ${context.formattedValue} / 5`;
               }
             }
           }
         }
       }
     });
+
+    function selectMode(mode) {
+      if (!Object.prototype.hasOwnProperty.call(valuesByMode, mode)) return;
+      section.dataset.teamChartActiveMode = mode;
+      const appearance = appearanceByMode[mode];
+      dataset.data = valuesByMode[mode];
+      dataset.label = labelsByMode[mode];
+      dataset.borderColor = appearance.border;
+      dataset.pointBackgroundColor = appearance.border;
+      dataset.backgroundColor = appearance.background;
+
+      controls.forEach(function (button) {
+        const active = button.dataset.teamChartMode === mode;
+        button.classList.toggle("is-active", active);
+        button.setAttribute("aria-pressed", String(active));
+      });
+
+      if (description) {
+        description.textContent = chartElement.dataset[mode + "Help"] || "";
+      }
+      if (people) {
+        people.hidden = mode === "average";
+        personModes.forEach(function (panel) {
+          panel.hidden = panel.dataset.teamChartPeopleMode !== mode;
+        });
+      }
+      chart.update();
+    }
+
+    controls.forEach(function (button) {
+      button.addEventListener("click", function () {
+        selectMode(button.dataset.teamChartMode);
+      });
+    });
+    selectMode("average");
   }
 
   function initTeamModelGuide() {
