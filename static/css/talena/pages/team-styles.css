@@ -607,11 +607,22 @@
 .process-page .leadership-report__competency-card .team-style-guidance__grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 
 
-/* Candidate-specific Derailment Report */
+/* #441: The three customer reports share one top-level title / PDF
+   action layout, matching the other Talena candidate-insight pages. */
+.team-report__page-header,
+.leadership-report__page-header,
 .derailment-report__page-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;min-height:52px;margin:0 0 18px}
+.team-report__page-heading,
+.leadership-report__page-heading,
 .derailment-report__page-heading{min-width:0}
+.team-report__page-heading .insight-summary-kicker,
+.leadership-report__page-heading .insight-summary-kicker,
 .derailment-report__page-heading .insight-summary-kicker{margin:0 0 7px}
+.team-report__page-title,
+.leadership-report__page-title,
 .derailment-report__page-title{margin:0;color:var(--talena-ink,#252428);font-size:1.55rem;font-weight:725;letter-spacing:-.03em;line-height:1.15}
+
+/* Candidate-specific Derailment Report */
 .derailment-report__overview,
 .derailment-report__intro,
 .derailment-report__empty{background:#fff;border:1px solid #e9e5e2;border-radius:18px;box-shadow:0 7px 22px rgba(30,27,75,.045)}
@@ -659,6 +670,10 @@
   .derailment-report__profile-copy--higher{text-align:left}
   .derailment-report__intro{padding:16px}
   .derailment-report__interpretation-item{padding:14px 15px}
+  .team-report__page-header,
+  .leadership-report__page-header,
   .derailment-report__page-header{gap:10px;margin-bottom:14px}
+  .team-report__page-title,
+  .leadership-report__page-title,
   .derailment-report__page-title{font-size:1.3rem}
 }
