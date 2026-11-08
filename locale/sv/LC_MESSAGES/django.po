@@ -3381,13 +3381,13 @@ msgid ""
 "motivational drivers, followed by the complete motivation profile. Results "
 "use Sova's rounded five-point STIVE scale."
 msgstr ""
-"Profilen visar kandidatens mer framträdande och mindre centrala "
+"Profilen visar personens mer framträdande och mindre centrala "
 "motivationsfaktorer, följt av den fullständiga motivationsprofilen. "
 "Resultaten använder Sovas avrundade femgradiga STIVE-skala."
 
 #: .\templates\customer\processes\partials\candidate_insights\motivation\_results.html:44
 msgid "Circular overview of the candidate's motivation profile"
-msgstr "Cirkulär översikt över kandidatens motivationsprofil"
+msgstr "Cirkulär översikt över personens motivationsprofil"
 
 # | msgid "Interpreting the motivation profile…"
 #: .\templates\customer\processes\partials\candidate_insights\motivation\_results.html:56
@@ -3445,7 +3445,7 @@ msgstr ""
 "Motivationspoäng beskriver relativa källor till energi och preferenser. "
 "Lägre resultat tyder inte på svag prestation, bristande värderingar eller "
 "begränsad förmåga. Resultaten bör vägas samman med rollkontext, underlag "
-"från intervjun och kandidatens egna reflektioner."
+"från intervjun och personens egna reflektioner."
 
 #: .\templates\customer\processes\partials\candidate_insights\personality\_interpretation.html:2
 #: .\templates\customer\processes\process_base.html:74
@@ -3788,19 +3788,19 @@ msgstr ""
 
 #: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:3
 msgid "No cognitive assessment results available"
-msgstr "Inga resultat från kognitiva tester är tillgängliga"
+msgstr "Inga färdighetsresultat tillgängliga"
 
 #: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:4
 msgid ""
 "Cognitive assessments could provide additional evidence about performance on "
 "specific reasoning and problem-solving tasks."
 msgstr ""
-"Kognitiva tester kan ge ytterligare underlag om prestation i specifika "
+"Färdighetstester kan ge ytterligare underlag om prestation i specifika "
 "uppgifter som rör resonemang och problemlösning."
 
 #: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:21
 msgid "Cognitive insight areas"
-msgstr "Områden för kognitiva insikter"
+msgstr "Områden för färdighetsinsikter"
 
 #: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:34
 #: .\templates\customer\processes\partials\candidate_insights\tabs\_motivation.html:34
@@ -3817,29 +3817,29 @@ msgstr "Tolkning"
 #: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:123
 #: .\templates\customer\processes\process_base.html:89
 msgid "Cognitive interpretation"
-msgstr "Kognitiv tolkning"
+msgstr "Färdighetstolkning"
 
 #: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:127
 msgid ""
 "A practical interpretation of the available cognitive results in relation to "
 "the selected purpose and process context."
 msgstr ""
-"En praktisk tolkning av de tillgängliga kognitiva resultaten i relation till "
+"En praktisk tolkning av de tillgängliga färdighetsresultaten i relation till "
 "det valda syftet och processkontexten."
 
 #: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:154
 #: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:155
 msgid "Generate a new cognitive interpretation"
-msgstr "Generera en ny kognitiv tolkning"
+msgstr "Generera en ny färdighetstolkning"
 
 #: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:186
 msgid "Interpreting the cognitive assessment results…"
-msgstr "Tolkar resultaten från de kognitiva testerna…"
+msgstr "Tolkar färdighetsresultaten…"
 
 #: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:199
 #: .\templates\customer\processes\process_base.html:90
 msgid "The cognitive interpretation could not be generated."
-msgstr "Den kognitiva tolkningen kunde inte genereras."
+msgstr "Färdighetstolkningen kunde inte genereras."
 
 #: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:249
 msgid ""
@@ -4967,7 +4967,7 @@ msgstr "Motivationsfrågorna kunde inte genereras på nytt."
 
 #: .\templates\customer\processes\process_base.html:91
 msgid "The cognitive interpretation is already being generated."
-msgstr "Den kognitiva tolkningen håller redan på att genereras."
+msgstr "Färdighetstolkningen håller redan på att genereras."
 
 #: .\templates\customer\processes\process_base.html:94
 msgid "The cognitive questions are already being generated."
@@ -7524,7 +7524,7 @@ msgid "Choose up to six traits, or leave all traits unselected to let Talena cho
 msgstr "Välj upp till sex personlighetsdrag, eller lämna alla omarkerade för att låta Talena välja utifrån projektets syfte och kontext. Frågorna genereras utifrån de valda personlighetsdragen, projektets syfte och tillgänglig kontext."
 
 msgid "A practical interpretation of the available cognitive results in relation to the selected purpose and project context."
-msgstr "En praktisk tolkning av de tillgängliga kognitiva resultaten i relation till det valda syftet och projektkontexten."
+msgstr "En praktisk tolkning av de tillgängliga färdighetsresultaten i relation till det valda syftet och projektkontexten."
 
 msgid "Uses the available assessment interpretations, project purpose and context to prepare a focused and evidence-based discussion."
 msgstr "Använder tillgängliga testtolkningar, projektets syfte och kontext för att förbereda ett fokuserat och underlagsbaserat samtal."
