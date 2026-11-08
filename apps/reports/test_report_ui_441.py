@@ -109,6 +109,10 @@ class ReportUi441Tests(SimpleTestCase):
         self.assertNotIn("Lägre poäng", html)
         self.assertNotIn("Högre poäng", html)
         self.assertNotIn("STEN", html)
+        # The precise assessment result remains available to assistive tech,
+        # but no score digits are printed next to the scale or interpretation.
+        self.assertNotIn('class="derailment-report__score-pill"', html)
+        self.assertNotIn("<span>7</span>", html)
 
     def test_leadership_hides_only_visual_count_and_legend(self):
         source = self.source(
@@ -169,13 +173,17 @@ class ReportUi441Tests(SimpleTestCase):
             css,
         )
         self.assertIn(
-            "color:#656f81;font-size:.72rem;line-height:1.45", css
+            "color:#656f81;font-size:.58rem;line-height:1.45", css
         )
         self.assertIn("gap:16px;padding:13px 0", css)
         self.assertIn(
             "display:flex;justify-content:center;align-items:center", css
         )
         self.assertIn(
+            "max-width:100%;color:#302e36;font-size:.69rem",
+            css,
+        )
+        self.assertNotIn(
             ".derailment-report__profile-result-heading span{position:absolute",
             css,
         )
@@ -183,6 +191,36 @@ class ReportUi441Tests(SimpleTestCase):
         self.assertIn("@media(max-width:600px)", css)
         self.assertIn(".process-page .personality-indicator-scale__segment", personality)
         self.assertNotIn(".derailment-report__scale-segment.is-filled", css)
+
+    def test_report_padding_removed_only_for_reports_tab(self):
+        css = self.source("static/css/talena/pages/candidate-insight-tabs.css")
+        self.assertIn(
+            ".process-page #candidate-insights-panel-reports "
+            ".candidate-insights-subworkspace__panels {\\n  padding: 0 !important;",
+            css,
+        )
+        self.assertIn(
+            ".process-page .candidate-insight-page "
+            ".candidate-insights-subworkspace__panels {\\n  padding: 1.25rem",
+            css,
+        )
+
+    def test_no_visible_derailment_sten_scores_but_accessible_result(self):
+        template = self.source(
+            "templates/customer/processes/partials/candidate_insights/tabs/_derailment_report.html"
+        )
+        self.assertNotIn("{{ factor.score_display }}", template)
+        self.assertIn('aria-valuenow="{{ factor.score }}"', template)
+        self.assertIn("{{ factor.score_accessible }}", template)
+        for score in (1, 7, 10):
+            with self.subTest(score=score):
+                rendered = render_to_string(
+                    "customer/processes/partials/candidate_insights/tabs/_derailment_report.html",
+                    {"derailment_report_content": self.report(score)},
+                )
+                self.assertIn(f'aria-valuenow="{score}"', rendered)
+                self.assertIn(f"Resultat {score} av 10", rendered)
+                self.assertNotIn('derailment-report__score-pill', rendered)
 
     def test_missing_results_do_not_generate_an_interpretation(self):
         result = build_derailment_report_content("sv", [])
