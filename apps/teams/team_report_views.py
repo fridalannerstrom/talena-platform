@@ -249,6 +249,48 @@ def build_team_style_statistics(team, candidate_ids=None, process_ids=None):
             }
         )
 
+    # The wheel mirrors the preference concept in the individual report:
+    # each person's two highest and two lowest available style results.
+    # Include cutoff ties, but never put the same tied middle result in both
+    # rings. No team-level extrema or artificial threshold is substituted.
+    preference_wheel_by_style = {
+        style: {"style": style, "most": [], "least": []}
+        for style in TEAM_STYLE_ORDER
+    }
+    preference_wheel_member_count = 0
+    for member in member_profiles:
+        available = [
+            (item["style"], item["score"])
+            for item in member["scores"] if item["score"] is not None
+        ]
+        if len(available) < 4:
+            continue
+        values = sorted(value for _, value in available)
+        lowest_cutoff = values[1]
+        highest_cutoff = values[-2]
+        if values[0] == values[-1]:
+            continue
+
+        candidate = member["candidate"]
+        name = (
+            f"{candidate.first_name} {candidate.last_name}"
+        ).strip() or candidate.email
+        added = False
+        for style, score in available:
+            attribution = {
+                "name": name,
+                "initials": member["initials"],
+                "score": score,
+            }
+            if score >= highest_cutoff and score > lowest_cutoff:
+                preference_wheel_by_style[style]["most"].append(attribution)
+                added = True
+            if score <= lowest_cutoff and score < highest_cutoff:
+                preference_wheel_by_style[style]["least"].append(attribution)
+                added = True
+        if added:
+            preference_wheel_member_count += 1
+
     average_rows = []
     minimum_rows = []
     maximum_rows = []
@@ -427,6 +469,10 @@ def build_team_style_statistics(team, candidate_ids=None, process_ids=None):
         "ranked_averages": ranked_averages,
         "ranked_maximums": ranked_maximums,
         "most_least_rows": most_least_rows,
+        "preference_wheel_rows": [
+            preference_wheel_by_style[style] for style in chart_order
+        ],
+        "preference_wheel_member_count": preference_wheel_member_count,
         "member_profiles": member_profiles,
         "members_total": len(candidates),
         "members_with_scores": members_with_scores,
