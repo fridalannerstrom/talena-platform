@@ -841,3 +841,171 @@
   .team-wizard-step-content { align-items: flex-start; gap: 0.35rem; }
   .team-wizard-step b { flex-basis: 1.25rem; width: 1.25rem; height: 1.25rem; font-size: 0.62rem; }
 }
+
+
+/* #375: the shared team overview uses the full width, never three overlapping
+   radar datasets. Initials are separate from the plotted scores. */
+.talena-team-page .team-analytics-grid--composite {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.talena-team-page .team-analytics-panel--composite {
+  min-width: 0;
+  padding: clamp(1rem, 2vw, 1.65rem);
+  background: #fff;
+}
+
+.talena-team-page .team-composite-chart-header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 1.1rem;
+  flex-wrap: wrap;
+}
+
+.talena-team-page .team-composite-chart-title {
+  margin: 0 0 0.38rem;
+  color: var(--talena-ink);
+  font-size: 0.95rem;
+  font-weight: 740;
+}
+
+.talena-team-page .team-composite-chart-copy {
+  margin: 0;
+  max-width: 42rem;
+  color: var(--talena-text-muted);
+  font-size: 0.71rem;
+  line-height: 1.55;
+}
+
+.talena-team-page .team-composite-chart-modes {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  border: 1px solid var(--talena-border);
+  border-radius: 12px;
+  background: var(--talena-surface-soft);
+}
+
+.talena-team-page .team-composite-chart-mode {
+  min-height: 35px;
+  padding: 0.48rem 0.85rem;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--talena-text-muted);
+  font: inherit;
+  font-size: 0.7rem;
+  font-weight: 690;
+  cursor: pointer;
+}
+
+.talena-team-page .team-composite-chart-mode:hover {
+  color: var(--talena-ink);
+}
+
+.talena-team-page .team-composite-chart-mode.is-active {
+  background: #fff;
+  border-color: rgba(255, 111, 97, 0.18);
+  color: var(--talena-coral-strong);
+  box-shadow: 0 2px 8px rgba(52,39,34,0.055);
+}
+
+.talena-team-page .team-composite-chart-mode:focus-visible {
+  outline: 2px solid var(--talena-coral);
+  outline-offset: 2px;
+}
+
+.talena-team-page .team-style-chart-box--composite {
+  height: clamp(340px, 49vw, 520px);
+  margin: 0.65rem auto 0;
+}
+
+.talena-team-page .team-composite-chart-people {
+  margin-top: 0.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--talena-border);
+}
+
+.talena-team-page .team-composite-chart-people[hidden],
+.talena-team-page .team-composite-chart-people-list[hidden] {
+  display: none !important;
+}
+
+.talena-team-page .team-composite-chart-people-heading h4 {
+  margin: 0 0 0.28rem;
+  color: var(--talena-ink);
+  font-size: 0.78rem;
+  font-weight: 720;
+}
+
+.talena-team-page .team-composite-chart-people-heading p {
+  margin: 0 0 0.85rem;
+  color: var(--talena-text-muted);
+  font-size: 0.68rem;
+  line-height: 1.5;
+}
+
+.talena-team-page .team-composite-chart-people-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem 1.15rem;
+}
+
+.talena-team-page .team-composite-chart-person-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(54px, auto) auto;
+  align-items: center;
+  gap: 0.55rem;
+  min-width: 0;
+  padding: 0.62rem 0.72rem;
+  border: 1px solid var(--talena-border);
+  border-radius: 10px;
+  background: #fcfbfa;
+}
+
+.talena-team-page .team-composite-chart-person-style {
+  color: var(--talena-ink);
+  font-size: 0.7rem;
+  font-weight: 690;
+}
+
+.talena-team-page .team-composite-chart-person-badges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.2rem;
+}
+
+.talena-team-page .team-composite-chart-person-value {
+  color: var(--talena-text-muted);
+  font-size: 0.65rem;
+  white-space: nowrap;
+}
+
+@media (max-width: 767.98px) {
+  .talena-team-page .team-composite-chart-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .talena-team-page .team-composite-chart-modes {
+    align-self: flex-start;
+  }
+  .talena-team-page .team-composite-chart-people-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .talena-team-page .team-style-chart-box--composite {
+    height: 350px;
+  }
+}
+
+@media (max-width: 420px) {
+  .talena-team-page .team-style-chart-box--composite {
+    height: 305px;
+  }
+  .talena-team-page .team-composite-chart-mode {
+    padding: 0.45rem 0.62rem;
+    font-size: 0.64rem;
+  }
+}
