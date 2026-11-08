@@ -72,6 +72,83 @@ def _clean_display_text(value: str | None) -> str:
     return re.sub(r"\s+", " ", (value or "").strip())
 
 
+def _structure_leadership_introduction(body: str | None, language: str) -> dict:
+    """Restore meaningful paragraphs from hard-wrapped approved Sova copy.
+
+    The source library contains manual line wraps from its original report.
+    Treat them as whitespace, but preserve the paragraph and quadrant
+    boundaries so the user can read the same words in a calmer layout.
+    """
+    language = "sv" if language == "sv" else "en"
+    section_heading = (
+        "TQs ledarskapsmodell" if language == "sv"
+        else "The Sova Leadership Model"
+    )
+    paragraph_starts = (
+        (
+            "Modellen har utvecklats",
+            "Dina resultat har beräknats",
+            "Vår ledarskapsmodell",
+            "I modellen finns",
+        ) if language == "sv" else (
+            "The model has been developed",
+            "Your results have been calculated",
+            "The Sova Leadership model is split",
+            "Within the model",
+        )
+    )
+    sections = {
+        "paragraphs": [],
+        "model_heading": "",
+        "model_paragraphs": [],
+        "quadrants": [],
+    }
+    active_lines: list[str] = []
+    part = "paragraphs"
+
+    def flush() -> None:
+        nonlocal active_lines
+        if not active_lines:
+            return
+        content = " ".join(active_lines)
+        if part == "quadrants":
+            title, separator, description = content.partition(": ")
+            if separator:
+                sections["quadrants"].append({
+                    "title": title.removeprefix("• ").strip(),
+                    "description": description.strip(),
+                })
+            else:
+                sections["model_paragraphs"].append(content)
+        else:
+            sections[part].append(content)
+        active_lines = []
+
+    for raw_line in (body or "").splitlines():
+        line = raw_line.strip()
+        if not line:
+            continue
+        if line == section_heading:
+            flush()
+            sections["model_heading"] = line
+            part = "model_paragraphs"
+        elif line.startswith("• "):
+            flush()
+            part = "quadrants"
+            active_lines.append(line)
+        elif line.startswith(paragraph_starts):
+            flush()
+            if part != "quadrants":
+                active_lines.append(line)
+            else:
+                part = "model_paragraphs"
+                active_lines.append(line)
+        else:
+            active_lines.append(line)
+    flush()
+    return sections
+
+
 def _split_reflection_questions(value: str | None) -> list[str]:
     pieces = re.split(r"(?:^|\n)\s*•\s*", (value or "").strip())
     return [_clean_display_text(piece) for piece in pieces if _clean_display_text(piece)]
@@ -350,6 +427,9 @@ def build_leadership_report_content(
     return {
         **content,
         "quadrants": quadrants,
+        "introduction_sections": _structure_leadership_introduction(
+            content["introduction"]["body"], language
+        ),
         "chart_svg": _build_leadership_chart_svg(content, scores_by_key, language),
         "has_results": bool(all_competencies),
         "scores_count": len(all_competencies),
