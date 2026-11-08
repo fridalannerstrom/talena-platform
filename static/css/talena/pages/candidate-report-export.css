@@ -63,8 +63,11 @@
 .talena-candidate-pdf-stage .talena-candidate-pdf-heading {
   font-size:23px; font-weight:700; margin:0 0 23px;
 }
-/* The PDF export already inserts its own report title above the cloned
-   content. Hide the on-screen title in that export only to avoid duplicates. */
+/* PDF export inserts its own H1 above the cloned report.
+   Hide the on-screen titles in exported Team, Leadership and Derailment
+   reports to avoid duplicate headings. Keep the actual report content. */
+.talena-candidate-pdf-stage[data-candidate-pdf-report="team-report"] .team-report__page-header,
+.talena-candidate-pdf-stage[data-candidate-pdf-report="leadership-report"] .leadership-report__page-header,
 .talena-candidate-pdf-stage[data-candidate-pdf-report="derailment-report"] .derailment-report__page-header {
   display:none !important;
 }
