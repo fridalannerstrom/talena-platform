@@ -560,6 +560,7 @@ def _build_candidate_team_style_svg(chart_styles):
         source_keys=source_keys,
         svg_id_prefix="team-style-wheel",
         svg_extra_class="team-style-flower__wheel",
+        sova_quadrant_layout=True,
     )
 
 
