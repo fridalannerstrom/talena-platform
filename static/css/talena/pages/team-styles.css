@@ -45,10 +45,26 @@
 
 /* Use the very same four fills as the candidate Team flower SVG.
    These are visualization-only colors, never score or source-data changes. */
-.team-style-profile-card--explore { --team-style-accent: #ef978f; }
-.team-style-profile-card--lead { --team-style-accent: #dbada7; }
-.team-style-profile-card--deliver { --team-style-accent: #a0baae; }
-.team-style-profile-card--review { --team-style-accent: #d9bc90; }
+.team-style-profile-card--explore {
+  --team-style-accent: #ef978f;
+  --team-style-marker: #cb807a;
+  --team-style-marker-ring: rgba(203, 128, 122, 0.42);
+}
+.team-style-profile-card--lead {
+  --team-style-accent: #dbada7;
+  --team-style-marker: #ba938e;
+  --team-style-marker-ring: rgba(186, 147, 142, 0.42);
+}
+.team-style-profile-card--deliver {
+  --team-style-accent: #a0baae;
+  --team-style-marker: #889e94;
+  --team-style-marker-ring: rgba(136, 158, 148, 0.42);
+}
+.team-style-profile-card--review {
+  --team-style-accent: #d9bc90;
+  --team-style-marker: #b8a07a;
+  --team-style-marker-ring: rgba(184, 160, 122, 0.42);
+}
 
 .process-page .team-style-profile-card__scale {
   width: 100% !important;
@@ -66,6 +82,16 @@
   background: var(--team-style-accent, var(--talena-coral)) !important;
   box-shadow: none !important;
   transform: none !important;
+}
+
+/* The global personality-scale endpoint selector gives the selected
+   segment a coral background and ring. Keep its larger size, but override
+   those two colors for Team with a slightly darker shade of the quadrant. */
+.process-page .team-style-profile-card__scale .response-style-scale__segment.response-style-scale__segment--marker {
+  background: var(--team-style-marker, var(--team-style-accent)) !important;
+  box-shadow:
+    0 0 0 2px #fff,
+    0 0 0 3px var(--team-style-marker-ring, transparent) !important;
 }
 
 .process-page .team-style-profile-card__scale .response-style-scale__labels {
