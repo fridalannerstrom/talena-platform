@@ -6812,6 +6812,28 @@ def process_role_context(request, pk):
         language_code=language_code,
         generate=False,
     ) or []
+    recommendation_error = False
+    if (
+        request.method != "POST"
+        and not previous_project_traits
+        and not project_selection
+    ):
+        try:
+            project_selection = get_project_personality_trait_selection(
+                process,
+                language_code=language_code,
+                generate=True,
+            ) or []
+        except Exception:
+            recommendation_error = True
+            messages.warning(
+                request,
+                (
+                    "Talena kunde inte rekommendera personlighetsdrag just nu."
+                    if str(language_code or "").lower().startswith("sv")
+                    else "Talena could not recommend personality traits right now."
+                ),
+            )
     recommended_project_traits = [
         item.get("name")
         for item in project_selection
@@ -6913,9 +6935,15 @@ def process_role_context(request, pk):
                 messages.warning(
                     request,
                     (
-                        "The context was saved, but Talena could not "
-                        "recommend personality traits right now. Try again "
-                        "when generating the questions."
+                        "Rollkontexten sparades, men Talena kunde inte "
+                        "rekommendera personlighetsdrag just nu. Försök igen "
+                        "när frågorna skapas."
+                        if str(language_code or "").lower().startswith("sv")
+                        else (
+                            "The context was saved, but Talena could not "
+                            "recommend personality traits right now. Try "
+                            "again when generating the questions."
+                        )
                     ),
                 )
 
