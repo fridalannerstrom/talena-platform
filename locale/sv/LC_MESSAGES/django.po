@@ -1407,7 +1407,7 @@ msgstr "Ledare"
 
 #: .\apps\processes\services\team_styles.py:10
 msgid "Energiser"
-msgstr "Energigivare"
+msgstr "Glädjespridare"
 
 # | msgid "Archive"
 #: .\apps\processes\services\team_styles.py:11
@@ -1428,7 +1428,7 @@ msgstr "Granskare"
 
 #: .\apps\processes\services\team_styles.py:15
 msgid "Connector"
-msgstr "Nätverkare"
+msgstr "Sammanhållare"
 
 #: .\apps\processes\services\team_styles.py:16
 #: .\templates\customer\processes\process_base.html:19
