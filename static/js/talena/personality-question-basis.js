@@ -4,7 +4,6 @@
   const ROOT_SELECTOR = "[data-personality-questions-root]";
   const COMPETENCY_PREFIX = "competency::";
   const MAX_TRAIT_SELECTION = 8;
-  const MAX_COMPETENCY_SELECTION = 6;
 
   function roots(container) {
     const result = [];
@@ -24,10 +23,8 @@
         : "traits");
   }
 
-  function selectionLimit(mode) {
-    return mode === "competencies"
-      ? MAX_COMPETENCY_SELECTION
-      : MAX_TRAIT_SELECTION;
+  function selectionLimit() {
+    return MAX_TRAIT_SELECTION;
   }
 
   function optionCheckboxes(root) {
@@ -117,20 +114,12 @@
     });
   }
 
-  function activeMode(root) {
-    return root.dataset.questionBasis === "competencies"
-      ? "competencies"
-      : "traits";
+  function activeMode() {
+    return "traits";
   }
 
-  function selectedMode(root) {
-    const checked = Array.from(
-      root.querySelectorAll("[data-personality-trait-checkbox]:checked")
-    );
-
-    return checked.some((checkbox) => optionBasis(checkbox) === "competencies")
-      ? "competencies"
-      : "traits";
+  function selectedMode() {
+    return "traits";
   }
 
   function modeButton(root, mode) {
@@ -147,12 +136,12 @@
 
     if (isSwedish()) {
       traitButton.dataset.dialogDescription =
-        "Välj upp till åtta personlighetsdrag, eller lämna alla omarkerade för att låta Talena välja utifrån processens syfte och kontext.";
+        "Välj upp till åtta personlighetsdrag, eller lämna urvalet tomt för att låta Talena rekommendera relevanta drag utifrån projektets rollkontext.";
       traitButton.dataset.statusLabel = "Välj upp till 8 personlighetsdrag";
     } else {
       traitButton.dataset.dialogDescription =
-        "Choose up to eight traits, or leave all traits unselected to let Talena choose based on the process purpose and context.";
-      traitButton.dataset.statusLabel = "Select up to 8 traits";
+        "Choose up to eight personality traits, or leave the selection empty to let Talena recommend relevant traits based on the project role context.";
+      traitButton.dataset.statusLabel = "Select up to 8 personality traits";
     }
   }
 
@@ -189,45 +178,8 @@
     );
   }
 
-  function updateModeCopy(root, mode) {
-    const button = modeButton(root, mode);
-    if (!button) {
-      return;
-    }
-
-    const summaryTitle = root.querySelector("[data-question-basis-summary-title]");
-    const summaryDescription = root.querySelector("[data-question-basis-summary-description]");
-    const editLabel = root.querySelector("[data-question-basis-edit-label]");
-    const dialogTitle = root.querySelector("[data-question-basis-dialog-title]");
-    const dialogDescription = root.querySelector("[data-question-basis-dialog-description]");
-    const statusLabel = root.querySelector("[data-question-basis-status-label]");
-    const emptyError = root.querySelector("[data-question-basis-empty-error]");
-
-    if (summaryTitle && button.dataset.summaryTitle) {
-      summaryTitle.textContent = button.dataset.summaryTitle;
-    }
-    if (summaryDescription && button.dataset.summaryDescription) {
-      summaryDescription.textContent = button.dataset.summaryDescription;
-    }
-    if (editLabel && button.dataset.editLabel) {
-      editLabel.textContent = button.dataset.editLabel;
-    }
-    if (dialogTitle && button.dataset.dialogTitle) {
-      dialogTitle.textContent = button.dataset.dialogTitle;
-    }
-    if (dialogDescription && button.dataset.dialogDescription) {
-      dialogDescription.textContent = button.dataset.dialogDescription;
-    }
-    if (statusLabel && button.dataset.statusLabel) {
-      statusLabel.textContent = button.dataset.statusLabel;
-    }
-    if (emptyError) {
-      emptyError.hidden = true;
-    }
-  }
-
   function setMode(root, mode) {
-    if (!root || !["traits", "competencies"].includes(mode)) {
+    if (!root || mode !== "traits") {
       return;
     }
 
@@ -244,7 +196,6 @@
       panel.hidden = panel.dataset.questionBasisPanel !== mode;
     });
 
-    updateModeCopy(root, mode);
     updateSelectionLimitState(root);
     localiseRenderedFocusLabels(root);
   }
@@ -342,12 +293,28 @@
     }
   }
 
+  function removeCompetencyControls(root) {
+    root.querySelectorAll(
+      '[data-question-basis-tab="competencies"], ' +
+      '[data-question-basis-panel="competencies"]'
+    ).forEach((element) => element.remove());
+
+    root.querySelectorAll("[data-personality-trait-checkbox]").forEach((checkbox) => {
+      if (optionBasis(checkbox) === "competencies") {
+        const option = checkbox.closest(".personality-trait-option");
+        (option || checkbox).remove();
+      }
+    });
+  }
+
   function initialiseRoot(root) {
     if (!root || root.dataset.questionBasisUiInitialised === "true") {
       return;
     }
 
     root.dataset.questionBasisUiInitialised = "true";
+    removeCompetencyControls(root);
+    root.dataset.questionBasis = "traits";
     updateTraitLimitCopy(root);
     setMode(root, activeMode(root));
     updateQuestionsIntro(root);
@@ -369,8 +336,7 @@
     roots(container).forEach(initialiseRoot);
   }
 
-  // Keep all choices usable while enforcing a basis-specific selection cap:
-  // eight personality traits or six competencies.
+  // Keep all personality traits usable while enforcing the eight-item limit.
   document.addEventListener("click", function (event) {
     const option = event.target.closest(".personality-trait-option");
     const checkbox = option
@@ -387,6 +353,12 @@
     }
 
     const mode = optionBasis(checkbox);
+    if (mode !== "traits") {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      checkbox.checked = false;
+      return;
+    }
     if (mode !== activeMode(root)) {
       return;
     }
@@ -405,7 +377,9 @@
     if (tab) {
       const root = tab.closest(ROOT_SELECTOR);
       const mode = tab.dataset.questionBasisTab;
-      setMode(root, mode);
+      if (mode === "traits") {
+        setMode(root, mode);
+      }
       return;
     }
 
@@ -436,30 +410,16 @@
       return;
     }
 
-    const mode = activeMode(root);
-    const selectedActiveOptions = checkedOptions(root, mode);
-
-    if (mode === "competencies" && !selectedActiveOptions.length) {
-      event.preventDefault();
-      event.stopImmediatePropagation();
-
-      const emptyError = root.querySelector("[data-question-basis-empty-error]");
-      if (emptyError) {
-        emptyError.hidden = false;
-        emptyError.scrollIntoView({ behavior: "smooth", block: "nearest" });
-      }
-      return;
-    }
+    const selectedActiveOptions = checkedOptions(root, "traits");
 
     optionCheckboxes(root).forEach((checkbox) => {
-      if (optionBasis(checkbox) !== mode && checkbox.checked) {
+      if (optionBasis(checkbox) !== "traits" && checkbox.checked) {
         checkbox.checked = false;
       }
     });
 
     if (
-      mode === "traits" &&
-      selectedActiveOptions.length > MAX_COMPETENCY_SELECTION &&
+      selectedActiveOptions.length > 6 &&
       selectedActiveOptions.length <= MAX_TRAIT_SELECTION
     ) {
       event.preventDefault();
@@ -480,6 +440,11 @@
     }
 
     const mode = optionBasis(checkbox);
+    if (mode !== "traits") {
+      checkbox.checked = false;
+      updateSelectionLimitState(root);
+      return;
+    }
 
     if (checkbox.checked) {
       if (activeMode(root) !== mode) {

@@ -25,14 +25,17 @@ MAX_PERSONALITY_COMPETENCIES = 6
 _INSTALLED = False
 
 
-def _selection_limit(selected_traits: list[str]) -> int:
-    is_competency_mode = any(
+def _contains_competency_selection(selected_traits) -> bool:
+    return any(
         str(item or "").strip().casefold().startswith("competency::")
         for item in selected_traits or []
     )
+
+
+def _selection_limit(selected_traits: list[str]) -> int:
     return (
         MAX_PERSONALITY_COMPETENCIES
-        if is_competency_mode
+        if _contains_competency_selection(selected_traits)
         else MAX_PERSONALITY_TRAITS
     )
 
@@ -262,6 +265,19 @@ def process_candidate_personality_questions_stream(
         response["X-Accel-Buffering"] = "no"
         return response
 
+    if _contains_competency_selection(
+        getattr(invitation, "selected_personality_traits", None)
+    ):
+        return JsonResponse(
+            {
+                "error": (
+                    "Competency-based personality questions are temporarily "
+                    "unavailable. Select personality traits before generating."
+                )
+            },
+            status=409,
+        )
+
     if current_status == "generating":
         return JsonResponse(
             {
@@ -319,6 +335,11 @@ def process_candidate_personality_questions_stream(
                 result.get("questions")
                 or []
             )
+
+            if _contains_competency_selection(selected_traits):
+                raise ValueError(
+                    "Competency-based personality questions are temporarily unavailable."
+                )
 
             selection_limit = _selection_limit(
                 selected_traits
@@ -436,6 +457,17 @@ def process_candidate_personality_traits_update(
             status=400,
         )
 
+    if _contains_competency_selection(raw_traits):
+        return JsonResponse(
+            {
+                "error": (
+                    "Competency-based personality questions are temporarily "
+                    "unavailable. Select personality traits instead."
+                )
+            },
+            status=400,
+        )
+
     personality_results = (
         views.build_personality_question_traits_for_ai_owner(
             invitation
@@ -495,7 +527,7 @@ def process_candidate_personality_traits_update(
 
 
 def install_personality_question_selection_policy() -> None:
-    """Replace legacy six-trait endpoints before URL patterns are constructed."""
+    """Install trait-only customer endpoints before URL patterns are constructed."""
 
     global _INSTALLED
     if _INSTALLED:
