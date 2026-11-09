@@ -1407,7 +1407,7 @@ msgstr "Ledare"
 
 #: .\apps\processes\services\team_styles.py:10
 msgid "Energiser"
-msgstr "Energigivare"
+msgstr "Glädjespridare"
 
 # | msgid "Archive"
 #: .\apps\processes\services\team_styles.py:11
@@ -1428,27 +1428,27 @@ msgstr "Granskare"
 
 #: .\apps\processes\services\team_styles.py:15
 msgid "Connector"
-msgstr "Nätverkare"
+msgstr "Sammanhållare"
 
 #: .\apps\processes\services\team_styles.py:16
 #: .\templates\customer\processes\process_base.html:19
 msgid "Explore"
-msgstr "Utforskande"
+msgstr "Utforska"
 
 #: .\apps\processes\services\team_styles.py:17
 #: .\templates\customer\processes\process_base.html:20
 msgid "Lead"
-msgstr "Ledning"
+msgstr "Leda"
 
 #: .\apps\processes\services\team_styles.py:18
 #: .\templates\customer\processes\process_base.html:21
 msgid "Deliver"
-msgstr "Genomförande"
+msgstr "Leverera"
 
 #: .\apps\processes\services\team_styles.py:19
 #: .\templates\customer\processes\process_base.html:22
 msgid "Critically review"
-msgstr "Kritisk granskning"
+msgstr "Kritiskt granska"
 
 #: .\apps\processes\services\team_styles.py:20
 msgid ""

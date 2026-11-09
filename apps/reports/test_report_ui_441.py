@@ -693,12 +693,85 @@ class ReportUi441Tests(SimpleTestCase):
                     len(svg.findall(f".//{namespace}text[@class='leadership-wheel__quadrant']")),
                     4,
                 )
+                # SOVA's Leadership chart has quadrant headers in the
+                # four corners, with its two competencies inside each area.
+                quadrant_labels = svg.findall(
+                    f".//{namespace}text[@class='leadership-wheel__quadrant']"
+                )
+                self.assertEqual(
+                    [label.text for label in quadrant_labels],
+                    (["Styrning", "Samspel", "Utveckling", "Genomförande"]
+                     if language == "sv" else
+                     ["Direction", "Connection", "Cultivation", "Execution"]),
+                )
+                self.assertEqual(
+                    [(label.attrib["x"], label.attrib["y"], label.attrib["text-anchor"])
+                     for label in quadrant_labels],
+                    [("70", "95", "start"), ("830", "95", "end"),
+                     ("830", "685", "end"), ("70", "685", "start")],
+                )
+                self.assertEqual(
+                    {(line.attrib["x2"], line.attrib["y2"])
+                     for line in svg.findall(f".//{namespace}line")},
+                    {("205", "390"), ("450", "145"),
+                     ("695", "390"), ("450", "635")},
+                )
+                trait_labels = svg.findall(
+                    f".//{namespace}text[@class='leadership-wheel__trait']"
+                )
+                positions = [
+                    (float(node.find(f"{namespace}tspan").attrib["x"]),
+                     float(node.find(f"{namespace}tspan").attrib["y"]))
+                    for node in trait_labels
+                ]
+                for index, (x, y) in enumerate(positions):
+                    self.assertEqual(x < 450, index in (0, 1, 6, 7))
+                    self.assertEqual(y < 390, index in (0, 1, 2, 3))
+                if language == "sv":
+                    self.assertEqual(
+                        [competency["title"]
+                         for quadrant in report["quadrants"]
+                         for competency in quadrant["competencies"]],
+                        [
+                            "Skapar visioner", "Skapar lösningar",
+                            "Skapar samarbetsformer", "Bejakar mångfald",
+                            "Främjar talang", "Föregår med gott exempel",
+                            "Klargör förväntningar", "Främjar drivkraft",
+                        ],
+                    )
+                    self.assertNotIn("Skapar visionen", report["chart_svg"])
+                self.assertEqual(
+                    [petal.attrib["fill"] for petal in petals],
+                    ["#ef978f"] * 2 + ["#dbada7"] * 2
+                    + ["#a0baae"] * 2 + ["#d9bc90"] * 2,
+                )
                 self.assertEqual(
                     len(svg.findall(f".//{namespace}line")),
                     4,
                 )
                 self.assertIsNotNone(svg.find(f"{namespace}title"))
                 self.assertIsNotNone(svg.find(f"{namespace}desc"))
+
+    def test_legacy_swedish_vision_title_still_maps_to_sova_source_key(self):
+        from apps.reports.services.leadership_report import (
+            build_leadership_report_content,
+        )
+        for historical_title in ("Skapar visionen", "Skapar visioner"):
+            with self.subTest(input_title=historical_title):
+                report = build_leadership_report_content(
+                    "sv",
+                    [{"competency": historical_title, "stive": 3.8,
+                      "stive_rounded": 4}],
+                )
+                self.assertEqual(report["scores_count"], 1)
+                self.assertEqual(
+                    report["quadrants"][0]["competencies"][0]["title"],
+                    "Skapar visioner",
+                )
+                self.assertEqual(
+                    report["quadrants"][0]["competencies"][0]["score_rounded"],
+                    4,
+                )
 
     def test_team_flower_reuses_leadership_svg_exactly_and_retains_stive_scores(self):
         from xml.etree import ElementTree
@@ -735,6 +808,20 @@ class ReportUi441Tests(SimpleTestCase):
                 self.assertTrue(profile["complete"])
                 self.assertEqual(len(profile["styles"]), 8)
                 self.assertEqual(len(profile["chart_styles"]), 8)
+                # SOVA's current Swedish labels are display-only changes;
+                # underlying SOVA keys and the English names stay untouched.
+                by_key = {style["key"]: style["title"]
+                          for style in profile["chart_styles"]}
+                self.assertEqual(
+                    (by_key["connector"], by_key["energiser"]),
+                    ("Sammanhållare", "Glädjespridare") if language == "sv"
+                    else ("Connector", "Energiser"),
+                )
+                if language == "sv":
+                    self.assertIn("Sammanhållare", profile["chart_svg"])
+                    self.assertIn("Glädjespridare", profile["chart_svg"])
+                    self.assertNotIn("Nätverkare", profile["chart_svg"])
+                    self.assertNotIn("Energigivare", profile["chart_svg"])
                 # STIVE source and result ranking remain independent of
                 # the visual order and the SVG itself.
                 self.assertEqual(
@@ -782,6 +869,46 @@ class ReportUi441Tests(SimpleTestCase):
                     len(svg.findall(f".//{svg_ns}text[@class='leadership-wheel__quadrant']")),
                     4,
                 )
+                # Match SOVA's compass quadrants, rather than the cardinal
+                # axes used by the shared Leadership report.
+                quadrants = svg.findall(
+                    f".//{svg_ns}text[@class='leadership-wheel__quadrant']"
+                )
+                self.assertEqual(
+                    [(q.attrib["x"], q.attrib["y"], q.attrib["text-anchor"])
+                     for q in quadrants],
+                    [
+                        ("70", "95", "start"), ("830", "95", "end"),
+                        ("830", "685", "end"), ("70", "685", "start"),
+                    ],
+                )
+                self.assertEqual(
+                    [q.text for q in quadrants],
+                    (["Utforska", "Leda", "Leverera", "Kritiskt granska"]
+                     if language == "sv" else
+                     ["Explore", "Lead", "Deliver", "Critically review"]),
+                )
+                self.assertEqual(
+                    {(line.attrib["x2"], line.attrib["y2"])
+                     for line in svg.findall(f".//{svg_ns}line")},
+                    {
+                        ("205", "390"), ("450", "145"),
+                        ("695", "390"), ("450", "635"),
+                    },
+                )
+                # Connector/Catalyst NW, Director/Energiser NE,
+                # Architect/Harmoniser SE and Analyst/Auditor SW.
+                traits = svg.findall(
+                    f".//{svg_ns}text[@class='leadership-wheel__trait']"
+                )
+                trait_points = [
+                    (float(t.find(f"{svg_ns}tspan").attrib["x"]),
+                     float(t.find(f"{svg_ns}tspan").attrib["y"]))
+                    for t in traits
+                ]
+                for quadrant_index, (x, y) in enumerate(trait_points):
+                    self.assertEqual(x < 450, quadrant_index in (0, 1, 6, 7))
+                    self.assertEqual(y < 390, quadrant_index in (0, 1, 2, 3))
                 self.assertEqual(
                     len(svg.findall(f".//{svg_ns}circle[@class='leadership-wheel__hub']")),
                     1,
@@ -795,6 +922,63 @@ class ReportUi441Tests(SimpleTestCase):
                 self.assertNotIn('class="team-styles-footer"', rendered)
                 self.assertNotIn('id="team-style-chart-values"', rendered)
                 self.assertIn('class="team-report__page-header"', rendered)
+                for quadrant_key in ("explore", "lead", "deliver", "review"):
+                    self.assertEqual(
+                        rendered.count(
+                            "team-style-profile-card--" + quadrant_key
+                        ),
+                        2,
+                    )
+
+    def test_team_scale_colors_match_existing_flower_quadrant_fills(self):
+        # Shared chart renders in both the candidate page and exported PDF.
+        # Link card fills to the established SVG colors, not SOVA's palette.
+        css = self.source("static/css/talena/pages/team-styles.css")
+        svg = self.source("apps/reports/services/leadership_report.py")
+        template = self.source(
+            "templates/customer/processes/partials/_team_styles.html"
+        )
+        self.assertIn(
+            'team-style-profile-card--{{ style.quadrant_key }}', template
+        )
+        self.assertIn(
+            'quadrant_colors = ("#ef978f", "#dbada7", "#a0baae", "#d9bc90")',
+            svg,
+        )
+        for key, color, marker in (
+            ("explore", "#ef978f", "#cb807a"),
+            ("lead", "#dbada7", "#ba938e"),
+            ("deliver", "#a0baae", "#889e94"),
+            ("review", "#d9bc90", "#b8a07a"),
+        ):
+            # Each selected marker uses an explicitly darker variant of
+            # its corresponding unchanged SVG petal color.
+            self.assertIn(
+                f".team-style-profile-card--{key} {{\n"
+                f"  --team-style-accent: {color};\n"
+                f"  --team-style-marker: {marker};",
+                css,
+            )
+        self.assertIn(
+            "background: var(--team-style-accent, var(--talena-coral)) !important;",
+            css,
+        )
+        # Personality has a more specific last-filled-step rule that
+        # previously left every Team selected marker coral regardless of
+        # the surrounding filled segments. The override must win.
+        self.assertIn(
+            ".team-style-profile-card__scale "
+            ".response-style-scale__segment.response-style-scale__segment--marker",
+            css,
+        )
+        self.assertIn(
+            "background: var(--team-style-marker, var(--team-style-accent)) !important;",
+            css,
+        )
+        self.assertIn(
+            "0 0 0 3px var(--team-style-marker-ring, transparent) !important;",
+            css,
+        )
 
     def test_team_svg_matches_leadership_visuals_and_pdf_export(self):
         team = self.source(
@@ -959,13 +1143,41 @@ class ReportUi441Tests(SimpleTestCase):
         self.assertIn("segment <= competency.score_rounded", template)
         self.assertIn("segment == competency.score_rounded", template)
         self.assertIn(
-            ".leadership-report__competency-scale .response-style-scale__segment--filled,",
+            ".leadership-report__competency-scale .response-style-scale__segment--filled {",
+            css,
+        )
+        # Filled steps take their own quadrant's original SVG color.
+        # The selected (last-filled) step is darker, not globally coral.
+        self.assertIn(
+            "background: var(--leadership-accent) !important;",
             css,
         )
         self.assertIn(
-            "background: var(--talena-coral, #ff6f61) !important;",
+            "background: var(--leadership-marker) !important;",
             css,
         )
+        self.assertIn(
+            "0 0 0 3px var(--leadership-marker-ring) !important;",
+            css,
+        )
+        self.assertIn(
+            "#reports-subpanel-leadership-report "
+            ".leadership-report__competency-scale "
+            ".response-style-scale__segment.response-style-scale__segment--marker",
+            css,
+        )
+        for index, fill, selected in (
+            (1, "#ef978f", "#cb807a"),
+            (2, "#dbada7", "#ba938e"),
+            (3, "#a0baae", "#889e94"),
+            (4, "#d9bc90", "#b8a07a"),
+        ):
+            self.assertIn(
+                f".leadership-report__quadrant--{index} {{" +
+                f"\n  --leadership-accent: {fill};" +
+                f"\n  --leadership-marker: {selected};",
+                css,
+            )
 
         for score in range(1, 6):
             for language in ("sv", "en"):
