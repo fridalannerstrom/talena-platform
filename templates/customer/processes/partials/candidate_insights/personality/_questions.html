@@ -14,6 +14,9 @@
     data-has-result="{% if personality_questions %}true{% else %}false{% endif %}"
     data-question-basis="traits"
     data-role-context-available="{{ has_personality_role_context|yesno:'true,false' }}"
+    data-selection-mode="{{ personality_question_selection_mode }}"
+    data-manual-selection-label="{% if LANGUAGE_CODE|slice:':2' == 'sv' %}Manuellt urval för den här kandidaten{% else %}Manually selected for this candidate{% endif %}"
+    data-project-selection-label="{% if LANGUAGE_CODE|slice:':2' == 'sv' %}Projektets gemensamma standard baserad på rollkontexten{% else %}Shared project default based on role context{% endif %}"
   >
 
     {% if not has_personality_role_context %}
