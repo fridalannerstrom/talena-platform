@@ -43,6 +43,13 @@
   text-align: left !important;
 }
 
+/* Use the very same four fills as the candidate Team flower SVG.
+   These are visualization-only colors, never score or source-data changes. */
+.team-style-profile-card--explore { --team-style-accent: #ef978f; }
+.team-style-profile-card--lead { --team-style-accent: #dbada7; }
+.team-style-profile-card--deliver { --team-style-accent: #a0baae; }
+.team-style-profile-card--review { --team-style-accent: #d9bc90; }
+
 .process-page .team-style-profile-card__scale {
   width: 100% !important;
   margin-top: 0.9rem !important;
@@ -56,7 +63,7 @@
 .process-page .team-style-profile-card__scale .response-style-scale__segment--filled,
 .process-page .team-style-profile-card__scale .response-style-scale__segment--marker {
   border: 0 !important;
-  background: var(--talena-coral) !important;
+  background: var(--team-style-accent, var(--talena-coral)) !important;
   box-shadow: none !important;
   transform: none !important;
 }
