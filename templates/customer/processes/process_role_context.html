@@ -225,6 +225,44 @@
 
           </div>
 
+          <fieldset class="mt-4">
+            <legend class="form-label fw-semibold mb-1">
+              {% if LANGUAGE_CODE|slice:":2" == "sv" %}Personlighetsdrag för intervjufrågorna{% else %}Personality traits for interview questions{% endif %}
+            </legend>
+            <p class="form-text text-muted mb-3">
+              {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+                Valet gäller alla kandidater i projektet. Välj upp till åtta drag, eller avmarkera alla för att låta Talena rekommendera drag utifrån rollkontexten.
+              {% else %}
+                This selection applies to every candidate in the project. Choose up to eight traits, or clear all selections to let Talena recommend traits from the role context.
+              {% endif %}
+            </p>
+
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-xl-3 g-2">
+              {% for trait in personality_trait_options %}
+                <div class="col">
+                  <label class="form-check h-100 border rounded-3 p-3 d-flex align-items-start gap-2">
+                    <input
+                      class="form-check-input mt-1"
+                      type="checkbox"
+                      name="personality_question_traits"
+                      value="{{ trait.name }}"
+                      {% if trait.name in selected_personality_traits %}checked{% endif %}
+                    >
+                    <span class="form-check-label">
+                      {{ trait.label }}
+                    </span>
+                  </label>
+                </div>
+              {% endfor %}
+            </div>
+
+            {% if form.personality_question_traits.errors %}
+              <div class="text-danger small mt-2">
+                {{ form.personality_question_traits.errors|striptags }}
+              </div>
+            {% endif %}
+          </fieldset>
+
 
           <div class="context-tip mt-4">
 
