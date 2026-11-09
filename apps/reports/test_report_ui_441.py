@@ -1143,7 +1143,7 @@ class ReportUi441Tests(SimpleTestCase):
         self.assertIn("segment <= competency.score_rounded", template)
         self.assertIn("segment == competency.score_rounded", template)
         self.assertIn(
-            ".leadership-report__competency-scale .response-style-scale__segment--filled,",
+            ".leadership-report__competency-scale .response-style-scale__segment--filled {",
             css,
         )
         # Filled steps take their own quadrant's original SVG color.
