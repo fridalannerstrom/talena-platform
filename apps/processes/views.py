@@ -12683,20 +12683,6 @@ def process_candidate_personality_questions_regenerate(
             candidate_id=candidate_id,
         )
 
-    if any(
-        str(item or "").strip().casefold().startswith("competency::")
-        for item in getattr(invitation, "selected_personality_traits", None) or []
-    ):
-        return JsonResponse(
-            {
-                "error": (
-                    "Competency-based personality questions are temporarily "
-                    "unavailable. Select personality traits before generating."
-                )
-            },
-            status=409,
-        )
-
     invitation.ai_personality_questions_status = (
         "not_started"
     )
