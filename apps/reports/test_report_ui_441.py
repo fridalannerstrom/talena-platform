@@ -881,8 +881,8 @@ class ReportUi441Tests(SimpleTestCase):
             # Each selected marker uses an explicitly darker variant of
             # its corresponding unchanged SVG petal color.
             self.assertIn(
-                f".team-style-profile-card--{key} {{\\n"
-                f"  --team-style-accent: {color};\\n"
+                f".team-style-profile-card--{key} {{\n"
+                f"  --team-style-accent: {color};\n"
                 f"  --team-style-marker: {marker};",
                 css,
             )
