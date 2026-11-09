@@ -666,10 +666,28 @@
 
 
 /* Leadership competency cards follow the Team report preference scale */
-.leadership-report__quadrant--1{--leadership-accent:#f36d62}
-.leadership-report__quadrant--2{--leadership-accent:#d99a95}
-.leadership-report__quadrant--3{--leadership-accent:#81aa9b}
-.leadership-report__quadrant--4{--leadership-accent:#d2b98b}
+/* The Leadership quadrant meters use the exact fills in the shared flower
+   renderer; the selected segment uses a slightly darker shade per quadrant. */
+.leadership-report__quadrant--1 {
+  --leadership-accent: #ef978f;
+  --leadership-marker: #cb807a;
+  --leadership-marker-ring: rgba(203, 128, 122, 0.42);
+}
+.leadership-report__quadrant--2 {
+  --leadership-accent: #dbada7;
+  --leadership-marker: #ba938e;
+  --leadership-marker-ring: rgba(186, 147, 142, 0.42);
+}
+.leadership-report__quadrant--3 {
+  --leadership-accent: #a0baae;
+  --leadership-marker: #889e94;
+  --leadership-marker-ring: rgba(136, 158, 148, 0.42);
+}
+.leadership-report__quadrant--4 {
+  --leadership-accent: #d9bc90;
+  --leadership-marker: #b8a07a;
+  --leadership-marker-ring: rgba(184, 160, 122, 0.42);
+}
 .leadership-report__competency-card{border:1px solid #eee8e5;border-radius:18px;background:#fff;padding:22px 24px;margin:0 0 18px}
 .leadership-report__competency-card-heading{align-items:flex-start}
 .leadership-report__score-pill{background:#f8f5f4;color:#302e36}
@@ -1003,15 +1021,21 @@
   }
 }
 
-/* #441: Leadership's competency meter is a linear 1-5 sequence.
-   Like Team, colour every preceding step from the LEFT, and keep the
-   selected step's existing coral outline. Never fill from the centre. */
+/* Leadership is a left-to-right 1–5 scale. Fill all preceding steps in
+   the SVG's quadrant color, then darken only the selected endpoint.
+   Scope these overrides so Team, Personality and Motivation stay unchanged. */
 .process-page #reports-subpanel-leadership-report .leadership-report__competency-scale .response-style-scale__segment {
   background: var(--talena-chart-track, #ebe8e5) !important;
 }
-.process-page #reports-subpanel-leadership-report .leadership-report__competency-scale .response-style-scale__segment--filled,
-.process-page #reports-subpanel-leadership-report .leadership-report__competency-scale .response-style-scale__segment--marker {
-  background: var(--talena-coral, #ff6f61) !important;
+.process-page #reports-subpanel-leadership-report .leadership-report__competency-scale .response-style-scale__segment--filled {
+  background: var(--leadership-accent) !important;
+}
+/* The shared Personality last-filled selector otherwise forces coral. */
+.process-page #reports-subpanel-leadership-report .leadership-report__competency-scale .response-style-scale__segment.response-style-scale__segment--marker {
+  background: var(--leadership-marker) !important;
+  box-shadow:
+    0 0 0 2px #fff,
+    0 0 0 3px var(--leadership-marker-ring) !important;
 }
 
 /* #441: Both report introductions share one calm, solid warm surface.
