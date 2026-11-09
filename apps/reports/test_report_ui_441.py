@@ -810,6 +810,12 @@ class ReportUi441Tests(SimpleTestCase):
                     ],
                 )
                 self.assertEqual(
+                    [q.text for q in quadrants],
+                    (["Utforska", "Leda", "Leverera", "Kritiskt granska"]
+                     if language == "sv" else
+                     ["Explore", "Lead", "Deliver", "Critically review"]),
+                )
+                self.assertEqual(
                     {(line.attrib["x2"], line.attrib["y2"])
                      for line in svg.findall(f".//{svg_ns}line")},
                     {
@@ -843,6 +849,43 @@ class ReportUi441Tests(SimpleTestCase):
                 self.assertNotIn('class="team-styles-footer"', rendered)
                 self.assertNotIn('id="team-style-chart-values"', rendered)
                 self.assertIn('class="team-report__page-header"', rendered)
+                for quadrant_key in ("explore", "lead", "deliver", "review"):
+                    self.assertEqual(
+                        rendered.count(
+                            "team-style-profile-card--" + quadrant_key
+                        ),
+                        2,
+                    )
+
+    def test_team_scale_colors_match_existing_flower_quadrant_fills(self):
+        # Shared chart renders in both the candidate page and exported PDF.
+        # Link card fills to the established SVG colors, not SOVA's palette.
+        css = self.source("static/css/talena/pages/team-styles.css")
+        svg = self.source("apps/reports/services/leadership_report.py")
+        template = self.source(
+            "templates/customer/processes/partials/_team_styles.html"
+        )
+        self.assertIn(
+            'team-style-profile-card--{{ style.quadrant_key }}', template
+        )
+        self.assertIn(
+            'quadrant_colors = ("#ef978f", "#dbada7", "#a0baae", "#d9bc90")',
+            svg,
+        )
+        for key, color in (
+            ("explore", "#ef978f"),
+            ("lead", "#dbada7"),
+            ("deliver", "#a0baae"),
+            ("review", "#d9bc90"),
+        ):
+            self.assertIn(
+                f".team-style-profile-card--{key} "
+                f"{{ --team-style-accent: {color}; }}", css,
+            )
+        self.assertIn(
+            "background: var(--team-style-accent, var(--talena-coral)) !important;",
+            css,
+        )
 
     def test_team_svg_matches_leadership_visuals_and_pdf_export(self):
         team = self.source(
