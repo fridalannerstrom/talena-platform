@@ -82,17 +82,16 @@
           {% trans "Needs update" %}
         </span>
 
-        {% if has_personality_role_context %}
         <button
           type="button"
           class="btn btn-icon btn-light"
           data-personality-questions-regenerate
+          {% if not has_personality_role_context %}disabled{% endif %}
           title="{% trans 'Generate new personality questions' %}"
           aria-label="{% trans 'Generate new personality questions' %}"
         >
           <i data-feather="refresh-cw"></i>
         </button>
-        {% endif %}
       </div>
     </div>
 
@@ -223,17 +222,16 @@
             </div>
           </div>
 
-          {% if has_personality_role_context %}
           <button
             type="button"
             class="btn btn-primary text-nowrap ms-auto align-self-center"
             data-personality-traits-edit
+            {% if not has_personality_role_context %}disabled{% endif %}
           >
             <span data-question-basis-edit-label>
               {% trans "Change traits" %}
             </span>
           </button>
-          {% endif %}
         </div>
       </section>
 
@@ -257,7 +255,6 @@
         </div>
       </div>
 
-      {% if has_personality_role_context %}
       <dialog
         class="personality-traits-dialog"
         data-personality-traits-editor
@@ -382,7 +379,6 @@
           </div>
         </div>
       </dialog>
-      {% endif %}
     </div>
   </section>
   {% else %}
