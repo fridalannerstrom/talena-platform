@@ -151,18 +151,12 @@ def get_project_personality_trait_selection(
         if cached is not None:
             return cached
 
-        return _generate_and_store_project_selection(
-            context,
-            language_code=language_code,
-        )
+        return _generate_and_store_project_selection(context)
 
 
 def _generate_and_store_project_selection(
     context: dict[str, Any],
-    *,
-    language_code: str,
 ) -> list[dict[str, str]]:
-    language_code = normalize_ai_language(language_code)
     guidance_sv = get_ai_feature_prompt_instructions(
         key="personality_trait_selection",
         language="sv",
@@ -190,7 +184,6 @@ why the role context makes the trait useful to explore, without describing any c
             "sv": guidance_sv,
             "en": guidance_en,
         },
-        "output_language": language_code,
     }
 
     client = get_openai_client()
