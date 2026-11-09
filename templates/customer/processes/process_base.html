@@ -8309,21 +8309,24 @@ function setCheckedTraits(traits) {
   function updateSelectionCount() {
     const count = getCheckedTraits().length;
 
-countEl.textContent =
-  count === 0
-    ? window.TALENA_PROCESS_I18N.talenaWillChoose
-    : window.TALENA_PROCESS_I18N.countSelected
-        .replace(
-          "COUNT",
-          String(count)
-        );
+if (countEl) {
+  countEl.textContent =
+    count === 0
+      ? window.TALENA_PROCESS_I18N.talenaWillChoose
+      : window.TALENA_PROCESS_I18N.countSelected
+          .replace(
+            "COUNT",
+            String(count)
+          );
+}
 
-saveButton.disabled =
-  count > 6;
+if (saveButton) {
+  saveButton.disabled = count > 8;
+}
 
     checkboxes.forEach((checkbox) => {
       if (
-        count >= 6
+        count >= 8
         && !checkbox.checked
       ) {
         checkbox.disabled = true;
@@ -8734,7 +8737,9 @@ case "selected_traits":
     setHidden(thinking, false);
 
     regenerateButton.disabled = true;
-    editButton.disabled = true;
+    if (editButton) {
+      editButton.disabled = true;
+    }
 
     let draft = {
       title: window.TALENA_PROCESS_I18N.personalityQuestions,
@@ -8894,7 +8899,9 @@ notifyCandidateAiContentUpdated(
     } finally {
       isStreaming = false;
       regenerateButton.disabled = false;
-      editButton.disabled = false;
+      if (editButton) {
+        editButton.disabled = false;
+      }
       refreshIcons();
     }
   }
@@ -8940,7 +8947,7 @@ function closeTraitEditor() {
 }
 
 
-editButton.addEventListener(
+editButton?.addEventListener(
   "click",
   openTraitEditor
 );
@@ -9065,13 +9072,13 @@ async function regeneratePersonalityQuestions() {
 }
 
 
-saveButton.addEventListener(
+saveButton?.addEventListener(
   "click",
   async () => {
     const selectedTraits =
       getCheckedTraits();
 
-    if (selectedTraits.length > 6) {
+    if (selectedTraits.length > 8) {
       return;
     }
 
