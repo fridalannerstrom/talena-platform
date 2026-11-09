@@ -15,8 +15,8 @@
     data-question-basis="traits"
     data-role-context-available="{{ has_personality_role_context|yesno:'true,false' }}"
     data-selection-mode="{{ personality_question_selection_mode }}"
-    data-manual-selection-label="{% if LANGUAGE_CODE|slice:':2' == 'sv' %}Manuellt urval för den här kandidaten{% else %}Manually selected for this candidate{% endif %}"
-    data-project-selection-label="{% if LANGUAGE_CODE|slice:':2' == 'sv' %}Projektets gemensamma standard baserad på rollkontexten{% else %}Shared project default based on role context{% endif %}"
+    data-manual-selection-label="{% if LANGUAGE_CODE|slice:':2' == 'sv' %}Valt för hela projektet{% else %}Selected for the whole project{% endif %}"
+    data-project-selection-label="{% if LANGUAGE_CODE|slice:':2' == 'sv' %}Rekommenderat utifrån projektets rollkontext{% else %}Recommended from the project role context{% endif %}"
   >
 
     {% if not has_personality_role_context %}
@@ -209,10 +209,12 @@
             </p>
 
             <div class="small text-muted mt-2" data-personality-selection-source>
-              {% if personality_question_selection_mode == "manual" %}
-                {% if LANGUAGE_CODE|slice:":2" == "sv" %}Manuellt urval för den här kandidaten{% else %}Manually selected for this candidate{% endif %}
+              {% if personality_project_selection_source == "project_manual" %}
+                {% if LANGUAGE_CODE|slice:":2" == "sv" %}Valt för hela projektet på sidan för rollkontext{% else %}Selected for the whole project on the role context page{% endif %}
+              {% elif has_personality_role_context %}
+                {% if LANGUAGE_CODE|slice:":2" == "sv" %}Rekommenderat utifrån projektets rollkontext{% else %}Recommended from the project role context{% endif %}
               {% else %}
-                {% if LANGUAGE_CODE|slice:":2" == "sv" %}Projektets gemensamma standard baserad på rollkontexten{% else %}Shared project default based on role context{% endif %}
+                {% if LANGUAGE_CODE|slice:":2" == "sv" %}Visar tidigare sparade frågor{% else %}Showing previously saved questions{% endif %}
               {% endif %}
             </div>
 
@@ -225,16 +227,14 @@
             </div>
           </div>
 
-          <button
-            type="button"
-            class="btn btn-primary text-nowrap ms-auto align-self-center"
-            data-personality-traits-edit
-            {% if not has_personality_role_context %}disabled{% endif %}
-          >
-            <span data-question-basis-edit-label>
-              {% trans "Change traits" %}
-            </span>
-          </button>
+          {% if has_personality_role_context and can_manage_candidate_results and not is_historical %}
+            <a
+              class="btn btn-outline-secondary btn-sm text-nowrap ms-auto align-self-center"
+              href="{{ personality_role_context_url }}"
+            >
+              {% if LANGUAGE_CODE|slice:":2" == "sv" %}Ändra i rollkontexten{% else %}Change in role context{% endif %}
+            </a>
+          {% endif %}
         </div>
       </section>
 
@@ -258,130 +258,6 @@
         </div>
       </div>
 
-      <dialog
-        class="personality-traits-dialog"
-        data-personality-traits-editor
-        aria-labelledby="personalityTraitsDialogTitle"
-      >
-        <div class="personality-traits-dialog__shell">
-          <div class="personality-traits-dialog__header">
-            <div>
-              <div class="insight-summary-kicker">
-                {% trans "Personality questions" %}
-              </div>
-
-              <h3
-                class="personality-traits-dialog__title"
-                id="personalityTraitsDialogTitle"
-                data-question-basis-dialog-title
-              >
-                {% trans "Select traits to explore" %}
-              </h3>
-
-              <p class="personality-traits-dialog__description" data-question-basis-dialog-description>
-                {% if LANGUAGE_CODE|slice:":2" == "sv" %}
-                  Välj upp till åtta drag för den här kandidaten, eller lämna dem omarkerade för att använda projektets gemensamma standard baserad på rollkontexten. Frågorna formuleras även utifrån personens egna personlighetsresultat.
-                {% else %}
-                  Choose up to eight traits for this candidate, or leave them unselected to use the shared project default based on role context. Questions are also generated using the person's own personality results.
-                {% endif %}
-              </p>
-            </div>
-
-            <button
-              type="button"
-              class="personality-traits-dialog__close"
-              data-personality-traits-cancel
-              aria-label="{% trans 'Close trait selection' %}"
-            >
-              <i data-feather="x"></i>
-            </button>
-          </div>
-
-          <div class="personality-question-basis-tabs" role="tablist" aria-label="Question basis">
-            <button
-              type="button"
-              class="personality-question-basis-tab is-active"
-              data-question-basis-tab="traits"
-              aria-selected="true"
-              {% if LANGUAGE_CODE|slice:":2" == "sv" %}
-                data-summary-title="Personlighetsdrag som används i frågorna"
-                data-summary-description="Talena använde projektets gemensamma standard baserad på rollkontexten. Kandidatens egna personlighetsresultat påverkar hur frågorna formuleras."
-                data-edit-label="Ändra personlighetsdrag"
-                data-dialog-title="Välj personlighetsdrag att utforska"
-                data-dialog-description="Välj upp till åtta drag för den här kandidaten, eller lämna dem omarkerade för att använda projektets gemensamma standard baserad på rollkontexten."
-                data-status-label="Välj upp till 8 personlighetsdrag"
-              {% else %}
-                data-summary-title="Traits used for these questions"
-                data-summary-description="Talena used the project's shared role-context default for these questions. Each candidate's own personality results shape the question wording."
-                data-edit-label="Change traits"
-                data-dialog-title="Select traits to explore"
-                data-dialog-description="Choose up to eight traits for this candidate, or leave them unselected to use the shared project default based on role context."
-                data-status-label="Select up to 8 personality traits"
-              {% endif %}
-            >
-              {% if LANGUAGE_CODE|slice:":2" == "sv" %}Personlighetsdrag (18){% else %}Personality traits (18){% endif %}
-            </button>
-
-          </div>
-
-          <div class="personality-traits-dialog__status">
-            <span data-question-basis-status-label>
-              {% if LANGUAGE_CODE|slice:":2" == "sv" %}Välj upp till 8 personlighetsdrag{% else %}Select up to 8 personality traits{% endif %}
-            </span>
-
-            <span class="personality-traits-dialog__count" data-personality-traits-count>
-              {% trans "0 selected" %}
-            </span>
-          </div>
-
-          <div
-            class="personality-question-basis-panel"
-            data-question-basis-panel="traits"
-          >
-            <div class="personality-traits-dialog__body" data-personality-traits-options>
-              {% for section in personality_profile.sections %}
-                <section class="personality-traits-dialog__section">
-                  <div class="personality-traits-dialog__grid">
-                    {% for trait in section.traits %}
-                      <label class="personality-trait-option">
-                        <input
-                          type="checkbox"
-                          value="{{ trait.name }}"
-                          data-personality-trait-checkbox
-                          data-question-basis-option="traits"
-                          data-question-focus-label="{{ trait.label }}"
-                          {% if trait.name in selected_personality_traits %}checked{% endif %}
-                        >
-
-                        <span class="personality-trait-option__control">
-                          <span class="personality-trait-option__content">
-                            <span class="personality-trait-option__name">
-                              {{ trait.label }}
-                            </span>
-                          </span>
-                          <span class="personality-trait-option__check">
-                            <i data-feather="check"></i>
-                          </span>
-                        </span>
-                      </label>
-                    {% endfor %}
-                  </div>
-                </section>
-              {% endfor %}
-            </div>
-          </div>
-
-          <div class="personality-traits-dialog__footer">
-            <button type="button" class="btn btn-light" data-personality-traits-cancel>
-              {% trans "Cancel" %}
-            </button>
-
-            <button type="button" class="btn btn-primary" data-personality-traits-save>
-              {% trans "Save and generate" %}
-            </button>
-          </div>
-        </div>
-      </dialog>
     </div>
   </section>
   {% else %}
