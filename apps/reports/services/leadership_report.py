@@ -178,6 +178,7 @@ def _build_leadership_chart_svg(
     source_keys: list[str] | None = None,
     svg_id_prefix: str = "leadership-wheel",
     svg_extra_class: str = "",
+    sova_quadrant_layout: bool = False,
 ) -> str:
     """Render a balanced eight-petal leadership profile from SOVA 1–5 scores.
 
@@ -188,6 +189,9 @@ def _build_leadership_chart_svg(
     cx, cy, radius = 450, 390, 245
     source_keys = list(source_keys) if source_keys is not None else list(_SOURCE_NAMES)
     quadrant_colors = ("#ef978f", "#dbada7", "#a0baae", "#d9bc90")
+    # SOVA's team roles live in compass quadrants, not around compass axes.
+    # Apply this only to the candidate Team report, never Leadership.
+    angle_offset = -45 if sova_quadrant_layout else 0
 
     def point(distance: float, angle: float) -> tuple[float, float]:
         radians = math.radians(angle)
@@ -209,8 +213,8 @@ def _build_leadership_chart_svg(
     def petal_path(index: int, sector_radius: float) -> str:
         """Round the outer corners of a radial sector without changing its reach."""
         # Two neighbouring petals have a little space around their edges.
-        start_angle = -135 + index * 45 + 2.5
-        end_angle = -90 + index * 45 - 2.5
+        start_angle = -135 + angle_offset + index * 45 + 2.5
+        end_angle = -90 + angle_offset + index * 45 - 2.5
         shoulder_radius = max(22.0, sector_radius - 16.0)
         corner_angle = min(10.0, math.degrees(15.0 / sector_radius))
 
@@ -251,7 +255,7 @@ def _build_leadership_chart_svg(
     # a person's individual preferences are lower. The actual scores are
     # represented only by the opaque foreground petals further below.
     for index, (quadrant_index, _competency) in enumerate(flattened[:8]):
-        angle_start = -135 + index * 45
+        angle_start = -135 + angle_offset + index * 45
         parts.append(
             f'<path class="leadership-wheel__track" '
             f'd="{radial_sector(angle_start, angle_start + 45, radius)}" '
@@ -275,7 +279,7 @@ def _build_leadership_chart_svg(
     # Four diagonal boundaries distinguish areas without heavy spokes
     # crossing the score petals.
     for boundary in range(4):
-        angle = -135 + boundary * 90
+        angle = -135 + angle_offset + boundary * 90
         x, y = point(radius, angle)
         parts.append(
             f'<line x1="{cx}" y1="{cy}" x2="{fmt(x)}" y2="{fmt(y)}" '
@@ -309,7 +313,7 @@ def _build_leadership_chart_svg(
         _score, rounded_score = result
         score_radius = radius * rounded_score / 5
         score_x, score_y = point(
-            max(34, score_radius * 0.66), -112.5 + index * 45
+            max(34, score_radius * 0.66), -112.5 + angle_offset + index * 45
         )
         parts.append(
             f'<text class="leadership-wheel__score" x="{fmt(score_x)}" '
@@ -318,7 +322,7 @@ def _build_leadership_chart_svg(
         )
 
     for index, (_quadrant_index, competency) in enumerate(flattened[:8]):
-        angle = -112.5 + index * 45
+        angle = -112.5 + angle_offset + index * 45
         label_x, label_y = point(radius + 39, angle)
         cosine = math.cos(math.radians(angle))
         anchor = "middle" if abs(cosine) < 0.26 else ("start" if cosine > 0 else "end")
@@ -333,12 +337,21 @@ def _build_leadership_chart_svg(
             )
         parts.append("</text>")
 
-    quadrant_positions = (
-        (cx, 45, "middle"),
-        (width - 14, cy, "end"),
-        (cx, height - 44, "middle"),
-        (14, cy, "start"),
-    )
+    if sova_quadrant_layout:
+        # Explore NW, Lead NE, Deliver SE, Critically review SW.
+        quadrant_positions = (
+            (70, 95, "start"),
+            (width - 70, 95, "end"),
+            (width - 70, height - 95, "end"),
+            (70, height - 95, "start"),
+        )
+    else:
+        quadrant_positions = (
+            (cx, 45, "middle"),
+            (width - 14, cy, "end"),
+            (cx, height - 44, "middle"),
+            (14, cy, "start"),
+        )
     for index, quadrant in enumerate(content["quadrants"][:4]):
         x, y, anchor = quadrant_positions[index]
         parts.append(
