@@ -1,5 +1,6 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
+from django.utils.http import url_has_allowed_host_and_scheme
 from apps.core.integrations.sova import SovaClient
 from apps.projects.models import ProjectMeta
 from apps.accounts.report_branding import get_report_branding
@@ -6775,6 +6776,12 @@ def process_role_context(request, pk):
             "You do not have permission to edit this project."
         )
 
+    next_url = (
+        request.POST.get("next", "")
+        if request.method == "POST"
+        else request.GET.get("next", "")
+    ).strip()
+
     context_config = get_purpose_context_config(process.purpose)
     purpose_key = normalize_purpose_key(process.purpose)
 
@@ -6828,6 +6835,13 @@ def process_role_context(request, pk):
                 "The project context was saved."
             )
 
+            if url_has_allowed_host_and_scheme(
+                next_url,
+                allowed_hosts={request.get_host()},
+                require_https=request.is_secure(),
+            ):
+                return redirect(next_url)
+
             return redirect(
                 "processes:process_detail",
                 pk=process.pk,
@@ -6878,6 +6892,7 @@ def process_role_context(request, pk):
         {
             "process": process,
             "form": form,
+            "next_url": next_url,
             "role_context": role_context,
             "purpose_context": role_context,
             "context_config": context_config,
