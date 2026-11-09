@@ -239,14 +239,6 @@
             </div>
           </div>
 
-          {% if has_personality_role_context and can_manage_candidate_results and not is_historical %}
-            <a
-              class="btn btn-outline-secondary btn-sm text-nowrap ms-auto align-self-center"
-              href="{{ personality_role_context_url }}"
-            >
-              {% if LANGUAGE_CODE|slice:":2" == "sv" %}Ändra i rollkontexten{% else %}Change in role context{% endif %}
-            </a>
-          {% endif %}
         </div>
       </section>
 
