@@ -1,5 +1,6 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
+from django.utils.http import url_has_allowed_host_and_scheme
 from apps.core.integrations.sova import SovaClient
 from apps.projects.models import ProjectMeta
 from apps.accounts.report_branding import get_report_branding
@@ -6753,6 +6754,13 @@ def process_delete(request, pk):
 
 @login_required
 def process_role_context(request, pk):
+    from .project_personality_trait_selection import (
+        get_project_personality_trait_options,
+        get_project_personality_trait_overrides,
+        get_project_personality_trait_selection,
+        save_project_personality_trait_overrides,
+    )
+
     process = get_object_or_404(TestProcess, pk=pk)
 
     if process.is_historical:
@@ -6775,11 +6783,65 @@ def process_role_context(request, pk):
             "You do not have permission to edit this project."
         )
 
+    next_url = (
+        request.POST.get("next", "")
+        if request.method == "POST"
+        else request.GET.get("next", "")
+    ).strip()
+
     context_config = get_purpose_context_config(process.purpose)
     purpose_key = normalize_purpose_key(process.purpose)
 
     role_context, created = ProcessRoleContext.objects.get_or_create(
         process=process
+    )
+    language_code = get_request_ai_language(request)
+    personality_trait_options = get_project_personality_trait_options(
+        language_code
+    )
+    personality_trait_choices = [
+        (item["name"], item["label"])
+        for item in personality_trait_options
+    ]
+    previous_project_traits = get_project_personality_trait_overrides(
+        role_context,
+        purpose_key,
+    )
+    project_selection = get_project_personality_trait_selection(
+        process,
+        language_code=language_code,
+        generate=False,
+    ) or []
+    recommendation_error = False
+    if (
+        request.method != "POST"
+        and not previous_project_traits
+        and not project_selection
+    ):
+        try:
+            project_selection = get_project_personality_trait_selection(
+                process,
+                language_code=language_code,
+                generate=True,
+            ) or []
+        except Exception:
+            recommendation_error = True
+            messages.warning(
+                request,
+                (
+                    "Talena kunde inte rekommendera personlighetsdrag just nu."
+                    if str(language_code or "").lower().startswith("sv")
+                    else "Talena could not recommend personality traits right now."
+                ),
+            )
+    recommended_project_traits = [
+        item.get("name")
+        for item in project_selection
+        if isinstance(item, dict) and item.get("name")
+    ]
+    traits_for_form = (
+        previous_project_traits
+        or recommended_project_traits
     )
 
     if request.method == "POST":
@@ -6789,11 +6851,17 @@ def process_role_context(request, pk):
         previous_context_data = (
             role_context.get_current_context_data()
         )
+        previous_project_traits = get_project_personality_trait_overrides(
+            role_context,
+            purpose_key,
+        )
 
         form = ProcessRoleContextForm(
             request.POST,
             instance=role_context,
             context_config=context_config,
+            personality_trait_choices=personality_trait_choices,
+            selected_personality_traits=traits_for_form,
         )
 
         if form.is_valid():
@@ -6803,6 +6871,20 @@ def process_role_context(request, pk):
             }
 
             context_changed = previous_context_data != submitted_data
+            submitted_project_traits = (
+                form.cleaned_data.get("personality_question_traits") or []
+            )
+            project_traits_submitted = (
+                "save_personality_traits" in request.POST
+            )
+            effective_project_traits = (
+                submitted_project_traits
+                if project_traits_submitted
+                else previous_project_traits
+            )
+            selection_changed = (
+                set(previous_project_traits) != set(effective_project_traits)
+            )
 
             role_context = form.save(commit=False)
 
@@ -6813,20 +6895,64 @@ def process_role_context(request, pk):
 
             role_context.apply_context_data(submitted_data)
             role_context.save()
+            save_project_personality_trait_overrides(
+                role_context,
+                purpose_key=purpose_key,
+                context_text=submitted_data.get("context_text", ""),
+                selected_traits=effective_project_traits,
+            )
 
             if context_changed:
-                result = mark_candidate_ai_content_outdated(
-                    process
+                mark_candidate_ai_content_outdated(process)
+            elif selection_changed:
+                TestInvitation.objects.filter(
+                    process=process,
+                ).exclude(
+                    ai_personality_questions={},
+                ).update(
+                    ai_personality_questions_status="outdated",
                 )
 
-                print("=== CONTEXT CHANGED ===")
-                print("PROCESS:", process.id)
-                print("AI CONTENT MARKED OUTDATED:", result)
+            recommendation_error = False
+            if (
+                not effective_project_traits
+                and submitted_data.get("context_text", "").strip()
+            ):
+                try:
+                    get_project_personality_trait_selection(
+                        process,
+                        language_code=language_code,
+                        generate=True,
+                    )
+                except Exception:
+                    recommendation_error = True
 
             messages.success(
                 request,
                 "The project context was saved."
             )
+            if recommendation_error:
+                messages.warning(
+                    request,
+                    (
+                        "Rollkontexten sparades, men Talena kunde inte "
+                        "rekommendera personlighetsdrag just nu. Försök igen "
+                        "när frågorna skapas."
+                        if str(language_code or "").lower().startswith("sv")
+                        else (
+                            "The context was saved, but Talena could not "
+                            "recommend personality traits right now. Try "
+                            "again when generating the questions."
+                        )
+                    ),
+                )
+
+            if url_has_allowed_host_and_scheme(
+                next_url,
+                allowed_hosts={request.get_host()},
+                require_https=request.is_secure(),
+            ):
+                return redirect(next_url)
 
             return redirect(
                 "processes:process_detail",
@@ -6851,6 +6977,39 @@ def process_role_context(request, pk):
             instance=role_context,
             initial=initial_data,
             context_config=context_config,
+            personality_trait_choices=personality_trait_choices,
+            selected_personality_traits=traits_for_form,
+        )
+
+    posted_project_traits = (
+        form["personality_question_traits"].value() or []
+    )
+    selected_project_traits = (
+        posted_project_traits
+        if form.is_bound and "save_personality_traits" in request.POST
+        else traits_for_form
+    )
+    selected_trait_names = set(selected_project_traits)
+    selected_project_trait_options = [
+        item
+        for item in personality_trait_options
+        if item["name"] in selected_trait_names
+    ]
+    if form.is_bound and "save_personality_traits" in request.POST:
+        selection_source = (
+            "manual"
+            if posted_project_traits
+            else "recommended"
+            if recommended_project_traits
+            else "pending"
+        )
+    else:
+        selection_source = (
+            "manual"
+            if previous_project_traits
+            else "recommended"
+            if recommended_project_traits
+            else "pending"
         )
 
     meta = ProjectMeta.objects.filter(
@@ -6878,6 +7037,7 @@ def process_role_context(request, pk):
         {
             "process": process,
             "form": form,
+            "next_url": next_url,
             "role_context": role_context,
             "purpose_context": role_context,
             "context_config": context_config,
@@ -6893,6 +7053,11 @@ def process_role_context(request, pk):
             "meta": meta,
             "process_purpose": process_purpose,
             "can_edit": can_edit,
+            "personality_trait_options": personality_trait_options,
+            "selected_personality_traits": selected_project_traits,
+            "selected_project_trait_options": selected_project_trait_options,
+            "personality_trait_selection_source": selection_source,
+            "personality_trait_recommendation_error": recommendation_error,
 
             # Active tab
             "active": "context",

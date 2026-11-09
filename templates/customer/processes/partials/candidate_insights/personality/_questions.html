@@ -1,10 +1,10 @@
 {% load i18n personality_i18n interview_config personality_question_competencies %}
 {% get_current_language as LANGUAGE_CODE %}
 {% interview_section_meta "personality" as interview_meta %}
-{% personality_question_competency_groups as competency_groups %}
 {% personality_question_selection_basis selected_personality_traits as question_basis %}
 
 {% if has_personality_results %}
+  {% if has_personality_role_context or personality_questions %}
   <section
     data-personality-questions-root
     data-stream-url="{{ personality_questions_stream_url }}"
@@ -12,8 +12,40 @@
     data-update-traits-url="{{ personality_traits_update_url }}"
     data-status="{{ personality_questions_status }}"
     data-has-result="{% if personality_questions %}true{% else %}false{% endif %}"
-    data-question-basis="{{ question_basis }}"
+    data-question-basis="traits"
+    data-role-context-available="{{ has_personality_role_context|yesno:'true,false' }}"
+    data-selection-mode="{{ personality_question_selection_mode }}"
+    data-manual-selection-label="{% if LANGUAGE_CODE|slice:':2' == 'sv' %}Valt för hela projektet{% else %}Selected for the whole project{% endif %}"
+    data-project-selection-label="{% if LANGUAGE_CODE|slice:':2' == 'sv' %}Rekommenderat utifrån projektets rollkontext{% else %}Recommended from the project role context{% endif %}"
   >
+
+    {% if not has_personality_role_context %}
+      <div class="alert alert-warning mt-3 mb-0" role="status">
+        <div class="fw-semibold">
+          {% if LANGUAGE_CODE|slice:":2" == "sv" %}Rollkontext saknas{% else %}Role context is missing{% endif %}
+        </div>
+        <div class="small mt-1">
+          {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+            Personlighetsfrågor kan skapas när projektets rollkontext har lagts till. Sparade frågor visas fortfarande.
+          {% else %}
+            Personality questions can be generated after role context is added to the project. Previously saved questions remain available.
+          {% endif %}
+        </div>
+        {% if not is_historical and can_manage_candidate_results %}
+          <a class="btn btn-sm btn-primary mt-3" href="{{ personality_role_context_url }}">
+            {% if LANGUAGE_CODE|slice:":2" == "sv" %}Lägg till rollkontext{% else %}Add role context{% endif %}
+          </a>
+        {% elif not is_historical %}
+          <div class="small mt-2">
+            {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+              Be en projektredaktör lägga till rollkontext.
+            {% else %}
+              Ask a project editor to add role context.
+            {% endif %}
+          </div>
+        {% endif %}
+      </div>
+    {% endif %}
 
     {% include "customer/processes/partials/candidate_insights/_interview_guidance.html" with interview_meta=interview_meta %}
     {% include "customer/processes/partials/candidate_insights/_interview_static_questions.html" with interview_meta=interview_meta %}
@@ -30,9 +62,9 @@
 
         <p class="text-muted small mb-0">
           {% if LANGUAGE_CODE|slice:":2" == "sv" %}
-            Utforska personlighet genom praktiska, syftesanpassade frågor baserade på valda personlighetsdrag eller kompetenser.
+            Utforska personlighet genom praktiska, syftesanpassade frågor baserade på valda personlighetsdrag.
           {% else %}
-            Explore personality through practical, purpose-aware questions based on selected traits or competencies.
+            Explore personality through practical, purpose-aware questions based on selected personality traits.
           {% endif %}
         </p>
       </div>
@@ -57,6 +89,7 @@
           type="button"
           class="btn btn-icon btn-light"
           data-personality-questions-regenerate
+          {% if not has_personality_role_context %}disabled{% endif %}
           title="{% trans 'Generate new personality questions' %}"
           aria-label="{% trans 'Generate new personality questions' %}"
         >
@@ -171,9 +204,31 @@
                   Talena created the questions from these competencies, their definitions, the project purpose and available context. Personality data is supporting evidence only, not a direct competency rating.
                 {% endif %}
               {% else %}
-                {% blocktrans %}Talena generated the questions below using these personality traits, the project purpose and any available context. Change the selection to shape the next set of questions.{% endblocktrans %}
+                {% if personality_project_selection_source == "project_manual" %}
+                  {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+                    Projektets redaktör valde dessa drag i rollkontexten. Kandidatens egna personlighetsresultat påverkar hur frågorna formuleras.
+                  {% else %}
+                    A project editor selected these traits in the role context. Each candidate's own personality results shape the question wording.
+                  {% endif %}
+                {% else %}
+                  {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+                    Talena rekommenderade dessa drag utifrån projektets rollkontext. Kandidatens egna personlighetsresultat påverkar hur frågorna formuleras.
+                  {% else %}
+                    Talena recommended these traits from the project role context. Each candidate's own personality results shape the question wording.
+                  {% endif %}
+                {% endif %}
               {% endif %}
             </p>
+
+            <div class="small text-muted mt-2" data-personality-selection-source>
+              {% if personality_project_selection_source == "project_manual" %}
+                {% if LANGUAGE_CODE|slice:":2" == "sv" %}Valt för hela projektet på sidan för rollkontext{% else %}Selected for the whole project on the role context page{% endif %}
+              {% elif has_personality_role_context %}
+                {% if LANGUAGE_CODE|slice:":2" == "sv" %}Rekommenderat utifrån projektets rollkontext{% else %}Recommended from the project role context{% endif %}
+              {% else %}
+                {% if LANGUAGE_CODE|slice:":2" == "sv" %}Visar tidigare sparade frågor{% else %}Showing previously saved questions{% endif %}
+              {% endif %}
+            </div>
 
             <div class="personality-trait-pill-list mt-3" data-personality-selected-traits>
               {% for trait in personality_questions.selected_traits %}
@@ -184,19 +239,6 @@
             </div>
           </div>
 
-          <button
-            type="button"
-            class="btn btn-primary text-nowrap ms-auto align-self-center"
-            data-personality-traits-edit
-          >
-            <span data-question-basis-edit-label>
-              {% if question_basis == "competencies" %}
-                {% if LANGUAGE_CODE|slice:":2" == "sv" %}Ändra kompetenser{% else %}Change competencies{% endif %}
-              {% else %}
-                {% trans "Change traits" %}
-              {% endif %}
-            </span>
-          </button>
         </div>
       </section>
 
@@ -220,219 +262,33 @@
         </div>
       </div>
 
-      <dialog
-        class="personality-traits-dialog"
-        data-personality-traits-editor
-        aria-labelledby="personalityTraitsDialogTitle"
-      >
-        <div class="personality-traits-dialog__shell">
-          <div class="personality-traits-dialog__header">
-            <div>
-              <div class="insight-summary-kicker">
-                {% trans "Personality questions" %}
-              </div>
-
-              <h3
-                class="personality-traits-dialog__title"
-                id="personalityTraitsDialogTitle"
-                data-question-basis-dialog-title
-              >
-                {% if question_basis == "competencies" %}
-                  {% if LANGUAGE_CODE|slice:":2" == "sv" %}Välj kompetenser att utforska{% else %}Select competencies to explore{% endif %}
-                {% else %}
-                  {% trans "Select traits to explore" %}
-                {% endif %}
-              </h3>
-
-              <p class="personality-traits-dialog__description" data-question-basis-dialog-description>
-                {% if question_basis == "competencies" %}
-                  {% if LANGUAGE_CODE|slice:":2" == "sv" %}
-                    Välj upp till sex kompetenser från Sovas 38-kompetensramverk. Talena skapar alltid åtta personlighetsfrågor och fördelar dem över de valda områdena.
-                  {% else %}
-                    Select up to six competencies from Sova's 38-competency framework. Talena always creates eight personality questions and distributes them across the selected areas.
-                  {% endif %}
-                {% else %}
-                  {% blocktrans trimmed %}
-                    Choose up to six traits, or leave all traits unselected to let Talena choose based on the project purpose and context. Questions will be generated using the selected traits, project purpose and available context.
-                  {% endblocktrans %}
-                {% endif %}
-              </p>
-            </div>
-
-            <button
-              type="button"
-              class="personality-traits-dialog__close"
-              data-personality-traits-cancel
-              aria-label="{% trans 'Close trait selection' %}"
-            >
-              <i data-feather="x"></i>
-            </button>
-          </div>
-
-          <div class="personality-question-basis-tabs" role="tablist" aria-label="Question basis">
-            <button
-              type="button"
-              class="personality-question-basis-tab {% if question_basis != 'competencies' %}is-active{% endif %}"
-              data-question-basis-tab="traits"
-              aria-selected="{% if question_basis != 'competencies' %}true{% else %}false{% endif %}"
-              {% if LANGUAGE_CODE|slice:":2" == "sv" %}
-                data-summary-title="Personlighetsdrag som används i frågorna"
-                data-summary-description="Talena skapade frågorna utifrån dessa personlighetsdrag, projektets syfte och tillgänglig kontext. Ändra urvalet för att påverka nästa uppsättning frågor."
-                data-edit-label="Ändra personlighetsdrag"
-                data-dialog-title="Välj personlighetsdrag att utforska"
-                data-dialog-description="Välj upp till sex personlighetsdrag, eller lämna alla omarkerade för att låta Talena välja utifrån projektets syfte och kontext."
-                data-status-label="Välj upp till 6 personlighetsdrag"
-              {% else %}
-                data-summary-title="Traits used for these questions"
-                data-summary-description="Talena generated the questions using these personality traits, the project purpose and available context. Change the selection to shape the next set of questions."
-                data-edit-label="Change traits"
-                data-dialog-title="Select traits to explore"
-                data-dialog-description="Choose up to six traits, or leave all traits unselected to let Talena choose based on the project purpose and context."
-                data-status-label="Select up to 6 traits"
-              {% endif %}
-            >
-              {% if LANGUAGE_CODE|slice:":2" == "sv" %}Personlighetsdrag (18){% else %}Personality traits (18){% endif %}
-            </button>
-
-            <button
-              type="button"
-              class="personality-question-basis-tab {% if question_basis == 'competencies' %}is-active{% endif %}"
-              data-question-basis-tab="competencies"
-              aria-selected="{% if question_basis == 'competencies' %}true{% else %}false{% endif %}"
-              {% if LANGUAGE_CODE|slice:":2" == "sv" %}
-                data-summary-title="Kompetenser som används i frågorna"
-                data-summary-description="Talena skapade frågorna utifrån dessa kompetenser, deras definitioner, projektets syfte och tillgänglig kontext. Personlighetsdata används endast som stödjande evidens, inte som ett direkt kompetensbetyg."
-                data-edit-label="Ändra kompetenser"
-                data-dialog-title="Välj kompetenser att utforska"
-                data-dialog-description="Välj upp till sex kompetenser från Sovas 38-kompetensramverk. Talena skapar alltid åtta personlighetsfrågor och fördelar dem över de valda områdena."
-                data-status-label="Välj upp till 6 kompetenser"
-              {% else %}
-                data-summary-title="Competencies used for these questions"
-                data-summary-description="Talena created the questions from these competencies, their definitions, the project purpose and available context. Personality data is supporting evidence only, not a direct competency rating."
-                data-edit-label="Change competencies"
-                data-dialog-title="Select competencies to explore"
-                data-dialog-description="Select up to six competencies from Sova's 38-competency framework. Talena always creates eight personality questions and distributes them across the selected areas."
-                data-status-label="Select up to 6 competencies"
-              {% endif %}
-            >
-              {% if LANGUAGE_CODE|slice:":2" == "sv" %}Kompetenser (38){% else %}Competencies (38){% endif %}
-            </button>
-          </div>
-
-          <div class="personality-traits-dialog__status">
-            <span data-question-basis-status-label>
-              {% if question_basis == "competencies" %}
-                {% if LANGUAGE_CODE|slice:":2" == "sv" %}Välj upp till 6 kompetenser{% else %}Select up to 6 competencies{% endif %}
-              {% else %}
-                {% trans "Select up to 6 traits" %}
-              {% endif %}
-            </span>
-
-            <span class="personality-traits-dialog__count" data-personality-traits-count>
-              {% trans "0 selected" %}
-            </span>
-          </div>
-
-          <div
-            class="personality-question-basis-panel"
-            data-question-basis-panel="traits"
-            {% if question_basis == "competencies" %}hidden{% endif %}
-          >
-            <div class="personality-traits-dialog__body" data-personality-traits-options>
-              {% for section in personality_profile.sections %}
-                <section class="personality-traits-dialog__section">
-                  <div class="personality-traits-dialog__grid">
-                    {% for trait in section.traits %}
-                      <label class="personality-trait-option">
-                        <input
-                          type="checkbox"
-                          value="{{ trait.name }}"
-                          data-personality-trait-checkbox
-                          data-question-basis-option="traits"
-                          data-question-focus-label="{{ trait.label }}"
-                          {% if trait.name in selected_personality_traits %}checked{% endif %}
-                        >
-
-                        <span class="personality-trait-option__control">
-                          <span class="personality-trait-option__content">
-                            <span class="personality-trait-option__name">
-                              {{ trait.label }}
-                            </span>
-                          </span>
-                          <span class="personality-trait-option__check">
-                            <i data-feather="check"></i>
-                          </span>
-                        </span>
-                      </label>
-                    {% endfor %}
-                  </div>
-                </section>
-              {% endfor %}
-            </div>
-          </div>
-
-          <div
-            class="personality-question-basis-panel"
-            data-question-basis-panel="competencies"
-            {% if question_basis != "competencies" %}hidden{% endif %}
-          >
-            <div class="personality-traits-dialog__body personality-competency-options">
-              {% for group in competency_groups %}
-                <section class="personality-competency-domain">
-                  <div class="personality-competency-domain__title">
-                    {{ group.label }}
-                    <span>{{ group.items|length }}</span>
-                  </div>
-
-                  <div class="personality-traits-dialog__grid">
-                    {% for competency in group.items %}
-                      <label class="personality-trait-option">
-                        <input
-                          type="checkbox"
-                          value="{{ competency.token }}"
-                          data-personality-trait-checkbox
-                          data-question-basis-option="competencies"
-                          data-question-focus-label="{{ competency.label }}"
-                          {% if competency.token in selected_personality_traits %}checked{% endif %}
-                        >
-
-                        <span class="personality-trait-option__control">
-                          <span class="personality-trait-option__content">
-                            <span class="personality-trait-option__name">
-                              {{ competency.label }}
-                            </span>
-                          </span>
-                          <span class="personality-trait-option__check">
-                            <i data-feather="check"></i>
-                          </span>
-                        </span>
-                      </label>
-                    {% endfor %}
-                  </div>
-                </section>
-              {% endfor %}
-            </div>
-          </div>
-
-          <div class="personality-question-basis-error" data-question-basis-empty-error hidden>
-            {% if LANGUAGE_CODE|slice:":2" == "sv" %}
-              Välj minst en kompetens för att skapa kompetensbaserade frågor.
-            {% else %}
-              Select at least one competency to create competency-based questions.
-            {% endif %}
-          </div>
-
-          <div class="personality-traits-dialog__footer">
-            <button type="button" class="btn btn-light" data-personality-traits-cancel>
-              {% trans "Cancel" %}
-            </button>
-
-            <button type="button" class="btn btn-primary" data-personality-traits-save>
-              {% trans "Save and generate" %}
-            </button>
-          </div>
-        </div>
-      </dialog>
     </div>
   </section>
+  {% else %}
+    <div class="alert alert-light border mt-4" role="status">
+      <h3 class="h5 mb-2">
+        {% if LANGUAGE_CODE|slice:":2" == "sv" %}Lägg till rollkontext för att fortsätta{% else %}Add role context to continue{% endif %}
+      </h3>
+      <p class="text-muted mb-0">
+        {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+          Talena använder projektets rollkontext för att välja samma rekommenderade personlighetsdrag för alla kandidater. Varje kandidats egna testresultat används sedan när frågorna formuleras.
+        {% else %}
+          Talena uses the project role context to select the same recommended personality traits for every candidate. Each candidate's own assessment results are then used to write the questions.
+        {% endif %}
+      </p>
+      {% if not is_historical and can_manage_candidate_results %}
+        <a class="btn btn-primary mt-3" href="{{ personality_role_context_url }}">
+          {% if LANGUAGE_CODE|slice:":2" == "sv" %}Lägg till rollkontext{% else %}Add role context{% endif %}
+        </a>
+      {% elif not is_historical %}
+        <div class="small text-muted mt-2">
+          {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+            Be en projektredaktör lägga till rollkontext.
+          {% else %}
+            Ask a project editor to add role context.
+          {% endif %}
+        </div>
+      {% endif %}
+    </div>
+  {% endif %}
 {% endif %}

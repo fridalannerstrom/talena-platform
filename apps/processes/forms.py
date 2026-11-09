@@ -266,6 +266,17 @@ class TestProcessWizardCreateForm(forms.Form):
 
 # Talena process context i18n batch 1
 class ProcessRoleContextForm(forms.ModelForm):
+    personality_question_traits = forms.MultipleChoiceField(
+        required=False,
+        choices=(),
+        widget=forms.CheckboxSelectMultiple,
+        label=_("Personality traits for interview questions"),
+        help_text=_(
+            "Choose up to eight traits for the whole project. Leave all "
+            "unchecked to let Talena recommend traits from the role context."
+        ),
+    )
+
     class Meta:
         model = ProcessRoleContext
         fields = [
@@ -295,9 +306,20 @@ class ProcessRoleContextForm(forms.ModelForm):
         self,
         *args,
         context_config=None,
+        personality_trait_choices=None,
+        selected_personality_traits=None,
         **kwargs,
     ):
         super().__init__(*args, **kwargs)
+
+        self.fields["personality_question_traits"].choices = (
+            personality_trait_choices or ()
+        )
+        if not self.is_bound:
+            self.initial.setdefault(
+                "personality_question_traits",
+                selected_personality_traits or [],
+            )
 
         config = context_config or {}
 
@@ -329,6 +351,14 @@ class ProcessRoleContextForm(forms.ModelForm):
             self.cleaned_data.get("context_text")
             or ""
         ).strip()
+
+    def clean_personality_question_traits(self):
+        selected = self.cleaned_data.get("personality_question_traits") or []
+        if len(selected) > 8:
+            raise forms.ValidationError(
+                _("Choose no more than eight personality traits.")
+            )
+        return selected
 
 
 class HistoricalTestProcessForm(forms.ModelForm):

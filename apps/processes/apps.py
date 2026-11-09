@@ -15,9 +15,9 @@ class ProcessesConfig(AppConfig):
         # Register automatic invitation request/model hooks.
         from . import automatic_invitations  # noqa: F401
 
-        # Personality questions use a dedicated endpoint policy so trait mode can
-        # support eight selections while competency mode keeps its six-item cap.
-        # Install before the URLconf binds callbacks from views.py.
+        # Personality questions use a dedicated policy for eight trait selections.
+        # Keep the legacy competency implementation in the codebase, but disable
+        # it in the customer flow before the URLconf binds callbacks from views.py.
         from .personality_question_selection_policy import (
             install_personality_question_selection_policy,
         )
