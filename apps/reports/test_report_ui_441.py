@@ -880,14 +880,11 @@ class ReportUi441Tests(SimpleTestCase):
         ):
             # Each selected marker uses an explicitly darker variant of
             # its corresponding unchanged SVG petal color.
-            from re import search
-            self.assertIsNotNone(
-                search(
-                    rf"\\.team-style-profile-card--{key}\\s*\\{{"
-                    rf"[^}}]*--team-style-accent:\\s*{color};"
-                    rf"[^}}]*--team-style-marker:\\s*{marker};",
-                    css,
-                )
+            self.assertIn(
+                f".team-style-profile-card--{key} {{\\n"
+                f"  --team-style-accent: {color};\\n"
+                f"  --team-style-marker: {marker};",
+                css,
             )
         self.assertIn(
             "background: var(--team-style-accent, var(--talena-coral)) !important;",
