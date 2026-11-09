@@ -6754,6 +6754,12 @@ def process_delete(request, pk):
 
 @login_required
 def process_role_context(request, pk):
+    from .project_personality_trait_selection import (
+        get_project_personality_trait_options,
+        get_project_personality_trait_overrides,
+        save_project_personality_trait_overrides,
+    )
+
     process = get_object_or_404(TestProcess, pk=pk)
 
     if process.is_historical:
@@ -6788,6 +6794,18 @@ def process_role_context(request, pk):
     role_context, created = ProcessRoleContext.objects.get_or_create(
         process=process
     )
+    language_code = get_request_ai_language(request)
+    personality_trait_options = get_project_personality_trait_options(
+        language_code
+    )
+    personality_trait_choices = [
+        (item["name"], item["label"])
+        for item in personality_trait_options
+    ]
+    previous_project_traits = get_project_personality_trait_overrides(
+        role_context,
+        purpose_key,
+    )
 
     if request.method == "POST":
         # IMPORTANT:
@@ -6796,11 +6814,17 @@ def process_role_context(request, pk):
         previous_context_data = (
             role_context.get_current_context_data()
         )
+        previous_project_traits = get_project_personality_trait_overrides(
+            role_context,
+            purpose_key,
+        )
 
         form = ProcessRoleContextForm(
             request.POST,
             instance=role_context,
             context_config=context_config,
+            personality_trait_choices=personality_trait_choices,
+            selected_personality_traits=previous_project_traits,
         )
 
         if form.is_valid():
@@ -6810,6 +6834,12 @@ def process_role_context(request, pk):
             }
 
             context_changed = previous_context_data != submitted_data
+            submitted_project_traits = (
+                form.cleaned_data.get("personality_question_traits") or []
+            )
+            selection_changed = (
+                previous_project_traits != submitted_project_traits
+            )
 
             role_context = form.save(commit=False)
 
@@ -6820,6 +6850,12 @@ def process_role_context(request, pk):
 
             role_context.apply_context_data(submitted_data)
             role_context.save()
+            save_project_personality_trait_overrides(
+                role_context,
+                purpose_key=purpose_key,
+                context_text=submitted_data.get("context_text", ""),
+                selected_traits=submitted_project_traits,
+            )
 
             if context_changed:
                 result = mark_candidate_ai_content_outdated(
@@ -6865,7 +6901,13 @@ def process_role_context(request, pk):
             instance=role_context,
             initial=initial_data,
             context_config=context_config,
+            personality_trait_choices=personality_trait_choices,
+            selected_personality_traits=previous_project_traits,
         )
+
+    selected_project_traits = (
+        form["personality_question_traits"].value() or []
+    )
 
     meta = ProjectMeta.objects.filter(
         account_code=process.account_code,
@@ -6908,6 +6950,13 @@ def process_role_context(request, pk):
             "meta": meta,
             "process_purpose": process_purpose,
             "can_edit": can_edit,
+            "personality_trait_options": personality_trait_options,
+            "selected_personality_traits": selected_project_traits,
+            "personality_trait_selection_changed": (
+                request.method == "POST" and selection_changed
+                if request.method == "POST" and form.is_valid()
+                else False
+            ),
 
             # Active tab
             "active": "context",
