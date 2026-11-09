@@ -6858,13 +6858,15 @@ def process_role_context(request, pk):
             )
 
             if context_changed:
-                result = mark_candidate_ai_content_outdated(
-                    process
+                mark_candidate_ai_content_outdated(process)
+            elif selection_changed:
+                TestInvitation.objects.filter(
+                    process=process,
+                ).exclude(
+                    ai_personality_questions={},
+                ).update(
+                    ai_personality_questions_status="outdated",
                 )
-
-                print("=== CONTEXT CHANGED ===")
-                print("PROCESS:", process.id)
-                print("AI CONTENT MARKED OUTDATED:", result)
 
             messages.success(
                 request,
