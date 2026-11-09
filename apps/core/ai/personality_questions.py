@@ -471,7 +471,7 @@ If TRAIT SELECTION MODE is AI_SELECTION:
 - Talena must select traits according to the dedicated personality
   trait-selection administrator guidance
 - selected trait names must come from AVAILABLE TECHNICAL TRAIT NAMES
-- the application currently supports a maximum of 6 selected traits
+- the application currently supports a maximum of 8 selected traits
 
 Trait names used in technical name and traits fields must exactly
 match the supplied technical trait names.
@@ -537,7 +537,7 @@ Every item must use these exact fields:
 - name
 - reason
 
-The application supports up to 6 suggested trait objects.
+The application supports up to 8 suggested trait objects.
 
 Example:
 
@@ -726,7 +726,7 @@ def apply_personality_questions_event(
         if isinstance(items, list):
             normalised_traits = []
 
-            for item in items[:6]:
+            for item in items[:8]:
                 if not isinstance(item, dict):
                     continue
 
