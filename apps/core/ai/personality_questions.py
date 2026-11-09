@@ -756,7 +756,7 @@ def apply_personality_questions_event(
         if isinstance(items, list):
             result["selected_traits"] = [
                 str(item).strip()
-                for item in items[:6]
+                for item in items[:8]
                 if str(item).strip()
             ]
 
@@ -977,7 +977,7 @@ def _build_safe_personality_questions_event(
     if not traits:
         traits = [
             item["name"]
-            for item in personality_results[:6]
+            for item in personality_results[:8]
             if item.get("name")
         ]
 
@@ -1409,18 +1409,18 @@ def stream_personality_questions(
         #
         # Allow the AI/admin guidance to determine which available
         # traits should be used, while preserving Talena's technical
-        # maximum of six selected traits.
+        # maximum of eight selected traits.
 
         ai_selected_traits = normalise_selected_traits(
             selected_traits=selected_traits,
             available_results=personality_results,
-        )[:6]
+        )[:8]
 
         if not ai_selected_traits:
             ai_selected_traits = normalise_selected_traits(
                 selected_traits=suggested_traits,
                 available_results=personality_results,
-            )[:6]
+            )[:8]
 
         selected_traits = ai_selected_traits
 
