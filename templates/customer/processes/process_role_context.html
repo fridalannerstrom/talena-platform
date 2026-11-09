@@ -226,43 +226,146 @@
 
           </div>
 
-          <fieldset class="mt-4">
-            <legend class="form-label fw-semibold mb-1">
-              {% if LANGUAGE_CODE|slice:":2" == "sv" %}Personlighetsdrag för intervjufrågorna{% else %}Personality traits for interview questions{% endif %}
-            </legend>
-            <p class="form-text text-muted mb-3">
-              {% if LANGUAGE_CODE|slice:":2" == "sv" %}
-                Valet gäller alla kandidater i projektet. Välj upp till åtta drag, eller avmarkera alla för att låta Talena rekommendera drag utifrån rollkontexten.
-              {% else %}
-                This selection applies to every candidate in the project. Choose up to eight traits, or clear all selections to let Talena recommend traits from the role context.
-              {% endif %}
-            </p>
-
-            <div class="row row-cols-1 row-cols-sm-2 row-cols-xl-3 g-2">
-              {% for trait in personality_trait_options %}
-                <div class="col">
-                  <label class="form-check h-100 border rounded-3 p-3 d-flex align-items-start gap-2">
-                    <input
-                      class="form-check-input mt-1"
-                      type="checkbox"
-                      name="personality_question_traits"
-                      value="{{ trait.name }}"
-                      {% if trait.name in selected_personality_traits %}checked{% endif %}
-                    >
-                    <span class="form-check-label">
-                      {{ trait.label }}
-                    </span>
-                  </label>
+          <section class="mt-4" aria-labelledby="project-personality-traits-title">
+            <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap">
+              <div class="flex-grow-1">
+                <div id="project-personality-traits-title" class="form-label fw-semibold mb-1">
+                  {% if LANGUAGE_CODE|slice:":2" == "sv" %}Personlighetsdrag för intervjufrågorna{% else %}Personality traits for interview questions{% endif %}
                 </div>
-              {% endfor %}
-            </div>
+                <p class="form-text text-muted mb-3">
+                  {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+                    Urvalet gäller alla kandidater i projektet. Talena rekommenderar drag utifrån rollkontexten.
+                  {% else %}
+                    The selection applies to every candidate in this project. Talena recommends traits from the role context.
+                  {% endif %}
+                </p>
 
-            {% if form.personality_question_traits.errors %}
-              <div class="text-danger small mt-2">
-                {{ form.personality_question_traits.errors|striptags }}
+                {% if selected_project_trait_options %}
+                  <div class="d-flex flex-wrap gap-2" aria-live="polite">
+                    {% for trait in selected_project_trait_options %}
+                      <span class="badge rounded-pill border bg-light text-dark px-3 py-2">
+                        {{ trait.label }}
+                      </span>
+                    {% endfor %}
+                  </div>
+                  <div class="small text-muted mt-2">
+                    {% if personality_trait_selection_source == "manual" %}
+                      {% if LANGUAGE_CODE|slice:":2" == "sv" %}Valda för projektet{% else %}Selected for the project{% endif %}
+                    {% else %}
+                      {% if LANGUAGE_CODE|slice:":2" == "sv" %}Talenas rekommendation utifrån rollkontexten{% else %}Recommended by Talena from the role context{% endif %}
+                    {% endif %}
+                  </div>
+                {% else %}
+                  <p class="small text-muted mb-0">
+                    {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+                      Talena väljer relevanta drag när rollkontexten finns sparad.
+                    {% else %}
+                      Talena will recommend relevant traits once the role context is saved.
+                    {% endif %}
+                  </p>
+                {% endif %}
+
+                {% if form.personality_question_traits.errors %}
+                  <div class="text-danger small mt-2">
+                    {{ form.personality_question_traits.errors|striptags }}
+                  </div>
+                {% endif %}
               </div>
-            {% endif %}
-          </fieldset>
+
+              {% if can_edit %}
+                <button
+                  type="button"
+                  class="btn btn-outline-secondary btn-sm"
+                  data-bs-toggle="modal"
+                  data-bs-target="#projectPersonalityTraitsModal"
+                >
+                  {% if LANGUAGE_CODE|slice:":2" == "sv" %}Ändra{% else %}Change{% endif %}
+                </button>
+              {% endif %}
+            </div>
+          </section>
+
+          {% if can_edit %}
+            <div
+              class="modal fade"
+              id="projectPersonalityTraitsModal"
+              tabindex="-1"
+              aria-labelledby="projectPersonalityTraitsModalTitle"
+              aria-hidden="true"
+            >
+              <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <div>
+                      <div class="insight-summary-kicker">
+                        {% if LANGUAGE_CODE|slice:":2" == "sv" %}Personlighetsfrågor{% else %}Personality questions{% endif %}
+                      </div>
+                      <h2 class="modal-title fs-5" id="projectPersonalityTraitsModalTitle">
+                        {% if LANGUAGE_CODE|slice:":2" == "sv" %}Ändra personlighetsdrag{% else %}Change personality traits{% endif %}
+                      </h2>
+                    </div>
+                    <button
+                      type="button"
+                      class="btn-close"
+                      data-bs-dismiss="modal"
+                      aria-label="{% if LANGUAGE_CODE|slice:":2" == "sv" %}Stäng{% else %}Close{% endif %}"
+                    ></button>
+                  </div>
+
+                  <div class="modal-body">
+                    <p class="text-muted small mb-3">
+                      {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+                        Välj upp till åtta drag för hela projektet. Avmarkera alla för att låta Talena rekommendera drag från rollkontexten.
+                      {% else %}
+                        Choose up to eight traits for the whole project. Clear all selections to let Talena recommend traits from the role context.
+                      {% endif %}
+                    </p>
+
+                    <div class="row row-cols-1 row-cols-sm-2 g-2">
+                      {% for trait in personality_trait_options %}
+                        <div class="col">
+                          <label class="form-check h-100 border rounded-3 p-3 d-flex align-items-start gap-2">
+                            <input
+                              class="form-check-input mt-1"
+                              type="checkbox"
+                              name="personality_question_traits"
+                              value="{{ trait.name }}"
+                              {% if trait.name in selected_personality_traits %}checked{% endif %}
+                            >
+                            <span class="form-check-label">{{ trait.label }}</span>
+                          </label>
+                        </div>
+                      {% endfor %}
+                    </div>
+                  </div>
+
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">
+                      {% if LANGUAGE_CODE|slice:":2" == "sv" %}Avbryt{% else %}Cancel{% endif %}
+                    </button>
+                    <button
+                      type="submit"
+                      class="btn btn-primary"
+                      name="save_personality_traits"
+                      value="1"
+                    >
+                      {% if LANGUAGE_CODE|slice:":2" == "sv" %}Spara urval{% else %}Save selection{% endif %}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endif %}
+          {% if form.personality_question_traits.errors and can_edit %}
+            <script>
+              document.addEventListener("DOMContentLoaded", function () {
+                const modalElement = document.getElementById("projectPersonalityTraitsModal");
+                if (modalElement && window.bootstrap) {
+                  window.bootstrap.Modal.getOrCreateInstance(modalElement).show();
+                }
+              });
+            </script>
+          {% endif %}
 
 
           <div class="context-tip mt-4">
