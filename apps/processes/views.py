@@ -6838,7 +6838,7 @@ def process_role_context(request, pk):
                 form.cleaned_data.get("personality_question_traits") or []
             )
             selection_changed = (
-                previous_project_traits != submitted_project_traits
+                set(previous_project_traits) != set(submitted_project_traits)
             )
 
             role_context = form.save(commit=False)
