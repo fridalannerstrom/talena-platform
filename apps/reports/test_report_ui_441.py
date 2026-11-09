@@ -872,18 +872,41 @@ class ReportUi441Tests(SimpleTestCase):
             'quadrant_colors = ("#ef978f", "#dbada7", "#a0baae", "#d9bc90")',
             svg,
         )
-        for key, color in (
-            ("explore", "#ef978f"),
-            ("lead", "#dbada7"),
-            ("deliver", "#a0baae"),
-            ("review", "#d9bc90"),
+        for key, color, marker in (
+            ("explore", "#ef978f", "#cb807a"),
+            ("lead", "#dbada7", "#ba938e"),
+            ("deliver", "#a0baae", "#889e94"),
+            ("review", "#d9bc90", "#b8a07a"),
         ):
-            self.assertIn(
-                f".team-style-profile-card--{key} "
-                f"{{ --team-style-accent: {color}; }}", css,
+            # Each selected marker uses an explicitly darker variant of
+            # its corresponding unchanged SVG petal color.
+            from re import search
+            self.assertIsNotNone(
+                search(
+                    rf"\\.team-style-profile-card--{key}\\s*\\{{"
+                    rf"[^}}]*--team-style-accent:\\s*{color};"
+                    rf"[^}}]*--team-style-marker:\\s*{marker};",
+                    css,
+                )
             )
         self.assertIn(
             "background: var(--team-style-accent, var(--talena-coral)) !important;",
+            css,
+        )
+        # Personality has a more specific last-filled-step rule that
+        # previously left every Team selected marker coral regardless of
+        # the surrounding filled segments. The override must win.
+        self.assertIn(
+            ".team-style-profile-card__scale "
+            ".response-style-scale__segment.response-style-scale__segment--marker",
+            css,
+        )
+        self.assertIn(
+            "background: var(--team-style-marker, var(--team-style-accent)) !important;",
+            css,
+        )
+        self.assertIn(
+            "0 0 0 3px var(--team-style-marker-ring, transparent) !important;",
             css,
         )
 
