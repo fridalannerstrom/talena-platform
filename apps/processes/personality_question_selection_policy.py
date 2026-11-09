@@ -328,19 +328,6 @@ def process_candidate_personality_questions_stream(
         )
         return JsonResponse({"error": message}, status=409)
 
-    if _contains_competency_selection(
-        getattr(invitation, "selected_personality_traits", None)
-    ):
-        return JsonResponse(
-            {
-                "error": (
-                    "Competency-based personality questions are temporarily "
-                    "unavailable. Select personality traits before generating."
-                )
-            },
-            status=409,
-        )
-
     if current_status == "generating":
         return JsonResponse(
             {
