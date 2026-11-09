@@ -226,38 +226,62 @@
 
           </div>
 
-          <section class="mt-4" aria-labelledby="project-personality-traits-title">
-            <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap">
-              <div class="flex-grow-1">
-                <div id="project-personality-traits-title" class="form-label fw-semibold mb-1">
+          <section
+            class="project-trait-selector-card mt-4"
+            aria-labelledby="project-personality-traits-title"
+          >
+            <div class="project-trait-selector-card__header">
+              <div class="project-trait-selector-card__icon" aria-hidden="true">
+                <i data-feather="sliders"></i>
+              </div>
+
+              <div class="project-trait-selector-card__heading">
+                <h3 id="project-personality-traits-title" class="mb-1">
                   {% if LANGUAGE_CODE|slice:":2" == "sv" %}Personlighetsdrag för intervjufrågorna{% else %}Personality traits for interview questions{% endif %}
-                </div>
-                <p class="form-text text-muted mb-3">
+                </h3>
+                <p class="mb-0">
                   {% if LANGUAGE_CODE|slice:":2" == "sv" %}
-                    Urvalet gäller alla kandidater i projektet. Talena rekommenderar drag utifrån rollkontexten.
+                    Samma urval används för alla kandidater. Talena rekommenderar drag utifrån rollkontexten.
                   {% else %}
-                    The selection applies to every candidate in this project. Talena recommends traits from the role context.
+                    The same selection is used for every candidate. Talena recommends traits from the role context.
                   {% endif %}
                 </p>
+              </div>
 
-                {% if selected_project_trait_options %}
-                  <div class="d-flex flex-wrap gap-2" aria-live="polite">
-                    {% for trait in selected_project_trait_options %}
-                      <span class="badge rounded-pill border bg-light text-dark px-3 py-2">
-                        {{ trait.label }}
-                      </span>
-                    {% endfor %}
-                  </div>
-                  <div class="small text-muted mt-2">
-                    {% if personality_trait_selection_source == "manual" %}
-                      {% if LANGUAGE_CODE|slice:":2" == "sv" %}Valda för projektet{% else %}Selected for the project{% endif %}
-                    {% else %}
-                      {% if LANGUAGE_CODE|slice:":2" == "sv" %}Talenas rekommendation utifrån rollkontexten{% else %}Recommended by Talena from the role context{% endif %}
-                    {% endif %}
-                  </div>
+              {% if can_edit %}
+                <button
+                  type="button"
+                  class="btn btn-outline-secondary project-trait-selector-card__edit"
+                  data-bs-toggle="modal"
+                  data-bs-target="#projectPersonalityTraitsModal"
+                >
+                  <i data-feather="edit-2" aria-hidden="true"></i>
+                  {% if LANGUAGE_CODE|slice:":2" == "sv" %}Ändra urval{% else %}Change selection{% endif %}
+                </button>
+              {% endif %}
+            </div>
+
+            {% if selected_project_trait_options %}
+              <div class="project-trait-selector-card__traits" role="list">
+                {% for trait in selected_project_trait_options %}
+                  <span class="project-trait-selector-card__trait" role="listitem">
+                    {{ trait.label }}
+                  </span>
+                {% endfor %}
+              </div>
+              <div class="project-trait-selector-card__source">
+                <i data-feather="{% if personality_trait_selection_source == 'manual' %}check-circle{% else %}sparkles{% endif %}" aria-hidden="true"></i>
+                {% if personality_trait_selection_source == "manual" %}
+                  {% if LANGUAGE_CODE|slice:":2" == "sv" %}Valda för hela projektet{% else %}Selected for the whole project{% endif %}
                 {% else %}
-                  <p class="small text-muted mb-0">
-                    {% if personality_trait_recommendation_error %}
+                  {% if LANGUAGE_CODE|slice:":2" == "sv" %}Talenas rekommendation utifrån rollkontexten{% else %}Recommended by Talena from the role context{% endif %}
+                {% endif %}
+              </div>
+            {% else %}
+              <div class="project-trait-selector-card__empty">
+                <i data-feather="info" aria-hidden="true"></i>
+                <span>
+                  {% if personality_trait_recommendation_error %}
                     {% if LANGUAGE_CODE|slice:":2" == "sv" %}
                       Talena kunde inte rekommendera drag just nu. Försök igen när du skapar frågorna.
                     {% else %}
@@ -270,45 +294,27 @@
                       Talena will recommend relevant traits once the role context is saved.
                     {% endif %}
                   {% endif %}
-                  </p>
-                {% endif %}
-
-                {% if form.personality_question_traits.errors %}
-                  <div class="text-danger small mt-2">
-                    {{ form.personality_question_traits.errors|striptags }}
-                  </div>
-                {% endif %}
+                </span>
               </div>
-
-              {% if can_edit %}
-                <button
-                  type="button"
-                  class="btn btn-outline-secondary btn-sm"
-                  data-bs-toggle="modal"
-                  data-bs-target="#projectPersonalityTraitsModal"
-                >
-                  {% if LANGUAGE_CODE|slice:":2" == "sv" %}Ändra{% else %}Change{% endif %}
-                </button>
-              {% endif %}
-            </div>
+            {% endif %}
           </section>
 
           {% if can_edit %}
             <div
-              class="modal fade"
+              class="modal fade project-traits-modal"
               id="projectPersonalityTraitsModal"
               tabindex="-1"
               aria-labelledby="projectPersonalityTraitsModalTitle"
               aria-hidden="true"
             >
-              <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+              <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
                 <div class="modal-content">
-                  <div class="modal-header">
+                  <div class="modal-header project-traits-modal__header">
                     <div>
                       <div class="insight-summary-kicker">
-                        {% if LANGUAGE_CODE|slice:":2" == "sv" %}Personlighetsfrågor{% else %}Personality questions{% endif %}
+                        {% if LANGUAGE_CODE|slice:":2" == "sv" %}Intervjufrågor{% else %}Interview questions{% endif %}
                       </div>
-                      <h2 class="modal-title fs-5" id="projectPersonalityTraitsModalTitle">
+                      <h2 class="modal-title" id="projectPersonalityTraitsModalTitle">
                         {% if LANGUAGE_CODE|slice:":2" == "sv" %}Ändra personlighetsdrag{% else %}Change personality traits{% endif %}
                       </h2>
                     </div>
@@ -320,34 +326,58 @@
                     ></button>
                   </div>
 
-                  <div class="modal-body">
-                    <p class="text-muted small mb-3">
-                      {% if LANGUAGE_CODE|slice:":2" == "sv" %}
-                        Välj upp till åtta drag för hela projektet. Avmarkera alla för att låta Talena rekommendera drag från rollkontexten.
-                      {% else %}
-                        Choose up to eight traits for the whole project. Clear all selections to let Talena recommend traits from the role context.
-                      {% endif %}
-                    </p>
+                  <div class="modal-body project-traits-modal__body">
+                    <div class="project-traits-modal__selection-summary">
+                      <p class="mb-0">
+                        {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+                          Välj upp till åtta drag för hela projektet. Avmarkera alla för att använda Talenas rekommendation.
+                        {% else %}
+                          Choose up to eight traits for the whole project. Clear all selections to use Talena's recommendation.
+                        {% endif %}
+                      </p>
+                      <span class="project-traits-modal__counter" aria-live="polite">
+                        <span data-project-trait-count>0</span>/8
+                        {% if LANGUAGE_CODE|slice:":2" == "sv" %}valda{% else %}selected{% endif %}
+                      </span>
+                    </div>
 
-                    <div class="row row-cols-1 row-cols-sm-2 g-2">
+                    <div
+                      class="alert alert-danger project-traits-modal__error {% if not form.personality_question_traits.errors %}d-none{% endif %}"
+                      data-project-traits-error
+                      role="alert"
+                    >
+                      {% if form.personality_question_traits.errors %}
+                        {{ form.personality_question_traits.errors|striptags }}
+                      {% elif LANGUAGE_CODE|slice:":2" == "sv" %}
+                        Välj högst åtta personlighetsdrag.
+                      {% else %}
+                        Choose no more than eight personality traits.
+                      {% endif %}
+                    </div>
+
+                    <div class="project-traits-modal__grid">
                       {% for trait in personality_trait_options %}
-                        <div class="col">
-                          <label class="form-check h-100 border rounded-3 p-3 d-flex align-items-start gap-2">
-                            <input
-                              class="form-check-input mt-1"
-                              type="checkbox"
-                              name="personality_question_traits"
-                              value="{{ trait.name }}"
-                              {% if trait.name in selected_personality_traits %}checked{% endif %}
-                            >
-                            <span class="form-check-label">{{ trait.label }}</span>
-                          </label>
-                        </div>
+                        <label class="project-trait-option">
+                          <input
+                            class="project-trait-option__input"
+                            type="checkbox"
+                            name="personality_question_traits"
+                            value="{{ trait.name }}"
+                            data-project-trait-checkbox
+                            {% if trait.name in selected_personality_traits %}checked{% endif %}
+                          >
+                          <span class="project-trait-option__card">
+                            <span class="project-trait-option__label">{{ trait.label }}</span>
+                            <span class="project-trait-option__check" aria-hidden="true">
+                              <i data-feather="check"></i>
+                            </span>
+                          </span>
+                        </label>
                       {% endfor %}
                     </div>
                   </div>
 
-                  <div class="modal-footer">
+                  <div class="modal-footer project-traits-modal__footer">
                     <button type="button" class="btn btn-light" data-bs-dismiss="modal">
                       {% if LANGUAGE_CODE|slice:":2" == "sv" %}Avbryt{% else %}Cancel{% endif %}
                     </button>
@@ -364,17 +394,49 @@
               </div>
             </div>
           {% endif %}
-          {% if form.personality_question_traits.errors and can_edit %}
-            <script>
-              document.addEventListener("DOMContentLoaded", function () {
-                const modalElement = document.getElementById("projectPersonalityTraitsModal");
+
+          <script>
+            document.addEventListener("DOMContentLoaded", function () {
+              const modalElement = document.getElementById("projectPersonalityTraitsModal");
+              const checkboxes = Array.from(document.querySelectorAll("[data-project-trait-checkbox]"));
+              const counter = document.querySelector("[data-project-trait-count]");
+              const error = document.querySelector("[data-project-traits-error]");
+              const selectedLimit = 8;
+
+              function updateTraitSelectionCount() {
+                const selectedCount = checkboxes.filter((checkbox) => checkbox.checked).length;
+                if (counter) {
+                  counter.textContent = String(selectedCount);
+                }
+                checkboxes.forEach((checkbox) => {
+                  checkbox.disabled = selectedCount >= selectedLimit && !checkbox.checked;
+                });
+              }
+
+              checkboxes.forEach((checkbox) => {
+                checkbox.addEventListener("change", function () {
+                  const selectedCount = checkboxes.filter((item) => item.checked).length;
+                  if (selectedCount > selectedLimit) {
+                    checkbox.checked = false;
+                    if (error) {
+                      error.classList.remove("d-none");
+                    }
+                  } else if (error) {
+                    error.classList.add("d-none");
+                  }
+                  updateTraitSelectionCount();
+                });
+              });
+
+              updateTraitSelectionCount();
+
+              {% if form.personality_question_traits.errors and can_edit %}
                 if (modalElement && window.bootstrap) {
                   window.bootstrap.Modal.getOrCreateInstance(modalElement).show();
                 }
-              });
-            </script>
-          {% endif %}
-
+              {% endif %}
+            });
+          </script>
 
           <div class="context-tip mt-4">
 
