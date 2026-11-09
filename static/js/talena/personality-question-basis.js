@@ -136,11 +136,11 @@
 
     if (isSwedish()) {
       traitButton.dataset.dialogDescription =
-        "Välj upp till åtta personlighetsdrag, eller lämna urvalet tomt för att låta Talena rekommendera relevanta drag utifrån projektets rollkontext.";
+        "Välj upp till åtta personlighetsdrag, eller lämna alla omarkerade för att låta Talena välja utifrån processens syfte och tillgänglig kontext.";
       traitButton.dataset.statusLabel = "Välj upp till 8 personlighetsdrag";
     } else {
       traitButton.dataset.dialogDescription =
-        "Choose up to eight personality traits, or leave the selection empty to let Talena recommend relevant traits based on the project role context.";
+        "Choose up to eight personality traits, or leave all traits unselected to let Talena choose based on the process purpose and available context.";
       traitButton.dataset.statusLabel = "Select up to 8 personality traits";
     }
   }
