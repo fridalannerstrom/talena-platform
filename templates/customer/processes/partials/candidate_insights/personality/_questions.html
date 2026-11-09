@@ -204,7 +204,19 @@
                   Talena created the questions from these competencies, their definitions, the project purpose and available context. Personality data is supporting evidence only, not a direct competency rating.
                 {% endif %}
               {% else %}
-                {% blocktrans %}Talena used the project's shared role-context default for these questions. Each candidate's own personality results shape the question wording.{% endblocktrans %}
+                {% if personality_project_selection_source == "project_manual" %}
+                  {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+                    Projektets redaktör valde dessa drag i rollkontexten. Kandidatens egna personlighetsresultat påverkar hur frågorna formuleras.
+                  {% else %}
+                    A project editor selected these traits in the role context. Each candidate's own personality results shape the question wording.
+                  {% endif %}
+                {% else %}
+                  {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+                    Talena rekommenderade dessa drag utifrån projektets rollkontext. Kandidatens egna personlighetsresultat påverkar hur frågorna formuleras.
+                  {% else %}
+                    Talena recommended these traits from the project role context. Each candidate's own personality results shape the question wording.
+                  {% endif %}
+                {% endif %}
               {% endif %}
             </p>
 
