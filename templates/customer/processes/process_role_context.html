@@ -257,11 +257,19 @@
                   </div>
                 {% else %}
                   <p class="small text-muted mb-0">
+                    {% if personality_trait_recommendation_error %}
+                    {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+                      Talena kunde inte rekommendera drag just nu. Försök igen när du skapar frågorna.
+                    {% else %}
+                      Talena could not recommend traits right now. Try again when generating the questions.
+                    {% endif %}
+                  {% else %}
                     {% if LANGUAGE_CODE|slice:":2" == "sv" %}
                       Talena väljer relevanta drag när rollkontexten finns sparad.
                     {% else %}
                       Talena will recommend relevant traits once the role context is saved.
                     {% endif %}
+                  {% endif %}
                   </p>
                 {% endif %}
 
