@@ -735,6 +735,20 @@ class ReportUi441Tests(SimpleTestCase):
                 self.assertTrue(profile["complete"])
                 self.assertEqual(len(profile["styles"]), 8)
                 self.assertEqual(len(profile["chart_styles"]), 8)
+                # SOVA's current Swedish labels are display-only changes;
+                # underlying SOVA keys and the English names stay untouched.
+                by_key = {style["key"]: style["title"]
+                          for style in profile["chart_styles"]}
+                self.assertEqual(
+                    (by_key["connector"], by_key["energiser"]),
+                    ("Sammanhållare", "Glädjespridare") if language == "sv"
+                    else ("Connector", "Energiser"),
+                )
+                if language == "sv":
+                    self.assertIn("Sammanhållare", profile["chart_svg"])
+                    self.assertIn("Glädjespridare", profile["chart_svg"])
+                    self.assertNotIn("Nätverkare", profile["chart_svg"])
+                    self.assertNotIn("Energigivare", profile["chart_svg"])
                 # STIVE source and result ranking remain independent of
                 # the visual order and the SVG itself.
                 self.assertEqual(
