@@ -20,8 +20,101 @@ from apps.reports.libraries.personality.content import TRAIT_PROFILE_CONTENT
 
 
 CACHE_KEY = "_personality_question_trait_selection"
+PROJECT_SELECTION_KEY = "personality_question_traits"
 SELECTION_VERSION = 1
 PROJECT_TRAIT_NAMES = tuple(TRAIT_PROFILE_CONTENT.keys())
+
+
+def get_project_personality_trait_options(language_code: str = "sv") -> list[dict[str, str]]:
+    language_code = normalize_ai_language(language_code)
+    return [
+        {
+            "name": name,
+            "label": str(
+                content.get(f"label_{language_code}")
+                or content.get("label_en")
+                or content.get("label_sv")
+                or name
+            ).strip(),
+        }
+        for name, content in TRAIT_PROFILE_CONTENT.items()
+    ]
+
+
+def get_project_personality_trait_overrides(
+    role_context,
+    purpose_key: str,
+) -> list[str]:
+    entry = (role_context.purpose_data or {}).get(purpose_key)
+    if not isinstance(entry, dict):
+        return []
+
+    raw_traits = entry.get(PROJECT_SELECTION_KEY)
+    if not isinstance(raw_traits, list):
+        return []
+
+    selected = []
+    seen = set()
+    for raw_trait in raw_traits:
+        canonical_name = canonical_parent_trait_name(raw_trait)
+        if (
+            canonical_name
+            and canonical_name in PROJECT_TRAIT_NAMES
+            and canonical_name not in seen
+        ):
+            seen.add(canonical_name)
+            selected.append(canonical_name)
+    return selected
+
+
+def save_project_personality_trait_overrides(
+    role_context,
+    *,
+    purpose_key: str,
+    context_text: str,
+    selected_traits: list[str],
+) -> list[str]:
+    selected = []
+    seen = set()
+    for raw_trait in selected_traits or []:
+        canonical_name = canonical_parent_trait_name(raw_trait)
+        if (
+            canonical_name
+            and canonical_name in PROJECT_TRAIT_NAMES
+            and canonical_name not in seen
+        ):
+            seen.add(canonical_name)
+            selected.append(canonical_name)
+
+    purpose_data, entry = _purpose_entry(
+        role_context,
+        purpose_key,
+        context_text,
+    )
+    entry["context_text"] = str(context_text or "").strip()
+    entry[PROJECT_SELECTION_KEY] = selected
+    purpose_data[purpose_key] = entry
+    role_context.purpose_data = purpose_data
+    role_context.save(update_fields=["purpose_data"])
+    return selected
+
+
+def _manual_project_selection(context: dict[str, Any]):
+    traits = get_project_personality_trait_overrides(
+        context["role_context"],
+        context["purpose_key"],
+    )
+    if not traits:
+        return None
+
+    return [
+        {
+            "name": name,
+            "reason_sv": "Valt för hela projektet.",
+            "reason_en": "Selected for the whole project.",
+        }
+        for name in traits
+    ]
 
 
 def _role_context(process):
@@ -129,6 +222,10 @@ def get_project_personality_trait_selection(
     if context is None:
         return None
 
+    manual_selection = _manual_project_selection(context)
+    if manual_selection is not None:
+        return manual_selection
+
     cached = _cached_selection(context)
     if cached is not None or not generate:
         return cached
@@ -146,6 +243,10 @@ def get_project_personality_trait_selection(
         context = _role_context(process)
         if context is None:
             return None
+
+        manual_selection = _manual_project_selection(context)
+        if manual_selection is not None:
+            return manual_selection
 
         cached = _cached_selection(context)
         if cached is not None:
