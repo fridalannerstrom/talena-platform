@@ -782,6 +782,40 @@ class ReportUi441Tests(SimpleTestCase):
                     len(svg.findall(f".//{svg_ns}text[@class='leadership-wheel__quadrant']")),
                     4,
                 )
+                # Match SOVA's compass quadrants, rather than the cardinal
+                # axes used by the shared Leadership report.
+                quadrants = svg.findall(
+                    f".//{svg_ns}text[@class='leadership-wheel__quadrant']"
+                )
+                self.assertEqual(
+                    [(q.attrib["x"], q.attrib["y"], q.attrib["text-anchor"])
+                     for q in quadrants],
+                    [
+                        ("70", "95", "start"), ("830", "95", "end"),
+                        ("830", "685", "end"), ("70", "685", "start"),
+                    ],
+                )
+                self.assertEqual(
+                    {(line.attrib["x2"], line.attrib["y2"])
+                     for line in svg.findall(f".//{svg_ns}line")},
+                    {
+                        ("205", "390"), ("450", "145"),
+                        ("695", "390"), ("450", "635"),
+                    },
+                )
+                # Connector/Catalyst NW, Director/Energiser NE,
+                # Architect/Harmoniser SE and Analyst/Auditor SW.
+                traits = svg.findall(
+                    f".//{svg_ns}text[@class='leadership-wheel__trait']"
+                )
+                trait_points = [
+                    (float(t.find(f"{svg_ns}tspan").attrib["x"]),
+                     float(t.find(f"{svg_ns}tspan").attrib["y"]))
+                    for t in traits
+                ]
+                for quadrant_index, (x, y) in enumerate(trait_points):
+                    self.assertEqual(x < 450, quadrant_index in (0, 1, 6, 7))
+                    self.assertEqual(y < 390, quadrant_index in (0, 1, 2, 3))
                 self.assertEqual(
                     len(svg.findall(f".//{svg_ns}circle[@class='leadership-wheel__hub']")),
                     1,
