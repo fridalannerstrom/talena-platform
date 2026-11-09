@@ -257,6 +257,14 @@
         ? data.selected_traits
         : selectedTraits;
       const savedKeys = new Set(savedTraits.map((item) => String(item).trim()));
+      const isManualSelection = savedTraits.length > 0;
+      root.dataset.selectionMode = isManualSelection ? "manual" : "project_default";
+      const selectionSource = root.querySelector("[data-personality-selection-source]");
+      if (selectionSource) {
+        selectionSource.textContent = isManualSelection
+          ? root.dataset.manualSelectionLabel
+          : root.dataset.projectSelectionLabel;
+      }
 
       optionCheckboxes(root).forEach((checkbox) => {
         checkbox.checked = savedKeys.has(String(checkbox.value || "").trim());
@@ -396,9 +404,8 @@
     }
   });
 
-  // Capture before the legacy six-item save handler. Selections 0-6 can use
-  // the existing flow unchanged; trait selections 7-8 use the expanded save
-  // flow here so the old guard cannot silently discard the click.
+  // Use one save path for every trait selection so the project-default
+  // and candidate-manual states stay consistent from 0 through 8 traits.
   document.addEventListener("click", function (event) {
     const saveButton = event.target.closest("[data-personality-traits-save]");
     if (!saveButton) {
@@ -418,14 +425,9 @@
       }
     });
 
-    if (
-      selectedActiveOptions.length > 6 &&
-      selectedActiveOptions.length <= MAX_TRAIT_SELECTION
-    ) {
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      void saveExpandedTraitSelection(root, selectedActiveOptions);
-    }
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    void saveExpandedTraitSelection(root, selectedActiveOptions);
   }, true);
 
   document.addEventListener("change", function (event) {
