@@ -516,10 +516,10 @@ def _build_candidate_team_style_svg(chart_styles):
     # quadrant, so the display order intentionally differs from the source
     # data order without changing data, ranking or assessment interpretation.
     groups = (
-        ("connector", "catalyst"),        # Explore / Utforskande
-        ("director", "energiser"),        # Lead / Ledning
-        ("architect", "harmoniser"),      # Deliver / Genomförande
-        ("analyst", "auditor"),           # Critically review / Kritisk granskning
+        ("connector", "catalyst"),        # Explore / Utforska
+        ("director", "energiser"),        # Lead / Leda
+        ("architect", "harmoniser"),      # Deliver / Leverera
+        ("analyst", "auditor"),           # Critically review / Kritiskt granska
     )
     quadrants = []
     scores_by_key = {}
