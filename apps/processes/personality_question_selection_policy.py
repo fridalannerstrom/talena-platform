@@ -19,6 +19,7 @@ from apps.core.ai.language import (
 from .project_personality_trait_selection import (
     _role_context,
     get_project_personality_trait_selection,
+    get_project_personality_trait_overrides,
     map_project_traits_to_candidate_results,
     project_selection_items_for_candidate,
 )
@@ -290,54 +291,42 @@ def process_candidate_personality_questions_stream(
             status=409,
         )
 
-    manual_selection = list(
-        getattr(invitation, "selected_personality_traits", None) or []
-    )
     project_selection = None
-    effective_selection = manual_selection
-    if not manual_selection:
-        try:
-            project_selection = get_project_personality_trait_selection(
-                process,
-                language_code=language_code,
-                generate=True,
-            )
-        except Exception as error:
-            message = (
-                "Kunde inte välja projektets personlighetsdrag. "
-                "Kontrollera rollkontexten och försök igen."
-                if str(language_code or "").lower().startswith("sv")
-                else (
-                    "Could not select the project's personality traits. "
-                    "Check the role context and try again."
-                )
-            )
-            return JsonResponse(
-                {"error": message},
-                status=503,
-            )
-
-        effective_selection = map_project_traits_to_candidate_results(
-            project_selection,
-            personality_results,
+    try:
+        project_selection = get_project_personality_trait_selection(
+            process,
+            language_code=language_code,
+            generate=True,
         )
-        if (
-            not project_selection
-            or len(effective_selection) != len(project_selection)
-        ):
-            message = (
-                "Projektets rekommenderade personlighetsdrag saknas i "
-                "kandidatens resultat."
-                if str(language_code or "").lower().startswith("sv")
-                else (
-                    "The project's recommended personality traits are "
-                    "not available in this candidate's results."
-                )
+    except Exception as error:
+        message = (
+            "Kunde inte välja personlighetsdrag för projektet. "
+            "Kontrollera rollkontexten och försök igen."
+            if str(language_code or "").lower().startswith("sv")
+            else (
+                "Could not select personality traits for the project. "
+                "Check the role context and try again."
             )
-            return JsonResponse(
-                {"error": message},
-                status=409,
+        )
+        return JsonResponse({"error": message}, status=503)
+
+    effective_selection = map_project_traits_to_candidate_results(
+        project_selection,
+        personality_results,
+    )
+    if (
+        not project_selection
+        or len(effective_selection) != len(project_selection)
+    ):
+        message = (
+            "Projektets valda personlighetsdrag saknas i kandidatens resultat."
+            if str(language_code or "").lower().startswith("sv")
+            else (
+                "The project's selected personality traits are not "
+                "available in this candidate's results."
             )
+        )
+        return JsonResponse({"error": message}, status=409)
 
     if _contains_competency_selection(
         getattr(invitation, "selected_personality_traits", None)
@@ -381,11 +370,10 @@ def process_candidate_personality_questions_stream(
             "selected_personality_traits",
             None,
         )
-        automatic_project_selection = not bool(manual_selection)
-        if automatic_project_selection:
-            # Present the project baseline as the explicit selection to the
-            # existing question writer; the candidate model is never updated.
-            invitation.selected_personality_traits = effective_selection
+        automatic_project_selection = True
+        # Use only the shared project selection; old per-candidate selections
+        # remain stored for compatibility but no longer control generation.
+        invitation.selected_personality_traits = effective_selection
 
         try:
             for event in personality_ai.stream_personality_questions(
@@ -512,9 +500,8 @@ def process_candidate_personality_traits_update(
     process_id,
     candidate_id,
 ):
-    """Save up to eight traits, or six competencies, for personality questions."""
+    """Candidate-level trait editing is replaced by the project editor."""
 
-    from apps.core.ai import personality_questions as personality_ai
     from . import views
 
     process = get_object_or_404(
@@ -522,18 +509,12 @@ def process_candidate_personality_traits_update(
         pk=process_id,
     )
 
-    if not views.user_can_access_process(
-        request.user,
-        process,
-    ):
+    if not views.user_can_access_process(request.user, process):
         return HttpResponseForbidden(
             "You do not have access to this process."
         )
 
-    invitation = _owner_for_process_candidate(
-        process,
-        candidate_id,
-    )
+    _owner_for_process_candidate(process, candidate_id)
 
     if _role_context(process) is None:
         return JsonResponse(
@@ -545,97 +526,14 @@ def process_candidate_personality_traits_update(
             status=409,
         )
 
-    try:
-        payload = json.loads(
-            request.body.decode("utf-8")
-            or "{}"
-        )
-    except json.JSONDecodeError:
-        return JsonResponse(
-            {
-                "error": "Invalid JSON payload."
-            },
-            status=400,
-        )
-
-    raw_traits = payload.get("traits")
-    if not isinstance(raw_traits, list):
-        return JsonResponse(
-            {
-                "error": (
-                    "Traits must be supplied as a list."
-                )
-            },
-            status=400,
-        )
-
-    if _contains_competency_selection(raw_traits):
-        return JsonResponse(
-            {
-                "error": (
-                    "Competency-based personality questions are temporarily "
-                    "unavailable. Select personality traits instead."
-                )
-            },
-            status=400,
-        )
-
-    personality_results = (
-        views.build_personality_question_traits_for_ai_owner(
-            invitation
-        )
+    language_code = get_request_ai_language(request)
+    message = (
+        "Personlighetsdrag väljs för hela projektet på sidan för rollkontext."
+        if str(language_code or "").lower().startswith("sv")
+        else "Personality traits are selected for the whole project on the role context page."
     )
+    return JsonResponse({"error": message}, status=409)
 
-    selected_traits = personality_ai.normalise_selected_traits(
-        selected_traits=raw_traits,
-        available_results=personality_results,
-    )
-
-    selection_limit = _selection_limit(
-        selected_traits
-    )
-
-    if len(selected_traits) > selection_limit:
-        noun = (
-            "competencies"
-            if selection_limit == MAX_PERSONALITY_COMPETENCIES
-            else "personality traits"
-        )
-        return JsonResponse(
-            {
-                "error": (
-                    f"Select no more than {selection_limit} "
-                    f"available {noun}."
-                )
-            },
-            status=400,
-        )
-
-    invitation.selected_personality_traits = selected_traits
-    invitation.ai_personality_questions_status = (
-        "outdated"
-        if invitation.ai_personality_questions
-        else "not_started"
-    )
-
-    invitation.save(
-        update_fields=[
-            "selected_personality_traits",
-            "ai_personality_questions_status",
-        ]
-    )
-
-    return JsonResponse(
-        {
-            "ok": True,
-            "selected_traits": selected_traits,
-            "selection_mode": (
-                "manual"
-                if selected_traits
-                else "automatic"
-            ),
-        }
-    )
 
 
 def _install_candidate_detail_context_policy(views) -> None:
@@ -654,8 +552,13 @@ def _install_candidate_detail_context_policy(views) -> None:
             language=language,
         )
         role_context_data = _role_context(process)
-        manual_traits = list(
-            getattr(invitation, "selected_personality_traits", None) or []
+        project_traits = (
+            get_project_personality_trait_overrides(
+                role_context_data["role_context"],
+                role_context_data["purpose_key"],
+            )
+            if role_context_data is not None
+            else []
         )
         project_selection = (
             get_project_personality_trait_selection(
@@ -666,7 +569,7 @@ def _install_candidate_detail_context_policy(views) -> None:
             if role_context_data is not None
             else None
         )
-        project_traits = map_project_traits_to_candidate_results(
+        mapped_project_traits = map_project_traits_to_candidate_results(
             project_selection,
             context.get("personality_traits_for_selection") or [],
         )
@@ -678,15 +581,22 @@ def _install_candidate_detail_context_policy(views) -> None:
             role_context_data is not None
         )
         context["personality_question_selection_mode"] = (
-            "manual"
-            if manual_traits
+            "project_manual"
+            if project_traits
             else "project_default"
             if role_context_data is not None
             else "unavailable"
         )
-        context["personality_project_default_traits"] = project_traits
+        context["personality_project_selection_source"] = (
+            "project_manual"
+            if project_traits
+            else "project_default"
+            if role_context_data is not None
+            else "unavailable"
+        )
+        context["personality_project_default_traits"] = mapped_project_traits
         context["selected_personality_traits"] = (
-            manual_traits or project_traits or saved_selection
+            mapped_project_traits or saved_selection
         )
         candidate_detail_url = reverse(
             "processes:process_candidate_detail",
