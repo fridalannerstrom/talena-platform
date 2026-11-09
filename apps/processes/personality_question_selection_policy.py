@@ -303,13 +303,17 @@ def process_candidate_personality_questions_stream(
                 generate=True,
             )
         except Exception as error:
+            message = (
+                "Kunde inte välja projektets personlighetsdrag. "
+                "Kontrollera rollkontexten och försök igen."
+                if str(language_code or "").lower().startswith("sv")
+                else (
+                    "Could not select the project's personality traits. "
+                    "Check the role context and try again."
+                )
+            )
             return JsonResponse(
-                {
-                    "error": (
-                        "Could not select the project personality traits. "
-                        "Check the role context and try again."
-                    )
-                },
+                {"error": message},
                 status=503,
             )
 
@@ -321,13 +325,17 @@ def process_candidate_personality_questions_stream(
             not project_selection
             or len(effective_selection) != len(project_selection)
         ):
+            message = (
+                "Projektets rekommenderade personlighetsdrag saknas i "
+                "kandidatens resultat."
+                if str(language_code or "").lower().startswith("sv")
+                else (
+                    "The project's recommended personality traits are "
+                    "not available in this candidate's results."
+                )
+            )
             return JsonResponse(
-                {
-                    "error": (
-                        "The project's default personality traits are not "
-                        "available in this candidate's results."
-                    )
-                },
+                {"error": message},
                 status=409,
             )
 
@@ -662,6 +670,10 @@ def _install_candidate_detail_context_policy(views) -> None:
             project_selection,
             context.get("personality_traits_for_selection") or [],
         )
+        saved_selection = (
+            (context.get("personality_questions") or {}).get("selected_traits")
+            or []
+        )
         context["has_personality_role_context"] = (
             role_context_data is not None
         )
@@ -674,7 +686,7 @@ def _install_candidate_detail_context_policy(views) -> None:
         )
         context["personality_project_default_traits"] = project_traits
         context["selected_personality_traits"] = (
-            manual_traits or project_traits
+            manual_traits or project_traits or saved_selection
         )
         candidate_detail_url = reverse(
             "processes:process_candidate_detail",
