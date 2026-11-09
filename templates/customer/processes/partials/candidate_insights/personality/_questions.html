@@ -4,6 +4,7 @@
 {% personality_question_selection_basis selected_personality_traits as question_basis %}
 
 {% if has_personality_results %}
+  {% if has_personality_role_context or personality_questions %}
   <section
     data-personality-questions-root
     data-stream-url="{{ personality_questions_stream_url }}"
@@ -12,7 +13,36 @@
     data-status="{{ personality_questions_status }}"
     data-has-result="{% if personality_questions %}true{% else %}false{% endif %}"
     data-question-basis="traits"
+    data-role-context-available="{{ has_personality_role_context|yesno:'true,false' }}"
   >
+
+    {% if not has_personality_role_context %}
+      <div class="alert alert-warning mt-3 mb-0" role="status">
+        <div class="fw-semibold">
+          {% if LANGUAGE_CODE|slice:":2" == "sv" %}Rollkontext saknas{% else %}Role context is missing{% endif %}
+        </div>
+        <div class="small mt-1">
+          {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+            Personlighetsfrågor kan skapas när projektets rollkontext har lagts till. Sparade frågor visas fortfarande.
+          {% else %}
+            Personality questions can be generated after role context is added to the project. Previously saved questions remain available.
+          {% endif %}
+        </div>
+        {% if not is_historical and can_manage_candidate_results %}
+          <a class="btn btn-sm btn-primary mt-3" href="{{ personality_role_context_url }}">
+            {% if LANGUAGE_CODE|slice:":2" == "sv" %}Lägg till rollkontext{% else %}Add role context{% endif %}
+          </a>
+        {% elif not is_historical %}
+          <div class="small mt-2">
+            {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+              Be en projektredaktör lägga till rollkontext.
+            {% else %}
+              Ask a project editor to add role context.
+            {% endif %}
+          </div>
+        {% endif %}
+      </div>
+    {% endif %}
 
     {% include "customer/processes/partials/candidate_insights/_interview_guidance.html" with interview_meta=interview_meta %}
     {% include "customer/processes/partials/candidate_insights/_interview_static_questions.html" with interview_meta=interview_meta %}
@@ -52,6 +82,7 @@
           {% trans "Needs update" %}
         </span>
 
+        {% if has_personality_role_context %}
         <button
           type="button"
           class="btn btn-icon btn-light"
@@ -61,6 +92,7 @@
         >
           <i data-feather="refresh-cw"></i>
         </button>
+        {% endif %}
       </div>
     </div>
 
@@ -170,9 +202,17 @@
                   Talena created the questions from these competencies, their definitions, the project purpose and available context. Personality data is supporting evidence only, not a direct competency rating.
                 {% endif %}
               {% else %}
-                {% blocktrans %}Talena generated the questions below using these personality traits, the project purpose and any available context. Change the selection to shape the next set of questions.{% endblocktrans %}
+                {% blocktrans %}Talena used the project's shared role-context default for these questions. Each candidate's own personality results shape the question wording.{% endblocktrans %}
               {% endif %}
             </p>
+
+            <div class="small text-muted mt-2" data-personality-selection-source>
+              {% if personality_question_selection_mode == "manual" %}
+                {% if LANGUAGE_CODE|slice:":2" == "sv" %}Manuellt urval för den här kandidaten{% else %}Manually selected for this candidate{% endif %}
+              {% else %}
+                {% if LANGUAGE_CODE|slice:":2" == "sv" %}Projektets gemensamma standard baserad på rollkontexten{% else %}Shared project default based on role context{% endif %}
+              {% endif %}
+            </div>
 
             <div class="personality-trait-pill-list mt-3" data-personality-selected-traits>
               {% for trait in personality_questions.selected_traits %}
@@ -183,6 +223,7 @@
             </div>
           </div>
 
+          {% if has_personality_role_context %}
           <button
             type="button"
             class="btn btn-primary text-nowrap ms-auto align-self-center"
@@ -192,6 +233,7 @@
               {% trans "Change traits" %}
             </span>
           </button>
+          {% endif %}
         </div>
       </section>
 
@@ -215,6 +257,7 @@
         </div>
       </div>
 
+      {% if has_personality_role_context %}
       <dialog
         class="personality-traits-dialog"
         data-personality-traits-editor
@@ -237,9 +280,9 @@
 
               <p class="personality-traits-dialog__description" data-question-basis-dialog-description>
                 {% if LANGUAGE_CODE|slice:":2" == "sv" %}
-                  Välj upp till åtta personlighetsdrag, eller lämna alla omarkerade för att låta Talena välja utifrån processens syfte och tillgänglig kontext. Frågorna formuleras även utifrån personens egna personlighetsresultat.
+                  Välj upp till åtta drag för den här kandidaten, eller lämna dem omarkerade för att använda projektets gemensamma standard baserad på rollkontexten. Frågorna formuleras även utifrån personens egna personlighetsresultat.
                 {% else %}
-                  Choose up to eight personality traits, or leave all traits unselected to let Talena choose based on the process purpose and available context. Questions are also generated using the person's own personality results.
+                  Choose up to eight traits for this candidate, or leave them unselected to use the shared project default based on role context. Questions are also generated using the person's own personality results.
                 {% endif %}
               </p>
             </div>
@@ -262,7 +305,7 @@
               aria-selected="true"
               {% if LANGUAGE_CODE|slice:":2" == "sv" %}
                 data-summary-title="Personlighetsdrag som används i frågorna"
-                data-summary-description="Talena skapade frågorna utifrån dessa personlighetsdrag, projektets syfte och tillgänglig kontext. Ändra urvalet för att påverka nästa uppsättning frågor."
+                data-summary-description="Talena använde projektets gemensamma standard baserad på rollkontexten. Kandidatens egna personlighetsresultat påverkar hur frågorna formuleras."
                 data-edit-label="Ändra personlighetsdrag"
                 data-dialog-title="Välj personlighetsdrag att utforska"
                 data-dialog-description="Välj upp till åtta personlighetsdrag, eller lämna alla omarkerade för att låta Talena välja utifrån processens syfte och tillgänglig kontext."
@@ -339,6 +382,34 @@
           </div>
         </div>
       </dialog>
+      {% endif %}
     </div>
   </section>
+  {% else %}
+    <div class="alert alert-light border mt-4" role="status">
+      <h3 class="h5 mb-2">
+        {% if LANGUAGE_CODE|slice:":2" == "sv" %}Lägg till rollkontext för att fortsätta{% else %}Add role context to continue{% endif %}
+      </h3>
+      <p class="text-muted mb-0">
+        {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+          Talena använder projektets rollkontext för att välja samma rekommenderade personlighetsdrag för alla kandidater. Varje kandidats egna testresultat används sedan när frågorna formuleras.
+        {% else %}
+          Talena uses the project role context to select the same recommended personality traits for every candidate. Each candidate's own assessment results are then used to write the questions.
+        {% endif %}
+      </p>
+      {% if not is_historical and can_manage_candidate_results %}
+        <a class="btn btn-primary mt-3" href="{{ personality_role_context_url }}">
+          {% if LANGUAGE_CODE|slice:":2" == "sv" %}Lägg till rollkontext{% else %}Add role context{% endif %}
+        </a>
+      {% elif not is_historical %}
+        <div class="small text-muted mt-2">
+          {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+            Be en projektredaktör lägga till rollkontext.
+          {% else %}
+            Ask a project editor to add role context.
+          {% endif %}
+        </div>
+      {% endif %}
+    </div>
+  {% endif %}
 {% endif %}
