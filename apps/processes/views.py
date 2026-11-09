@@ -7057,6 +7057,7 @@ def process_role_context(request, pk):
             "selected_personality_traits": selected_project_traits,
             "selected_project_trait_options": selected_project_trait_options,
             "personality_trait_selection_source": selection_source,
+            "personality_trait_recommendation_error": recommendation_error,
 
             # Active tab
             "active": "context",
