@@ -133,6 +133,35 @@ def get_project_personality_trait_selection(
     if cached is not None or not generate:
         return cached
 
+    # Serialize first-time selection for a project so concurrent candidate
+    # requests cannot save and use different defaults for the same context.
+    from django.db import transaction
+    from apps.processes.models import ProcessRoleContext
+
+    with transaction.atomic():
+        role_context = ProcessRoleContext.objects.select_for_update().get(
+            pk=context["role_context"].pk
+        )
+        process._state.fields_cache["role_context"] = role_context
+        context = _role_context(process)
+        if context is None:
+            return None
+
+        cached = _cached_selection(context)
+        if cached is not None:
+            return cached
+
+        return _generate_and_store_project_selection(
+            context,
+            language_code=language_code,
+        )
+
+
+def _generate_and_store_project_selection(
+    context: dict[str, Any],
+    *,
+    language_code: str,
+) -> list[dict[str, str]]:
     language_code = normalize_ai_language(language_code)
     guidance_sv = get_ai_feature_prompt_instructions(
         key="personality_trait_selection",
