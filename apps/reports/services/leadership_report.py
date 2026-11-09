@@ -17,7 +17,7 @@ _DATA_FILE = (
 
 # SOVA returns these competencies in English even when Talena is Swedish.
 _SOURCE_NAMES = {
-    "creates_the_vision": ("Creates the Vision",),
+    "creates_the_vision": ("Creates the Vision", "Skapar visionen", "Skapar visioner"),
     "generates_solutions": ("Generates Solutions",),
     "builds_alliances": ("Builds Alliances",),
     "embraces_diversity": ("Embraces Diversity",),
@@ -189,8 +189,8 @@ def _build_leadership_chart_svg(
     cx, cy, radius = 450, 390, 245
     source_keys = list(source_keys) if source_keys is not None else list(_SOURCE_NAMES)
     quadrant_colors = ("#ef978f", "#dbada7", "#a0baae", "#d9bc90")
-    # SOVA's team roles live in compass quadrants, not around compass axes.
-    # Apply this only to the candidate Team report, never Leadership.
+    # Both Team and Leadership follow SOVA's four compass quadrants.
+    # The same angle offset rotates tracks, petals, values and labels together.
     angle_offset = -45 if sova_quadrant_layout else 0
 
     def point(distance: float, angle: float) -> tuple[float, float]:
@@ -338,7 +338,7 @@ def _build_leadership_chart_svg(
         parts.append("</text>")
 
     if sova_quadrant_layout:
-        # Explore NW, Lead NE, Deliver SE, Critically review SW.
+        # The four SOVA quadrants appear NW, NE, SE, SW respectively.
         quadrant_positions = (
             (70, 95, "start"),
             (width - 70, 95, "end"),
@@ -443,7 +443,9 @@ def build_leadership_report_content(
         "introduction_sections": _structure_leadership_introduction(
             content["introduction"]["body"], language
         ),
-        "chart_svg": _build_leadership_chart_svg(content, scores_by_key, language),
+        "chart_svg": _build_leadership_chart_svg(
+            content, scores_by_key, language, sova_quadrant_layout=True
+        ),
         "has_results": bool(all_competencies),
         "scores_count": len(all_competencies),
         "total_competencies": 8,
