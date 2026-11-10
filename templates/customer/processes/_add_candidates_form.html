@@ -5,7 +5,17 @@
       method="post"
       enctype="multipart/form-data"
       action="{% url 'processes:process_add_candidates' process.id %}"
-      data-preview-url="{% url 'processes:process_add_candidates' process.id %}">
+      data-preview-url="{% url 'processes:process_add_candidates' process.id %}"
+      data-candidate-label="{% trans 'Candidate {n}' %}"
+      data-importing="{% trans 'Checking the Excel file…' %}"
+      data-import-failed="{% trans 'The file could not be imported. Please check it and try again.' %}"
+      data-no-import-rows="{% trans 'No candidate rows were found in this file.' %}"
+      data-import-summary="{% trans '{valid} rows are ready and {invalid} need attention. Review the rows below.' %}"
+      data-import-success="{% trans '{count} candidates are ready to add.' %}"
+      data-added-summary="{% trans '{count} candidates added. Updating the project…' %}"
+      data-partial-summary="{% trans '{count} candidates added. Correct or remove the highlighted rows to continue.' %}"
+      data-no-candidates="{% trans 'Enter at least one candidate to continue.' %}"
+      data-submit-failed="{% trans 'Something went wrong. Please try again.' %}">
   {% csrf_token %}
   <input type="hidden" name="action" value="add_candidates">
 
@@ -36,7 +46,7 @@
   </div>
 
   <div class="bulk-candidates-rows" data-candidate-rows>
-    <fieldset class="bulk-candidate-row" data-candidate-row>
+    <fieldset class="bulk-candidate-row" data-candidate-row data-row-label="{% trans 'Candidate {n}' %}">
       <legend class="visually-hidden">{% trans "Candidate 1" %}</legend>
       <div class="bulk-candidate-row__heading">
         <span data-row-label>{% trans "Candidate 1" %}</span>
