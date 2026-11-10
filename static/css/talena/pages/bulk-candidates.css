@@ -91,11 +91,12 @@
   align-items: center;
   justify-content: center;
   gap: .5rem;
-  min-width: 210px;
+  width: 180px;
+  min-width: 110px;
   height: 48px !important;
-  padding: .65rem 1rem !important;
+  padding: .55rem .8rem !important;
   border-radius: 999px !important;
-  font-size: .9rem !important;
+  font-size: .8rem !important;
   font-weight: 600 !important;
   line-height: 1.2 !important;
 }
