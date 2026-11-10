@@ -118,12 +118,12 @@
                     <input type="hidden" name="next" value="{{ request.get_full_path }}">
                     {% if p.id in pinned_project_ids %}
                       <button type="submit" class="icon-btn process-pin is-pinned" aria-label="{% trans 'Unpin project' %}" title="{% trans 'Unpin project' %}" aria-pressed="true">
-                        <i data-feather="map-pin"></i>
+                        <i data-feather="bookmark"></i>
                       </button>
                     {% elif pinned_project_ids|length >= 5 %}
                       <span class="process-pin-limit" tabindex="0" role="note" aria-describedby="pin-limit-{{ p.id }}">
                         <button type="button" class="icon-btn process-pin is-disabled" disabled aria-label="{% trans 'Pin project' %}" aria-pressed="false">
-                          <i data-feather="map-pin"></i>
+                          <i data-feather="bookmark"></i>
                         </button>
                         <span class="process-pin-tooltip" id="pin-limit-{{ p.id }}" role="tooltip">
                           {% trans "You can pin up to five projects. Unpin one first." %}
@@ -131,7 +131,7 @@
                       </span>
                     {% else %}
                       <button type="submit" class="icon-btn process-pin" aria-label="{% trans 'Pin project' %}" title="{% trans 'Pin project' %}" aria-pressed="false">
-                        <i data-feather="map-pin"></i>
+                        <i data-feather="bookmark"></i>
                       </button>
                     {% endif %}
                   </form>
