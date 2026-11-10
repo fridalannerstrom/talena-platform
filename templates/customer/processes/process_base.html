@@ -3036,7 +3036,8 @@ function initCandidateSheetInteractions(container) {
     );
     const overviewActions = Array.from(
       workspace.querySelectorAll(
-        ".candidate-result-overview [data-insights-tab]"
+        ".candidate-result-overview [data-insights-tab], " +
+        ".talena-overview-interpretations [data-insights-tab]"
       )
     );
 
@@ -3134,7 +3135,8 @@ if (target === "motivation") {
     });
 
     overviewActions.forEach((action) => {
-      action.addEventListener("click", () => {
+      action.addEventListener("click", (event) => {
+        event.preventDefault();
         activateTab(
           action.dataset.insightsTab
         );
