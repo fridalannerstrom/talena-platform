@@ -68,8 +68,12 @@ def _parse_candidate_sheet(upload):
             errors = []
             if not first_name:
                 errors.append(_("First name is required."))
+            elif len(first_name) > 80:
+                errors.append(_("First name must be 80 characters or fewer."))
             if not last_name:
                 errors.append(_("Last name is required."))
+            elif len(last_name) > 80:
+                errors.append(_("Last name must be 80 characters or fewer."))
             if not email:
                 errors.append(_("Email is required."))
             else:
@@ -130,6 +134,27 @@ def process_add_candidates(request, pk):
         rows, errors = _parse_candidate_sheet(upload)
         if errors:
             return JsonResponse({"ok": False, "errors": errors}, status=400)
+
+        seen_emails = set()
+        for row in rows:
+            email = row["email"].strip().lower()
+            if email:
+                if email in seen_emails:
+                    row["errors"].append(_("This email appears more than once in the file."))
+                seen_emails.add(email)
+                existing = TestInvitation.objects.filter(
+                    process=process, candidate__email__iexact=email
+                ).first()
+                if existing:
+                    row["errors"].append(
+                        _("This candidate was previously removed from the project.")
+                        if existing.removed_from_process_at
+                        else _("This candidate is already in the project.")
+                    )
+            if len(row["first_name"]) > 80:
+                row["errors"].append(_("First name must be 80 characters or fewer."))
+            if len(row["last_name"]) > 80:
+                row["errors"].append(_("Last name must be 80 characters or fewer."))
         return JsonResponse({"ok": True, "rows": rows})
 
     if request.method == "POST" and request.POST.get("action") == "add_candidates":
@@ -152,8 +177,12 @@ def process_add_candidates(request, pk):
             row_errors = []
             if not first_name:
                 row_errors.append(_("First name is required."))
+            elif len(first_name) > 80:
+                row_errors.append(_("First name must be 80 characters or fewer."))
             if not last_name:
                 row_errors.append(_("Last name is required."))
+            elif len(last_name) > 80:
+                row_errors.append(_("Last name must be 80 characters or fewer."))
             if not email:
                 row_errors.append(_("Email is required."))
             else:
