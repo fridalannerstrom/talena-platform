@@ -1,5 +1,5 @@
 {% load i18n static %}
-<link rel="stylesheet" href="{% static 'css/talena/pages/bulk-candidates.css' %}?v=197-choice-2">
+<link rel="stylesheet" href="{% static 'css/talena/pages/bulk-candidates.css' %}?v=197-choice-3">
 <form id="addCandidatesForm"
       class="bulk-candidates-form"
       method="post"
@@ -24,6 +24,9 @@
   <section class="bulk-candidate-chooser" data-mode-chooser>
     <div class="bulk-candidate-chooser__title">
       {% if is_swedish %}Hur vill du lägga till kandidater?{% else %}How would you like to add candidates?{% endif %}
+    </div>
+    <div class="bulk-candidate-chooser__subtitle">
+      {% if is_swedish %}Välj hur du vill lägga till dem.{% else %}Choose how you would like to add them.{% endif %}
     </div>
     <div class="bulk-candidate-chooser__options">
       <button type="button" class="bulk-candidate-choice" data-candidate-mode="manual">
