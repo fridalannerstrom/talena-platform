@@ -1,3 +1,4 @@
+#addCandidateModal .modal-dialog { max-width: 760px; }
 .bulk-candidates-form { display: grid; gap: 1rem; }
 .bulk-candidates-intro { color: #4d5963; font-size: .92rem; }
 .bulk-candidates-import {
