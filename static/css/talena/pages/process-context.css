@@ -462,7 +462,7 @@
 
 /* Popup */
 .project-traits-modal .modal-dialog {
-  max-width: 800px;
+  max-width: 700px;
 }
 
 .project-traits-modal .modal-content {
@@ -479,7 +479,7 @@
 
 .project-traits-modal__header {
   align-items: center;
-  padding: 1.1rem 1.35rem !important;
+  padding: 1rem 1.15rem !important;
   border-bottom: 1px solid var(--talena-border) !important;
   background:
     radial-gradient(circle at 0% 0%, rgba(255, 111, 97, 0.07), transparent 13rem),
@@ -504,7 +504,7 @@
 }
 
 .project-traits-modal__body {
-  padding: 1.05rem 1.35rem 1.15rem !important;
+  padding: 0.95rem 1.15rem 1.05rem !important;
   background: #fbfaf9;
 }
 
@@ -544,7 +544,7 @@
 .project-traits-modal__grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.5rem;
+  gap: 0.45rem;
 }
 
 .project-trait-option {
@@ -569,11 +569,11 @@
 
 .project-trait-option__card {
   display: flex;
-  min-height: 52px;
+  min-height: 49px;
   align-items: center;
   justify-content: space-between;
   gap: 0.65rem;
-  padding: 0.62rem 0.75rem;
+  padding: 0.56rem 0.68rem;
   border: 1px solid var(--talena-border);
   border-radius: 11px;
   background: #fff;
@@ -652,8 +652,8 @@
 }
 
 .project-traits-modal__footer {
-  gap: 0.55rem;
-  padding: 0.85rem 1.35rem !important;
+  gap: 0.5rem;
+  padding: 0.78rem 1.15rem !important;
   border-top: 1px solid var(--talena-border) !important;
   background: #fff;
 }
