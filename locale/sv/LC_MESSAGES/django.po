@@ -6369,6 +6369,9 @@ msgid "Sort test processes"
 msgstr "Sortera testprocesser"
 
 #: .\templates\customer\processes\process_list.html:92
+msgid "Sort: Pinned first"
+msgstr "Sortera: Pinnade först"
+
 msgid "Sort: Newest first"
 msgstr "Sortera: Nyaste först"
 
@@ -7137,7 +7140,7 @@ msgid "Pin project"
 msgstr "Fäst projekt"
 
 msgid "Unpin project"
-msgstr "Ta bort från fästa projekt"
+msgstr "Ta bort fästning"
 
 msgid "You can pin up to five projects. Unpin one first."
 msgstr "Du kan fästa högst fem projekt. Ta bort ett först."
