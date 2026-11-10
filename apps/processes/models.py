@@ -1973,6 +1973,7 @@ class PinnedProject(models.Model):
         related_name="pins",
     )
     created_at = models.DateTimeField(auto_now_add=True)
+    sort_order = models.PositiveSmallIntegerField(default=0)
 
     class Meta:
         constraints = [
@@ -1981,4 +1982,4 @@ class PinnedProject(models.Model):
                 name="unique_pinned_project_per_user",
             ),
         ]
-        ordering = ["-created_at", "-pk"]
+        ordering = ["sort_order", "-created_at", "-pk"]
