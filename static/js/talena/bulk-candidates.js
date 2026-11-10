@@ -2,19 +2,20 @@
   "use strict";
 
   const modal = document.getElementById("addCandidateModal");
-  const body = document.getElementById("addCandidateModalBody");
-  if (!modal || !body) return;
+  if (!modal) return;
 
   function refreshIcons() {
     if (window.feather) window.feather.replace();
   }
 
-  function rowsRoot(form) {
-    return form.querySelector("[data-candidate-rows]");
+  function rowsRoot(form, mode) {
+    return form.querySelector('[data-candidate-rows="' + mode + '"]');
   }
 
-  function updateRows(form) {
-    const rows = [...rowsRoot(form).querySelectorAll("[data-candidate-row]")];
+  function updateRows(form, mode) {
+    const root = rowsRoot(form, mode);
+    if (!root) return;
+    const rows = [...root.querySelectorAll("[data-candidate-row]")];
     rows.forEach((row, index) => {
       const rowTitle = row.dataset.rowLabel.replace("{n}", String(index + 1));
       row.querySelector("[data-row-label]").textContent = rowTitle;
@@ -25,12 +26,17 @@
     });
   }
 
-  function makeRow(form, values = {}, errors = [], sourceRow = null) {
-    const root = rowsRoot(form);
-    const template = form._candidateRowTemplate || root.querySelector("[data-candidate-row]");
+  function makeRow(form, mode, values = {}, errors = [], sourceRow = null) {
+    const root = rowsRoot(form, mode);
+    form._candidateRowTemplates = form._candidateRowTemplates || {};
+    const fallback = root.querySelector("[data-candidate-row]") ||
+      rowsRoot(form, "manual").querySelector("[data-candidate-row]");
+    const template = form._candidateRowTemplates[mode] || fallback;
     if (!template) return null;
-    form._candidateRowTemplate = template.cloneNode(true);
-    const row = form._candidateRowTemplate.cloneNode(true);
+    form._candidateRowTemplates[mode] = template.cloneNode(true);
+
+    const row = form._candidateRowTemplates[mode].cloneNode(true);
+    row.dataset.rowMode = mode;
     row.classList.remove("has-error");
     row.querySelectorAll("input").forEach((input) => {
       input.value = "";
@@ -39,7 +45,7 @@
       input.setCustomValidity("");
     });
     row.querySelector("[data-row-error]").textContent = "";
-    row.dataset.rowLabel = form.dataset.candidateLabel.replace("{n}", "{n}");
+    row.dataset.rowLabel = form.dataset.candidateLabel;
     row.querySelector("[data-row-label]").textContent = "";
     row.querySelector('[name="first_name[]"]').value = values.first_name || "";
     row.querySelector('[name="last_name[]"]').value = values.last_name || "";
@@ -50,18 +56,43 @@
       row.querySelector("[data-row-error]").textContent = errors.join(" ");
     }
     root.appendChild(row);
-    updateRows(form);
+    updateRows(form, mode);
     refreshIcons();
     return row;
   }
 
+  function setMode(form, mode) {
+    form.dataset.activeMode = mode;
+    form.querySelectorAll("[data-candidate-mode]").forEach((button) => {
+      const active = button.dataset.candidateMode === mode;
+      button.classList.toggle("is-active", active);
+      button.setAttribute("aria-selected", active ? "true" : "false");
+    });
+    form.querySelectorAll("[data-mode-panel]").forEach((panel) => {
+      const active = panel.dataset.modePanel === mode;
+      panel.hidden = !active;
+      panel.querySelectorAll("input, button").forEach((control) => {
+        control.disabled = !active;
+      });
+    });
+    updateRows(form, mode);
+  }
+
   document.addEventListener("click", (event) => {
+    const tab = event.target.closest("[data-candidate-mode]");
+    if (tab) {
+      const form = tab.closest("#addCandidatesForm");
+      if (form) setMode(form, tab.dataset.candidateMode);
+      return;
+    }
+
     const add = event.target.closest("[data-add-candidate-row]");
     if (add) {
       const form = add.closest("#addCandidatesForm");
-      if (!form) return;
-      makeRow(form);
-      rowsRoot(form).lastElementChild.querySelector("input").focus();
+      const panel = add.closest("[data-mode-panel]");
+      if (!form || !panel) return;
+      const row = makeRow(form, panel.dataset.modePanel);
+      row?.querySelector("input")?.focus();
       return;
     }
 
@@ -70,8 +101,9 @@
       const form = remove.closest("#addCandidatesForm");
       const row = remove.closest("[data-candidate-row]");
       if (!form || !row || remove.disabled) return;
+      const mode = row.dataset.rowMode;
       row.remove();
-      updateRows(form);
+      updateRows(form, mode);
     }
   });
 
@@ -79,8 +111,11 @@
     if (!event.target.matches("#candidateExcelFile")) return;
     const form = event.target.closest("#addCandidatesForm");
     if (!form || !event.target.files.length) return;
+    setMode(form, "excel");
 
     const status = form.querySelector("[data-import-status]");
+    const preview = form.querySelector("[data-excel-preview]");
+    const root = rowsRoot(form, "excel");
     const payload = new FormData();
     payload.append("candidate_file", event.target.files[0]);
     payload.append("action", "preview_excel");
@@ -100,17 +135,14 @@
         return;
       }
 
-      const root = rowsRoot(form);
       root.replaceChildren();
+      preview.hidden = false;
       if (!data.rows.length) {
         status.textContent = form.dataset.noImportRows;
-        makeRow(form);
         return;
       }
 
-      data.rows.forEach((item) => {
-        makeRow(form, item, item.errors || [], item.row);
-      });
+      data.rows.forEach((item) => makeRow(form, "excel", item, item.errors || [], item.row));
       const invalid = data.rows.filter((item) => item.errors && item.errors.length).length;
       status.classList.toggle("is-success", invalid === 0);
       status.textContent = invalid
@@ -129,8 +161,9 @@
 
     event.preventDefault();
     event.stopImmediatePropagation();
+    const mode = form.dataset.activeMode || "manual";
     const submit = form.querySelector("[data-submit-candidates]");
-    const rows = [...rowsRoot(form).querySelectorAll("[data-candidate-row]")];
+    const rows = [...rowsRoot(form, mode).querySelectorAll("[data-candidate-row]")];
     rows.forEach((row) => {
       row.classList.remove("has-error");
       row.querySelector("[data-row-error]").textContent = "";
@@ -145,8 +178,8 @@
       });
       const data = await response.json();
       if (!response.ok || !data.ok) {
-        const status = form.querySelector("[data-import-status]");
-        status.textContent = (data.errors || [form.dataset.submitFailed]).join(" ");
+        const feedback = form.querySelector("[data-candidate-feedback]");
+        feedback.textContent = (data.errors || [form.dataset.submitFailed]).join(" ");
         return;
       }
 
@@ -160,24 +193,25 @@
           row.querySelector("[data-row-error]").textContent = failed.get(number);
         }
       });
-      updateRows(form);
+      updateRows(form, mode);
 
-      const status = form.querySelector("[data-import-status]");
+      const feedback = form.querySelector("[data-candidate-feedback]");
+      feedback.classList.toggle("is-success", Boolean(data.added_count));
       if (data.added_count && !failed.size) {
-        status.classList.add("is-success");
-        status.textContent = form.dataset.addedSummary.replace("{count}", String(data.added_count));
+        feedback.textContent = form.dataset.addedSummary.replace("{count}", String(data.added_count));
         setTimeout(() => {
           bootstrap.Modal.getOrCreateInstance(modal).hide();
           window.location.href = data.redirect_url || window.location.href;
         }, 650);
       } else if (data.added_count) {
-        status.classList.add("is-success");
-        status.textContent = form.dataset.partialSummary.replace("{count}", String(data.added_count));
+        feedback.textContent = form.dataset.partialSummary.replace("{count}", String(data.added_count));
       } else if (!failed.size) {
-        status.textContent = form.dataset.noCandidates;
+        feedback.textContent = form.dataset.noCandidates;
+      } else {
+        feedback.textContent = "";
       }
     } catch (error) {
-      form.querySelector("[data-import-status]").textContent = form.dataset.submitFailed;
+      form.querySelector("[data-candidate-feedback]").textContent = form.dataset.submitFailed;
     } finally {
       submit.disabled = false;
       refreshIcons();
