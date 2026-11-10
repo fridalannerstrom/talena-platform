@@ -1,5 +1,5 @@
 {% load i18n static %}
-<link rel="stylesheet" href="{% static 'css/talena/pages/bulk-candidates.css' %}?v=197-footer-actions">
+<link rel="stylesheet" href="{% static 'css/talena/pages/bulk-candidates.css' %}?v=197-form-polish">
 <form id="addCandidatesForm"
       class="bulk-candidates-form"
       method="post"
@@ -60,15 +60,11 @@
       </div>
     </div>
 
-    <div class="bulk-candidates-section-heading">
-      <div class="bulk-candidates-section-title">{% if is_swedish %}Kandidatuppgifter{% else %}Candidate details{% endif %}</div>
-    </div>
-
     <div class="bulk-candidates-rows" data-candidate-rows="manual">
       <fieldset class="bulk-candidate-row" data-candidate-row data-row-mode="manual" data-row-label="{% if is_swedish %}Kandidat {n}{% else %}Candidate {n}{% endif %}">
         <legend class="visually-hidden">{% trans "Candidate 1" %}</legend>
         <div class="bulk-candidate-row__heading">
-          <span data-row-label>{% trans "Candidate 1" %}</span>
+          <span class="bulk-candidate-row__label" data-row-label>{% trans "Candidate 1" %}</span>
           <button type="button" class="bulk-candidate-remove" data-remove-candidate-row aria-label="{% trans 'Remove candidate' %}" disabled>
             <i data-feather="x"></i>
           </button>
