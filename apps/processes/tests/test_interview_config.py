@@ -21,7 +21,7 @@ class InterviewSectionConfigTests(SimpleTestCase):
 
         self.assertEqual(personality["order"], 3)
         self.assertEqual(personality["question_count"], 8)
-        self.assertEqual(personality["estimated_minutes"], 20)
+        self.assertEqual(personality["estimated_minutes"], 40)
 
     def test_section_guidance_is_localised_for_swedish(self):
         section = get_interview_section_config(
