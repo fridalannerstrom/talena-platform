@@ -118,6 +118,14 @@ class PersonalityCompactUiTests(SimpleTestCase):
             "static/css/talena/tokens.css"
         ).read_text(encoding="utf8")
         self.assertIn("--talena-text: #514a46;", tokens)
+        chart_stylesheet = (Path(settings.BASE_DIR) /
+            "static/css/talena/pages/candidate-charts.css"
+        ).read_text(encoding="utf8")
+        self.assertIn(
+            ".personality-overview-chart--segmented .personality-overview-item__track::after",
+            chart_stylesheet,
+        )
+        self.assertIn("width: 2px;", chart_stylesheet)
         self.assertIn("--talena-text-muted: #625b57;", tokens)
         self.assertIn("--talena-text-subtle: #766f6a;", tokens)
         self.assertNotIn("--talena-text: #000000;", tokens)
