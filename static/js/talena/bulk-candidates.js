@@ -40,6 +40,7 @@
     row.classList.remove("has-error");
     row.querySelectorAll("input").forEach((input) => {
       input.value = "";
+      input.disabled = false;
       input.removeAttribute("id");
       input.removeAttribute("aria-describedby");
       input.setCustomValidity("");
