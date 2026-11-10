@@ -221,7 +221,7 @@ INTERVIEW_SECTION_DEFAULTS = {
     "personality": {
         "order": 3,
         "question_count": 8,
-        "estimated_minutes": 20,
+        "estimated_minutes": 40,
         "copy": {
             "en": {
                 "guidance_label": "How to use these questions",
