@@ -531,10 +531,10 @@ html[lang^="sv"] .process-page .personality-graph__axis span:nth-child(2)::befor
 .process-page .personality-graph__segment[data-score="10"] {
   background: rgba(255, 111, 97, 0.25) !important;
 }
-.process-page .personality-graph__segment--filled {
+.process-page .personality-graph__segment--filled[data-score] {
   background: var(--talena-chart-accent-soft, #ffb4a9) !important;
 }
-.process-page .personality-graph__segment--selected {
+.process-page .personality-graph__segment--selected[data-score] {
   background: var(--talena-chart-accent, #ff6f61) !important;
 }
 .process-page .personality-graph__center-line {
