@@ -3,6 +3,8 @@
 
   const modal = document.getElementById("addCandidateModal");
   if (!modal) return;
+  const modalDialog = modal.querySelector(".modal-dialog");
+  if (modalDialog) modalDialog.classList.add("add-candidate-modal--chooser");
 
   function refreshIcons() {
     if (window.feather) window.feather.replace();
@@ -64,6 +66,7 @@
 
   function setMode(form, mode) {
     form.dataset.activeMode = mode;
+    modalDialog?.classList.remove("add-candidate-modal--chooser");
     form.querySelector("[data-mode-chooser]").hidden = true;
     form.querySelector("[data-candidate-footer]").hidden = false;
     form.querySelector("[data-candidate-feedback]").hidden = true;
@@ -80,6 +83,7 @@
 
   function showChooser(form) {
     form.dataset.activeMode = "";
+    modalDialog?.classList.add("add-candidate-modal--chooser");
     form.querySelector("[data-mode-chooser]").hidden = false;
     form.querySelector("[data-candidate-footer]").hidden = true;
     const feedback = form.querySelector("[data-candidate-feedback]");
