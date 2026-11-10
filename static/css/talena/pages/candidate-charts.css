@@ -10,7 +10,7 @@
 .process-page {
   --talena-chart-track: #ebe8e5;
   --talena-chart-track-soft: #f1efed;
-  --talena-chart-line: rgba(23, 19, 18, 0.18);
+  --talena-chart-line: rgba(23, 19, 18, 0.48);
   --talena-chart-accent: var(--talena-coral);
   --talena-chart-accent-soft: #ff9b89;
   --talena-chart-label: var(--talena-text-muted);
@@ -409,7 +409,7 @@
 }
 
 .process-page .personality-quick-scale__center-line {
-  width: 1px !important;
+  width: 2px !important;
   height: 17px !important;
   justify-self: center;
   background: var(--talena-chart-line) !important;
