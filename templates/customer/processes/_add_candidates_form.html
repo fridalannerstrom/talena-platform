@@ -4,6 +4,7 @@
       class="bulk-candidates-form"
       method="post"
       enctype="multipart/form-data"
+      novalidate
       action="{% url 'processes:process_add_candidates' process.id %}"
       data-preview-url="{% url 'processes:process_add_candidates' process.id %}"
       data-candidate-label="{% trans 'Candidate {n}' %}"
@@ -57,17 +58,17 @@
       <div class="bulk-candidate-fields">
         <div>
           <label class="form-label">{% trans "First name" %}</label>
-          <input class="form-control" name="first_name[]" autocomplete="given-name" required>
+          <input class="form-control" name="first_name[]" aria-label="{% trans 'First name' %}" autocomplete="given-name" required>
           <div class="field-error" data-field-error="first_name"></div>
         </div>
         <div>
           <label class="form-label">{% trans "Last name" %}</label>
-          <input class="form-control" name="last_name[]" autocomplete="family-name" required>
+          <input class="form-control" name="last_name[]" aria-label="{% trans 'Last name' %}" autocomplete="family-name" required>
           <div class="field-error" data-field-error="last_name"></div>
         </div>
         <div>
           <label class="form-label">{% trans "Email" %}</label>
-          <input class="form-control" type="email" name="email[]" autocomplete="email" required>
+          <input class="form-control" type="email" name="email[]" aria-label="{% trans 'Email' %}" autocomplete="email" required>
           <div class="field-error" data-field-error="email"></div>
         </div>
       </div>
