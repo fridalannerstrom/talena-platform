@@ -1,5 +1,5 @@
 {% load i18n static %}
-<link rel="stylesheet" href="{% static 'css/talena/pages/bulk-candidates.css' %}?v=197-tabs">
+<link rel="stylesheet" href="{% static 'css/talena/pages/bulk-candidates.css' %}?v=197-choice">
 <form id="addCandidatesForm"
       class="bulk-candidates-form"
       method="post"
@@ -17,25 +17,49 @@
       data-partial-summary="{% if is_swedish %}{count} kandidater har lagts till. Rätta eller ta bort markerade rader för att fortsätta.{% else %}{count} candidates added. Correct or remove the highlighted rows to continue.{% endif %}"
       data-no-candidates="{% if is_swedish %}Ange minst en kandidat för att fortsätta.{% else %}Enter at least one candidate to continue.{% endif %}"
       data-submit-failed="{% if is_swedish %}Något gick fel. Försök igen.{% else %}Something went wrong. Please try again.{% endif %}"
-      data-active-mode="manual">
+      data-active-mode="">
   {% csrf_token %}
   <input type="hidden" name="action" value="add_candidates">
 
-  <div class="bulk-candidate-tabs" role="tablist" aria-label="{% if is_swedish %}Välj hur du vill lägga till kandidater{% else %}Choose how to add candidates{% endif %}">
-    <button type="button" class="bulk-candidate-tab is-active" role="tab" aria-selected="true" data-candidate-mode="manual">
-      {% if is_swedish %}Lägg till manuellt{% else %}Add manually{% endif %}
-    </button>
-    <button type="button" class="bulk-candidate-tab" role="tab" aria-selected="false" data-candidate-mode="excel">
-      {% if is_swedish %}Ladda upp Excel{% else %}Upload Excel{% endif %}
-    </button>
-  </div>
+  <section class="bulk-candidate-chooser" data-mode-chooser>
+    <div class="bulk-candidate-chooser__title">
+      {% if is_swedish %}Hur vill du lägga till kandidater?{% else %}How would you like to add candidates?{% endif %}
+    </div>
+    <div class="bulk-candidate-chooser__options">
+      <button type="button" class="bulk-candidate-choice" data-candidate-mode="manual">
+        <span class="bulk-candidate-choice__icon"><i data-feather="user-plus"></i></span>
+        <span class="bulk-candidate-choice__text">
+          <strong>{% if is_swedish %}Lägg till manuellt{% else %}Add manually{% endif %}</strong>
+          <span>{% if is_swedish %}Fyll i uppgifterna för en eller flera kandidater.{% else %}Enter details for one or more candidates.{% endif %}</span>
+        </span>
+        <i class="bulk-candidate-choice__arrow" data-feather="arrow-right"></i>
+      </button>
 
-  <section class="bulk-candidate-panel" role="tabpanel" data-mode-panel="manual">
-    <div class="bulk-candidates-section-heading">
-      <div>
-        <div class="bulk-candidates-section-title">{% if is_swedish %}Kandidatuppgifter{% else %}Candidate details{% endif %}</div>
+      <button type="button" class="bulk-candidate-choice" data-candidate-mode="excel">
+        <span class="bulk-candidate-choice__icon"><i data-feather="upload"></i></span>
+        <span class="bulk-candidate-choice__text">
+          <strong>{% if is_swedish %}Ladda upp Excel{% else %}Upload Excel{% endif %}</strong>
+          <span>{% if is_swedish %}Importera flera kandidater från en Excel-mall.{% else %}Import multiple candidates from an Excel template.{% endif %}</span>
+        </span>
+        <i class="bulk-candidate-choice__arrow" data-feather="arrow-right"></i>
+      </button>
+    </div>
+  </section>
+
+  <section class="bulk-candidate-panel" role="region" aria-label="{% if is_swedish %}Lägg till kandidater manuellt{% else %}Add candidates manually{% endif %}" data-mode-panel="manual" hidden>
+    <div class="bulk-candidate-panel__top">
+      <button type="button" class="bulk-candidate-back" data-back-to-chooser>
+        <i data-feather="arrow-left"></i>
+        {% if is_swedish %}Tillbaka{% else %}Back{% endif %}
+      </button>
+      <div class="bulk-candidate-panel__heading">
+        <div class="bulk-candidates-section-title">{% if is_swedish %}Lägg till manuellt{% else %}Add manually{% endif %}</div>
         <div class="text-muted small">{% if is_swedish %}Fyll i uppgifterna för varje kandidat du vill lägga till.{% else %}Enter the details for each candidate you want to add.{% endif %}</div>
       </div>
+    </div>
+
+    <div class="bulk-candidates-section-heading">
+      <div class="bulk-candidates-section-title">{% if is_swedish %}Kandidatuppgifter{% else %}Candidate details{% endif %}</div>
       <button type="button" class="btn btn-outline-secondary btn-sm" data-add-candidate-row>
         <i data-feather="plus"></i>
         {% if is_swedish %}Lägg till en kandidat till{% else %}Add another candidate{% endif %}
@@ -55,17 +79,14 @@
           <div>
             <label class="form-label">{% trans "First name" %}</label>
             <input class="form-control" name="first_name[]" aria-label="{% trans 'First name' %}" autocomplete="given-name">
-            <div class="field-error" data-field-error="first_name"></div>
           </div>
           <div>
             <label class="form-label">{% trans "Last name" %}</label>
             <input class="form-control" name="last_name[]" aria-label="{% trans 'Last name' %}" autocomplete="family-name">
-            <div class="field-error" data-field-error="last_name"></div>
           </div>
           <div>
             <label class="form-label">{% trans "Email" %}</label>
             <input class="form-control" type="email" name="email[]" aria-label="{% trans 'Email' %}" autocomplete="email">
-            <div class="field-error" data-field-error="email"></div>
           </div>
         </div>
         <div class="bulk-candidate-row__error" data-row-error role="alert"></div>
@@ -73,17 +94,28 @@
     </div>
   </section>
 
-  <section class="bulk-candidate-panel" role="tabpanel" data-mode-panel="excel" hidden>
+  <section class="bulk-candidate-panel" role="region" aria-label="{% if is_swedish %}Ladda upp kandidater från Excel{% else %}Upload candidates from Excel{% endif %}" data-mode-panel="excel" hidden>
+    <div class="bulk-candidate-panel__top">
+      <button type="button" class="bulk-candidate-back" data-back-to-chooser>
+        <i data-feather="arrow-left"></i>
+        {% if is_swedish %}Tillbaka{% else %}Back{% endif %}
+      </button>
+      <div class="bulk-candidate-panel__heading">
+        <div class="bulk-candidates-section-title">{% if is_swedish %}Ladda upp Excel{% else %}Upload Excel{% endif %}</div>
+        <div class="text-muted small">{% if is_swedish %}Importera flera kandidater från en Excel-mall.{% else %}Import multiple candidates from an Excel template.{% endif %}</div>
+      </div>
+    </div>
+
     <div class="bulk-candidates-import">
       <div>
-        <div class="bulk-candidates-section-title">{% if is_swedish %}Ladda upp kandidater från Excel{% else %}Upload candidates from Excel{% endif %}</div>
-        <div class="text-muted small">{% if is_swedish %}Ladda ner mallen, fyll i en kandidat per rad och välj sedan den färdiga filen.{% else %}Download the template, fill in one candidate per row, then select the completed file.{% endif %}</div>
+        <div class="bulk-candidates-section-title">{% if is_swedish %}Excel-mall{% else %}Excel template{% endif %}</div>
+        <div class="text-muted small">{% if is_swedish %}Fyll i en kandidat per rad och behåll kolumnerna Förnamn, Efternamn och E-post.{% else %}Enter one candidate per row and keep the First name, Last name and Email columns.{% endif %}</div>
       </div>
       <a class="bulk-candidates-template-link" href="{{ template_url }}">
         <i data-feather="download"></i>
         {% if is_swedish %}Ladda ner Excel-mall{% else %}Download Excel template{% endif %}
       </a>
-      <label class="form-label mb-1" for="candidateExcelFile">{% if is_swedish %}Excel-fil (.xlsx){% else %}Excel file (.xlsx){% endif %}</label>
+      <label class="form-label mb-1" for="candidateExcelFile">{% if is_swedish %}Välj Excel-fil (.xlsx){% else %}Select Excel file (.xlsx){% endif %}</label>
       <input class="form-control" type="file" id="candidateExcelFile" name="candidate_file" accept=".xlsx" disabled>
       <div class="bulk-candidates-import-status" data-import-status aria-live="polite"></div>
     </div>
@@ -92,21 +124,20 @@
       <div class="bulk-candidates-section-heading">
         <div>
           <div class="bulk-candidates-section-title">{% if is_swedish %}Granska kandidater{% else %}Review candidates{% endif %}</div>
-          <div class="text-muted small">{% if is_swedish %}Rätta eller ta bort rader med fel innan du lägger till kandidaterna.{% else %}Correct or remove any rows marked with an error before adding candidates.{% endif %}</div>
+          <div class="text-muted small">{% if is_swedish %}Rätta eller ta bort rader med fel innan du lägger till kandidaterna.{% else %}Correct or remove rows marked with an error before adding candidates.{% endif %}</div>
         </div>
         <button type="button" class="btn btn-outline-secondary btn-sm" data-add-candidate-row>
           <i data-feather="plus"></i>
           {% if is_swedish %}Lägg till en kandidat till{% else %}Add another candidate{% endif %}
         </button>
       </div>
-
       <div class="bulk-candidates-rows" data-candidate-rows="excel"></div>
     </div>
   </section>
 
   <div class="bulk-candidate-feedback" data-candidate-feedback aria-live="polite"></div>
 
-  <div class="bulk-candidates-footer">
+  <div class="bulk-candidates-footer" data-candidate-footer hidden>
     <button type="submit" class="btn btn-primary" data-submit-candidates>
       <i data-feather="user-plus"></i>
       {% if is_swedish %}Lägg till kandidater{% else %}Add candidates{% endif %}
