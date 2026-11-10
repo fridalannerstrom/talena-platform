@@ -70,6 +70,9 @@
     form.querySelector("[data-mode-chooser]").hidden = true;
     form.querySelector("[data-candidate-footer]").hidden = false;
     form.querySelector("[data-candidate-feedback]").hidden = true;
+    const addRowButton = form.querySelector("[data-add-candidate-row]");
+    const excelPreview = form.querySelector("[data-excel-preview]");
+    if (addRowButton) addRowButton.hidden = mode === "excel" && excelPreview.hidden;
 
     form.querySelectorAll("[data-mode-panel]").forEach((panel) => {
       const active = panel.dataset.modePanel === mode;
@@ -115,9 +118,9 @@
     const add = event.target.closest("[data-add-candidate-row]");
     if (add) {
       const form = add.closest("#addCandidatesForm");
-      const panel = add.closest("[data-mode-panel]");
-      if (!form || !panel) return;
-      const row = makeRow(form, panel.dataset.modePanel);
+      if (!form || !form.dataset.activeMode) return;
+      const mode = form.dataset.activeMode;
+      const row = makeRow(form, mode);
       row?.querySelector("input")?.focus();
       return;
     }
@@ -163,6 +166,8 @@
 
       root.replaceChildren();
       preview.hidden = false;
+      const addRowButton = form.querySelector("[data-add-candidate-row]");
+      if (addRowButton) addRowButton.hidden = false;
       if (!data.rows.length) {
         status.textContent = form.dataset.noImportRows;
         return;
