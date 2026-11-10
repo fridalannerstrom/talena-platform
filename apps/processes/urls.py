@@ -55,7 +55,7 @@ urlpatterns = [
     ),
     path(
         "<int:pk>/add-candidates/",
-        process_add_candidates,
+        capture_automatic_candidate_invitations(process_add_candidates),
         name="process_add_candidates",
     ),
     path(
