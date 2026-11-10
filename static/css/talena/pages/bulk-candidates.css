@@ -1,3 +1,17 @@
+.bulk-candidate-tabs { display: flex; gap: .45rem; padding: .2rem; border-radius: .7rem; background: #f3f4f5; }
+.bulk-candidate-tab { flex: 1; padding: .65rem .9rem; border: 1px solid transparent; border-radius: .55rem; background: transparent; color: #5e6872; font-weight: 600; }
+.bulk-candidate-tab:hover { color: #292f35; background: rgba(255,255,255,.65); }
+.bulk-candidate-tab.is-active { color: #292f35; border-color: #e3e5e8; background: #fff; box-shadow: 0 1px 2px rgba(20,30,40,.06); }
+.bulk-candidate-panel { display: grid; gap: 1rem; }
+.bulk-candidate-panel[hidden] { display: none !important; }
+.bulk-candidates-import { margin-bottom: .15rem; }
+.bulk-candidates-preview { display: grid; gap: .75rem; }
+.bulk-candidates-preview[hidden] { display: none !important; }
+.bulk-candidate-feedback { color: #a23535; font-size: .86rem; }
+.bulk-candidate-feedback:empty { display: none; }
+.bulk-candidate-feedback.is-success { color: #286247; }
+
+#addCandidateModal .modal-dialog { max-width: 760px; }
 #addCandidateModal .modal-dialog { max-width: 760px; }
 .bulk-candidates-form { display: grid; gap: 1rem; }
 .bulk-candidates-intro { color: #4d5963; font-size: .92rem; }
