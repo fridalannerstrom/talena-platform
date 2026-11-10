@@ -7,43 +7,43 @@
       novalidate
       action="{% url 'processes:process_add_candidates' process.id %}"
       data-preview-url="{% url 'processes:process_add_candidates' process.id %}"
-      data-candidate-label="{% trans 'Candidate {n}' %}"
-      data-importing="{% trans 'Checking the Excel file…' %}"
-      data-import-failed="{% trans 'The file could not be imported. Please check it and try again.' %}"
-      data-no-import-rows="{% trans 'No candidate rows were found in this file.' %}"
-      data-import-summary="{% trans '{valid} rows are ready and {invalid} need attention. Review the rows below.' %}"
-      data-import-success="{% trans '{count} candidates are ready to add.' %}"
-      data-added-summary="{% trans '{count} candidates added. Updating the project…' %}"
-      data-partial-summary="{% trans '{count} candidates added. Correct or remove the highlighted rows to continue.' %}"
-      data-no-candidates="{% trans 'Enter at least one candidate to continue.' %}"
-      data-submit-failed="{% trans 'Something went wrong. Please try again.' %}"
+      data-candidate-label="{% if is_swedish %}Kandidat {n}{% else %}Candidate {n}{% endif %}"
+      data-importing="{% if is_swedish %}Kontrollerar Excel-filen…{% else %}Checking the Excel file…{% endif %}"
+      data-import-failed="{% if is_swedish %}Filen kunde inte läsas in. Kontrollera den och försök igen.{% else %}The file could not be imported. Please check it and try again.{% endif %}"
+      data-no-import-rows="{% if is_swedish %}Inga kandidatrader hittades i filen.{% else %}No candidate rows were found in this file.{% endif %}"
+      data-import-summary="{% if is_swedish %}{valid} rader är klara och {invalid} behöver ses över. Granska raderna nedan.{% else %}{valid} rows are ready and {invalid} need attention. Review the rows below.{% endif %}"
+      data-import-success="{% if is_swedish %}{count} kandidater är redo att läggas till.{% else %}{count} candidates are ready to add.{% endif %}"
+      data-added-summary="{% if is_swedish %}{count} kandidater har lagts till. Uppdaterar projektet…{% else %}{count} candidates added. Updating the project…{% endif %}"
+      data-partial-summary="{% if is_swedish %}{count} kandidater har lagts till. Rätta eller ta bort markerade rader för att fortsätta.{% else %}{count} candidates added. Correct or remove the highlighted rows to continue.{% endif %}"
+      data-no-candidates="{% if is_swedish %Ange minst en kandidat för att fortsätta.{% else %}Enter at least one candidate to continue.{% endif %}"
+      data-submit-failed="{% if is_swedish %}Något gick fel. Försök igen.{% else %}Something went wrong. Please try again.{% endif %}"
       data-active-mode="manual">
   {% csrf_token %}
   <input type="hidden" name="action" value="add_candidates">
 
-  <div class="bulk-candidate-tabs" role="tablist" aria-label="{% trans 'Choose how to add candidates' %}">
+  <div class="bulk-candidate-tabs" role="tablist" aria-label="{% if is_swedish %}Välj hur du vill lägga till kandidater{% else %}Choose how to add candidates{% endif %}">
     <button type="button" class="bulk-candidate-tab is-active" role="tab" aria-selected="true" data-candidate-mode="manual">
-      {% trans "Add manually" %}
+      {% if is_swedish %}Lägg till manuellt{% else %}Add manually{% endif %}
     </button>
     <button type="button" class="bulk-candidate-tab" role="tab" aria-selected="false" data-candidate-mode="excel">
-      {% trans "Upload Excel" %}
+      {% if is_swedish %}Ladda upp Excel{% else %}Upload Excel{% endif %}
     </button>
   </div>
 
   <section class="bulk-candidate-panel" role="tabpanel" data-mode-panel="manual">
     <div class="bulk-candidates-section-heading">
       <div>
-        <div class="bulk-candidates-section-title">{% trans "Candidate details" %}</div>
-        <div class="text-muted small">{% trans "Enter the details for each candidate you want to add." %}</div>
+        <div class="bulk-candidates-section-title">{% if is_swedish %}Kandidatuppgifter{% else %}Candidate details{% endif %}</div>
+        <div class="text-muted small">{% if is_swedish %}Fyll i uppgifterna för varje kandidat du vill lägga till.{% else %}Enter the details for each candidate you want to add.{% endif %}</div>
       </div>
       <button type="button" class="btn btn-outline-secondary btn-sm" data-add-candidate-row>
         <i data-feather="plus"></i>
-        {% trans "Add another candidate" %}
+        {% if is_swedish %}Lägg till en kandidat till{% else %}Add another candidate{% endif %}
       </button>
     </div>
 
     <div class="bulk-candidates-rows" data-candidate-rows="manual">
-      <fieldset class="bulk-candidate-row" data-candidate-row data-row-mode="manual" data-row-label="{% trans 'Candidate {n}' %}">
+      <fieldset class="bulk-candidate-row" data-candidate-row data-row-mode="manual" data-row-label="{% if is_swedish %}Kandidat {n}{% else %}Candidate {n}{% endif %}">
         <legend class="visually-hidden">{% trans "Candidate 1" %}</legend>
         <div class="bulk-candidate-row__heading">
           <span data-row-label>{% trans "Candidate 1" %}</span>
@@ -76,14 +76,14 @@
   <section class="bulk-candidate-panel" role="tabpanel" data-mode-panel="excel" hidden>
     <div class="bulk-candidates-import">
       <div>
-        <div class="bulk-candidates-section-title">{% trans "Upload candidates from Excel" %}</div>
-        <div class="text-muted small">{% trans "Download the template, fill in one candidate per row, then select the completed file." %}</div>
+        <div class="bulk-candidates-section-title">{% if is_swedish %}Ladda upp kandidater från Excel{% else %}Upload candidates from Excel{% endif %}</div>
+        <div class="text-muted small">{% if is_swedish %}Ladda ner mallen, fyll i en kandidat per rad och välj sedan den färdiga filen.{% else %}Download the template, fill in one candidate per row, then select the completed file.{% endif %}</div>
       </div>
       <a class="bulk-candidates-template-link" href="{{ template_url }}">
         <i data-feather="download"></i>
-        {% trans "Download Excel template" %}
+        {% if is_swedish %}Ladda ner Excel-mall{% else %}Download Excel template{% endif %}
       </a>
-      <label class="form-label mb-1" for="candidateExcelFile">{% trans "Excel file (.xlsx)" %}</label>
+      <label class="form-label mb-1" for="candidateExcelFile">{% if is_swedish %}Excel-fil (.xlsx){% else %}Excel file (.xlsx){% endif %}</label>
       <input class="form-control" type="file" id="candidateExcelFile" name="candidate_file" accept=".xlsx" disabled>
       <div class="bulk-candidates-import-status" data-import-status aria-live="polite"></div>
     </div>
@@ -91,12 +91,12 @@
     <div class="bulk-candidates-preview" data-excel-preview hidden>
       <div class="bulk-candidates-section-heading">
         <div>
-          <div class="bulk-candidates-section-title">{% trans "Review candidates" %}</div>
-          <div class="text-muted small">{% trans "Correct or remove any rows marked with an error before adding candidates." %}</div>
+          <div class="bulk-candidates-section-title">{% if is_swedish %}Granska kandidater{% else %}Review candidates{% endif %}</div>
+          <div class="text-muted small">{% if is_swedish %}Rätta eller ta bort rader med fel innan du lägger till kandidaterna.{% else %}Correct or remove any rows marked with an error before adding candidates.{% endif %}</div>
         </div>
         <button type="button" class="btn btn-outline-secondary btn-sm" data-add-candidate-row>
           <i data-feather="plus"></i>
-          {% trans "Add another candidate" %}
+          {% if is_swedish %}Lägg till en kandidat till{% else %}Add another candidate{% endif %}
         </button>
       </div>
 
@@ -109,7 +109,7 @@
   <div class="bulk-candidates-footer">
     <button type="submit" class="btn btn-primary" data-submit-candidates>
       <i data-feather="user-plus"></i>
-      {% trans "Add candidates" %}
+      {% if is_swedish %}Lägg till kandidater{% else %}Add candidates{% endif %}
     </button>
   </div>
 </form>
