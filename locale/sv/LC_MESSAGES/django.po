@@ -7142,6 +7142,15 @@ msgstr "Fäst projekt"
 msgid "Unpin project"
 msgstr "Ta bort fästning"
 
+msgid "Reorder pinned project. Drag to move or use the up and down arrow keys."
+msgstr "Ändra ordningen på fästa projekt. Dra för att flytta eller använd uppåt- och nedåtpilarna."
+
+msgid "Pinned project order saved."
+msgstr "Ordningen på fästa projekt har sparats."
+
+msgid "Could not save pinned project order."
+msgstr "Det gick inte att spara ordningen på fästa projekt."
+
 msgid "You can pin up to five projects. Unpin one first."
 msgstr "Du kan fästa högst fem projekt. Ta bort ett först."
 
