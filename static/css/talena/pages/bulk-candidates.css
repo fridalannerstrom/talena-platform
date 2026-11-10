@@ -38,9 +38,7 @@
 .bulk-candidates-preview[hidden],
 .bulk-candidates-footer[hidden],
 .bulk-candidate-feedback[hidden] { display: none !important; }
-.bulk-candidate-chooser__title { color: #29323a; font-size: 1.05rem; font-weight: 650; }
-.bulk-candidate-chooser__options { display: grid; gap: .7rem; }
- .bulk-candidate-panel { display: grid; gap: 1rem; }
+.bulk-candidate-panel { display: grid; gap: 1rem; }
 .bulk-candidate-panel__top { display: grid; gap: .65rem; }
 .bulk-candidate-panel__heading { display: grid; gap: .2rem; }
 .bulk-candidate-back { display: inline-flex; align-items: center; gap: .35rem; width: fit-content; padding: 0; border: 0; background: transparent; color: #66717a; font-size: .85rem; }
