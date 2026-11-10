@@ -462,7 +462,7 @@
 
 /* Popup */
 .project-traits-modal .modal-dialog {
-  max-width: 700px;
+  max-width: 620px;
 }
 
 .project-traits-modal .modal-content {
@@ -544,7 +544,7 @@
 .project-traits-modal__grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.45rem;
+  gap: 0.55rem;
 }
 
 .project-trait-option {
@@ -569,11 +569,11 @@
 
 .project-trait-option__card {
   display: flex;
-  min-height: 49px;
+  min-height: 50px;
   align-items: center;
   justify-content: space-between;
   gap: 0.65rem;
-  padding: 0.56rem 0.68rem;
+  padding: 0.6rem 0.72rem;
   border: 1px solid var(--talena-border);
   border-radius: 11px;
   background: #fff;
@@ -608,9 +608,9 @@
 
 .project-trait-option__label {
   color: var(--talena-ink);
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   font-weight: 620;
-  line-height: 1.35;
+  line-height: 1.4;
 }
 
 .project-trait-option__check {
