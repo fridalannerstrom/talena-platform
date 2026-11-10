@@ -9,6 +9,7 @@ from .manager_report_activity import (
 )
 from .pinned_projects import reorder_pinned_projects, toggle_pinned_project
 from .process_duplication import process_duplicate
+from .bulk_candidates import candidate_import_template, process_add_candidates
 from .access_control import (
     process_edit_access_required,
     process_view_access_required,
@@ -51,6 +52,16 @@ urlpatterns = [
         "<int:pk>/add-candidate/",
         capture_automatic_candidate_invitations(views.process_add_candidate),
         name="process_add_candidate",
+    ),
+    path(
+        "<int:pk>/add-candidates/",
+        process_add_candidates,
+        name="process_add_candidates",
+    ),
+    path(
+        "<int:pk>/candidate-import-template.xlsx",
+        candidate_import_template,
+        name="candidate_import_template",
     ),
     path(
         "<int:pk>/automatic-invitation-setting/",
