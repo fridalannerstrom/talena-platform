@@ -35,6 +35,20 @@
       purposeFilter.appendChild(option);
     });
 
+  // Restore the current list state after navigation, including pin/unpin POSTs.
+  const initialParams = new URLSearchParams(window.location.search);
+  const supportedSorts = Array.from(sortSelect.options).map(function (option) {
+    return option.value;
+  });
+  if (supportedSorts.includes(initialParams.get("sort"))) {
+    sortSelect.value = initialParams.get("sort");
+  }
+  searchInput.value = initialParams.get("q") || "";
+  const initialPurpose = (initialParams.get("purpose") || "").toLowerCase();
+  if (initialPurpose) {
+    purposeFilter.value = initialPurpose;
+  }
+
   function matches(card, query, purposeValue) {
     const haystack = [
       card.dataset.title || "",
@@ -57,6 +71,15 @@
     const copy = list.slice();
 
     const sortFunctions = {
+      pinned_first: function (a, b) {
+        const pinnedDifference = Number(b.dataset.pinned === "true")
+          - Number(a.dataset.pinned === "true");
+        if (pinnedDifference) {
+          return pinnedDifference;
+        }
+        // Preserve the list's default newest-first ordering within each group.
+        return (b.dataset.created || "").localeCompare(a.dataset.created || "");
+      },
       created_desc: function (a, b) {
         return (b.dataset.created || "").localeCompare(a.dataset.created || "");
       },
@@ -90,6 +113,27 @@
     return copy;
   }
 
+  function syncListStateToUrl() {
+    const url = new URL(window.location.href);
+    const query = searchInput.value.trim();
+    const purpose = purposeFilter.value.trim();
+    const sort = sortSelect.value;
+
+    if (query) url.searchParams.set("q", query);
+    else url.searchParams.delete("q");
+    if (purpose) url.searchParams.set("purpose", purpose);
+    else url.searchParams.delete("purpose");
+    if (sort && sort !== "created_desc") url.searchParams.set("sort", sort);
+    else url.searchParams.delete("sort");
+
+    window.history.replaceState(null, "", url.pathname + url.search + url.hash);
+    grid.querySelectorAll("form").forEach(function (form) {
+      if (!form.querySelector(".process-pin")) return;
+      const next = form.querySelector("input[name='next']");
+      if (next) next.value = url.pathname + url.search;
+    });
+  }
+
   function render() {
     const query = (searchInput.value || "").trim().toLowerCase();
     const purposeValue = (purposeFilter.value || "").trim().toLowerCase();
@@ -109,6 +153,8 @@
       card.classList.remove("d-none");
       grid.appendChild(card);
     });
+
+    syncListStateToUrl();
   }
 
   cards.forEach(function (card) {

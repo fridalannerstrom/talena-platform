@@ -3518,7 +3518,7 @@ msgstr "Potentiellt stödjande mönster"
 # | msgid "What to explore or consider"
 #: .\templates\customer\processes\partials\candidate_insights\personality\_interpretation.html:244
 msgid "What to explore or validate"
-msgstr "Vad som bör utforskas eller valideras"
+msgstr "Potentiella utvecklingsområden"
 
 #: .\templates\customer\processes\partials\candidate_insights\personality\_questions.html:19
 #: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:241
@@ -6369,6 +6369,9 @@ msgid "Sort test processes"
 msgstr "Sortera testprocesser"
 
 #: .\templates\customer\processes\process_list.html:92
+msgid "Sort: Pinned first"
+msgstr "Sortera: Pinnade först"
+
 msgid "Sort: Newest first"
 msgstr "Sortera: Nyaste först"
 
@@ -7137,7 +7140,16 @@ msgid "Pin project"
 msgstr "Fäst projekt"
 
 msgid "Unpin project"
-msgstr "Ta bort från fästa projekt"
+msgstr "Ta bort fästning"
+
+msgid "Reorder pinned project. Drag to move or use the up and down arrow keys."
+msgstr "Ändra ordningen på fästa projekt. Dra för att flytta eller använd uppåt- och nedåtpilarna."
+
+msgid "Pinned project order saved."
+msgstr "Ordningen på fästa projekt har sparats."
+
+msgid "Could not save pinned project order."
+msgstr "Det gick inte att spara ordningen på fästa projekt."
 
 msgid "You can pin up to five projects. Unpin one first."
 msgstr "Du kan fästa högst fem projekt. Ta bort ett först."

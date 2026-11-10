@@ -480,21 +480,21 @@ INDICATOR_PROFILE_CONTENT = {
         label_sv="Grupparbete",
         label_en="Teamwork",
         score_1_2=_localized(
-            "Föredrar att arbeta oberoende av andra",
-            "Prefers working independently rather than cooperating in a group."
+            "Ointresserad av arbetsuppgifter som kräver grupparbete.",
+            "Is uninterested in tasks that require teamwork."
         ),
         score_3=_localized(
-            "Trivs med att arbeta på egen hand, snarare än att samarbeta i grupp.",
-            "Enjoys working independently rather than cooperating in a group."
+            "Troligen mindre intresserad av arbetsuppgifter som kräver grupparbete.",
+            "Is probably less interested in tasks that require teamwork."
         ),
         score_4_7=_localized(
             (
-                "Är vanligtvis samarbetsvillig och bekväm med att jobba både "
-                "självständigt och i team."
+                "Beroende på situation är personen bekväm med att arbeta oberoende av "
+                "andra eller tillsammans i grupp."
             ),
             (
-                "Is generally cooperative and comfortable working both independently "
-                "and as part of a team."
+                "Depending on the situation, the person is comfortable working "
+                "independently or together in a group."
             )
         ),
         score_8=_localized(
@@ -531,27 +531,24 @@ INDICATOR_PROFILE_CONTENT = {
         ),
         score_4_7=_localized(
             (
-                "Är samarbetsvillig men också bekväm med att uttrycka sin åsikt när det "
-                "krävs."
+                "Tillmötesgående men också bekväm att uttrycka sin åsikt när det krävs."
             ),
             (
-                "Is cooperative while also being comfortable expressing their view when "
+                "Is accommodating while also comfortable expressing their view when "
                 "required."
             )
         ),
         score_8=_localized(
             (
-                "Är vänlig och tillmötesgående och kommer sannolikt lätt överens med "
-                "andra."
+                "Tillmötesgående och kommer sannolikt lätt överens med andra."
             ),
             (
-                "Is friendly and accommodating and is likely to get along easily with "
-                "others."
+                "Is accommodating and is likely to get along easily with others."
             )
         ),
         score_9_10=_localized(
-            "Tillmötesgående och tycker det är lätt att samarbeta med andra",
-            "Is friendly and accommodating and gets along with others effortlessly."
+            "Tillmötesgående och kommer utan ansträngning lätt överens med andra.",
+            "Is accommodating and gets along with others effortlessly."
         ),
     ),
 

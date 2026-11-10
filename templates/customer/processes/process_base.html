@@ -168,24 +168,13 @@
 <!-- Add candidate modal -->
 <div class="modal fade" id="addCandidateModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <div class="d-flex flex-column">
-<div class="subheading mb-1">
-  {% trans "Add candidate" %}
-</div>
-
-<div class="text-muted small">
-  {% trans "Invite a candidate to this project." %}
-</div>
-        </div>
-        <button
-  type="button"
-  class="btn-close"
-  data-bs-dismiss="modal"
-  aria-label="{% trans 'Close' %}"
-></button>
-      </div>
+    <div class="modal-content bulk-candidate-modal-content">
+      <button
+        type="button"
+        class="btn-close bulk-candidate-modal-close"
+        data-bs-dismiss="modal"
+        aria-label="{% trans 'Close' %}"
+      ></button>
 
       <div class="modal-body" id="addCandidateModalBody">
         <div class="text-muted">
@@ -3036,7 +3025,8 @@ function initCandidateSheetInteractions(container) {
     );
     const overviewActions = Array.from(
       workspace.querySelectorAll(
-        ".candidate-result-overview [data-insights-tab]"
+        ".candidate-result-overview [data-insights-tab], " +
+        ".talena-overview-interpretations [data-insights-tab]"
       )
     );
 
@@ -3134,7 +3124,8 @@ if (target === "motivation") {
     });
 
     overviewActions.forEach((action) => {
-      action.addEventListener("click", () => {
+      action.addEventListener("click", (event) => {
+        event.preventDefault();
         activateTab(
           action.dataset.insightsTab
         );

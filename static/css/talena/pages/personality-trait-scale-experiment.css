@@ -60,7 +60,7 @@
 
 .process-page .personality-quick-scale__center-line {
   height: 18px !important;
-  background: rgba(23, 19, 18, 0.24) !important;
+  background: var(--talena-chart-line) !important;
 }
 
 .process-page .personality-quick-scale__labels span:first-child,
@@ -168,7 +168,7 @@ html[lang^="sv"] .process-page .personality-quick-scale__labels span:nth-child(2
   width: 1px !important;
   height: 18px !important;
   align-self: center;
-  background: rgba(23, 19, 18, 0.24) !important;
+  background: var(--talena-chart-line) !important;
 }
 
 .process-page .response-style-scale__label--left,
@@ -314,11 +314,11 @@ html[lang^="sv"] .process-page .response-style-scale__label--center::before {
 
 .process-page .personality-indicator-scale__center-line {
   display: block;
-  width: 1px !important;
+  width: 2px !important;
   height: 18px !important;
   align-self: center;
   border-radius: 999px !important;
-  background: rgba(23, 19, 18, 0.24) !important;
+  background: var(--talena-chart-line) !important;
 }
 
 .process-page .personality-indicator-scale__labels {
@@ -509,10 +509,32 @@ html[lang^="sv"] .process-page .personality-graph__axis span:nth-child(2)::befor
   width: 100% !important;
   transition: background-color 160ms ease;
 }
-.process-page .personality-graph__segment--filled {
+/* Match the indicator scale: neutral centre, progressively stronger tones at both ends. */
+.process-page .personality-graph__segment[data-score="4"],
+.process-page .personality-graph__segment[data-score="5"],
+.process-page .personality-graph__segment[data-score="6"],
+.process-page .personality-graph__segment[data-score="7"] {
+  background: #eeeae7 !important;
+}
+
+.process-page .personality-graph__segment[data-score="3"],
+.process-page .personality-graph__segment[data-score="8"] {
+  background: rgba(255, 111, 97, 0.10) !important;
+}
+
+.process-page .personality-graph__segment[data-score="2"],
+.process-page .personality-graph__segment[data-score="9"] {
+  background: rgba(255, 111, 97, 0.17) !important;
+}
+
+.process-page .personality-graph__segment[data-score="1"],
+.process-page .personality-graph__segment[data-score="10"] {
+  background: rgba(255, 111, 97, 0.25) !important;
+}
+.process-page .personality-graph__segment--filled[data-score] {
   background: var(--talena-chart-accent-soft, #ffb4a9) !important;
 }
-.process-page .personality-graph__segment--selected {
+.process-page .personality-graph__segment--selected[data-score] {
   background: var(--talena-chart-accent, #ff6f61) !important;
 }
 .process-page .personality-graph__center-line {
@@ -520,10 +542,10 @@ html[lang^="sv"] .process-page .personality-graph__axis span:nth-child(2)::befor
   z-index: 2;
   left: 50%;
   bottom: 0;
-  width: 1px;
+  width: 2px;
   height: 52px;
-  border-radius: 1px;
-  background: rgba(35, 43, 50, .38);
+  border-radius: 2px;
+  background: var(--talena-chart-line);
   transform: translateX(-50%);
   pointer-events: none;
 }

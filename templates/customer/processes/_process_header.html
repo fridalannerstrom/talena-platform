@@ -5,7 +5,7 @@
 <link href="{% static 'css/talena/pages/process-detail-consistency.css' %}" rel="stylesheet" />
 <link href="{% static 'css/talena/pages/process-modals.css' %}" rel="stylesheet" />
 <link href="{% static 'css/talena/pages/process-notices.css' %}" rel="stylesheet" />
-<link href="{% static 'css/talena/pages/candidate-insights.css' %}?v=20261107-431-401" rel="stylesheet" />
+<link href="{% static 'css/talena/pages/candidate-insights.css' %}?v=20261110-467-v2" rel="stylesheet" />
 <link href="{% static 'css/talena/pages/personality-dynamics.css' %}" rel="stylesheet" />
 <link href="{% static 'css/talena/pages/candidate-assessments.css' %}?v=20261101-364" rel="stylesheet" />
 <link href="{% static 'css/talena/pages/candidate-charts.css' %}" rel="stylesheet" />
@@ -22,6 +22,7 @@
 <script src="{% static 'js/talena/candidate-eyebrows.js' %}?v=20261107-rolecontext-v6" defer></script>
 <script src="{% static 'js/talena/candidate-ai-badges.js' %}?v=20261107-ai-generated-only-v4" defer></script>
 <script src="{% static 'js/talena/pre-interview-briefing.js' %}" defer></script>
+<script src="{% static 'js/talena/bulk-candidates.js' %}?v=197-submit-url" defer></script>
 
 <div class="process-hero mb-4">
 
@@ -191,7 +192,7 @@
         <button
           type="button"
           class="btn btn-primary js-add-candidate"
-          data-url="{% url 'processes:process_add_candidate' process.id %}"
+          data-url="{% url 'processes:process_add_candidates' process.id %}"
         >
           <i class="fa-solid fa-user-plus me-2"></i>
           {% trans "Add candidate" %}

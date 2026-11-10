@@ -1,4 +1,4 @@
-"""Ticket #365: compact personality profile and center-out scales."""
+"""Tickets #365/#424/#425: personality scales, contrast and trait graph shading."""
 import re
 from pathlib import Path
 from types import SimpleNamespace
@@ -114,12 +114,43 @@ class PersonalityCompactUiTests(SimpleTestCase):
         stylesheet = (Path(settings.BASE_DIR) /
             "static/css/talena/pages/personality-trait-scale-experiment.css"
         ).read_text(encoding="utf8")
+        tokens = (Path(settings.BASE_DIR) /
+            "static/css/talena/tokens.css"
+        ).read_text(encoding="utf8")
+        self.assertIn("--talena-text: #514a46;", tokens)
+        chart_stylesheet = (Path(settings.BASE_DIR) /
+            "static/css/talena/pages/candidate-charts.css"
+        ).read_text(encoding="utf8")
+        self.assertIn(
+            ".personality-overview-chart--segmented .personality-overview-item__track::after",
+            chart_stylesheet,
+        )
+        self.assertIn("width: 2px;", chart_stylesheet)
+        self.assertIn("--talena-text-muted: #625b57;", tokens)
+        self.assertIn("--talena-text-subtle: #766f6a;", tokens)
+        self.assertNotIn("--talena-text: #000000;", tokens)
         self.assertIn(".personality-graph__segment--filled", stylesheet)
         self.assertIn(".personality-graph__center-line", stylesheet)
         self.assertIn("#personality-detailed-view .personality-trait-card", stylesheet)
+        self.assertIn(".personality-graph__segment--filled[data-score]", stylesheet)
+        self.assertIn(".personality-graph__segment--selected[data-score]", stylesheet)
         self.assertIn("height: 78px !important", stylesheet)
         self.assertIn("height: 45px !important", stylesheet)
         self.assertIn("height: 52px;", stylesheet)
-        self.assertIn("width: 1px;", stylesheet)
+        self.assertIn("background: var(--talena-chart-line);", stylesheet)
+        shading = stylesheet.split(
+            "/* Match the indicator scale: neutral centre, progressively stronger tones at both ends. */",
+            1,
+        )[1].split(".process-page .personality-graph__segment--filled", 1)[0]
+        for score in range(1, 11):
+            self.assertIn(f'.personality-graph__segment[data-score="{score}"]', shading)
+        for tone in (
+            "#eeeae7",
+            "rgba(255, 111, 97, 0.10)",
+            "rgba(255, 111, 97, 0.17)",
+            "rgba(255, 111, 97, 0.25)",
+        ):
+            self.assertIn(tone, shading)
+        self.assertIn("width: 2px;", stylesheet)
         self.assertIn("height: 26px !important", stylesheet)
         self.assertIn("@media (max-width: 720px)", stylesheet)

@@ -2227,6 +2227,33 @@
 .process-page #purposeFitCard .talena-overview-interpretations__empty {
   line-height: 1.55;
 }
+.process-page #purposeFitCard .talena-overview-interpretations__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.38rem;
+  margin-top: 0.85rem;
+  color: var(--talena-coral-strong);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.4;
+  text-decoration: none;
+}
+.process-page #purposeFitCard .talena-overview-interpretations__cta:hover,
+.process-page #purposeFitCard .talena-overview-interpretations__cta:focus-visible {
+  color: var(--talena-ink);
+  text-decoration: underline;
+  outline: none;
+}
+.process-page #purposeFitCard .talena-overview-interpretations__cta:focus-visible {
+  border-radius: 3px;
+  box-shadow: 0 0 0 3px rgba(255, 111, 97, 0.16);
+}
+.process-page #purposeFitCard .talena-overview-interpretations__cta span {
+  transition: transform 140ms ease;
+}
+.process-page #purposeFitCard .talena-overview-interpretations__cta:hover span {
+  transform: translateX(3px);
+}
 @media (max-width: 1080px) {
   .process-page #purposeFitCard .talena-overview-interpretations__grid {
     grid-template-columns: minmax(0, 1fr);

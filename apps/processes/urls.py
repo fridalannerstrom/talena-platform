@@ -7,8 +7,9 @@ from .manager_report_pdf import (
 from .manager_report_activity import (
     customer_manager_report_activity, platform_manager_report_activity,
 )
-from .pinned_projects import toggle_pinned_project
+from .pinned_projects import reorder_pinned_projects, toggle_pinned_project
 from .process_duplication import process_duplicate
+from .bulk_candidates import candidate_import_template, process_add_candidates
 from .access_control import (
     process_edit_access_required,
     process_view_access_required,
@@ -40,6 +41,7 @@ urlpatterns = [
     path("<int:pk>/delete/", views.process_delete, name="process_delete"),
     path("<int:pk>/duplicate/", process_duplicate, name="process_duplicate"),
     path("<int:pk>/pin/", toggle_pinned_project, name="toggle_pinned_project"),
+    path("pins/reorder/", reorder_pinned_projects, name="reorder_pinned_projects"),
     path(
         "new/",
         capture_process_automatic_invitation_setting(views.process_create_v2),
@@ -50,6 +52,16 @@ urlpatterns = [
         "<int:pk>/add-candidate/",
         capture_automatic_candidate_invitations(views.process_add_candidate),
         name="process_add_candidate",
+    ),
+    path(
+        "<int:pk>/add-candidates/",
+        capture_automatic_candidate_invitations(process_add_candidates),
+        name="process_add_candidates",
+    ),
+    path(
+        "<int:pk>/candidate-import-template.xlsx",
+        candidate_import_template,
+        name="candidate_import_template",
     ),
     path(
         "<int:pk>/automatic-invitation-setting/",

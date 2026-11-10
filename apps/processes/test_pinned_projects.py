@@ -1,3 +1,5 @@
+import json
+
 from django.test import TestCase
 from django.urls import reverse
 
@@ -76,6 +78,43 @@ class PinnedProjectTests(TestCase):
         self.assertFalse(PinnedProject.objects.filter(user=self.viewer).exists())
         page = self.client.get(reverse("processes:process_list"))
         self.assertNotContains(page, "talena-pinned-link")
+
+    def test_user_can_reorder_pinned_projects(self):
+        self.client.force_login(self.viewer)
+        second_process = self._project("Second project", self.creator)
+        self._toggle(self.process)
+        self._toggle(second_process)
+
+        response = self.client.post(
+            reverse("processes:reorder_pinned_projects"),
+            data=json.dumps({"order": [self.process.pk, second_process.pk]}),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        page = self.client.get(reverse("processes:process_list"))
+        self.assertEqual(
+            [process.pk for process in page.context["pinned_projects"]],
+            [self.process.pk, second_process.pk],
+        )
+        self.assertEqual(
+            list(
+                PinnedProject.objects.filter(user=self.viewer)
+                .order_by("sort_order")
+                .values_list("process_id", flat=True)
+            ),
+            [self.process.pk, second_process.pk],
+        )
+
+    def test_user_cannot_reorder_a_project_they_have_not_pinned(self):
+        self.client.force_login(self.viewer)
+        response = self.client.post(
+            reverse("processes:reorder_pinned_projects"),
+            data=json.dumps({"order": [self.process.pk]}),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertFalse(PinnedProject.objects.filter(user=self.viewer).exists())
 
     def test_pins_are_private_and_stale_permissions_do_not_leak(self):
         PinnedProject.objects.create(user=self.own_only, process=self.process)

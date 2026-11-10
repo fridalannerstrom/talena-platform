@@ -386,7 +386,11 @@
     >
 
       <div class="purpose-fit-section-title">
-        {% trans "What to explore or validate" %}
+        {% if personality_interpretation_language|slice:":2" == "sv" %}
+          Potentiella utvecklingsområden
+        {% else %}
+          Potential development areas
+        {% endif %}
       </div>
 
       <ul

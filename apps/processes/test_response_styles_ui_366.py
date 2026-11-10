@@ -1,4 +1,4 @@
-"""Ticket #366: customer-facing response styles and deterministic nuance states."""
+"""Tickets #366/#413: response styles and customer-facing nuance states."""
 import json
 from pathlib import Path
 from types import SimpleNamespace
@@ -46,13 +46,20 @@ class ResponseStylesUiTests(SimpleTestCase):
         en = self.render_personality(language="en")
         self.assertIn('data-contrast-empty-state="no-patterns"', sv)
         self.assertIn(
-            "Här visas utvalda kombinationer av personlighetsdrag som kan vara "
-            "intressanta att utforska tillsammans. I den här profilen framträder "
-            "inga av dessa kombinationer, men det kan fortfarande finnas andra "
+            "Här visas utvalda mönster av indikatorer inom ett och samma "
+            "karaktärsdrag som kan vara intressanta att utforska. I den här profilen "
+            "framträder inga av dessa mönster, men det kan fortfarande finnas andra "
             "nyanser och samband som är värdefulla att utforska i samtalet.",
             sv,
         )
-        self.assertIn("None of these combinations stand out in this profile", en)
+        self.assertIn("None of these patterns stand out in this profile", en)
+        self.assertIn(
+            "This section shows selected patterns of indicators within a single "
+            "personality trait that may be interesting to explore. None of these "
+            "patterns stand out in this profile, but there may still be other "
+            "nuances and connections worth exploring in conversation.",
+            en,
+        )
         self.assertEqual(sv.count('data-profile-contrasts-intro="no-patterns"'), 1)
         self.assertEqual(en.count('data-profile-contrasts-intro="no-patterns"'), 1)
         for markup in (sv, en):
@@ -98,8 +105,8 @@ class ResponseStylesUiTests(SimpleTestCase):
         self.assertEqual(markup.count('data-profile-contrasts-intro="matched"'), 1)
         self.assertNotIn('data-profile-contrasts-intro="no-patterns"', markup)
         self.assertIn(
-            "Här visas utvalda kombinationer av personlighetsdrag som kan vara "
-            "intressanta att utforska tillsammans. Se dem som möjliga nyanser "
+            "Här visas utvalda mönster av indikatorer inom ett och samma "
+            "karaktärsdrag som kan vara intressanta att utforska. Se dem som möjliga nyanser "
             "att förstå bättre, inte som slutsatser.",
             markup,
         )
@@ -115,8 +122,8 @@ class ResponseStylesUiTests(SimpleTestCase):
         }
         markup = self.render_personality(language="en", contrasts=[contrast])
         self.assertIn(
-            "Selected combinations of personality traits that may be "
-            "interesting to explore together are shown here. Consider them "
+            "This section shows selected patterns of indicators within a single "
+            "personality trait that may be interesting to explore. Consider them "
             "possible nuances to understand better, not conclusions.",
             markup,
         )
