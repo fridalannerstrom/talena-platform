@@ -1,5 +1,5 @@
 {% load i18n static %}
-<link rel="stylesheet" href="{% static 'css/talena/pages/bulk-candidates.css' %}?v=197-form-polish-2">
+<link rel="stylesheet" href="{% static 'css/talena/pages/bulk-candidates.css' %}?v=197-button-pair">
 <form id="addCandidatesForm"
       class="bulk-candidates-form"
       method="post"
@@ -133,6 +133,7 @@
       {% if is_swedish %}Lägg till kandidat{% else %}Add candidate{% endif %}
     </button>
     <button type="submit" class="btn btn-primary" data-submit-candidates>
+      <i data-feather="check"></i>
       {% if is_swedish %}Färdig{% else %}Done{% endif %}
     </button>
   </div>
