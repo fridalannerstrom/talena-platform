@@ -16,69 +16,93 @@
       data-added-summary="{% trans '{count} candidates added. Updating the project…' %}"
       data-partial-summary="{% trans '{count} candidates added. Correct or remove the highlighted rows to continue.' %}"
       data-no-candidates="{% trans 'Enter at least one candidate to continue.' %}"
-      data-submit-failed="{% trans 'Something went wrong. Please try again.' %}">
+      data-submit-failed="{% trans 'Something went wrong. Please try again.' %}"
+      data-active-mode="manual">
   {% csrf_token %}
   <input type="hidden" name="action" value="add_candidates">
 
-  <div class="bulk-candidates-intro">
-    {% trans "Add one or more candidates below, or import them from an Excel file." %}
-  </div>
-
-  <div class="bulk-candidates-import">
-    <div>
-      <div class="bulk-candidates-section-title">{% trans "Import from Excel" %}</div>
-      <div class="text-muted small">{% trans "Use the template and include First name, Last name and Email columns." %}</div>
-    </div>
-    <a class="bulk-candidates-template-link" href="{{ template_url }}">
-      <i data-feather="download"></i>
-      {% trans "Download Excel template" %}
-    </a>
-    <label class="form-label mb-1" for="candidateExcelFile">{% trans "Excel file (.xlsx)" %}</label>
-    <input class="form-control" type="file" id="candidateExcelFile" name="candidate_file" accept=".xlsx">
-    <div class="bulk-candidates-import-status" data-import-status aria-live="polite"></div>
-  </div>
-
-  <div class="bulk-candidates-section-heading">
-    <div class="bulk-candidates-section-title">{% trans "Candidate details" %}</div>
-    <button type="button" class="btn btn-outline-secondary btn-sm" data-add-candidate-row>
-      <i data-feather="plus"></i>
-      {% trans "Add another candidate" %}
+  <div class="bulk-candidate-tabs" role="tablist" aria-label="{% trans 'Choose how to add candidates' %}">
+    <button type="button" class="bulk-candidate-tab is-active" role="tab" aria-selected="true" data-candidate-mode="manual">
+      {% trans "Add manually" %}
+    </button>
+    <button type="button" class="bulk-candidate-tab" role="tab" aria-selected="false" data-candidate-mode="excel">
+      {% trans "Upload Excel" %}
     </button>
   </div>
 
-  <div class="bulk-candidates-rows" data-candidate-rows>
-    <fieldset class="bulk-candidate-row" data-candidate-row data-row-label="{% trans 'Candidate {n}' %}">
-      <legend class="visually-hidden">{% trans "Candidate 1" %}</legend>
-      <div class="bulk-candidate-row__heading">
-        <span data-row-label>{% trans "Candidate 1" %}</span>
-        <button type="button" class="bulk-candidate-remove" data-remove-candidate-row aria-label="{% trans 'Remove candidate' %}" disabled>
-          <i data-feather="x"></i>
+  <section class="bulk-candidate-panel" role="tabpanel" data-mode-panel="manual">
+    <div class="bulk-candidates-section-heading">
+      <div>
+        <div class="bulk-candidates-section-title">{% trans "Candidate details" %}</div>
+        <div class="text-muted small">{% trans "Enter the details for each candidate you want to add." %}</div>
+      </div>
+      <button type="button" class="btn btn-outline-secondary btn-sm" data-add-candidate-row>
+        <i data-feather="plus"></i>
+        {% trans "Add another candidate" %}
+      </button>
+    </div>
+
+    <div class="bulk-candidates-rows" data-candidate-rows="manual">
+      <fieldset class="bulk-candidate-row" data-candidate-row data-row-mode="manual" data-row-label="{% trans 'Candidate {n}' %}">
+        <legend class="visually-hidden">{% trans "Candidate 1" %}</legend>
+        <div class="bulk-candidate-row__heading">
+          <span data-row-label>{% trans "Candidate 1" %}</span>
+          <button type="button" class="bulk-candidate-remove" data-remove-candidate-row aria-label="{% trans 'Remove candidate' %}" disabled>
+            <i data-feather="x"></i>
+          </button>
+        </div>
+        <div class="bulk-candidate-fields">
+          <div>
+            <label class="form-label">{% trans "First name" %}</label>
+            <input class="form-control" name="first_name[]" aria-label="{% trans 'First name' %}" autocomplete="given-name">
+            <div class="field-error" data-field-error="first_name"></div>
+          </div>
+          <div>
+            <label class="form-label">{% trans "Last name" %}</label>
+            <input class="form-control" name="last_name[]" aria-label="{% trans 'Last name' %}" autocomplete="family-name">
+            <div class="field-error" data-field-error="last_name"></div>
+          </div>
+          <div>
+            <label class="form-label">{% trans "Email" %}</label>
+            <input class="form-control" type="email" name="email[]" aria-label="{% trans 'Email' %}" autocomplete="email">
+            <div class="field-error" data-field-error="email"></div>
+          </div>
+        </div>
+        <div class="bulk-candidate-row__error" data-row-error role="alert"></div>
+      </fieldset>
+    </div>
+  </section>
+
+  <section class="bulk-candidate-panel" role="tabpanel" data-mode-panel="excel" hidden>
+    <div class="bulk-candidates-import">
+      <div>
+        <div class="bulk-candidates-section-title">{% trans "Upload candidates from Excel" %}</div>
+        <div class="text-muted small">{% trans "Download the template, fill in one candidate per row, then select the completed file." %}</div>
+      </div>
+      <a class="bulk-candidates-template-link" href="{{ template_url }}">
+        <i data-feather="download"></i>
+        {% trans "Download Excel template" %}
+      </a>
+      <label class="form-label mb-1" for="candidateExcelFile">{% trans "Excel file (.xlsx)" %}</label>
+      <input class="form-control" type="file" id="candidateExcelFile" name="candidate_file" accept=".xlsx" disabled>
+      <div class="bulk-candidates-import-status" data-import-status aria-live="polite"></div>
+    </div>
+
+    <div class="bulk-candidates-preview" data-excel-preview hidden>
+      <div class="bulk-candidates-section-heading">
+        <div>
+          <div class="bulk-candidates-section-title">{% trans "Review candidates" %}</div>
+          <div class="text-muted small">{% trans "Correct or remove any rows marked with an error before adding candidates." %}</div>
+        </div>
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-add-candidate-row>
+          <i data-feather="plus"></i>
+          {% trans "Add another candidate" %}
         </button>
       </div>
-      <div class="bulk-candidate-fields">
-        <div>
-          <label class="form-label">{% trans "First name" %}</label>
-          <input class="form-control" name="first_name[]" aria-label="{% trans 'First name' %}" autocomplete="given-name" required>
-          <div class="field-error" data-field-error="first_name"></div>
-        </div>
-        <div>
-          <label class="form-label">{% trans "Last name" %}</label>
-          <input class="form-control" name="last_name[]" aria-label="{% trans 'Last name' %}" autocomplete="family-name" required>
-          <div class="field-error" data-field-error="last_name"></div>
-        </div>
-        <div>
-          <label class="form-label">{% trans "Email" %}</label>
-          <input class="form-control" type="email" name="email[]" aria-label="{% trans 'Email' %}" autocomplete="email" required>
-          <div class="field-error" data-field-error="email"></div>
-        </div>
-      </div>
-      <div class="bulk-candidate-row__error" data-row-error role="alert"></div>
-    </fieldset>
-  </div>
 
-  <div class="bulk-candidates-tip">
-    {% trans "Candidates with errors will be skipped. You can correct those rows and submit again." %}
-  </div>
+      <div class="bulk-candidates-rows" data-candidate-rows="excel"></div>
+    </div>
+  </section>
 
   <div class="bulk-candidates-footer">
     <button type="submit" class="btn btn-primary" data-submit-candidates>
