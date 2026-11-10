@@ -1,6 +1,7 @@
 {% load i18n interview_config %}
 {% get_current_language as LANGUAGE_CODE %}
 {% interview_combined_sections as displayed_interview_sections %}
+{% interview_total_minutes displayed_interview_sections as total_interview_minutes %}
 {# Talena candidate i18n batch 1 #}
 
 <style>
@@ -214,20 +215,29 @@
     </div>
 
 
-    {% if has_combined_questions %}
-
-      <span class="personality-trait-pill text-nowrap">
-        {% if LANGUAGE_CODE|slice:":2" == "sv" %}
-          {% if combined_question_count == 1 %}1 fråga{% else %}{{ combined_question_count }} frågor{% endif %}
-        {% else %}
-          {% blocktrans count question_count=combined_question_count %}
-            {{ question_count }} question
-          {% plural %}
-            {{ question_count }} questions
-          {% endblocktrans %}
+    {% if has_combined_questions or displayed_interview_sections %}
+      <div class="d-flex align-items-center justify-content-end flex-wrap gap-2">
+        {% if has_combined_questions %}
+          <span class="personality-trait-pill text-nowrap">
+            {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+              {% if combined_question_count == 1 %}1 fråga{% else %}{{ combined_question_count }} frågor{% endif %}
+            {% else %}
+              {% blocktrans count question_count=combined_question_count %}
+                {{ question_count }} question
+              {% plural %}
+                {{ question_count }} questions
+              {% endblocktrans %}
+            {% endif %}
+          </span>
         {% endif %}
-      </span>
 
+        {% if displayed_interview_sections %}
+          <span class="personality-trait-pill text-nowrap">
+            <i data-feather="clock"></i>
+            {% if LANGUAGE_CODE|slice:":2" == "sv" %}Totalt ~{{ total_interview_minutes }} min{% else %}Total ~{{ total_interview_minutes }} min{% endif %}
+          </span>
+        {% endif %}
+      </div>
     {% endif %}
 
   </div>
