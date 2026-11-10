@@ -1,6 +1,5 @@
 {% extends "customer/processes/process_base.html" %}
 {% load static i18n %}
-{% get_current_language as LANGUAGE_CODE %}
 {# Talena process context i18n batch 1 #}
 {# Talena process context translated fallback repair 1 #}
 
@@ -237,13 +236,13 @@
 
               <div class="project-trait-selector-card__heading">
                 <h3 id="project-personality-traits-title" class="mb-1">
-                  {% if LANGUAGE_CODE|slice:":2" == "sv" %}Personlighetsdrag för intervjufrågorna{% else %}Personality traits for interview questions{% endif %}
+                  {% if language_code == "sv" %}Personlighetsdrag för intervjufrågor{% else %}Personality traits for interview questions{% endif %}
                 </h3>
                 <p class="mb-0">
-                  {% if LANGUAGE_CODE|slice:":2" == "sv" %}
-                    Samma urval används för alla kandidater. Talena rekommenderar drag utifrån rollkontexten.
+                  {% if language_code == "sv" %}
+                    Välj de personlighetsdrag som är viktigast för rollen. Du kan välja själv eller låta Talena rekommendera drag utifrån rollkontexten. Samma urval används för alla kandidater i projektet.
                   {% else %}
-                    The same selection is used for every candidate. Talena recommends traits from the role context.
+                    Choose the personality traits that matter most for this role. Select them yourself or let Talena recommend traits based on the role context. The same selection is used for every candidate in the project.
                   {% endif %}
                 </p>
               </div>
@@ -256,7 +255,7 @@
                   data-bs-target="#projectPersonalityTraitsModal"
                 >
                   <i data-feather="edit-2" aria-hidden="true"></i>
-                  {% if LANGUAGE_CODE|slice:":2" == "sv" %}Ändra urval{% else %}Change selection{% endif %}
+                  {% if language_code == "sv" %}Ändra urval{% else %}Change selection{% endif %}
                 </button>
               {% endif %}
             </div>
@@ -272,9 +271,9 @@
               <div class="project-trait-selector-card__source">
                 <i data-feather="{% if personality_trait_selection_source == 'manual' %}check-circle{% else %}sparkles{% endif %}" aria-hidden="true"></i>
                 {% if personality_trait_selection_source == "manual" %}
-                  {% if LANGUAGE_CODE|slice:":2" == "sv" %}Valda för hela projektet{% else %}Selected for the whole project{% endif %}
+                  {% if language_code == "sv" %}Valda för hela projektet{% else %}Selected for the whole project{% endif %}
                 {% else %}
-                  {% if LANGUAGE_CODE|slice:":2" == "sv" %}Talenas rekommendation utifrån rollkontexten{% else %}Recommended by Talena from the role context{% endif %}
+                  {% if language_code == "sv" %}Talenas rekommendation baserad på rollkontexten{% else %}Recommended by Talena from the role context{% endif %}
                 {% endif %}
               </div>
             {% else %}
@@ -282,14 +281,14 @@
                 <i data-feather="info" aria-hidden="true"></i>
                 <span>
                   {% if personality_trait_recommendation_error %}
-                    {% if LANGUAGE_CODE|slice:":2" == "sv" %}
-                      Talena kunde inte rekommendera drag just nu. Försök igen när du skapar frågorna.
+                    {% if language_code == "sv" %}
+                      Talena kunde inte rekommendera personlighetsdrag just nu. Försök igen när du skapar frågorna.
                     {% else %}
                       Talena could not recommend traits right now. Try again when generating the questions.
                     {% endif %}
                   {% else %}
-                    {% if LANGUAGE_CODE|slice:":2" == "sv" %}
-                      Talena väljer relevanta drag när rollkontexten finns sparad.
+                    {% if language_code == "sv" %}
+                      Talena rekommenderar relevanta personlighetsdrag när rollkontexten har sparats.
                     {% else %}
                       Talena will recommend relevant traits once the role context is saved.
                     {% endif %}
@@ -312,32 +311,32 @@
                   <div class="modal-header project-traits-modal__header">
                     <div>
                       <div class="insight-summary-kicker">
-                        {% if LANGUAGE_CODE|slice:":2" == "sv" %}Intervjufrågor{% else %}Interview questions{% endif %}
+                        {% if language_code == "sv" %}Intervjufrågor{% else %}Interview questions{% endif %}
                       </div>
                       <h2 class="modal-title" id="projectPersonalityTraitsModalTitle">
-                        {% if LANGUAGE_CODE|slice:":2" == "sv" %}Ändra personlighetsdrag{% else %}Change personality traits{% endif %}
+                        {% if language_code == "sv" %}Ändra personlighetsdrag{% else %}Change personality traits{% endif %}
                       </h2>
                     </div>
                     <button
                       type="button"
                       class="btn-close"
                       data-bs-dismiss="modal"
-                      aria-label="{% if LANGUAGE_CODE|slice:":2" == "sv" %}Stäng{% else %}Close{% endif %}"
+                      aria-label="{% if language_code == "sv" %}Stäng{% else %}Close{% endif %}"
                     ></button>
                   </div>
 
                   <div class="modal-body project-traits-modal__body">
                     <div class="project-traits-modal__selection-summary">
                       <p class="mb-0">
-                        {% if LANGUAGE_CODE|slice:":2" == "sv" %}
-                          Välj upp till åtta drag för hela projektet. Avmarkera alla för att använda Talenas rekommendation.
+                        {% if language_code == "sv" %}
+                          Välj upp till åtta personlighetsdrag för hela projektet. Avmarkera alla om du vill använda Talenas rekommendation.
                         {% else %}
                           Choose up to eight traits for the whole project. Clear all selections to use Talena's recommendation.
                         {% endif %}
                       </p>
                       <span class="project-traits-modal__counter" aria-live="polite">
                         <span data-project-trait-count>0</span>/8
-                        {% if LANGUAGE_CODE|slice:":2" == "sv" %}valda{% else %}selected{% endif %}
+                        {% if language_code == "sv" %}valda{% else %}selected{% endif %}
                       </span>
                     </div>
 
@@ -348,7 +347,7 @@
                     >
                       {% if form.personality_question_traits.errors %}
                         {{ form.personality_question_traits.errors|striptags }}
-                      {% elif LANGUAGE_CODE|slice:":2" == "sv" %}
+                      {% elif language_code == "sv" %}
                         Välj högst åtta personlighetsdrag.
                       {% else %}
                         Choose no more than eight personality traits.
@@ -379,7 +378,7 @@
 
                   <div class="modal-footer project-traits-modal__footer">
                     <button type="button" class="btn btn-light" data-bs-dismiss="modal">
-                      {% if LANGUAGE_CODE|slice:":2" == "sv" %}Avbryt{% else %}Cancel{% endif %}
+                      {% if language_code == "sv" %}Avbryt{% else %}Cancel{% endif %}
                     </button>
                     <button
                       type="submit"
@@ -387,7 +386,7 @@
                       name="save_personality_traits"
                       value="1"
                     >
-                      {% if LANGUAGE_CODE|slice:":2" == "sv" %}Spara urval{% else %}Save selection{% endif %}
+                      {% if language_code == "sv" %}Spara urval{% else %}Save selection{% endif %}
                     </button>
                   </div>
                 </div>

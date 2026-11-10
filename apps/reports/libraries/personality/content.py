@@ -431,7 +431,7 @@ INDICATOR_PROFILE_CONTENT = {
         label_sv="Känslighet",
         label_en="Sensitivity",
         score_1_2=_localized(
-            "Låter inte andras känslor påverka hens handlingar och beslut.",
+            "Undviker att låta andras känslor påverka sina handlingar",
             (
                 "Does not let other people's feelings influence their actions and "
                 "decisions."
@@ -469,10 +469,7 @@ INDICATOR_PROFILE_CONTENT = {
             )
         ),
         score_9_10=_localized(
-            (
-                "Är mycket lyhörd gentemot andras behov och känslor vid beslutsfattande "
-                "och agerande."
-            ),
+            "Är lyhörd gentemot andras behov",
             (
                 "Is highly attentive to other people's needs and feelings when making "
                 "decisions and taking action."
@@ -483,7 +480,7 @@ INDICATOR_PROFILE_CONTENT = {
         label_sv="Grupparbete",
         label_en="Teamwork",
         score_1_2=_localized(
-            "Föredrar att arbeta på egen hand framför samarbete i grupp.",
+            "Föredrar att arbeta oberoende av andra",
             "Prefers working independently rather than cooperating in a group."
         ),
         score_3=_localized(
@@ -508,10 +505,7 @@ INDICATOR_PROFILE_CONTENT = {
             "Enjoys cooperating with others and working as part of a team or group."
         ),
         score_9_10=_localized(
-            (
-                "Föredrar att samarbeta med andra och jobba som del av ett team eller "
-                "grupp."
-            ),
+            "Föredrar att arbeta i grupp",
             "Prefers cooperating with others and working as part of a team or group."
         ),
     ),
@@ -519,10 +513,7 @@ INDICATOR_PROFILE_CONTENT = {
         label_sv="Tillmötesgående",
         label_en="Agreeableness",
         score_1_2=_localized(
-            (
-                "Är bekväm med att uttrycka sina åsikter om hen inte håller med "
-                "omgivningen."
-            ),
+            "Säger sannolikt ifrån vid meningsskiljaktigheter",
             (
                 "Is comfortable expressing their views when they disagree with those "
                 "around them."
@@ -559,10 +550,7 @@ INDICATOR_PROFILE_CONTENT = {
             )
         ),
         score_9_10=_localized(
-            (
-                "Är vänlig och tillmötesgående och kommer utan ansträngning lätt "
-                "överens med andra."
-            ),
+            "Tillmötesgående och tycker det är lätt att samarbeta med andra",
             "Is friendly and accommodating and gets along with others effortlessly."
         ),
     ),
@@ -572,7 +560,7 @@ INDICATOR_PROFILE_CONTENT = {
         label_sv="Tolerans",
         label_en="Tolerance",
         score_1_2=_localized(
-            "Upplever det utmanande att vara tolerant när det gäller andras brister.",
+            "Upplever att det är utmanande att tolerera andras brister",
             "Finds it challenging to be tolerant of other people's shortcomings."
         ),
         score_3=_localized(
@@ -600,10 +588,7 @@ INDICATOR_PROFILE_CONTENT = {
             )
         ),
         score_9_10=_localized(
-            (
-                "Har lätt för att förstå andras perspektiv och är mycket tolerant mot "
-                "andra människor."
-            ),
+            "Sympatiserar med andra och är tolerant",
             (
                 "Finds it easy to understand other people's perspectives and is highly "
                 "tolerant of others."
@@ -614,10 +599,7 @@ INDICATOR_PROFILE_CONTENT = {
         label_sv="Lyhördhet",
         label_en="Listening",
         score_1_2=_localized(
-            (
-                "Upplever det tröttsamt att lyssna när andra pratar om sina problem "
-                "eller olika perspektiv."
-            ),
+            "Kan uppleva att det är tröttsamt att höra andra prata om sina problem",
             (
                 "Finds it tiring to listen when others talk about their problems or "
                 "different perspectives."
@@ -645,7 +627,7 @@ INDICATOR_PROFILE_CONTENT = {
             "Enjoys listening to other people's perspectives and problems."
         ),
         score_9_10=_localized(
-            "Tar sig aktivt tid för att lyssna på andras perspektiv och problem.",
+            "Gillar att lyssna på andra och höra deras perspektiv",
             (
                 "Actively makes time to listen to other people's perspectives and "
                 "problems."
@@ -656,10 +638,7 @@ INDICATOR_PROFILE_CONTENT = {
         label_sv="Värme",
         label_en="Warmth",
         score_1_2=_localized(
-            (
-                "Det är energikrävande att empatisera med andra, vilket gör att det tar "
-                "längre tid för hen att öppna upp för andra och skapa djupa relationer."
-            ),
+            "Tar tid på sig för att skapa goda relationer med andra",
             (
                 "Finds empathising with others draining, which means it may take them "
                 "longer to open up to others and form deep relationships."
@@ -697,10 +676,7 @@ INDICATOR_PROFILE_CONTENT = {
             )
         ),
         score_9_10=_localized(
-            (
-                "Har mycket lätt för att visa värme och öppenhet mot andra, och det "
-                "kommer naturligt att skapa djupa relationer med andra."
-            ),
+            "Skapar goda relationer och är varm mot andra",
             (
                 "Finds it very easy to show warmth and openness towards others, and "
                 "forming deep relationships comes naturally."
@@ -713,10 +689,7 @@ INDICATOR_PROFILE_CONTENT = {
         label_sv="Andras utveckling",
         label_en="Developing Others",
         score_1_2=_localized(
-            (
-                "Upplever det energikrävande att fokusera på andras utveckling, och "
-                "låter därför andra utvecklas självständigt."
-            ),
+            "Föredrar att låta andra utvecklas självständigt",
             (
                 "Finds it draining to focus on other people's development and therefore "
                 "lets others develop independently."
@@ -741,10 +714,7 @@ INDICATOR_PROFILE_CONTENT = {
             )
         ),
         score_9_10=_localized(
-            (
-                "Är genuint intresserad av att stötta andra och trivs med att hjälpa "
-                "andra att utvecklas."
-            ),
+            "Gillar att hjälpa andra att utvecklas och växa",
             (
                 "Is genuinely interested in supporting others and enjoys helping others "
                 "develop."
@@ -755,7 +725,7 @@ INDICATOR_PROFILE_CONTENT = {
         label_sv="Hjälpsamhet",
         label_en="Helpfulness",
         score_1_2=_localized(
-            "Lägger hellre tid på annat än på att stötta och hjälpa andra.",
+            "Bestämd vad gäller förväntningar på andra",
             (
                 "Prefers spending time on other things rather than supporting and "
                 "helping others."
@@ -783,7 +753,7 @@ INDICATOR_PROFILE_CONTENT = {
             )
         ),
         score_9_10=_localized(
-            "Hjälper andra och anstränger sig för att uppfylla allas behov.",
+            "Hjälper och stöttar andra",
             "Helps others and makes an effort to meet everyone's needs."
         ),
     ),
@@ -791,10 +761,7 @@ INDICATOR_PROFILE_CONTENT = {
         label_sv="Omtänksam",
         label_en="Considerate",
         score_1_2=_localized(
-            (
-                "Fokuserar mer på sina egna uppgifter och blir inte distraherad av "
-                "andra människors problem."
-            ),
+            "Fokuserar på uppgifterna i fråga istället för att lägga ner tid på att stötta andra",
             (
                 "Focuses more on their own tasks and is not distracted by other "
                 "people's problems."
@@ -831,10 +798,7 @@ INDICATOR_PROFILE_CONTENT = {
             )
         ),
         score_9_10=_localized(
-            (
-                "Lägger mycket tid på att fundera på hur andra kan bli stöttade och få "
-                "hjälp på bästa sätt."
-            ),
+            "Lägger ner tid och funderar på hur man kan stötta andra",
             (
                 "Spends a great deal of time considering how others can best be "
                 "supported and helped."
@@ -847,7 +811,7 @@ INDICATOR_PROFILE_CONTENT = {
         label_sv="Öppen kommunikation",
         label_en="Open Communication",
         score_1_2=_localized(
-            "Hen är mer bekväm med att kommunicera med likasinnade personer.",
+            "Föredrar att kommunicera med likasinnade",
             "Is more comfortable communicating with like-minded people."
         ),
         score_3=_localized(
@@ -875,7 +839,7 @@ INDICATOR_PROFILE_CONTENT = {
             )
         ),
         score_9_10=_localized(
-            "Det är lätt för hen att kommunicera med många olika typer av personer.",
+            "Känner sig bekväm med att kommunicera med en stor skara människor",
             "Finds it easy to communicate with many different types of people."
         ),
     ),
@@ -883,10 +847,7 @@ INDICATOR_PROFILE_CONTENT = {
         label_sv="Skapar nätverk",
         label_en="Building Networks",
         score_1_2=_localized(
-            (
-                "Fokuserar främst på att vårda kontakten med en nära och betrodd grupp "
-                "människor."
-            ),
+            "Fokuserar på en nära grupp med betrodda vänner och kollegor",
             (
                 "Focuses mainly on maintaining contact with a close and trusted group "
                 "of people."
@@ -923,10 +884,7 @@ INDICATOR_PROFILE_CONTENT = {
             )
         ),
         score_9_10=_localized(
-            (
-                "Det kommer naturligt för hen att nätverka strategiskt och att "
-                "kontinuerligt vårda befintliga kontakter."
-            ),
+            "Bygger upp ett omfattande nätverk med personer som går att förlita sig på",
             (
                 "Networking strategically and continuously maintaining existing "
                 "contacts comes naturally to them."
@@ -937,7 +895,7 @@ INDICATOR_PROFILE_CONTENT = {
         label_sv="Tar kontakt",
         label_en="Initiating Contact",
         score_1_2=_localized(
-            "Upplever det utmanande att ta kontakt med nya personer.",
+            "Kan känna sig obekväm med att ta kontakt med andra",
             "Finds it challenging to make contact with new people."
         ),
         score_3=_localized(
@@ -965,7 +923,7 @@ INDICATOR_PROFILE_CONTENT = {
             "Is likely to feel comfortable making contact with new people."
         ),
         score_9_10=_localized(
-            "Att ta kontakt med nya personer kommer mycket naturligt.",
+            "Gillar att ta kontakt med andra",
             "Making contact with new people comes very naturally."
         ),
     ),
@@ -975,10 +933,7 @@ INDICATOR_PROFILE_CONTENT = {
         label_sv="Energisk",
         label_en="Energetic",
         score_1_2=_localized(
-            (
-                "Föredrar ett lugnt tempo och upplever det energikrävande att ta på sig "
-                "många uppgifter på en och samma gång."
-            ),
+            "Föredrar att arbeta i jämnt tempo",
             (
                 "Prefers a calm pace and finds taking on many tasks at the same time "
                 "draining."
@@ -1015,10 +970,7 @@ INDICATOR_PROFILE_CONTENT = {
             )
         ),
         score_9_10=_localized(
-            (
-                "Trivs i miljöer med högt tempo och söker aktivt efter nya utmaningar "
-                "och uppgifter att ta på sig."
-            ),
+            "Driven och letar efter många uppgifter att åta sig",
             (
                 "Thrives in fast-paced environments and actively seeks new challenges "
                 "and tasks to take on."
@@ -1029,10 +981,7 @@ INDICATOR_PROFILE_CONTENT = {
         label_sv="Entusiastisk",
         label_en="Enthusiastic",
         score_1_2=_localized(
-            (
-                "Är mycket eftertänksam innan hen agerar och har en mer hänsynsfull "
-                "inställning."
-            ),
+            "Hänsynsfull och betänksam i sina handlingar",
             "Is very thoughtful before acting and takes a more considerate approach."
         ),
         score_3=_localized(
@@ -1060,7 +1009,7 @@ INDICATOR_PROFILE_CONTENT = {
             "Is likely to be enthusiastic and quick to act."
         ),
         score_9_10=_localized(
-            "Hen är entusiastisk och snabb i att agera.",
+            "Entusiastisk och snabb med att agera",
             "Is enthusiastic and quick to act."
         ),
     ),
@@ -1068,10 +1017,7 @@ INDICATOR_PROFILE_CONTENT = {
         label_sv="Riskaptit",
         label_en="Risk Appetite",
         score_1_2=_localized(
-            (
-                "Tar noga hänsyn till olika alternativ inför beslut och undviker risk "
-                "om det inte är absolut nödvändigt."
-            ),
+            "Är försiktig och går igenom alla utfall före handling",
             (
                 "Carefully considers different options before making decisions and "
                 "avoids risk unless it is absolutely necessary."
@@ -1102,7 +1048,7 @@ INDICATOR_PROFILE_CONTENT = {
             )
         ),
         score_9_10=_localized(
-            "Hen fattar beslut snabbt utan att veta utfallet och tar gärna risker.",
+            "Fattar beslut snabbt och tar gärna risker",
             (
                 "Makes decisions quickly without knowing the outcome and readily takes "
                 "risks."
@@ -1115,10 +1061,7 @@ INDICATOR_PROFILE_CONTENT = {
         label_sv="Övertygande",
         label_en="Persuading",
         score_1_2=_localized(
-            (
-                "Är obekväm med att behöva övertyga andra för att få dem att hålla med "
-                "om sin åsikt eller perspektiv."
-            ),
+            "Kan känna sig obekväm med att behöva övertyga andra om sin åsikt",
             (
                 "Is uncomfortable having to persuade others to agree with their view or "
                 "perspective."
@@ -1155,10 +1098,7 @@ INDICATOR_PROFILE_CONTENT = {
             )
         ),
         score_9_10=_localized(
-            (
-                "Hen gillar att övertyga andra och är mycket bekväm med att påverka "
-                "andra."
-            ),
+            "Gillar att övertala och övertyga andra",
             "Enjoys persuading others and is very comfortable influencing them."
         ),
     ),
@@ -1166,10 +1106,7 @@ INDICATOR_PROFILE_CONTENT = {
         label_sv="Vilja att leda",
         label_en="Desire to Lead",
         score_1_2=_localized(
-            (
-                "Föredrar att följa instruktioner istället för att ta ledningen i en "
-                "grupp."
-            ),
+            "Följer instruktioner och känner sig bekväm med att göra som andra",
             "Prefers following instructions rather than taking the lead in a group."
         ),
         score_3=_localized(
@@ -1203,7 +1140,7 @@ INDICATOR_PROFILE_CONTENT = {
             )
         ),
         score_9_10=_localized(
-            "Föredrar att ta befälet och att leda andra.",
+            "Gillar att ta befälet i de flesta situationer",
             "Prefers taking charge and leading others."
         ),
     ),
@@ -1211,7 +1148,7 @@ INDICATOR_PROFILE_CONTENT = {
         label_sv="Bestämd",
         label_en="Assertive",
         score_1_2=_localized(
-            "Är obekväm med att framhäva sin åsikt eller sitt perspektiv.",
+            "Ser till att inte pådyvla sina egna åsikter på andra",
             "Is uncomfortable emphasising their view or perspective."
         ),
         score_3=_localized(
@@ -1246,10 +1183,7 @@ INDICATOR_PROFILE_CONTENT = {
             )
         ),
         score_9_10=_localized(
-            (
-                "Har ett självsäkert och bestämt tillvägagångssätt, särskilt när det "
-                "gäller att uttrycka sina åsikter."
-            ),
+            "Självsäker och bestämd när åsikter ska uttryckas",
             (
                 "Takes a confident and assertive approach, particularly when expressing "
                 "their views."
@@ -1262,10 +1196,7 @@ INDICATOR_PROFILE_CONTENT = {
         label_sv="Tävlingsinriktad",
         label_en="Competitive",
         score_1_2=_localized(
-            (
-                "Ogillar att konkurrera med andra och undviker helst situationer som "
-                "innefattar tävling."
-            ),
+            "Undviker situationer som innebär att konkurrera med andra",
             (
                 "Dislikes competing with others and prefers to avoid situations "
                 "involving competition."
@@ -1302,7 +1233,7 @@ INDICATOR_PROFILE_CONTENT = {
             )
         ),
         score_9_10=_localized(
-            "Har en tydlig segervilja och trivs i tävlingssammanhang.",
+            "Tävlingsinriktad och har segervilja",
             "Has a clear determination to win and thrives in competitive situations."
         ),
     ),
@@ -1310,10 +1241,7 @@ INDICATOR_PROFILE_CONTENT = {
         label_sv="Utmaning",
         label_en="Challenge",
         score_1_2=_localized(
-            (
-                "Föredrar att ta det som det kommer istället för att vara överdrivet "
-                "angelägen om att uppnå särskilda mål."
-            ),
+            "Föredrar ett flexibelt tillvägagångssätt istället för att försöka uppnå särskilda mål",
             (
                 "Prefers taking things as they come rather than being overly concerned "
                 "with achieving specific goals."
@@ -1350,10 +1278,7 @@ INDICATOR_PROFILE_CONTENT = {
             )
         ),
         score_9_10=_localized(
-            (
-                "Hen motiveras av att lyckas och behåller därför fokus på sina mål även "
-                "när motgångar uppstår."
-            ),
+            "Blir mycket motiverad av utmanande mål",
             (
                 "Is motivated by succeeding and therefore remains focused on their "
                 "goals even when setbacks occur."
@@ -1364,10 +1289,7 @@ INDICATOR_PROFILE_CONTENT = {
         label_sv="Självdisciplin",
         label_en="Self-Discipline",
         score_1_2=_localized(
-            (
-                "Blir lätt distraherad från vad hen har för avsikt att uppnå, särskilt "
-                "om intresse för målet saknas."
-            ),
+            "Kan distraheras från att försöka nå mål",
             (
                 "Is easily distracted from what they intend to achieve, particularly "
                 "when they lack interest in the goal."
@@ -1404,10 +1326,7 @@ INDICATOR_PROFILE_CONTENT = {
             )
         ),
         score_9_10=_localized(
-            (
-                "Blir inte distraherad oavsett uppgift, utan är disciplinerad när det "
-                "kommer till att uppnå uppsatta mål."
-            ),
+            "Självdisciplinerad och fokuserad när mål ska uppnås",
             (
                 "Is not distracted regardless of the task and is disciplined when it "
                 "comes to achieving set goals."
@@ -1420,10 +1339,7 @@ INDICATOR_PROFILE_CONTENT = {
         label_sv="Planering och organisering",
         label_en="Planning and Organising",
         score_1_2=_localized(
-            (
-                "Föredrar ett flexibelt förhållningssätt framför att planera uppgifter "
-                "i förväg."
-            ),
+            "Använder hellre ett spontant tillvägagångssätt än att planera i förväg",
             "Prefers a flexible approach rather than planning tasks in advance."
         ),
         score_3=_localized(
@@ -1451,7 +1367,7 @@ INDICATOR_PROFILE_CONTENT = {
             "Is likely to plan and structure their tasks carefully."
         ),
         score_9_10=_localized(
-            "Planerar och strukturerar sina uppgifter noggrant.",
+            "Planerar och organiserar uppgifter på ett noggrant sätt",
             "Plans and structures their tasks carefully."
         ),
     ),
@@ -1459,7 +1375,7 @@ INDICATOR_PROFILE_CONTENT = {
         label_sv="Känsla för detaljer",
         label_en="Attention to Detail",
         score_1_2=_localized(
-            "Upplever det energikrävande att fokusera på detaljer.",
+            "Kan lätt bli uttråkad av detaljerade uppgifter",
             "Finds focusing on details draining."
         ),
         score_3=_localized(
@@ -1487,10 +1403,7 @@ INDICATOR_PROFILE_CONTENT = {
             )
         ),
         score_9_10=_localized(
-            (
-                "Har sinne för detaljer och ser till att arbetet blir utfört med hög "
-                "noggrannhet och kvalitet."
-            ),
+            "Har känsla för detaljer och fokuserar på noggrannhet",
             (
                 "Has an eye for detail and ensures that work is completed with a high "
                 "level of accuracy and quality."
@@ -1501,7 +1414,7 @@ INDICATOR_PROFILE_CONTENT = {
         label_sv="Håller löften",
         label_en="Keeping Promises",
         score_1_2=_localized(
-            "Är tolerant när det gäller mindre misstag eller ändringar i tidsplaner.",
+            "Är tolerant vad gäller små misstag och tidplaner som ändras",
             "Is tolerant of minor mistakes or changes to schedules."
         ),
         score_3=_localized(
@@ -1532,10 +1445,7 @@ INDICATOR_PROFILE_CONTENT = {
             )
         ),
         score_9_10=_localized(
-            (
-                "Gör sitt yttersta för att hålla det hen lovar och har låg tolerans mot "
-                "misstag och förändrade tidsplaner."
-            ),
+            "Håller vad som lovats andra",
             (
                 "Does their utmost to keep their promises and has low tolerance for "
                 "mistakes and changed schedules."
@@ -1548,10 +1458,7 @@ INDICATOR_PROFILE_CONTENT = {
         label_sv="Datafokus",
         label_en="Data Focus",
         score_1_2=_localized(
-            (
-                "Är mindre intresserad av data och statistik och finner det "
-                "energikrävande att ha stort fokus på detta."
-            ),
+            "Visar mindre intresse för att jobba med statistik och data",
             (
                 "Is less interested in data and statistics and finds placing a strong "
                 "focus on them draining."
@@ -1588,10 +1495,7 @@ INDICATOR_PROFILE_CONTENT = {
             )
         ),
         score_9_10=_localized(
-            (
-                "Har ett datadrivet förhållningssätt, och ser statistik och data som "
-                "nyckeln till att lösa problem."
-            ),
+            "Gillar att jobba med statistik och data för att underlätta problemlösning",
             (
                 "Takes a data-driven approach and regards statistics and data as key to "
                 "solving problems."
@@ -1602,10 +1506,7 @@ INDICATOR_PROFILE_CONTENT = {
         label_sv="Utvärderar",
         label_en="Evaluating",
         score_1_2=_localized(
-            (
-                "Är mindre intresserad av uppgifter som kräver kritisk utvärdering och "
-                "granskning."
-            ),
+            "Kan vara ointresserad av uppgifter som kräver kritisk analys",
             "Is less interested in tasks that require critical evaluation and review."
         ),
         score_3=_localized(
@@ -1639,7 +1540,7 @@ INDICATOR_PROFILE_CONTENT = {
             )
         ),
         score_9_10=_localized(
-            "Föredrar att utvärdera situationer på ett kritiskt granskande sätt.",
+            "Känner sig bekväm med att utvärdera de flesta situationer på ett kritiskt sätt",
             "Prefers evaluating situations in a critical and reviewing manner."
         ),
     ),
@@ -1647,10 +1548,7 @@ INDICATOR_PROFILE_CONTENT = {
         label_sv="Problemanalys",
         label_en="Analysing Problems",
         score_1_2=_localized(
-            (
-                "Har ett mer intuitivt tillvägagångssätt för att lösa problem, snarare "
-                "än att fokusera på statistik eller data."
-            ),
+            "Har ett intuitivt tillvägagångssätt vid problemlösning",
             (
                 "Takes a more intuitive approach to solving problems rather than "
                 "focusing on statistics or data."
@@ -1687,10 +1585,7 @@ INDICATOR_PROFILE_CONTENT = {
             )
         ),
         score_9_10=_localized(
-            (
-                "Använder olika informationskällor och ett analytiskt tillvägagångssätt "
-                "för att lösa problem."
-            ),
+            "Har ett analytiskt tillvägagångssätt vid problemlösning",
             (
                 "Uses different sources of information and an analytical approach to "
                 "solving problems."
@@ -1703,10 +1598,7 @@ INDICATOR_PROFILE_CONTENT = {
         label_sv="Strategiskt tänkande",
         label_en="Strategic Thinking",
         score_1_2=_localized(
-            (
-                "Föredrar att ha ett operativt fokus framför att arbeta med komplexa "
-                "problem."
-            ),
+            "Arbetar hellre med operativa detaljer än komplexa problem",
             (
                 "Prefers having an operational focus rather than working with complex "
                 "problems."
@@ -1737,7 +1629,7 @@ INDICATOR_PROFILE_CONTENT = {
             "Is likely to enjoy finding solutions to complex problems."
         ),
         score_9_10=_localized(
-            "Denna individ gillar verkligen att hitta lösningar på komplexa problem.",
+            "Gillar att hitta lösningar på komplexa problem",
             "Genuinely enjoys finding solutions to complex problems."
         ),
     ),
@@ -1745,10 +1637,7 @@ INDICATOR_PROFILE_CONTENT = {
         label_sv="Konceptuell",
         label_en="Conceptual",
         score_1_2=_localized(
-            (
-                "Föredrar att arbeta med praktiska detaljer i en situation, snarare än "
-                "att utforska de konceptuella aspekterna."
-            ),
+            "Fokuserad på praktiska detaljer istället för konceptuella idéer",
             (
                 "Prefers working with practical details in a situation rather than "
                 "exploring its conceptual aspects."
@@ -1787,10 +1676,7 @@ INDICATOR_PROFILE_CONTENT = {
             )
         ),
         score_9_10=_localized(
-            (
-                "Föredrar ett konceptuellt tillvägagångssätt och helhetsperspektiv vid "
-                "komplex problemlösning, snarare än att fokusera på operativa detaljer."
-            ),
+            "Har ett konceptuellt tillvägagångssätt och gillar att undersöka flera perspektiv",
             (
                 "Prefers taking a conceptual approach and a broad perspective when "
                 "solving complex problems rather than focusing on operational details."
@@ -1801,10 +1687,7 @@ INDICATOR_PROFILE_CONTENT = {
         label_sv="Nyfikenhet",
         label_en="Curiosity",
         score_1_2=_localized(
-            (
-                "Upplever det energikrävande att behöva lära sig om nya arbetssätt och "
-                "metoder."
-            ),
+            "Kan vara ointresserad av att behöva lära sig om nya tillvägagångssätt",
             "Finds having to learn about new ways of working and methods draining."
         ),
         score_3=_localized(
@@ -1838,10 +1721,7 @@ INDICATOR_PROFILE_CONTENT = {
             )
         ),
         score_9_10=_localized(
-            (
-                "Är nyfiken och söker aktivt upp möjligheter att lära sig om nya "
-                "arbetssätt och metoder."
-            ),
+            "Är nyfiken på att lära sig om andra tillvägagångssätt och tekniker",
             (
                 "Is curious and actively seeks opportunities to learn about new ways of "
                 "working and methods."
@@ -1854,10 +1734,7 @@ INDICATOR_PROFILE_CONTENT = {
         label_sv="Innovativ",
         label_en="Innovating",
         score_1_2=_localized(
-            (
-                "Föredrar beprövade och bekanta metoder för att lösa problem, snarare "
-                "än att utforska nya eller innovativa tillvägagångssätt."
-            ),
+            "Föredrar att använda beprövade metoder för att lösa problem",
             (
                 "Prefers tried-and-tested and familiar methods for solving problems "
                 "rather than exploring new or innovative approaches."
@@ -1894,11 +1771,7 @@ INDICATOR_PROFILE_CONTENT = {
             )
         ),
         score_9_10=_localized(
-            (
-                "Föredrar att hitta innovativa lösningar, framför att använda "
-                "befintliga metoder, och är bekväm med att använda helt nya "
-                "tillvägagångssätt vid problemlösning."
-            ),
+            "Gillar att hitta innovativa sätt att lösa problem",
             (
                 "Prefers finding innovative solutions rather than using existing "
                 "methods and is comfortable using entirely new approaches to "
@@ -1910,10 +1783,7 @@ INDICATOR_PROFILE_CONTENT = {
         label_sv="Idéskapande",
         label_en="Generating Ideas",
         score_1_2=_localized(
-            (
-                "Upplever det utmanande att komma på nya idéer eller lösningar, och "
-                "undviker helst situationer som kräver idégenerering."
-            ),
+            "Kan uppleva att det är utmanande att komma på nya idéer eller lösningar",
             (
                 "Finds it challenging to come up with new ideas or solutions and "
                 "prefers to avoid situations that require idea generation."
@@ -1950,7 +1820,7 @@ INDICATOR_PROFILE_CONTENT = {
             )
         ),
         score_9_10=_localized(
-            "Gillar att generera idéer och komma på kreativa lösningar till problem.",
+            "Känner sig bekväm med att ta fram nya idéer och lösningar",
             (
                 "Enjoys generating ideas and coming up with creative solutions to "
                 "problems."
@@ -1961,10 +1831,7 @@ INDICATOR_PROFILE_CONTENT = {
         label_sv="Experimentförmåga",
         label_en="Experimenting",
         score_1_2=_localized(
-            (
-                "Använder hellre beprövade och befintliga metoder, snarare än att "
-                "experimentera med nya arbetssätt."
-            ),
+            "Brukar hålla sig till befintliga tillvägagångssätt",
             (
                 "Prefers using tried-and-tested and existing methods rather than "
                 "experimenting with new ways of working."
@@ -1995,7 +1862,7 @@ INDICATOR_PROFILE_CONTENT = {
             "Is likely to enjoy experimenting and testing new ways of working."
         ),
         score_9_10=_localized(
-            "Gillar att experimentera och testa nya sätt att arbeta på.",
+            "Experimenterar gärna med olika tillvägagångssätt",
             "Enjoys experimenting and testing new ways of working."
         ),
     ),
@@ -2005,10 +1872,7 @@ INDICATOR_PROFILE_CONTENT = {
         label_sv="Förändringsanpassning",
         label_en="Adapting to Change",
         score_1_2=_localized(
-            (
-                "Upplever förändringar som utmanande och det kan ta tid att anpassa sig "
-                "till nya situationer."
-            ),
+            "Kan behöva tid att anpassa sig till nya situationer",
             "Finds change challenging and may take time to adapt to new situations."
         ),
         score_3=_localized(
@@ -2039,7 +1903,7 @@ INDICATOR_PROFILE_CONTENT = {
             )
         ),
         score_9_10=_localized(
-            "Gillar förändringar och anpassar sig snabbt till nya situationer.",
+            "Anpassar sig lätt till nya situationer. Har ett flexibelt tillvägagångssätt och gillar variation",
             "Enjoys change and adapts quickly to new situations."
         ),
     ),
@@ -2047,10 +1911,7 @@ INDICATOR_PROFILE_CONTENT = {
         label_sv="Flexibel",
         label_en="Flexible",
         score_1_2=_localized(
-            (
-                "Har en bestämd uppfattning och synsätt i de flesta situationer, och "
-                "visar ointresse för andra perspektiv."
-            ),
+            "Har ett bestämt synsätt i de flesta situationer",
             (
                 "Has a fixed view and approach in most situations and shows little "
                 "interest in other perspectives."
@@ -2086,10 +1947,7 @@ INDICATOR_PROFILE_CONTENT = {
             )
         ),
         score_9_10=_localized(
-            (
-                "Har ett flexibelt förhållningssätt vid nya situationer och ändrar "
-                "enkelt sitt synsätt vid ny information och perspektiv."
-            ),
+            "Anpassar sig snabbt till nya utmaningar",
             (
                 "Takes a flexible approach in new situations and changes their view "
                 "easily when presented with new information and perspectives."
@@ -2100,10 +1958,7 @@ INDICATOR_PROFILE_CONTENT = {
         label_sv="Variation",
         label_en="Variety",
         score_1_2=_localized(
-            (
-                "Föredrar ett förutsägbart och rutinmässigt arbetssätt, och kan uppleva "
-                "oförutsägbarhet som energikrävande."
-            ),
+            "Föredrar ett stabilt och förutsägbart aktivitetsmönster",
             (
                 "Prefers a predictable and routine way of working and may find "
                 "unpredictability draining."
@@ -2134,10 +1989,7 @@ INDICATOR_PROFILE_CONTENT = {
             "Is likely to prefer variety and may find routine tasks draining."
         ),
         score_9_10=_localized(
-            (
-                "Föredrar stor variation och upplever rutinmässiga uppgifter som "
-                "energikrävande."
-            ),
+            "Föredrar mycket variation och kan bli uttråkad av rutiner",
             "Prefers a high degree of variety and finds routine tasks draining."
         ),
     ),
@@ -2147,10 +1999,7 @@ INDICATOR_PROFILE_CONTENT = {
         label_sv="Regelefterlevnad",
         label_en="Adhering to Rules",
         score_1_2=_localized(
-            (
-                "Känner sig bekväm med att tumma på och bryta mot regler i rimlig "
-                "utsträckning när det behövs för att få saker gjorda."
-            ),
+            "Tummar på eller bryter mot regler när det behövs för att få saker gjorda",
             (
                 "Feels comfortable bending and breaking rules to a reasonable extent "
                 "when needed to get things done."
@@ -2187,10 +2036,7 @@ INDICATOR_PROFILE_CONTENT = {
             )
         ),
         score_9_10=_localized(
-            (
-                "Följer regler och riktlinjer mycket noggrant utan ifrågasättande och "
-                "är ovillig att tumma på dessa oavsett omständigheterna."
-            ),
+            "Ser till att noggrant följa regler och riktlinjer",
             (
                 "Follows rules and guidelines very carefully without questioning them "
                 "and is unwilling to bend them regardless of the circumstances."
@@ -2201,10 +2047,7 @@ INDICATOR_PROFILE_CONTENT = {
         label_sv="Uppriktig",
         label_en="Candid",
         score_1_2=_localized(
-            (
-                "Föredrar att vara indirekt och mindre rättfram i sin kommunikation när "
-                "hen framför sin åsikt."
-            ),
+            "Föredrar att vara mindre direkt vid kommunikation med andra",
             (
                 "Prefers to communicate indirectly and less straightforwardly when "
                 "expressing their opinion."
@@ -2241,10 +2084,7 @@ INDICATOR_PROFILE_CONTENT = {
             )
         ),
         score_9_10=_localized(
-            (
-                "Oberoende av situation kommer hen att vara direkt och rättfram i sin "
-                "kommunikation och rak med sina åsikter."
-            ),
+            "Ärlig och uppriktig när åsikter ska förmedlas till andra",
             (
                 "Communicates directly and straightforwardly and is candid about their "
                 "opinions regardless of the situation."
@@ -2255,12 +2095,7 @@ INDICATOR_PROFILE_CONTENT = {
         label_sv="Äkta",
         label_en="Earnest",
         score_1_2=_localized(
-            (
-                "Är bekväm med att ge komplimanger eller visa uppskattning, även när "
-                "det inte helt speglar den egna uppfattningen, om det hjälper att nå "
-                "ett mål. Håller tillbaka sin egentliga åsikt om andra när det bedöms "
-                "vara mer ändamålsenligt."
-            ),
+            "Känner sig bekväm med att smickra andra för att lättare uppnå mål",
             (
                 "Is comfortable giving compliments or showing appreciation even when it "
                 "does not fully reflect their own view, if doing so helps them achieve "
@@ -2311,12 +2146,7 @@ INDICATOR_PROFILE_CONTENT = {
             )
         ),
         score_9_10=_localized(
-            (
-                "Har en tydlig uppfattning om andra och kan ha svårt att uttrycka "
-                "uppskattning om den inte känns genuint förankrad. Är rak med sina "
-                "åsikter och kan ha begränsat behov av att dölja vad hen faktiskt "
-                "tycker."
-            ),
+            "Brukar vara mycket tydlig när det gäller åsikter om andra personer. Har ett uppriktigt tillvägagångssätt",
             (
                 "Has a clear view of others and may find it difficult to express "
                 "appreciation unless it feels genuinely grounded. Is candid about their "
@@ -2331,10 +2161,7 @@ INDICATOR_PROFILE_CONTENT = {
         label_sv="Jämlik",
         label_en="Egalitarian",
         score_1_2=_localized(
-            (
-                "Förväntar sig att andra bekräftar hens status genom att visa respekt, "
-                "och att hens roll i organisationen kommer med en viss särbehandling."
-            ),
+            "Föredrar att ens status respekteras av andra",
             (
                 "Expects others to acknowledge their status by showing respect and "
                 "expects their role in the organisation to come with a degree of "
@@ -2373,10 +2200,7 @@ INDICATOR_PROFILE_CONTENT = {
             )
         ),
         score_9_10=_localized(
-            (
-                "Vill bli behandlad på samma sätt som andra oavsett hens roll, och "
-                "undviker därför att framhäva sin status."
-            ),
+            "Föredrar att behandlas på samma sätt som andra oavsett status",
             (
                 "Wants to be treated in the same way as others regardless of their role "
                 "and therefore avoids emphasising their status."
@@ -2387,10 +2211,7 @@ INDICATOR_PROFILE_CONTENT = {
         label_sv="Kollektiv",
         label_en="Collective",
         score_1_2=_localized(
-            (
-                "Vill få uppmärksamhet och erkännande för sina unika egenskaper och "
-                "färdigheter."
-            ),
+            "Gillar att egna kvaliteter uppmärksammas av andra",
             "Wants attention and recognition for their unique qualities and skills."
         ),
         score_3=_localized(
@@ -2426,10 +2247,7 @@ INDICATOR_PROFILE_CONTENT = {
             )
         ),
         score_9_10=_localized(
-            (
-                "Smälter helst in i gruppen framför att få särskild uppmärksamhet och "
-                "vill inte att andra ska känna att de måste visa hen uppskattning."
-            ),
+            "Är hellre en del av gruppen än att få särskild uppmärksamhet",
             (
                 "Prefers blending into the group rather than receiving special "
                 "attention and does not want others to feel they have to show "
@@ -2441,10 +2259,7 @@ INDICATOR_PROFILE_CONTENT = {
         label_sv="Undviker status",
         label_en="Avoiding Status",
         score_1_2=_localized(
-            (
-                "Förväntar sig att hens status och roll erkänns och bekräftas av andra "
-                "och i organisationen."
-            ),
+            "Förväntar sig att bli uppmärksammad för sin status",
             (
                 "Expects their status and role to be recognised and acknowledged by "
                 "others and within the organisation."
@@ -2483,10 +2298,7 @@ INDICATOR_PROFILE_CONTENT = {
             )
         ),
         score_9_10=_localized(
-            (
-                "Har inget behov av att hens status uppmärksammas och anser att respekt "
-                "ska förtjänas, inte att det kommer automatiskt med en titel."
-            ),
+            "Har ett mycket litet behov av att andra uppmärksammar ens status",
             (
                 "Has no need for their status to receive attention and believes that "
                 "respect should be earned rather than automatically coming with a "
@@ -2500,10 +2312,7 @@ INDICATOR_PROFILE_CONTENT = {
         label_sv="Ödmjuk",
         label_en="Humble",
         score_1_2=_localized(
-            (
-                "Kan uppleva det frustrerande om hens insats går obemärkt förbi och "
-                "förväntar sig att andra visar uppskattning."
-            ),
+            "Gillar att prata om sina egna framgångar och att få andras uppmärksamhet",
             (
                 "May find it frustrating when their contribution goes unnoticed and "
                 "expects others to show appreciation."
@@ -2540,10 +2349,7 @@ INDICATOR_PROFILE_CONTENT = {
             )
         ),
         score_9_10=_localized(
-            (
-                "Anser sig inte vara bättre än någon annan och förväntar sig inte "
-                "uppskattning eller specialbehandling."
-            ),
+            "Ödmjuk vid kontakt med andra. Undviker att stå i centrum",
             (
                 "Does not consider themselves better than anyone else and does not "
                 "expect appreciation or special treatment."
@@ -2554,10 +2360,7 @@ INDICATOR_PROFILE_CONTENT = {
         label_sv="Anspråkslös",
         label_en="Modest",
         score_1_2=_localized(
-            (
-                "Pratar gärna om sina framgångar och mår bra när hen får uppmärksamhet "
-                "för sina prestationer."
-            ),
+            "Förväntar sig att få erkännande från andra",
             (
                 "Readily talks about their successes and feels good when they receive "
                 "attention for their achievements."
@@ -2591,10 +2394,7 @@ INDICATOR_PROFILE_CONTENT = {
             )
         ),
         score_9_10=_localized(
-            (
-                "Är blygsam och undviker att prata om sina framgångar, och är obekväm "
-                "när hen får uppmärksamhet för sina prestationer."
-            ),
+            "Ser sig själv precis som alla andra",
             (
                 "Is modest, avoids talking about their successes, and feels "
                 "uncomfortable when they receive attention for their achievements."
@@ -2605,10 +2405,7 @@ INDICATOR_PROFILE_CONTENT = {
         label_sv="Undviker uppmärksamhet",
         label_en="Avoiding Attention",
         score_1_2=_localized(
-            (
-                "Trivs med att stå i centrum och föredrar att få uppmärksamhet i "
-                "gruppsammanhang, snarare än att vara en i mängden."
-            ),
+            "Gillar att prata om sina egna framgångar",
             (
                 "Enjoys being the centre of attention and prefers receiving attention "
                 "in group settings rather than being one among many."
@@ -2642,10 +2439,7 @@ INDICATOR_PROFILE_CONTENT = {
             )
         ),
         score_9_10=_localized(
-            (
-                "Undviker att stå i centrum och håller sig gärna i bakgrunden, för att "
-                "undgå uppmärksamhet."
-            ),
+            "Ödmjuk inför ens egna prestationer. Undviker att stå i centrum i grupper",
             (
                 "Avoids being the centre of attention and readily stays in the "
                 "background to avoid attention."
@@ -2658,7 +2452,7 @@ INDICATOR_PROFILE_CONTENT = {
         label_sv="Härdad",
         label_en="Tough Minded",
         score_1_2=_localized(
-            "Känslig för kritik från andra och det kan ta tid att släppa det.",
+            "Känslig för kritik från andra",
             "Is sensitive to criticism from others and may take time to let it go."
         ),
         score_3=_localized(
@@ -2692,10 +2486,7 @@ INDICATOR_PROFILE_CONTENT = {
             )
         ),
         score_9_10=_localized(
-            (
-                "Påverkas inte så lätt av kritik och oroar sig inte för hur andra "
-                "uppfattar hen."
-            ),
+            "Är härdad och påverkas inte lätt av kritik",
             (
                 "Is not easily affected by criticism and does not worry about how "
                 "others perceive them."
@@ -2706,10 +2497,7 @@ INDICATOR_PROFILE_CONTENT = {
         label_sv="Återhämtningsförmåga",
         label_en="Recovering",
         score_1_2=_localized(
-            (
-                "Kan ta tid att komma över misstag och kan ha svårigheter att gå vidare "
-                "efter en motgång."
-            ),
+            "Kan behöva viss tid på sig att komma tillbaka från motgångar",
             (
                 "May take time to get over mistakes and may find it difficult to move "
                 "on after a setback."
@@ -2743,10 +2531,7 @@ INDICATOR_PROFILE_CONTENT = {
             )
         ),
         score_9_10=_localized(
-            (
-                "Svarar väl på bakslag och motgångar, och går vidare snabbt utan att "
-                "övertänka."
-            ),
+            "Återhämtar sig snabbt från motgångar",
             (
                 "Responds well to setbacks and adversity and moves on quickly without "
                 "overthinking."
@@ -2757,10 +2542,7 @@ INDICATOR_PROFILE_CONTENT = {
         label_sv="Optimistisk",
         label_en="Optimistic",
         score_1_2=_localized(
-            (
-                "Har en pessimistisk syn när saker och ting går snett och oroar sig för "
-                "tänkbara konsekvenser."
-            ),
+            "Oroar sig ofta eller är pessimistisk när något går snett",
             (
                 "Takes a pessimistic view when things go wrong and worries about "
                 "possible consequences."
@@ -2798,11 +2580,7 @@ INDICATOR_PROFILE_CONTENT = {
             )
         ),
         score_9_10=_localized(
-            (
-                "Optimistisk och väljer att fokusera på de positiva aspekterna vid "
-                "utmanande situationer, snarare än att fokusera på hinder eller det "
-                "negativa."
-            ),
+            "Svarar på de flesta utmaningar på ett optimistiskt sätt",
             (
                 "Is optimistic and chooses to focus on the positive aspects in "
                 "challenging situations rather than on obstacles or negative aspects."
@@ -2815,7 +2593,7 @@ INDICATOR_PROFILE_CONTENT = {
         label_sv="Stresshantering",
         label_en="Controlling Stress",
         score_1_2=_localized(
-            "Kan lätt visa känslor i påfrestande och utmanande situationer.",
+            "Visar sina känslor och blir ängslig vid påfrestningar",
             "May readily show emotion in stressful and challenging situations."
         ),
         score_3=_localized(
@@ -2843,7 +2621,7 @@ INDICATOR_PROFILE_CONTENT = {
             )
         ),
         score_9_10=_localized(
-            "Har god känsloreglering och kan dölja negativa känslor under press.",
+            "Håller sig lugn och har kontroll över sina känslor vid påfrestningar",
             (
                 "Regulates their emotions well and can conceal negative emotions under "
                 "pressure."
@@ -2854,10 +2632,7 @@ INDICATOR_PROFILE_CONTENT = {
         label_sv="Lugn",
         label_en="Calm",
         score_1_2=_localized(
-            (
-                "Kan oroa sig för situationer som känns utmanande och visar regelbundet "
-                "sin ängslan för andra."
-            ),
+            "Har en tendens att visa känslor i påfrestande situationer",
             (
                 "May worry about situations that feel challenging and regularly shows "
                 "anxiety to others."
@@ -2894,10 +2669,7 @@ INDICATOR_PROFILE_CONTENT = {
             )
         ),
         score_9_10=_localized(
-            (
-                "Känner sällan oro och har en mycket lugn framtoning i de flesta "
-                "situationer."
-            ),
+            "Kan behärska sig vid påfrestningar",
             "Rarely feels worried and presents as very calm in most situations."
         ),
     ),
@@ -2905,11 +2677,7 @@ INDICATOR_PROFILE_CONTENT = {
         label_sv="Samlad",
         label_en="Composed",
         score_1_2=_localized(
-            (
-                "Vid mycket utmanande eller känslomässigt påfrestande situationer är "
-                "självbehärskning svårare och därmed kan hen vara benägen att tappa "
-                "fattningen."
-            ),
+            "Kan ibland tappa fattningen vid påfrestningar",
             (
                 "In highly challenging or emotionally stressful situations, "
                 "self-control is more difficult and they may therefore be inclined to "
@@ -2949,10 +2717,7 @@ INDICATOR_PROFILE_CONTENT = {
             )
         ),
         score_9_10=_localized(
-            (
-                "Har god självbehärskning, bibehåller lugnet och håller sig samlad i "
-                "utmanande och känslomässigt påfrestande situationer."
-            ),
+            "Håller sig lugn även i känslomässigt laddade situationer",
             (
                 "Shows good self-control, remains calm, and stays composed in "
                 "challenging and emotionally stressful situations."
@@ -2965,7 +2730,7 @@ INDICATOR_PROFILE_CONTENT = {
         label_sv="Självgående",
         label_en="Self-Reliant",
         score_1_2=_localized(
-            "Föredrar att bli vägledd och att få mycket stöd från omgivningen.",
+            "Gillar att få mycket stöd från andra runtomkring sig",
             (
                 "Prefers to be guided and to receive a great deal of support from those "
                 "around them."
@@ -3000,10 +2765,7 @@ INDICATOR_PROFILE_CONTENT = {
             )
         ),
         score_9_10=_localized(
-            (
-                "Föredrar att ta sig an uppgifter på egen hand och är inte i behov av "
-                "stöd och vägledning från andra."
-            ),
+            "Självgående och behöver väldigt lite stöd från andra",
             (
                 "Prefers taking on tasks independently and does not need support and "
                 "guidance from others."
@@ -3014,10 +2776,7 @@ INDICATOR_PROFILE_CONTENT = {
         label_sv="Självständig",
         label_en="Self-Contained",
         score_1_2=_localized(
-            (
-                "Arbetar som allra bäst när de får emotionellt stöd och uppmuntran från "
-                "andra, och delar gärna med sig av sina känslor öppet."
-            ),
+            "Gillar att dela med sig av sina känslor och få stöd från andra",
             (
                 "Works best when they receive emotional support and encouragement from "
                 "others and readily shares their feelings openly."
@@ -3055,10 +2814,7 @@ INDICATOR_PROFILE_CONTENT = {
             )
         ),
         score_9_10=_localized(
-            (
-                "Föredrar att arbeta självständigt och har inte behov av emotionellt "
-                "stöd och uppmuntran från omgivningen."
-            ),
+            "Föredrar att arbeta självständigt och har ett mycket litet behov av stöd",
             (
                 "Prefers working independently and does not need emotional support and "
                 "encouragement from those around them."
@@ -3069,10 +2825,7 @@ INDICATOR_PROFILE_CONTENT = {
         label_sv="Tänker självständigt",
         label_en="Thinking Independently",
         score_1_2=_localized(
-            (
-                "Söker råd inför beslut och lägger stor vikt vid andras åsikter innan "
-                "hen agerar."
-            ),
+            "Uppsöker råd och feedback från andra innan beslut fattas",
             (
                 "Seeks advice before making decisions and places great importance on "
                 "other people's opinions before taking action."
@@ -3111,11 +2864,7 @@ INDICATOR_PROFILE_CONTENT = {
             )
         ),
         score_9_10=_localized(
-            (
-                "Föredrar att fatta beslut självständigt utan att söka råd från andra "
-                "och är bekväm med att fatta beslut utan att oroa sig för vad andra ska "
-                "tycka."
-            ),
+            "Fattar beslut självständigt utan något behov av feedback från andra",
             (
                 "Prefers making decisions independently without seeking advice from "
                 "others and is comfortable making decisions without worrying about what "
