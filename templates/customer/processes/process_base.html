@@ -171,13 +171,13 @@
     <div class="modal-content">
       <div class="modal-header">
         <div class="d-flex flex-column">
-<div class="subheading mb-1">
-  {% trans "Add candidate" %}
-</div>
-
-<div class="text-muted small">
-  {% trans "Invite a candidate to this project." %}
-</div>
+          {% get_current_language as process_ui_language %}
+          <div class="subheading mb-1">
+            {% if process_ui_language|slice:":2" == "sv" %}Lägg till kandidater{% else %}Add candidates{% endif %}
+          </div>
+          <div class="text-muted small">
+            {% if process_ui_language|slice:":2" == "sv" %}Välj hur du vill lägga till dem.{% else %}Choose how you would like to add them.{% endif %}
+          </div>
         </div>
         <button
   type="button"
