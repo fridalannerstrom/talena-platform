@@ -63,6 +63,7 @@
 .bulk-candidates-section-title { color: #27313a; font-size: .94rem; font-weight: 650; }
 .bulk-candidate-fields .form-control { min-height: 47px; border-color: #e1dcd8; border-radius: .7rem; font-size: .88rem; }
 .bulk-candidate-fields .form-control:focus { border-color: #dc8b83; box-shadow: 0 0 0 .2rem rgba(220, 139, 131, .14); }
+.bulk-candidate-fields .form-control::placeholder { color: #aaa39d; opacity: 1; }
 .bulk-candidates-form .btn { font-size: .88rem; }
 .bulk-candidates-template-link { display: inline-flex; align-items: center; gap: .4rem; color: #34495e; font-size: .88rem; text-decoration: underline; text-underline-offset: 2px; }
 .bulk-candidates-template-link svg,
@@ -85,7 +86,10 @@
 .bulk-candidate-fields > :last-child { grid-column: 1 / -1; }
 .bulk-candidate-fields .form-label { margin-bottom: .35rem; color: #56616a; font-size: .78rem; font-weight: 600; }
 .bulk-candidates-footer { display: flex; justify-content: flex-end; gap: .65rem; }
-.bulk-candidates-footer .btn { display: inline-flex; align-items: center; gap: .45rem; padding: .68rem 1rem; border-radius: .75rem; }
+.bulk-candidates-footer .btn { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; min-width: 184px; height: 48px; padding: .65rem 1rem; border-radius: .75rem; font-size: .88rem; }
+.bulk-candidates-footer .btn-outline-secondary { border-color: #e4ddd8; background: #fff; color: #554e4a; }
+.bulk-candidates-footer .btn-outline-secondary:hover { border-color: #d4cac4; background: #faf8f7; color: #383330; }
+.bulk-candidates-footer .btn-primary { border-color: #171514; background: #171514; color: #fff; }
 .bulk-candidate-feedback { color: #a23535; font-size: .86rem; }
 .bulk-candidate-feedback:empty { display: none; }
 .bulk-candidate-feedback.is-success { color: #286247; }
@@ -106,4 +110,5 @@
   #addCandidateModal .modal-dialog.add-candidate-modal--chooser { max-width: calc(100% - 1rem); }
   .bulk-candidate-chooser__options { grid-template-columns: 1fr; }
   .bulk-candidate-choice { min-height: 150px; }
+  .bulk-candidates-footer .btn { min-width: 0; flex: 1; }
 }
