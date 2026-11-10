@@ -3518,7 +3518,7 @@ msgstr "Potentiellt stödjande mönster"
 # | msgid "What to explore or consider"
 #: .\templates\customer\processes\partials\candidate_insights\personality\_interpretation.html:244
 msgid "What to explore or validate"
-msgstr "Vad som bör utforskas eller valideras"
+msgstr "Potentiella utvecklingsområden"
 
 #: .\templates\customer\processes\partials\candidate_insights\personality\_questions.html:19
 #: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:241
