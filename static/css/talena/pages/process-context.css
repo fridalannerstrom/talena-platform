@@ -327,9 +327,7 @@
   padding: 1rem 1.05rem;
   border: 1px solid var(--talena-border) !important;
   border-radius: 16px;
-  background:
-    radial-gradient(circle at 0% 0%, rgba(255, 111, 97, 0.07), transparent 15rem),
-    linear-gradient(145deg, #fff, #fbfaf9);
+  background: #f9f7f5;
   box-shadow: 0 5px 18px rgba(23, 19, 18, 0.035);
 }
 
