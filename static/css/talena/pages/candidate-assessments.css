@@ -246,7 +246,8 @@
 
 .process-page .response-style-scale__center-line,
 .process-page .personality-indicator-scale__center-line {
-  background: rgba(23, 19, 18, 0.2) !important;
+  width: 2px !important;
+  background: var(--talena-chart-line) !important;
 }
 
 .process-page .response-style-scale__labels,
