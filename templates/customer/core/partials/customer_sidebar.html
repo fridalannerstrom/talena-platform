@@ -37,7 +37,7 @@
                   href="{% url 'processes:process_detail' project.pk %}"
                   title="{{ project.name }}"
                 >
-                  <div class="nav-link-icon"><i data-feather="star"></i></div>
+                  <div class="nav-link-icon"><i data-feather="bookmark"></i></div>
                   <span>{{ project.name }}</span>
                 </a>
                 <form method="post" action="{% url 'processes:toggle_pinned_project' project.pk %}">
