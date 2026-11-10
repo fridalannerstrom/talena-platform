@@ -26,8 +26,10 @@
 
   function makeRow(form, values = {}, errors = [], sourceRow = null) {
     const root = rowsRoot(form);
-    const template = root.querySelector("[data-candidate-row]");
-    const row = template.cloneNode(true);
+    const template = form._candidateRowTemplate || root.querySelector("[data-candidate-row]");
+    if (!template) return null;
+    form._candidateRowTemplate = template.cloneNode(true);
+    const row = form._candidateRowTemplate.cloneNode(true);
     row.classList.remove("has-error");
     row.querySelectorAll("input").forEach((input) => {
       input.value = "";
