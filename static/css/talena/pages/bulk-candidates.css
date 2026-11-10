@@ -1,9 +1,13 @@
 #addCandidateModal .modal-dialog { max-width: 720px; }
+.bulk-candidate-modal-content { position: relative; }
+.bulk-candidate-modal-close { position: absolute; top: 1rem; right: 1rem; z-index: 5; }
+#addCandidateModal .add-candidate-modal--chooser .modal-body { padding-top: 2.1rem; }
 #addCandidateModal .modal-dialog.add-candidate-modal--chooser { max-width: 520px; }
 .bulk-candidates-form { display: grid; gap: 1rem; }
-.bulk-candidate-chooser { display: grid; gap: 1.1rem; }
-.bulk-candidate-chooser__title { color: #29323a; font-size: 1.25rem; font-weight: 650; line-height: 1.3; text-align: center; }
-.bulk-candidate-chooser__options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .8rem; }
+ .bulk-candidate-chooser { display: grid; gap: 0; padding: .2rem .5rem .1rem; }
+ .bulk-candidate-chooser__title { padding: 0 2.2rem; color: #29323a; font-size: 1.25rem; font-weight: 650; line-height: 1.3; text-align: center; }
+.bulk-candidate-chooser__subtitle { margin-top: .35rem; margin-bottom: 1.15rem; color: #68737c; font-size: .9rem; line-height: 1.4; text-align: center; }
+ .bulk-candidate-chooser__options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .8rem; }
 .bulk-candidate-choice {
   display: flex;
   flex-direction: column;
