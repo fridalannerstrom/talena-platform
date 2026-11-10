@@ -132,6 +132,8 @@ class PersonalityCompactUiTests(SimpleTestCase):
         self.assertIn(".personality-graph__segment--filled", stylesheet)
         self.assertIn(".personality-graph__center-line", stylesheet)
         self.assertIn("#personality-detailed-view .personality-trait-card", stylesheet)
+        self.assertIn(".personality-graph__segment--filled[data-score]", stylesheet)
+        self.assertIn(".personality-graph__segment--selected[data-score]", stylesheet)
         self.assertIn("height: 78px !important", stylesheet)
         self.assertIn("height: 45px !important", stylesheet)
         self.assertIn("height: 52px;", stylesheet)
