@@ -29,9 +29,9 @@
           <div class="sidenav-menu-heading talena-pinned-heading">
             {% trans "Pinned projects" %}
           </div>
-          <div class="talena-pinned-projects">
+          <div class="talena-pinned-projects" data-reorder-url="{% url 'processes:reorder_pinned_projects' %}" data-order-saved="{% trans 'Pinned project order saved.' %}" data-order-failed="{% trans 'Could not save pinned project order.' %}">
             {% for project in pinned_projects %}
-              <div class="talena-pinned-project">
+              <div class="talena-pinned-project" data-pinned-project-id="{{ project.pk }}">
                 <a
                   class="nav-link sidebar-link talena-pinned-link {% if request.resolver_match.url_name == 'process_detail' and request.resolver_match.kwargs.pk == project.pk %}active{% endif %}"
                   href="{% url 'processes:process_detail' project.pk %}"
@@ -40,6 +40,15 @@
                   <div class="nav-link-icon"><i data-feather="bookmark"></i></div>
                   <span>{{ project.name }}</span>
                 </a>
+                <button
+                  type="button"
+                  class="talena-reorder-handle"
+                  data-pinned-reorder-handle
+                  aria-label="{% trans 'Reorder pinned project. Use the up and down arrow keys to move.' %}"
+                  title="{% trans 'Reorder pinned project. Use the up and down arrow keys to move.' %}"
+                >
+                  <i data-feather="menu" aria-hidden="true"></i>
+                </button>
                 <form method="post" action="{% url 'processes:toggle_pinned_project' project.pk %}">
                   {% csrf_token %}
                   <input type="hidden" name="next" value="{{ request.get_full_path }}">
@@ -49,6 +58,7 @@
                 </form>
               </div>
             {% endfor %}
+            <span class="visually-hidden" data-pinned-order-status role="status" aria-live="polite"></span>
           </div>
         {% endif %}
 
