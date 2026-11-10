@@ -237,11 +237,11 @@
 
               <div class="project-trait-selector-card__heading">
                 <h3 id="project-personality-traits-title" class="mb-1">
-                  {% if LANGUAGE_CODE|slice:":2" == "sv" %}Personlighetsdrag för intervjufrågorna{% else %}Personality traits for interview questions{% endif %}
+                  {% if LANGUAGE_CODE|slice:":2" == "sv" %}Personlighetsdrag för intervjufrågor{% else %}Personality traits for interview questions{% endif %}
                 </h3>
                 <p class="mb-0">
                   {% if LANGUAGE_CODE|slice:":2" == "sv" %}
-                    Samma urval används för alla kandidater. Talena rekommenderar drag utifrån rollkontexten.
+                    Samma urval visas för alla kandidater. Talena rekommenderar relevanta personlighetsdrag utifrån rollkontexten.
                   {% else %}
                     The same selection is used for every candidate. Talena recommends traits from the role context.
                   {% endif %}
@@ -274,7 +274,7 @@
                 {% if personality_trait_selection_source == "manual" %}
                   {% if LANGUAGE_CODE|slice:":2" == "sv" %}Valda för hela projektet{% else %}Selected for the whole project{% endif %}
                 {% else %}
-                  {% if LANGUAGE_CODE|slice:":2" == "sv" %}Talenas rekommendation utifrån rollkontexten{% else %}Recommended by Talena from the role context{% endif %}
+                  {% if LANGUAGE_CODE|slice:":2" == "sv" %}Talenas rekommendation baserad på rollkontexten{% else %}Recommended by Talena from the role context{% endif %}
                 {% endif %}
               </div>
             {% else %}
@@ -283,13 +283,13 @@
                 <span>
                   {% if personality_trait_recommendation_error %}
                     {% if LANGUAGE_CODE|slice:":2" == "sv" %}
-                      Talena kunde inte rekommendera drag just nu. Försök igen när du skapar frågorna.
+                      Talena kunde inte rekommendera personlighetsdrag just nu. Försök igen när du skapar frågorna.
                     {% else %}
                       Talena could not recommend traits right now. Try again when generating the questions.
                     {% endif %}
                   {% else %}
                     {% if LANGUAGE_CODE|slice:":2" == "sv" %}
-                      Talena väljer relevanta drag när rollkontexten finns sparad.
+                      Talena rekommenderar relevanta personlighetsdrag när rollkontexten har sparats.
                     {% else %}
                       Talena will recommend relevant traits once the role context is saved.
                     {% endif %}
@@ -330,7 +330,7 @@
                     <div class="project-traits-modal__selection-summary">
                       <p class="mb-0">
                         {% if LANGUAGE_CODE|slice:":2" == "sv" %}
-                          Välj upp till åtta drag för hela projektet. Avmarkera alla för att använda Talenas rekommendation.
+                          Välj upp till åtta personlighetsdrag för hela projektet. Avmarkera alla om du vill använda Talenas rekommendation.
                         {% else %}
                           Choose up to eight traits for the whole project. Clear all selections to use Talena's recommendation.
                         {% endif %}
