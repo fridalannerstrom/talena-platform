@@ -5,8 +5,8 @@
 #addCandidateModal .modal-dialog.add-candidate-modal--chooser { max-width: 520px; }
 .bulk-candidates-form { display: grid; gap: 1rem; }
  .bulk-candidate-chooser { display: grid; gap: 0; padding: .2rem .5rem .1rem; }
- .bulk-candidate-chooser__title { padding: 0 2.2rem; color: #29323a; font-size: 1.25rem; font-weight: 650; line-height: 1.3; text-align: center; }
-.bulk-candidate-chooser__subtitle { margin-top: .35rem; margin-bottom: 1.15rem; color: #68737c; font-size: .9rem; line-height: 1.4; text-align: center; }
+ .bulk-candidate-chooser__title { padding: 0 2.2rem; color: #29323a; font-size: 1.14rem; font-weight: 650; line-height: 1.3; text-align: center; }
+.bulk-candidate-chooser__subtitle { margin-top: .35rem; margin-bottom: 1.15rem; color: #68737c; font-size: .84rem; line-height: 1.4; text-align: center; }
  .bulk-candidate-chooser__options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .8rem; }
 .bulk-candidate-choice {
   display: flex;
@@ -35,8 +35,8 @@
 .bulk-candidate-choice__icon { display: grid; place-items: center; width: 42px; height: 42px; flex: 0 0 42px; border-radius: .65rem; background: #fff0ed; color: #d85c54; }
 .bulk-candidate-choice__icon svg { width: 22px; height: 22px; }
 .bulk-candidate-choice__text { display: grid; gap: .35rem; min-width: 0; }
-.bulk-candidate-choice__text strong { color: #29323a; font-size: .94rem; }
-.bulk-candidate-choice__text span { max-width: 180px; color: #68737c; font-size: .83rem; line-height: 1.45; }
+.bulk-candidate-choice__text strong { color: #29323a; font-size: .88rem; }
+.bulk-candidate-choice__text span { max-width: 180px; color: #68737c; font-size: .78rem; line-height: 1.45; }
 .bulk-candidate-chooser[hidden],
 .bulk-candidate-panel[hidden],
 .bulk-candidates-preview[hidden],
@@ -45,7 +45,7 @@
 .bulk-candidate-panel { display: grid; gap: 1rem; }
 .bulk-candidate-panel__top { display: grid; gap: .65rem; }
 .bulk-candidate-panel__heading { display: grid; gap: .2rem; }
-.bulk-candidate-back { display: inline-flex; align-items: center; gap: .35rem; width: fit-content; padding: 0; border: 0; background: transparent; color: #66717a; font-size: .85rem; }
+.bulk-candidate-back { display: inline-flex; align-items: center; gap: .35rem; width: fit-content; padding: 0; border: 0; background: transparent; color: #66717a; font-size: .8rem; }
 .bulk-candidate-back:hover { color: #29323a; }
 .bulk-candidate-back svg { width: 16px; height: 16px; }
 .bulk-candidates-import {
@@ -58,7 +58,9 @@
   border: 1px solid #e6e8eb;
   border-radius: .75rem;
 }
-.bulk-candidates-section-title { color: #27313a; font-weight: 650; }
+.bulk-candidates-section-title { color: #27313a; font-size: .94rem; font-weight: 650; }
+.bulk-candidate-fields .form-control { font-size: .9rem; }
+.bulk-candidates-form .btn { font-size: .88rem; }
 .bulk-candidates-template-link { display: inline-flex; align-items: center; gap: .4rem; color: #34495e; font-size: .88rem; text-decoration: underline; text-underline-offset: 2px; }
 .bulk-candidates-template-link svg,
 .bulk-candidates-section-heading svg,
