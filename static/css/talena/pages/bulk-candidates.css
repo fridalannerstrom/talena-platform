@@ -86,7 +86,19 @@
 .bulk-candidate-fields > :last-child { grid-column: 1 / -1; }
 .bulk-candidate-fields .form-label { margin-bottom: .35rem; color: #56616a; font-size: .78rem; font-weight: 600; }
 .bulk-candidates-footer { display: flex; justify-content: flex-end; gap: .65rem; }
-.bulk-candidates-footer .btn { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; min-width: 184px; height: 48px; padding: .65rem 1rem; border-radius: .75rem; font-size: .88rem; }
+.bulk-candidates-footer .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  min-width: 210px;
+  height: 48px !important;
+  padding: .65rem 1rem !important;
+  border-radius: 999px !important;
+  font-size: .9rem !important;
+  font-weight: 600 !important;
+  line-height: 1.2 !important;
+}
 .bulk-candidates-footer .btn-outline-secondary { border-color: #e4ddd8; background: #fff; color: #554e4a; }
 .bulk-candidates-footer .btn-outline-secondary:hover { border-color: #d4cac4; background: #faf8f7; color: #383330; }
 .bulk-candidates-footer .btn-primary { border-color: #171514; background: #171514; color: #fff; }
