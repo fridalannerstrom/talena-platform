@@ -24,6 +24,7 @@
       row.querySelector("legend").textContent = rowTitle;
       const remove = row.querySelector("[data-remove-candidate-row]");
       remove.disabled = rows.length === 1;
+      remove.hidden = rows.length === 1;
       row.dataset.rowIndex = String(index + 1);
     });
   }
