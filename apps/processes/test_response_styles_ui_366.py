@@ -106,7 +106,7 @@ class ResponseStylesUiTests(SimpleTestCase):
         self.assertNotIn('data-profile-contrasts-intro="no-patterns"', markup)
         self.assertIn(
             "Här visas utvalda mönster av indikatorer inom ett och samma "
-            "intressanta att utforska. Se dem som möjliga nyanser "
+            "karaktärsdrag som kan vara intressanta att utforska. Se dem som möjliga nyanser "
             "att förstå bättre, inte som slutsatser.",
             markup,
         )
