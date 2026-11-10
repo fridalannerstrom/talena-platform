@@ -202,29 +202,6 @@
           </div>
           <div class="talena-overview-interpretations__grid">
 
-            {% if has_cognitive_assessments_in_process and has_completed_cognitive_results %}
-              <article class="talena-overview-interpretations__card" data-overview-interpretation-card="cognitive">
-                <h4 class="talena-overview-interpretations__card-title" data-overview-interpretation-title>
-                  {% if LANGUAGE_CODE|slice:":2" == "sv" %}Färdighet{% else %}Skills{% endif %}
-                </h4>
-                <div class="purpose-fit-summary talena-overview-interpretations__text{% if not cognitive_interpretation.interpretation or cognitive_interpretation_status == 'outdated' %} d-none{% endif %}"
-                     data-overview-interpretation-content="cognitive">{{ cognitive_interpretation.interpretation|default:'' }}</div>
-                <div class="talena-overview-interpretations__empty{% if cognitive_interpretation.interpretation and cognitive_interpretation_status != 'outdated' %} d-none{% endif %}"
-                     data-overview-interpretation-empty="cognitive">
-                  <p class="small text-muted mb-2" data-overview-interpretation-empty-text>
-                    {% if cognitive_interpretation_status == 'outdated' %}
-                      {% if LANGUAGE_CODE|slice:":2" == "sv" %}Tolkningen behöver uppdateras innan den kan visas här.{% else %}Update the interpretation before viewing it here.{% endif %}
-                    {% else %}
-                      {% if LANGUAGE_CODE|slice:":2" == "sv" %}Ingen tolkning har skapats för detta område ännu.{% else %}No interpretation has been generated for this area yet.{% endif %}
-                    {% endif %}
-                  </p>
-                  <button type="button" class="candidate-result-overview__open" data-insights-tab="cognitive" aria-controls="candidate-insights-panel-cognitive">
-                    {% if LANGUAGE_CODE|slice:":2" == "sv" %}Gå till Färdighet{% else %}View Skills{% endif %} <span aria-hidden="true">→</span>
-                  </button>
-                </div>
-              </article>
-            {% endif %}
-
             {% if has_personality_assessment_in_process and has_personality_results %}
               <article class="talena-overview-interpretations__card" data-overview-interpretation-card="personality">
                 <h4 class="talena-overview-interpretations__card-title" data-overview-interpretation-title>
@@ -241,10 +218,15 @@
                       {% if LANGUAGE_CODE|slice:":2" == "sv" %}Ingen tolkning har skapats för detta område ännu.{% else %}No interpretation has been generated for this area yet.{% endif %}
                     {% endif %}
                   </p>
-                  <button type="button" class="candidate-result-overview__open" data-insights-tab="personality" aria-controls="candidate-insights-panel-personality">
-                    {% if LANGUAGE_CODE|slice:":2" == "sv" %}Gå till Personlighet{% else %}View Personality{% endif %} <span aria-hidden="true">→</span>
-                  </button>
+                  
                 </div>
+              <a class="talena-overview-interpretations__cta"
+                 href="#candidate-insights-panel-personality"
+                 data-insights-tab="personality"
+                 aria-controls="candidate-insights-panel-personality">
+                {% if LANGUAGE_CODE|slice:":2" == "sv" %}Gå till resultat{% else %}Go to results{% endif %}
+                <span aria-hidden="true">→</span>
+              </a>
               </article>
             {% endif %}
 
@@ -264,12 +246,45 @@
                       {% if LANGUAGE_CODE|slice:":2" == "sv" %}Ingen tolkning har skapats för detta område ännu.{% else %}No interpretation has been generated for this area yet.{% endif %}
                     {% endif %}
                   </p>
-                  <button type="button" class="candidate-result-overview__open" data-insights-tab="motivation" aria-controls="candidate-insights-panel-motivation">
-                    {% if LANGUAGE_CODE|slice:":2" == "sv" %}Gå till Motivation{% else %}View Motivation{% endif %} <span aria-hidden="true">→</span>
-                  </button>
+                  
                 </div>
+              <a class="talena-overview-interpretations__cta"
+                 href="#candidate-insights-panel-motivation"
+                 data-insights-tab="motivation"
+                 aria-controls="candidate-insights-panel-motivation">
+                {% if LANGUAGE_CODE|slice:":2" == "sv" %}Gå till resultat{% else %}Go to results{% endif %}
+                <span aria-hidden="true">→</span>
+              </a>
               </article>
             {% endif %}
+            {% if has_cognitive_assessments_in_process and has_completed_cognitive_results %}
+              <article class="talena-overview-interpretations__card" data-overview-interpretation-card="cognitive">
+                <h4 class="talena-overview-interpretations__card-title" data-overview-interpretation-title>
+                  {% if LANGUAGE_CODE|slice:":2" == "sv" %}Färdighet{% else %}Skills{% endif %}
+                </h4>
+                <div class="purpose-fit-summary talena-overview-interpretations__text{% if not cognitive_interpretation.interpretation or cognitive_interpretation_status == 'outdated' %} d-none{% endif %}"
+                     data-overview-interpretation-content="cognitive">{{ cognitive_interpretation.interpretation|default:'' }}</div>
+                <div class="talena-overview-interpretations__empty{% if cognitive_interpretation.interpretation and cognitive_interpretation_status != 'outdated' %} d-none{% endif %}"
+                     data-overview-interpretation-empty="cognitive">
+                  <p class="small text-muted mb-2" data-overview-interpretation-empty-text>
+                    {% if cognitive_interpretation_status == 'outdated' %}
+                      {% if LANGUAGE_CODE|slice:":2" == "sv" %}Tolkningen behöver uppdateras innan den kan visas här.{% else %}Update the interpretation before viewing it here.{% endif %}
+                    {% else %}
+                      {% if LANGUAGE_CODE|slice:":2" == "sv" %}Ingen tolkning har skapats för detta område ännu.{% else %}No interpretation has been generated for this area yet.{% endif %}
+                    {% endif %}
+                  </p>
+                  
+                </div>
+              <a class="talena-overview-interpretations__cta"
+                 href="#candidate-insights-panel-cognitive"
+                 data-insights-tab="cognitive"
+                 aria-controls="candidate-insights-panel-cognitive">
+                {% if LANGUAGE_CODE|slice:":2" == "sv" %}Gå till resultat{% else %}Go to results{% endif %}
+                <span aria-hidden="true">→</span>
+              </a>
+              </article>
+            {% endif %}
+
           </div>
         </section>
       {% endif %}
