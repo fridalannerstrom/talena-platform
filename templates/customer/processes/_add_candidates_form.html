@@ -62,10 +62,6 @@
 
     <div class="bulk-candidates-section-heading">
       <div class="bulk-candidates-section-title">{% if is_swedish %}Kandidatuppgifter{% else %}Candidate details{% endif %}</div>
-      <button type="button" class="btn btn-outline-secondary btn-sm" data-add-candidate-row>
-        <i data-feather="plus"></i>
-        {% if is_swedish %}Lägg till en kandidat till{% else %}Add another candidate{% endif %}
-      </button>
     </div>
 
     <div class="bulk-candidates-rows" data-candidate-rows="manual">
@@ -80,15 +76,15 @@
         <div class="bulk-candidate-fields">
           <div>
             <label class="form-label">{% trans "First name" %}</label>
-            <input class="form-control" name="first_name[]" aria-label="{% trans 'First name' %}" autocomplete="given-name">
+            <input class="form-control" name="first_name[]" aria-label="{% trans 'First name' %}" placeholder="{% if is_swedish %}Förnamn{% else %}First name{% endif %}" autocomplete="given-name">
           </div>
           <div>
             <label class="form-label">{% trans "Last name" %}</label>
-            <input class="form-control" name="last_name[]" aria-label="{% trans 'Last name' %}" autocomplete="family-name">
+            <input class="form-control" name="last_name[]" aria-label="{% trans 'Last name' %}" placeholder="{% if is_swedish %}Efternamn{% else %}Last name{% endif %}" autocomplete="family-name">
           </div>
           <div>
             <label class="form-label">{% trans "Email" %}</label>
-            <input class="form-control" type="email" name="email[]" aria-label="{% trans 'Email' %}" autocomplete="email">
+            <input class="form-control" type="email" name="email[]" aria-label="{% trans 'Email' %}" placeholder="{% if is_swedish %}namn@exempel.se{% else %}name@example.com{% endif %}" autocomplete="email">
           </div>
         </div>
         <div class="bulk-candidate-row__error" data-row-error role="alert"></div>
@@ -128,10 +124,6 @@
           <div class="bulk-candidates-section-title">{% if is_swedish %}Granska kandidater{% else %}Review candidates{% endif %}</div>
           <div class="text-muted small">{% if is_swedish %}Rätta eller ta bort rader med fel innan du lägger till kandidaterna.{% else %}Correct or remove rows marked with an error before adding candidates.{% endif %}</div>
         </div>
-        <button type="button" class="btn btn-outline-secondary btn-sm" data-add-candidate-row>
-          <i data-feather="plus"></i>
-          {% if is_swedish %}Lägg till en kandidat till{% else %}Add another candidate{% endif %}
-        </button>
       </div>
       <div class="bulk-candidates-rows" data-candidate-rows="excel"></div>
     </div>
@@ -140,9 +132,12 @@
   <div class="bulk-candidate-feedback" data-candidate-feedback aria-live="polite"></div>
 
   <div class="bulk-candidates-footer" data-candidate-footer hidden>
+    <button type="button" class="btn btn-outline-secondary" data-add-candidate-row>
+      <i data-feather="plus"></i>
+      {% if is_swedish %}Lägg till kandidat{% else %}Add candidate{% endif %}
+    </button>
     <button type="submit" class="btn btn-primary" data-submit-candidates>
-      <i data-feather="user-plus"></i>
-      {% if is_swedish %}Lägg till kandidater{% else %}Add candidates{% endif %}
+      {% if is_swedish %}Färdig{% else %}Done{% endif %}
     </button>
   </div>
 </form>
