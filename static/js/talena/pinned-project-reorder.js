@@ -5,7 +5,6 @@
   const status = list.querySelector("[data-pinned-order-status]");
   const handlesSelector = "[data-pinned-reorder-handle]";
   let activeRow = null;
-  let activeHandle = null;
   let initialOrder = null;
   let activePointerId = null;
   let moved = false;
@@ -78,7 +77,6 @@
       row.classList.remove("is-reordering", "is-drop-target");
     });
     activeRow = null;
-    activeHandle = null;
     activePointerId = null;
   }
 
@@ -91,7 +89,6 @@
 
     event.preventDefault();
     activeRow = row;
-    activeHandle = handle;
     activePointerId = event.pointerId;
     initialOrder = order();
     moved = false;
@@ -111,6 +108,7 @@
       row.classList.remove("is-drop-target");
     });
     target.classList.add("is-drop-target");
+    moved = true;
 
     const midpoint = target.getBoundingClientRect().top + target.offsetHeight / 2;
     list.insertBefore(activeRow, event.clientY < midpoint ? target : target.nextElementSibling);
