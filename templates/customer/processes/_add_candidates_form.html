@@ -15,7 +15,7 @@
       data-import-success="{% if is_swedish %}{count} kandidater är redo att läggas till.{% else %}{count} candidates are ready to add.{% endif %}"
       data-added-summary="{% if is_swedish %}{count} kandidater har lagts till. Uppdaterar projektet…{% else %}{count} candidates added. Updating the project…{% endif %}"
       data-partial-summary="{% if is_swedish %}{count} kandidater har lagts till. Rätta eller ta bort markerade rader för att fortsätta.{% else %}{count} candidates added. Correct or remove the highlighted rows to continue.{% endif %}"
-      data-no-candidates="{% if is_swedish %Ange minst en kandidat för att fortsätta.{% else %}Enter at least one candidate to continue.{% endif %}"
+      data-no-candidates="{% if is_swedish %}Ange minst en kandidat för att fortsätta.{% else %}Enter at least one candidate to continue.{% endif %}"
       data-submit-failed="{% if is_swedish %}Något gick fel. Försök igen.{% else %}Something went wrong. Please try again.{% endif %}"
       data-active-mode="manual">
   {% csrf_token %}
