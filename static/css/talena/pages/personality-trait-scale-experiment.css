@@ -318,7 +318,7 @@ html[lang^="sv"] .process-page .response-style-scale__label--center::before {
   height: 18px !important;
   align-self: center;
   border-radius: 999px !important;
-  background: rgba(23, 19, 18, 0.24) !important;
+  background: var(--talena-chart-line) !important;
 }
 
 .process-page .personality-indicator-scale__labels {
