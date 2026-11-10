@@ -1,4 +1,4 @@
-"""Tickets #365/#424: compact personality scales and readable center markers."""
+"""Tickets #365/#424/#425: personality scales, contrast and trait graph shading."""
 import re
 from pathlib import Path
 from types import SimpleNamespace
@@ -136,6 +136,19 @@ class PersonalityCompactUiTests(SimpleTestCase):
         self.assertIn("height: 45px !important", stylesheet)
         self.assertIn("height: 52px;", stylesheet)
         self.assertIn("background: var(--talena-chart-line);", stylesheet)
+        shading = stylesheet.split(
+            "/* Match the indicator scale: neutral centre, progressively stronger tones at both ends. */",
+            1,
+        )[1].split(".process-page .personality-graph__segment--filled", 1)[0]
+        for score in range(1, 11):
+            self.assertIn(f'.personality-graph__segment[data-score="{score}"]', shading)
+        for tone in (
+            "#eeeae7",
+            "rgba(255, 111, 97, 0.10)",
+            "rgba(255, 111, 97, 0.17)",
+            "rgba(255, 111, 97, 0.25)",
+        ):
+            self.assertIn(tone, shading)
         self.assertIn("width: 2px;", stylesheet)
         self.assertIn("height: 26px !important", stylesheet)
         self.assertIn("@media (max-width: 720px)", stylesheet)
