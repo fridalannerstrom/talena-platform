@@ -1,4 +1,4 @@
-"""Ticket #365: compact personality profile and center-out scales."""
+"""Tickets #365/#424: compact personality scales and readable center markers."""
 import re
 from pathlib import Path
 from types import SimpleNamespace
@@ -114,12 +114,20 @@ class PersonalityCompactUiTests(SimpleTestCase):
         stylesheet = (Path(settings.BASE_DIR) /
             "static/css/talena/pages/personality-trait-scale-experiment.css"
         ).read_text(encoding="utf8")
+        tokens = (Path(settings.BASE_DIR) /
+            "static/css/talena/tokens.css"
+        ).read_text(encoding="utf8")
+        self.assertIn("--talena-text: #514a46;", tokens)
+        self.assertIn("--talena-text-muted: #625b57;", tokens)
+        self.assertIn("--talena-text-subtle: #766f6a;", tokens)
+        self.assertNotIn("--talena-text: #000000;", tokens)
         self.assertIn(".personality-graph__segment--filled", stylesheet)
         self.assertIn(".personality-graph__center-line", stylesheet)
         self.assertIn("#personality-detailed-view .personality-trait-card", stylesheet)
         self.assertIn("height: 78px !important", stylesheet)
         self.assertIn("height: 45px !important", stylesheet)
         self.assertIn("height: 52px;", stylesheet)
-        self.assertIn("width: 1px;", stylesheet)
+        self.assertIn("background: var(--talena-chart-line);", stylesheet)
+        self.assertIn("width: 2px;", stylesheet)
         self.assertIn("height: 26px !important", stylesheet)
         self.assertIn("@media (max-width: 720px)", stylesheet)
