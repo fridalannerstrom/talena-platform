@@ -16,8 +16,9 @@
   function updateRows(form) {
     const rows = [...rowsRoot(form).querySelectorAll("[data-candidate-row]")];
     rows.forEach((row, index) => {
-      row.querySelector("[data-row-label]").textContent =
-        row.dataset.rowLabel.replace("{n}", String(index + 1));
+      const rowTitle = row.dataset.rowLabel.replace("{n}", String(index + 1));
+      row.querySelector("[data-row-label]").textContent = rowTitle;
+      row.querySelector("legend").textContent = rowTitle;
       const remove = row.querySelector("[data-remove-candidate-row]");
       remove.disabled = rows.length === 1;
       row.dataset.rowIndex = String(index + 1);
