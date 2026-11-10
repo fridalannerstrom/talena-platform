@@ -95,3 +95,18 @@ def interview_combined_sections(context) -> list[dict]:
         section["description"] = meta["area_description"]
         sections.append(section)
     return sections
+
+
+
+@register.simple_tag
+def interview_total_minutes(sections) -> int:
+    """Sum the estimated interview time for the sections visible in the UI."""
+    total = 0
+    for section in sections or ():
+        if not isinstance(section, dict):
+            continue
+        try:
+            total += max(0, int(section.get("estimated_minutes") or 0))
+        except (TypeError, ValueError):
+            continue
+    return total
