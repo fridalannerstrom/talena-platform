@@ -41,6 +41,7 @@
     </select>
 
     <select id="sortBy" class="form-select" aria-label="{% trans 'Sort projects' %}">
+      <option value="pinned_first">{% trans "Sort: Pinned first" %}</option>
       <option value="created_desc">{% trans "Sort: Newest first" %}</option>
       <option value="created_asc">{% trans "Sort: Oldest first" %}</option>
       <option value="candidates_desc">{% trans "Sort: Most candidates" %}</option>
@@ -91,6 +92,7 @@
           data-labels-lower="{% if p.is_historical %}historical{% else %}{% for lab in p.labels.all %}{{ lab.name|lower }} {% endfor %}{% endif %}"
           data-candidates="{{ p.candidates_count }}"
           data-created="{{ p.created_at|date:'Y-m-d' }}"
+          data-pinned="{% if p.id in pinned_project_ids %}true{% else %}false{% endif %}"
         >
           <div class="process-card-topline">
             <div class="process-purpose">
@@ -116,12 +118,12 @@
                     <input type="hidden" name="next" value="{{ request.get_full_path }}">
                     {% if p.id in pinned_project_ids %}
                       <button type="submit" class="icon-btn process-pin is-pinned" aria-label="{% trans 'Unpin project' %}" title="{% trans 'Unpin project' %}" aria-pressed="true">
-                        <i data-feather="star"></i>
+                        <i data-feather="map-pin"></i>
                       </button>
                     {% elif pinned_project_ids|length >= 5 %}
                       <span class="process-pin-limit" tabindex="0" role="note" aria-describedby="pin-limit-{{ p.id }}">
                         <button type="button" class="icon-btn process-pin is-disabled" disabled aria-label="{% trans 'Pin project' %}" aria-pressed="false">
-                          <i data-feather="star"></i>
+                          <i data-feather="map-pin"></i>
                         </button>
                         <span class="process-pin-tooltip" id="pin-limit-{{ p.id }}" role="tooltip">
                           {% trans "You can pin up to five projects. Unpin one first." %}
@@ -129,7 +131,7 @@
                       </span>
                     {% else %}
                       <button type="submit" class="icon-btn process-pin" aria-label="{% trans 'Pin project' %}" title="{% trans 'Pin project' %}" aria-pressed="false">
-                        <i data-feather="star"></i>
+                        <i data-feather="map-pin"></i>
                       </button>
                     {% endif %}
                   </form>
