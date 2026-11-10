@@ -41,6 +41,7 @@
 .bulk-candidate-panel[hidden],
 .bulk-candidates-preview[hidden],
 .bulk-candidates-footer[hidden],
+.bulk-candidates-footer [hidden],
 .bulk-candidate-feedback[hidden] { display: none !important; }
 .bulk-candidate-panel { display: grid; gap: 1rem; }
 .bulk-candidate-panel__top { display: grid; gap: .65rem; }
@@ -79,7 +80,7 @@
 .bulk-candidate-fields { display: grid; grid-template-columns: 1fr 1fr; gap: .65rem .75rem; }
 .bulk-candidate-fields > :last-child { grid-column: 1 / -1; }
 .bulk-candidate-fields .form-label { margin-bottom: .25rem; color: #4d5963; font-size: .82rem; }
-.bulk-candidates-footer { display: flex; justify-content: flex-end; }
+.bulk-candidates-footer { display: flex; justify-content: flex-end; gap: .65rem; }
 .bulk-candidates-footer .btn { display: inline-flex; align-items: center; gap: .45rem; }
 .bulk-candidate-feedback { color: #a23535; font-size: .86rem; }
 .bulk-candidate-feedback:empty { display: none; }
