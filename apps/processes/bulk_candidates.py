@@ -15,6 +15,7 @@ from .access_control import process_edit_access_required
 
 
 MAX_IMPORT_SIZE = 5 * 1024 * 1024
+MAX_IMPORT_ROWS = 500
 IMPORT_HEADERS = {
     "first name": "first_name",
     "firstname": "first_name",
@@ -81,7 +82,11 @@ def _parse_candidate_sheet(upload):
                     validate_email(email)
                 except Exception:
                     errors.append(_("Enter a valid email address."))
+                if len(email) > 254:
+                    errors.append(_("Email must be 254 characters or fewer."))
 
+            if len(rows) >= MAX_IMPORT_ROWS:
+                return [], [_("A maximum of 500 candidates can be imported at once.")]
             rows.append({
                 "row": row_number,
                 "first_name": first_name,
@@ -106,9 +111,20 @@ def candidate_import_template(request, pk):
     sheet.title = "Candidates"
     sheet.append(["First name", "Last name", "Email"])
     sheet.append(["Alex", "Taylor", "alex.taylor@example.com"])
+    sheet.freeze_panes = "A2"
+    sheet.auto_filter.ref = "A1:C2"
     sheet.column_dimensions["A"].width = 22
     sheet.column_dimensions["B"].width = 22
     sheet.column_dimensions["C"].width = 34
+
+    instructions = workbook.create_sheet("Instructions")
+    instructions.append(["How to prepare your candidate list"])
+    instructions.append(["Enter one candidate per row on the Candidates sheet."])
+    instructions.append(["Keep the column names First name, Last name and Email."])
+    instructions.append(["All three fields are required. Email must be a valid email address."])
+    instructions.append(["Remove the example row before uploading your file."])
+    instructions.append(["Save and upload the file as .xlsx."])
+    instructions.column_dimensions["A"].width = 90
 
     output = BytesIO()
     workbook.save(output)
@@ -155,6 +171,8 @@ def process_add_candidates(request, pk):
                 row["errors"].append(_("First name must be 80 characters or fewer."))
             if len(row["last_name"]) > 80:
                 row["errors"].append(_("Last name must be 80 characters or fewer."))
+            if len(row["email"]) > 254:
+                row["errors"].append(_("Email must be 254 characters or fewer."))
         return JsonResponse({"ok": True, "rows": rows})
 
     if request.method == "POST" and request.POST.get("action") == "add_candidates":
@@ -162,6 +180,11 @@ def process_add_candidates(request, pk):
         surnames = request.POST.getlist("last_name[]")
         emails = request.POST.getlist("email[]")
         count = max(len(names), len(surnames), len(emails))
+        if count > MAX_IMPORT_ROWS:
+            return JsonResponse({
+                "ok": False,
+                "errors": [_("A maximum of 500 candidates can be added at once.")],
+            }, status=400)
         seen = set()
         errors = []
         added_rows = []
@@ -190,6 +213,8 @@ def process_add_candidates(request, pk):
                     validate_email(email)
                 except Exception:
                     row_errors.append(_("Enter a valid email address."))
+                if len(email) > 254:
+                    row_errors.append(_("Email must be 254 characters or fewer."))
 
             if email and email in seen:
                 row_errors.append(_("This email appears more than once in the form."))
