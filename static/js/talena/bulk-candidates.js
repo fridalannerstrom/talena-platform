@@ -64,11 +64,10 @@
 
   function setMode(form, mode) {
     form.dataset.activeMode = mode;
-    form.querySelectorAll("[data-candidate-mode]").forEach((button) => {
-      const active = button.dataset.candidateMode === mode;
-      button.classList.toggle("is-active", active);
-      button.setAttribute("aria-selected", active ? "true" : "false");
-    });
+    form.querySelector("[data-mode-chooser]").hidden = true;
+    form.querySelector("[data-candidate-footer]").hidden = false;
+    form.querySelector("[data-candidate-feedback]").hidden = true;
+
     form.querySelectorAll("[data-mode-panel]").forEach((panel) => {
       const active = panel.dataset.modePanel === mode;
       panel.hidden = !active;
@@ -79,11 +78,33 @@
     updateRows(form, mode);
   }
 
+  function showChooser(form) {
+    form.dataset.activeMode = "";
+    form.querySelector("[data-mode-chooser]").hidden = false;
+    form.querySelector("[data-candidate-footer]").hidden = true;
+    const feedback = form.querySelector("[data-candidate-feedback]");
+    feedback.textContent = "";
+    feedback.hidden = true;
+    form.querySelectorAll("[data-mode-panel]").forEach((panel) => {
+      panel.hidden = true;
+      panel.querySelectorAll("input, button").forEach((control) => {
+        control.disabled = true;
+      });
+    });
+  }
+
   document.addEventListener("click", (event) => {
-    const tab = event.target.closest("[data-candidate-mode]");
-    if (tab) {
-      const form = tab.closest("#addCandidatesForm");
-      if (form) setMode(form, tab.dataset.candidateMode);
+    const choice = event.target.closest("[data-candidate-mode]");
+    if (choice) {
+      const form = choice.closest("#addCandidatesForm");
+      if (form) setMode(form, choice.dataset.candidateMode);
+      return;
+    }
+
+    const back = event.target.closest("[data-back-to-chooser]");
+    if (back) {
+      const form = back.closest("#addCandidatesForm");
+      if (form) showChooser(form);
       return;
     }
 
@@ -162,7 +183,9 @@
 
     event.preventDefault();
     event.stopImmediatePropagation();
-    const mode = form.dataset.activeMode || "manual";
+    const mode = form.dataset.activeMode;
+    if (!mode) return;
+
     const submit = form.querySelector("[data-submit-candidates]");
     const rows = [...rowsRoot(form, mode).querySelectorAll("[data-candidate-row]")];
     rows.forEach((row) => {
@@ -180,6 +203,7 @@
       const data = await response.json();
       if (!response.ok || !data.ok) {
         const feedback = form.querySelector("[data-candidate-feedback]");
+        feedback.hidden = false;
         feedback.textContent = (data.errors || [form.dataset.submitFailed]).join(" ");
         return;
       }
@@ -197,22 +221,28 @@
       updateRows(form, mode);
 
       const feedback = form.querySelector("[data-candidate-feedback]");
-      feedback.classList.toggle("is-success", Boolean(data.added_count));
       if (data.added_count && !failed.size) {
+        feedback.hidden = false;
+        feedback.classList.add("is-success");
         feedback.textContent = form.dataset.addedSummary.replace("{count}", String(data.added_count));
         setTimeout(() => {
           bootstrap.Modal.getOrCreateInstance(modal).hide();
           window.location.href = data.redirect_url || window.location.href;
         }, 650);
       } else if (data.added_count) {
+        feedback.hidden = false;
+        feedback.classList.add("is-success");
         feedback.textContent = form.dataset.partialSummary.replace("{count}", String(data.added_count));
       } else if (!failed.size) {
+        feedback.hidden = false;
         feedback.textContent = form.dataset.noCandidates;
       } else {
         feedback.textContent = "";
       }
     } catch (error) {
-      form.querySelector("[data-candidate-feedback]").textContent = form.dataset.submitFailed;
+      const feedback = form.querySelector("[data-candidate-feedback]");
+      feedback.hidden = false;
+      feedback.textContent = form.dataset.submitFailed;
     } finally {
       submit.disabled = false;
       refreshIcons();
