@@ -127,7 +127,8 @@
     else url.searchParams.delete("sort");
 
     window.history.replaceState(null, "", url.pathname + url.search + url.hash);
-    grid.querySelectorAll("form[action*='toggle-pinned-project']").forEach(function (form) {
+    grid.querySelectorAll("form").forEach(function (form) {
+      if (!form.querySelector(".process-pin")) return;
       const next = form.querySelector("input[name='next']");
       if (next) next.value = url.pathname + url.search;
     });
