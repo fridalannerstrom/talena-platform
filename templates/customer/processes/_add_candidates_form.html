@@ -1,0 +1,78 @@
+{% load i18n static %}
+<link rel="stylesheet" href="{% static 'css/talena/pages/bulk-candidates.css' %}">
+<form id="addCandidatesForm"
+      class="bulk-candidates-form"
+      method="post"
+      enctype="multipart/form-data"
+      action="{% url 'processes:process_add_candidates' process.id %}"
+      data-preview-url="{% url 'processes:process_add_candidates' process.id %}">
+  {% csrf_token %}
+  <input type="hidden" name="action" value="add_candidates">
+
+  <div class="bulk-candidates-intro">
+    {% trans "Add one or more candidates below, or import them from an Excel file." %}
+  </div>
+
+  <div class="bulk-candidates-import">
+    <div>
+      <div class="bulk-candidates-section-title">{% trans "Import from Excel" %}</div>
+      <div class="text-muted small">{% trans "Use the template and include First name, Last name and Email columns." %}</div>
+    </div>
+    <a class="bulk-candidates-template-link" href="{{ template_url }}">
+      <i data-feather="download"></i>
+      {% trans "Download Excel template" %}
+    </a>
+    <label class="form-label mb-1" for="candidateExcelFile">{% trans "Excel file (.xlsx)" %}</label>
+    <input class="form-control" type="file" id="candidateExcelFile" name="candidate_file" accept=".xlsx">
+    <div class="bulk-candidates-import-status" data-import-status aria-live="polite"></div>
+  </div>
+
+  <div class="bulk-candidates-section-heading">
+    <div class="bulk-candidates-section-title">{% trans "Candidate details" %}</div>
+    <button type="button" class="btn btn-outline-secondary btn-sm" data-add-candidate-row>
+      <i data-feather="plus"></i>
+      {% trans "Add another candidate" %}
+    </button>
+  </div>
+
+  <div class="bulk-candidates-rows" data-candidate-rows>
+    <fieldset class="bulk-candidate-row" data-candidate-row>
+      <legend class="visually-hidden">{% trans "Candidate 1" %}</legend>
+      <div class="bulk-candidate-row__heading">
+        <span data-row-label>{% trans "Candidate 1" %}</span>
+        <button type="button" class="bulk-candidate-remove" data-remove-candidate-row aria-label="{% trans 'Remove candidate' %}" disabled>
+          <i data-feather="x"></i>
+        </button>
+      </div>
+      <div class="bulk-candidate-fields">
+        <div>
+          <label class="form-label">{% trans "First name" %}</label>
+          <input class="form-control" name="first_name[]" autocomplete="given-name" required>
+          <div class="field-error" data-field-error="first_name"></div>
+        </div>
+        <div>
+          <label class="form-label">{% trans "Last name" %}</label>
+          <input class="form-control" name="last_name[]" autocomplete="family-name" required>
+          <div class="field-error" data-field-error="last_name"></div>
+        </div>
+        <div>
+          <label class="form-label">{% trans "Email" %}</label>
+          <input class="form-control" type="email" name="email[]" autocomplete="email" required>
+          <div class="field-error" data-field-error="email"></div>
+        </div>
+      </div>
+      <div class="bulk-candidate-row__error" data-row-error role="alert"></div>
+    </fieldset>
+  </div>
+
+  <div class="bulk-candidates-tip">
+    {% trans "Candidates with errors will be skipped. You can correct those rows and submit again." %}
+  </div>
+
+  <div class="bulk-candidates-footer">
+    <button type="submit" class="btn btn-primary" data-submit-candidates>
+      <i data-feather="user-plus"></i>
+      {% trans "Add candidates" %}
+    </button>
+  </div>
+</form>
