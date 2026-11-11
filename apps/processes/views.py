@@ -143,7 +143,7 @@ from apps.core.ai.language import (
 # Talena personality language batch 1
 
 from apps.processes.services.historical_assessment_import import import_historical_assessment_file
-from django.db.models import Count, OuterRef, Subquery, IntegerField
+from django.db.models import Count, Max, OuterRef, Subquery, IntegerField
 from django.db.models.functions import Coalesce
 from apps.processes.models import HistoricalProcessCandidate
 from django.contrib import messages
