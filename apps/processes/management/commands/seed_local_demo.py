@@ -42,7 +42,7 @@ class Command(BaseCommand):
                 raise CommandError("A password is required to create the demo login.")
 
         with transaction.atomic():
-            user, user_created = self._get_or_create_user(
+            user, _ = self._get_or_create_user(
                 User,
                 password=password,
             )
@@ -80,7 +80,6 @@ class Command(BaseCommand):
                     "created_by": user,
                     "created_by_admin": user,
                     "candidate_language": "sv",
-                    "purpose": "team_analysis",
                     "source": "sova_import",
                     "is_historical": True,
                     "sova_sync_enabled": False,
