@@ -1,12951 +1,3216 @@
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect, get_object_or_404
-from django.utils.http import url_has_allowed_host_and_scheme
-from apps.core.integrations.sova import SovaClient
-from apps.projects.models import ProjectMeta
-from apps.accounts.report_branding import get_report_branding
-from .forms import TestProcessCreateForm, CandidateCreateForm
-from .models import (
-    TestProcess,
-    Candidate,
-    TestInvitation,
-    SelfRegistration,
-    ProcessLabel,
-    HistoricalProcessCandidate,
-)
-from .purpose_utils import normalize_purpose_key
-from apps.reports.services.candidate_insights import (
-    build_general_insight_input,
-    generate_general_candidate_insights,
-)
-from apps.reports.services.leadership_report import (
-    build_leadership_report_content,
-)
-from apps.reports.services.derailment_report import (
-    build_derailment_report_content,
-)
-
-
-from apps.core.utils.auth import is_admin
-
-from apps.core.ai.decision_support import (
-    create_empty_pre_interview_decision_support,
-    apply_pre_interview_decision_support_event,
-    stream_pre_interview_decision_support,
-    save_pre_interview_decision_support,
-
-    create_empty_post_interview_decision_support,
-    apply_post_interview_decision_support_event,
-    stream_post_interview_decision_support,
-    save_post_interview_decision_support,
-)
-
-# Talena cognitive AI language batch 1
-from apps.core.ai.cognitive_interpretation import (
-    extract_cognitive_results,
-    create_empty_cognitive_interpretation,
-    apply_cognitive_interpretation_event,
-    stream_cognitive_interpretation,
-    save_cognitive_interpretation,
-)
-
-from apps.core.ai.cognitive_questions import (
-    create_empty_cognitive_questions,
-    apply_cognitive_questions_event,
-    stream_cognitive_questions,
-    save_cognitive_questions,
-)
-
-from apps.core.ai.motivation_interpretation import (
-    MOTIVATION_DEFINITIONS,
-    extract_motivation_results,
-    create_empty_motivation_interpretation,
-    apply_motivation_interpretation_event,
-    stream_motivation_interpretation,
-    save_motivation_interpretation,
-)
-
-from apps.core.ai.motivation_questions import (
-    create_empty_motivation_questions,
-    apply_motivation_questions_event,
-    stream_motivation_questions,
-    save_motivation_questions,
-)
-
-from apps.core.ai.response_style_guidance import (
-    create_empty_response_style_guidance,
-    apply_response_style_guidance_event,
-    stream_response_style_guidance,
-    save_response_style_guidance,
-    RESPONSE_STYLE_GUIDANCE_SCHEMA_VERSION,
-)
-
-from apps.processes.services.team_styles import (
-    build_team_style_profile,
-)
-
-from .services.process_recommendations import (
-    PROCESS_PURPOSES,
-    PURPOSE_RECOMMENDED_TESTS,
-    AVAILABLE_TESTS,
-    build_default_process_name,
-    resolve_sova_template,
-    extract_tests_from_project_name,
-)
-
-from apps.core.ai.personality_interpretation import (
-    PERSONALITY_MANAGER_REPORT_THEMES,
-    create_empty_personality_interpretation,
-    apply_personality_interpretation_event,
-    stream_personality_interpretation,
-    save_personality_interpretation,
-)
-
-from apps.processes.services.candidate_insights import (
-    build_candidate_insights,
-)
-
-from apps.processes.services.candidate_profile import (
-    build_historical_candidate_profile,
-)
-from apps.processes.services.cognitive_insights import (
-    build_cognitive_insight_results as _build_cognitive_insight_results,
-)
-
-from apps.processes.models import (
-    HistoricalProcessCandidate,
-    TestInvitation,
-    TestProcess,
-)
-
-from apps.core.ai.purpose_fit import (
-    purpose_supports_fit,
-    build_assessment_evidence,
-    create_empty_purpose_fit,
-    apply_purpose_fit_event,
-    generate_candidate_purpose_fit_events,
-    save_candidate_purpose_fit,
-)
-
-from apps.core.ai.language import (
-    ai_content_language_matches,
-    get_request_ai_language,
-    mark_ai_content_outdated_if_language_changed,
-)
-
-# Talena personality language batch 1
-
-from apps.processes.services.historical_assessment_import import import_historical_assessment_file
-from django.db.models import Count, OuterRef, Subquery, IntegerField
-from django.db.models.functions import Coalesce
-from apps.processes.models import HistoricalProcessCandidate
-from django.contrib import messages
-from django.db import transaction
-from django.db.models.deletion import ProtectedError
-from django.db.utils import IntegrityError
-from apps.processes.services.process_locking import can_delete_process_safely
-from apps.processes.services.project_assessment_status import (
-    project_test_columns,
-    attach_test_statuses,
-    invitation_test_statuses,
-)
-from .forms import SelfRegisterForm
-from django.urls import reverse
-from django.utils import timezone
-from django.utils.translation import gettext as _, get_language
-
-from apps.processes.interview_config import (
-    get_interview_section_config,
-)
-from django.views.decorators.http import require_POST
-from django.core.mail import EmailMultiAlternatives
-from apps.emails.models import EmailTemplate, EmailLog
-from apps.emails.utils import render_placeholders
-from django.core.mail import send_mail
-from django.http import StreamingHttpResponse, JsonResponse
-from apps.accounts.utils.org_access import get_accessible_orgunit_ids
-from .purpose_context_config import get_purpose_context_config
-
-from urllib.parse import urlparse
-from django.http import HttpResponseRedirect
-from django.db.models import Count, Q
-from datetime import datetime, date, time
-
-from django.http import HttpResponse
-from apps.accounts.utils.permissions import filter_by_user_accounts, user_can_access_account
-from apps.accounts.utils.org_access import get_effective_orgunit_permissions, user_can_view_process, user_can_edit_process, get_company_for_user
-from django.http import HttpResponseForbidden
-
-from apps.processes.services.send_tests import send_assessments_and_emails
-from .purpose_context_config import get_purpose_context_config
-
-import json
-import uuid
-import requests
-
-from django.conf import settings
-
-from apps.accounts.models import Company, CompanyMember, OrgUnit
-from apps.projects.models import ProjectMeta
-
-from apps.activity.models import ActivityEvent
-from apps.activity.services import log_event, customer_visible_activity
-
-from apps.reports.libraries.motivation.builder import (
-    build_scores_by_competency,
-    build_practitioner_report,
-    build_motivation_report,
-    build_motivation_coaching_report,
-    build_manager_report,
-    build_candidate_report
-)
-
-from apps.core.ai.candidate_summary import (
-    stream_candidate_summary,
-    save_candidate_summary,
-)
-
-from apps.reports.libraries.personality.resolver import build_personality_reports_for_candidate
-from apps.reports.libraries.personality.profile_contrasts import (
-    build_profile_contrast_analysis,
-)
-from apps.reports.libraries.personality.builder import (
-    build_profile_from_resolved_report,
-)
-from apps.reports.libraries.personality.response_styles import (
-    build_response_style_results as build_localized_response_style_results,
-)
-
-# Talena personality UI and response styles language batch 1
-
-from apps.reports.libraries.cognitive.builder import build_cognitive_reports_for_test
-
-from .forms import TestProcessWizardCreateForm
-
-from apps.reports.libraries.purpose.content import get_report_mode_content
-
-from apps.processes.services.process_recommendations import (
-    PROCESS_PURPOSES,
-    AVAILABLE_TESTS,
-    PURPOSE_RECOMMENDED_TESTS,
-    resolve_sova_template,
-    build_default_process_name,
-)
-
-from apps.processes.services.process_recommendations import PROCESS_PURPOSES
-
-from .models import ProcessRoleContext
-from .forms import ProcessRoleContextForm
-
-from apps.core.ai.personality_questions import (
-    extract_personality_results,
-    extract_personality_question_traits,
-    normalise_selected_traits,
-    create_empty_personality_questions,
-    apply_personality_questions_event,
-    stream_personality_questions,
-    save_personality_questions,
-    get_personality_question_count,
-    personality_questions_cover_all_traits,
-)
-
-def build_cognitive_results_for_ai_owner(
-    owner,
-) -> list[dict]:
-    """
-    Build cognitive percentile evidence for either:
-
-    - TestInvitation
-    - HistoricalProcessCandidate
-    """
-
-    process = owner.process
-
-    # ---------------------------------------------------------
-    # ACTIVE CANDIDATE
-    # ---------------------------------------------------------
-
-    if not getattr(
-        process,
-        "is_historical",
-        False,
-    ):
-        return extract_cognitive_results(
-            owner
-        )
-
-    # ---------------------------------------------------------
-    # HISTORICAL CANDIDATE
-    # ---------------------------------------------------------
-
-    profile = build_historical_candidate_profile(
-        owner
-    )
-
-    ability_results = (
-        profile.get("ability_results")
-        or {}
-    )
-
-    labels = {
-        "logical": "Logical reasoning",
-        "numerical": "Numerical reasoning",
-        "verbal": "Verbal reasoning",
-    }
-
-    results = []
-
-    for key in (
-        "logical",
-        "numerical",
-        "verbal",
-    ):
-        item = ability_results.get(key)
-
-        if not item:
-            continue
-
-        percentile = item.get("percentile")
-
-        if percentile is None:
-            percentile = item.get("value")
-
-        if percentile is None:
-            continue
-
-        try:
-            percentile = int(
-                round(float(percentile))
-            )
-        except (TypeError, ValueError):
-            continue
-
-        percentile = max(
-            0,
-            min(100, percentile),
-        )
-
-        results.append(
-            {
-                "key": key,
-                "label": labels[key],
-                "percentile": percentile,
-            }
-        )
-
-    return results
-
-def build_motivation_results_for_ai_owner(
-    owner,
-) -> list[dict]:
-    """
-    Build motivation evidence for either:
-
-    - TestInvitation
-    - HistoricalProcessCandidate
-
-    Returns the same structure expected by the
-    motivation AI generators.
-    """
-
-    process = owner.process
-
-    # ---------------------------------------------------------
-    # ACTIVE CANDIDATE
-    # ---------------------------------------------------------
-
-    if not getattr(
-        process,
-        "is_historical",
-        False,
-    ):
-        return extract_motivation_results(
-            owner
-        )
-
-    # ---------------------------------------------------------
-    # HISTORICAL CANDIDATE
-    # ---------------------------------------------------------
-
-    profile = build_historical_candidate_profile(
-        owner
-    )
-
-    motivation_competencies = (
-        profile.get(
-            "motivation_competencies"
-        )
-        or []
-    )
-
-    results_by_name = {}
-
-    for item in motivation_competencies:
-        name = str(
-            item.get("competency")
-            or item.get("name")
-            or ""
-        ).strip()
-
-        if not name:
-            continue
-
-        # Preserve the exact imported STIVE value. Rounded
-        # values are only a compatibility fallback.
-        raw_score = item.get(
-            "stive"
-        )
-
-        if raw_score is None:
-            raw_score = item.get(
-                "stive_rounded"
-            )
-
-        if raw_score is None:
-            raw_score = item.get(
-                "score"
-            )
-
-        score = normalise_five_point_score(
-            raw_score
-        )
-
-        if score is None:
-            continue
-
-        name_key = name.casefold()
-
-        results_by_name[name_key] = {
-            "name": name,
-            "score": score,
-            "definition": (
-                MOTIVATION_DEFINITIONS.get(
-                    name_key,
-                    "",
-                )
-            ),
-        }
-
-    return list(
-        results_by_name.values()
-    )
-
-# Talena cognitive results language batch 1
-def build_cognitive_insight_results(
-    verbal_percentile=None,
-    logical_percentile=None,
-    numerical_percentile=None,
-):
-    """Keep the existing Candidate Insights API over the shared service."""
-    return _build_cognitive_insight_results(
-        verbal_percentile=verbal_percentile,
-        logical_percentile=logical_percentile,
-        numerical_percentile=numerical_percentile,
-    )
-
-
-def build_response_style_results(
-    personality_competencies,
-):
-    return build_localized_response_style_results(
-        personality_competencies
-    )
-
-
-def build_personality_results_for_ai_owner(
-    owner,
-) -> list[dict]:
-    """
-    Build personality trait evidence for either:
-
-    - TestInvitation
-    - HistoricalProcessCandidate
-    """
-
-    process = owner.process
-
-    # ---------------------------------------------------------
-    # ACTIVE CANDIDATE
-    # ---------------------------------------------------------
-    if not getattr(
-        process,
-        "is_historical",
-        False,
-    ):
-        return extract_personality_results(
-            owner
-        )
-
-    # ---------------------------------------------------------
-    # HISTORICAL CANDIDATE
-    # ---------------------------------------------------------
-    profile = build_historical_candidate_profile(
-        owner
-    )
-
-    historical_competencies = (
-        profile.get(
-            "personality_competencies"
-        )
-        or []
-    )
-
-    excluded_competencies = {
-        "social desirability",
-        "fillers",
-        "reliability",
-        "profile spread",
-        "ratings spread",
-    }
-
-    results_by_name = {}
-
-    for item in historical_competencies:
-        name = str(
-            item.get("competency")
-            or item.get("name")
-            or ""
-        ).strip()
-
-        if not name:
-            continue
-
-        name_key = name.lower()
-
-        if name_key in excluded_competencies:
-            continue
-
-        raw_sten = item.get(
-            "sten_rounded"
-        )
-
-        if raw_sten is None:
-            raw_sten = item.get(
-                "sten"
-            )
-
-        # Historical imports may keep the imported STEN value
-        # in the generic score field.
-        if raw_sten is None:
-            raw_sten = item.get(
-                "score"
-            )
-
-        try:
-            sten = int(
-                round(float(raw_sten))
-            )
-        except (TypeError, ValueError):
-            continue
-
-        sten = max(
-            1,
-            min(10, sten),
-        )
-
-        results_by_name[name_key] = {
-            "name": name,
-            "sten": sten,
-        }
-
-    return list(
-        results_by_name.values()
-    )
-
-
-def build_personality_question_traits_for_ai_owner(
-    owner,
-) -> list[dict]:
-    """
-    Return the 18 parent personality traits used by
-    Personality Questions for either an active or
-    historical candidate.
-    """
-
-    results = build_personality_results_for_ai_owner(
-        owner
-    )
-
-    allowed_trait_keys = {
-        "cooperative",
-        "empathy",
-        "supporting",
-        "connecting",
-        "dynamic",
-        "influential",
-        "goal focused",
-        "achievement striving",
-        "structured",
-        "analytical",
-        "complex thinking",
-        "creativity",
-        "adaptability",
-        "straightforward",
-        "status avoidance",
-        "modesty",
-        "resilience",
-        "emotional control",
-        "independence",
-    }
-
-    def normalise_trait_key(value):
-        text = str(
-            value or ""
-        ).strip().casefold()
-
-        for character in (
-            "_",
-            "-",
-            "â€“",
-            "â€”",
-            "/",
-        ):
-            text = text.replace(
-                character,
-                " ",
-            )
-
-        return " ".join(
-            text.split()
-        )
-
-    return [
-        result
-        for result in results
-        if normalise_trait_key(
-            result.get("name")
-        ) in allowed_trait_keys
-    ]
-
-
-def build_response_styles_for_guidance_owner(
-    guidance_owner,
-):
-    """
-    Build response-style results for either:
-
-    - TestInvitation
-    - HistoricalProcessCandidate
-
-    The AI endpoint uses this helper so it does not need to build the
-    entire candidate detail context before generating guidance.
-    """
-
-    process = guidance_owner.process
-
-    # ---------------------------------------------------------
-    # HISTORICAL CANDIDATE
-    # ---------------------------------------------------------
-    if getattr(process, "is_historical", False):
-        profile = build_historical_candidate_profile(
-            guidance_owner
-        )
-
-        historical_competencies = (
-            profile.get("personality_competencies")
-            or []
-        )
-
-        personality_competencies = []
-
-        for item in historical_competencies:
-            personality_competencies.append({
-                "competency": (
-                    item.get("competency")
-                    or item.get("name")
-                ),
-                "sten": item.get("sten"),
-                "sten_rounded": item.get(
-                    "sten_rounded"
-                ),
-                "percentile": item.get("percentile"),
-                "source": "historical_import",
-            })
-
-        return build_response_style_results(
-            personality_competencies
-        )
-
-    # ---------------------------------------------------------
-    # ACTIVE CANDIDATE
-    # ---------------------------------------------------------
-    payload = guidance_owner.sova_payload or {}
-
-    activities = list(
-        guidance_owner.sova_activities
-        or payload.get("activities")
-        or []
-    )
-
-    if not activities:
-        for phase in payload.get("phases") or []:
-            activities.extend(
-                phase.get("activities") or []
-            )
-
-    personality_competencies = []
-
-    for activity in activities:
-        activity_name = (
-            activity.get("activity")
-            or ""
-        ).strip().lower()
-
-        is_personality_activity = (
-            activity_name == "personality assessment"
-            or activity_name == (
-                "sova personality questionnaire"
-            )
-            or "personality" in activity_name
-        )
-
-        if not is_personality_activity:
-            continue
-
-        for competency in (
-            activity.get("competencies")
-            or []
-        ):
-            personality_competencies.append({
-                "competency": competency.get(
-                    "competency"
-                ),
-                "sten": competency.get("sten"),
-                "sten_rounded": competency.get(
-                    "sten_rounded"
-                ),
-                "percentile": competency.get(
-                    "percentile"
-                ),
-            })
-
-    return build_response_style_results(
-        personality_competencies
-    )
-
-
-def build_profile_contrast_analysis_for_guidance_owner(
-    guidance_owner,
-    *,
-    language_code="sv",
-):
-    """Build contrast evidence using the same canonical profile resolver."""
-    process = guidance_owner.process
-
-    if getattr(process, "is_historical", False):
-        historical_profile = build_historical_candidate_profile(
-            guidance_owner
-        )
-        source = "historical_import"
-        competencies = [
-            {
-                "competency": item.get("competency") or item.get("name"),
-                "sten": item.get("sten"),
-                "sten_rounded": item.get("sten_rounded"),
-            }
-            for item in (historical_profile.get("personality_competencies") or [])
-        ]
-        activities = [{
-            "activity": "Personality Assessment",
-            "competencies": competencies,
-        }]
-    else:
-        payload = guidance_owner.sova_payload or {}
-        activities = list(
-            guidance_owner.sova_activities
-            or payload.get("activities")
-            or []
-        )
-        if not activities:
-            for phase in payload.get("phases") or []:
-                activities.extend(phase.get("activities") or [])
-        source = "sova_assessment"
-
-    personality_reports = build_personality_reports_for_candidate(
-        sova_activities=activities,
-    )
-    resolved_report = next(
-        (
-            report for report in personality_reports
-            if report.get("report_id") == "trait_indicator_profile"
-        ),
-        None,
-    )
-    personality_profile = (
-        build_profile_from_resolved_report(
-            resolved_report=resolved_report,
-            language=language_code,
-            include_missing_traits=False,
-        )
-        if resolved_report
-        else None
-    )
-    return build_profile_contrast_analysis(
-        personality_profile,
-        language=language_code,
-        source=source,
-    )
-
-
-def build_motivation_insight_section(
-    mq_competencies,
-    candidate_name="",
-):
-    """
-    Build the complete motivation profile used in Candidate Insights.
-
-    Motivation results retain precise STIVE scores from 1 to 5 for ranking and display.
-
-    The profile:
-    - preserves Sova's four motivation areas
-    - shows all available motivation factors
-    - identifies more prominent and less central drivers
-    - does not interpret low scores as weaknesses or automatic demotivators
-    """
-    candidate_label = (
-        (candidate_name or "").strip()
-        or "The candidate"
-    )
-
-    def normalise_name(value):
-        text = str(value or "").strip().lower()
-
-        replacements = {
-            "_": " ",
-            "-": " ",
-            "â€“": " ",
-            "/": " ",
-            "&": " and ",
-        }
-
-        for old, new in replacements.items():
-            text = text.replace(old, new)
-
-        return " ".join(text.split())
-
-    def get_score(item):
-        """
-        Motivation uses Sova's five-point STIVE scale.
-
-        Do not fall back to percentile or STEN here, because those values
-        must not be presented as scores out of five.
-        """
-
-        for key in (
-            "stive",
-            "score",
-            "stive_rounded",
-        ):
-            value = item.get(key)
-
-            if value is None:
-                continue
-
-            try:
-                score = float(value)
-            except (TypeError, ValueError):
-                continue
-
-            score = max(1.0, min(5.0, score))
-
-            return int(score) if score.is_integer() else score
-
-        return None
-    
-    factor_interpretations = {
-        "attachment": {
-            "summary_phrase": (
-                "close working relationships and a clear sense of belonging"
-            ),
-            "support_phrase": (
-                "regular collaboration, mutual support and trusted relationships"
-            ),
-            "top_text": (
-                "{name} is likely to gain energy from close working relationships, "
-                "collaboration and a clear sense of belonging. Regular interaction, "
-                "mutual support and opportunities to build strong connections with "
-                "colleagues may contribute to engagement over time."
-            ),
-        },
-
-        "customer_service": {
-            "summary_phrase": (
-                "helping customers and understanding their needs"
-            ),
-            "support_phrase": (
-                "regular customer contact and opportunities to provide useful service"
-            ),
-            "top_text": (
-                "{name} is likely to be motivated by understanding customer needs "
-                "and providing helpful service. They may gain energy from building "
-                "strong customer relationships, solving customer problems and seeing "
-                "that their work creates a positive customer experience."
-            ),
-        },
-
-        "work_life_balance": {
-            "summary_phrase": (
-                "a sustainable balance between work and life outside work"
-            ),
-            "support_phrase": (
-                "clear boundaries, a manageable workload and a sustainable pace"
-            ),
-            "top_text": (
-                "{name} is likely to value a sustainable balance between work and "
-                "life outside work. Clear expectations, reasonable boundaries and "
-                "enough flexibility to manage personal commitments may help maintain "
-                "energy and engagement over time."
-            ),
-        },
-
-        "people_development": {
-            "summary_phrase": (
-                "helping other people learn and develop"
-            ),
-            "support_phrase": (
-                "opportunities to coach, support and develop others"
-            ),
-            "top_text": (
-                "{name} is likely to gain energy from helping other people grow and "
-                "develop. They may enjoy coaching, sharing knowledge and providing "
-                "support that enables colleagues or team members to strengthen their "
-                "skills and confidence."
-            ),
-        },
-
-        "stability": {
-            "summary_phrase": (
-                "continuity, predictability and a sense of security"
-            ),
-            "support_phrase": (
-                "clear structures, continuity and a predictable working environment"
-            ),
-            "top_text": (
-                "{name} is likely to be motivated by continuity, predictability and "
-                "a sense of security at work. Clear structures, dependable conditions "
-                "and confidence about what lies ahead may support sustained engagement."
-            ),
-        },
-
-        "authority": {
-            "summary_phrase": (
-                "influence, responsibility and opportunities to lead"
-            ),
-            "support_phrase": (
-                "decision-making responsibility and scope to shape direction"
-            ),
-            "top_text": (
-                "{name} is likely to be motivated by having influence and meaningful "
-                "responsibility. They may gain energy from leading others, shaping "
-                "direction and being trusted to make decisions that affect outcomes."
-            ),
-        },
-
-        "independence": {
-            "summary_phrase": (
-                "freedom to make decisions and shape how work is carried out"
-            ),
-            "support_phrase": (
-                "trust, personal ownership and freedom from unnecessary control"
-            ),
-            "top_text": (
-                "{name} is likely to value freedom in how work is planned and carried "
-                "out. They may be most engaged when trusted to make decisions, organise "
-                "their own workload and use their judgement without unnecessary control."
-            ),
-        },
-
-        "recognition": {
-            "summary_phrase": (
-                "recognition and visible appreciation for personal contribution"
-            ),
-            "support_phrase": (
-                "clear feedback and acknowledgement of effort and results"
-            ),
-            "top_text": (
-                "{name} is likely to appreciate visible recognition for their work "
-                "and contribution. Clear feedback, praise and acknowledgement of "
-                "successful performance may reinforce motivation and engagement."
-            ),
-        },
-
-        "making_a_difference": {
-            "summary_phrase": (
-                "creating a meaningful and positive impact"
-            ),
-            "support_phrase": (
-                "a clear purpose and visible connection between work and wider impact"
-            ),
-            "top_text": (
-                "{name} is likely to be motivated by seeing that their work contributes "
-                "to something meaningful. They may gain energy from roles where the "
-                "purpose is clear and where their contribution creates a visible "
-                "positive impact for others or the wider organisation."
-            ),
-        },
-
-        "acquisition": {
-            "summary_phrase": (
-                "financial reward and tangible outcomes"
-            ),
-            "support_phrase": (
-                "clear rewards and a visible connection between contribution and gain"
-            ),
-            "top_text": (
-                "{name} is likely to be motivated by tangible rewards and financial "
-                "outcomes. They may respond positively when strong contribution is "
-                "connected to clear benefits, incentives or opportunities for material gain."
-            ),
-        },
-
-        "achievement": {
-            "summary_phrase": (
-                "challenging goals, visible progress and achievement"
-            ),
-            "support_phrase": (
-                "clear targets, stretching objectives and visible measures of success"
-            ),
-            "top_text": (
-                "{name} is likely to gain energy from clear and challenging goals. "
-                "They may enjoy overcoming difficulties, measuring progress and seeing "
-                "that sustained effort has led to a meaningful achievement."
-            ),
-        },
-
-        "quality": {
-            "summary_phrase": (
-                "producing accurate and high-quality work"
-            ),
-            "support_phrase": (
-                "high standards and enough time to deliver reliable results"
-            ),
-            "top_text": (
-                "{name} is likely to be motivated by producing work of a consistently "
-                "high standard. They may take pride in accuracy, reliability and "
-                "ensuring that the final result meets both expectations and agreed commitments."
-            ),
-        },
-
-        "learning": {
-            "summary_phrase": (
-                "learning, development and building new capability"
-            ),
-            "support_phrase": (
-                "regular opportunities to develop knowledge and learn new skills"
-            ),
-            "top_text": (
-                "{name} is likely to gain energy from learning and developing new "
-                "capabilities. Opportunities to expand their knowledge, practise new "
-                "skills and continue progressing may be important for longer-term engagement."
-            ),
-        },
-
-        "ethics": {
-            "summary_phrase": (
-                "clear ethical principles and alignment with personal values"
-            ),
-            "support_phrase": (
-                "transparent decisions and organisational standards that align with their values"
-            ),
-            "top_text": (
-                "{name} is likely to place considerable importance on ethical standards "
-                "and personal principles. They may be most engaged in environments where "
-                "decisions are transparent and organisational practices align with what "
-                "they consider fair and responsible."
-            ),
-        },
-
-        "commercial_focus": {
-            "summary_phrase": (
-                "commercial impact and measurable business value"
-            ),
-            "support_phrase": (
-                "visible business outcomes and a clear connection between work and commercial results"
-            ),
-            "top_text": (
-                "{name} is likely to be motivated by creating visible commercial value. "
-                "They may gain energy from understanding how their work contributes to "
-                "revenue, growth or other measurable business outcomes."
-            ),
-        },
-
-        "curiosity": {
-            "summary_phrase": (
-                "exploring new information and unfamiliar questions"
-            ),
-            "support_phrase": (
-                "opportunities to investigate, discover and solve unfamiliar problems"
-            ),
-            "top_text": (
-                "{name} is likely to gain energy from exploring new information and "
-                "understanding unfamiliar topics. They may enjoy investigating questions, "
-                "discovering new perspectives and solving problems that stimulate their interest."
-            ),
-        },
-
-        "creativity": {
-            "summary_phrase": (
-                "generating ideas and finding original solutions"
-            ),
-            "support_phrase": (
-                "room to experiment, challenge established approaches and develop new ideas"
-            ),
-            "top_text": (
-                "{name} is likely to be motivated by opportunities to generate ideas "
-                "and find original solutions. They may gain energy from experimentation, "
-                "creative problem-solving and work that allows established approaches "
-                "to be reconsidered."
-            ),
-        },
-
-        "enjoyment": {
-            "summary_phrase": (
-                "an enjoyable and positive working atmosphere"
-            ),
-            "support_phrase": (
-                "positive relationships, humour and an engaging day-to-day environment"
-            ),
-            "top_text": (
-                "{name} is likely to value an enjoyable and positive atmosphere at work. "
-                "They may gain energy from friendly relationships, humour and a working "
-                "environment where day-to-day activities feel engaging and personally satisfying."
-            ),
-        },
-
-        "variety": {
-            "summary_phrase": (
-                "variety, change and different types of work"
-            ),
-            "support_phrase": (
-                "a changing mix of tasks, challenges and ways of working"
-            ),
-            "top_text": (
-                "{name} is likely to be motivated by variety and change in their work. "
-                "They may gain energy from moving between different tasks, encountering "
-                "new challenges and using a broad range of skills rather than following "
-                "the same routine for long periods."
-            ),
-        },
-
-        "risk": {
-            "summary_phrase": (
-                "challenge, uncertainty and calculated risk"
-            ),
-            "support_phrase": (
-                "room to make considered decisions when outcomes are not fully known"
-            ),
-            "top_text": (
-                "{name} is likely to be motivated by situations where the outcome is "
-                "not fully known and where calculated risk is part of the work. They "
-                "may be comfortable making decisions without complete certainty and "
-                "may gain energy from roles that offer challenge, pace and the opportunity "
-                "to see whether a bold course of action pays off."
-            ),
-        },
-    }
-
-    motivation_model = [
-        {
-            "key": "belonging",
-            "title": "Belonging",
-            "subtitle": (
-                "Social connection, support and a sense of belonging at work"
-            ),
-            "icon_class": "fa-solid fa-people-group",
-            "factors": [
-                {
-                    "key": "attachment",
-                    "name": "Affiliation",
-                    "aliases": [
-                        "attachment",
-                        "affiliation",
-                    ],
-                    "description": (
-                        "Value social interaction with others at work. This is a primary driver for them. Enjoys the feeling of belonging to a team and is driven by developing strong bonds and good working relationships."
-                    ),
-                },
-                {
-                    "key": "customer_service",
-                    "name": "Customer Service",
-                    "aliases": [
-                        "customer service",
-                        "customer focus",
-                    ],
-                    "description": (
-                        "Thrives in a customer-oriented role where they get to help and support others. Values building relationships with customers and understanding customer needs. Places great emphasis on meeting and exceeding customer needs and expectations."
-                    ),
-                },
-                {
-                    "key": "work_life_balance",
-                    "name": "Work-life Balance",
-                    "aliases": [
-                        "work life balance",
-                        "work-life balance",
-                    ],
-                    "description": (
-                        "Values work-life balance so they can fulfil their commitments both at work and outside. Looks for clear boundaries so they can switch off at the end of the workday and devote that time to other activities that are important."
-                    ),
-                },
-                {
-                    "key": "people_development",
-                    "name": "People Development",
-                    "aliases": [
-                        "people development",
-                        "developing people",
-                    ],
-                    "description": (
-                        "Helps and supports others and actively contributes to their development. Enjoys guiding others through difficult times and helping others overcome adversity or challenges. Offers proactive support so others can grow."
-                    ),
-                },
-                {
-                    "key": "stability",
-                    "name": "Stability",
-                    "aliases": [
-                        "stability",
-                        "security",
-                    ],
-                    "description": (
-                        "Wants to feel secure at work and will probably prefer to work in an industry or organisation they see as stable. Places importance on feeling that their position at work is secure and is likely to be more concerned with having stability in their role."
-                    ),
-                },
-            ],
-        },
-        {
-            "key": "influence",
-            "title": "Impact",
-            "subtitle": (
-                "Autonomy, recognition and opportunities to shape outcomes"
-            ),
-            "icon_class": "fa-solid fa-hand-pointer",
-            "factors": [
-                {
-                    "key": "authority",
-                    "name": "Authority",
-                    "aliases": [
-                        "authority",
-                    ],
-                    "description": (
-                        "Values the opportunity to take on leadership positions and the opportunity for promotion. Appreciates roles where there is room to set direction, organise others and ensure work is done properly."
-                    ),
-                },
-                {
-                    "key": "independence",
-                    "name": "Autonomy",
-                    "aliases": [
-                        "independence",
-                        "autonomy",
-                        "self determination",
-                        "self direction",
-                    ],
-                    "description": (
-                        "Values the freedom to make their own decisions about how to plan their time and organise their work. Performs at their best when trusted to set their own work direction and complete their work in the way they see fit."
-                    ),
-                },
-                {
-                    "key": "recognition",
-                    "name": "Recognition",
-                    "aliases": [
-                        "recognition",
-                    ],
-                    "description": (
-                        "Is motivated by recognition, praise and appreciation. Prioritises activities or projects that are visible in the organisation so others can see the work they do and the value they add. Positive feedback and praise are motivating for them."
-                    ),
-                },
-                {
-                    "key": "making_a_difference",
-                    "name": "Making a difference",
-                    "aliases": [
-                        "making a difference",
-                        "make a difference",
-                        "purpose",
-                    ],
-                    "description": (
-                        "Wants to feel that they make a positive difference to others. Considers it important to be part of an organisation whose goals and purpose seem worthwhile to them, and to be able to see how their work has a beneficial impact on society at large."
-                    ),
-                },
-                {
-                    "key": "acquisition",
-                    "name": "Acquisition",
-                    "aliases": [
-                        "acquisition",
-                        "reward",
-                        "financial reward",
-                    ],
-                    "description": (
-                        "Is motivated by financial reward and by working in a well-paid role so they can afford the things they want without having to worry about costs. The focus on salary and benefits is strong; attractive remuneration is motivating."
-                    ),
-                },
-            ],
-        },
-        {
-            "key": "growth",
-            "title": "Growth",
-            "subtitle": (
-                "Achievement, quality, development and meaningful standards"
-            ),
-            "icon_class": "fa-solid fa-arrow-trend-up",
-            "factors": [
-                {
-                    "key": "achievement",
-                    "name": "Achievement",
-                    "aliases": [
-                        "achievement",
-                        "performance",
-                    ],
-                    "description": (
-                        "Is energised by defined and challenging goals to work towards. Professionally challenging opportunities are important; thrives on competition and an environment where they have the opportunity to compare their performance to others."
-                    ),
-                },
-                {
-                    "key": "quality",
-                    "name": "Quality",
-                    "aliases": [
-                        "quality",
-                    ],
-                    "description": (
-                        "Is motivated by delivering high-quality results on a consistent basis. Takes pride in producing work that is in line with both what they have promised and what is expected of them. Ensures their work is completed as perfectly as possible."
-                    ),
-                },
-                {
-                    "key": "learning",
-                    "name": "Learning",
-                    "aliases": [
-                        "learning",
-                        "development",
-                    ],
-                    "description": (
-                        "Is driven by the opportunity to learn and develop their expertise. Feels comfortable in an environment where there are plenty of opportunities for ongoing training and development to master new skills."
-                    ),
-                },
-                {
-                    "key": "ethics",
-                    "name": "Ethics",
-                    "aliases": [
-                        "ethics",
-                        "ethical standards",
-                    ],
-                    "description": (
-                        "Maintains high ethical standards for themselves and the organisation they work for. Adheres to industry guidelines and best-practice requirements. Takes pride in their professional integrity and enjoys working in an organisation whose ethical values are in line with their own."
-                    ),
-                },
-                {
-                    "key": "commercial_focus",
-                    "name": "Commercial Value",
-                    "aliases": [
-                        "commercial focus",
-                        "commercial value",
-                        "commercially focused",
-                    ],
-                    "description": (
-                        "Thrives in a commercially focused role and contributes to the organisation's financial success. Values seeing the connection between their role and the organisation's results. Gains energy from seeing how their work leads to commercial profit."
-                    ),
-                },
-            ],
-        },
-        {
-            "key": "interest",
-            "title": "Interest",
-            "subtitle": (
-                "Exploration, creativity, enjoyment, variety and risk"
-            ),
-            "icon_class": "fa-solid fa-lightbulb",
-            "factors": [
-                {
-                    "key": "curiosity",
-                    "name": "Curiosity",
-                    "aliases": [
-                        "curiosity",
-                    ],
-                    "description": (
-                        "Explores and discovers new things. Pursues knowledge and experience, takes advantage of opportunities for new experiences and new information, and explores the things that capture their interest."
-                    ),
-                },
-                {
-                    "key": "creativity",
-                    "name": "Creativity",
-                    "aliases": [
-                        "creativity",
-                    ],
-                    "description": (
-                        "Enjoys exercising creativity, thinking outside the box, generating new ideas and identifying new solutions. Ideas and suggestions are likely to be useful, not just original for the sake of being different or unique."
-                    ),
-                },
-                {
-                    "key": "enjoyment",
-                    "name": "Enjoyment",
-                    "aliases": [
-                        "enjoyment",
-                        "joy",
-                        "fun",
-                    ],
-                    "description": (
-                        "Values an environment where they enjoy their work but can also have fun with their colleagues. Thrives in an easy-going environment where they can express their playful side, share humour with colleagues and be accepted for who they are."
-                    ),
-                },
-                {
-                    "key": "variety",
-                    "name": "Variety",
-                    "aliases": [
-                        "variety",
-                        "variation",
-                    ],
-                    "description": (
-                        "Is motivated by a role that offers a lot of variety and the opportunity to work with many different things. Thrives in a diverse role with a mix of tasks and projects where they can focus their attention on different work demands and take advantage of their different skills."
-                    ),
-                },
-                {
-                    "key": "risk",
-                    "name": "Risk",
-                    "aliases": [
-                        "risk",
-                        "risk taking",
-                    ],
-                    "description": (
-                        "Is motivated by risk at work and by having to face situations where the outcome is unclear. Is comfortable making risky decisions and thrives in roles that allow room to experience the thrill of taking a risk and then seeing if it pays off."
-                    ),
-                },
-            ],
-        },
-    ]
-
-    source_lookup = {}
-
-    for item in mq_competencies or []:   
-        competency_name = normalise_name(
-            item.get("competency")
-        )
-
-        if competency_name:
-            source_lookup[competency_name] = item
-
-    def find_source(factor):
-        for alias in factor.get("aliases", []):
-            source = source_lookup.get(
-                normalise_name(alias)
-            )
-
-            if source:
-                return source
-
-        return None
-
-    def get_band(score):
-        if score is None:
-            return {
-                "key": "missing",
-                "label": "Not available",
-            }
-
-        if score <= 2:
-            return {
-                "key": "lower",
-                "label": "Lower",
-            }
-
-        if score == 3:
-            return {
-                "key": "mid",
-                "label": "Mid-range",
-            }
-
-        return {
-            "key": "higher",
-            "label": "Higher",
-        }
-
-    def build_segments(score):
-        return [
-            {
-                "number": number,
-                "filled": (
-                    score is not None
-                    and number <= score
-                ),
-            }
-            for number in range(1, 6)
-        ]
-
-    used_source_ids = set()
-    domains = []
-    all_items = []
-    item_order = 0
-
-    for domain_index, domain_config in enumerate(motivation_model):
-        domain_items = []
-
-        for factor in domain_config["factors"]:
-            source = find_source(factor)
-            score = get_score(source) if source else None
-            band = get_band(score)
-
-            interpretation_config = factor_interpretations.get(
-                factor["key"],
-                {},
-            )
-
-            if source:
-                used_source_ids.add(id(source))
-
-            item = {
-                "key": factor["key"],
-                "name": factor["name"],
-                "description": factor["description"],
-                "domain": domain_config["title"],
-                "domain_data": domain_config,
-                "domain_index": domain_index,
-                "score": score,
-                "available": score is not None,
-                "segments": build_segments(score),
-                "band_key": band["key"],
-                "band_label": band["label"],
-                "percentile": (
-                    source.get("percentile")
-                    if source
-                    else None
-                ),
-                "source_name": (
-                    source.get("competency")
-                    if source
-                    else None
-                ),
-                "order": item_order,
-                "summary_phrase": interpretation_config.get(
-                    "summary_phrase",
-                    factor["name"].lower(),
-                ),
-
-                "support_phrase": interpretation_config.get(
-                    "support_phrase",
-                    factor["description"].lower(),
-                ),
-
-                "top_interpretation": (
-                    interpretation_config.get("top_text", "").format(
-                        name=candidate_label,
-                    )
-                    if interpretation_config.get("top_text")
-                    else (
-                        f"{candidate_label} appears to be particularly motivated "
-                        f"by this aspect of the working environment."
-                    )
-                ),
-            }
-
-            item_order += 1
-            domain_items.append(item)
-            all_items.append(item)
-
-        domain_items = sorted(
-            domain_items,
-            key=lambda item: (
-                item["score"] is None,
-                -(item["score"] or 0),
-                item["order"],
-            ),
-        )
-
-        domains.append({
-            "key": domain_config["key"],
-            "title": domain_config["title"],
-            "subtitle": domain_config["subtitle"],
-            "icon_class": domain_config["icon_class"],
-            "items": domain_items,
-        })
-
-
-    available_items = [
-        item
-        for item in all_items
-        if item["available"]
-    ]
-
-    if not available_items:
-        return None
-
-    sorted_desc = sorted(
-        available_items,
-        key=lambda item: (
-            -item["score"],
-            item["order"],
-        ),
-    )
-
-    sorted_asc = sorted(
-        available_items,
-        key=lambda item: (
-            item["score"],
-            item["order"],
-        ),
-    )
-
-    highest_score = max(
-        item["score"]
-        for item in available_items
-    )
-
-    lowest_score = min(
-        item["score"]
-        for item in available_items
-    )
-
-    has_profile_difference = (
-        highest_score != lowest_score
-    )
-
-    if has_profile_difference:
-        motivators = sorted_desc[:3]
-        less_central_drivers = sorted_asc[:3]
-    else:
-        motivators = []
-        less_central_drivers = []
-
-    def join_text(values):
-        values = [
-            value
-            for value in values
-            if value
-        ]
-
-        if not values:
-            return ""
-
-        if len(values) == 1:
-            return values[0]
-
-        if len(values) == 2:
-            return " and ".join(values)
-
-        return (
-            f"{', '.join(values[:-1])} and {values[-1]}"
-        )
-
-    def join_names(items):
-        names = [
-            item["name"]
-            for item in items
-        ]
-
-        if not names:
-            return ""
-
-        if len(names) == 1:
-            return names[0]
-
-        if len(names) == 2:
-            return " and ".join(names)
-
-        return (
-            f"{', '.join(names[:-1])} and {names[-1]}"
-        )
-
-    for item in motivators:
-        item["interpretation"] = item.get(
-            "top_interpretation"
-        ) or (
-            f"{candidate_label} appears to be particularly motivated "
-            f"by {item.get('name', 'this aspect of work').lower()}."
-        )
-
-    for item in less_central_drivers:
-        item["interpretation"] = (
-            f"{item['description']} This appears to be a less central "
-            f"source of energy for the candidate."
-        )
-
-    if motivators:
-        motivational_themes = join_text([
-            item["summary_phrase"]
-            for item in motivators
-        ])
-
-        supportive_conditions = join_text([
-            item["support_phrase"]
-            for item in motivators
-        ])
-
-        summary = (
-            f"{candidate_label} is likely to be energised by "
-            f"{motivational_themes}. A working environment that offers "
-            f"{supportive_conditions} may therefore support sustained "
-            f"engagement."
-        )
-    else:
-        summary = (
-            f"{candidate_label}'s motivation profile is relatively even, "
-            f"with no clear separation between more prominent and less "
-            f"central motivational drivers."
-        )
-
-    return {
-        "title": "Motivation profile",
-        "summary": summary,
-        "domains": domains,
-        # Flat chart data avoids relying on nested template dictionary lookup.
-        # These items retain the same precise scores used for ranking.
-        "chart_items": available_items,
-        "motivators": motivators,
-        "less_central_drivers": less_central_drivers,
-
-        # Temporary compatibility with the previous template/data structure.
-        "demotivators": less_central_drivers,
-
-        "available_count": len(available_items),
-        "highest_score": highest_score,
-        "lowest_score": lowest_score,
-        "has_profile_difference": has_profile_difference,
-    }
-
-
-def build_sova_reports_for_ui(reports):
-    """
-    Prepare all reports received from the Sova webhook for the UI.
-
-    Every report with a valid URL is included.
-    Known report codes receive cleaner display names.
-    Unknown reports fall back to the title supplied by Sova.
-    """
-
-    title_map = {
-        # Cognitive candidate reports
-        "TQ_CANDIDATE_LOGICAL_REASONING": (
-            "Logical Reasoning â€“ Candidate Report"
-        ),
-        "TQ_CANDIDATE_NUMERICAL_REASONING": (
-            "Numerical Reasoning â€“ Candidate Report"
-        ),
-        "TQ_CANDIDATE_VERBAL_REASONING": (
-            "Verbal Reasoning â€“ Candidate Report"
-        ),
-
-        # Cognitive practitioner reports
-        "TQ_PRACTITIONER_LOGICAL_REASONING": (
-            "Logical Reasoning â€“ Practitioner Report"
-        ),
-        "TQ_PRACTITIONER_NUMERICAL_REASONING": (
-            "Numerical Reasoning â€“ Practitioner Report"
-        ),
-        "TQ_PRACTITIONER_VERBAL_REASONING": (
-            "Verbal Reasoning â€“ Practitioner Report"
-        ),
-
-        # Personality reports
-        "TQ_SOVA_PQ_CANDIDATE_TRAIT": (
-            "Personality Trait Report â€“ Candidate"
-        ),
-        "SOVA_PQ_Team_TQ_Nordics": (
-            "Team Profile"
-        ),
-        "TQ_PQ38_Recruitment_Report": (
-            "Competency Report and Interview Guide"
-        ),
-        "TQ_Sova_PQ_Career_report": (
-            "Career Report"
-        ),
-        "TQ_Sova_PQ_Derailment": (
-            "Derailment Report"
-        ),
-        "SOVA_PQ_FULL_TRAIT_PROFILE_TQ_Nordics": (
-            "Full Personality Trait Profile"
-        ),
-        "TQ_Sova_PQ_Leadership": (
-            "Leadership Report"
-        ),
-        "Sova_PQ_Leadership_Manager_TQ_Nordics_Only": (
-            "Leadership Report â€“ Manager Version"
-        ),
-        "TQ_Sova_PQ_Potential_DNA": (
-            "Potential DNA Report"
-        ),
-        "TQ_PQ_Practitioner_Sales_Report": (
-            "Sales Profile â€“ Practitioner Report"
-        ),
-        "TQ_SOVA_PQ_SUBTRAIT_REPORT": (
-            "Trait and Indicator Profile"
-        ),
-        "TQ_PQ_Team_Composite": (
-            "Team Composite Report"
-        ),
-    }
-
-    def get_category(code, title):
-        text = f"{code} {title}".lower()
-
-        if "logical" in text:
-            return "Logical reasoning"
-
-        if "numerical" in text:
-            return "Numerical reasoning"
-
-        if "verbal" in text:
-            return "Verbal reasoning"
-
-        if any(word in text for word in (
-            "personality",
-            "pq",
-            "trait",
-            "leadership",
-            "career",
-            "derailment",
-            "potential",
-            "sales",
-            "team",
-        )):
-            return "Personality"
-
-        if "motivation" in text or "mq" in text:
-            return "Motivation"
-
-        return "Assessment report"
-
-    result = []
-
-    for report in reports or []:
-        if not isinstance(report, dict):
-            continue
-
-        url = (report.get("url") or "").strip()
-
-        if not url or not _is_safe_external_url(url):
-            continue
-
-        code = (report.get("code") or "").strip()
-        original_title = (report.get("title") or "").strip()
-
-        display_title = (
-            title_map.get(code)
-            or original_title
-            or code
-            or "Assessment report"
-        )
-
-        is_candidate_report = bool(
-            report.get("is_candidate_report")
-        )
-
-        result.append({
-            "code": code,
-            "url": url,
-            "title": display_title,
-            "original_title": original_title,
-            "category": get_category(
-                code=code,
-                title=original_title,
-            ),
-            "audience": (
-                "Candidate report"
-                if is_candidate_report
-                else "Practitioner report"
-            ),
-            "is_candidate_report": is_candidate_report,
-        })
-
-    # Candidate reports first, then practitioner reports.
-    return sorted(
-        result,
-        key=lambda item: (
-            not item["is_candidate_report"],
-            item["category"].lower(),
-            item["title"].lower(),
-        ),
-    )
-
-
-def _normalise_combined_question(
-    item,
-) -> dict | None:
-    """
-    Convert questions from different AI modules into one shared shape.
-    """
-
-    if isinstance(item, str):
-        question = item.strip()
-
-        if not question:
-            return None
-
-        return {
-            "question": question,
-            "why": "",
-            "listen_for": "",
-            "traits": [],
-        }
-
-    if not isinstance(item, dict):
-        return None
-
-    question = str(
-        item.get("question")
-        or ""
-    ).strip()
-
-    if not question:
-        return None
-
-    why = str(
-        item.get("why")
-        or ""
-    ).strip()
-
-    listen_for = str(
-        item.get("listen_for")
-        or ""
-    ).strip()
-
-    raw_traits = item.get("traits")
-    traits = []
-
-    if isinstance(raw_traits, list):
-        traits = [
-            str(trait).strip()
-            for trait in raw_traits
-            if str(trait).strip()
-        ]
-
-    return {
-        "question": question,
-        "why": why,
-        "listen_for": listen_for,
-        "traits": traits,
-    }
-
-
-# Talena combined questions i18n batch 1
-def build_combined_candidate_questions(
-    invitation,
-) -> dict:
-    """
-    Collect saved questions from Personality, Motivation and Cognitive.
-
-    No additional AI generation happens here.
-
-    The cognitive source supports both:
-    - the new separate cognitive questions field
-    - the older cognitive interpretation field as a fallback
-    """
-
-    question_sources = [
-        {
-            "key": "personality",
-            "title": _("Personality questions"),
-            "description": _(
-                "Explore how relevant personality preferences "
-                "appear in practical situations."
-            ),
-            "result_sources": [
-                {
-                    "result_field": "ai_personality_questions",
-                    "status_field": (
-                        "ai_personality_questions_status"
-                    ),
-                },
-            ],
-        },
-        {
-            "key": "motivation",
-            "title": _("Motivation questions"),
-            "description": _(
-                "Explore what may create energy, engagement "
-                "and sustainable motivation."
-            ),
-            "result_sources": [
-                {
-                    # New separate Motivation Questions result.
-                    "result_field": (
-                        "ai_motivation_questions"
-                    ),
-                    "status_field": (
-                        "ai_motivation_questions_status"
-                    ),
-                },
-                {
-                    # Backwards-compatible fallback for older results.
-                    "result_field": (
-                        "ai_motivation_interpretation"
-                    ),
-                    "status_field": (
-                        "ai_motivation_interpretation_status"
-                    ),
-                },
-            ],
-        },
-        {
-            "key": "cognitive",
-            "title": _("Cognitive questions"),
-            "description": _(
-                "Explore how the cognitive assessment results "
-                "relate to practical demands and working methods."
-            ),
-            "result_sources": [
-                {
-                    # New separate Cognitive Questions result.
-                    "result_field": (
-                        "ai_cognitive_questions"
-                    ),
-                    "status_field": (
-                        "ai_cognitive_questions_status"
-                    ),
-                },
-                {
-                    # Backwards-compatible fallback for older results.
-                    "result_field": (
-                        "ai_cognitive_interpretation"
-                    ),
-                    "status_field": (
-                        "ai_cognitive_interpretation_status"
-                    ),
-                },
-            ],
-        },
-    ]
-
-    # #191: central interview order, counts and time estimates.
-    for source in question_sources:
-        interview_meta = get_interview_section_config(
-            source["key"]
-        )
-
-        source["interview_order"] = (
-            interview_meta["order"]
-        )
-        source["target_question_count"] = (
-            interview_meta["question_count"]
-        )
-        source["estimated_minutes"] = (
-            interview_meta["estimated_minutes"]
-        )
-
-    question_sources.sort(
-        key=lambda source: source["interview_order"]
-    )
-
-    sections = []
-    total_count = 0
-
-    for source in question_sources:
-        raw_questions = []
-        status = "not_started"
-
-        # Try each configured result source in order.
-        # The first source containing questions wins.
-        for result_source in source["result_sources"]:
-            saved_result = (
-                getattr(
-                    invitation,
-                    result_source["result_field"],
-                    {},
-                )
-                or {}
-            )
-
-            possible_questions = (
-                saved_result.get("questions")
-                or []
-            )
-
-            if not isinstance(possible_questions, list):
-                continue
-
-            if not possible_questions:
-                continue
-
-            raw_questions = possible_questions
-
-            status = (
-                getattr(
-                    invitation,
-                    result_source["status_field"],
-                    "not_started",
-                )
-                or "not_started"
-            )
-
-            break
-
-        questions = []
-
-        for raw_question in raw_questions:
-            question = (
-                _normalise_combined_question(
-                    raw_question
-                )
-            )
-
-            if question:
-                questions.append(question)
-
-        if not questions:
-            continue
-
-        sections.append({
-            "key": source["key"],
-            "title": source["title"],
-            "description": source["description"],
-            "status": status,
-            "is_outdated": status == "outdated",
-            "questions": questions,
-            "question_count": len(questions),
-            "target_question_count": (
-                source["target_question_count"]
-            ),
-            "estimated_minutes": (
-                source["estimated_minutes"]
-            ),
-            "interview_order": (
-                source["interview_order"]
-            ),
-        })
-
-        total_count += len(questions)
-
-    return {
-        "sections": sections,
-        "total_count": total_count,
-        "has_questions": total_count > 0,
-    }
-
-
-def _normalise_final_output_list(
-    value,
-    *,
-    limit=3,
-) -> list[str]:
-    """
-    Return a clean and limited list of displayable strings.
-    """
-
-    if not isinstance(value, list):
-        return []
-
-    items = []
-
-    for item in value:
-        text = str(
-            item
-            or ""
-        ).strip()
-
-        if not text:
-            continue
-
-        items.append(text)
-
-        if len(items) >= limit:
-            break
-
-    return items
-
-
-def build_candidate_final_output(
-    invitation,
-    *,
-    combined_questions=None,
-) -> dict:
-    """
-    Assemble the candidate's existing saved AI content into one
-    purpose-based final output.
-
-    This function does not make any new AI request.
-    """
-
-    process = invitation.process
-
-    overview_result = (
-        invitation.ai_purpose_fit
-        or {}
-    )
-
-    personality_result = (
-        invitation.ai_personality_interpretation
-        or {}
-    )
-
-    motivation_result = (
-        invitation.ai_motivation_interpretation
-        or {}
-    )
-
-    cognitive_result = (
-        invitation.ai_cognitive_interpretation
-        or {}
-    )
-
-    if combined_questions is None:
-        combined_questions = (
-            build_combined_candidate_questions(
-                invitation
-            )
-        )
-
-    # ---------------------------------------------------------
-    # Purpose label
-    # ---------------------------------------------------------
-
-    if hasattr(
-        process,
-        "get_purpose_display",
-    ):
-        purpose_label = (
-            process.get_purpose_display()
-            or ""
-        ).strip()
-    else:
-        purpose_label = ""
-
-    if not purpose_label:
-        purpose_label = (
-            str(
-                process.purpose
-                or ""
-            )
-            .replace("_", " ")
-            .strip()
-            .title()
-        )
-
-    if not purpose_label:
-        purpose_label = "General insights"
-
-    # ---------------------------------------------------------
-    # AI Overview
-    # ---------------------------------------------------------
-
-    overview_summary = str(
-        overview_result.get("summary")
-        or ""
-    ).strip()
-
-    overview_supporting = (
-        _normalise_final_output_list(
-            overview_result.get(
-                "key_alignment"
-            ),
-            limit=3,
-        )
-    )
-
-    overview_explore = (
-        _normalise_final_output_list(
-            overview_result.get(
-                "areas_to_verify"
-            ),
-            limit=3,
-        )
-    )
-
-    suggested_next_step = str(
-        overview_result.get(
-            "suggested_next_step"
-        )
-        or ""
-    ).strip()
-
-    overview_context_note = str(
-        overview_result.get(
-            "context_note"
-        )
-        or ""
-    ).strip()
-
-    has_overview = bool(
-        overview_summary
-        or overview_supporting
-        or overview_explore
-        or suggested_next_step
-    )
-
-    overview_status = (
-        invitation.ai_purpose_fit_status
-        or "not_started"
-    )
-
-    # ---------------------------------------------------------
-    # Assessment-specific interpretations
-    # ---------------------------------------------------------
-
-    assessment_config = [
-        {
-            "key": "personality",
-            "title": "Personality",
-            "description": (
-                "Likely behavioural preferences and "
-                "how they may appear in practice."
-            ),
-            "result": personality_result,
-            "status": (
-                invitation
-                .ai_personality_interpretation_status
-                or "not_started"
-            ),
-            "summary_key": "interpretation",
-            "support_key": (
-                "supportive_patterns"
-            ),
-            "explore_key": (
-                "areas_to_explore"
-            ),
-        },
-        {
-            "key": "motivation",
-            "title": "Motivation",
-            "description": (
-                "Possible sources of engagement, energy "
-                "and expectation setting."
-            ),
-            "result": motivation_result,
-            "status": (
-                invitation
-                .ai_motivation_interpretation_status
-                or "not_started"
-            ),
-            "summary_key": "interpretation",
-            "support_key": (
-                "engagement_conditions"
-            ),
-            "explore_key": (
-                "areas_to_clarify"
-            ),
-        },
-        {
-            "key": "cognitive",
-            "title": "Cognitive",
-            "description": (
-                "Indications from the available "
-                "reasoning assessments."
-            ),
-            "result": cognitive_result,
-            "status": (
-                invitation
-                .ai_cognitive_interpretation_status
-                or "not_started"
-            ),
-            "summary_key": "interpretation",
-            "support_key": None,
-            "explore_key": "considerations",
-        },
-    ]
-
-    assessment_sections = []
-
-    for config in assessment_config:
-        result = config["result"]
-
-        summary = str(
-            result.get(
-                config["summary_key"]
-            )
-            or ""
-        ).strip()
-
-        support_items = []
-
-        if config["support_key"]:
-            support_items = (
-                _normalise_final_output_list(
-                    result.get(
-                        config["support_key"]
-                    ),
-                    limit=3,
-                )
-            )
-
-        explore_items = (
-            _normalise_final_output_list(
-                result.get(
-                    config["explore_key"]
-                ),
-                limit=3,
-            )
-            if config["explore_key"]
-            else []
-        )
-
-        if not (
-            summary
-            or support_items
-            or explore_items
-        ):
-            continue
-
-        status = (
-            config["status"]
-            or "not_started"
-        )
-
-        assessment_sections.append({
-            "key": config["key"],
-            "title": config["title"],
-            "description": (
-                config["description"]
-            ),
-            "summary": summary,
-            "support_items": support_items,
-            "explore_items": explore_items,
-            "status": status,
-            "is_outdated": (
-                status == "outdated"
-            ),
-        })
-
-    # ---------------------------------------------------------
-    # Status and availability
-    # ---------------------------------------------------------
-
-    source_statuses = [
-        section["status"]
-        for section in assessment_sections
-    ]
-
-    if has_overview:
-        source_statuses.append(
-            overview_status
-        )
-
-    has_outdated_content = any(
-        status == "outdated"
-        for status in source_statuses
-    )
-
-    has_questions = bool(
-        combined_questions.get(
-            "has_questions"
-        )
-    )
-
-    question_count = int(
-        combined_questions.get(
-            "total_count"
-        )
-        or 0
-    )
-
-    has_content = bool(
-        has_overview
-        or assessment_sections
-        or has_questions
-    )
-
-    return {
-        "purpose_label": purpose_label,
-
-        "overview": {
-            "summary": overview_summary,
-            "supporting": overview_supporting,
-            "explore": overview_explore,
-            "suggested_next_step": (
-                suggested_next_step
-            ),
-            "context_note": (
-                overview_context_note
-            ),
-            "status": overview_status,
-            "is_outdated": (
-                overview_status == "outdated"
-            ),
-            "has_content": has_overview,
-        },
-
-        "assessment_sections": (
-            assessment_sections
-        ),
-
-        "combined_questions": (
-            combined_questions
-        ),
-
-        "question_count": question_count,
-        "has_questions": has_questions,
-
-        "source_count": (
-            len(assessment_sections)
-            + (1 if has_overview else 0)
-        ),
-
-        "has_outdated_content": (
-            has_outdated_content
-        ),
-
-        "has_content": has_content,
-    }
-
-def build_candidate_ai_update_state(
-    *,
-    invitation,
-    process,
-    purpose_context=None,
-):
-    """
-    Build the shared update state for AI-generated candidate insights.
-
-    The global update banner should appear when existing AI content
-    was created using an earlier process purpose or context.
-
-    Sections that have never been generated are not included.
-    Historical candidates are not connected to global regeneration yet.
-    """
-
-    empty_state = {
-        "has_outdated_insights": False,
-        "sections": [],
-        "section_count": 0,
-        "purpose_changed": False,
-        "context_changed": False,
-    }
-
-    if getattr(
-        process,
-        "is_historical",
-        False,
-    ):
-        return empty_state
-
-    current_purpose = normalize_purpose_key(
-        getattr(
-            process,
-            "purpose",
-            "",
-        )
-        or ""
-    )
-
-    context_updated_at = getattr(
-        purpose_context,
-        "updated_at",
-        None,
-    )
-
-    section_config = [
-        {
-            "key": "overview",
-            "label": "AI Summary",
-            "result_field": "ai_purpose_fit",
-            "status_field": "ai_purpose_fit_status",
-            "generated_at_field": (
-                "ai_purpose_fit_generated_at"
-            ),
-            "purpose_field": (
-                "ai_purpose_fit_purpose"
-            ),
-        },
-        {
-            "key": "response_style_guidance",
-            "label": "Response-style guidance",
-            "result_field": (
-                "ai_response_style_guidance"
-            ),
-            "status_field": (
-                "ai_response_style_guidance_status"
-            ),
-            "generated_at_field": (
-                "ai_response_style_guidance_generated_at"
-            ),
-            "purpose_field": (
-                "ai_response_style_guidance_purpose"
-            ),
-        },
-        {
-            "key": "personality_interpretation",
-            "label": "Personality interpretation",
-            "result_field": (
-                "ai_personality_interpretation"
-            ),
-            "status_field": (
-                "ai_personality_interpretation_status"
-            ),
-            "generated_at_field": (
-                "ai_personality_interpretation_generated_at"
-            ),
-            "purpose_field": (
-                "ai_personality_interpretation_purpose"
-            ),
-        },
-        {
-            "key": "personality_questions",
-            "label": "Personality questions",
-            "result_field": (
-                "ai_personality_questions"
-            ),
-            "status_field": (
-                "ai_personality_questions_status"
-            ),
-            "generated_at_field": (
-                "ai_personality_questions_generated_at"
-            ),
-            "purpose_field": (
-                "ai_personality_questions_purpose"
-            ),
-        },
-        {
-            "key": "motivation_interpretation",
-            "label": "Motivation interpretation",
-            "result_field": (
-                "ai_motivation_interpretation"
-            ),
-            "status_field": (
-                "ai_motivation_interpretation_status"
-            ),
-            "generated_at_field": (
-                "ai_motivation_interpretation_generated_at"
-            ),
-            "purpose_field": (
-                "ai_motivation_interpretation_purpose"
-            ),
-        },
-        {
-            "key": "motivation_questions",
-            "label": "Motivation questions",
-            "result_field": (
-                "ai_motivation_questions"
-            ),
-            "status_field": (
-                "ai_motivation_questions_status"
-            ),
-            "generated_at_field": (
-                "ai_motivation_questions_generated_at"
-            ),
-            "purpose_field": (
-                "ai_motivation_questions_purpose"
-            ),
-        },
-        {
-            "key": "cognitive_interpretation",
-            "label": "Cognitive interpretation",
-            "result_field": (
-                "ai_cognitive_interpretation"
-            ),
-            "status_field": (
-                "ai_cognitive_interpretation_status"
-            ),
-            "generated_at_field": (
-                "ai_cognitive_interpretation_generated_at"
-            ),
-            "purpose_field": (
-                "ai_cognitive_interpretation_purpose"
-            ),
-        },
-        {
-            "key": "cognitive_questions",
-            "label": "Cognitive questions",
-            "result_field": (
-                "ai_cognitive_questions"
-            ),
-            "status_field": (
-                "ai_cognitive_questions_status"
-            ),
-            "generated_at_field": (
-                "ai_cognitive_questions_generated_at"
-            ),
-            "purpose_field": (
-                "ai_cognitive_questions_purpose"
-            ),
-        },
-        {
-            "key": "pre_interview_decision_support",
-            "label": "Pre-interview decision support",
-            "result_field": (
-                "ai_pre_interview_decision_support"
-            ),
-            "status_field": (
-                "ai_pre_interview_decision_support_status"
-            ),
-            "generated_at_field": (
-                "ai_pre_interview_decision_support_generated_at"
-            ),
-            "purpose_field": (
-                "ai_pre_interview_decision_support_purpose"
-            ),
-        },
-        {
-            "key": "post_interview_decision_support",
-            "label": "Post-interview decision support",
-            "result_field": (
-                "ai_post_interview_decision_support"
-            ),
-            "status_field": (
-                "ai_post_interview_decision_support_status"
-            ),
-            "generated_at_field": (
-                "ai_post_interview_decision_support_generated_at"
-            ),
-            "purpose_field": (
-                "ai_post_interview_decision_support_purpose"
-            ),
-        },
-    ]
-
-    analysed_sections = []
-
-    has_confirmed_process_change = False
-    has_purpose_change = False
-    has_context_change = False
-
-    for config in section_config:
-        saved_result = getattr(
-            invitation,
-            config["result_field"],
-            None,
-        )
-
-        # Do not include AI sections that have never been generated.
-        if not saved_result:
-            continue
-
-        status = str(
-            getattr(
-                invitation,
-                config["status_field"],
-                "",
-            )
-            or ""
-        ).strip().lower()
-
-        generated_at = getattr(
-            invitation,
-            config["generated_at_field"],
-            None,
-        )
-
-        purpose_field = config.get(
-            "purpose_field"
-        )
-
-        saved_purpose = ""
-
-        if purpose_field:
-            raw_saved_purpose = getattr(
-                invitation,
-                purpose_field,
-                "",
-            )
-
-            if raw_saved_purpose:
-                saved_purpose = (
-                    normalize_purpose_key(
-                        raw_saved_purpose
-                    )
-                )
-
-        purpose_changed = bool(
-            saved_purpose
-            and current_purpose
-            and saved_purpose != current_purpose
-        )
-
-        context_changed = bool(
-            context_updated_at
-            and generated_at
-            and context_updated_at > generated_at
-        )
-
-        if purpose_changed:
-            has_confirmed_process_change = True
-            has_purpose_change = True
-
-        if context_changed:
-            has_confirmed_process_change = True
-            has_context_change = True
-
-        analysed_sections.append({
-            **config,
-            "status": status,
-            "purpose_changed": purpose_changed,
-            "context_changed": context_changed,
-        })
-
-    # Do not show the global process-information banner merely because
-    # a section became outdated for another reason, such as changed
-    # interview notes or changed personality-trait selection.
-    if not has_confirmed_process_change:
-        return empty_state
-
-    outdated_sections = []
-
-    for section in analysed_sections:
-        needs_update = bool(
-            section["status"] == "outdated"
-            or section["purpose_changed"]
-            or section["context_changed"]
-        )
-
-        if not needs_update:
-            continue
-
-        reasons = []
-
-        if section["purpose_changed"]:
-            reasons.append(
-                "purpose"
-            )
-
-        if section["context_changed"]:
-            reasons.append(
-                "context"
-            )
-
-        if (
-            section["status"] == "outdated"
-            and not reasons
-        ):
-            reasons.append(
-                "dependent_content"
-            )
-
-        outdated_sections.append({
-            "key": section["key"],
-            "label": section["label"],
-            "status": section["status"],
-            "reasons": reasons,
-        })
-
-    return {
-        "has_outdated_insights": bool(
-            outdated_sections
-        ),
-        "sections": outdated_sections,
-        "section_count": len(
-            outdated_sections
-        ),
-        "purpose_changed": has_purpose_change,
-        "context_changed": has_context_change,
-    }
-
-
-
-def build_candidate_detail_context(
-    process,
-    invitation,
-    language="sv",
-):
-    candidate = invitation.candidate
-    candidate_report_language = getattr(
-        process,
-        "candidate_language",
-        "sv",
-    ) or "sv"
-    payload = invitation.sova_payload or {}
-
-    raw_sova_payload_json = json.dumps(
-        payload,
-        indent=2,
-        ensure_ascii=False,
-        default=str,
-    )
-
-    activities = invitation.sova_activities or payload.get("activities") or []
-
-    if not activities:
-        for phase in payload.get("phases") or []:
-            activities.extend(phase.get("activities") or [])
-
-    raw_sova_activities_json = json.dumps(
-        activities,
-        indent=2,
-        ensure_ascii=False,
-        default=str,
-    )        
-
-    def get_assessment_key(name):
-        """
-        Converts both ProjectMeta test names and Sova activity names
-        into the same internal key, so we can avoid duplicates.
-        """
-        text = (name or "").strip().lower()
-
-        if "personality" in text or text in {"pq", "personlighet"}:
-            return "personality"
-
-        if "motivation" in text or text in {"mq", "motivation questionnaire"}:
-            return "motivation"
-
-        if "numerical" in text or "numeric" in text or "numerisk" in text:
-            return "numerical"
-
-        if "logical" in text or "logisk" in text:
-            return "logical"
-
-        if "verbal" in text:
-            return "verbal"
-
-        if "one-question" in text or "one question" in text:
-            return "one_question"
-
-        return text
-
-
-    def get_base_status_for_missing_activity(invitation):
-        """
-        Status for assessments that are part of the Sova project,
-        but do not yet exist in invitation.sova_activities.
-        """
-        status = (invitation.status or "").strip().lower()
-
-        if status == "completed":
-            return "completed"
-
-        if status == "started":
-            return "not_started"
-
-        if status == "sent":
-            return "sent"
-
-        if status == "created":
-            return "created"
-
-        return status or "created"
-
-
-    def get_display_status(raw_status):
-        status = (raw_status or "").strip().lower()
-
-        if status in {
-            "completed",
-            "complete",
-            "finished",
-            "done",
-            "result available",
-            "result_available",
-        }:
-            return "completed"
-
-        if status in {
-            "started",
-            "in progress",
-            "in_progress",
-        }:
-            return "started"
-
-        if status in {
-            "sent",
-            "invited",
-        }:
-            return "sent"
-
-        if status in {
-            "created",
-            "not_sent",
-            "not sent",
-        }:
-            return "created"
-
-        if status in {
-            "added",
-            "not_started",
-            "not started",
-        }:
-            return "not_started"
-
-        # Sova can return pass/fail for small scored assessments.
-        return status or "created"
-
-
-    def build_sent_assessments(process, invitation, activities):
-        """
-        Shows the actual assessments included in the Sova project.
-
-        Base source:
-        - ProjectMeta.tests, based on process.account_code + process.project_code
-
-        Status source:
-        - invitation.sova_activities, when available
-
-        Matching:
-        - Uses internal assessment keys instead of exact display names.
-        """
-
-        meta = ProjectMeta.objects.filter(
-            provider="sova",
-            account_code=process.account_code,
-            project_code=process.project_code,
-        ).first()
-
-        tests_raw = (getattr(meta, "tests", "") or "").strip() if meta else ""
-
-        project_tests = [
-            test_name.strip()
-            for test_name in tests_raw.split(",")
-            if test_name.strip()
-        ]
-
-        activity_by_key = {}
-
-        for item in activities:
-            activity_name = item.get("activity") or ""
-            activity_key = get_assessment_key(activity_name)
-
-            if activity_key:
-                activity_by_key[activity_key] = item
-
-        base_status = get_base_status_for_missing_activity(invitation)
-        sent_assessments = []
-        used_keys = set()
-
-        # 1. Start with the actual tests in ProjectMeta.
-        for test_name in project_tests:
-            test_key = get_assessment_key(test_name)
-            matching_activity = activity_by_key.get(test_key)
-
-            if matching_activity:
-                display_name = matching_activity.get("activity") or test_name
-                status = get_display_status(matching_activity.get("status"))
-                source = "sova_activity"
-            else:
-                display_name = test_name
-                status = base_status
-                source = "project_meta"
-
-            sent_assessments.append({
-                "activity": display_name,
-                "status": status,
-                "source": source,
-                "key": test_key,
-            })
-
-            used_keys.add(test_key)
-
-        # 2. Safety net: add Sova activities only if their key was not already shown.
-        for item in activities:
-            activity_name = item.get("activity") or ""
-            activity_key = get_assessment_key(activity_name)
-
-            if activity_key and activity_key not in used_keys:
-                sent_assessments.append({
-                    "activity": activity_name,
-                    "status": get_display_status(item.get("status")),
-                    "source": "sova_activity_extra",
-                    "key": activity_key,
-                })
-
-                used_keys.add(activity_key)
-
-        return sent_assessments
-
-
-    sent_assessments = build_sent_assessments(
-        process=process,
-        invitation=invitation,
-        activities=activities,
-    )
-
-    assessment_keys_in_process = sorted({
-        assessment.get("key")
-        for assessment in sent_assessments
-        if assessment.get("key")
-    })
-    has_personality_assessment_in_process = (
-        "personality" in assessment_keys_in_process
-    )
-    has_motivation_assessment_in_process = (
-        "motivation" in assessment_keys_in_process
-    )
-    has_cognitive_assessments_in_process = any(
-        key in assessment_keys_in_process
-        for key in ("verbal", "logical", "numerical")
-    )
-
-    activity_events = (
-        ActivityEvent.objects
-        .filter(company=process.company, process=process, candidate=candidate)
-        .select_related("actor", "candidate", "invitation")[:50]
-    )
-
-    from apps.emails.models import EmailLog
-
-    email_log_ids = [
-        (event.meta or {}).get("email_log_id")
-        for event in activity_events
-        if (event.meta or {}).get("email_log_id")
-    ]
-
-    email_logs_by_id = {
-        log.id: log
-        for log in EmailLog.objects.filter(id__in=email_log_ids)
-    }
-
-    for event in activity_events:
-        email_log_id = (event.meta or {}).get("email_log_id")
-        event.email_log = email_logs_by_id.get(email_log_id)
-
-    def has_real_result(competencies):
-        return any(
-            comp.get("score") is not None
-            or comp.get("stive") is not None
-            or comp.get("stive_rounded") is not None
-            or comp.get("sten") is not None
-            or comp.get("sten_rounded") is not None
-            or comp.get("percentile") is not None
-            for comp in competencies
-        )
-
-    activity_count = len(sent_assessments)
-
-    completed_statuses = {
-        "completed",
-        "complete",
-        "finished",
-        "done",
-        "result available",
-        "result_available",
-    }
-
-    tests_completed_count = sum(
-        1
-        for activity in activities
-        if (activity.get("status") or "").strip().lower() in completed_statuses
-    )
-
-    has_any_completed_assessment = tests_completed_count > 0
-
-    all_assessments_completed = (
-        activity_count > 0
-        and tests_completed_count >= activity_count
-    )
-
-    mq_competencies = []
-    personality_competencies = []
-    has_motivation_results = False
-    has_personality_results = False
-
-    for item in activities:
-        activity_name = (item.get("activity") or "").strip().lower()
-        competencies = item.get("competencies", []) or []
-
-        is_motivation_activity = (
-            activity_name == "motivation questionnaire"
-            or activity_name == "sova motivation questionnaire"
-            or "motivation" in activity_name
-        )
-
-        if is_motivation_activity:
-            if has_real_result(competencies):
-                has_motivation_results = True
-
-            for comp in competencies:
-                mq_competencies.append({
-                    "competency": comp.get("competency"),
-                    # Keep the precise STIVE value as the canonical score.
-                    "score": (
-                        comp.get("stive")
-                        if comp.get("stive") is not None
-                        else comp.get("stive_rounded")
-                    ),
-                    "stive_rounded": comp.get("stive_rounded"),
-                    "stive": comp.get("stive"),
-                    "sten_rounded": comp.get("sten_rounded"),
-                    "sten": comp.get("sten"),
-                    "percentile": comp.get("percentile"),
-                })
-
-        is_personality_activity = (
-            activity_name == "personality assessment"
-            or activity_name == "sova personality questionnaire"
-            or "personality" in activity_name
-        )
-
-        if is_personality_activity:
-            if has_real_result(competencies):
-                has_personality_results = True
-
-            for comp in competencies:
-                personality_competencies.append({
-                    "competency": comp.get("competency"),
-
-                    # Team styles use Sova's five-point STIVE scale.
-                    "stive": comp.get("stive"),
-                    "stive_rounded": comp.get("stive_rounded"),
-
-                    # Ordinary personality traits and response styles use STEN.
-                    "sten": comp.get("sten"),
-                    "sten_rounded": comp.get("sten_rounded"),
-
-                    "percentile": comp.get("percentile"),
-                })
-
-    personality_competencies = sorted(
-        personality_competencies,
-        key=lambda x: (x.get("competency") or "").lower()
-    )
-
-    response_styles = build_response_style_results(
-        personality_competencies
-    )   
-
-    team_style_profile = build_team_style_profile(
-        personality_competencies
-    )
-
-    motivation_scores = build_scores_by_competency(mq_competencies)
-
-    motivation_insights = build_motivation_insight_section(
-        mq_competencies,
-        candidate_name=candidate.first_name,
-    )
-
-    practitioner_report = build_practitioner_report(
-        competencies=mq_competencies,
-    )
-
-    manager_report = build_manager_report(
-        competencies=mq_competencies,
-    )
-
-    candidate_report = build_candidate_report(
-        competencies=mq_competencies,
-        language_code=candidate_report_language,
-    )
-
-    coaching_report = build_motivation_coaching_report(
-        competencies=mq_competencies,
-    )
-
-    personality_traits_for_selection = (
-        extract_personality_question_traits(
-            invitation
-        )
-    )
-
-    motivation_reports_for_ui = [
-        practitioner_report,
-        manager_report,
-        coaching_report,
-        candidate_report,
-    ]
-
-    def safe_motivation_score(item):
-        return item.get("score") if item.get("score") is not None else -1
-
-    def safe_personality_score(item):
-        return item.get("sten_rounded") if item.get("sten_rounded") is not None else -1
-
-    valid_mq_competencies = [
-        comp for comp in mq_competencies
-        if comp.get("score") is not None
-    ]
-
-    valid_personality_competencies = [
-        comp for comp in personality_competencies
-        if comp.get("sten_rounded") is not None
-    ]
-
-    sorted_mq_desc = sorted(
-        valid_mq_competencies,
-        key=safe_motivation_score,
-        reverse=True,
-    )
-
-    sorted_personality_desc = sorted(
-        valid_personality_competencies,
-        key=safe_personality_score,
-        reverse=True,
-    )
-
-    top_motivations = sorted_mq_desc[:3]
-    top_personality_traits = sorted_personality_desc[:3]
-
-    sorted_mq_asc = sorted(
-        valid_mq_competencies,
-        key=safe_motivation_score,
-    )
-
-    sorted_personality_asc = sorted(
-        valid_personality_competencies,
-        key=safe_personality_score,
-    )
-
-    motivation_development_areas = sorted_mq_asc[:2]
-    personality_development_areas = sorted_personality_asc[:2]
-
-    numerical_percentile = None
-    logical_percentile = None
-    verbal_percentile = None
-
-    has_verbal_results = False
-    has_logical_results = False
-    has_numerical_results = False
-
-    for item in activities:
-        activity_name = item.get("activity", "")
-        activity_key = get_assessment_key(activity_name)
-
-        competencies = item.get("competencies", []) or []
-        first_comp = competencies[0] if competencies else {}
-
-        percentile = first_comp.get("percentile")
-
-        if activity_key == "numerical":
-            numerical_percentile = percentile
-            has_numerical_results = percentile is not None
-
-        elif activity_key == "logical":
-            logical_percentile = percentile
-            has_logical_results = percentile is not None
-
-        elif activity_key == "verbal":
-            verbal_percentile = percentile
-            has_verbal_results = percentile is not None
-
-    has_ability_results = (
-        has_verbal_results
-        or has_logical_results
-        or has_numerical_results
-    )
-
-    general_insight_input = build_general_insight_input(
-        personality_competencies=personality_competencies,
-        motivation_competencies=mq_competencies,
-        verbal_percentile=verbal_percentile,
-        logical_percentile=logical_percentile,
-        numerical_percentile=numerical_percentile,
-    )
-
-    print("=== GENERAL INSIGHT INPUT ===")
-    print(json.dumps(
-        general_insight_input,
-        indent=2,
-        ensure_ascii=False,
-        default=str,
-    ))
-    print("=== /GENERAL INSIGHT INPUT ===")
-
-    ability_reports_for_ui = {
-        "overview": [],
-        "verbal": build_cognitive_reports_for_test(
-            test_key="verbal",
-            percentile=verbal_percentile,
-            language_code=candidate_report_language,
-        ) if verbal_percentile is not None else None,
-
-        "logical": build_cognitive_reports_for_test(
-            test_key="logical",
-            percentile=logical_percentile,
-            language_code=candidate_report_language,
-        ) if logical_percentile is not None else None,
-
-        "numerical": build_cognitive_reports_for_test(
-            test_key="numerical",
-            percentile=numerical_percentile,
-            language_code=candidate_report_language,
-        ) if numerical_percentile is not None else None,
-    }
-
-    if ability_reports_for_ui["verbal"]:
-        ability_reports_for_ui["overview"].append({
-            "key": "verbal",
-            "label": "Verbal",
-            "percentile": verbal_percentile,
-        })
-
-    if ability_reports_for_ui["logical"]:
-        ability_reports_for_ui["overview"].append({
-            "key": "logical",
-            "label": "Logical",
-            "percentile": logical_percentile,
-        })
-
-    if ability_reports_for_ui["numerical"]:
-        ability_reports_for_ui["overview"].append({
-            "key": "numerical",
-            "label": "Numerical",
-            "percentile": numerical_percentile,
-        })
-
-    project_results = invitation.project_results or {}
-    reports = invitation.sova_reports or payload.get("reports") or []
-
-    sova_reports_for_ui = build_sova_reports_for_ui(
-        reports
-    )
-
-    project_scores = (
-        project_results.get("project_scores", [])
-        if isinstance(project_results, dict)
-        else []
-    )
-
-    competency_scores = (
-        project_results.get("competency_scores", [])
-        if isinstance(project_results, dict)
-        else []
-    )
-
-    overall_score = (
-        project_results.get("overall_score")
-        if isinstance(project_results, dict)
-        and project_results.get("overall_score") is not None
-        else invitation.overall_score
-    )
-
-    combined_questions = (
-        build_combined_candidate_questions(
-            invitation
-        )
-    )
-
-    final_output = (
-        build_candidate_final_output(
-            invitation,
-            combined_questions=combined_questions,
-        )
-    )
-
-    ability_results = []
-    motivation_results = []
-    all_competencies = []
-
-    for item in activities:
-        activity_name = item.get("activity", "") or ""
-        item_status = item.get("status", "") or ""
-        item_score = item.get("score")
-        item_competencies = item.get("competencies", []) or []
-
-        for comp in item_competencies:
-            all_competencies.append({
-                "activity": activity_name,
-                "status": item_status,
-                "competency": comp.get("competency"),
-                "stive": comp.get("stive"),
-                "stive_rounded": comp.get("stive_rounded"),
-                "sten": comp.get("sten"),
-                "sten_rounded": comp.get("sten_rounded"),
-                "percentile": comp.get("percentile"),
-                "assessment_centre": comp.get("assessment_centre"),
-            })
-
-        if activity_name in {
-            "Sova Logical Reasoning Assessment",
-            "Sova Numerical Reasoning Assessment",
-            "Sova Verbal Reasoning Assessment",
-        }:
-            first_comp = item_competencies[0] if item_competencies else {}
-
-            label_map = {
-                "Sova Logical Reasoning Assessment": "Logical",
-                "Sova Numerical Reasoning Assessment": "Numerical",
-                "Sova Verbal Reasoning Assessment": "Verbal",
-            }
-
-            ability_results.append({
-                "activity": activity_name,
-                "label": label_map.get(activity_name, activity_name),
-                "status": item_status,
-                "score": item_score,
-                "competency": first_comp.get("competency"),
-                "stive": first_comp.get("stive"),
-                "stive_rounded": first_comp.get("stive_rounded"),
-                "sten": first_comp.get("sten"),
-                "sten_rounded": first_comp.get("sten_rounded"),
-                "percentile": first_comp.get("percentile"),
-            })
-
-        elif activity_name == "Motivation Questionnaire":
-            for comp in item_competencies:
-                motivation_results.append({
-                    "activity": activity_name,
-                    "competency": comp.get("competency"),
-                    "stive": comp.get("stive"),
-                    "stive_rounded": comp.get("stive_rounded"),
-                    "sten": comp.get("sten"),
-                    "sten_rounded": comp.get("sten_rounded"),
-                    "percentile": comp.get("percentile"),
-                    "assessment_centre": comp.get("assessment_centre"),
-                })
-
-    ability_order = {"Verbal": 1, "Logical": 2, "Numerical": 3}
-    ability_results.sort(key=lambda x: ability_order.get(x["label"], 99))
-
-    motivation_results.sort(
-        key=lambda x: (x.get("competency") or "").lower()
-    )
-
-    library_status_lookup = {
-        "cooperative": "not_started",
-        "sensitivity": "not_started",
-        "teamwork": "not_started",
-        "agreeableness": "not_started",
-        "empathy": "not_started",
-        "tolerance": "not_started",
-        "listening": "not_started",
-        "warmth": "not_started",
-        "supporting": "not_started",
-        "developing_others": "not_started",
-        "helpfulness": "not_started",
-        "considerate": "not_started",
-        "connecting": "not_started",
-        "open_communication": "not_started",
-        "building_networks": "not_started",
-        "initiating_contact": "not_started",
-        "dynamic": "not_started",
-        "energetic": "not_started",
-        "enthusiastic": "not_started",
-        "risk_appetite": "not_started",
-        "influential": "not_started",
-        "persuading": "not_started",
-        "desire_to_lead": "not_started",
-        "assertive": "not_started",
-        "goal_focused": "not_started",
-        "competitive": "not_started",
-        "challenge": "not_started",
-        "self_discipline": "not_started",
-        "structured": "not_started",
-        "planning_and_organising": "not_started",
-        "attention_to_detail": "not_started",
-        "keeping_promises": "not_started",
-        "analytical": "not_started",
-        "data_focus": "not_started",
-        "evaluating": "not_started",
-        "analysing_problems": "not_started",
-        "complex_thinking": "not_started",
-        "strategic_thinking": "not_started",
-        "conceptual": "not_started",
-        "curiosity": "not_started",
-        "creativity": "not_started",
-        "innovating": "not_started",
-        "generating_ideas": "not_started",
-        "experimenting": "not_started",
-        "adaptability": "not_started",
-        "adapting_to_change": "not_started",
-        "flexible": "not_started",
-        "variety": "not_started",
-        "straightforward": "not_started",
-        "adhering_to_rules": "not_started",
-        "candid": "not_started",
-        "earnest": "not_started",
-        "status_avoidance": "not_started",
-        "egalitarian": "not_started",
-        "collective": "not_started",
-        "avoiding_status": "not_started",
-        "modesty": "not_started",
-        "humble": "not_started",
-        "modest": "not_started",
-        "avoiding_attention": "not_started",
-        "resilience": "not_started",
-        "tough_minded": "not_started",
-        "recovering": "not_started",
-        "optimistic": "not_started",
-        "emotional_control": "not_started",
-        "controlling_stress": "not_started",
-        "calm": "not_started",
-        "composed": "not_started",
-        "independence": "not_started",
-        "self_reliant": "not_started",
-        "self_contained": "not_started",
-        "thinking_independently": "not_started",
-    }
-
-    personality_reports = build_personality_reports_for_candidate(
-        sova_activities=activities,
-        library_status_lookup=library_status_lookup,
-    )
-
-    personality_reports = build_personality_reports_for_candidate(
-        sova_activities=activities,
-        library_status_lookup=library_status_lookup,
-    )
-
-    personality_profile_report = next(
-        (
-            report
-            for report in personality_reports
-            if report.get("report_id") == "trait_indicator_profile"
-        ),
-        None,
-    )
-
-    personality_profile = (
-        build_profile_from_resolved_report(
-            resolved_report=personality_profile_report,
-            language=language,
-            include_missing_traits=False,
-        )
-        if personality_profile_report
-        else None
-    )
-
-    available_reports_count = 0
-
-    if has_verbal_results:
-        available_reports_count += 2
-
-    if has_numerical_results:
-        available_reports_count += 2
-
-    if has_logical_results:
-        available_reports_count += 2
-
-    if has_motivation_results:
-        available_reports_count += 4
-
-    if has_personality_results:
-        available_reports_count += 11
-
-    has_any_results = (
-        has_ability_results
-        or has_motivation_results
-        or has_personality_results
-    )
-
-    purpose_report = get_report_mode_content(process.purpose)
-
-    print("=== PURPOSE REPORT DEBUG ===")
-    print("PROCESS PURPOSE:", repr(process.purpose))
-    print("PURPOSE REPORT:", purpose_report)
-    print("=== /PURPOSE REPORT DEBUG ===")
-
-    # ------------------------------------------------------------
-    # Purpose context / report mode
-    # ------------------------------------------------------------
-    # For now we still use the existing ProcessRoleContext model,
-    # but expose it to templates as both role_context and purpose_context.
-    # This lets us move towards a more general "purpose context" setup
-    # without renaming models or breaking old templates.
-    purpose_context_obj = getattr(process, "role_context", None)
-    role_context_obj = purpose_context_obj
-
-    has_purpose_context = (
-        purpose_context_obj.has_content()
-        if purpose_context_obj
-        else False
-    )
-
-    candidate_ai_update_state = (
-        build_candidate_ai_update_state(
-            invitation=invitation,
-            process=process,
-            purpose_context=purpose_context_obj,
-        )
-    )
-
-    context_title = ""
-
-    if has_purpose_context:
-        context_title = (
-            purpose_context_obj.role_title
-            or purpose_context_obj.job_advertisement[:80]
-            or "this process context"
-        )
-
-    # Backwards-compatible name for existing templates
-    has_role_context = has_purpose_context
-
-    context_config = get_purpose_context_config(process.purpose)
-
-    # New report mode:
-    # - "general" = no added context, only test-based insights
-    # - "context" = test data + purpose + added context
-    candidate_insights_mode = (
-        "context"
-        if has_purpose_context
-        else "general"
-    )
-
-    # Keep the old purpose/report key available separately.
-    # Do not use this as the general/context mode.
-    purpose_report_key = purpose_report.get("key")
-
-    show_role_context_prompt = not has_purpose_context
-    show_context_prompt = show_role_context_prompt
-
-    show_context_prompt = show_role_context_prompt
-
-    critical_competencies_active = has_purpose_context
-    competency_overview_active = not has_purpose_context
-
-    report_mode = "context" if has_purpose_context else "general"
-
-    # ------------------------------------------------------------
-    # Temporary dummy data for Candidate Insights
-    # Later this can be replaced by structured AI JSON output.
-    # ------------------------------------------------------------
-
-    candidate_insights = build_candidate_insights(
-        mode=candidate_insights_mode,
-        general_insight_input=general_insight_input,
-        process_purpose=process.purpose,
-    )
-
-    candidate_insights["cognitive_results"] = (
-        build_cognitive_insight_results(
-            verbal_percentile=verbal_percentile,
-            logical_percentile=logical_percentile,
-            numerical_percentile=numerical_percentile,
-        )
-    )
-    has_completed_cognitive_results = any(
-        result.get("completed")
-        and result.get("key") in assessment_keys_in_process
-        for result in candidate_insights["cognitive_results"]
-    )
-
-    print("=== FLEXIBLE AI CONDITION DEBUG ===")
-    print("PROCESS PURPOSE:", repr(process.purpose))
-    print("PURPOSE IS FLEXIBLE:", process.purpose == "flexible")
-    print("HAS ANY RESULTS:", has_any_results)
-    print("HAS PERSONALITY RESULTS:", has_personality_results)
-    print("HAS MOTIVATION RESULTS:", has_motivation_results)
-    print("HAS ABILITY RESULTS:", has_ability_results)
-    print("=== /FLEXIBLE AI CONDITION DEBUG ===")
-
-    # ------------------------------------------------------------
-    # Decision support
-    # ------------------------------------------------------------
-
-    pre_interview_decision_support = (
-        invitation.ai_pre_interview_decision_support
-        or {}
-    )
-
-    post_interview_decision_support = (
-        invitation.ai_post_interview_decision_support
-        or {}
-    )
-
-    interview_notes = (
-        invitation.interview_notes
-        or ""
-    ).strip()
-
-    has_pre_interview_decision_support = bool(
-        (
-            pre_interview_decision_support.get(
-                "overall_synthesis"
-            )
-            or ""
-        ).strip()
-    )
-
-    has_post_interview_decision_support = bool(
-        (
-            post_interview_decision_support.get(
-                "overall_synthesis"
-            )
-            or ""
-        ).strip()
-        or any(
-            str(value or "").strip()
-            for value in (
-                post_interview_decision_support.get("content_blocks")
-                or {}
-            ).values()
-        )
-    )
-
-    from apps.candidate_results.presentation import (
-        build_candidate_result_panel_context,
-    )
-    candidate_result_context = build_candidate_result_panel_context(
-        process, invitation,
-    )
-
-    return {
-        "company": process.company,
-        "report_branding": get_report_branding(process.company),
-        "process": process,
-        "invitation": invitation,
-        "inv": invitation,
-        "candidate": candidate,
-        **candidate_result_context,
-        "activity_events": activity_events,
-
-        "activities": activities,
-        "sent_assessments": sent_assessments,
-        "assessment_keys_in_process": assessment_keys_in_process,
-        "has_personality_assessment_in_process": has_personality_assessment_in_process,
-        "has_motivation_assessment_in_process": has_motivation_assessment_in_process,
-        "has_cognitive_assessments_in_process": has_cognitive_assessments_in_process,
-        "has_completed_cognitive_results": has_completed_cognitive_results,
-        "project_results": project_results,
-        "project_scores": project_scores,
-        "competency_scores": competency_scores,
-        "overall_score": overall_score,
-        "reports": reports,
-
-        "ability_results": ability_results,
-        "motivation_results": motivation_results,
-        "all_competencies": all_competencies,
-
-        "numerical_percentile": numerical_percentile,
-        "logical_percentile": logical_percentile,
-        "verbal_percentile": verbal_percentile,
-        "has_ability_results": has_ability_results,
-
-        "mq_competencies": mq_competencies,
-        "personality_competencies": personality_competencies,
-
-        "tests_sent_count": activity_count,
-        "tests_completed_count": tests_completed_count,
-        "available_reports_count": len(sova_reports_for_ui),
-        "email_logs_by_id": email_logs_by_id,
-        "sova_reports_for_ui": sova_reports_for_ui,
-        "available_reports_count": len(sova_reports_for_ui),
-
-        "has_any_results": has_any_results,
-        "has_any_completed_assessment": has_any_completed_assessment,
-        "all_assessments_completed": all_assessments_completed,
-
-        "top_motivations": top_motivations,
-        "top_personality_traits": top_personality_traits,
-        "motivation_development_areas": motivation_development_areas,
-        "personality_development_areas": personality_development_areas,
-
-        "motivation_scores": motivation_scores,
-        "motivation_reports_for_ui": motivation_reports_for_ui,
-        "ability_reports_for_ui": ability_reports_for_ui,
-        "personality_reports": personality_reports,
-        "personality_profile": personality_profile,
-        "profile_contrast_analysis": build_profile_contrast_analysis(
-            personality_profile,
-            language=language,
-            source="personality_assessment",
-        ),
-        "has_motivation_results": has_motivation_results,
-        "has_personality_results": has_personality_results,
-
-        # Existing report/purpose content
-        "purpose_report": purpose_report,
-        "purpose_report_key": purpose_report_key,
-
-        # Candidate insights
-        "candidate_insights": candidate_insights,
-        "candidate_insights_mode": candidate_insights_mode,
-        "report_mode": report_mode,
-        "general_insight_input": general_insight_input,
-
-        # Purpose context
-        "purpose_context": purpose_context_obj,
-        "has_purpose_context": has_purpose_context,
-        "context_config": context_config,
-        "show_context_prompt": show_context_prompt,
-
-        # Backwards-compatible names
-        "role_context": role_context_obj,
-        "has_role_context": has_role_context,
-        "show_role_context_prompt": show_role_context_prompt,
-
-        "summary_owner": invitation,
-        "raw_sova_payload_json": raw_sova_payload_json,
-        "raw_sova_activities_json": raw_sova_activities_json,
-
-        "response_styles": response_styles,
-        "response_style_segments": range(1, 11),
-
-        "response_style_guidance": (
-            invitation.ai_response_style_guidance
-            or {}
-        ),
-
-        "response_style_guidance_status": (
-            invitation.ai_response_style_guidance_status
-        ),
-        "response_style_side_segments": range(1, 6),
-
-        "response_style_guidance_stream_url": reverse(
-            (
-                "processes:process_candidate_"
-                "response_style_guidance_stream"
-            ),
-            kwargs={
-                "process_id": process.id,
-                "candidate_id": candidate.id,
-            },
-        ),
-
-        "global_ai_update_plan_url": reverse(
-            (
-                "processes:"
-                "process_candidate_global_"
-                "ai_update_plan"
-            ),
-            kwargs={
-                "process_id": process.id,
-                "candidate_id": candidate.id,
-            },
-        ),
-
-        # Global AI update state
-        "candidate_ai_update_state": (
-            candidate_ai_update_state
-        ),
-
-        "has_outdated_ai_insights": (
-            candidate_ai_update_state[
-                "has_outdated_insights"
-            ]
-        ),
-
-        "outdated_ai_sections": (
-            candidate_ai_update_state[
-                "sections"
-            ]
-        ),
-
-        "outdated_ai_section_count": (
-            candidate_ai_update_state[
-                "section_count"
-            ]
-        ),
-
-        "outdated_ai_purpose_changed": (
-            candidate_ai_update_state[
-                "purpose_changed"
-            ]
-        ),
-
-        "outdated_ai_context_changed": (
-            candidate_ai_update_state[
-                "context_changed"
-            ]
-        ),
-
-        # --------------------------------------------------------
-        # Decision support
-        # --------------------------------------------------------
-
-        "pre_interview_decision_support": (
-            pre_interview_decision_support
-        ),
-
-        "pre_interview_decision_support_status": (
-            invitation
-            .ai_pre_interview_decision_support_status
-            or "not_started"
-        ),
-
-        "pre_interview_decision_support_generated_at": (
-            invitation
-            .ai_pre_interview_decision_support_generated_at
-        ),
-
-        "has_pre_interview_decision_support": (
-            has_pre_interview_decision_support
-        ),
-
-        "pre_interview_decision_support_stream_url": reverse(
-            (
-                "processes:"
-                "process_candidate_pre_interview_"
-                "decision_support_stream"
-            ),
-            kwargs={
-                "process_id": process.id,
-                "candidate_id": candidate.id,
-            },
-        ),
-
-        "pre_interview_decision_support_regenerate_url": reverse(
-            (
-                "processes:"
-                "process_candidate_pre_interview_"
-                "decision_support_regenerate"
-            ),
-            kwargs={
-                "process_id": process.id,
-                "candidate_id": candidate.id,
-            },
-        ),
-
-
-        # Interview evidence
-
-        "interview_notes": interview_notes,
-
-        "interview_notes_update_url": reverse(
-            (
-                "processes:"
-                "process_candidate_"
-                "interview_notes_update"
-            ),
-            kwargs={
-                "process_id": process.id,
-                "candidate_id": candidate.id,
-            },
-        ),
-
-        "has_interview_notes": bool(
-            interview_notes
-        ),
-
-        "interview_notes_updated_at": (
-            invitation.interview_notes_updated_at
-        ),
-
-        "interview_notes_updated_by": (
-            invitation.interview_notes_updated_by
-        ),
-
-
-        # Post-interview decision support
-
-        "post_interview_decision_support": (
-            post_interview_decision_support
-        ),
-
-        "post_interview_decision_support_stream_url": reverse(
-            (
-                "processes:"
-                "process_candidate_post_interview_"
-                "decision_support_stream"
-            ),
-            kwargs={
-                "process_id": process.id,
-                "candidate_id": candidate.id,
-            },
-        ),
-
-        "post_interview_decision_support_regenerate_url": reverse(
-            (
-                "processes:"
-                "process_candidate_post_interview_"
-                "decision_support_regenerate"
-            ),
-            kwargs={
-                "process_id": process.id,
-                "candidate_id": candidate.id,
-            },
-        ),
-
-        "post_interview_decision_support_status": (
-            invitation
-            .ai_post_interview_decision_support_status
-            or "not_started"
-        ),
-
-        "post_interview_decision_support_generated_at": (
-            invitation
-            .ai_post_interview_decision_support_generated_at
-        ),
-
-        "has_post_interview_decision_support": (
-            has_post_interview_decision_support
-        ),
-
-        "post_interview_decision_support_notes_version": (
-            invitation
-            .ai_post_interview_decision_support_notes_version
-        ),
-
-        # Purpose-based final output
-        "final_output": final_output,
-
-        "has_final_output": (
-            final_output["has_content"]
-        ),
-
-        "final_output_has_outdated_content": (
-            final_output[
-                "has_outdated_content"
-            ]
-        ),
-
-        "final_output_refresh_url": reverse(
-        (
-            "processes:"
-            "process_candidate_final_output"
-        ),
-        kwargs={
-            "process_id": process.id,
-            "candidate_id": candidate.id,
-        },
-    ),
-
-        "motivation_insights": motivation_insights,
-
-        "team_style_profile": team_style_profile,
-        "leadership_report_content": build_leadership_report_content(language, personality_competencies),
-        "derailment_report_content": build_derailment_report_content(language, personality_competencies),
-        # Cognitive AI interpretation
-        "cognitive_interpretation": (
-            invitation.ai_cognitive_interpretation
-            or {}
-        ),
-
-        "cognitive_interpretation_status": (
-            invitation
-            .ai_cognitive_interpretation_status
-            or "not_started"
-        ),
-
-        "cognitive_interpretation_stream_url": reverse(
-            (
-                "processes:"
-                "process_candidate_cognitive_"
-                "interpretation_stream"
-            ),
-            kwargs={
-                "process_id": process.id,
-                "candidate_id": candidate.id,
-            },
-        ),
-
-        "cognitive_questions": (
-            invitation.ai_cognitive_questions
-            or {}
-        ),
-
-        "cognitive_questions_status": (
-            invitation.ai_cognitive_questions_status
-            or "not_started"
-        ),
-
-        "cognitive_questions_stream_url": reverse(
-            "processes:process_candidate_cognitive_questions_stream",
-            kwargs={
-                "process_id": process.id,
-                "candidate_id": candidate.id,
-            },
-        ),
-
-        "cognitive_questions_regenerate_url": reverse(
-            "processes:process_candidate_cognitive_questions_regenerate",
-            kwargs={
-                "process_id": process.id,
-                "candidate_id": candidate.id,
-            },
-        ),
-
-        "cognitive_interpretation_regenerate_url": reverse(
-            (
-                "processes:"
-                "process_candidate_cognitive_"
-                "interpretation_regenerate"
-            ),
-            kwargs={
-                "process_id": process.id,
-                "candidate_id": candidate.id,
-            },
-        ),
-        # Motivation AI interpretation
-        "motivation_interpretation": (
-            invitation.ai_motivation_interpretation
-            or {}
-        ),
-
-        "motivation_interpretation_status": (
-            invitation
-            .ai_motivation_interpretation_status
-            or "not_started"
-        ),
-
-        "motivation_interpretation_stream_url": reverse(
-            (
-                "processes:"
-                "process_candidate_motivation_"
-                "interpretation_stream"
-            ),
-            kwargs={
-                "process_id": process.id,
-                "candidate_id": candidate.id,
-            },
-        ),
-
-        "motivation_interpretation_regenerate_url": reverse(
-            (
-                "processes:"
-                "process_candidate_motivation_"
-                "interpretation_regenerate"
-            ),
-            kwargs={
-                "process_id": process.id,
-                "candidate_id": candidate.id,
-            },
-        ),
-
-        # Motivation AI questions
-        "motivation_questions": (
-            invitation.ai_motivation_questions
-            or {}
-        ),
-
-        "motivation_questions_status": (
-            invitation.ai_motivation_questions_status
-            or "not_started"
-        ),
-
-        "motivation_questions_stream_url": reverse(
-            (
-                "processes:"
-                "process_candidate_motivation_"
-                "questions_stream"
-            ),
-            kwargs={
-                "process_id": process.id,
-                "candidate_id": candidate.id,
-            },
-        ),
-
-        "motivation_questions_regenerate_url": reverse(
-            (
-                "processes:"
-                "process_candidate_motivation_"
-                "questions_regenerate"
-            ),
-            kwargs={
-                "process_id": process.id,
-                "candidate_id": candidate.id,
-            },
-        ),       
-
-        # Personality AI interpretation
-        "personality_interpretation": (
-            invitation.ai_personality_interpretation
-            or {}
-        ),
-
-        "personality_interpretation_status": (
-            invitation.ai_personality_interpretation_status
-            or "not_started"
-        ),
-
-        "personality_interpretation_stream_url": reverse(
-            (
-                "processes:"
-                "process_candidate_personality_"
-                "interpretation_stream"
-            ),
-            kwargs={
-                "process_id": process.id,
-                "candidate_id": candidate.id,
-            },
-        ),
-
-        "personality_interpretation_regenerate_url": reverse(
-            (
-                "processes:"
-                "process_candidate_personality_"
-                "interpretation_regenerate"
-            ),
-            kwargs={
-                "process_id": process.id,
-                "candidate_id": candidate.id,
-            },
-        ),
-
-        # Personality AI questions
-        "personality_questions": (
-            invitation.ai_personality_questions
-            or {}
-        ),
-
-        # Combined assessment questions
-        "combined_questions": combined_questions,
-
-        "combined_question_sections": (
-            combined_questions["sections"]
-        ),
-
-        "combined_questions_refresh_url": reverse(
-            (
-                "processes:"
-                "process_candidate_combined_questions"
-            ),
-            kwargs={
-                "process_id": process.id,
-                "candidate_id": candidate.id,
-            },
-        ),
-
-        "combined_question_count": (
-            combined_questions["total_count"]
-        ),
-
-        "has_combined_questions": (
-            combined_questions["has_questions"]
-        ),
-
-        "personality_questions_status": (
-            invitation
-            .ai_personality_questions_status
-            or "not_started"
-        ),
-
-        "selected_personality_traits": (
-            invitation.selected_personality_traits
-            or []
-        ),
-
-        "personality_traits_for_selection": (
-            personality_traits_for_selection
-        ),
-
-        "personality_questions_stream_url": reverse(
-            (
-                "processes:"
-                "process_candidate_personality_"
-                "questions_stream"
-            ),
-            kwargs={
-                "process_id": process.id,
-                "candidate_id": candidate.id,
-            },
-        ),
-
-        "personality_questions_regenerate_url": reverse(
-            (
-                "processes:"
-                "process_candidate_personality_"
-                "questions_regenerate"
-            ),
-            kwargs={
-                "process_id": process.id,
-                "candidate_id": candidate.id,
-            },
-        ),
-
-        "personality_traits_update_url": reverse(
-            (
-                "processes:"
-                "process_candidate_personality_"
-                "traits_update"
-            ),
-            kwargs={
-                "process_id": process.id,
-                "candidate_id": candidate.id,
-            },
-        ),
-    }
-
-def get_dashboard_activity_for_user(user, limit=10):
-    company = get_company_for_user(user)
-
-    if not company:
-        return ActivityEvent.objects.none()
-
-    perms = get_effective_orgunit_permissions(user, company)
-
-    own_ids = [uid for uid, p in perms.items() if p == "own"]
-    visible_ids = [uid for uid, p in perms.items() if p in ("viewer", "editor")]
-
-    process_q = Q(company=company, is_archived=False) & (
-        Q(org_unit_id__in=visible_ids) |
-        Q(org_unit_id__in=own_ids, created_by=user)
-    )
-
-    accessible_process_ids = (
-        TestProcess.objects
-        .filter(process_q)
-        .values_list("id", flat=True)
-    )
-
-    return (
-        ActivityEvent.objects
-        .filter(
-            company=company,
-            process_id__in=accessible_process_ids,
-        )
-        .select_related(
-            "actor",
-            "candidate",
-            "process",
-            "invitation",
-        )
-        .order_by("-created_at")[:limit]
-    )
-
-def _get_active_company_for_user(user):
-    # om du bara har 1 company per user just nu: ta fÃ¶rsta
-    m = CompanyMember.objects.select_related("company").filter(user=user).first()
-    return m.company if m else None
-
-
-def user_can_access_process(user, process) -> bool:
-    # Talena admins can access every customer process,
-    # including candidate insights and AI endpoints.
-    if is_admin(user):
-        return True
-    company_id = (
-        CompanyMember.objects
-        .filter(user=user)
-        .values_list("company_id", flat=True)
-        .first()
-    )
-    return bool(company_id and process.company_id == company_id)
-
-@login_required
-@require_POST
-def process_candidate_global_ai_update_plan(
-    request,
-    process_id,
-    candidate_id,
-):
-    """
-    Return a fresh plan for updating outdated AI insights.
-
-    This endpoint does not delete, reset or regenerate anything.
-    Existing AI content remains unchanged until the client starts
-    each individual regeneration.
-    """
-
-    process = get_object_or_404(
-        TestProcess,
-        pk=process_id,
-    )
-
-    if not user_can_access_process(
-        request.user,
-        process,
-    ):
-        return HttpResponseForbidden(
-            "You do not have access to this project."
-        )
-
-    if process.is_historical:
-        return JsonResponse(
-            {
-                "error": (
-                    "Global AI updating is not connected "
-                    "for historical candidates yet."
-                )
-            },
-            status=400,
-        )
-
-    invitation = get_object_or_404(
-        TestInvitation.objects.select_related(
-            "candidate",
-            "process",
-        ),
-        process=process,
-        candidate_id=candidate_id,
-    )
-
-    purpose_context = getattr(
-        process,
-        "role_context",
-        None,
-    )
-
-    update_state = (
-        build_candidate_ai_update_state(
-            invitation=invitation,
-            process=process,
-            purpose_context=purpose_context,
-        )
-    )
-
-    sections = []
-
-    regenerate_route_names = {
-        "overview": (
-            "process_candidate_purpose_fit_regenerate"
-        ),
-
-        "response_style_guidance": (
-            "process_candidate_"
-            "response_style_guidance_regenerate"
-        ),
-
-        "personality_interpretation": (
-            "process_candidate_personality_"
-            "interpretation_regenerate"
-        ),
-
-        "personality_questions": (
-            "process_candidate_personality_"
-            "questions_regenerate"
-        ),
-
-        "motivation_interpretation": (
-            "process_candidate_motivation_"
-            "interpretation_regenerate"
-        ),
-
-        "motivation_questions": (
-            "process_candidate_motivation_"
-            "questions_regenerate"
-        ),
-
-        "cognitive_interpretation": (
-            "process_candidate_cognitive_"
-            "interpretation_regenerate"
-        ),
-
-        "cognitive_questions": (
-            "process_candidate_cognitive_"
-            "questions_regenerate"
-        ),
-
-        "pre_interview_decision_support": (
-            "process_candidate_pre_interview_"
-            "decision_support_regenerate"
-        ),
-
-        "post_interview_decision_support": (
-            "process_candidate_post_interview_"
-            "decision_support_regenerate"
-        ),
-    }
-
-
-    sections = []
-
-    for section in update_state["sections"]:
-        section_key = section["key"]
-
-        route_name = regenerate_route_names.get(
-            section_key
-        )
-
-        if not route_name:
-            continue
-
-        regenerate_url = reverse(
-            f"processes:{route_name}",
-            kwargs={
-                "process_id": process.id,
-                "candidate_id": candidate_id,
-            },
-        )
-
-        sections.append({
-            "key": section_key,
-            "label": section["label"],
-            "reasons": section["reasons"],
-            "regenerate_url": regenerate_url,
-        })
-
-    return JsonResponse(
-        {
-            "ok": True,
-            "has_updates": bool(
-                update_state[
-                    "has_outdated_insights"
-                ]
-            ),
-            "section_count": len(
-                sections
-            ),
-            "sections": sections,
-            "purpose_changed": bool(
-                update_state[
-                    "purpose_changed"
-                ]
-            ),
-            "context_changed": bool(
-                update_state[
-                    "context_changed"
-                ]
-            ),
-        }
-    )
-
-
-@login_required
-def process_candidate_pre_interview_decision_support_stream(
-    request,
-    process_id,
-    candidate_id,
-):
-    """
-    Stream and save Talena's pre-interview decision support.
-
-    The result combines existing saved assessment interpretations,
-    identifies uncertainty and selects priority validation questions.
-
-    It does not provide a match score, suitability verdict or
-    selection recommendation.
-    """
-
-    process = get_object_or_404(
-        TestProcess,
-        pk=process_id,
-    )
-
-    if not user_can_access_process(
-        request.user,
-        process,
-    ):
-        return HttpResponseForbidden(
-            "You do not have access to this project."
-        )
-    
-    invitation = get_candidate_ai_owner(
-        process,
-        candidate_id,
-    )
-
-    if invitation.status != "completed":
-        return JsonResponse(
-            {
-                "error": (
-                    "The candidate has not completed "
-                    "the assessments yet."
-                )
-            },
-            status=400,
-        )
-
-    # Talena final output pre-interview language batch 1
-    language_code = get_request_ai_language(
-        request
-    )
-    mark_ai_content_outdated_if_language_changed(
-        invitation,
-        content_key="pre_interview_decision_support",
-        result_field="ai_pre_interview_decision_support",
-        status_field=(
-            "ai_pre_interview_decision_support_status"
-        ),
-        language_code=language_code,
-    )
-
-    current_status = (
-        invitation
-        .ai_pre_interview_decision_support_status
-        or "not_started"
-    )
-
-    saved_result = (
-        invitation
-        .ai_pre_interview_decision_support
-        or {}
-    )
-
-    current_purpose = normalize_purpose_key(
-        process.purpose
-    )
-
-    saved_purpose = normalize_purpose_key(
-        invitation
-        .ai_pre_interview_decision_support_purpose
-    )
-
-    # Safety net in case the process purpose changed without
-    # the normal outdated-marking flow being triggered.
-    if (
-        saved_result
-        and current_status == "completed"
-        and saved_purpose != current_purpose
-    ):
-        current_status = "outdated"
-
-        invitation.ai_pre_interview_decision_support_status = (
-            "outdated"
-        )
-
-        invitation.save(
-            update_fields=[
-                (
-                    "ai_pre_interview_"
-                    "decision_support_status"
-                ),
-            ]
-        )
-
-    # Return an already completed result without creating
-    # another OpenAI request.
-    if (
-        ai_content_language_matches(
-            invitation,
-            "pre_interview_decision_support",
-            language_code,
-        )
-        and should_return_saved_ai_result(
-            saved_result,
-            current_status,
-        )
-    ):
-        def existing_generator():
-            yield json.dumps(
-                {
-                    "type": "saved_result",
-                    "data": saved_result,
-                    "status": current_status,
-                },
-                ensure_ascii=False,
-            ) + "\n"
-
-        response = StreamingHttpResponse(
-            existing_generator(),
-            content_type=(
-                "application/x-ndjson; charset=utf-8"
-            ),
-        )
-
-        response["Cache-Control"] = "no-cache"
-        response["X-Accel-Buffering"] = "no"
-
-        return response
-
-    if current_status == "generating":
-        return JsonResponse(
-            {
-                "error": (
-                    "Pre-interview decision support "
-                    "is already being generated."
-                )
-            },
-            status=409,
-        )
-
-    invitation.ai_pre_interview_decision_support_status = (
-        "generating"
-    )
-
-    invitation.save(
-        update_fields=[
-            (
-                "ai_pre_interview_"
-                "decision_support_status"
-            ),
-        ]
-    )
-
-    def generator():
-        result = (
-            create_empty_pre_interview_decision_support(
-                invitation,
-                language_code=language_code,
-            )
-        )
-
-        received_done_event = False
-
-        try:
-            for event in (
-                stream_pre_interview_decision_support(
-                    owner=invitation,
-                    language_code=language_code,
-                )
-            ):
-                result = (
-                    apply_pre_interview_decision_support_event(
-                        result,
-                        event,
-                    )
-                )
-
-                if event.get("type") == "done":
-                    received_done_event = True
-
-                if event.get("type") == "profile_contrasts":
-                    event = {
-                        "type": "profile_contrasts",
-                        "items": guidance.get("profile_contrasts") or [],
-                    }
-
-                yield json.dumps(
-                    event,
-                    ensure_ascii=False,
-                ) + "\n"
-
-            if not received_done_event:
-                yield json.dumps(
-                    {
-                        "type": "done",
-                    },
-                    ensure_ascii=False,
-                ) + "\n"
-
-            save_pre_interview_decision_support(
-                owner=invitation,
-                result=result,
-                language_code=language_code,
-            )
-
-        except Exception as error:
-            invitation.ai_pre_interview_decision_support_status = (
-                "failed"
-            )
-
-            invitation.save(
-                update_fields=[
-                    (
-                        "ai_pre_interview_"
-                        "decision_support_status"
-                    ),
-                ]
-            )
-
-            yield json.dumps(
-                {
-                    "type": "error",
-                    "message": str(error),
-                },
-                ensure_ascii=False,
-            ) + "\n"
-
-    response = StreamingHttpResponse(
-        generator(),
-        content_type=(
-            "application/x-ndjson; charset=utf-8"
-        ),
-    )
-
-    response["Cache-Control"] = "no-cache"
-    response["X-Accel-Buffering"] = "no"
-
-    return response
-
-
-@login_required
-@require_POST
-def process_candidate_pre_interview_decision_support_regenerate(
-    request,
-    process_id,
-    candidate_id,
-):
-    """
-    Reset the pre-interview decision support and return
-    the stream URL for a fresh generation.
-    """
-
-    process = get_object_or_404(
-        TestProcess,
-        pk=process_id,
-    )
-
-    if not user_can_access_process(
-        request.user,
-        process,
-    ):
-        return HttpResponseForbidden(
-            "You do not have access to this project."
-        )
-
-        
-    invitation = get_candidate_ai_owner(
-        process,
-        candidate_id,
-    )
-
-    invitation.ai_pre_interview_decision_support_status = (
-        "not_started"
-    )
-
-    invitation.ai_pre_interview_decision_support_generated_at = (
-        None
-    )
-
-    invitation.ai_pre_interview_decision_support_purpose = ""
-
-    invitation.save(
-        update_fields=[
-            (
-                "ai_pre_interview_"
-                "decision_support_status"
-            ),
-            (
-                "ai_pre_interview_"
-                "decision_support_generated_at"
-            ),
-            (
-                "ai_pre_interview_"
-                "decision_support_purpose"
-            ),
-        ]
-    )
-
-    return JsonResponse(
-        {
-            "ok": True,
-            "stream_url": reverse(
-                (
-                    "processes:"
-                    "process_candidate_pre_interview_"
-                    "decision_support_stream"
-                ),
-                kwargs={
-                    "process_id": process.id,
-                    "candidate_id": candidate_id,
-                },
-            ),
-        }
-    )
-
-
-@login_required
-def process_candidate_post_interview_decision_support_stream(
-    request,
-    process_id,
-    candidate_id,
-):
-    """
-    Stream and save post-interview decision support.
-
-    The result compares saved assessment interpretations with
-    interview notes and candidate examples.
-
-    It does not provide a matching verdict, suitability rating
-    or selection recommendation.
-    """
-
-    process = get_object_or_404(
-        TestProcess,
-        pk=process_id,
-    )
-
-    if not user_can_access_process(
-        request.user,
-        process,
-    ):
-        return HttpResponseForbidden(
-            "You do not have access to this project."
-        )
-    
-    invitation = get_candidate_ai_owner(
-        process,
-        candidate_id,
-    )
-
-    if invitation.status != "completed":
-        return JsonResponse(
-            {
-                "error": (
-                    "The candidate has not completed "
-                    "the assessments yet."
-                )
-            },
-            status=400,
-        )
-
-    interview_notes = (
-        invitation.interview_notes
-        or ""
-    ).strip()
-
-    if not interview_notes:
-        return JsonResponse(
-            {
-                "error": (
-                    "Add and save interview notes before "
-                    "generating post-interview decision support."
-                )
-            },
-            status=400,
-        )
-
-    # Talena final output post-interview language batch 1
-    language_code = get_request_ai_language(
-        request
-    )
-    mark_ai_content_outdated_if_language_changed(
-        invitation,
-        content_key="post_interview_decision_support",
-        result_field="ai_post_interview_decision_support",
-        status_field=(
-            "ai_post_interview_decision_support_status"
-        ),
-        language_code=language_code,
-    )
-
-    current_status = (
-        invitation
-        .ai_post_interview_decision_support_status
-        or "not_started"
-    )
-
-    saved_result = (
-        invitation
-        .ai_post_interview_decision_support
-        or {}
-    )
-
-    current_purpose = normalize_purpose_key(
-        process.purpose
-    )
-
-    saved_purpose = normalize_purpose_key(
-        invitation
-        .ai_post_interview_decision_support_purpose
-    )
-
-    current_notes_version = (
-        invitation.interview_notes_updated_at
-    )
-
-    saved_notes_version = (
-        invitation
-        .ai_post_interview_decision_support_notes_version
-    )
-
-    purpose_has_changed = (
-        saved_purpose != current_purpose
-    )
-
-    notes_have_changed = bool(
-        current_notes_version
-        and (
-            not saved_notes_version
-            or (
-                current_notes_version
-                > saved_notes_version
-            )
-        )
-    )
-
-    # Safety net in case purpose or interview notes changed
-    # without the normal outdated flow being triggered.
-    if (
-        saved_result
-        and current_status == "completed"
-        and (
-            purpose_has_changed
-            or notes_have_changed
-        )
-    ):
-        current_status = "outdated"
-
-        invitation.ai_post_interview_decision_support_status = (
-            "outdated"
-        )
-
-        invitation.save(
-            update_fields=[
-                (
-                    "ai_post_interview_"
-                    "decision_support_status"
-                ),
-            ]
-        )
-
-    # Return an existing completed or outdated result.
-    if (
-        ai_content_language_matches(
-            invitation,
-            "post_interview_decision_support",
-            language_code,
-        )
-        and should_return_saved_ai_result(
-            saved_result,
-            current_status,
-        )
-    ):
-        def existing_generator():
-            yield json.dumps(
-                {
-                    "type": "saved_result",
-                    "data": saved_result,
-                    "status": current_status,
-                },
-                ensure_ascii=False,
-            ) + "\n"
-
-        response = StreamingHttpResponse(
-            existing_generator(),
-            content_type=(
-                "application/x-ndjson; charset=utf-8"
-            ),
-        )
-
-        response["Cache-Control"] = "no-cache"
-        response["X-Accel-Buffering"] = "no"
-
-        return response
-
-    if current_status == "generating":
-        return JsonResponse(
-            {
-                "error": (
-                    "Post-interview decision support "
-                    "is already being generated."
-                )
-            },
-            status=409,
-        )
-
-    invitation.ai_post_interview_decision_support_status = (
-        "generating"
-    )
-
-    invitation.save(
-        update_fields=[
-            (
-                "ai_post_interview_"
-                "decision_support_status"
-            ),
-        ]
-    )
-
-    def generator():
-        result = (
-            create_empty_post_interview_decision_support(
-                invitation,
-                language_code=language_code,
-            )
-        )
-
-        received_done_event = False
-
-        try:
-            for event in (
-                stream_post_interview_decision_support(
-                    owner=invitation,
-                    language_code=language_code,
-                )
-            ):
-                result = (
-                    apply_post_interview_decision_support_event(
-                        result,
-                        event,
-                    )
-                )
-
-                if event.get("type") == "done":
-                    received_done_event = True
-
-                yield json.dumps(
-                    event,
-                    ensure_ascii=False,
-                ) + "\n"
-
-            yield json.dumps(
-                {
-                    "type": "result_debug",
-                    "data": {
-                        "overall_synthesis_characters": len(
-                            str(
-                                result.get(
-                                    "overall_synthesis"
-                                )
-                                or ""
-                            ).strip()
-                        ),
-                        "content_block_characters": {
-                            key: len(
-                                str(
-                                    (
-                                        result.get(
-                                            "content_blocks"
-                                        )
-                                        or {}
-                                    ).get(key)
-                                    or ""
-                                ).strip()
-                            )
-                            for key in (
-                                "overall_picture",
-                                "interview_summary",
-                                "explore_further",
-                                "wellbeing_tips",
-                            )
-                        },
-                    },
-                },
-                ensure_ascii=False,
-            ) + "\n"
-
-            overall_synthesis = (
-                result.get(
-                    "overall_synthesis"
-                )
-                or ""
-            ).strip()
-
-            if not overall_synthesis:
-                raise ValueError(
-                    "The AI response did not contain "
-                    "an overall synthesis."
-                )
-
-            supported_indications = (
-                result.get(
-                    "supported_indications"
-                )
-                or []
-            )
-
-            added_nuance = (
-                result.get(
-                    "added_nuance"
-                )
-                or []
-            )
-
-            if not (
-                supported_indications
-                or added_nuance
-            ):
-                raise ValueError(
-                    "The AI response did not contain "
-                    "valid assessment and interview comparisons."
-                )
-
-            remaining_uncertainties = (
-                result.get(
-                    "remaining_uncertainties"
-                )
-                or []
-            )
-
-            if not received_done_event:
-                yield json.dumps(
-                    {
-                        "type": "done",
-                    },
-                    ensure_ascii=False,
-                ) + "\n"
-
-            save_post_interview_decision_support(
-                owner=invitation,
-                result=result,
-                language_code=language_code,
-            )
-
-        except Exception as error:
-            invitation.ai_post_interview_decision_support_status = (
-                "failed"
-            )
-
-            invitation.save(
-                update_fields=[
-                    (
-                        "ai_post_interview_"
-                        "decision_support_status"
-                    ),
-                ]
-            )
-
-            yield json.dumps(
-                {
-                    "type": "error",
-                    "message": str(error),
-                },
-                ensure_ascii=False,
-            ) + "\n"
-
-    response = StreamingHttpResponse(
-        generator(),
-        content_type=(
-            "application/x-ndjson; charset=utf-8"
-        ),
-    )
-
-    response["Cache-Control"] = "no-cache"
-    response["X-Accel-Buffering"] = "no"
-
-    return response
-
-@login_required
-@require_POST
-def process_candidate_post_interview_decision_support_regenerate(
-    request,
-    process_id,
-    candidate_id,
-):
-    """
-    Reset post-interview decision support and return
-    the stream URL for fresh generation.
-    """
-
-    process = get_object_or_404(
-        TestProcess,
-        pk=process_id,
-    )
-
-    if not user_can_access_process(
-        request.user,
-        process,
-    ):
-        return HttpResponseForbidden(
-            "You do not have access to this project."
-        )
-    
-    invitation = get_candidate_ai_owner(
-        process,
-        candidate_id,
-    )
-
-    if not (
-        invitation.interview_notes
-        or ""
-    ).strip():
-        return JsonResponse(
-            {
-                "error": (
-                    "Add and save interview notes before "
-                    "generating post-interview decision support."
-                )
-            },
-            status=400,
-        )
-
-    invitation.ai_post_interview_decision_support_status = (
-        "not_started"
-    )
-
-    invitation.ai_post_interview_decision_support_generated_at = (
-        None
-    )
-
-    invitation.ai_post_interview_decision_support_purpose = ""
-
-    invitation.ai_post_interview_decision_support_notes_version = (
-        None
-    )
-
-    invitation.save(
-        update_fields=[
-            (
-                "ai_post_interview_"
-                "decision_support_status"
-            ),
-            (
-                "ai_post_interview_"
-                "decision_support_generated_at"
-            ),
-            (
-                "ai_post_interview_"
-                "decision_support_purpose"
-            ),
-            (
-                "ai_post_interview_"
-                "decision_support_notes_version"
-            ),
-        ]
-    )
-
-    return JsonResponse(
-        {
-            "ok": True,
-            "stream_url": reverse(
-                (
-                    "processes:"
-                    "process_candidate_post_interview_"
-                    "decision_support_stream"
-                ),
-                kwargs={
-                    "process_id": process.id,
-                    "candidate_id": candidate_id,
-                },
-            ),
-        }
-    )
-
-
-@login_required
-@require_POST
-def process_candidate_interview_notes_update(
-    request,
-    process_id,
-    candidate_id,
-):
-    """
-    Save interview notes and candidate examples.
-
-    Updating the notes marks any existing post-interview
-    decision support as outdated.
-    """
-
-    process = get_object_or_404(
-        TestProcess,
-        pk=process_id,
-    )
-
-    if not user_can_access_process(
-        request.user,
-        process,
-    ):
-        return HttpResponseForbidden(
-            "You do not have access to this project."
-        )
-
-    invitation = get_candidate_ai_owner(
-        process,
-        candidate_id,
-    )
-
-    try:
-        payload = json.loads(
-            request.body.decode("utf-8")
-            or "{}"
-        )
-    except json.JSONDecodeError:
-        return JsonResponse(
-            {
-                "error": "Invalid JSON payload."
-            },
-            status=400,
-        )
-
-    raw_notes = payload.get(
-        "interview_notes",
-        "",
-    )
-
-    if raw_notes is None:
-        raw_notes = ""
-
-    if not isinstance(raw_notes, str):
-        return JsonResponse(
-            {
-                "error": (
-                    "Interview notes must be supplied "
-                    "as text."
-                )
-            },
-            status=400,
-        )
-
-    interview_notes = raw_notes.strip()
-
-    if len(interview_notes) > 30000:
-        return JsonResponse(
-            {
-                "error": (
-                    "Interview notes may not exceed "
-                    "30,000 characters."
-                )
-            },
-            status=400,
-        )
-
-    updated_at = timezone.now()
-
-    invitation.interview_notes = (
-        interview_notes
-    )
-
-    invitation.interview_notes_updated_at = (
-        updated_at
-    )
-
-    invitation.interview_notes_updated_by = (
-        request.user
-    )
-
-    # An existing post-interview synthesis no longer
-    # reflects the latest interview evidence.
-    if (
-        invitation
-        .ai_post_interview_decision_support
-    ):
-        invitation.ai_post_interview_decision_support_status = (
-            "outdated"
-        )
-    else:
-        invitation.ai_post_interview_decision_support_status = (
-            "not_started"
-        )
-
-    invitation.save(
-        update_fields=[
-            "interview_notes",
-            "interview_notes_updated_at",
-            "interview_notes_updated_by",
-            (
-                "ai_post_interview_"
-                "decision_support_status"
-            ),
-        ]
-    )
-
-    return JsonResponse(
-        {
-            "ok": True,
-            "interview_notes": interview_notes,
-            "has_interview_notes": bool(
-                interview_notes
-            ),
-            "updated_at": (
-                updated_at.isoformat()
-            ),
-            "updated_by": (
-                request.user.get_full_name()
-                or request.user.get_username()
-            ),
-            "post_interview_status": (
-                invitation
-                .ai_post_interview_decision_support_status
-            ),
-        }
-    )
-
-
-@login_required
-def process_candidate_final_output(
-    request,
-    process_id,
-    candidate_id,
-):
-    """
-    Return the latest saved candidate final output
-    as rendered HTML.
-    """
-
-    process = get_object_or_404(
-        TestProcess,
-        pk=process_id,
-    )
-
-    if not user_can_access_process(
-        request.user,
-        process,
-    ):
-        return HttpResponseForbidden(
-            "You do not have access to this project."
-        )
-    
-    invitation = get_candidate_ai_owner(
-        process,
-        candidate_id,
-    )
-
-    # Talena final output pre-interview language batch 1
-    language_code = get_request_ai_language(
-        request
-    )
-    mark_ai_content_outdated_if_language_changed(
-        invitation,
-        content_key="pre_interview_decision_support",
-        result_field="ai_pre_interview_decision_support",
-        status_field=(
-            "ai_pre_interview_decision_support_status"
-        ),
-        language_code=language_code,
-    )
-
-    pre_interview_decision_support = (
-        invitation.ai_pre_interview_decision_support
-        or {}
-    )
-
-    # #188: Prepare for interview uses the saved response-style
-    # interview approach from the same one-call response-style result.
-    response_style_guidance = (
-        invitation.ai_response_style_guidance
-        or {}
-    )
-
-    # Talena final output post-interview language batch 1
-    language_code = get_request_ai_language(
-        request
-    )
-    mark_ai_content_outdated_if_language_changed(
-        invitation,
-        content_key="post_interview_decision_support",
-        result_field="ai_post_interview_decision_support",
-        status_field=(
-            "ai_post_interview_decision_support_status"
-        ),
-        language_code=language_code,
-    )
-
-    post_interview_decision_support = (
-        invitation.ai_post_interview_decision_support
-        or {}
-    )
-
-    interview_notes = (
-        invitation.interview_notes
-        or ""
-    ).strip()
-
-    has_pre_interview_decision_support = bool(
-        (
-            pre_interview_decision_support.get(
-                "overall_synthesis"
-            )
-            or ""
-        ).strip()
-    )
-
-    has_post_interview_decision_support = bool(
-        (
-            post_interview_decision_support.get(
-                "overall_synthesis"
-            )
-            or ""
-        ).strip()
-        or any(
-            str(value or "").strip()
-            for value in (
-                post_interview_decision_support.get("content_blocks")
-                or {}
-            ).values()
-        )
-    )
-
-    # #187:
-    # Prepare for interview embeds the shared assessment-question
-    # partial inside _final_output.html. Because this whole root is
-    # refreshed after interview AI actions, the refresh view must
-    # rebuild the same combined-question context as the main
-    # candidate-detail view.
-    combined_questions = (
-        build_combined_candidate_questions(
-            invitation
-        )
-    )
-
-    combined_questions_refresh_url = reverse(
-        (
-            "processes:"
-            "process_candidate_combined_questions"
-        ),
-        kwargs={
-            "process_id": process.id,
-            "candidate_id": candidate_id,
-        },
-    )
-
-    refresh_url = reverse(
-        (
-            "processes:"
-            "process_candidate_final_output"
-        ),
-        kwargs={
-            "process_id": process.id,
-            "candidate_id": candidate_id,
-        },
-    )
-
-    return render(
-        request,
-        (
-            "customer/processes/partials/"
-            "candidate_insights/tabs/"
-            "_final_output.html"
-        ),
-        {
-            "process": process,
-            "report_branding": get_report_branding(process.company),
-            "candidate": invitation.candidate,
-            "invitation": invitation,
-            "is_historical": process.is_historical,
-
-            # Combined assessment questions used by the embedded
-            # Prepare for interview question section.
-            "combined_questions": (
-                combined_questions
-            ),
-
-            "combined_question_sections": (
-                combined_questions["sections"]
-            ),
-
-            "combined_question_count": (
-                combined_questions["total_count"]
-            ),
-
-            "has_combined_questions": (
-                combined_questions["has_questions"]
-            ),
-
-            "combined_questions_refresh_url": (
-                combined_questions_refresh_url
-            ),
-
-            "response_style_guidance": (
-                response_style_guidance
-            ),
-
-            "pre_interview_decision_support": (
-                pre_interview_decision_support
-            ),
-
-            "pre_interview_decision_support_status": (
-                invitation
-                .ai_pre_interview_decision_support_status
-                or "not_started"
-            ),
-
-            "pre_interview_decision_support_generated_at": (
-                invitation
-                .ai_pre_interview_decision_support_generated_at
-            ),
-
-            "has_pre_interview_decision_support": (
-                has_pre_interview_decision_support
-            ),
-
-            "pre_interview_decision_support_stream_url": reverse(
-                (
-                    "processes:"
-                    "process_candidate_pre_interview_"
-                    "decision_support_stream"
-                ),
-                kwargs={
-                    "process_id": process.id,
-                    "candidate_id": candidate_id,
-                },
-            ),
-
-            "pre_interview_decision_support_regenerate_url": reverse(
-                (
-                    "processes:"
-                    "process_candidate_pre_interview_"
-                    "decision_support_regenerate"
-                ),
-                kwargs={
-                    "process_id": process.id,
-                    "candidate_id": candidate_id,
-                },
-            ),
-
-            "interview_notes": interview_notes,
-
-            "has_interview_notes": bool(
-                interview_notes
-            ),
-
-            "interview_notes_updated_at": (
-                invitation.interview_notes_updated_at
-            ),
-
-            "interview_notes_updated_by": (
-                invitation.interview_notes_updated_by
-            ),
-
-            "interview_notes_update_url": reverse(
-                (
-                    "processes:"
-                    "process_candidate_"
-                    "interview_notes_update"
-                ),
-                kwargs={
-                    "process_id": process.id,
-                    "candidate_id": candidate_id,
-                },
-            ),
-
-            "post_interview_decision_support": (
-                post_interview_decision_support
-            ),
-
-            "post_interview_decision_support_status": (
-                invitation
-                .ai_post_interview_decision_support_status
-                or "not_started"
-            ),
-
-            "post_interview_decision_support_generated_at": (
-                invitation
-                .ai_post_interview_decision_support_generated_at
-            ),
-
-            "has_post_interview_decision_support": (
-                has_post_interview_decision_support
-            ),
-
-            "final_output_refresh_url": (
-                refresh_url
-            ),
-            "post_interview_decision_support_stream_url": reverse(
-                (
-                    "processes:"
-                    "process_candidate_post_interview_"
-                    "decision_support_stream"
-                ),
-                kwargs={
-                    "process_id": process.id,
-                    "candidate_id": candidate_id,
-                },
-            ),
-
-            "post_interview_decision_support_regenerate_url": reverse(
-                (
-                    "processes:"
-                    "process_candidate_post_interview_"
-                    "decision_support_regenerate"
-                ),
-                kwargs={
-                    "process_id": process.id,
-                    "candidate_id": candidate_id,
-                },
-            ),
-        },
-    )
-
-
-@login_required
-def process_candidate_combined_questions(
-    request,
-    process_id,
-    candidate_id,
-):
-    """
-    Return the latest saved Personality, Motivation and
-    Cognitive questions as rendered HTML.
-    """
-
-    process = get_object_or_404(
-        TestProcess,
-        pk=process_id,
-    )
-
-    if not user_can_access_process(
-        request.user,
-        process,
-    ):
-        return HttpResponseForbidden(
-            "You do not have access to this project."
-        )
-
-    if process.is_historical:
-        invitation = get_object_or_404(
-            HistoricalProcessCandidate.objects
-            .select_related(
-                "candidate",
-                "process",
-            ),
-            process=process,
-            candidate_id=candidate_id,
-        )
-    else:
-        invitation = get_object_or_404(
-            TestInvitation.objects.select_related(
-                "candidate",
-                "process",
-            ),
-            process=process,
-            candidate_id=candidate_id,
-        )
-
-    combined_questions = (
-        build_combined_candidate_questions(
-            invitation
-        )
-    )
-
-    refresh_url = reverse(
-        (
-            "processes:"
-            "process_candidate_combined_questions"
-        ),
-        kwargs={
-            "process_id": process.id,
-            "candidate_id": candidate_id,
-        },
-    )
-
-    return render(
-        request,
-        (
-            "customer/processes/partials/"
-            "candidate_insights/tabs/_questions.html"
-        ),
-        {
-            "invitation": invitation,
-            "combined_questions": (
-                combined_questions
-            ),
-
-            "combined_question_sections": (
-                combined_questions["sections"]
-            ),
-
-            "combined_question_count": (
-                combined_questions["total_count"]
-            ),
-
-            "has_combined_questions": (
-                combined_questions["has_questions"]
-            ),
-
-            "combined_questions_refresh_url": (
-                refresh_url
-            ),
-        },
-    )
-
-
-@login_required
-def process_list(request):
-    company_id = (
-        CompanyMember.objects
-        .filter(user=request.user)
-        .values_list("company_id", flat=True)
-        .first()
-    )
-    company = get_object_or_404(Company, pk=company_id)
-
-    perms = get_effective_orgunit_permissions(request.user, company)
-
-    own_ids = [uid for uid, p in perms.items() if p == "own"]
-    other_ids = [uid for uid, p in perms.items() if p in ("viewer", "editor")]
-
-    process_q = Q(company=company) & (
-        Q(org_unit_id__in=other_ids) |
-        Q(org_unit_id__in=own_ids, created_by=request.user)
-    )
-
-    # Tab: Active / Archived
-    show_archived = request.GET.get("archived") == "1"
-
-    historical_candidate_count_subquery = (
-        HistoricalProcessCandidate.objects
-        .filter(process=OuterRef("pk"))
-        .values("process")
-        .annotate(count=Count("id"))
-        .values("count")
-    )
-
-    historical_completed_count_subquery = (
-        HistoricalProcessCandidate.objects
-        .filter(process=OuterRef("pk"), status="completed")
-        .values("process")
-        .annotate(count=Count("id"))
-        .values("count")
-    )
-    historical_started_count_subquery = (
-        HistoricalProcessCandidate.objects
-        .filter(process=OuterRef("pk"), status__in=["started", "completed"])
-        .values("process")
-        .annotate(count=Count("id"))
-        .values("count")
-    )
-
-    processes = (
-        TestProcess.objects
-        .filter(process_q)
-        .filter(is_archived=show_archived)
-        .annotate(
-            live_candidates_count=Count("invitations", distinct=True),
-            live_completed_count=Count(
-                "invitations",
-                filter=Q(invitations__status="completed"),
-                distinct=True,
-            ),
-            live_started_count=Count(
-                "invitations",
-                filter=Q(invitations__status__in=["started", "completed"]),
-                distinct=True,
-            ),
-            historical_candidates_count=Coalesce(
-                Subquery(
-                    historical_candidate_count_subquery,
-                    output_field=IntegerField(),
-                ),
-                0,
-            ),
-            historical_completed_count=Coalesce(
-                Subquery(historical_completed_count_subquery, output_field=IntegerField()),
-                0,
-            ),
-            historical_started_count=Coalesce(
-                Subquery(historical_started_count_subquery, output_field=IntegerField()),
-                0,
-            ),
-        )
-        .order_by("-created_at")
-        .prefetch_related("labels")
-    )
-
-    # Build edit permissions after processes exists
-    can_edit_by_process_id = {}
-    for p in processes:
-        p.candidates_count = (
-            p.historical_candidates_count if p.is_historical else p.live_candidates_count
-        )
-        p.completed_candidates_count = (
-            p.historical_completed_count if p.is_historical else p.live_completed_count
-        )
-        p.started_candidates_count = (
-            p.historical_started_count if p.is_historical else p.live_started_count
-        )
-        p.is_complete = (
-            p.candidates_count > 0
-            and p.completed_candidates_count == p.candidates_count
-        )
-        perm = perms.get(p.org_unit_id)
-        can_edit = (
-            perm == "editor"
-            or (perm == "own" and p.created_by_id == request.user.id)
-        )
-        can_edit_by_process_id[p.id] = can_edit
-        # Prevent misleading "permanent delete" UI for projects containing
-        # ordered assessments or protected billing records.
-        if show_archived and can_edit and not p.is_historical:
-            p.can_delete_now = (
-                can_delete_process_safely(p)
-                and not p.invitations.filter(status="expired").exists()
-                and not p.assessment_usages.exists()
-            )
-        else:
-            p.can_delete_now = False
-
-    # ProjectMeta lookup
-    keys = {
-        (p.account_code, p.project_code)
-        for p in processes
-        if p.account_code and p.project_code
-    }
-
-    meta_by_key = {}
-    if keys:
-        q = Q()
-        for acc, proj in keys:
-            q |= Q(account_code=acc, project_code=proj)
-
-        metas = ProjectMeta.objects.filter(q)
-        meta_by_key = {
-            f"{m.account_code}::{m.project_code}": m
-            for m in metas
-        }
-
-    return render(
-        request,
-        "customer/processes/process_list.html",
-        {
-            "company": company,
-            "processes": processes,
-            "meta_by_key": meta_by_key,
-            "perms": perms,
-            "show_archived": show_archived,
-            "can_edit_by_process_id": can_edit_by_process_id,
-        }
-    )
-
-def get_template_icon_class(tests, title=""):
-    """
-    Returns a FontAwesome icon class based on the test types/title.
-    """
-    text = " ".join(tests).lower()
-    title = (title or "").lower()
-
-    if "360" in text or "360" in title:
-        return "fa-solid fa-arrows-rotate"
-
-    if (
-        "numerical" in text
-        or "numerisk" in text
-        or "fÃ¤rdighet" in text
-        or "fardighet" in text
-        or "ability" in text
-        or "skills" in text
-    ):
-        return "fa-solid fa-chart-simple"
-
-    if (
-        "personality" in text
-        or "personlighet" in text
-        or "pq" in title
-    ):
-        return "fa-solid fa-user-check"
-
-    if (
-        "motivation" in text
-        or "motivationstest" in text
-    ):
-        return "fa-solid fa-bullseye"
-
-    if "leadership" in text or "ledarskap" in text:
-        return "fa-solid fa-award"
-
-    if "sales" in text or "sÃ¤lj" in title or "salj" in title:
-        return "fa-solid fa-handshake"
-
-    if "admin" in text or "interim" in text or "interim" in title:
-        return "fa-solid fa-briefcase"
-
-    if "modern" in title:
-        return "fa-solid fa-wand-magic-sparkles"
-
-    if "linear" in title:
-        return "fa-solid fa-wave-square"
-
-    if "ihp" in title:
-        return "fa-solid fa-layer-group"
-
-    return "fa-solid fa-layer-group"
-
-
-@login_required
-def process_create(request):
-    client = SovaClient()
-    error = None
-
-    try:
-        accounts = client.get_template_accounts_with_projects()
-    except Exception as e:
-        accounts = []
-        error = str(e)
-
-    metas = ProjectMeta.objects.filter(provider="sova")
-    meta_map = {(m.account_code, m.project_code): m for m in metas}
-
-    choices = []
-    template_cards = []
-    project_id_map = {}
-
-    for a in accounts:
-        acc = (a.get("code") or "").strip()
-        for p in (a.get("projects") or []):
-            proj_code = (p.get("code") or "").strip()
-            sova_name = (p.get("name") or proj_code).strip()
-
-            value = f"{acc}|{proj_code}"
-            project_id_map[value] = p.get("id")
-
-            meta = meta_map.get((acc, proj_code))
-
-            title = (getattr(meta, "intern_name", None) or sova_name)
-
-            description = ""
-            tests = []
-            languages = []
-
-            if meta:
-                description = (getattr(meta, "notes", None) or "").strip()
-
-                tests_raw = (getattr(meta, "tests", None) or "").strip()
-                if tests_raw:
-                    tests = [t.strip() for t in tests_raw.split(",") if t.strip()]
-
-                languages_raw = (getattr(meta, "languages", None) or "").strip()
-                if languages_raw:
-                    languages = [l.strip() for l in languages_raw.split(",") if l.strip()]
-
-            choices.append((value, title))
-            template_cards.append({
-                "value": value,
-                "title": title,
-                "description": description,
-                "tests": tests,
-                "languages": languages,
-                "icon_class": get_template_icon_class(tests, title),
-                "account_code": acc,
-                "project_code": proj_code,
-                "sova_name": sova_name,
-                "sova_project_id": p.get("id"),
-            })
-
-    template_cards.sort(key=lambda x: (x["title"] or "").lower())
-
-    if request.method == "POST":
-        form = TestProcessCreateForm(request.POST)
-        form.fields["sova_template"].choices = choices
-
-        if form.is_valid():
-            obj = form.save(commit=False)
-
-            value = form.cleaned_data["sova_template"]
-            acc, proj = value.split("|", 1)
-
-            # âœ… sÃ¤tt company (kundens â€œkontoâ€)
-            company_id = (
-                CompanyMember.objects
-                .filter(user=request.user)
-                .values_list("company_id", flat=True)
-                .first()
-            )
-            if not company_id:
-                form.add_error(None, "You are not linked to a company.")
-                return render(request, "customer/processes/process_create.html", {
-                    "form": form,
-                    "error": error,
-                    "template_cards": template_cards,
-                    "templates_count": len(template_cards),
-                    "accounts_count": len(accounts),
-                })
-
-            obj.company_id = company_id
-
-            
-            # âœ… sÃ¤tt org_unit frÃ¥n session (active org unit)
-            active_unit_id = request.session.get("active_org_unit_id")
-
-            company = Company.objects.get(pk=company_id)
-            accessible_ids = get_accessible_orgunit_ids(request.user, company)
-
-            if not active_unit_id or int(active_unit_id) not in accessible_ids:
-                # fallback: vÃ¤lj en direkt/Ã¥tkomlig unit automatiskt
-                fallback_id = next(iter(accessible_ids), None)
-                if not fallback_id:
-                    form.add_error(None, "You do not have an assigned account, so a project cannot be created.")
-                    return render(request, "customer/processes/process_create.html", {
-                        "form": form,
-                        "error": error,
-                        "template_cards": template_cards,
-                        "templates_count": len(template_cards),
-                        "accounts_count": len(accounts),
-                    })
-                active_unit_id = fallback_id
-                request.session["active_org_unit_id"] = active_unit_id
-
-            obj.org_unit_id = int(active_unit_id)
-
-            # âœ… endast SOVA-referenser
-            obj.provider = "sova"
-            obj.account_code = acc
-            obj.project_code = proj
-            obj.sova_project_id = project_id_map.get(value)
-
-            meta = meta_map.get((acc, proj))
-            obj.project_name_snapshot = (getattr(meta, "intern_name", None) or "")
-            if not obj.project_name_snapshot:
-                match = next((t for t in template_cards if t["value"] == value), None)
-                obj.project_name_snapshot = (match["sova_name"] if match else proj)
-
-            obj.created_by = request.user
-
-            membership = (
-                CompanyMember.objects
-                .filter(user=request.user, company_id=company_id)
-                .select_related("primary_org_unit")
-                .first()
-            )
-
-            if not membership or not membership.primary_org_unit_id:
-                form.add_error(None, "You do not have a primary org unit. Please contact an administrator.")
-                return render(request, "customer/processes/process_create.html", {
-                    "form": form,
-                    "error": error,
-                    "template_cards": template_cards,
-                    "templates_count": len(template_cards),
-                    "accounts_count": len(accounts),
-                })
-
-            obj.org_unit_id = membership.primary_org_unit_id
-
-            obj.save()
-
-            log_event(
-                company=company, 
-                verb=ActivityEvent.Verb.PROCESS_CREATED,
-                actor=request.user,
-                process=obj,
-                meta={"process_name": obj.name},
-            )
-
-            # âœ… LABELS: skapa/Ã¥teranvÃ¤nd labels per company och koppla
-            label_names = form.cleaned_data.get("labels_text", [])
-            if label_names:
-                label_objs = []
-                for name in label_names:
-                    lab, _ = ProcessLabel.objects.get_or_create(
-                        company_id=company_id,
-                        name=name,
-                    )
-                    label_objs.append(lab)
-                obj.labels.set(label_objs)
-            else:
-                obj.labels.clear()
-
-            return redirect("processes:process_detail", pk=obj.pk)
-
-        messages.error(request, "The project could not be created. Please check the fields.")
-    else:
-        form = TestProcessCreateForm()
-        form.fields["sova_template"].choices = choices
-
-    return render(request, "customer/processes/process_create.html", {
-        "form": form,
-        "error": error,
-        "template_cards": template_cards,
-        "templates_count": len(template_cards),
-        "accounts_count": len(accounts),
-    })
-
-
-REUSABLE_AI_STATUSES = {
-    "completed",
-    "outdated",
-    "failed",
-}
-
-
-def should_return_saved_ai_result(
-    saved_result,
-    status,
-) -> bool:
-    """
-    Return existing AI content when usable saved content exists.
-
-    Outdated or previously failed updates should not discard
-    the last successfully generated result.
-    """
-
-    current_status = (
-        status
-        or "not_started"
-    )
-
-    return bool(
-        saved_result
-    ) and current_status in REUSABLE_AI_STATUSES
-
-
-def mark_candidate_ai_content_outdated(process):
-    """
-    Keep existing AI content, but mark it as needing regeneration.
-
-    Existing content remains saved until a replacement has been
-    generated successfully.
-    """
-
-    invitations = TestInvitation.objects.filter(
-        process=process,
-    )
-
-    summary_count = (
-        invitations
-        .exclude(ai_summary="")
-        .update(ai_summary_status="outdated")
-    )
-
-    purpose_fit_count = (
-        invitations
-        .exclude(ai_purpose_fit={})
-        .update(ai_purpose_fit_status="outdated")
-    )
-
-    cognitive_interpretation_count = (
-        invitations
-        .exclude(ai_cognitive_interpretation={})
-        .update(
-            ai_cognitive_interpretation_status="outdated"
-        )
-    )
-
-    cognitive_questions_count = (
-        invitations
-        .exclude(ai_cognitive_questions={})
-        .update(
-            ai_cognitive_questions_status="outdated"
-        )
-    )
-
-    response_style_guidance_count = (
-        invitations
-        .exclude(ai_response_style_guidance={})
-        .update(
-            ai_response_style_guidance_status="outdated"
-        )
-    )
-
-    motivation_interpretation_count = (
-        invitations
-        .exclude(ai_motivation_interpretation={})
-        .update(
-            ai_motivation_interpretation_status="outdated"
-        )
-    )
-
-    personality_interpretation_count = (
-        invitations
-        .exclude(ai_personality_interpretation={})
-        .update(
-            ai_personality_interpretation_status="outdated"
-        )
-    )
-
-    personality_questions_count = (
-        invitations
-        .exclude(ai_personality_questions={})
-        .update(
-            ai_personality_questions_status="outdated"
-        )
-    )
-
-    return {
-        "summaries": summary_count,
-        "purpose_fits": purpose_fit_count,
-        "cognitive_interpretations": (
-            cognitive_interpretation_count
-        ),
-        "motivation_interpretations": (
-            motivation_interpretation_count
-        ),
-        "personality_questions": (
-            personality_questions_count
-        ),
-        "personality_interpretations": (
-            personality_interpretation_count
-        ),
-        "response_style_guidance": (
-            response_style_guidance_count
-        ),
-        "cognitive_questions": (
-            cognitive_questions_count
-        ),
-    }
-
-def process_update(request, pk):
-    obj = get_object_or_404(TestProcess, pk=pk)
-
-    if obj.is_historical:
-        return HttpResponseForbidden("Historical projects are read-only.")
-
-    company = get_company_for_user(request.user)
-    if not company or obj.company_id != company.id:
-        return HttpResponseForbidden("No access.")
-
-    if not user_can_edit_process(request.user, company, obj):
-        return HttpResponseForbidden("You do not have permission to edit this project.")
-
-    if not user_can_access_process(request.user, obj):
-        return HttpResponseForbidden("You do not have access to this project.")
-
-    old_acc = (obj.account_code or "").strip()
-    old_proj = (obj.project_code or "").strip()
-    locked = obj.is_template_locked()
-    old_purpose = obj.purpose
-    old_candidate_results_enabled = obj.candidate_results_enabled
-
-    client = SovaClient()
-    error = None
-
-    # --------------------------------------------------
-    # 1. HÃ¤mta Sova-projekt frÃ¥n API
-    # --------------------------------------------------
-    try:
-        accounts = client.get_template_accounts_with_projects()
-    except Exception as e:
-        accounts = []
-        error = str(e)
-
-    # --------------------------------------------------
-    # 2. HÃ¤mta ProjectMeta sÃ¥ vi kan hitta namn, tester osv
-    # --------------------------------------------------
-    metas = ProjectMeta.objects.filter(provider="sova")
-    meta_map = {(m.account_code, m.project_code): m for m in metas}
-
-    template_cards = []
-
-    for account in accounts:
-        acc = (account.get("code") or "").strip()
-
-        for project in (account.get("projects") or []):
-            proj_code = (project.get("code") or "").strip()
-            sova_name = (project.get("name") or proj_code).strip()
-
-            value = f"{acc}|{proj_code}"
-
-            meta_item = meta_map.get((acc, proj_code))
-            title = getattr(meta_item, "intern_name", None) or sova_name
-
-            description = ""
-            tests = []
-            languages = []
-
-            if meta_item:
-                description = (getattr(meta_item, "notes", None) or "").strip()
-
-                tests_raw = (getattr(meta_item, "tests", None) or "").strip()
-                if tests_raw:
-                    tests = [t.strip() for t in tests_raw.split(",") if t.strip()]
-
-                languages_raw = (getattr(meta_item, "languages", None) or "").strip()
-                if languages_raw:
-                    languages = [l.strip() for l in languages_raw.split(",") if l.strip()]
-
-            if not tests:
-                tests = extract_tests_from_project_name(sova_name)
-
-            template_cards.append({
-                "value": value,
-                "title": title,
-                "description": description,
-                "tests": tests,
-                "languages": languages,
-                "icon_class": get_template_icon_class(tests, title),
-                "account_code": acc,
-                "project_code": proj_code,
-                "sova_name": sova_name,
-                "sova_project_id": project.get("id"),
-            })
-
-    template_cards.sort(key=lambda x: (x["title"] or "").lower())
-
-    # --------------------------------------------------
-    # 3. HjÃ¤lpvariabler till header/tabs
-    # --------------------------------------------------
-    purpose_lookup = {
-        item["key"]: item
-        for item in PROCESS_PURPOSES
-    }
-
-    process_purpose = purpose_lookup.get(obj.purpose)
-
-    meta = ProjectMeta.objects.filter(
-        account_code=obj.account_code,
-        project_code=obj.project_code,
-    ).first()
-
-    can_edit = user_can_edit_process(request.user, company, obj)
-
-    def render_edit(form):
-        return render(request, "customer/processes/process_edit.html", {
-            "form": form,
-            "process": obj,
-            "error": error,
-            "template_locked": locked,
-
-            # Header/base template stuff
-            "active": "settings",
-            "meta": meta,
-            "can_edit": can_edit,
-            "process_purpose": process_purpose,
-            "context_config": get_purpose_context_config(obj.purpose),
-            "self_reg_url": request.build_absolute_uri(obj.get_self_registration_url()),
-
-            # Edit page stuff
-            "process_purposes": PROCESS_PURPOSES,
-            "available_tests": AVAILABLE_TESTS,
-            "purpose_recommended_tests": PURPOSE_RECOMMENDED_TESTS,
-            "template_cards": template_cards,
-            "templates_count": len(template_cards),
-            "accounts_count": len(accounts),
-        })
-
-    # --------------------------------------------------
-    # 4. POST: uppdatera processen
-    # --------------------------------------------------
-    if request.method == "POST":
-        form = TestProcessWizardCreateForm(request.POST)
-
-        if form.is_valid():
-            name = (form.cleaned_data.get("name") or "").strip()
-            purpose = form.cleaned_data.get("purpose")
-            selected_tests = form.cleaned_data.get("selected_tests") or []
-            candidate_language = (
-                form.cleaned_data.get("candidate_language")
-                or "sv"
-            )
-            label_names = form.cleaned_data.get("labels_text") or []
-
-            if isinstance(label_names, str):
-                label_names = [
-                    item.strip()
-                    for item in label_names.split(",")
-                    if item.strip()
-                ]
-
-            # Namn fÃ¥r alltid Ã¤ndras
-            obj.name = name or obj.name
-
-            # Labels fÃ¥r alltid Ã¤ndras
-            label_objs = []
-            for label_name in label_names:
-                lab, _ = ProcessLabel.objects.get_or_create(
-                    company=company,
-                    name=label_name,
-                )
-                label_objs.append(lab)
-
-            # Preserve the currently active context under the old purpose
-            # before switching the process to a new purpose.
-            if old_purpose != purpose:
-                existing_context = getattr(obj, "role_context", None)
-
-                if existing_context and existing_context.has_content():
-                    existing_context.save_context_for_purpose(
-                        old_purpose,
-                        existing_context.get_current_context_data(),
-                    )
-
-                    existing_context.save(update_fields=[
-                        "purpose_data",
-                        "updated_at",
-                    ])
-
-            # --------------------------------------------------
-            # Purpose fÃ¥r alltid Ã¤ndras.
-            # Tester och Sova-projekt lÃ¥ses efter fÃ¶rsta utskicket.
-            # --------------------------------------------------
-            obj.purpose = purpose
-            obj.candidate_language = candidate_language
-            obj.candidate_results_enabled = (
-                form.cleaned_data.get("candidate_results_enabled")
-                or False
-            )
-
-            if locked:
-                # BehÃ¥ll befintliga tester och befintlig Sova-koppling.
-                # Ignorera manipulerade testvÃ¤rden frÃ¥n POST.
-                obj.provider = "sova"
-                obj.account_code = old_acc
-                obj.project_code = old_proj
-                obj.selected_tests = obj.selected_tests or []
-
-            else:
-                # Innan tester har skickats fÃ¥r testpaketet fortfarande Ã¤ndras.
-                obj.selected_tests = selected_tests
-
-                try:
-                    resolved_template = resolve_sova_template(
-                        selected_tests, template_cards
-                    )
-                except ValueError as exc:
-                    form.add_error("selected_tests", str(exc))
-                    return render_edit(form)
-
-                if not resolved_template:
-                    form.add_error(
-                        "selected_tests",
-                        "Please select at least Personality or Motivation in the current development environment."
-                    )
-                    return render_edit(form)
-
-                acc = (resolved_template["account_code"] or "").strip()
-                proj = (resolved_template["project_code"] or "").strip()
-                value = f"{acc}|{proj}"
-
-                obj.provider = "sova"
-                obj.account_code = acc
-                obj.project_code = proj
-
-                meta_match = meta_map.get((acc, proj))
-
-                if meta_match and getattr(meta_match, "intern_name", None):
-                    obj.project_name_snapshot = meta_match.intern_name
-                else:
-                    match = next(
-                        (t for t in template_cards if t["value"] == value),
-                        None
-                    )
-
-                    obj.project_name_snapshot = (
-                        match["sova_name"] if match else proj
-                    )
-
-            # --------------------------------------------------
-            # Spara Ã¤ndringarna
-            # --------------------------------------------------
-            with transaction.atomic():
-                obj.save()
-                obj.labels.set(label_objs)
-
-                if old_candidate_results_enabled and not obj.candidate_results_enabled:
-                    from apps.candidate_results.services import (
-                        revoke_candidate_result_access_for_process,
-                    )
-
-                    revoke_candidate_result_access_for_process(
-                        obj,
-                        actor=request.user,
-                    )
-
-            if old_purpose != obj.purpose:
-                result = mark_candidate_ai_content_outdated(obj)
-
-                print(
-                    "AI CONTENT MARKED OUTDATED:",
-                    result,
-                )
-
-            messages.success(
-                request,
-                "The project was updated."
-            )
-
-            return redirect(
-                "processes:process_update",
-                pk=obj.pk,
-            )
-
-    # --------------------------------------------------
-    # 5. GET: fyll edit-formulÃ¤ret med befintliga vÃ¤rden
-    # --------------------------------------------------
-    else:
-        form = TestProcessWizardCreateForm(initial={
-            "name": obj.name,
-            "labels_text": ", ".join(
-                obj.labels.values_list("name", flat=True)
-            ),
-            "purpose": obj.purpose,
-            "selected_tests": obj.selected_tests or [],
-            "candidate_language": (
-                obj.candidate_language
-                or "sv"
-            ),
-            "candidate_results_enabled": (
-                obj.candidate_results_enabled
-            ),
-        })
-
-    return render_edit(form)
-
-
-@login_required
-@require_POST
-def process_delete(request, pk):
-    obj = get_object_or_404(TestProcess, pk=pk)
-    company = get_company_for_user(request.user)
-
-    if not company or obj.company_id != company.id:
-        return HttpResponseForbidden("Du saknar Ã¥tkomst till projektet.")
-
-    if not user_can_edit_process(request.user, company, obj):
-        return HttpResponseForbidden("Du har inte behÃ¶righet att ta bort projektet.")
-
-    if not user_can_access_process(request.user, obj):
-        return HttpResponseForbidden("Du saknar Ã¥tkomst till projektet.")
-
-    # Imported/historical projects may contain results not represented by
-    # live TestInvitation records. Never purge them using this legacy endpoint.
-    if obj.is_historical:
-        messages.warning(
-            request,
-            "Historiska projekt kan inte raderas via den hÃ¤r funktionen."
-            if (get_language() or "").startswith("sv")
-            else "Historical projects cannot be deleted through this action.",
-        )
-        return redirect(reverse("processes:process_list") + "?archived=1")
-
-    # Never hard-delete an active project through an old/direct delete URL.
-    # Actual permanent deletion is available only for archived projects.
-    if not obj.is_archived:
-        obj.archive()
-        log_event(
-            company=company,
-            verb=ActivityEvent.Verb.PROCESS_ARCHIVED,
-            actor=request.user,
-            process=obj,
-        )
-        messages.info(
-            request,
-            "Projektet arkiverades. Ã–ppna Arkiverade projekt fÃ¶r fler alternativ."
-            if (get_language() or "").startswith("sv")
-            else "The project was archived. Open Archived projects for more options.",
-        )
-        return redirect("processes:process_list")
-
-    archived_url = reverse("processes:process_list") + "?archived=1"
-    # An ordered test or a billing row is a hard stop. Neither the project
-    # nor associated assessment or billing data must be erased here.
-    if (
-        not can_delete_process_safely(obj)
-        or obj.invitations.filter(status="expired").exists()
-        or obj.assessment_usages.exists()
-    ):
-        messages.warning(
-            request,
-            "Projektet kan inte raderas permanent eftersom det innehÃ¥ller "
-            "bestÃ¤llda tester eller faktureringsunderlag. Det ligger kvar i arkivet."
-            if (get_language() or "").startswith("sv")
-            else "This project cannot be permanently deleted because it contains "
-            "ordered assessments or billing records. It remains archived.",
-        )
-        return redirect(archived_url)
-
-    try:
-        with transaction.atomic():
-            # Re-check under a row lock to avoid a second deletion request
-            # racing against this request. Protected FKs remain the final guard.
-            locked = TestProcess.objects.select_for_update().get(pk=obj.pk)
-            if (
-                not can_delete_process_safely(locked)
-                or locked.invitations.filter(status="expired").exists()
-                or locked.assessment_usages.exists()
-            ):
-                messages.warning(
-                    request,
-                    "Projektet kan inte raderas eftersom tester eller faktureringsunderlag finns."
-                    if (get_language() or "").startswith("sv")
-                    else "The project cannot be deleted because assessments or billing records exist.",
-                )
-                return redirect(archived_url)
-            process_name = locked.name
-            locked.delete()
-            # Do not log against the removed process FK: such events cascade.
-            log_event(
-                company=company,
-                verb=ActivityEvent.Verb.PROCESS_DELETED,
-                actor=request.user,
-                meta={"process_name": process_name},
-            )
-    except (ProtectedError, IntegrityError):
-        messages.warning(
-            request,
-            "Projektet kan inte raderas eftersom uppgifter behÃ¶ver bevaras. "
-            "Det ligger kvar i arkivet."
-            if (get_language() or "").startswith("sv")
-            else "This project cannot be deleted because protected records must be retained. "
-            "It remains archived.",
-        )
-        return redirect(archived_url)
-
-    messages.success(
-        request,
-        "Projektet har raderats." if (get_language() or "").startswith("sv")
-        else "The project was deleted.",
-    )
-    return redirect(archived_url)
-
-
-@login_required
-def process_role_context(request, pk):
-    from .project_personality_trait_selection import (
-        get_project_personality_trait_options,
-        get_project_personality_trait_overrides,
-        get_project_personality_trait_selection,
-        save_project_personality_trait_overrides,
-    )
-
-    process = get_object_or_404(TestProcess, pk=pk)
-
-    if process.is_historical:
-        return HttpResponseForbidden(
-            "Historical projects are read-only."
-        )
-
-    if not user_can_access_process(request.user, process):
-        return HttpResponseForbidden(
-            "You do not have access to this project."
-        )
-
-    # Company/org-unit scope is also enforced by the URL guard. Viewing
-    # context is allowed for viewers, but modifying it requires Editor or
-    # ownership permission. Check *before* creating a context record.
-    if request.method == "POST" and not user_can_edit_process(
-        request.user, process.company, process
-    ):
-        return HttpResponseForbidden(
-            "You do not have permission to edit this project."
-        )
-
-    next_url = (
-        request.POST.get("next", "")
-        if request.method == "POST"
-        else request.GET.get("next", "")
-    ).strip()
-
-    context_config = get_purpose_context_config(process.purpose)
-    purpose_key = normalize_purpose_key(process.purpose)
-
-    role_context, created = ProcessRoleContext.objects.get_or_create(
-        process=process
-    )
-    language_code = get_request_ai_language(request)
-    personality_trait_options = get_project_personality_trait_options(
-        language_code
-    )
-    personality_trait_choices = [
-        (item["name"], item["label"])
-        for item in personality_trait_options
-    ]
-    previous_project_traits = get_project_personality_trait_overrides(
-        role_context,
-        purpose_key,
-    )
-    project_selection = get_project_personality_trait_selection(
-        process,
-        language_code=language_code,
-        generate=False,
-    ) or []
-    recommendation_error = False
-    if (
-        request.method != "POST"
-        and not previous_project_traits
-        and not project_selection
-    ):
-        try:
-            project_selection = get_project_personality_trait_selection(
-                process,
-                language_code=language_code,
-                generate=True,
-            ) or []
-        except Exception:
-            recommendation_error = True
-            messages.warning(
-                request,
-                (
-                    "Talena kunde inte rekommendera personlighetsdrag just nu."
-                    if str(language_code or "").lower().startswith("sv")
-                    else "Talena could not recommend personality traits right now."
-                ),
-            )
-    recommended_project_traits = [
-        item.get("name")
-        for item in project_selection
-        if isinstance(item, dict) and item.get("name")
-    ]
-    traits_for_form = (
-        previous_project_traits
-        or recommended_project_traits
-    )
-
-    if request.method == "POST":
-        # IMPORTANT:
-        # Capture the saved database values before ModelForm validation,
-        # because form.is_valid() may update the model instance in memory.
-        previous_context_data = (
-            role_context.get_current_context_data()
-        )
-        previous_project_traits = get_project_personality_trait_overrides(
-            role_context,
-            purpose_key,
-        )
-
-        form = ProcessRoleContextForm(
-            request.POST,
-            instance=role_context,
-            context_config=context_config,
-            personality_trait_choices=personality_trait_choices,
-            selected_personality_traits=traits_for_form,
-        )
-
-        if form.is_valid():
-            submitted_data = {
-                field_name: form.cleaned_data.get(field_name, "") or ""
-                for field_name in ProcessRoleContext.CONTEXT_FIELDS
-            }
-
-            context_changed = previous_context_data != submitted_data
-            submitted_project_traits = (
-                form.cleaned_data.get("personality_question_traits") or []
-            )
-            project_traits_submitted = (
-                "save_personality_traits" in request.POST
-            )
-            effective_project_traits = (
-                submitted_project_traits
-                if project_traits_submitted
-                else previous_project_traits
-            )
-            selection_changed = (
-                set(previous_project_traits) != set(effective_project_traits)
-            )
-
-            role_context = form.save(commit=False)
-
-            role_context.save_context_for_purpose(
-                purpose=purpose_key,
-                context_data=submitted_data,
-            )
-
-            role_context.apply_context_data(submitted_data)
-            role_context.save()
-            save_project_personality_trait_overrides(
-                role_context,
-                purpose_key=purpose_key,
-                context_text=submitted_data.get("context_text", ""),
-                selected_traits=effective_project_traits,
-            )
-
-            if context_changed:
-                mark_candidate_ai_content_outdated(process)
-            elif selection_changed:
-                TestInvitation.objects.filter(
-                    process=process,
-                ).exclude(
-                    ai_personality_questions={},
-                ).update(
-                    ai_personality_questions_status="outdated",
-                )
-
-            recommendation_error = False
-            if (
-                not effective_project_traits
-                and submitted_data.get("context_text", "").strip()
-            ):
-                try:
-                    get_project_personality_trait_selection(
-                        process,
-                        language_code=language_code,
-                        generate=True,
-                    )
-                except Exception:
-                    recommendation_error = True
-
-            messages.success(
-                request,
-                "The project context was saved."
-            )
-            if recommendation_error:
-                messages.warning(
-                    request,
-                    (
-                        "Rollkontexten sparades, men Talena kunde inte "
-                        "rekommendera personlighetsdrag just nu. FÃ¶rsÃ¶k igen "
-                        "nÃ¤r frÃ¥gorna skapas."
-                        if str(language_code or "").lower().startswith("sv")
-                        else (
-                            "The context was saved, but Talena could not "
-                            "recommend personality traits right now. Try "
-                            "again when generating the questions."
-                        )
-                    ),
-                )
-
-            if url_has_allowed_host_and_scheme(
-                next_url,
-                allowed_hosts={request.get_host()},
-                require_https=request.is_secure(),
-            ):
-                return redirect(next_url)
-
-            return redirect(
-                "processes:process_detail",
-                pk=process.pk,
-            )
-
-    else:
-        saved_purpose_context = role_context.get_context_for_purpose(
-            purpose_key
-        )
-
-        if saved_purpose_context is not None:
-            initial_data = saved_purpose_context
-            using_previous_purpose_as_start = False
-        else:
-            # No saved version for this purpose yet.
-            # Reuse the active context as a helpful starting point.
-            initial_data = role_context.get_current_context_data()
-            using_previous_purpose_as_start = role_context.has_content()
-
-        form = ProcessRoleContextForm(
-            instance=role_context,
-            initial=initial_data,
-            context_config=context_config,
-            personality_trait_choices=personality_trait_choices,
-            selected_personality_traits=traits_for_form,
-        )
-
-    posted_project_traits = (
-        form["personality_question_traits"].value() or []
-    )
-    selected_project_traits = (
-        posted_project_traits
-        if form.is_bound and "save_personality_traits" in request.POST
-        else traits_for_form
-    )
-    selected_trait_names = set(selected_project_traits)
-    selected_project_trait_options = [
-        item
-        for item in personality_trait_options
-        if item["name"] in selected_trait_names
-    ]
-    if form.is_bound and "save_personality_traits" in request.POST:
-        selection_source = (
-            "manual"
-            if posted_project_traits
-            else "recommended"
-            if recommended_project_traits
-            else "pending"
-        )
-    else:
-        selection_source = (
-            "manual"
-            if previous_project_traits
-            else "recommended"
-            if recommended_project_traits
-            else "pending"
-        )
-
-    meta = ProjectMeta.objects.filter(
-        account_code=process.account_code,
-        project_code=process.project_code,
-    ).first()
-
-    purpose_lookup = {
-        item["key"]: item
-        for item in PROCESS_PURPOSES
-    }
-
-    process_purpose = purpose_lookup.get(process.purpose)
-
-    company = process.company
-    can_edit = user_can_edit_process(
-        request.user,
-        company,
-        process,
-    )
-
-    return render(
-        request,
-        "customer/processes/process_role_context.html",
-        {
-            "process": process,
-            "form": form,
-            "next_url": next_url,
-            "role_context": role_context,
-            "purpose_context": role_context,
-            "context_config": context_config,
-            "purpose_key": purpose_key,
-
-            "using_previous_purpose_as_start": (
-                using_previous_purpose_as_start
-                if request.method != "POST"
-                else False
-            ),
-
-            # Header/base template
-            "meta": meta,
-            "process_purpose": process_purpose,
-            "can_edit": can_edit,
-            "personality_trait_options": personality_trait_options,
-            "selected_personality_traits": selected_project_traits,
-            "selected_project_trait_options": selected_project_trait_options,
-            "personality_trait_selection_source": selection_source,
-            "personality_trait_recommendation_error": recommendation_error,
-            "language_code": language_code,
-
-            # Active tab
-            "active": "context",
-        },
-    )
-
-
-@login_required
-def process_detail(request, pk):
-    process = get_object_or_404(TestProcess, pk=pk)
-
-    context_config = get_purpose_context_config(process.purpose)
-
-    company_id = (
-        CompanyMember.objects
-        .filter(user=request.user)
-        .values_list("company_id", flat=True)
-        .first()
-    )
-    company = get_object_or_404(Company, pk=company_id)
-
-    # Must belong to the same company
-    if process.company_id != company.id:
-        return HttpResponseForbidden("No access.")
-
-    # Access rule, including own-only logic
-    if not user_can_view_process(request.user, company, process):
-        return HttpResponseForbidden("You do not have access to this project.")
-
-    meta = ProjectMeta.objects.filter(
-        account_code=process.account_code,
-        project_code=process.project_code,
-    ).first()
-
-    can_edit = user_can_edit_process(request.user, company, process)
-
-    if process.is_historical:
-        invitations = TestInvitation.objects.none()
-
-        historical_candidates = (
-            HistoricalProcessCandidate.objects
-            .filter(process=process)
-            .select_related("candidate", "created_by")
-            .prefetch_related("reports")
-            .order_by("-created_at")
-        )
-
-        status_counts = dict(
-            historical_candidates.values("status")
-            .annotate(c=Count("id"))
-            .values_list("status", "c")
-        )
-
-        total_candidates = historical_candidates.count()
-        invited_count = 0
-
-        started_count = historical_candidates.filter(
-            status__in=["started", "completed"]
-        ).count()
-
-        completed_count = historical_candidates.filter(
-            status="completed"
-        ).count()
-
-        expired_count = 0
-        not_invited_count = 0
-
-        not_started_count = historical_candidates.exclude(
-            status__in=["started", "completed"]
-        ).count()
-
-    else:
-        historical_candidates = HistoricalProcessCandidate.objects.none()
-
-        invitations = (
-            process.invitations
-            .filter(removed_from_process_at__isnull=True)
-            .select_related("candidate")
-            .prefetch_related("assessment_usages")
-            .order_by("-created_at")
-        )
-
-        status_counts = dict(
-            invitations.values("status")
-            .annotate(c=Count("id"))
-            .values_list("status", "c")
-        )
-
-        total_candidates = invitations.count()
-
-        invited_qs = invitations.filter(
-            Q(status__in=["sent", "started", "completed", "expired"]) |
-            Q(source="self_registered")
-        )
-
-        invited_count = invited_qs.count()
-
-        started_count = invitations.filter(
-            status__in=["started", "completed"]
-        ).count()
-
-        completed_count = invitations.filter(
-            status="completed"
-        ).count()
-
-        expired_count = invitations.filter(
-            status="expired"
-        ).count()
-
-        # Candidates added but not yet given access to the assessment
-        not_invited_count = total_candidates - invited_count
-
-        # Candidates who have access but have not started or completed
-        not_started_count = invited_qs.exclude(
-            status__in=["started", "completed", "expired"]
-        ).count()
-
-    project_tests = [] if process.is_historical else project_test_columns(process, meta)
-    if not process.is_historical:
-        from apps.processes.services.candidate_project_removal import has_assessment_history
-        for invitation in invitations:
-            invitation.project_removal_has_history = has_assessment_history(invitation)
-    if project_tests:
-        attach_test_statuses(invitations, project_tests, get_language() or "sv")
-
-    activity_events = (
-        customer_visible_activity(
-            ActivityEvent.objects.filter(company=company, process=process)
-        )
-        .select_related("actor", "candidate", "invitation")[:50]
-    )
-
-    purpose_lookup = {
-        item["key"]: item
-        for item in PROCESS_PURPOSES
-    }
-
-    process_purpose = purpose_lookup.get(process.purpose)
-
-    context = {
-        "process": process,
-        "invitations": invitations,
-        "project_tests": project_tests,
-        "project_table_colspan": max(1, len(project_tests)) + 2 + (2 if can_edit else 0),
-        "historical_candidates": historical_candidates,
-        "is_historical": process.is_historical,
-        "meta": meta,
-        "self_reg_url": request.build_absolute_uri(process.get_self_registration_url()),
-        "status_counts": status_counts,
-        "can_edit": can_edit,
-        "activity_events": activity_events,
-        "process_purpose": process_purpose,
-        "active": "overview",
-        "context_config": context_config,
-        "kpis": {
-            "total_candidates": total_candidates,
-            "invited": invited_count,
-            "started": started_count,
-            "completed": completed_count,
-            "expired": expired_count,
-            "not_started": not_started_count,
-            "not_invited": not_invited_count,
-        },
-    }
-
-    return render(request, "customer/processes/process_detail.html", context)
-
-
-
-@login_required
-def process_add_candidate(request, pk):
-    process = get_object_or_404(TestProcess, pk=pk)
-
-    if process.is_historical:
-        return HttpResponseForbidden("Historical projects are read-only.")
-
-    company = get_company_for_user(request.user)
-    if not company or process.company_id != company.id:
-        return HttpResponseForbidden("No access.")
-
-    if not user_can_edit_process(request.user, company, process):
-        return HttpResponseForbidden("Du har inte behÃ¶righet att Ã¤ndra i detta projekt.")
-
-    # âœ… SÃ¤kerhetskontroll
-    if not company or not user_can_edit_process(request.user, company, process):
-        return HttpResponseForbidden("Du har inte behÃ¶righet att skicka tester i detta projekt.")
-
-    is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest"
-
-    if request.method == "POST":
-        form = CandidateCreateForm(request.POST)
-        if form.is_valid():
-            email = form.cleaned_data["email"].strip().lower()
-
-            candidate, created = Candidate.objects.get_or_create(
-                email=email,
-                defaults={
-                    "first_name": form.cleaned_data["first_name"],
-                    "last_name": form.cleaned_data["last_name"],
-                }
-            )
-
-            invitation, inv_created = TestInvitation.objects.get_or_create(
-                process=process,
-                candidate=candidate,
-                defaults={"source": "invited", "status": "created"},
-            )
-
-            if inv_created:
-                log_event(
-                    company=company,  # du har company i funktionen
-                    verb=ActivityEvent.Verb.CANDIDATE_ADDED,
-                    actor=request.user,
-                    process=process,
-                    candidate=candidate,
-                    invitation=invitation,
-                    meta={"source": "invited"},
-                )
-
-            if not inv_created and invitation.removed_from_process_at:
-                msg = (
-                    "Personen har tidigare tagits bort frÃ¥n projektet. "
-                    "Kontakta Talent Qode om en ny inbjudan behÃ¶vs."
-                )
-                if is_ajax:
-                    return JsonResponse({"ok": False, "message": msg}, status=409)
-                messages.warning(request, msg)
-                return redirect("processes:process_detail", pk=process.pk)
-
-            if inv_created:
-                msg = f"{candidate.email} har lagts till i projektet."
-                messages.success(request, msg)
-            else:
-                msg = f"{candidate.email} Ã¤r redan i projektet."
-                messages.info(request, msg)
-
-            # âœ… Modal/AJAX: return JSON istÃ¤llet fÃ¶r redirect
-            if is_ajax:
-                return JsonResponse({
-                    "ok": True,
-                    "message": msg,
-                    "redirect_url": reverse("processes:process_detail", kwargs={"pk": process.pk})
-                })
-
-            return redirect("processes:process_detail", pk=process.pk)
-
-        # âŒ Ogiltigt form
-        if is_ajax:
-            # returnera form-HTML med errors sÃ¥ modalen kan visa dem
-            return render(
-                request,
-                "customer/processes/_add_candidate_form.html",
-                {"process": process, "form": form},
-                status=400
-            )
-
-    else:
-        form = CandidateCreateForm()
-
-    # âœ… GET: om AJAX -> partial, annars full page
-    if is_ajax:
-        return render(request, "customer/processes/_add_candidate_form.html", {
-            "process": process,
-            "form": form,
-        })
-
-    return render(request, "customer/processes/process_add_candidate.html", {
-        "process": process,
-        "form": form,
-    })
-
-
-
-@login_required
-def invite_candidate(request, pk, candidate_id):
-    process = get_object_or_404(TestProcess, pk=pk)
-
-    # SÃ¤kerhetskontroll
-    if not user_can_access_process(request.user, process):
-        return HttpResponseForbidden("You do not have access to this project.")
-    
-    candidate = get_object_or_404(Candidate, pk=candidate_id)
-    invitation = get_object_or_404(TestInvitation, process=process, candidate=candidate)
-
-    # HÃ¤r kopplar vi in SOVA i steg 3.
-    # Tills vidare: fejka sÃ¥ att du ser flÃ¶det funka i UI:
-    invitation.status = "sent"
-    invitation.invited_at = invitation.invited_at or __import__("django.utils.timezone").utils.timezone.now()
-    invitation.save(update_fields=["status", "invited_at"])
-
-    messages.success(request, f"Invite triggered for {candidate.email} (stub).")
-    return redirect("processes:process_detail", pk=process.pk)
-
-
-@login_required
-def sova_order_assessment_smoke_test(request, pk, candidate_id):
-    process = get_object_or_404(TestProcess, pk=pk)
-
-    # SÃ¤kerhetskontroll
-    if not user_can_access_process(request.user, process):
-        return HttpResponseForbidden("You do not have access to this project.")
-    candidate = get_object_or_404(Candidate, pk=candidate_id)
-
-    client = SovaClient()
-
-    # âœ… From SOVA UI: account TQ_SWEDEN_ACCOUNT, project code tqs-simple-test
-    project_code = "tqs-simple-test"
-
-    request_id = f"talena-{process.id}-{candidate.id}-{uuid.uuid4().hex}"
-
-    # âœ… Minimal valid payload (snake_case, matches docs)
-    payload = {
-        "request_id": request_id,
-        "candidate_id": str(candidate.id),
-        "first_name": candidate.first_name,
-        "last_name": candidate.last_name,
-        "email": candidate.email,
-        "language": "sv",  # test "sv" first; if needed change to "sv-SE"
-        "job_title": "Smoke Test",
-        "job_number": f"talena-{process.id}",
-        "meta_data": {
-            "talena_process_id": str(process.id),
-            "talena_candidate_id": str(candidate.id),
-            "talena_user_id": str(request.user.id),
-        },
-    }
-
-    try:
-        print("\n=== SOVA ORDER-ASSESSMENT SMOKE TEST ===")
-        print("ACCOUNT:", "TQ_SWEDEN_ACCOUNT")
-        print("PROJECT CODE:", project_code)
-        print("BASE URL:", client.base_url)
-        print("PAYLOAD:", payload)
-
-        resp = client.order_assessment(project_code, payload)
-
-        print("RESPONSE JSON:", resp)
-        print("=== /SOVA ORDER-ASSESSMENT SMOKE TEST ===\n")
-
-        assessment_url = resp.get("url")
-        if assessment_url:
-            return HttpResponse(
-                f"âœ… OK\nProject: {project_code}\nRequest: {request_id}\n\nTest URL:\n{assessment_url}",
-                content_type="text/plain"
-            )
-
-        return HttpResponse(
-            f"âœ… OK but no 'url' returned\nProject: {project_code}\nRequest: {request_id}\n\nResponse:\n{resp}",
-            content_type="text/plain"
-        )
-
-    except Exception as e:
-        print("\n=== SOVA ORDER-ASSESSMENT SMOKE TEST FAILED ===")
-        print("ERROR:", str(e))
-        print("BASE URL:", client.base_url)
-        print("PROJECT CODE:", project_code)
-        print("PAYLOAD:", payload)
-        print("=== /FAILED ===\n")
-
-        return HttpResponse(f"âŒ FAILED: {e}", content_type="text/plain", status=500)
-
-def _is_safe_external_url(url: str) -> bool:
-    try:
-        p = urlparse(url or "")
-        return p.scheme in ("http", "https") and bool(p.netloc)
-    except Exception:
-        return False
-
-def self_register(request, token):
-    process = get_object_or_404(TestProcess, self_registration_token=token)
-
-    if request.method != "POST":
-        form = SelfRegisterForm()
-        return render(request, "customer/processes/self_register_form.html", {
-            "process": process,
-            "form": form,
-        })
-
-    form = SelfRegisterForm(request.POST)
-    if not form.is_valid():
-        return render(request, "customer/processes/self_register_form.html", {
-            "process": process,
-            "form": form,
-        })
-
-    first_name = form.cleaned_data["first_name"].strip()
-    last_name = form.cleaned_data["last_name"].strip()
-    email = form.cleaned_data["email"].strip().lower()
-
-    current_language = (
-        get_language()
-        or "sv"
-    ).split("-")[0]
-
-    lang = (
-        "en"
-        if current_language == "en"
-        else "sv"
-    )
-
-    client = SovaClient()
-
-    with transaction.atomic():
-        candidate, candidate_created = Candidate.objects.get_or_create(
-            email=email,
-            defaults={
-                "first_name": first_name,
-                "last_name": last_name,
-            },
-        )
-
-        invitation, created = TestInvitation.objects.get_or_create(
-            process=process,
-            candidate=candidate,
-            defaults={
-                "status": "created",
-                "source": "self_registered",
-            },
-        )
-
-        if created:
-            log_event(
-                company=process.company,
-                verb=ActivityEvent.Verb.CANDIDATE_ADDED,
-                actor=None,
-                actor_name="Self-registration",
-                process=process,
-                candidate=candidate,
-                invitation=invitation,
-                meta={"source": "self_registered"},
-            )
-
-        if not created and not invitation.removed_from_process_at and invitation.source != "self_registered":
-            invitation.source = "self_registered"
-            invitation.save(update_fields=["source"])
-
-    if invitation.removed_from_process_at:
-        return render(request, "customer/processes/self_register_success.html", {
-            "process": process,
-            "message": (
-                "Det gÃ¥r inte att starta tester med denna registrering. "
-                "Kontakta den som skickade inbjudan."
-                if lang == "sv" else
-                "Assessments cannot be started with this registration. "
-                "Please contact the person who sent the invitation."
-            ),
-        })
-
-    existing_url = invitation.assessment_url
-    if not existing_url:
-        try:
-            existing_url = (invitation.sova_payload or {}).get("url")
-        except Exception:
-            existing_url = None
-
-    if (
-        invitation.status in ("sent", "started", "completed")
-        and existing_url
-        and _is_safe_external_url(existing_url)
-    ):
-        return HttpResponseRedirect(existing_url)
-
-    request_id = f"talena-selfreg-{process.id}-{candidate.id}-{uuid.uuid4().hex}"
-
-    payload = {
-        "request_id": request_id,
-        "candidate_id": str(candidate.id),
-        "first_name": candidate.first_name,
-        "last_name": candidate.last_name,
-        "email": candidate.email,
-        "language": process.candidate_language or "sv",
-        "job_title": process.job_title or "Assessment",
-        "job_number": f"talena-{process.id}",
-        "meta_data": {
-            "talena_process_id": str(process.id),
-            "talena_candidate_id": str(candidate.id),
-            "talena_request_id": request_id,
-        },
-    }
-
-    try:
-        resp = client.order_assessment(process.project_code, payload)
-        test_url = (resp or {}).get("url")
-
-        invitation.status = "sent"
-        invitation.invited_at = timezone.now()
-        invitation.sova_payload = resp
-        invitation.request_id = request_id
-        invitation.assessment_url = test_url
-        invitation.save(update_fields=[
-            "status",
-            "invited_at",
-            "sova_payload",
-            "request_id",
-            "assessment_url",
-        ])
-
-        # HÃ¤mta mall
-        template = (
-            EmailTemplate.objects
-            .filter(
-                process=process,
-                template_type="invitation",
-                language=lang,
-                is_active=True,
-            )
-            .first()
-        )
-
-        subject_tpl = (
-            template.subject
-            if template
-            else _("Your assessment")
-        )
-
-        body_tpl = (
-            template.body
-            if template
-            else _(
-                "Hi {first_name}!\n\n"
-                "Click the link below to start your assessment:\n"
-                "{assessment_url}\n\n"
-                "Best regards,\n"
-                "Talena"
-            )
-        )
-
-        ctx = {
-            "first_name": candidate.first_name,
-            "last_name": candidate.last_name,
-            "email": candidate.email,
-            "process_name": process.name,
-            "job_title": process.job_title,
-            "job_location": process.job_location,
-            "assessment_url": test_url,
-        }
-
-        subject = render_placeholders(subject_tpl, ctx)
-        body = render_placeholders(body_tpl, ctx)
-
-        email_log = EmailLog.objects.create(
-            invitation=invitation,
-            template_type="invitation",
-            to_email=candidate.email,
-            subject=subject,
-            body_snapshot=body,
-            status="queued",
-        )
-
-        try:
-            msg = EmailMultiAlternatives(
-                subject=subject,
-                body=body,
-                from_email=getattr(settings, "DEFAULT_FROM_EMAIL", None) or "no-reply@talena.se",
-                to=[candidate.email],
-            )
-            msg.send()
-            email_log.mark_sent()
-        except Exception as e:
-            email_log.mark_failed(str(e))
-            # fallback-mejlet fÃ¥r faila utan att stoppa redirect till testet
-
-        log_event(
-            company=process.company,
-            verb=ActivityEvent.Verb.INVITE_SENT,
-            actor=None,
-            actor_name="Self-registration",
-            process=process,
-            candidate=candidate,
-            invitation=invitation,
-            meta={
-                "context": "self_register",
-                "email_log_id": email_log.id,
-            },
-        )
-
-        if test_url and _is_safe_external_url(test_url):
-            return HttpResponseRedirect(test_url)
-
-        return render(request, "customer/processes/self_register_success.html", {
-            "process": process,
-            "message": "Registrering klar. Vi skickar ett mejl nÃ¤r testlÃ¤nken Ã¤r redo.",
-        })
-
-    except Exception as e:
-        print("âŒ SELF REGISTER order_assessment failed:", str(e))
-        return render(request, "customer/processes/self_register_success.html", {
-            "process": process,
-            "message": "Registrering klar, men vi kunde inte starta testet direkt. Du fÃ¥r ett mejl sÃ¥ snart det Ã¤r redo.",
-        })
-
-
-@login_required
-@require_POST
-def remove_candidate_from_process(request, process_id, candidate_id):
-    # Editor permission is based on the account and org unit, not who created
-    # the project. The URL-level edit guard also enforces Editor/Own/Viewer.
-    process = get_object_or_404(TestProcess, pk=process_id)
-    company = get_company_for_user(request.user)
-    if (
-        not company
-        or process.company_id != company.pk
-        or not user_can_edit_process(request.user, company, process)
-        or not user_can_access_process(request.user, process)
-    ):
-        return HttpResponseForbidden(
-            "Du har inte behÃ¶righet att ta bort kandidaten frÃ¥n projektet."
-            if (get_language() or "").startswith("sv")
-            else "You cannot remove this candidate from the project."
-        )
-
-    if process.is_historical:
-        messages.warning(
-            request,
-            "Historiska projekt behÃ¶ver hanteras separat."
-            if (get_language() or "").startswith("sv")
-            else "Historical projects require a separate removal workflow.",
-        )
-        return redirect("processes:process_detail", pk=process.pk)
-
-    invitation = get_object_or_404(
-        TestInvitation,
-        process=process,
-        candidate_id=candidate_id,
-    )
-    detail_url = reverse("processes:process_detail", kwargs={"pk": process.pk})
-
-    # An ordered invitation must remain for billing, Sova callbacks and audit.
-    # Sova revocation is separate and MUST NOT be reported as completed here.
-    from apps.processes.services.candidate_project_removal import (
-        remove_candidate_from_project,
-    )
-    try:
-        outcome = remove_candidate_from_project(
-            invitation=invitation, actor=request.user,
-        )
-    except (ProtectedError, IntegrityError):
-        messages.error(
-            request,
-            "Kopplade uppgifter hindrade borttagningen. Inga uppgifter Ã¤ndrades."
-            if (get_language() or "").startswith("sv")
-            else "Related records prevented removal. No data was changed.",
-        )
-        return redirect(detail_url)
-
-    if outcome == "hidden":
-        messages.warning(
-            request,
-            "Personen Ã¤r borttagen frÃ¥n projektets aktiva lista och resultatlÃ¤nkar "
-            "i Talena har spÃ¤rrats. OBS: Sova-testlÃ¤nken kan fortfarande fungera. "
-            "Kontakta Talent Qode fÃ¶r att spÃ¤rra den hos Sova."
-            if (get_language() or "").startswith("sv")
-            else "The person is removed from the active list and Talena result links "
-            "have been revoked. IMPORTANT: the Sova test link may still work. "
-            "Contact Talent Qode to revoke it in Sova.",
-        )
-    elif outcome == "removed_unsent":
-        messages.success(
-            request,
-            "Den oskickade inbjudan har tagits bort frÃ¥n den aktiva projektlistan."
-            if (get_language() or "").startswith("sv")
-            else "The unsent invitation was removed from the active project list.",
-        )
-    else:
-        messages.info(
-            request,
-            "Personen Ã¤r redan borttagen frÃ¥n projektet."
-            if (get_language() or "").startswith("sv")
-            else "This person was already removed from the project.",
-        )
-    return redirect(detail_url)
-
-@login_required
-def process_send_tests(request, pk):
-    process = get_object_or_404(TestProcess, pk=pk)
-
-    if process.is_historical or not process.sova_sync_enabled:
-        messages.error(request, "This is a historical project and cannot send SOVA invitations.")
-        return redirect("processes:process_detail", pk=process.pk)
-
-    company = get_company_for_user(request.user)
-    if not company or process.company_id != company.id:
-        return HttpResponseForbidden("No access.")
-
-    if not user_can_edit_process(request.user, company, process):
-        return HttpResponseForbidden("Du har inte behÃ¶righet att skicka tester i detta projekt.")
-
-    if request.method != "POST":
-        return redirect("processes:process_detail", pk=process.pk)
-
-    if not user_can_access_process(request.user, process):
-        return HttpResponseForbidden("You do not have access to this project.")
-
-    if request.method != "POST":
-        return redirect("processes:process_detail", pk=process.pk)
-
-    invitation_ids = request.POST.getlist("invitation_ids")
-    if not invitation_ids:
-        messages.warning(request, "VÃ¤lj minst en kandidat.")
-        return redirect("processes:process_detail", pk=process.pk)
-
-    invitations = (
-        TestInvitation.objects
-        .filter(process=process, id__in=invitation_ids,
-                removed_from_process_at__isnull=True)
-        .select_related("candidate")
-    )
-
-    result = send_assessments_and_emails(
-        process=process,
-        invitations=invitations,
-        actor_user=request.user,
-        context="customer",
-    )
-
-    if result["sent_count"]:
-        messages.success(request, f"Skickade test till {result['sent_count']} kandidat(er).")
-
-    if result["errors"]:
-        for err in result["errors"]:
-            messages.error(request, f"Kunde inte skicka till {err['email']}: {err['error']}")
-
-    if result["sent_count"] == 0:
-        if result["skipped_count"]:
-            messages.info(request, "Inget skickades (alla markerade var redan skickade/igÃ¥ng/klara).")
-        else:
-            messages.warning(request, "Inget skickades. Kolla felmeddelanden ovan.")
-
-    return redirect("processes:process_detail", pk=process.pk)
-
-@login_required
-def process_candidate_detail(request, process_id, candidate_id):
-    process = get_object_or_404(TestProcess, pk=process_id)
-
-    if not user_can_access_process(request.user, process):
-        return HttpResponseForbidden("You do not have access to this project.")
-
-    is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest"
-    language_code = get_request_ai_language(request)
-
-    if process.is_historical:
-        historical_candidate = get_object_or_404(
-            HistoricalProcessCandidate.objects
-            .select_related(
-                "candidate",
-                "process",
-                "created_by",
-            )
-            .prefetch_related(
-                "reports",
-                "assessment_results__scores",
-                "assessment_results__import_file",
-            ),
-            process=process,
-            candidate_id=candidate_id,
-        )
-
-        mark_ai_content_outdated_if_language_changed(
-            historical_candidate,
-            content_key="personality_interpretation",
-            result_field="ai_personality_interpretation",
-            status_field="ai_personality_interpretation_status",
-            language_code=language_code,
-        )
-
-        mark_ai_content_outdated_if_language_changed(
-            historical_candidate,
-            content_key="personality_questions",
-            result_field="ai_personality_questions",
-            status_field="ai_personality_questions_status",
-            language_code=language_code,
-        )
-
-        ctx = build_historical_candidate_detail_context(
-            process=process,
-            historical_candidate=historical_candidate,
-            language=language_code,
-        )
-
-        return render(
-            request,
-            "customer/processes/_candidate_detail_sheet.html",
-            ctx,
-        )
-
-        ctx = {
-            "company": process.company,
-            "process": process,
-            "candidate": historical_candidate.candidate,
-            "historical_candidate": historical_candidate,
-            "historical_reports": historical_candidate.reports.all(),
-            "is_historical": True,
-            "assessment_results": assessment_results,
-        }
-
-    else:
-        invitation = get_object_or_404(
-            TestInvitation.objects.select_related("candidate"),
-            process=process,
-            candidate_id=candidate_id,
-        )
-
-        mark_ai_content_outdated_if_language_changed(
-            invitation,
-            content_key="purpose_fit",
-            result_field="ai_purpose_fit",
-            status_field="ai_purpose_fit_status",
-            language_code=get_request_ai_language(request),
-        )
-
-        mark_ai_content_outdated_if_language_changed(
-            invitation,
-            content_key="response_style_guidance",
-            result_field="ai_response_style_guidance",
-            status_field="ai_response_style_guidance_status",
-            language_code=language_code,
-        )
-        mark_ai_content_outdated_if_language_changed(
-            invitation,
-            content_key="cognitive_interpretation",
-            result_field="ai_cognitive_interpretation",
-            status_field="ai_cognitive_interpretation_status",
-            language_code=language_code,
-        )
-        mark_ai_content_outdated_if_language_changed(
-            invitation,
-            content_key="cognitive_questions",
-            result_field="ai_cognitive_questions",
-            status_field="ai_cognitive_questions_status",
-            language_code=language_code,
-        )
-        mark_ai_content_outdated_if_language_changed(
-            invitation,
-            content_key="motivation_interpretation",
-            result_field="ai_motivation_interpretation",
-            status_field="ai_motivation_interpretation_status",
-            language_code=language_code,
-        )
-        mark_ai_content_outdated_if_language_changed(
-            invitation,
-            content_key="motivation_questions",
-            result_field="ai_motivation_questions",
-            status_field="ai_motivation_questions_status",
-            language_code=language_code,
-        )
-        mark_ai_content_outdated_if_language_changed(
-            invitation,
-            content_key="personality_interpretation",
-            result_field="ai_personality_interpretation",
-            status_field="ai_personality_interpretation_status",
-            language_code=language_code,
-        )
-        mark_ai_content_outdated_if_language_changed(
-            invitation,
-            content_key="personality_questions",
-            result_field="ai_personality_questions",
-            status_field="ai_personality_questions_status",
-            language_code=language_code,
-        )
-        # Talena final output pre-interview language batch 1
-        mark_ai_content_outdated_if_language_changed(
-            invitation,
-            content_key="pre_interview_decision_support",
-            result_field="ai_pre_interview_decision_support",
-            status_field=(
-                "ai_pre_interview_decision_support_status"
-            ),
-            language_code=language_code,
-        )
-
-        # Talena final output post-interview language batch 1
-        mark_ai_content_outdated_if_language_changed(
-            invitation,
-            content_key="post_interview_decision_support",
-            result_field="ai_post_interview_decision_support",
-            status_field=(
-                "ai_post_interview_decision_support_status"
-            ),
-            language_code=language_code,
-        )
-
-        ctx = build_candidate_detail_context(
-            process=process,
-            invitation=invitation,
-            language=language_code,
-        )
-
-        ctx["is_historical"] = False
-
-    from apps.accounts.utils.org_access import user_can_edit_process
-    ctx["can_manage_candidate_results"] = (
-        not ctx.get("is_historical", False)
-        and user_can_edit_process(request.user, process.company, process)
-    )
-
-    if is_ajax:
-        return render(
-            request,
-            "customer/processes/_candidate_detail_sheet.html",
-            ctx,
-        )
-
-    return render(
-        request,
-        "customer/processes/process_candidate_detail.html",
-        ctx,
-    )
-
-
-@login_required
-def process_invitation_statuses(request, pk):
-    process = get_object_or_404(TestProcess, pk=pk)
-
-    # SÃ¤kerhetskontroll
-    if not user_can_access_process(request.user, process):
-        return HttpResponseForbidden("You do not have access to this project.")
-
-    qs = (
-        TestInvitation.objects
-        .filter(process=process, removed_from_process_at__isnull=True)
-        .select_related("candidate")
-        .prefetch_related("assessment_usages")
-        .order_by("created_at")
-    )
-    columns = project_test_columns(
-        process,
-        ProjectMeta.objects.filter(
-            account_code=process.account_code, project_code=process.project_code,
-        ).first(),
-    )
-    lang = get_language() or "sv"
-    return JsonResponse({
-        "invitations": [
-            {
-                "id": inv.id,
-                "status": inv.status,
-                "completed_at": inv.completed_at.isoformat() if inv.completed_at else None,
-                "sova_overall_status": getattr(inv, "sova_overall_status", "") or "",
-                "assessments": invitation_test_statuses(inv, columns, lang),
-            }
-            for inv in qs
-        ]
-    })
-
-
-@login_required
-def process_archive(request, pk):
-    obj = get_object_or_404(TestProcess, pk=pk)
-
-    if request.method != "POST":
-        return HttpResponseForbidden("POST required.")
-
-    company = get_company_for_user(request.user)
-    if not company or obj.company_id != company.id:
-        return HttpResponseForbidden("No access.")
-
-    if not user_can_edit_process(request.user, company, obj):
-        return HttpResponseForbidden(
-            "Du har inte behÃ¶righet att arkivera det hÃ¤r projektet."
-            if (get_language() or "").startswith("sv")
-            else "You do not have permission to archive this project."
-        )
-
-    if not user_can_access_process(request.user, obj):
-        return HttpResponseForbidden("You do not have access to this project.")
-
-    obj.archive()
-
-    log_event(
-        company=company,
-        verb=ActivityEvent.Verb.PROCESS_ARCHIVED,
-        actor=request.user,
-        process=obj,
-    )
-
-    messages.success(
-        request,
-        "Projektet arkiverades." if (get_language() or "").startswith("sv")
-        else "The project was archived.",
-    )
-    return redirect("processes:process_list")
-
-
-@login_required
-def process_unarchive(request, pk):
-    obj = get_object_or_404(TestProcess, pk=pk)
-
-    if request.method != "POST":
-        return HttpResponseForbidden("POST required.")
-
-    company = get_company_for_user(request.user)
-    if not company or obj.company_id != company.id:
-        return HttpResponseForbidden("No access.")
-
-    if not user_can_edit_process(request.user, company, obj):
-        return HttpResponseForbidden(
-            "Du har inte behÃ¶righet att Ã¥terstÃ¤lla det hÃ¤r projektet."
-            if (get_language() or "").startswith("sv")
-            else "You do not have permission to restore this project."
-        )
-
-    if not user_can_access_process(request.user, obj):
-        return HttpResponseForbidden("You do not have access to this project.")
-
-    obj.unarchive()
-    messages.success(
-        request,
-        "Projektet Ã¥terstÃ¤lldes." if (get_language() or "").startswith("sv")
-        else "The project was restored.",
-    )
-    return redirect("processes:process_list")
-
-
-@login_required
-def process_candidate_summary_stream(
-    request,
-    process_id,
-    candidate_id,
-):
-    process = get_object_or_404(
-        TestProcess,
-        pk=process_id,
-    )
-
-    if not user_can_access_process(request.user, process):
-        return HttpResponseForbidden(
-            "You do not have access to this project."
-        )
-
-    # ---------------------------------------------------------
-    # HISTORICAL CANDIDATE
-    # ---------------------------------------------------------
-    if process.is_historical:
-        summary_owner = get_object_or_404(
-            HistoricalProcessCandidate.objects
-            .select_related("candidate", "process")
-            .prefetch_related(
-                "assessment_results__scores",
-                "assessment_results__import_file",
-            ),
-            process=process,
-            candidate_id=candidate_id,
-        )
-
-        is_historical = True
-
-    # ---------------------------------------------------------
-    # ACTIVE CANDIDATE
-    # ---------------------------------------------------------
-    else:
-        summary_owner = get_object_or_404(
-            TestInvitation.objects.select_related(
-                "candidate",
-                "process",
-            ),
-            process=process,
-            candidate_id=candidate_id,
-        )
-
-        is_historical = False
-
-        # Active candidates must have completed all assessments.
-        if summary_owner.status != "completed":
-            return JsonResponse(
-                {
-                    "error": (
-                        "Candidate has not completed "
-                        "the assessments yet."
-                    )
-                },
-                status=400,
-            )
-
-    # ---------------------------------------------------------
-    # RETURN EXISTING SUMMARY
-    # ---------------------------------------------------------
-    if should_return_saved_ai_result(
-        summary_owner.ai_summary,
-        summary_owner.ai_summary_status,
-    ):
-        def existing_generator():
-            yield summary_owner.ai_summary
-
-        response = StreamingHttpResponse(
-            existing_generator(),
-            content_type="text/plain; charset=utf-8",
-        )
-
-        response["Cache-Control"] = "no-cache"
-        response["X-Accel-Buffering"] = "no"
-
-        return response
-
-    # ---------------------------------------------------------
-    # PREVENT DUPLICATE GENERATION
-    # ---------------------------------------------------------
-    if summary_owner.ai_summary_status == "generating":
-        return JsonResponse(
-            {
-                "error": (
-                    "Summary is already being generated."
-                )
-            },
-            status=409,
-        )
-
-    summary_owner.ai_summary_status = "generating"
-    summary_owner.save(
-        update_fields=["ai_summary_status"]
-    )
-
-    language_code = get_request_ai_language(
-        request
-    )
-
-    mark_ai_content_outdated_if_language_changed(
-        summary_owner,
-        content_key="candidate_summary",
-        result_field="ai_summary",
-        status_field="ai_summary_status",
-        language_code=language_code,
-    )
-
-    # ---------------------------------------------------------
-    # STREAM GENERATION
-    # ---------------------------------------------------------
-    def generator():
-        full_text = ""
-
-        try:
-            stream = stream_candidate_summary(
-                summary_owner,
-                language_code=language_code,
-            )
-
-            for chunk in stream:
-                full_text += chunk
-                yield chunk
-
-            save_candidate_summary(
-                summary_owner,
-                full_text,
-                language_code=language_code,
-            )
-
-        except Exception as error:
-            summary_owner.ai_summary_status = "failed"
-
-            summary_owner.save(
-                update_fields=[
-                    "ai_summary_status",
-                ]
-            )
-
-            yield f"\n\n[Error: {str(error)}]"
-
-    response = StreamingHttpResponse(
-        generator(),
-        content_type="text/plain; charset=utf-8",
-    )
-
-    response["Cache-Control"] = "no-cache"
-    response["X-Accel-Buffering"] = "no"
-
-    return response
-
-
-@login_required
-def process_candidate_response_style_guidance_stream(
-    request,
-    process_id,
-    candidate_id,
-):
-    """
-    Stream and save AI-supported response-style guidance.
-
-    Existing completed guidance is returned without making a new
-    OpenAI request.
-
-    Guidance is regenerated when its status is:
-    - not_started
-    - outdated
-    - failed
-    """
-
-    process = get_object_or_404(
-        TestProcess,
-        pk=process_id,
-    )
-
-    if not user_can_access_process(
-        request.user,
-        process,
-    ):
-        return HttpResponseForbidden(
-            "You do not have access to this project."
-        )
-
-    # ---------------------------------------------------------
-    # FIND THE CORRECT GUIDANCE OWNER
-    # ---------------------------------------------------------
-    if process.is_historical:
-        guidance_owner = get_object_or_404(
-            HistoricalProcessCandidate.objects
-            .select_related(
-                "candidate",
-                "process",
-            ),
-            process=process,
-            candidate_id=candidate_id,
-        )
-
-    else:
-        guidance_owner = get_object_or_404(
-            TestInvitation.objects
-            .select_related(
-                "candidate",
-                "process",
-            ),
-            process=process,
-            candidate_id=candidate_id,
-        )
-
-    language_code = get_request_ai_language(request)
-    mark_ai_content_outdated_if_language_changed(
-        guidance_owner,
-        content_key="response_style_guidance",
-        result_field="ai_response_style_guidance",
-        status_field="ai_response_style_guidance_status",
-        language_code=language_code,
-    )
-
-    # ---------------------------------------------------------
-    # BUILD RESPONSE-STYLE RESULTS
-    # ---------------------------------------------------------
-    response_styles = (
-        build_response_styles_for_guidance_owner(
-            guidance_owner
-        )
-    )
-
-    available_response_styles = [
-        style
-        for style in response_styles
-        if style.get("available")
-        and style.get("key") == "social_desirability"
-    ]
-    profile_contrast_analysis = build_profile_contrast_analysis_for_guidance_owner(
-        guidance_owner,
-        language_code=language_code,
-    )
-    active_profile_contrasts = (
-        profile_contrast_analysis.get("activated_contrasts") or []
-    )
-
-    if not available_response_styles:
-        return JsonResponse(
-            {
-                "error": (
-                    "No response-style results are "
-                    "available for this candidate."
-                )
-            },
-            status=400,
-        )
-
-    current_status = (
-        guidance_owner
-        .ai_response_style_guidance_status
-        or "not_started"
-    )
-
-    saved_guidance = (
-        guidance_owner.ai_response_style_guidance
-        or {}
-    )
-
-    if (
-        saved_guidance
-        and current_status == "completed"
-        and saved_guidance.get("_schema_version")
-        != RESPONSE_STYLE_GUIDANCE_SCHEMA_VERSION
-    ):
-        current_status = "outdated"
-        guidance_owner.ai_response_style_guidance_status = "outdated"
-        guidance_owner.save(update_fields=[
-            "ai_response_style_guidance_status",
-        ])
-
-    current_purpose = (
-        process.purpose
-        or ""
-    ).strip().lower()
-
-    saved_purpose = (
-        guidance_owner
-        .ai_response_style_guidance_purpose
-        or ""
-    ).strip().lower()
-
-    # ---------------------------------------------------------
-    # SAFETY CHECK FOR CHANGED PURPOSE
-    # ---------------------------------------------------------
-    if (
-        saved_guidance
-        and current_status == "completed"
-        and saved_purpose != current_purpose
-    ):
-        current_status = "outdated"
-
-        guidance_owner.ai_response_style_guidance_status = (
-            "outdated"
-        )
-
-        guidance_owner.save(update_fields=[
-            "ai_response_style_guidance_status",
-        ])
-
-    # ---------------------------------------------------------
-    # RETURN SAVED GUIDANCE
-    # ---------------------------------------------------------
-    if (
-        saved_guidance
-        and current_status == "completed"
-        and ai_content_language_matches(
-            guidance_owner,
-            "response_style_guidance",
-            language_code,
-        )
-    ):
-        def existing_generator():
-            yield json.dumps(
-                {
-                    "type": "saved_result",
-                    "data": saved_guidance,
-                    "status": current_status,
-                },
-                ensure_ascii=False,
-            ) + "\n"
-
-        response = StreamingHttpResponse(
-            existing_generator(),
-            content_type=(
-                "application/x-ndjson; charset=utf-8"
-            ),
-        )
-
-        response["Cache-Control"] = "no-cache"
-        response["X-Accel-Buffering"] = "no"
-
-        return response
-
-    # ---------------------------------------------------------
-    # PREVENT DUPLICATE GENERATION
-    # ---------------------------------------------------------
-    if current_status == "generating":
-        return JsonResponse(
-            {
-                "error": (
-                    "Response-style guidance is already "
-                    "being generated."
-                )
-            },
-            status=409,
-        )
-
-    guidance_owner.ai_response_style_guidance_status = (
-        "generating"
-    )
-
-    guidance_owner.save(update_fields=[
-        "ai_response_style_guidance_status",
-    ])
-
-    # ---------------------------------------------------------
-    # STREAM GENERATION
-    # ---------------------------------------------------------
-    def generator():
-        guidance = (
-            create_empty_response_style_guidance(
-                guidance_owner,
-                language_code=language_code,
-            )
-        )
-
-        received_done_event = False
-
-        try:
-            for event in stream_response_style_guidance(
-                guidance_owner=guidance_owner,
-                response_styles=available_response_styles,
-                language_code=language_code,
-                profile_contrast_analysis=profile_contrast_analysis,
-            ):
-                guidance = (
-                    apply_response_style_guidance_event(
-                        guidance,
-                        event,
-                        allowed_profile_contrasts=active_profile_contrasts,
-                    )
-                )
-
-                if event.get("type") == "done":
-                    received_done_event = True
-
-                yield json.dumps(
-                    event,
-                    ensure_ascii=False,
-                ) + "\n"
-
-            # Do not save an empty or malformed AI result.
-            if not (
-                guidance.get("summary")
-                or ""
-            ).strip():
-                raise ValueError(
-                    "The AI response did not contain "
-                    "a guidance summary."
-                )
-
-            if not received_done_event:
-                yield json.dumps({
-                    "type": "done",
-                }) + "\n"
-
-            save_response_style_guidance(
-                guidance_owner=guidance_owner,
-                guidance=guidance,
-                language_code=language_code,
-            )
-
-        except Exception as error:
-            guidance_owner.ai_response_style_guidance_status = (
-                "failed"
-            )
-
-            guidance_owner.save(update_fields=[
-                "ai_response_style_guidance_status",
-            ])
-
-            yield json.dumps(
-                {
-                    "type": "error",
-                    "message": str(error),
-                },
-                ensure_ascii=False,
-            ) + "\n"
-
-    response = StreamingHttpResponse(
-        generator(),
-        content_type=(
-            "application/x-ndjson; charset=utf-8"
-        ),
-    )
-
-    response["Cache-Control"] = "no-cache"
-    response["X-Accel-Buffering"] = "no"
-
-    return response
-
-
-@login_required
-@require_POST
-def process_candidate_response_style_guidance_regenerate(
-    request,
-    process_id,
-    candidate_id,
-):
-    """
-    Prepare response-style guidance for regeneration.
-
-    The existing saved result is retained until the new
-    generation has completed successfully.
-    """
-
-    process = get_object_or_404(
-        TestProcess,
-        pk=process_id,
-    )
-
-    if not user_can_access_process(
-        request.user,
-        process,
-    ):
-        return HttpResponseForbidden(
-            "You do not have access to this project."
-        )
-
-    if process.is_historical:
-        return JsonResponse(
-            {
-                "error": (
-                    "Global response-style regeneration "
-                    "is not connected for historical "
-                    "candidates yet."
-                )
-            },
-            status=400,
-        )
-
-    invitation = get_object_or_404(
-        TestInvitation,
-        process=process,
-        candidate_id=candidate_id,
-    )
-
-    if invitation.status != "completed":
-        return JsonResponse(
-            {
-                "error": (
-                    "The candidate has not completed "
-                    "the assessments yet."
-                )
-            },
-            status=400,
-        )
-
-    invitation.ai_response_style_guidance_status = (
-        "not_started"
-    )
-
-    invitation.ai_response_style_guidance_generated_at = (
-        None
-    )
-
-    invitation.ai_response_style_guidance_purpose = ""
-
-    invitation.save(
-        update_fields=[
-            "ai_response_style_guidance_status",
-            "ai_response_style_guidance_generated_at",
-            "ai_response_style_guidance_purpose",
-        ]
-    )
-
-    return JsonResponse(
-        {
-            "ok": True,
-            "stream_url": reverse(
-                (
-                    "processes:"
-                    "process_candidate_"
-                    "response_style_guidance_stream"
-                ),
-                kwargs={
-                    "process_id": process.id,
-                    "candidate_id": candidate_id,
-                },
-            ),
-        }
-    )
-
-
-@login_required
-def process_candidate_purpose_fit_stream(
-    request,
-    process_id,
-    candidate_id,
-):
-    print(
-        f"[PURPOSE FIT] Stream requested "
-        f"process={process_id}, candidate={candidate_id}",
-        flush=True,
-    )
-
-    process = get_object_or_404(
-        TestProcess,
-        pk=process_id,
-    )
-
-    print(
-        f"[PURPOSE FIT] Process found: "
-        f"{process.id}, purpose={process.purpose}",
-        flush=True,
-    )
-
-    if not user_can_access_process(
-        request.user,
-        process,
-    ):
-        print(
-            "[PURPOSE FIT] Access denied",
-            flush=True,
-        )
-
-        return HttpResponseForbidden(
-            "You do not have access to this project."
-        )
-
-    if not purpose_supports_fit(process):
-        print(
-            "[PURPOSE FIT] Purpose does not support fit",
-            flush=True,
-        )
-
-        return JsonResponse(
-            {
-                "error": (
-                    "This project does not support "
-                    "AI Overview."
-                )
-            },
-            status=400,
-        )
-
-    # ---------------------------------------------------------
-    # FIND THE CORRECT AI OWNER
-    # ---------------------------------------------------------
-
-    if process.is_historical:
-        owner = get_object_or_404(
-            HistoricalProcessCandidate.objects
-            .select_related(
-                "candidate",
-                "process",
-            )
-            .prefetch_related(
-                "assessment_results__scores",
-                "assessment_results__import_file",
-            ),
-            process=process,
-            candidate_id=candidate_id,
-        )
-
-        is_historical = True
-
-    else:
-        owner = get_object_or_404(
-            TestInvitation.objects.select_related(
-                "candidate",
-                "process",
-            ),
-            process=process,
-            candidate_id=candidate_id,
-        )
-
-        is_historical = False
-
-    language_code = get_request_ai_language(
-        request
-    )
-
-    mark_ai_content_outdated_if_language_changed(
-        owner,
-        content_key="purpose_fit",
-        result_field="ai_purpose_fit",
-        status_field="ai_purpose_fit_status",
-        language_code=language_code,
-    )
-
-    print(
-        f"[PURPOSE FIT] Owner found: "
-        f"id={owner.id}, "
-        f"historical={is_historical}, "
-        f"fit_status={owner.ai_purpose_fit_status}, "
-        f"has_saved_fit={bool(owner.ai_purpose_fit)}",
-        flush=True,
-    )
-
-    # ---------------------------------------------------------
-    # REQUIRE AT LEAST ONE REAL ASSESSMENT RESULT
-    # ---------------------------------------------------------
-    #
-    # AI Overview may be generated progressively as assessment
-    # results become available. The candidate does not need to
-    # have completed the entire assessment process.
-    #
-    assessment_evidence, assessment_type_count = (
-        build_assessment_evidence(
-            owner
-        )
-    )
-
-    if assessment_type_count < 1:
-        print(
-            "[PURPOSE FIT] No assessment results available",
-            flush=True,
-        )
-
-        return JsonResponse(
-            {
-                "error": (
-                    "No assessment results are "
-                    "available for this candidate yet."
-                )
-            },
-            status=400,
-        )
-
-    # ---------------------------------------------------------
-    # RETURN SAVED RESULT
-    # ---------------------------------------------------------
-
-    if (
-        ai_content_language_matches(
-            owner,
-            "purpose_fit",
-            language_code,
-        )
-        and should_return_saved_ai_result(
-            owner.ai_purpose_fit,
-            owner.ai_purpose_fit_status,
-        )
-    ):
-        print(
-            "[PURPOSE FIT] Returning saved result",
-            flush=True,
-        )
-
-        return JsonResponse(
-            {
-                "data": owner.ai_purpose_fit,
-                "status": owner.ai_purpose_fit_status,
-                "generated": False,
-            }
-        )
-
-    # ---------------------------------------------------------
-    # PREVENT DUPLICATE GENERATION
-    # ---------------------------------------------------------
-
-    if owner.ai_purpose_fit_status == "generating":
-        print(
-            "[PURPOSE FIT] Already marked as generating",
-            flush=True,
-        )
-
-        return JsonResponse(
-            {
-                "error": (
-                    "AI Overview is already "
-                    "being generated."
-                )
-            },
-            status=409,
-        )
-
-    owner.ai_purpose_fit_status = "generating"
-
-    owner.save(
-        update_fields=[
-            "ai_purpose_fit_status",
-        ]
-    )
-
-    print(
-        "[PURPOSE FIT] Status changed to generating",
-        flush=True,
-    )
-
-    # ---------------------------------------------------------
-    # GENERATE THE COMPLETE RESULT
-    # ---------------------------------------------------------
-
-    purpose_fit = create_empty_purpose_fit(
-        owner
-    )
-
-    try:
-        print(
-            "[PURPOSE FIT] Starting complete OpenAI response",
-            flush=True,
-        )
-
-        for event in generate_candidate_purpose_fit_events(
-            owner,
-            language_code=language_code,
-        ):
-            if event.get("type") == "error":
-                raise ValueError(
-                    event.get("message")
-                    or "AI Overview generation failed."
-                )
-
-            purpose_fit = apply_purpose_fit_event(
-                purpose_fit,
-                event,
-            )
-
-        save_candidate_purpose_fit(
-            owner,
-            purpose_fit,
-            language_code=language_code,
-        )
-
-        print(
-            "[PURPOSE FIT] Result saved successfully",
-            flush=True,
-        )
-
-        return JsonResponse(
-            {
-                "data": purpose_fit,
-                "status": "completed",
-                "generated": True,
-            }
-        )
-
-    except Exception as exc:
-        print(
-            "[PURPOSE FIT] ERROR:",
-            repr(exc),
-            flush=True,
-        )
-
-        owner.ai_purpose_fit_status = "failed"
-
-        owner.save(
-            update_fields=[
-                "ai_purpose_fit_status",
-            ]
-        )
-
-        return JsonResponse(
-            {
-                "error": str(exc)
-                or "AI Overview generation failed."
-            },
-            status=500,
-        )
-
-@login_required
-@require_POST
-def process_candidate_purpose_fit_regenerate(
-    request,
-    process_id,
-    candidate_id,
-):
-    process = get_object_or_404(
-        TestProcess,
-        pk=process_id,
-    )
-
-    if not user_can_access_process(request.user, process):
-        return HttpResponseForbidden(
-            "You do not have access to this project."
-        )
-
-    if not purpose_supports_fit(process):
-        return JsonResponse(
-            {
-                "error": (
-                    "Flexible projects do not support "
-                    "purpose-fit analysis."
-                )
-            },
-            status=400,
-        )
-    
-    if process.is_historical:
-        invitation = get_object_or_404(
-            HistoricalProcessCandidate.objects.select_related(
-                "candidate",
-                "process",
-            ),
-            process=process,
-            candidate_id=candidate_id,
-        )
-    else:
-        invitation = get_object_or_404(
-            TestInvitation.objects.select_related(
-                "candidate",
-                "process",
-            ),
-            process=process,
-            candidate_id=candidate_id,
-        )
-
-    invitation.ai_purpose_fit_status = "not_started"
-    invitation.ai_purpose_fit_generated_at = None
-    invitation.ai_purpose_fit_purpose = ""
-
-    invitation.save(
-        update_fields=[
-            "ai_purpose_fit_status",
-            "ai_purpose_fit_generated_at",
-            "ai_purpose_fit_purpose",
-        ]
-    )
-
-    return JsonResponse(
-        {
-            "ok": True,
-            "generation_url": reverse(
-                "processes:process_candidate_purpose_fit_stream",
-                kwargs={
-                    "process_id": process.id,
-                    "candidate_id": candidate_id,
-                },
-            ),
-        }
-    )
-
-@login_required
-def process_create_v2(request):
-    client = SovaClient()
-    error = None
-
-    # --------------------------------------------------
-    # 1. HÃ¤mta Sova-projekt frÃ¥n API
-    # --------------------------------------------------
-    try:
-        accounts = client.get_template_accounts_with_projects()
-    except Exception as e:
-        accounts = []
-        error = str(e)
-
-    # --------------------------------------------------
-    # 2. HÃ¤mta ProjectMeta sÃ¥ vi kan hitta namn, tester osv
-    # --------------------------------------------------
-    metas = ProjectMeta.objects.filter(provider="sova")
-    meta_map = {(m.account_code, m.project_code): m for m in metas}
-
-    project_id_map = {}
-    template_cards = []
-
-    for account in accounts:
-        acc = (account.get("code") or "").strip()
-
-        for project in (account.get("projects") or []):
-            proj_code = (project.get("code") or "").strip()
-            sova_name = (project.get("name") or proj_code).strip()
-
-            value = f"{acc}|{proj_code}"
-            project_id_map[value] = project.get("id")
-
-            meta = meta_map.get((acc, proj_code))
-            title = getattr(meta, "intern_name", None) or sova_name
-
-            description = ""
-            tests = []
-            languages = []
-
-            if meta:
-                description = (getattr(meta, "notes", None) or "").strip()
-
-                tests_raw = (getattr(meta, "tests", None) or "").strip()
-
-                if tests_raw:
-                    tests = [
-                        test.strip().lower()
-                        for test in tests_raw.split(",")
-                        if test.strip()
-                    ]
-
-                languages_raw = (getattr(meta, "languages", None) or "").strip()
-
-                if languages_raw:
-                    languages = [
-                        language.strip()
-                        for language in languages_raw.split(",")
-                        if language.strip()
-                    ]
-
-            # Fallback:
-            # Om ProjectMeta saknar tester lÃ¤ser Talena kombinationen
-            # direkt frÃ¥n Sova-projektets namn.
-            if not tests:
-                tests = extract_tests_from_project_name(sova_name)
-
-            template_cards.append({
-                "value": value,
-                "title": title,
-                "description": description,
-                "tests": tests,
-                "languages": languages,
-                "icon_class": get_template_icon_class(tests, title),
-                "account_code": acc,
-                "project_code": proj_code,
-                "sova_name": sova_name,
-                "sova_project_id": project.get("id"),
-            })
-
-    template_cards.sort(key=lambda x: (x["title"] or "").lower())
-
-    # Only accounts in companies where this user is a member can be selected.
-    memberships = list(
-        CompanyMember.objects
-        .filter(user=request.user)
-        .select_related("company")
-    )
-    if not memberships:
-        messages.error(request, "You are not linked to a company.")
-        return redirect("processes:process_list")
-
-    accessible_ids = set()
-    for membership in memberships:
-        accessible_ids.update(
-            get_accessible_orgunit_ids(request.user, membership.company)
-        )
-    org_units = list(
-        OrgUnit.objects
-        .filter(
-            pk__in=accessible_ids,
-            company_id__in=[membership.company_id for membership in memberships],
-        )
-        .select_related("company")
-        .order_by("company__name", "name", "pk")
-    )
-    if not org_units:
-        messages.error(request, "You do not have an assigned account.")
-        return redirect("processes:process_list")
-
-    # --------------------------------------------------
-    # 4. POST: skapa processen
-    # --------------------------------------------------
-    if request.method == "POST":
-        form = TestProcessWizardCreateForm(request.POST, org_units=org_units)
-
-        if form.is_valid():
-            selected_unit = (
-                form.cleaned_data["org_unit"]
-                if len(org_units) > 1
-                else org_units[0]
-            )
-            company = selected_unit.company
-            purpose = form.cleaned_data.get("purpose")
-            selected_tests = form.cleaned_data.get("selected_tests") or []
-
-            candidate_language = (
-                form.cleaned_data.get("candidate_language")
-                or "sv"
-            )
-
-            name = (form.cleaned_data.get("name") or "").strip()
-
-            # Om anvÃ¤ndaren inte skrev namn, skapa ett automatiskt
-            if not name:
-                name = build_default_process_name(
-                    purpose=purpose,
-                    selected_tests=selected_tests,
-                )
-
-            # --------------------------------------------------
-            # 5. Matcha valda tester mot rÃ¤tt Sova-projekt
-            # --------------------------------------------------
-            try:
-                resolved_template = resolve_sova_template(
-                    selected_tests=selected_tests,
-                    template_cards=template_cards,
-                )
-            except ValueError as exc:
-                form.add_error("selected_tests", str(exc))
-
-                return render(request, "customer/processes/process_create_v2.html", {
-                    "form": form,
-                    "error": error,
-                    "process_purposes": PROCESS_PURPOSES,
-                    "available_tests": AVAILABLE_TESTS,
-                    "purpose_recommended_tests": PURPOSE_RECOMMENDED_TESTS,
-                    "template_cards": template_cards,
-                    "templates_count": len(template_cards),
-                    "accounts_count": len(accounts),
-                    "org_units": org_units,
-                })
-
-            if not resolved_template:
-                selected_labels = [
-                    str(test["label"])
-                    for test in AVAILABLE_TESTS
-                    if test["key"] in selected_tests
-                ]
-
-                selected_label = (
-                    " + ".join(selected_labels)
-                    or _("the selected tests")
-                )
-
-                form.add_error(
-                    "selected_tests",
-                    (
-                        f"No matching Sova project was found for {selected_label}. "
-                        "Please check that the project exists and that its ProjectMeta "
-                        "record contains the correct tests."
-                    ),
-                )
-
-                return render(request, "customer/processes/process_create_v2.html", {
-                    "form": form,
-                    "error": error,
-                    "process_purposes": PROCESS_PURPOSES,
-                    "available_tests": AVAILABLE_TESTS,
-                    "purpose_recommended_tests": PURPOSE_RECOMMENDED_TESTS,
-                    "template_cards": template_cards,
-                    "templates_count": len(template_cards),
-                    "accounts_count": len(accounts),
-                    "org_units": org_units,
-                })
-            
-            
-
-
-            acc = resolved_template["account_code"]
-            proj = resolved_template["project_code"]
-            value = resolved_template["value"]
-
-            # --------------------------------------------------
-            # 7. Skapa TestProcess
-            # --------------------------------------------------
-            obj = TestProcess(
-                name=name,
-                company=company,
-                org_unit=selected_unit,
-                provider="sova",
-                account_code=acc,
-                project_code=proj,
-                created_by=request.user,
-                purpose=purpose,
-                selected_tests=selected_tests,
-                candidate_language=candidate_language,
-                candidate_results_enabled=(
-                    form.cleaned_data.get("candidate_results_enabled")
-                    or False
-                ),
-            )
-
-            # --------------------------------------------------
-            # 8. SÃ¤tt project_name_snapshot
-            # --------------------------------------------------
-            meta = meta_map.get((acc, proj))
-
-            if meta and getattr(meta, "intern_name", None):
-                obj.project_name_snapshot = meta.intern_name
-            else:
-                obj.project_name_snapshot = (
-                    resolved_template.get("sova_name")
-                    or resolved_template.get("title")
-                    or proj
-                )
-
-            obj.save()
-            request.session["active_org_unit_id"] = selected_unit.pk
-
-            # --------------------------------------------------
-            # 9. Spara labels
-            # --------------------------------------------------
-            label_names = form.cleaned_data.get("labels_text") or []
-
-            # Om labels_text rÃ¥kar komma in som string istÃ¤llet fÃ¶r lista
-            if isinstance(label_names, str):
-                label_names = [
-                    item.strip()
-                    for item in label_names.split(",")
-                    if item.strip()
-                ]
-
-            if label_names:
-                label_objs = []
-
-                for label_name in label_names:
-                    lab, _ = ProcessLabel.objects.get_or_create(
-                        company=company,
-                        name=label_name,
-                    )
-                    label_objs.append(lab)
-
-                obj.labels.set(label_objs)
-            else:
-                obj.labels.clear()
-
-            # --------------------------------------------------
-            # 10. Logga activity
-            # --------------------------------------------------
-            log_event(
-                company=company,
-                verb=ActivityEvent.Verb.PROCESS_CREATED,
-                actor=request.user,
-                process=obj,
-                meta={
-                    "process_name": obj.name,
-                    "purpose": obj.purpose,
-                    "selected_tests": obj.selected_tests,
-                    "resolved_sova_template": value,
-                    "sova_project_id": project_id_map.get(value),
-                },
-            )
-
-            messages.success(request, "Projektet skapades.")
-            return redirect("processes:process_detail", pk=obj.pk)
-        
-        else:
-            print("PROCESS CREATE FORM ERRORS:", form.errors.as_json())
-            print("POST DATA:", request.POST)
-
-        messages.error(request, "The project could not be created. Please check the fields.")
-
-    # --------------------------------------------------
-    # 11. GET: visa tom form
-    # --------------------------------------------------
-    else:
-        form = TestProcessWizardCreateForm(org_units=org_units)
-
-    return render(request, "customer/processes/process_create_v2.html", {
-        "form": form,
-        "error": error,
-        "process_purposes": PROCESS_PURPOSES,
-        "available_tests": AVAILABLE_TESTS,
-        "purpose_recommended_tests": PURPOSE_RECOMMENDED_TESTS,
-        "template_cards": template_cards,
-        "templates_count": len(template_cards),
-        "accounts_count": len(accounts),
-                    "org_units": org_units,
-    })
-
-def normalise_five_point_score(
-    value,
-) -> int | float | None:
-    """
-    Normalise an existing STIVE score while preserving decimals.
-    """
-
-    if value is None:
-        return None
-
-    try:
-        score = float(value)
-    except (TypeError, ValueError):
-        return None
-
-    score = max(1.0, min(5.0, score))
-
-    return int(score) if score.is_integer() else score
-
-
-def convert_sten_to_five_point(
-    value,
-) -> int | None:
-    """
-    Convert a rounded STEN result from 1â€“10 into
-    Talena's five-point display scale.
-
-    1â€“2  -> 1
-    3â€“4  -> 2
-    5â€“6  -> 3
-    7â€“8  -> 4
-    9â€“10 -> 5
-    """
-
-    if value is None:
-        return None
-
-    try:
-        sten = int(
-            round(float(value))
-        )
-    except (TypeError, ValueError):
-        return None
-
-    sten = max(
-        1,
-        min(10, sten),
-    )
-
-    return (
-        sten + 1
-    ) // 2
-
-
-def get_historical_five_point_score(
-    item,
-) -> int | None:
-    """
-    Return a five-point STIVE score for historical
-    Motivation and Team style results.
-
-    New historical imports preserve the original scale.
-
-    - one_to_five results are already STIVE and must
-      NOT be converted from STEN.
-    - older legacy data without STIVE information may
-      fall back to conversion from STEN.
-    """
-
-    scale = str(
-        item.get("scale")
-        or ""
-    ).strip().lower()
-
-    if scale in {
-        "1-to-5",
-        "1_to_5",
-        "1 to 5",
-        "one-to-five",
-        "one_to_five",
-    }:
-        scale = "one_to_five"
-
-    # ---------------------------------------------------------
-    # NATIVE FIVE-POINT / STIVE RESULT
-    # ---------------------------------------------------------
-
-    if (
-        scale == "one_to_five"
-        or item.get("stive") is not None
-        or item.get("stive_rounded") is not None
-    ):
-        for key in (
-            "stive",
-            "stive_rounded",
-            "score",
-        ):
-            value = item.get(key)
-
-            if value is None:
-                continue
-
-            return normalise_five_point_score(
-                value
-            )
-
-        return None
-
-    # ---------------------------------------------------------
-    # LEGACY FALLBACK
-    # ---------------------------------------------------------
-    #
-    # Older historical data may only contain STEN.
-    # Convert that data to the five-point display scale.
-    #
-    for key in (
-        "sten",
-        "sten_rounded",
-        "score",
-    ):
-        value = item.get(key)
-
-        if value is None:
-            continue
-
-        return convert_sten_to_five_point(
-            value
-        )
-
-    return None
-
-def build_historical_candidate_detail_context(
-    process,
-    historical_candidate,
-    language="sv",
-):
-    """
-    Build candidate sheet context for a historical candidate.
-
-    Historical assessment data is normalised through
-    build_historical_candidate_profile() and then exposed using the same
-    context keys as the regular candidate sheet.
-
-    Historical candidates always use general insight mode because no
-    original process purpose or context is available.
-    """
-    candidate = historical_candidate.candidate
-    candidate_report_language = getattr(
-        process,
-        "candidate_language",
-        "sv",
-    ) or "sv"
-
-    profile = build_historical_candidate_profile(
-        historical_candidate
-    )
-
-    assessment_results = profile["assessment_results"]
-
-    motivation_competencies = profile["motivation_competencies"]
-    personality_competencies = profile["personality_competencies"]
-    team_style_scores = profile["team_style_scores"]
-    ability_results = profile["ability_results"]
-
-    has_motivation_results = profile["has_motivation_results"]
-    has_personality_results = profile["has_personality_results"]
-    has_ability_results = profile["has_ability_results"]
-    has_any_results = profile["has_any_results"]
-
-    # Historical extracts contain completed result data.
-    all_assessments_completed = has_any_results
-
-    verbal_result = ability_results.get("verbal")
-    logical_result = ability_results.get("logical")
-    numerical_result = ability_results.get("numerical")
-
-    verbal_percentile = (
-        verbal_result.get("value")
-        if verbal_result
-        else None
-    )
-
-    logical_percentile = (
-        logical_result.get("value")
-        if logical_result
-        else None
-    )
-
-    numerical_percentile = (
-        numerical_result.get("value")
-        if numerical_result
-        else None
-    )
-
-    has_verbal_results = verbal_result is not None
-    has_logical_results = logical_result is not None
-    has_numerical_results = numerical_result is not None
-
-    # -------------------------------------------------------------------------
-    # Convert the common profile into structures already used by the template
-    # -------------------------------------------------------------------------
-
-    motivation_results = []
-    mq_competencies = []
-
-    for item in motivation_competencies:
-        raw_score = item.get(
-            "score"
-        )
-
-        five_point_score = (
-            get_historical_five_point_score(
-                item
-            )
-        )
-
-        raw_sten = item.get(
-            "sten"
-        )
-
-        # A native one-to-five motivation result is STIVE, not STEN.
-        # Do not duplicate it into the personality scale fields.
-        if (
-            raw_sten is None
-            and str(item.get("scale") or "").strip().lower()
-            not in {
-                "one_to_five",
-                "one-to-five",
-                "1_to_5",
-                "1-to-5",
-                "1 to 5",
-            }
-        ):
-            raw_sten = raw_score
-
-        raw_sten_rounded = item.get(
-            "sten_rounded"
-        )
-
-        if (
-            raw_sten_rounded is None
-            and raw_sten is not None
-        ):
-            raw_sten_rounded = int(
-                round(float(raw_sten))
-            )
-
-        normalised_item = {
-            "activity": (
-                "Motivation Questionnaire"
-            ),
-
-            "competency": (
-                item.get("competency")
-                or item.get("name")
-            ),
-
-            # Five-point result used by Motivation UI.
-            "score": five_point_score,
-            "stive": five_point_score,
-            "stive_rounded": (
-                int(round(float(five_point_score)))
-                if five_point_score is not None
-                else None
-            ),
-            "scale": item.get("scale"),
-
-            # Preserve the original imported STEN evidence.
-            "sten": raw_sten,
-            "sten_rounded": raw_sten_rounded,
-
-            "percentile": item.get(
-                "percentile"
-            ),
-
-            "assessment_centre": None,
-            "source": "historical_import",
-        }
-
-        motivation_results.append(
-            normalised_item.copy()
-        )
-
-        mq_competencies.append(
-            normalised_item.copy()
-        )
-
-    normalised_personality_competencies = []
-
-    for item in personality_competencies:
-        normalised_personality_competencies.append({
-            "competency": item.get("competency") or item.get("name"),
-            "score": item.get("score"),
-            "sten": item.get("sten"),
-            "sten_rounded": item.get("sten_rounded"),
-            "percentile": item.get("percentile"),
-            "category": item.get("category"),
-            "source": "historical_import",
-        })
-
-    normalised_team_style_scores = []
-
-    for item in team_style_scores:
-        raw_score = item.get(
-            "score"
-        )
-
-        five_point_score = (
-            get_historical_five_point_score(
-                item
-            )
-        )
-
-        raw_sten = item.get(
-            "sten"
-        )
-
-        if raw_sten is None:
-            raw_sten = raw_score
-
-        raw_sten_rounded = item.get(
-            "sten_rounded"
-        )
-
-        if (
-            raw_sten_rounded is None
-            and raw_sten is not None
-        ):
-            raw_sten_rounded = int(
-                round(float(raw_sten))
-            )
-
-        normalised_team_style_scores.append({
-            "competency": (
-                item.get("competency")
-                or item.get("name")
-            ),
-
-            # Five-point result used by Team styles.
-            "score": five_point_score,
-            "stive": five_point_score,
-            "stive_rounded": five_point_score,
-            "scale": item.get("scale"),
-
-            # Preserve original imported STEN.
-            "sten": raw_sten,
-            "sten_rounded": raw_sten_rounded,
-
-            "percentile": item.get(
-                "percentile"
-            ),
-
-            "category": "team_style",
-            "source": "historical_import",
-        })
-
-    motivation_results = sorted(
-        motivation_results,
-        key=lambda item: (
-            item.get("competency") or ""
-        ).lower(),
-    )
-
-    mq_competencies = sorted(
-        mq_competencies,
-        key=lambda item: (
-            item.get("competency") or ""
-        ).lower(),
-    )
-
-    normalised_personality_competencies = sorted(
-        normalised_personality_competencies,
-        key=lambda item: (
-            item.get("competency") or ""
-        ).lower(),
-    )
-
-    response_styles = build_response_style_results(
-        normalised_personality_competencies
-    )
-
-    normalised_team_style_scores = sorted(
-        normalised_team_style_scores,
-        key=lambda item: (
-            item.get("competency") or ""
-        ).lower(),
-    )
-
-    team_style_profile = (
-        build_team_style_profile(
-            normalised_team_style_scores
-        )
-    )
-
-    # -------------------------------------------------------------------------
-    # Shared score helpers
-    # -------------------------------------------------------------------------
-
-    def safe_score(item):
-        """
-        Return the first available numeric value.
-
-        Explicit None checks are used so a legitimate value of 0 is not lost.
-        """
-        for key in (
-            "score",
-            "sten_rounded",
-            "stive_rounded",
-            "percentile",
-        ):
-            value = item.get(key)
-
-            if value is not None:
-                return value
-
-        return -1
-
-    top_motivations = sorted(
-        mq_competencies,
-        key=safe_score,
-        reverse=True,
-    )[:3]
-
-    combined_personality_scores = (
-        normalised_personality_competencies
-        + normalised_team_style_scores
-    )
-
-    top_personality_traits = sorted(
-        combined_personality_scores,
-        key=safe_score,
-        reverse=True,
-    )[:3]
-
-    motivation_development_areas = sorted(
-        mq_competencies,
-        key=safe_score,
-    )[:2]
-
-    personality_development_areas = sorted(
-        combined_personality_scores,
-        key=safe_score,
-    )[:2]
-
-    # -------------------------------------------------------------------------
-    # Data supplied to the general insight engine
-    # -------------------------------------------------------------------------
-
-    general_insight_input = build_general_insight_input(
-        personality_competencies=normalised_personality_competencies,
-        motivation_competencies=mq_competencies,
-        verbal_percentile=verbal_percentile,
-        logical_percentile=logical_percentile,
-        numerical_percentile=numerical_percentile,
-    )
-
-    # Temporary development logging.
-    # Remove these prints once imported profiles have been verified.
-    print("=== HISTORICAL GENERAL INSIGHT INPUT ===")
-    print(json.dumps(
-        general_insight_input,
-        indent=2,
-        ensure_ascii=False,
-        default=str,
-    ))
-    print("=== /HISTORICAL GENERAL INSIGHT INPUT ===")
-
-    # -------------------------------------------------------------------------
-    # Ability reports
-    # -------------------------------------------------------------------------
-
-    ability_reports_for_ui = {
-        "overview": [],
-        "verbal": (
-            build_cognitive_reports_for_test(
-                test_key="verbal",
-                percentile=verbal_percentile,
-                language_code=candidate_report_language,
-            )
-            if verbal_percentile is not None
-            else None
-        ),
-        "logical": (
-            build_cognitive_reports_for_test(
-                test_key="logical",
-                percentile=logical_percentile,
-                language_code=candidate_report_language,
-            )
-            if logical_percentile is not None
-            else None
-        ),
-        "numerical": (
-            build_cognitive_reports_for_test(
-                test_key="numerical",
-                percentile=numerical_percentile,
-                language_code=candidate_report_language,
-            )
-            if numerical_percentile is not None
-            else None
-        ),
-    }
-
-    if ability_reports_for_ui["verbal"]:
-        ability_reports_for_ui["overview"].append({
-            "key": "verbal",
-            "label": "Verbal",
-            "percentile": verbal_percentile,
-        })
-
-    if ability_reports_for_ui["logical"]:
-        ability_reports_for_ui["overview"].append({
-            "key": "logical",
-            "label": "Logical",
-            "percentile": logical_percentile,
-        })
-
-    if ability_reports_for_ui["numerical"]:
-        ability_reports_for_ui["overview"].append({
-            "key": "numerical",
-            "label": "Numerical",
-            "percentile": numerical_percentile,
-        })
-
-    # -------------------------------------------------------------------------
-    # Motivation reports
-    # -------------------------------------------------------------------------
-
-    motivation_scores = build_scores_by_competency(
-        mq_competencies
-    )
-
-    motivation_insights = build_motivation_insight_section(
-        mq_competencies,
-        candidate_name=candidate.first_name,
-    )
-
-    motivation_reports_for_ui = []
-
-    if has_motivation_results:
-        motivation_reports_for_ui = [
-            build_practitioner_report(
-                competencies=mq_competencies,
-            ),
-            build_manager_report(
-                competencies=mq_competencies,
-            ),
-            build_motivation_coaching_report(
-                competencies=mq_competencies,
-            ),
-            build_candidate_report(
-                competencies=mq_competencies,
-                language_code=candidate_report_language,
-            ),
-        ]
-
-
-    # -------------------------------------------------------------------------
-    # Personality reports and profile
-    # -------------------------------------------------------------------------
-
-    personality_reports = []
-    personality_profile = None
-
-    if has_personality_results:
-        historical_personality_competencies = (
-            normalised_personality_competencies
-            + normalised_team_style_scores
-        )
-
-        historical_personality_activities = [
-            {
-                "activity": "Personality Assessment",
-                "status": "completed",
-                "competencies": (
-                    historical_personality_competencies
-                ),
-            }
-        ]
-
-        personality_reports = (
-            build_personality_reports_for_candidate(
-                sova_activities=(
-                    historical_personality_activities
-                ),
-            )
-        )
-
-        personality_profile_report = next(
-            (
-                report
-                for report in personality_reports
-                if report.get("report_id")
-                == "trait_indicator_profile"
-            ),
-            None,
-        )
-
-        if personality_profile_report:
-            personality_profile = (
-                build_profile_from_resolved_report(
-                    resolved_report=(
-                        personality_profile_report
-                    ),
-                    language=language,
-                    include_missing_traits=False,
-                )
-            )
-
-    available_reports_count = 0
-
-    if has_verbal_results:
-        available_reports_count += 2
-
-    if has_logical_results:
-        available_reports_count += 2
-
-    if has_numerical_results:
-        available_reports_count += 2
-
-    if has_motivation_results:
-        available_reports_count += len(
-            motivation_reports_for_ui
-        )
-
-    if has_personality_results:
-        available_reports_count += len(
-            personality_reports
-        )
-
-    # -------------------------------------------------------------------------
-    # General candidate insights
-    #
-    # This is the temporary deterministic fallback. Later, replace this block
-    # with the exact same insight generator used by active general-mode profiles.
-    # -------------------------------------------------------------------------
-
-    candidate_insights = {
-        "summary": None,
-        "key_strengths": [],
-        "areas_to_explore": [],
-        "questions": [],
-        "fit": None,
-        "cognitive_results": build_cognitive_insight_results(
-            verbal_percentile=verbal_percentile,
-            logical_percentile=logical_percentile,
-            numerical_percentile=numerical_percentile,
-        ),
-    }
-    has_completed_cognitive_results = any(
-        result.get("completed")
-        and result.get("key") in assessment_keys_in_process
-        for result in candidate_insights["cognitive_results"]
-    )
-
-    if has_any_results:
-        candidate_insights["summary"] = {
-            "body": (
-                "This candidate profile is based on structured historical "
-                "SOVA assessment data. The insights are presented in general "
-                "mode because no original process purpose or role context is "
-                "available."
-            )
-        }
-
-    for item in top_personality_traits[:2]:
-        competency = item.get("competency")
-        value = safe_score(item)
-
-        candidate_insights["key_strengths"].append({
-            "title": competency,
-            "body": (
-                "This is one of the candidate's higher imported personality "
-                "or team style scores."
-            ),
-            "how_it_may_show": (
-                "This may appear as a recurring behavioural preference in "
-                "relevant work situations."
-            ),
-            "why_it_matters": (
-                "This theme may be useful when considering the candidate's "
-                "general work style and contribution."
-            ),
-            "evidence": [
-                f"{competency}: {value}"
-            ],
-        })
-
-    for item in top_motivations[:2]:
-        competency = item.get("competency")
-        value = safe_score(item)
-
-        candidate_insights["key_strengths"].append({
-            "title": competency,
-            "body": (
-                "This is one of the candidate's higher imported motivation "
-                "scores."
-            ),
-            "how_it_may_show": (
-                "This may indicate the conditions or activities that tend "
-                "to energise and engage the candidate."
-            ),
-            "why_it_matters": (
-                "Motivational drivers can affect engagement, satisfaction "
-                "and longer-term retention."
-            ),
-            "evidence": [
-                f"{competency}: {value}"
-            ],
-        })
-
-    for item in personality_development_areas[:2]:
-        competency = item.get("competency")
-        value = safe_score(item)
-
-        candidate_insights["areas_to_explore"].append({
-            "title": competency,
-            "body": (
-                "This is one of the candidate's lower imported personality "
-                "or team style scores."
-            ),
-            "explore_through": (
-                "Ask for examples of situations where this behaviour is more "
-                "or less natural for the candidate."
-            ),
-            "what_to_listen_for": (
-                "Listen for context, self-awareness and strategies the "
-                "candidate uses to adapt."
-            ),
-            "evidence": [
-                f"{competency}: {value}"
-            ],
-        })
-
-    for item in motivation_development_areas[:2]:
-        competency = item.get("competency")
-        value = safe_score(item)
-
-        candidate_insights["areas_to_explore"].append({
-            "title": competency,
-            "body": (
-                "This is one of the candidate's lower imported motivation "
-                "scores."
-            ),
-            "explore_through": (
-                "Ask which types of work situations tend to reduce energy, "
-                "interest or engagement."
-            ),
-            "what_to_listen_for": (
-                "Listen for what the candidate needs from the role, manager "
-                "and working environment."
-            ),
-            "evidence": [
-                f"{competency}: {value}"
-            ],
-        })
-
-    if has_any_results:
-        candidate_insights["questions"] = [
-            {
-                "category": "strengths",
-                "category_label": "Strength",
-                "question": (
-                    "Which parts of your work tend to bring out your "
-                    "strongest qualities?"
-                ),
-                "why": (
-                    "This helps validate whether the imported assessment "
-                    "profile matches the candidate's own experience."
-                ),
-                "listen_for": (
-                    "Concrete examples and consistency with the strongest "
-                    "assessment themes."
-                ),
-            },
-            {
-                "category": "explore",
-                "category_label": "Explore",
-                "question": (
-                    "Are there situations where your usual working style "
-                    "becomes less effective?"
-                ),
-                "why": (
-                    "This helps add context to lower or less preferred scores "
-                    "without treating them automatically as weaknesses."
-                ),
-                "listen_for": (
-                    "Self-awareness, nuance and practical adaptation "
-                    "strategies."
-                ),
-            },
-            {
-                "category": "motivation",
-                "category_label": "Motivation",
-                "question": (
-                    "What type of working environment gives you the most "
-                    "energy over time?"
-                ),
-                "why": (
-                    "This helps connect imported motivation scores to actual "
-                    "working conditions."
-                ),
-                "listen_for": (
-                    "Drivers, demotivators and environmental preferences."
-                ),
-            },
-        ]
-
-    # -------------------------------------------------------------------------
-    # Header assessment/activity information
-    # -------------------------------------------------------------------------
-
-    sent_assessments = []
-
-    for result in assessment_results:
-        sent_assessments.append({
-            "activity": result.assessment_type.title(),
-            "status": (
-                (result.status or "completed")
-                .strip()
-                .lower()
-            ),
-        })
-
-    assessment_keys_in_process = set()
-    for result in assessment_results:
-        assessment_type = str(
-            result.assessment_type or ""
-        ).strip().lower()
-
-        if "personality" in assessment_type or "personlig" in assessment_type:
-            assessment_keys_in_process.add("personality")
-        elif "motivation" in assessment_type:
-            assessment_keys_in_process.add("motivation")
-        elif "numerical" in assessment_type or "numeric" in assessment_type or "numerisk" in assessment_type:
-            assessment_keys_in_process.add("numerical")
-        elif "logical" in assessment_type or "logisk" in assessment_type:
-            assessment_keys_in_process.add("logical")
-        elif "verbal" in assessment_type:
-            assessment_keys_in_process.add("verbal")
-
-    assessment_keys_in_process = sorted(assessment_keys_in_process)
-    has_personality_assessment_in_process = (
-        "personality" in assessment_keys_in_process
-    )
-    has_motivation_assessment_in_process = (
-        "motivation" in assessment_keys_in_process
-    )
-    has_cognitive_assessments_in_process = any(
-        key in assessment_keys_in_process
-        for key in ("verbal", "logical", "numerical")
-    )
-
-    all_competencies = (
-        mq_competencies
-        + normalised_personality_competencies
-        + normalised_team_style_scores
-    )
-
-    combined_questions = (
-        build_combined_candidate_questions(
-            historical_candidate
-        )
-    )
-
-    pre_interview_decision_support = (
-        historical_candidate
-        .ai_pre_interview_decision_support
-        or {}
-    )
-
-    post_interview_decision_support = (
-        historical_candidate
-        .ai_post_interview_decision_support
-        or {}
-    )
-
-    interview_notes = (
-        historical_candidate.interview_notes
-        or ""
-    ).strip()
-
-    has_pre_interview_decision_support = bool(
-        (
-            pre_interview_decision_support.get(
-                "overall_synthesis"
-            )
-            or ""
-        ).strip()
-    )
-
-    has_post_interview_decision_support = bool(
-        (
-            post_interview_decision_support.get(
-                "overall_synthesis"
-            )
-            or ""
-        ).strip()
-        or any(
-            str(value or "").strip()
-            for value in (
-                post_interview_decision_support.get("content_blocks")
-                or {}
-            ).values()
-        )
-    )
-
-    return {
-        "company": process.company,
-        "process": process,
-        "candidate": candidate,
-
-        "historical_candidate": historical_candidate,
-        "historical_reports": historical_candidate.reports.all(),
-        "assessment_results": assessment_results,
-
-        "is_historical": True,
-
-        # Historical candidates have no live invitation.
-        "invitation": None,
-        "inv": None,
-        "assessment_url": None,
-        "activity_events": [],
-        "email_logs_by_id": {},
-
-        # Header information.
-        "sent_assessments": sent_assessments,
-        "assessment_keys_in_process": assessment_keys_in_process,
-        "has_personality_assessment_in_process": has_personality_assessment_in_process,
-        "has_motivation_assessment_in_process": has_motivation_assessment_in_process,
-        "has_cognitive_assessments_in_process": has_cognitive_assessments_in_process,
-        "has_completed_cognitive_results": has_completed_cognitive_results,
-        "tests_sent_count": assessment_results.count(),
-        "tests_completed_count": assessment_results.count(),
-
-        # Shared result flags.
-        "has_motivation_results": has_motivation_results,
-        "has_personality_results": has_personality_results,
-        "has_ability_results": has_ability_results,
-        "has_verbal_results": has_verbal_results,
-        "has_logical_results": has_logical_results,
-        "has_numerical_results": has_numerical_results,
-        "has_any_results": has_any_results,
-        "all_assessments_completed": all_assessments_completed,
-
-        # ---------------------------------------------------------
-        # Final output / decision support
-        # ---------------------------------------------------------
-
-        "pre_interview_decision_support": (
-            pre_interview_decision_support
-        ),
-
-        "pre_interview_decision_support_status": (
-            historical_candidate
-            .ai_pre_interview_decision_support_status
-            or "not_started"
-        ),
-
-        "pre_interview_decision_support_generated_at": (
-            historical_candidate
-            .ai_pre_interview_decision_support_generated_at
-        ),
-
-        "has_pre_interview_decision_support": (
-            has_pre_interview_decision_support
-        ),
-
-        "pre_interview_decision_support_stream_url": reverse(
-            (
-                "processes:"
-                "process_candidate_pre_interview_"
-                "decision_support_stream"
-            ),
-            kwargs={
-                "process_id": process.id,
-                "candidate_id": candidate.id,
-            },
-        ),
-
-        "pre_interview_decision_support_regenerate_url": reverse(
-            (
-                "processes:"
-                "process_candidate_pre_interview_"
-                "decision_support_regenerate"
-            ),
-            kwargs={
-                "process_id": process.id,
-                "candidate_id": candidate.id,
-            },
-        ),
-
-        "interview_notes": interview_notes,
-
-        "has_interview_notes": bool(
-            interview_notes
-        ),
-
-        "interview_notes_updated_at": (
-            historical_candidate
-            .interview_notes_updated_at
-        ),
-
-        "interview_notes_updated_by": (
-            historical_candidate
-            .interview_notes_updated_by
-        ),
-
-        "interview_notes_update_url": reverse(
-            (
-                "processes:"
-                "process_candidate_"
-                "interview_notes_update"
-            ),
-            kwargs={
-                "process_id": process.id,
-                "candidate_id": candidate.id,
-            },
-        ),
-
-        "post_interview_decision_support": (
-            post_interview_decision_support
-        ),
-
-        "post_interview_decision_support_status": (
-            historical_candidate
-            .ai_post_interview_decision_support_status
-            or "not_started"
-        ),
-
-        "post_interview_decision_support_generated_at": (
-            historical_candidate
-            .ai_post_interview_decision_support_generated_at
-        ),
-
-        "has_post_interview_decision_support": (
-            has_post_interview_decision_support
-        ),
-
-        "post_interview_decision_support_stream_url": reverse(
-            (
-                "processes:"
-                "process_candidate_post_interview_"
-                "decision_support_stream"
-            ),
-            kwargs={
-                "process_id": process.id,
-                "candidate_id": candidate.id,
-            },
-        ),
-
-        "post_interview_decision_support_regenerate_url": reverse(
-            (
-                "processes:"
-                "process_candidate_post_interview_"
-                "decision_support_regenerate"
-            ),
-            kwargs={
-                "process_id": process.id,
-                "candidate_id": candidate.id,
-            },
-        ),
-
-        "final_output_refresh_url": reverse(
-            (
-                "processes:"
-                "process_candidate_final_output"
-            ),
-            kwargs={
-                "process_id": process.id,
-                "candidate_id": candidate.id,
-            },
-        ),
-
-        # ---------------------------------------------------------
-        # Historical cognitive AI
-        # ---------------------------------------------------------
-
-        "cognitive_interpretation": (
-            historical_candidate
-            .ai_cognitive_interpretation
-            or {}
-        ),
-
-        "cognitive_interpretation_status": (
-            historical_candidate
-            .ai_cognitive_interpretation_status
-            or "not_started"
-        ),
-
-        "cognitive_interpretation_stream_url": reverse(
-            (
-                "processes:"
-                "process_candidate_cognitive_"
-                "interpretation_stream"
-            ),
-            kwargs={
-                "process_id": process.id,
-                "candidate_id": candidate.id,
-            },
-        ),
-
-        "cognitive_interpretation_regenerate_url": reverse(
-            (
-                "processes:"
-                "process_candidate_cognitive_"
-                "interpretation_regenerate"
-            ),
-            kwargs={
-                "process_id": process.id,
-                "candidate_id": candidate.id,
-            },
-        ),
-
-        "cognitive_questions": (
-            historical_candidate
-            .ai_cognitive_questions
-            or {}
-        ),
-
-        "cognitive_questions_status": (
-            historical_candidate
-            .ai_cognitive_questions_status
-            or "not_started"
-        ),
-
-        "cognitive_questions_stream_url": reverse(
-            (
-                "processes:"
-                "process_candidate_cognitive_"
-                "questions_stream"
-            ),
-            kwargs={
-                "process_id": process.id,
-                "candidate_id": candidate.id,
-            },
-        ),
-
-        "cognitive_questions_regenerate_url": reverse(
-            (
-                "processes:"
-                "process_candidate_cognitive_"
-                "questions_regenerate"
-            ),
-            kwargs={
-                "process_id": process.id,
-                "candidate_id": candidate.id,
-            },
-        ),
-
-        # ---------------------------------------------------------
-        # Combined assessment questions
-        # ---------------------------------------------------------
-
-        "combined_questions": (
-            combined_questions
-        ),
-
-        "combined_question_sections": (
-            combined_questions["sections"]
-        ),
-
-        "combined_question_count": (
-            combined_questions["total_count"]
-        ),
-
-        "has_combined_questions": (
-            combined_questions["has_questions"]
-        ),
-
-        "combined_questions_refresh_url": reverse(
-            (
-                "processes:"
-                "process_candidate_combined_questions"
-            ),
-            kwargs={
-                "process_id": process.id,
-                "candidate_id": candidate.id,
-            },
-        ),
-
-        # Normalised assessment data.
-        "motivation_results": motivation_results,
-        "mq_competencies": mq_competencies,
-        "personality_competencies": (
-            normalised_personality_competencies
-        ),
-        "team_style_scores": normalised_team_style_scores,
-        "all_competencies": all_competencies,
-        "ability_results": ability_results,
-
-        "verbal_percentile": verbal_percentile,
-        "logical_percentile": logical_percentile,
-        "numerical_percentile": numerical_percentile,
-
-        # Existing report builders.
-        "motivation_scores": motivation_scores,
-        "motivation_insights": motivation_insights,
-        "motivation_reports_for_ui": motivation_reports_for_ui,
-        "ability_reports_for_ui": ability_reports_for_ui,
-        "personality_reports": personality_reports,
-        "personality_profile": personality_profile,
-        "profile_contrast_analysis": build_profile_contrast_analysis(
-            personality_profile,
-            language=language,
-            source="personality_assessment",
-        ),
-        "available_reports_count": available_reports_count,
-
-        # General insight data.
-        "candidate_insights": candidate_insights,
-        "general_insight_input": general_insight_input,
-
-        "top_motivations": top_motivations,
-        "top_personality_traits": top_personality_traits,
-        "motivation_development_areas": (
-            motivation_development_areas
-        ),
-        "personality_development_areas": (
-            personality_development_areas
-        ),
-
-        # Historical candidates always use general mode.
-        "purpose_report": None,
-        "report_mode": "general",
-        "context_config": {},
-        "show_context_prompt": False,
-        "summary_owner": historical_candidate,
-
-        # Compatibility keys expected elsewhere in the template.
-        "activities": [],
-        "project_results": {},
-        "project_scores": [],
-        "competency_scores": [],
-        "overall_score": None,
-        "reports": [],
-
-        # Historical personality AI interpretation
-        "personality_interpretation": (
-            historical_candidate
-            .ai_personality_interpretation
-            or {}
-        ),
-
-        "team_style_profile": team_style_profile,
-        "leadership_report_content": build_leadership_report_content(language, normalised_personality_competencies + normalised_team_style_scores),
-        "derailment_report_content": build_derailment_report_content(language, normalised_personality_competencies),
-
-        "personality_interpretation_status": (
-            historical_candidate
-            .ai_personality_interpretation_status
-            or "not_started"
-        ),
-
-        "personality_interpretation_stream_url": reverse(
-            (
-                "processes:"
-                "process_candidate_personality_"
-                "interpretation_stream"
-            ),
-            kwargs={
-                "process_id": process.id,
-                "candidate_id": candidate.id,
-            },
-        ),
-
-        "personality_interpretation_regenerate_url": reverse(
-            (
-                "processes:"
-                "process_candidate_personality_"
-                "interpretation_regenerate"
-            ),
-            kwargs={
-                "process_id": process.id,
-                "candidate_id": candidate.id,
-            },
-        ),
-
-        # ---------------------------------------------------------
-        # Historical personality questions
-        # ---------------------------------------------------------
-
-        "personality_questions": (
-            historical_candidate
-            .ai_personality_questions
-            or {}
-        ),
-
-        "personality_questions_status": (
-            historical_candidate
-            .ai_personality_questions_status
-            or "not_started"
-        ),
-
-        "selected_personality_traits": (
-            historical_candidate
-            .selected_personality_traits
-            or []
-        ),
-
-        "personality_questions_stream_url": reverse(
-            (
-                "processes:"
-                "process_candidate_personality_"
-                "questions_stream"
-            ),
-            kwargs={
-                "process_id": process.id,
-                "candidate_id": candidate.id,
-            },
-        ),
-
-        "personality_questions_regenerate_url": reverse(
-            (
-                "processes:"
-                "process_candidate_personality_"
-                "questions_regenerate"
-            ),
-            kwargs={
-                "process_id": process.id,
-                "candidate_id": candidate.id,
-            },
-        ),
-
-        "personality_traits_update_url": reverse(
-            (
-                "processes:"
-                "process_candidate_personality_"
-                "traits_update"
-            ),
-            kwargs={
-                "process_id": process.id,
-                "candidate_id": candidate.id,
-            },
-        ),
-
-        # ---------------------------------------------------------
-        # Historical motivation AI
-        # ---------------------------------------------------------
-
-        "motivation_interpretation": (
-            historical_candidate
-            .ai_motivation_interpretation
-            or {}
-        ),
-
-        "motivation_interpretation_status": (
-            historical_candidate
-            .ai_motivation_interpretation_status
-            or "not_started"
-        ),
-
-        "motivation_interpretation_stream_url": reverse(
-            (
-                "processes:"
-                "process_candidate_motivation_"
-                "interpretation_stream"
-            ),
-            kwargs={
-                "process_id": process.id,
-                "candidate_id": candidate.id,
-            },
-        ),
-
-        "motivation_interpretation_regenerate_url": reverse(
-            (
-                "processes:"
-                "process_candidate_motivation_"
-                "interpretation_regenerate"
-            ),
-            kwargs={
-                "process_id": process.id,
-                "candidate_id": candidate.id,
-            },
-        ),
-
-        "motivation_questions": (
-            historical_candidate
-            .ai_motivation_questions
-            or {}
-        ),
-
-        "motivation_questions_status": (
-            historical_candidate
-            .ai_motivation_questions_status
-            or "not_started"
-        ),
-
-        "motivation_questions_stream_url": reverse(
-            (
-                "processes:"
-                "process_candidate_motivation_"
-                "questions_stream"
-            ),
-            kwargs={
-                "process_id": process.id,
-                "candidate_id": candidate.id,
-            },
-        ),
-
-        "motivation_questions_regenerate_url": reverse(
-            (
-                "processes:"
-                "process_candidate_motivation_"
-                "questions_regenerate"
-            ),
-            kwargs={
-                "process_id": process.id,
-                "candidate_id": candidate.id,
-            },
-        ),
-
-        "response_styles": response_styles,
-
-        "response_style_segments": range(1, 11),
-
-        "response_style_side_segments": range(1, 6),
-
-        "response_style_guidance": (
-            historical_candidate
-            .ai_response_style_guidance
-            or {}
-        ),
-
-        "response_style_guidance_status": (
-            historical_candidate
-            .ai_response_style_guidance_status
-        ),
-
-        "response_style_guidance_stream_url": reverse(
-            (
-                "processes:process_candidate_"
-                "response_style_guidance_stream"
-            ),
-            kwargs={
-                "process_id": process.id,
-                "candidate_id": candidate.id,
-            },
-        ),
-    }
-
-
-@login_required
-@require_POST
-def process_candidate_summary_regenerate(
-    request,
-    process_id,
-    candidate_id,
-):
-    process = get_object_or_404(
-        TestProcess,
-        pk=process_id,
-    )
-
-    if not user_can_access_process(request.user, process):
-        return HttpResponseForbidden(
-            "You do not have access to this project."
-        )
-
-    if process.is_historical:
-        summary_owner = get_object_or_404(
-            HistoricalProcessCandidate.objects,
-            process=process,
-            candidate_id=candidate_id,
-        )
-
-    else:
-        summary_owner = get_object_or_404(
-            TestInvitation.objects,
-            process=process,
-            candidate_id=candidate_id,
-        )
-
-    summary_owner.ai_summary_status = "not_started"
-    summary_owner.ai_summary_generated_at = None
-
-    summary_owner.save(
-        update_fields=[
-            "ai_summary_status",
-            "ai_summary_generated_at",
-        ]
-    )
-
-    return JsonResponse({
-        "ok": True,
-        "stream_url": reverse(
-            "processes:process_candidate_summary_stream",
-            kwargs={
-                "process_id": process.id,
-                "candidate_id": candidate_id,
-            },
-        ),
-    })
-
-
-@login_required
-def process_candidate_cognitive_interpretation_stream(
-    request,
-    process_id,
-    candidate_id,
-):
-    """
-    Stream and save an AI-supported interpretation of the
-    candidate's available cognitive assessment results.
-    """
-
-    process = get_object_or_404(
-        TestProcess,
-        pk=process_id,
-    )
-
-    if not user_can_access_process(
-        request.user,
-        process,
-    ):
-        return HttpResponseForbidden(
-            "You do not have access to this project."
-        )
-
-    if process.is_historical:
-        invitation = get_object_or_404(
-            HistoricalProcessCandidate.objects
-            .select_related(
-                "candidate",
-                "process",
-            )
-            .prefetch_related(
-                "assessment_results__scores",
-                "assessment_results__import_file",
-            ),
-            process=process,
-            candidate_id=candidate_id,
-        )
-    else:
-        invitation = get_object_or_404(
-            TestInvitation.objects.select_related(
-                "candidate",
-                "process",
-            ),
-            process=process,
-            candidate_id=candidate_id,
-        )
-
-    language_code = get_request_ai_language(
-        request
-    )
-    mark_ai_content_outdated_if_language_changed(
-        invitation,
-        content_key="cognitive_interpretation",
-        result_field="ai_cognitive_interpretation",
-        status_field="ai_cognitive_interpretation_status",
-        language_code=language_code,
-    )
-
-    cognitive_results = (
-        build_cognitive_results_for_ai_owner(
-            invitation
-        )
-    )
-
-    if not cognitive_results:
-        return JsonResponse(
-            {
-                "error": (
-                    "No cognitive assessment results "
-                    "are available for this candidate."
-                )
-            },
-            status=400,
-        )
-
-    current_status = (
-        invitation.ai_cognitive_interpretation_status
-        or "not_started"
-    )
-
-    saved_interpretation = (
-        invitation.ai_cognitive_interpretation
-        or {}
-    )
-
-    current_purpose = (
-        process.purpose
-        or ""
-    ).strip().lower()
-
-    saved_purpose = (
-        invitation.ai_cognitive_interpretation_purpose
-        or ""
-    ).strip().lower()
-
-    # Safety check in case the purpose changed without the normal
-    # outdated-marking flow being triggered.
-    if (
-        saved_interpretation
-        and current_status == "completed"
-        and saved_purpose != current_purpose
-    ):
-        current_status = "outdated"
-
-        invitation.ai_cognitive_interpretation_status = (
-            "outdated"
-        )
-
-        invitation.save(update_fields=[
-            "ai_cognitive_interpretation_status",
-        ])
-
-    # Return a completed saved result without a new OpenAI request.
-    if (
-        ai_content_language_matches(
-            invitation,
-            "cognitive_interpretation",
-            language_code,
-        )
-        and should_return_saved_ai_result(
-            saved_interpretation,
-            current_status,
-        )
-    ):
-        def existing_generator():
-            yield json.dumps(
-                {
-                    "type": "saved_result",
-                    "data": saved_interpretation,
-                    "status": current_status,
-                },
-                ensure_ascii=False,
-            ) + "\n"
-
-        response = StreamingHttpResponse(
-            existing_generator(),
-            content_type=(
-                "application/x-ndjson; charset=utf-8"
-            ),
-        )
-
-        response["Cache-Control"] = "no-cache"
-        response["X-Accel-Buffering"] = "no"
-
-        return response
-
-    if current_status == "generating":
-        return JsonResponse(
-            {
-                "error": (
-                    "The cognitive interpretation is "
-                    "already being generated."
-                )
-            },
-            status=409,
-        )
-
-    invitation.ai_cognitive_interpretation_status = (
-        "generating"
-    )
-
-    invitation.save(update_fields=[
-        "ai_cognitive_interpretation_status",
-    ])
-
-    def generator():
-        interpretation = (
-            create_empty_cognitive_interpretation(
-                invitation,
-                language_code=language_code,
-            )
-        )
-
-        received_done_event = False
-
-        try:
-            for event in stream_cognitive_interpretation(
-                owner=invitation,
-                cognitive_results=cognitive_results,
-                language_code=language_code,
-            ):
-                interpretation = (
-                    apply_cognitive_interpretation_event(
-                        interpretation,
-                        event,
-                    )
-                )
-
-                if event.get("type") == "done":
-                    received_done_event = True
-
-                yield json.dumps(
-                    event,
-                    ensure_ascii=False,
-                ) + "\n"
-
-            # Do not save an empty or malformed AI result.
-            if not (
-                interpretation.get("interpretation")
-                or ""
-            ).strip():
-                raise ValueError(
-                    "The AI response did not contain "
-                    "a cognitive interpretation."
-                )
-
-            if not received_done_event:
-                yield json.dumps(
-                    {
-                        "type": "done",
-                    },
-                    ensure_ascii=False,
-                ) + "\n"
-
-            save_cognitive_interpretation(
-                owner=invitation,
-                interpretation=interpretation,
-                language_code=language_code,
-            )
-
-        except Exception as error:
-            invitation.ai_cognitive_interpretation_status = (
-                "failed"
-            )
-
-            invitation.save(update_fields=[
-                "ai_cognitive_interpretation_status",
-            ])
-
-            yield json.dumps(
-                {
-                    "type": "error",
-                    "message": str(error),
-                },
-                ensure_ascii=False,
-            ) + "\n"
-
-    response = StreamingHttpResponse(
-        generator(),
-        content_type=(
-            "application/x-ndjson; charset=utf-8"
-        ),
-    )
-
-    response["Cache-Control"] = "no-cache"
-    response["X-Accel-Buffering"] = "no"
-
-    return response
-
-
-@login_required
-@require_POST
-def process_candidate_cognitive_interpretation_regenerate(
-    request,
-    process_id,
-    candidate_id,
-):
-    """
-    Clear the saved cognitive interpretation and return
-    the stream URL for a fresh generation.
-    """
-
-    process = get_object_or_404(
-        TestProcess,
-        pk=process_id,
-    )
-
-    if not user_can_access_process(
-        request.user,
-        process,
-    ):
-        return HttpResponseForbidden(
-            "You do not have access to this project."
-        )
-
-
-    if process.is_historical:
-        invitation = get_object_or_404(
-            HistoricalProcessCandidate,
-            process=process,
-            candidate_id=candidate_id,
-        )
-    else:
-        invitation = get_object_or_404(
-            TestInvitation,
-            process=process,
-            candidate_id=candidate_id,
-        )
-
-    invitation.ai_cognitive_interpretation_status = (
-        "not_started"
-    )
-    invitation.ai_cognitive_interpretation_generated_at = (
-        None
-    )
-    invitation.ai_cognitive_interpretation_purpose = ""
-
-    invitation.save(
-        update_fields=[
-            "ai_cognitive_interpretation_status",
-            "ai_cognitive_interpretation_generated_at",
-            "ai_cognitive_interpretation_purpose",
-        ]
-    )
-
-    return JsonResponse(
-        {
-            "ok": True,
-            "stream_url": reverse(
-                (
-                    "processes:"
-                    "process_candidate_cognitive_"
-                    "interpretation_stream"
-                ),
-                kwargs={
-                    "process_id": process.id,
-                    "candidate_id": candidate_id,
-                },
-            ),
-        }
-    )
-
-
-@login_required
-def process_candidate_cognitive_questions_stream(
-    request,
-    process_id,
-    candidate_id,
-):
-    """
-    Stream and save AI-supported cognitive questions.
-
-    Cognitive questions are generated and stored independently
-    from the cognitive interpretation.
-    """
-
-    process = get_object_or_404(
-        TestProcess,
-        pk=process_id,
-    )
-
-    if not user_can_access_process(
-        request.user,
-        process,
-    ):
-        return HttpResponseForbidden(
-            "You do not have access to this project."
-        )
-
-
-    if process.is_historical:
-        invitation = get_object_or_404(
-            HistoricalProcessCandidate,
-            process=process,
-            candidate_id=candidate_id,
-        )
-    else:
-        invitation = get_object_or_404(
-            TestInvitation,
-            process=process,
-            candidate_id=candidate_id,
-        )
-
-    language_code = get_request_ai_language(
-        request
-    )
-    mark_ai_content_outdated_if_language_changed(
-        invitation,
-        content_key="cognitive_questions",
-        result_field="ai_cognitive_questions",
-        status_field="ai_cognitive_questions_status",
-        language_code=language_code,
-    )
-
-    cognitive_results = (
-        build_cognitive_results_for_ai_owner(
-            invitation
-        )
-    )
-
-    if not cognitive_results:
-        return JsonResponse(
-            {
-                "error": (
-                    "No cognitive assessment results "
-                    "are available for this candidate."
-                )
-            },
-            status=400,
-        )
-
-    current_status = (
-        invitation.ai_cognitive_questions_status
-        or "not_started"
-    )
-
-    saved_result = (
-        invitation.ai_cognitive_questions
-        or {}
-    )
-
-    current_purpose = (
-        process.purpose
-        or ""
-    ).strip().lower()
-
-    saved_purpose = (
-        invitation.ai_cognitive_questions_purpose
-        or ""
-    ).strip().lower()
-
-    # Safety check if the process purpose has changed.
-    if (
-        saved_result
-        and current_status == "completed"
-        and saved_purpose != current_purpose
-    ):
-        current_status = "outdated"
-
-        invitation.ai_cognitive_questions_status = (
-            "outdated"
-        )
-
-        invitation.save(
-            update_fields=[
-                "ai_cognitive_questions_status",
-            ]
-        )
-
-    # Return previously generated questions when available.
-    if (
-        ai_content_language_matches(
-            invitation,
-            "cognitive_questions",
-            language_code,
-        )
-        and should_return_saved_ai_result(
-            saved_result,
-            current_status,
-        )
-    ):
-        def existing_generator():
-            yield json.dumps(
-                {
-                    "type": "saved_result",
-                    "data": saved_result,
-                    "status": current_status,
-                },
-                ensure_ascii=False,
-            ) + "\n"
-
-        response = StreamingHttpResponse(
-            existing_generator(),
-            content_type=(
-                "application/x-ndjson; charset=utf-8"
-            ),
-        )
-
-        response["Cache-Control"] = "no-cache"
-        response["X-Accel-Buffering"] = "no"
-
-        return response
-
-    if current_status == "generating":
-        return JsonResponse(
-            {
-                "error": (
-                    "The cognitive questions are "
-                    "already being generated."
-                )
-            },
-            status=409,
-        )
-
-    invitation.ai_cognitive_questions_status = (
-        "generating"
-    )
-
-    invitation.save(
-        update_fields=[
-            "ai_cognitive_questions_status",
-        ]
-    )
-
-    def generator():
-        result = create_empty_cognitive_questions(
-            invitation,
-            language_code=language_code,
-        )
-
-        received_done_event = False
-
-        try:
-            for event in stream_cognitive_questions(
-                owner=invitation,
-                cognitive_results=cognitive_results,
-                language_code=language_code,
-            ):
-                result = apply_cognitive_questions_event(
-                    result,
-                    event,
-                )
-
-                if event.get("type") == "done":
-                    received_done_event = True
-
-                yield json.dumps(
-                    event,
-                    ensure_ascii=False,
-                ) + "\n"
-
-            questions = (
-                result.get("questions")
-                or []
-            )
-
-            if not questions:
-                raise ValueError(
-                    "The AI response did not contain "
-                    "valid cognitive questions."
-                )
-
-            if not received_done_event:
-                yield json.dumps(
-                    {
-                        "type": "done",
-                    },
-                    ensure_ascii=False,
-                ) + "\n"
-
-            save_cognitive_questions(
-                owner=invitation,
-                result=result,
-                language_code=language_code,
-            )
-
-        except Exception as error:
-            invitation.ai_cognitive_questions_status = (
-                "failed"
-            )
-
-            invitation.save(
-                update_fields=[
-                    "ai_cognitive_questions_status",
-                ]
-            )
-
-            yield json.dumps(
-                {
-                    "type": "error",
-                    "message": str(error),
-                },
-                ensure_ascii=False,
-            ) + "\n"
-
-    response = StreamingHttpResponse(
-        generator(),
-        content_type=(
-            "application/x-ndjson; charset=utf-8"
-        ),
-    )
-
-    response["Cache-Control"] = "no-cache"
-    response["X-Accel-Buffering"] = "no"
-
-    return response
-
-@login_required
-@require_POST
-def process_candidate_cognitive_questions_regenerate(
-    request,
-    process_id,
-    candidate_id,
-):
-    """
-    Reset only the cognitive questions and return the
-    stream URL for a fresh generation.
-
-    The cognitive interpretation is not changed.
-    """
-
-    process = get_object_or_404(
-        TestProcess,
-        pk=process_id,
-    )
-
-    if not user_can_access_process(
-        request.user,
-        process,
-    ):
-        return HttpResponseForbidden(
-            "You do not have access to this project."
-        )
-
-    if process.is_historical:
-        invitation = get_object_or_404(
-            HistoricalProcessCandidate,
-            process=process,
-            candidate_id=candidate_id,
-        )
-    else:
-        invitation = get_object_or_404(
-            TestInvitation,
-            process=process,
-            candidate_id=candidate_id,
-        )
-
-    invitation.ai_cognitive_questions_status = (
-        "not_started"
-    )
-
-    invitation.ai_cognitive_questions_generated_at = (
-        None
-    )
-
-    invitation.ai_cognitive_questions_purpose = ""
-
-    invitation.save(
-        update_fields=[
-            "ai_cognitive_questions_status",
-            "ai_cognitive_questions_generated_at",
-            "ai_cognitive_questions_purpose",
-        ]
-    )
-
-    return JsonResponse(
-        {
-            "ok": True,
-
-            "stream_url": reverse(
-                (
-                    "processes:"
-                    "process_candidate_cognitive_"
-                    "questions_stream"
-                ),
-                kwargs={
-                    "process_id": process.id,
-                    "candidate_id": candidate_id,
-                },
-            ),
-        }
-    )
-
-
-@login_required
-def process_candidate_motivation_interpretation_stream(
-    request,
-    process_id,
-    candidate_id,
-):
-    """
-    Stream and save an AI-supported interpretation of the
-    candidate's motivation assessment results.
-    """
-
-    process = get_object_or_404(
-        TestProcess,
-        pk=process_id,
-    )
-
-    if not user_can_access_process(
-        request.user,
-        process,
-    ):
-        return HttpResponseForbidden(
-            "You do not have access to this project."
-        )
-
-    if process.is_historical:
-        invitation = get_object_or_404(
-            HistoricalProcessCandidate.objects
-            .select_related(
-                "candidate",
-                "process",
-            )
-            .prefetch_related(
-                "assessment_results__scores",
-                "assessment_results__import_file",
-            ),
-            process=process,
-            candidate_id=candidate_id,
-        )
-    else:
-        invitation = get_object_or_404(
-            TestInvitation.objects.select_related(
-                "candidate",
-                "process",
-            ),
-            process=process,
-            candidate_id=candidate_id,
-        )
-
-    language_code = get_request_ai_language(
-        request
-    )
-    mark_ai_content_outdated_if_language_changed(
-        invitation,
-        content_key="motivation_interpretation",
-        result_field="ai_motivation_interpretation",
-        status_field="ai_motivation_interpretation_status",
-        language_code=language_code,
-    )
-
-    motivation_results = (
-        build_motivation_results_for_ai_owner(
-            invitation
-        )
-    )
-
-    if not motivation_results:
-        return JsonResponse(
-            {
-                "error": (
-                    "No motivation assessment results "
-                    "are available for this candidate."
-                )
-            },
-            status=400,
-        )
-
-    current_status = (
-        invitation.ai_motivation_interpretation_status
-        or "not_started"
-    )
-
-    saved_interpretation = (
-        invitation.ai_motivation_interpretation
-        or {}
-    )
-
-    current_purpose = (
-        process.purpose
-        or ""
-    ).strip().lower()
-
-    saved_purpose = (
-        invitation.ai_motivation_interpretation_purpose
-        or ""
-    ).strip().lower()
-
-    # Extra safety if the purpose changed without the normal
-    # outdated-marking flow being triggered.
-    if (
-        saved_interpretation
-        and current_status == "completed"
-        and saved_purpose != current_purpose
-    ):
-        current_status = "outdated"
-
-        invitation.ai_motivation_interpretation_status = (
-            "outdated"
-        )
-
-        invitation.save(update_fields=[
-            "ai_motivation_interpretation_status",
-        ])
-
-    # Return an existing completed interpretation.
-    if (
-        ai_content_language_matches(
-            invitation,
-            "motivation_interpretation",
-            language_code,
-        )
-        and should_return_saved_ai_result(
-            saved_interpretation,
-            current_status,
-        )
-    ):
-        def existing_generator():
-            yield json.dumps(
-                {
-                    "type": "saved_result",
-                    "data": saved_interpretation,
-                    "status": current_status,
-                },
-                ensure_ascii=False,
-            ) + "\n"
-
-        response = StreamingHttpResponse(
-            existing_generator(),
-            content_type=(
-                "application/x-ndjson; charset=utf-8"
-            ),
-        )
-
-        response["Cache-Control"] = "no-cache"
-        response["X-Accel-Buffering"] = "no"
-
-        return response
-
-    if current_status == "generating":
-        return JsonResponse(
-            {
-                "error": (
-                    "The motivation interpretation is "
-                    "already being generated."
-                )
-            },
-            status=409,
-        )
-
-    invitation.ai_motivation_interpretation_status = (
-        "generating"
-    )
-
-    invitation.save(update_fields=[
-        "ai_motivation_interpretation_status",
-    ])
-
-    def generator():
-        interpretation = (
-            create_empty_motivation_interpretation(
-                invitation,
-                language_code=language_code,
-            )
-        )
-
-        received_done_event = False
-
-        try:
-            for event in stream_motivation_interpretation(
-                owner=invitation,
-                motivation_results=motivation_results,
-                language_code=language_code,
-            ):
-                interpretation = (
-                    apply_motivation_interpretation_event(
-                        interpretation,
-                        event,
-                    )
-                )
-
-                if event.get("type") == "done":
-                    received_done_event = True
-
-                yield json.dumps(
-                    event,
-                    ensure_ascii=False,
-                ) + "\n"
-
-            if not (
-                interpretation.get("interpretation")
-                or ""
-            ).strip():
-                raise ValueError(
-                    "The AI response did not contain "
-                    "a motivation interpretation."
-                )
-
-            if not received_done_event:
-                yield json.dumps(
-                    {
-                        "type": "done",
-                    },
-                    ensure_ascii=False,
-                ) + "\n"
-
-            save_motivation_interpretation(
-                owner=invitation,
-                interpretation=interpretation,
-                language_code=language_code,
-            )
-
-        except Exception as error:
-            invitation.ai_motivation_interpretation_status = (
-                "failed"
-            )
-
-            invitation.save(update_fields=[
-                "ai_motivation_interpretation_status",
-            ])
-
-            yield json.dumps(
-                {
-                    "type": "error",
-                    "message": str(error),
-                },
-                ensure_ascii=False,
-            ) + "\n"
-
-    response = StreamingHttpResponse(
-        generator(),
-        content_type=(
-            "application/x-ndjson; charset=utf-8"
-        ),
-    )
-
-    response["Cache-Control"] = "no-cache"
-    response["X-Accel-Buffering"] = "no"
-
-    return response
-
-
-@login_required
-@require_POST
-def process_candidate_motivation_interpretation_regenerate(
-    request,
-    process_id,
-    candidate_id,
-):
-    """
-    Clear the saved motivation interpretation and return
-    the stream URL for a fresh generation.
-    """
-
-    process = get_object_or_404(
-        TestProcess,
-        pk=process_id,
-    )
-
-    if not user_can_access_process(
-        request.user,
-        process,
-    ):
-        return HttpResponseForbidden(
-            "You do not have access to this project."
-        )
-
-    if process.is_historical:
-        invitation = get_object_or_404(
-            HistoricalProcessCandidate,
-            process=process,
-            candidate_id=candidate_id,
-        )
-    else:
-        invitation = get_object_or_404(
-            TestInvitation,
-            process=process,
-            candidate_id=candidate_id,
-        )
-
-    invitation.ai_motivation_interpretation_status = (
-        "not_started"
-    )
-    invitation.ai_motivation_interpretation_generated_at = (
-        None
-    )
-    invitation.ai_motivation_interpretation_purpose = ""
-
-
-    invitation.save(update_fields=[
-        "ai_motivation_interpretation_status",
-        "ai_motivation_interpretation_generated_at",
-        "ai_motivation_interpretation_purpose",
-    ])
-
-    return JsonResponse(
-        {
-            "ok": True,
-            "stream_url": reverse(
-                (
-                    "processes:"
-                    "process_candidate_motivation_"
-                    "interpretation_stream"
-                ),
-                kwargs={
-                    "process_id": process.id,
-                    "candidate_id": candidate_id,
-                },
-            ),
-        }
-    )
-
-@login_required
-def process_candidate_motivation_questions_stream(
-    request,
-    process_id,
-    candidate_id,
-):
-    """
-    Stream and save AI-supported motivation questions.
-
-    Motivation questions are generated and stored independently
-    from the motivation interpretation.
-    """
-
-    process = get_object_or_404(
-        TestProcess,
-        pk=process_id,
-    )
-
-    if not user_can_access_process(
-        request.user,
-        process,
-    ):
-        return HttpResponseForbidden(
-            "You do not have access to this project."
-        )
-
-    if process.is_historical:
-        invitation = get_object_or_404(
-            HistoricalProcessCandidate.objects
-            .select_related(
-                "candidate",
-                "process",
-            )
-            .prefetch_related(
-                "assessment_results__scores",
-                "assessment_results__import_file",
-            ),
-            process=process,
-            candidate_id=candidate_id,
-        )
-    else:
-        invitation = get_object_or_404(
-            TestInvitation.objects.select_related(
-                "candidate",
-                "process",
-            ),
-            process=process,
-            candidate_id=candidate_id,
-        )
-
-    language_code = get_request_ai_language(
-        request
-    )
-    mark_ai_content_outdated_if_language_changed(
-        invitation,
-        content_key="motivation_questions",
-        result_field="ai_motivation_questions",
-        status_field="ai_motivation_questions_status",
-        language_code=language_code,
-    )
-
-    motivation_results = (
-        build_motivation_results_for_ai_owner(
-            invitation
-        )
-    )
-
-    if not motivation_results:
-        return JsonResponse(
-            {
-                "error": (
-                    "No motivation assessment results "
-                    "are available for this candidate."
-                )
-            },
-            status=400,
-        )
-
-    current_status = (
-        invitation.ai_motivation_questions_status
-        or "not_started"
-    )
-
-    saved_result = (
-        invitation.ai_motivation_questions
-        or {}
-    )
-
-    current_purpose = (
-        process.purpose
-        or ""
-    ).strip().lower()
-
-    saved_purpose = (
-        invitation.ai_motivation_questions_purpose
-        or ""
-    ).strip().lower()
-
-    # Safety check if the process purpose has changed.
-    if (
-        saved_result
-        and current_status == "completed"
-        and saved_purpose != current_purpose
-    ):
-        current_status = "outdated"
-
-        invitation.ai_motivation_questions_status = (
-            "outdated"
-        )
-
-        invitation.save(
-            update_fields=[
-                "ai_motivation_questions_status",
-            ]
-        )
-
-    # Return previously generated questions when available.
-    if (
-        ai_content_language_matches(
-            invitation,
-            "motivation_questions",
-            language_code,
-        )
-        and should_return_saved_ai_result(
-            saved_result,
-            current_status,
-        )
-    ):
-        def existing_generator():
-            yield json.dumps(
-                {
-                    "type": "saved_result",
-                    "data": saved_result,
-                    "status": current_status,
-                },
-                ensure_ascii=False,
-            ) + "\n"
-
-        response = StreamingHttpResponse(
-            existing_generator(),
-            content_type=(
-                "application/x-ndjson; charset=utf-8"
-            ),
-        )
-
-        response["Cache-Control"] = "no-cache"
-        response["X-Accel-Buffering"] = "no"
-
-        return response
-
-    if current_status == "generating":
-        return JsonResponse(
-            {
-                "error": (
-                    "The motivation questions are "
-                    "already being generated."
-                )
-            },
-            status=409,
-        )
-
-    invitation.ai_motivation_questions_status = (
-        "generating"
-    )
-
-    invitation.save(
-        update_fields=[
-            "ai_motivation_questions_status",
-        ]
-    )
-
-    def generator():
-        result = create_empty_motivation_questions(
-            invitation,
-            language_code=language_code,
-        )
-
-        received_done_event = False
-
-        try:
-            for event in stream_motivation_questions(
-                owner=invitation,
-                motivation_results=motivation_results,
-                language_code=language_code,
-            ):
-                result = apply_motivation_questions_event(
-                    result,
-                    event,
-                )
-
-                if event.get("type") == "done":
-                    received_done_event = True
-
-                yield json.dumps(
-                    event,
-                    ensure_ascii=False,
-                ) + "\n"
-
-            questions = (
-                result.get("questions")
-                or []
-            )
-
-            if not questions:
-                raise ValueError(
-                    "The AI response did not contain "
-                    "valid motivation questions."
-                )
-
-            if not received_done_event:
-                yield json.dumps(
-                    {
-                        "type": "done",
-                    },
-                    ensure_ascii=False,
-                ) + "\n"
-
-            save_motivation_questions(
-                owner=invitation,
-                result=result,
-                language_code=language_code,
-            )
-
-        except Exception as error:
-            invitation.ai_motivation_questions_status = (
-                "failed"
-            )
-
-            invitation.save(
-                update_fields=[
-                    "ai_motivation_questions_status",
-                ]
-            )
-
-            yield json.dumps(
-                {
-                    "type": "error",
-                    "message": str(error),
-                },
-                ensure_ascii=False,
-            ) + "\n"
-
-    response = StreamingHttpResponse(
-        generator(),
-        content_type=(
-            "application/x-ndjson; charset=utf-8"
-        ),
-    )
-
-    response["Cache-Control"] = "no-cache"
-    response["X-Accel-Buffering"] = "no"
-
-    return response
-
-
-def get_candidate_ai_owner(
-    process,
-    candidate_id,
-):
-    """
-    Return the model instance that owns candidate AI content.
-
-    Active process:
-        TestInvitation
-
-    Historical process:
-        HistoricalProcessCandidate
-    """
-
-    if process.is_historical:
-        return get_object_or_404(
-            HistoricalProcessCandidate.objects
-            .select_related(
-                "candidate",
-                "process",
-            ),
-            process=process,
-            candidate_id=candidate_id,
-        )
-
-    return get_object_or_404(
-        TestInvitation.objects.select_related(
-            "candidate",
-            "process",
-        ),
-        process=process,
-        candidate_id=candidate_id,
-    )
-
-
-@login_required
-@require_POST
-def process_candidate_motivation_questions_regenerate(
-    request,
-    process_id,
-    candidate_id,
-):
-    """
-    Reset only the motivation questions and return the
-    stream URL for a fresh generation.
-
-    The motivation interpretation is not changed.
-    """
-
-    process = get_object_or_404(
-        TestProcess,
-        pk=process_id,
-    )
-
-    if not user_can_access_process(
-        request.user,
-        process,
-    ):
-        return HttpResponseForbidden(
-            "You do not have access to this project."
-        )
-
-
-    if process.is_historical:
-        invitation = get_object_or_404(
-            HistoricalProcessCandidate,
-            process=process,
-            candidate_id=candidate_id,
-        )
-    else:
-        invitation = get_object_or_404(
-            TestInvitation,
-            process=process,
-            candidate_id=candidate_id,
-        )
-
-    invitation.ai_motivation_questions_status = (
-        "not_started"
-    )
-
-    invitation.ai_motivation_questions_generated_at = (
-        None
-    )
-
-    invitation.ai_motivation_questions_purpose = ""
-
-    invitation.save(
-        update_fields=[
-            "ai_motivation_questions_status",
-            "ai_motivation_questions_generated_at",
-            "ai_motivation_questions_purpose",
-        ]
-    )
-
-    return JsonResponse(
-        {
-            "ok": True,
-            "stream_url": reverse(
-                (
-                    "processes:"
-                    "process_candidate_motivation_"
-                    "questions_stream"
-                ),
-                kwargs={
-                    "process_id": process.id,
-                    "candidate_id": candidate_id,
-                },
-            ),
-        }
-    )
-
-
-@login_required
-def process_candidate_personality_interpretation_stream(
-    request,
-    process_id,
-    candidate_id,
-):
-    """
-    Stream and save an AI-supported interpretation of the
-    candidate's personality trait profile.
-
-    Supports both:
-    - active TestInvitation candidates
-    - imported HistoricalProcessCandidate candidates
-    """
-
-    process = get_object_or_404(
-        TestProcess,
-        pk=process_id,
-    )
-
-    if not user_can_access_process(
-        request.user,
-        process,
-    ):
-        return HttpResponseForbidden(
-            "You do not have access to this project."
-        )
-
-    # ---------------------------------------------------------
-    # FIND THE CORRECT OWNER
-    # ---------------------------------------------------------
-
-    if process.is_historical:
-        owner = get_object_or_404(
-            HistoricalProcessCandidate.objects
-            .select_related(
-                "candidate",
-                "process",
-            )
-            .prefetch_related(
-                "assessment_results__scores",
-                "assessment_results__import_file",
-            ),
-            process=process,
-            candidate_id=candidate_id,
-        )
-
-    else:
-        owner = get_object_or_404(
-            TestInvitation.objects.select_related(
-                "candidate",
-                "process",
-            ),
-            process=process,
-            candidate_id=candidate_id,
-        )
-
-    language_code = get_request_ai_language(request)
-    mark_ai_content_outdated_if_language_changed(
-        owner,
-        content_key="personality_interpretation",
-        result_field="ai_personality_interpretation",
-        status_field="ai_personality_interpretation_status",
-        language_code=language_code,
-    )
-
-    # ---------------------------------------------------------
-    # BUILD PERSONALITY EVIDENCE
-    # ---------------------------------------------------------
-
-    personality_results = (
-        build_personality_results_for_ai_owner(
-            owner
-        )
-    )
-
-    if not personality_results:
-        return JsonResponse(
-            {
-                "error": (
-                    "No personality assessment results "
-                    "are available for this candidate."
-                )
-            },
-            status=400,
-        )
-
-    # ---------------------------------------------------------
-    # CURRENT SAVED STATE
-    # ---------------------------------------------------------
-
-    current_status = (
-        owner.ai_personality_interpretation_status
-        or "not_started"
-    )
-
-    saved_interpretation = (
-        owner.ai_personality_interpretation
-        or {}
-    )
-
-    # Older saved personality interpretations predate the manager-report
-    # personality sections. Regenerate them once so all six report texts
-    # are available, even when the main interpretation was already saved.
-    if (
-        saved_interpretation
-        and current_status == "completed"
-        and saved_interpretation.get(
-            "manager_report_personality_schema_version"
-        ) != 1
-    ):
-        current_status = "outdated"
-        owner.ai_personality_interpretation_status = "outdated"
-        owner.save(update_fields=["ai_personality_interpretation_status"])
-
-    current_purpose = normalize_purpose_key(
-        process.purpose
-    )
-
-    saved_purpose = normalize_purpose_key(
-        owner.ai_personality_interpretation_purpose
-    )
-
-    # Safety check in case the purpose changed without the normal
-    # outdated-marking flow being triggered.
-    if (
-        saved_interpretation
-        and current_status == "completed"
-        and saved_purpose != current_purpose
-    ):
-        current_status = "outdated"
-
-        owner.ai_personality_interpretation_status = (
-            "outdated"
-        )
-
-        owner.save(update_fields=[
-            "ai_personality_interpretation_status",
-        ])
-
-    # ---------------------------------------------------------
-    # RETURN SAVED RESULT
-    # ---------------------------------------------------------
-
-    if (
-        ai_content_language_matches(
-            owner,
-            "personality_interpretation",
-            language_code,
-        )
-        and should_return_saved_ai_result(
-            saved_interpretation,
-            current_status,
-        )
-    ):
-        def existing_generator():
-            yield json.dumps(
-                {
-                    "type": "saved_result",
-                    "data": saved_interpretation,
-                    "status": current_status,
-                },
-                ensure_ascii=False,
-            ) + "\n"
-
-        response = StreamingHttpResponse(
-            existing_generator(),
-            content_type=(
-                "application/x-ndjson; charset=utf-8"
-            ),
-        )
-
-        response["Cache-Control"] = "no-cache"
-        response["X-Accel-Buffering"] = "no"
-
-        return response
-
-    # ---------------------------------------------------------
-    # PREVENT DUPLICATE GENERATION
-    # ---------------------------------------------------------
-
-    if current_status == "generating":
-        return JsonResponse(
-            {
-                "error": (
-                    "The personality interpretation is "
-                    "already being generated."
-                )
-            },
-            status=409,
-        )
-
-    owner.ai_personality_interpretation_status = (
-        "generating"
-    )
-
-    owner.save(update_fields=[
-        "ai_personality_interpretation_status",
-    ])
-
-    # ---------------------------------------------------------
-    # STREAM GENERATION
-    # ---------------------------------------------------------
-
-    def generator():
-        interpretation = (
-            create_empty_personality_interpretation(
-                owner,
-                language_code=language_code,
-            )
-        )
-
-        received_done_event = False
-        received_manager_report_texts = set()
-
-        try:
-            for event in stream_personality_interpretation(
-                owner=owner,
-                personality_results=personality_results,
-                language_code=language_code,
-            ):
-                interpretation = (
-                    apply_personality_interpretation_event(
-                        interpretation,
-                        event,
-                    )
-                )
-
-                if event.get("type") == "done":
-                    received_done_event = True
-                elif event.get("type") == "personality_report_text":
-                    received_manager_report_texts.add(
-                        (event.get("theme"), event.get("part"))
-                    )
-
-                yield json.dumps(
-                    event,
-                    ensure_ascii=False,
-                ) + "\n"
-
-            expected_manager_report_texts = {
-                (theme["key"], part)
-                for theme in PERSONALITY_MANAGER_REPORT_THEMES
-                for part in ("testbild", "candidate_describes")
-            }
-            if received_manager_report_texts != expected_manager_report_texts:
-                raise ValueError(
-                    "The AI response did not contain all six "
-                    "manager-report personality texts."
-                )
-
-            if not (
-                interpretation.get(
-                    "interpretation"
-                )
-                or ""
-            ).strip():
-                raise ValueError(
-                    "The AI response did not contain "
-                    "a personality interpretation."
-                )
-
-            if not received_done_event:
-                yield json.dumps(
-                    {
-                        "type": "done",
-                    },
-                    ensure_ascii=False,
-                ) + "\n"
-
-            save_personality_interpretation(
-                owner=owner,
-                interpretation=interpretation,
-                language_code=language_code,
-            )
-
-        except Exception as error:
-            owner.ai_personality_interpretation_status = (
-                "failed"
-            )
-
-            owner.save(update_fields=[
-                "ai_personality_interpretation_status",
-            ])
-
-            yield json.dumps(
-                {
-                    "type": "error",
-                    "message": str(error),
-                },
-                ensure_ascii=False,
-            ) + "\n"
-
-    response = StreamingHttpResponse(
-        generator(),
-        content_type=(
-            "application/x-ndjson; charset=utf-8"
-        ),
-    )
-
-    response["Cache-Control"] = "no-cache"
-    response["X-Accel-Buffering"] = "no"
-
-    return response
-
-
-@login_required
-@require_POST
-def process_candidate_personality_interpretation_regenerate(
-    request,
-    process_id,
-    candidate_id,
-):
-    """
-    Clear the saved personality interpretation and return
-    the stream URL for a fresh generation.
-    """
-
-    process = get_object_or_404(
-        TestProcess,
-        pk=process_id,
-    )
-
-    if not user_can_access_process(
-        request.user,
-        process,
-    ):
-        return HttpResponseForbidden(
-            "You do not have access to this project."
-        )
-
-    if process.is_historical:
-        owner = get_object_or_404(
-            HistoricalProcessCandidate.objects
-            .select_related(
-                "candidate",
-                "process",
-            ),
-            process=process,
-            candidate_id=candidate_id,
-        )
-
-    else:
-        owner = get_object_or_404(
-            TestInvitation.objects.select_related(
-                "candidate",
-                "process",
-            ),
-            process=process,
-            candidate_id=candidate_id,
-        )
-
-    owner.ai_personality_interpretation_status = (
-        "not_started"
-    )
-
-    owner.ai_personality_interpretation_generated_at = (
-        None
-    )
-
-    owner.ai_personality_interpretation_purpose = ""
-
-    owner.save(update_fields=[
-        "ai_personality_interpretation_status",
-        "ai_personality_interpretation_generated_at",
-        "ai_personality_interpretation_purpose",
-    ])
-
-    return JsonResponse(
-        {
-            "ok": True,
-
-            "stream_url": reverse(
-                (
-                    "processes:"
-                    "process_candidate_personality_"
-                    "interpretation_stream"
-                ),
-                kwargs={
-                    "process_id": process.id,
-                    "candidate_id": candidate_id,
-                },
-            ),
-        }
-    )
-
-@login_required
-def process_candidate_personality_questions_stream(
-    request,
-    process_id,
-    candidate_id,
-):
-    """
-    Stream and save AI-supported personality trait suggestions
-    and purpose-aware questions.
-    """
-
-    process = get_object_or_404(
-        TestProcess,
-        pk=process_id,
-    )
-
-    if not user_can_access_process(
-        request.user,
-        process,
-    ):
-        return HttpResponseForbidden(
-            "You do not have access to this project."
-        )
-
-    if process.is_historical:
-        invitation = get_object_or_404(
-            HistoricalProcessCandidate.objects
-            .select_related(
-                "candidate",
-                "process",
-            )
-            .prefetch_related(
-                "assessment_results__scores",
-                "assessment_results__import_file",
-            ),
-            process=process,
-            candidate_id=candidate_id,
-        )
-    else:
-        invitation = get_object_or_404(
-            TestInvitation.objects.select_related(
-                "candidate",
-                "process",
-            ),
-            process=process,
-            candidate_id=candidate_id,
-        )
-
-    language_code = get_request_ai_language(request)
-    mark_ai_content_outdated_if_language_changed(
-        invitation,
-        content_key="personality_questions",
-        result_field="ai_personality_questions",
-        status_field="ai_personality_questions_status",
-        language_code=language_code,
-    )
-
-    personality_results = (
-        build_personality_question_traits_for_ai_owner(
-            invitation
-        )
-    )
-
-    if not personality_results:
-        return JsonResponse(
-            {
-                "error": (
-                    "No personality assessment results "
-                    "are available for this candidate."
-                )
-            },
-            status=400,
-        )
-
-    current_status = (
-        invitation.ai_personality_questions_status
-        or "not_started"
-    )
-
-    saved_result = (
-        invitation.ai_personality_questions
-        or {}
-    )
-
-    current_purpose = (
-        process.purpose
-        or ""
-    ).strip().lower()
-
-    saved_purpose = (
-        invitation.ai_personality_questions_purpose
-        or ""
-    ).strip().lower()
-
-    if (
-        saved_result
-        and current_status == "completed"
-        and saved_purpose != current_purpose
-    ):
-        current_status = "outdated"
-
-        invitation.ai_personality_questions_status = (
-            "outdated"
-        )
-
-        invitation.save(update_fields=[
-            "ai_personality_questions_status",
-        ])
-
-    if (
-        ai_content_language_matches(
-            invitation,
-            "personality_questions",
-            language_code,
-        )
-        and should_return_saved_ai_result(
-            saved_result,
-            current_status,
-        )
-    ):
-        def existing_generator():
-            yield json.dumps(
-                {
-                    "type": "saved_result",
-                    "data": saved_result,
-                    "status": current_status,
-                },
-                ensure_ascii=False,
-            ) + "\n"
-
-        response = StreamingHttpResponse(
-            existing_generator(),
-            content_type=(
-                "application/x-ndjson; charset=utf-8"
-            ),
-        )
-
-        response["Cache-Control"] = "no-cache"
-        response["X-Accel-Buffering"] = "no"
-
-        return response
-
-    if current_status == "generating":
-        return JsonResponse(
-            {
-                "error": (
-                    "The personality questions are "
-                    "already being generated."
-                )
-            },
-            status=409,
-        )
-
-    invitation.ai_personality_questions_status = (
-        "generating"
-    )
-
-    invitation.save(update_fields=[
-        "ai_personality_questions_status",
-    ])
-
-    def generator():
-        result = create_empty_personality_questions(
-            invitation,
-            language_code=language_code,
-        )
-
-        received_done_event = False
-
-        try:
-            for event in stream_personality_questions(
-                owner=invitation,
-                personality_results=personality_results,
-                language_code=language_code,
-            ):
-                result = apply_personality_questions_event(
-                    result,
-                    event,
-                )
-
-                if event.get("type") == "done":
-                    received_done_event = True
-
-                yield json.dumps(
-                    event,
-                    ensure_ascii=False,
-                ) + "\n"
-
-            selected_traits = (
-                result.get("selected_traits")
-                or []
-            )
-
-            questions = (
-                result.get("questions")
-                or []
-            )
-
-            # ---------------------------------------------------------
-            # Validate only Talena's technical/product requirements.
-            #
-            # Administrators control:
-            # - how many questions are generated
-            # - how traits are used across questions
-            # - whether every selected trait needs question coverage
-            #
-            # Talena only requires:
-            # - at least one valid selected trait
-            # - no more than six selected traits because the UI
-            #   currently supports a maximum of six
-            # - at least one valid question
-            # ---------------------------------------------------------
-
-            if not (
-                1 <= len(selected_traits) <= 6
-            ):
-                raise ValueError(
-                    "The personality trait selection was invalid."
-                )
-
-            if not questions:
-                raise ValueError(
-                    "The AI response did not contain "
-                    "valid personality questions."
-                )
-
-            if not received_done_event:
-                yield json.dumps(
-                    {
-                        "type": "done",
-                    },
-                    ensure_ascii=False,
-                ) + "\n"
-
-            save_personality_questions(
-                owner=invitation,
-                result=result,
-                language_code=language_code,
-            )
-
-        except Exception as error:
-            invitation.ai_personality_questions_status = (
-                "failed"
-            )
-
-            invitation.save(update_fields=[
-                "ai_personality_questions_status",
-            ])
-
-            yield json.dumps(
-                {
-                    "type": "error",
-                    "message": str(error),
-                },
-                ensure_ascii=False,
-            ) + "\n"
-
-    response = StreamingHttpResponse(
-        generator(),
-        content_type=(
-            "application/x-ndjson; charset=utf-8"
-        ),
-    )
-
-    response["Cache-Control"] = "no-cache"
-    response["X-Accel-Buffering"] = "no"
-
-    return response
-
-
-@login_required
-@require_POST
-def process_candidate_personality_questions_regenerate(
-    request,
-    process_id,
-    candidate_id,
-):
-    """
-    Clear the saved personality questions and return
-    the stream URL for a fresh generation.
-    """
-
-    process = get_object_or_404(
-        TestProcess,
-        pk=process_id,
-    )
-
-    if not user_can_access_process(
-        request.user,
-        process,
-    ):
-        return HttpResponseForbidden(
-            "You do not have access to this project."
-        )
-
-    if process.is_historical:
-        invitation = get_object_or_404(
-            HistoricalProcessCandidate,
-            process=process,
-            candidate_id=candidate_id,
-        )
-    else:
-        invitation = get_object_or_404(
-            TestInvitation,
-            process=process,
-            candidate_id=candidate_id,
-        )
-
-    invitation.ai_personality_questions_status = (
-        "not_started"
-    )
-    invitation.ai_personality_questions_generated_at = (
-        None
-    )
-    invitation.ai_personality_questions_purpose = ""
-
-    invitation.save(update_fields=[
-        "ai_personality_questions_status",
-        "ai_personality_questions_generated_at",
-        "ai_personality_questions_purpose",
-    ])
-
-    return JsonResponse(
-        {
-            "ok": True,
-            "stream_url": reverse(
-                (
-                    "processes:"
-                    "process_candidate_personality_"
-                    "questions_stream"
-                ),
-                kwargs={
-                    "process_id": process.id,
-                    "candidate_id": candidate_id,
-                },
-            ),
-        }
-    )
-
-
-@login_required
-@require_POST
-def process_candidate_personality_traits_update(
-    request,
-    process_id,
-    candidate_id,
-):
-    """
-    Save the user's personality trait selection.
-
-    An empty list means that Talena should choose relevant
-    traits automatically when questions are generated.
-    """
-
-    process = get_object_or_404(
-        TestProcess,
-        pk=process_id,
-    )
-
-    if not user_can_access_process(
-        request.user,
-        process,
-    ):
-        return HttpResponseForbidden(
-            "You do not have access to this project."
-        )
-
-    if process.is_historical:
-        invitation = get_object_or_404(
-            HistoricalProcessCandidate.objects
-            .select_related(
-                "candidate",
-                "process",
-            )
-            .prefetch_related(
-                "assessment_results__scores",
-                "assessment_results__import_file",
-            ),
-            process=process,
-            candidate_id=candidate_id,
-        )
-    else:
-        invitation = get_object_or_404(
-            TestInvitation.objects.select_related(
-                "candidate",
-                "process",
-            ),
-            process=process,
-            candidate_id=candidate_id,
-        )
-
-    try:
-        payload = json.loads(
-            request.body.decode("utf-8")
-            or "{}"
-        )
-    except json.JSONDecodeError:
-        return JsonResponse(
-            {
-                "error": "Invalid JSON payload."
-            },
-            status=400,
-        )
-
-    raw_traits = payload.get("traits")
-
-    if not isinstance(raw_traits, list):
-        return JsonResponse(
-            {
-                "error": (
-                    "Traits must be supplied as a list."
-                )
-            },
-            status=400,
-        )
-    
-    personality_results = (
-        build_personality_question_traits_for_ai_owner(
-            invitation
-        )
-    )
-
-    selected_traits = (
-        normalise_selected_traits(
-            selected_traits=raw_traits,
-            available_results=personality_results,
-        )
-    )
-
-    # Zero selected traits means automatic selection.
-    # A manual selection may contain no more than six traits.
-    if len(selected_traits) > 6:
-        return JsonResponse(
-            {
-                "error": (
-                    "Select no more than six "
-                    "available personality traits."
-                )
-            },
-            status=400,
-        )
-
-    invitation.selected_personality_traits = (
-        selected_traits
-    )
-
-    invitation.ai_personality_questions_status = (
-        "outdated"
-        if invitation.ai_personality_questions
-        else "not_started"
-    )
-
-    invitation.save(
-        update_fields=[
-            "selected_personality_traits",
-            "ai_personality_questions_status",
-        ]
-    )
-
-    return JsonResponse(
-        {
-            "ok": True,
-            "selected_traits": selected_traits,
-            "selection_mode": (
-                "manual"
-                if selected_traits
-                else "automatic"
-            ),
-            "questions_status": (
-                invitation
-                .ai_personality_questions_status
-            ),
-        }
-    )
+YªçŠx-®éÜj×¢ëiºÚ+Š§j[h‘éÜ¢éí×nt×„èµ©hºÚn¶X§zÍYœ›ÛH˜[™ÛË˜ÛÛšX‹˜]]™XÛÜ˜]ÜœÈ[\ÜÙÚ[—Ü™\]Z\™Y™œ›ÛH˜[™ÛËœÚÜÝ]È[\Ü™[™\‹™Y\™XÝÙ]ÛØš™XÝÛÜ—Í™œ›ÛH˜[™ÛË][Ëš[\Ü\›Ú\×Ø[ÝÙYÚÜÝØ[™ÜØÚ[YB™œ›ÛH\Ë˜ÛÜ™Kš[YÜ˜][ÛœËœÛÝ˜H[\ÜÛÝ˜PÛY[™œ›ÛH\Ëœ›Ú™XÝË›[Ù[È[\Ü›Ú™XÝY]B™œ›ÛH\Ë˜XØÛÝ[Ëœ™\ÜØœ˜[™[™È[\ÜÙ]Ü™\ÜØœ˜[™[™Â™œ›ÛH™›Ü›\È[\Ü\Ý›ØÙ\ÜÐÜ™X]Q›Ü›KØ[™Y]PÜ™X]Q›Ü›B™œ›ÛH›[Ù[È[\Ü
+ˆ\Ý›ØÙ\ÜËˆØ[™Y]Kˆ\Ý[š]][Û‹ˆÙ[”™YÚ\Ý˜][Û‹ˆ›ØÙ\ÜÓX™[ˆ\ÝÜšXØ[›ØÙ\ÜÐØ[™Y]KŠB™œ›ÛHœ\œÜÙWÝ][È[\Ü›Ü›X[^™WÜ\œÜÙWÚÙ^B™œ›ÛH˜ZWÚ[œÚYÚÝ\]\È[\ÜZ[ØØ[™Y]WØZWÝ\]WÜÝ]B™œ›ÛH\Ëœ™\ÜËœÙ\šXÙ\Ë˜Ø[™Y]WÚ[œÚYÚÈ[\Ü
+ˆZ[ÙÙ[™\˜[Ú[œÚYÚÚ[œ]ˆÙ[™\˜]WÙÙ[™\˜[ØØ[™Y]WÚ[œÚYÚËŠB™œ›ÛH\Ëœ™\ÜËœÙ\šXÙ\Ë›XY\œÚ\Ü™\Ü[\Ü
+ˆZ[ÛXY\œÚ\Ü™\ÜØÛÛ[ŠB™œ›ÛH\Ëœ™\ÜËœÙ\šXÙ\Ë™\˜Z[Y[Ü™\Ü[\Ü
+ˆZ[Ù\˜Z[Y[Ü™\ÜØÛÛ[ŠB‚‚™œ›ÛH\Ë˜ÛÜ™K][Ë˜]][\Ü\×ØYZ[‚‚™œ›ÛH\Ë˜ÛÜ™K˜ZK™XÚ\Ú[Û—ÜÝ\Ü[\Ü
+ˆÜ™X]WÙ[\WÜ™WÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\Üˆ\WÜ™WÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜÙ]™[ˆÝ™X[WÜ™WÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜˆØ]™WÜ™WÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\Ü‚ˆÜ™X]WÙ[\WÜÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\Üˆ\WÜÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜÙ]™[ˆÝ™X[WÜÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜˆØ]™WÜÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜŠB‚ˆÈ[[˜HÛÙÛš]]™HRH[™ÝXYÙH˜]ÚB™œ›ÛH\Ë˜ÛÜ™K˜ZK˜ÛÙÛš]]™WÚ[\œ™]][Ûˆ[\Ü
+ˆ^˜XÝØÛÙÛš]]™WÜ™\Ý[ËˆÜ™X]WÙ[\WØÛÙÛš]]™WÚ[\œ™]][Û‹ˆ\WØÛÙÛš]]™WÚ[\œ™]][Û—Ù]™[ˆÝ™X[WØÛÙÛš]]™WÚ[\œ™]][Û‹ˆØ]™WØÛÙÛš]]™WÚ[\œ™]][Û‹ŠB‚™œ›ÛH\Ë˜ÛÜ™K˜ZK˜ÛÙÛš]]™WÜ]Y\Ý[ÛœÈ[\Ü
+ˆÜ™X]WÙ[\WØÛÙÛš]]™WÜ]Y\Ý[ÛœËˆ\WØÛÙÛš]]™WÜ]Y\Ý[Ûœ×Ù]™[ˆÝ™X[WØÛÙÛš]]™WÜ]Y\Ý[ÛœËˆØ]™WØÛÙÛš]]™WÜ]Y\Ý[ÛœËŠB‚™œ›ÛH\Ë˜ÛÜ™K˜ZK›[Ý]˜][Û—Ú[\œ™]][Ûˆ[\Ü
+ˆSÕUUSÓ—ÑQ’S’USÓ”Ëˆ^˜XÝÛ[Ý]˜][Û—Ü™\Ý[ËˆÜ™X]WÙ[\WÛ[Ý]˜][Û—Ú[\œ™]][Û‹ˆ\WÛ[Ý]˜][Û—Ú[\œ™]][Û—Ù]™[ˆÝ™X[WÛ[Ý]˜][Û—Ú[\œ™]][Û‹ˆØ]™WÛ[Ý]˜][Û—Ú[\œ™]][Û‹ŠB‚™œ›ÛH\Ë˜ÛÜ™K˜ZK›[Ý]˜][Û—Ü]Y\Ý[ÛœÈ[\Ü
+ˆÜ™X]WÙ[\WÛ[Ý]˜][Û—Ü]Y\Ý[ÛœËˆ\WÛ[Ý]˜][Û—Ü]Y\Ý[Ûœ×Ù]™[ˆÝ™X[WÛ[Ý]˜][Û—Ü]Y\Ý[ÛœËˆØ]™WÛ[Ý]˜][Û—Ü]Y\Ý[ÛœËŠB‚™œ›ÛH\Ë˜ÛÜ™K˜ZKœ™\ÜÛœÙWÜÝ[WÙÝZY[˜ÙH[\Ü
+ˆÜ™X]WÙ[\WÜ™\ÜÛœÙWÜÝ[WÙÝZY[˜ÙKˆ\WÜ™\ÜÛœÙWÜÝ[WÙÝZY[˜ÙWÙ]™[ˆÝ™X[WÜ™\ÜÛœÙWÜÝ[WÙÝZY[˜ÙKˆØ]™WÜ™\ÜÛœÙWÜÝ[WÙÝZY[˜ÙKˆ‘TÔÓ”ÑWÔÕSWÑÕRQSÑWÔÐÒSPWÕ‘T”ÒSÓ‹ŠB‚™œ›ÛH\Ëœ›ØÙ\ÜÙ\ËœÙ\šXÙ\ËX[WÜÝ[\È[\Ü
+ˆZ[ÝX[WÜÝ[WÜ›Ùš[KŠB‚™œ›ÛHœÙ\šXÙ\Ëœ›ØÙ\Ü×Ü™XÛÛ[Y[™][ÛœÈ[\Ü
+ˆ“ÐÑTÔ×ÔT”ÔÑTËˆT”ÔÑWÔ‘PÓÓSQS‘QÕTÕËˆURSP“WÕTÕËˆZ[ÙY˜][Ü›ØÙ\Ü×Û˜[YKˆ™\ÛÛ™WÜÛÝ˜WÝ[\]Kˆ^˜XÝÝ\Ý×Ùœ›ÛWÜ›Ú™XÝÛ˜[YKŠB‚™œ›ÛH\Ë˜ÛÜ™K˜ZKœ\œÛÛ˜[]WÚ[\œ™]][Ûˆ[\Ü
+ˆÜ™X]WÙ[\WÜ\œÛÛ˜[]WÚ[\œ™]][Û‹ˆ\WÜ\œÛÛ˜[]WÚ[\œ™]][Û—Ù]™[ˆÝ™X[WÜ\œÛÛ˜[]WÚ[\œ™]][Û‹ˆØ]™WÜ\œÛÛ˜[]WÚ[\œ™]][Û‹ŠB™œ›ÛH\Ë˜ÛÜ™K˜ZK›X[˜YÙ\—Ü™\ÜÜ\œÛÛ˜[]H[\Ü
+ˆT”ÓÓSUWÓPSQÑT—Ô‘TÔ•ÕSQTËˆ\WÛX[˜YÙ\—Ü™\ÜÜ\œÛÛ˜[]WÙ]™[ˆ[\WÛX[˜YÙ\—Ü™\ÜÜ\œÛÛ˜[]KˆØ]™WÛX[˜YÙ\—Ü™\ÜÜ\œÛÛ˜[]KˆÝ™X[WÛX[˜YÙ\—Ü™\ÜÜ\œÛÛ˜[]KŠB‚™œ›ÛH\Ëœ›ØÙ\ÜÙ\ËœÙ\šXÙ\Ë˜Ø[™Y]WÚ[œÚYÚÈ[\Ü
+ˆZ[ØØ[™Y]WÚ[œÚYÚËŠB‚™œ›ÛH\Ëœ›ØÙ\ÜÙ\ËœÙ\šXÙ\Ë˜Ø[™Y]WÜ›Ùš[H[\Ü
+ˆZ[Ú\ÝÜšXØ[ØØ[™Y]WÜ›Ùš[KŠB™œ›ÛH\Ëœ›ØÙ\ÜÙ\ËœÙ\šXÙ\Ë˜ÛÙÛš]]™WÚ[œÚYÚÈ[\Ü
+ˆZ[ØÛÙÛš]]™WÚ[œÚYÚÜ™\Ý[È\ÈØZ[ØÛÙÛš]]™WÚ[œÚYÚÜ™\Ý[ËŠB‚™œ›ÛH\Ëœ›ØÙ\ÜÙ\Ë›[Ù[È[\Ü
+ˆ\ÝÜšXØ[›ØÙ\ÜÐØ[™Y]Kˆ\Ý[š]][Û‹ˆ\Ý›ØÙ\ÜËŠB‚™œ›ÛH\Ë˜ÛÜ™K˜ZKœ\œÜÙWÙš][\Ü
+ˆ\œÜÙWÜÝ\Ü×Ùš]ˆZ[Ø\ÜÙ\ÜÛY[Ù]šY[˜ÙKˆÜ™X]WÙ[\WÜ\œÜÙWÙš]ˆ\WÜ\œÜÙWÙš]Ù]™[ˆÙ[™\˜]WØØ[™Y]WÜ\œÜÙWÙš]Ù]™[ËˆØ]™WØØ[™Y]WÜ\œÜÙWÙš]ŠB‚™œ›ÛH\Ë˜ÛÜ™K˜ZK›[™ÝXYÙH[\Ü
+ˆZWØÛÛ[Û[™ÝXYÙWÛX]Ú\ËˆÙ]Ü™\]Y\ÝØZWÛ[™ÝXYÙKˆX\š×ØZWØÛÛ[ÛÝ]]YÚY—Û[™ÝXYÙWØÚ[™ÙYŠB‚ˆÈ[[˜H\œÛÛ˜[]H[™ÝXYÙH˜]ÚB‚™œ›ÛH\Ëœ›ØÙ\ÜÙ\ËœÙ\šXÙ\Ëš\ÝÜšXØ[Ø\ÜÙ\ÜÛY[Ú[\Ü[\Ü[\ÜÚ\ÝÜšXØ[Ø\ÜÙ\ÜÛY[Ùš[B™œ›ÛH˜[™ÛË™‹›[Ù[È[\ÜÛÝ[Ý]\”™Y‹ÝXœ]Y\žK[YÙ\‘šY[™œ›ÛH˜[™ÛË™‹›[Ù[Ë™[˜Ý[ÛœÈ[\ÜÛØ[\ØÙB™œ›ÛH\Ëœ›ØÙ\ÜÙ\Ë›[Ù[È[\Ü\ÝÜšXØ[›ØÙ\ÜÐØ[™Y]B™œ›ÛH˜[™ÛË˜ÛÛšXˆ[\ÜY\ÜØYÙ\Â™œ›ÛH˜[™ÛË™ˆ[\Ü˜[œØXÝ[Û‚™œ›ÛH˜[™ÛË™‹›[Ù[Ë™[][Ûˆ[\Ü›ÝXÝY\œ›Ü‚™œ›ÛH˜[™ÛË™‹][È[\Ü[YÜš]Q\œ›Ü‚™œ›ÛH\Ëœ›ØÙ\ÜÙ\ËœÙ\šXÙ\Ëœ›ØÙ\Ü×ÛØÚÚ[™È[\ÜØ[—Ù[]WÜ›ØÙ\Ü×ÜØY™[B™œ›ÛH\Ëœ›ØÙ\ÜÙ\ËœÙ\šXÙ\Ëœ›Ú™XÝØ\ÜÙ\ÜÛY[ÜÝ]\È[\Ü
+ˆ›Ú™XÝÝ\ÝØÛÛ[[œËˆ]XÚÝ\ÝÜÝ]\Ù\Ëˆ[š]][Û—Ý\ÝÜÝ]\Ù\ËŠB™œ›ÛH™›Ü›\È[\ÜÙ[”™YÚ\Ý\‘›Ü›B™œ›ÛH˜[™ÛË\›È[\Ü™]™\œÙB™œ›ÛH˜[™ÛË][È[\Ü[Y^›Û™B™œ›ÛH˜[™ÛË][Ë˜[œÛ][Ûˆ[\ÜÙ]^\ÈËÙ]Û[™ÝXYÙB‚™œ›ÛH\Ëœ›ØÙ\ÜÙ\Ëš[\šY]×ØÛÛ™šYÈ[\Ü
+ˆÙ]Ú[\šY]×ÜÙXÝ[Û—ØÛÛ™šYËŠB™œ›ÛH˜[™ÛËšY]ÜË™XÛÜ˜]ÜœËš[\Ü™\]Z\™WÔÔÕ™œ›ÛH˜[™ÛË˜ÛÜ™K›XZ[[\Ü[XZ[][P[\›˜]]™\Â™œ›ÛH\Ë™[XZ[Ë›[Ù[È[\Ü[XZ[[\]K[XZ[ÙÂ™œ›ÛH\Ë™[XZ[Ë][È[\Ü™[™\—ÜXÙZÛ\œÂ™œ›ÛH˜[™ÛË˜ÛÜ™K›XZ[[\ÜÙ[™ÛXZ[™œ›ÛH˜[™ÛËš[\ÜÝ™X[Z[™Ò™\ÜÛœÙKœÛÛ”™\ÜÛœÙB™œ›ÛH\Ë˜XØÛÝ[Ë][Ë›Ü™×ØXØÙ\ÜÈ[\ÜÙ]ØXØÙ\ÜÚX›WÛÜ™Ý[š]ÚYÂ™œ›ÛHœ\œÜÙWØÛÛ^ØÛÛ™šYÈ[\ÜÙ]Ü\œÜÙWØÛÛ^ØÛÛ™šYÂ‚™œ›ÛH\›X‹œ\œÙH[\Ü\›\œÙB™œ›ÛH˜[™ÛËš[\Ü™\ÜÛœÙT™Y\™XÝ™œ›ÛH˜[™ÛË™‹›[Ù[È[\ÜÛÝ[B™œ›ÛH]][YH[\Ü]][YK]K[YB‚™œ›ÛH˜[™ÛËš[\Ü™\ÜÛœÙB™œ›ÛH\Ë˜XØÛÝ[Ë][Ëœ\›Z\ÜÚ[ÛœÈ[\Üš[\—ØžWÝ\Ù\—ØXØÛÝ[Ë\Ù\—ØØ[—ØXØÙ\Ü×ØXØÛÝ[™œ›ÛH\Ë˜XØÛÝ[Ë][Ë›Ü™×ØXØÙ\ÜÈ[\ÜÙ]ÙY™™XÝ]™WÛÜ™Ý[š]Ü\›Z\ÜÚ[ÛœË\Ù\—ØØ[—ÝšY]×Ü›ØÙ\ÜË\Ù\—ØØ[—ÙY]Ü›ØÙ\ÜËÙ]ØÛÛ\[žWÙ›Ü—Ý\Ù\‚™œ›ÛH˜[™ÛËš[\Ü™\ÜÛœÙQ›Ü˜šY[‚‚™œ›ÛH\Ëœ›ØÙ\ÜÙ\ËœÙ\šXÙ\ËœÙ[™Ý\ÝÈ[\ÜÙ[™Ø\ÜÙ\ÜÛY[×Ø[™Ù[XZ[Â™œ›ÛHœ\œÜÙWØÛÛ^ØÛÛ™šYÈ[\ÜÙ]Ü\œÜÙWØÛÛ^ØÛÛ™šYÂ‚š[\ÜœÛÛ‚š[\Ü]ZYš[\Ü™\]Y\ÝÂ‚™œ›ÛH˜[™ÛË˜ÛÛ™ˆ[\ÜÙ][™ÜÂ‚™œ›ÛH\Ë˜XØÛÝ[Ë›[Ù[È[\ÜÛÛ\[žKÛÛ\[žSY[X™\‹Ü™Õ[š]™œ›ÛH\Ëœ›Ú™XÝË›[Ù[È[\Ü›Ú™XÝY]B‚™œ›ÛH\Ë˜XÝ]š]K›[Ù[È[\ÜXÝ]š]Q]™[™œ›ÛH\Ë˜XÝ]š]KœÙ\šXÙ\È[\ÜÙ×Ù]™[Ý\ÝÛY\—Ýš\ÚX›WØXÝ]š]B‚™œ›ÛH\Ëœ™\ÜË›Xœ˜\šY\Ë›[Ý]˜][Û‹˜Z[\ˆ[\Ü
+ˆZ[ÜØÛÜ™\×ØžWØÛÛ\][˜ÞKˆZ[Ü˜XÝ][Û™\—Ü™\ÜˆZ[Û[Ý]˜][Û—Ü™\ÜˆZ[Û[Ý]˜][Û—ØÛØXÚ[™×Ü™\ÜˆZ[ÛX[˜YÙ\—Ü™\ÜˆZ[ØØ[™Y]WÜ™\ÜŠB‚™œ›ÛH\Ë˜ÛÜ™K˜ZK˜Ø[™Y]WÜÝ[[X\žH[\Ü
+ˆÝ™X[WØØ[™Y]WÜÝ[[X\žKˆØ]™WØØ[™Y]WÜÝ[[X\žKŠB‚™œ›ÛH\Ëœ™\ÜË›Xœ˜\šY\Ëœ\œÛÛ˜[]Kœ™\ÛÛ™\ˆ[\ÜZ[Ü\œÛÛ˜[]WÜ™\Ü×Ù›Ü—ØØ[™Y]B™œ›ÛH\Ëœ™\ÜË›Xœ˜\šY\Ëœ\œÛÛ˜[]Kœ›Ùš[WØÛÛ˜\ÝÈ[\Ü
+ˆZ[Ü›Ùš[WØÛÛ˜\ÝØ[˜[\Ú\ËŠB™œ›ÛH\Ëœ™\ÜË›Xœ˜\šY\Ëœ\œÛÛ˜[]K˜Z[\ˆ[\Ü
+ˆZ[Ü›Ùš[WÙœ›ÛWÜ™\ÛÛ™YÜ™\ÜŠB™œ›ÛH\Ëœ™\ÜË›Xœ˜\šY\Ëœ\œÛÛ˜[]Kœ™\ÜÛœÙWÜÝ[\È[\Ü
+ˆZ[Ü™\ÜÛœÙWÜÝ[WÜ™\Ý[È\ÈZ[ÛØØ[^™YÜ™\ÜÛœÙWÜÝ[WÜ™\Ý[ËŠB‚ˆÈ[[˜H\œÛÛ˜[]HRH[™™\ÜÛœÙHÝ[\È[™ÝXYÙH˜]ÚB‚™œ›ÛH\Ëœ™\ÜË›Xœ˜\šY\Ë˜ÛÙÛš]]™K˜Z[\ˆ[\ÜZ[ØÛÙÛš]]™WÜ™\Ü×Ù›Ü—Ý\Ý‚™œ›ÛH™›Ü›\È[\Ü\Ý›ØÙ\ÜÕÚ^˜\™Ü™X]Q›Ü›B‚™œ›ÛH\Ëœ™\ÜË›Xœ˜\šY\Ëœ\œÜÙK˜ÛÛ[[\ÜÙ]Ü™\ÜÛ[ÙWØÛÛ[‚™œ›ÛH\Ëœ›ØÙ\ÜÙ\ËœÙ\šXÙ\Ëœ›ØÙ\Ü×Ü™XÛÛ[Y[™][ÛœÈ[\Ü
+ˆ“ÐÑTÔ×ÔT”ÔÑTËˆURSP“WÕTÕËˆT”ÔÑWÔ‘PÓÓSQS‘QÕTÕËˆ™\ÛÛ™WÜÛÝ˜WÝ[\]KˆZ[ÙY˜][Ü›ØÙ\Ü×Û˜[YKŠB‚™œ›ÛH\Ëœ›ØÙ\ÜÙ\ËœÙ\šXÙ\Ëœ›ØÙ\Ü×Ü™XÛÛ[Y[™][ÛœÈ[\Ü“ÐÑTÔ×ÔT”ÔÑTÂ‚™œ›ÛH›[Ù[È[\Ü›ØÙ\ÜÔ›ÛPÛÛ^™œ›ÛH™›Ü›\È[\Ü›ØÙ\ÜÔ›ÛPÛÛ^›Ü›B‚™œ›ÛH\Ë˜ÛÜ™K˜ZKœ\œÛÛ˜[]WÜ]Y\Ý[ÛœÈ[\Ü
+ˆ^˜XÝÜ\œÛÛ˜[]WÜ™\Ý[Ëˆ^˜XÝÜ\œÛÛ˜[]WÜ]Y\Ý[Û—Ý˜Z]Ëˆ›Ü›X[\ÙWÜÙ[XÝYÝ˜Z]ËˆÜ™X]WÙ[\WÜ\œÛÛ˜[]WÜ]Y\Ý[ÛœËˆ\WÜ\œÛÛ˜[]WÜ]Y\Ý[Ûœ×Ù]™[ˆÝ™X[WÜ\œÛÛ˜[]WÜ]Y\Ý[ÛœËˆØ]™WÜ\œÛÛ˜[]WÜ]Y\Ý[ÛœËˆÙ]Ü\œÛÛ˜[]WÜ]Y\Ý[Û—ØÛÝ[ˆ\œÛÛ˜[]WÜ]Y\Ý[Ûœ×ØÛÝ™\—Ø[Ý˜Z]ËŠB‚™YˆZ[ØÛÙÛš]]™WÜ™\Ý[×Ù›Ü—ØZWÛÝÛ™\ŠˆÝÛ™\‹ŠHOˆ\ÝÙXÝN‚ˆˆˆ‚ˆZ[ÛÙÛš]]™H\˜Ù[[H]šY[˜ÙH›ÜˆZ]\Ž‚‚ˆH\Ý[š]][Û‚ˆH\ÝÜšXØ[›ØÙ\ÜÐØ[™Y]Bˆˆˆ‚‚ˆ›ØÙ\ÜÈHÝÛ™\‹œ›ØÙ\ÜÂ‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÈPÕU‘HÐS‘QUBˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKB‚ˆYˆ›ÝÙ]]Šˆ›ØÙ\ÜËˆš\×Ú\ÝÜšXØ[‹ˆ˜[ÙKˆ
+N‚ˆ™]\›ˆ^˜XÝØÛÙÛš]]™WÜ™\Ý[ÊˆÝÛ™\‚ˆ
+B‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÈTÕÔ’PÐSÐS‘QUBˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKB‚ˆ›Ùš[HHZ[Ú\ÝÜšXØ[ØØ[™Y]WÜ›Ùš[JˆÝÛ™\‚ˆ
+B‚ˆXš[]WÜ™\Ý[ÈH
+ˆ›Ùš[K™Ù]
+˜Xš[]WÜ™\Ý[ÈŠBˆÜˆßBˆ
+B‚ˆX™[ÈHÂˆ›ÙÚXØ[Žˆ“ÙÚXØ[™X\ÛÛš[™È‹ˆ›[Y\šXØ[Žˆ“[Y\šXØ[™X\ÛÛš[™È‹ˆ™\˜˜[Žˆ•™\˜˜[™X\ÛÛš[™È‹ˆB‚ˆ™\Ý[ÈH×B‚ˆ›ÜˆÙ^H[ˆ
+ˆ›ÙÚXØ[‹ˆ›[Y\šXØ[‹ˆ™\˜˜[‹ˆ
+N‚ˆ][HHXš[]WÜ™\Ý[Ë™Ù]
+Ù^JB‚ˆYˆ›Ý][N‚ˆÛÛ[YB‚ˆ\˜Ù[[HH][K™Ù]
+œ\˜Ù[[HŠB‚ˆYˆ\˜Ù[[H\È›Û™N‚ˆ\˜Ù[[HH][K™Ù]
+˜[YHŠB‚ˆYˆ\˜Ù[[H\È›Û™N‚ˆÛÛ[YB‚ˆžN‚ˆ\˜Ù[[HH[
+ˆ›Ý[™
+›Ø]
+\˜Ù[[JJBˆ
+Bˆ^Ù\
+\Q\œ›Ü‹˜[YQ\œ›ÜŠN‚ˆÛÛ[YB‚ˆ\˜Ù[[HHX^
+ˆˆZ[ŠL\˜Ù[[JKˆ
+B‚ˆ™\Ý[Ë˜\[™
+ˆÂˆšÙ^HŽˆÙ^Kˆ›X™[ŽˆX™[ÖÚÙ^WKˆœ\˜Ù[[HŽˆ\˜Ù[[KˆBˆ
+B‚ˆ™]\›ˆ™\Ý[Â‚™YˆZ[Û[Ý]˜][Û—Ü™\Ý[×Ù›Ü—ØZWÛÝÛ™\ŠˆÝÛ™\‹ŠHOˆ\ÝÙXÝN‚ˆˆˆ‚ˆZ[[Ý]˜][Ûˆ]šY[˜ÙH›ÜˆZ]\Ž‚‚ˆH\Ý[š]][Û‚ˆH\ÝÜšXØ[›ØÙ\ÜÐØ[™Y]B‚ˆ™]\›œÈHØ[YHÝXÝ\™H^XÝYžHBˆ[Ý]˜][ÛˆRHÙ[™\˜]ÜœË‚ˆˆˆ‚‚ˆ›ØÙ\ÜÈHÝÛ™\‹œ›ØÙ\ÜÂ‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÈPÕU‘HÐS‘QUBˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKB‚ˆYˆ›ÝÙ]]Šˆ›ØÙ\ÜËˆš\×Ú\ÝÜšXØ[‹ˆ˜[ÙKˆ
+N‚ˆ™]\›ˆ^˜XÝÛ[Ý]˜][Û—Ü™\Ý[ÊˆÝÛ™\‚ˆ
+B‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÈTÕÔ’PÐSÐS‘QUBˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKB‚ˆ›Ùš[HHZ[Ú\ÝÜšXØ[ØØ[™Y]WÜ›Ùš[JˆÝÛ™\‚ˆ
+B‚ˆ[Ý]˜][Û—ØÛÛ\][˜ÚY\ÈH
+ˆ›Ùš[K™Ù]
+ˆ›[Ý]˜][Û—ØÛÛ\][˜ÚY\È‚ˆ
+BˆÜˆ×Bˆ
+B‚ˆ™\Ý[×ØžWÛ˜[YHHßB‚ˆ›Üˆ][H[ˆ[Ý]˜][Û—ØÛÛ\][˜ÚY\Î‚ˆ˜[YHHÝŠˆ][K™Ù]
+˜ÛÛ\][˜ÞHŠBˆÜˆ][K™Ù]
+›˜[YHŠBˆÜˆˆ‚ˆ
+KœÝš\
+
+B‚ˆYˆ›Ý˜[YN‚ˆÛÛ[YB‚ˆÈ™\Ù\™HH^XÝ[\ÜYÕU‘H˜[YKˆ›Ý[™YˆÈ˜[Y\È\™HÛ›HHÛÛ\]Xš[]H˜[˜XÚË‚ˆ˜]×ÜØÛÜ™HH][K™Ù]
+ˆœÝ]™H‚ˆ
+B‚ˆYˆ˜]×ÜØÛÜ™H\È›Û™N‚ˆ˜]×ÜØÛÜ™HH][K™Ù]
+ˆœÝ]™WÜ›Ý[™Y‚ˆ
+B‚ˆYˆ˜]×ÜØÛÜ™H\È›Û™N‚ˆ˜]×ÜØÛÜ™HH][K™Ù]
+ˆœØÛÜ™H‚ˆ
+B‚ˆØÛÜ™HH›Ü›X[\ÙWÙš]™WÜÚ[ÜØÛÜ™Jˆ˜]×ÜØÛÜ™Bˆ
+B‚ˆYˆØÛÜ™H\È›Û™N‚ˆÛÛ[YB‚ˆ˜[YWÚÙ^HH˜[YK˜Ø\ÙY›Û
+
+B‚ˆ™\Ý[×ØžWÛ˜[YVÛ˜[YWÚÙ^WHHÂˆ›˜[YHŽˆ˜[YKˆœØÛÜ™HŽˆØÛÜ™Kˆ™Yš[š][ÛˆŽˆ
+ˆSÕUUSÓ—ÑQ’S’USÓ”Ë™Ù]
+ˆ˜[YWÚÙ^Kˆˆ‹ˆ
+Bˆ
+KˆB‚ˆ™]\›ˆ\Ý
+ˆ™\Ý[×ØžWÛ˜[YK˜[Y\Ê
+Bˆ
+B‚ˆÈ[[˜HÛÙÛš]]™H™\Ý[È[™ÝXYÙH˜]ÚB™YˆZ[ØÛÙÛš]]™WÚ[œÚYÚÜ™\Ý[Êˆ™\˜˜[Ü\˜Ù[[OS›Û™KˆÙÚXØ[Ü\˜Ù[[OS›Û™Kˆ[Y\šXØ[Ü\˜Ù[[OS›Û™KŠN‚ˆˆˆ’ÙY\H^\Ý[™ÈØ[™Y]H[œÚYÚÈTHÝ™\ˆHÚ\™YÙ\šXÙKˆˆˆ‚ˆ™]\›ˆØZ[ØÛÙÛš]]™WÚ[œÚYÚÜ™\Ý[Êˆ™\˜˜[Ü\˜Ù[[O]™\˜˜[Ü\˜Ù[[KˆÙÚXØ[Ü\˜Ù[[O[ÙÚXØ[Ü\˜Ù[[Kˆ[Y\šXØ[Ü\˜Ù[[O[[Y\šXØ[Ü\˜Ù[[Kˆ
+B‚‚™YˆZ[Ü™\ÜÛœÙWÜÝ[WÜ™\Ý[Êˆ\œÛÛ˜[]WØÛÛ\][˜ÚY\ËŠN‚ˆ™]\›ˆZ[ÛØØ[^™YÜ™\ÜÛœÙWÜÝ[WÜ™\Ý[Êˆ\œÛÛ˜[]WØÛÛ\][˜ÚY\Âˆ
+B‚‚™YˆZ[Ü\œÛÛ˜[]WÜ™\Ý[×Ù›Ü—ØZWÛÝÛ™\ŠˆÝÛ™\‹ŠHOˆ\ÝÙXÝN‚ˆˆˆ‚ˆZ[\œÛÛ˜[]H˜Z]]šY[˜ÙH›ÜˆZ]\Ž‚‚ˆH\Ý[š]][Û‚ˆH\ÝÜšXØ[›ØÙ\ÜÐØ[™Y]Bˆˆˆ‚‚ˆ›ØÙ\ÜÈHÝÛ™\‹œ›ØÙ\ÜÂ‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÈPÕU‘HÐS‘QUBˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆYˆ›ÝÙ]]Šˆ›ØÙ\ÜËˆš\×Ú\ÝÜšXØ[‹ˆ˜[ÙKˆ
+N‚ˆ™]\›ˆ^˜XÝÜ\œÛÛ˜[]WÜ™\Ý[ÊˆÝÛ™\‚ˆ
+B‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÈTÕÔ’PÐSÐS‘QUBˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆ›Ùš[HHZ[Ú\ÝÜšXØ[ØØ[™Y]WÜ›Ùš[JˆÝÛ™\‚ˆ
+B‚ˆ\ÝÜšXØ[ØÛÛ\][˜ÚY\ÈH
+ˆ›Ùš[K™Ù]
+ˆœ\œÛÛ˜[]WØÛÛ\][˜ÚY\È‚ˆ
+BˆÜˆ×Bˆ
+B‚ˆ^ÛYYØÛÛ\][˜ÚY\ÈHÂˆœÛØÚX[\Ú\˜Xš[]H‹ˆ™š[\œÈ‹ˆœ™[XXš[]H‹ˆœ›Ùš[HÜ™XY‹ˆœ˜][™ÜÈÜ™XY‹ˆB‚ˆ™\Ý[×ØžWÛ˜[YHHßB‚ˆ›Üˆ][H[ˆ\ÝÜšXØ[ØÛÛ\][˜ÚY\Î‚ˆ˜[YHHÝŠˆ][K™Ù]
+˜ÛÛ\][˜ÞHŠBˆÜˆ][K™Ù]
+›˜[YHŠBˆÜˆˆ‚ˆ
+KœÝš\
+
+B‚ˆYˆ›Ý˜[YN‚ˆÛÛ[YB‚ˆ˜[YWÚÙ^HH˜[YK›ÝÙ\Š
+B‚ˆYˆ˜[YWÚÙ^H[ˆ^ÛYYØÛÛ\][˜ÚY\Î‚ˆÛÛ[YB‚ˆ˜]×ÜÝ[ˆH][K™Ù]
+ˆœÝ[—Ü›Ý[™Y‚ˆ
+B‚ˆYˆ˜]×ÜÝ[ˆ\È›Û™N‚ˆ˜]×ÜÝ[ˆH][K™Ù]
+ˆœÝ[ˆ‚ˆ
+B‚ˆÈ\ÝÜšXØ[[\ÜÈX^HÙY\H[\ÜYÕSˆ˜[YBˆÈ[ˆHÙ[™\šXÈØÛÜ™HšY[‚ˆYˆ˜]×ÜÝ[ˆ\È›Û™N‚ˆ˜]×ÜÝ[ˆH][K™Ù]
+ˆœØÛÜ™H‚ˆ
+B‚ˆžN‚ˆÝ[ˆH[
+ˆ›Ý[™
+›Ø]
+˜]×ÜÝ[ŠJBˆ
+Bˆ^Ù\
+\Q\œ›Ü‹˜[YQ\œ›ÜŠN‚ˆÛÛ[YB‚ˆÝ[ˆHX^
+ˆKˆZ[ŠLÝ[ŠKˆ
+B‚ˆ™\Ý[×ØžWÛ˜[YVÛ˜[YWÚÙ^WHHÂˆ›˜[YHŽˆ˜[YKˆœÝ[ˆŽˆÝ[‹ˆB‚ˆ™]\›ˆ\Ý
+ˆ™\Ý[×ØžWÛ˜[YK˜[Y\Ê
+Bˆ
+B‚‚™YˆZ[Ü\œÛÛ˜[]WÜ]Y\Ý[Û—Ý˜Z]×Ù›Ü—ØZWÛÝÛ™\ŠˆÝÛ™\‹ŠHOˆ\ÝÙXÝN‚ˆˆˆ‚ˆ™]\›ˆHN\™[\œÛÛ˜[]H˜Z]È\ÙYžBˆ\œÛÛ˜[]H]Y\Ý[ÛœÈ›ÜˆZ]\ˆ[ˆXÝ]™HÜ‚ˆ\ÝÜšXØ[Ø[™Y]K‚ˆˆˆ‚‚ˆ™\Ý[ÈHZ[Ü\œÛÛ˜[]WÜ™\Ý[×Ù›Ü—ØZWÛÝÛ™\ŠˆÝÛ™\‚ˆ
+B‚ˆ[ÝÙYÝ˜Z]ÚÙ^\ÈHÂˆ˜ÛÛÜ\˜]]™H‹ˆ™[\]H‹ˆœÝ\Ü[™È‹ˆ˜ÛÛ›™XÝ[™È‹ˆ™[˜[ZXÈ‹ˆš[™›Y[X[‹ˆ™ÛØ[›ØÝ\ÙY‹ˆ˜XÚY]™[Y[Ýš]š[™È‹ˆœÝXÝ\™Y‹ˆ˜[˜[]XØ[‹ˆ˜ÛÛ\^[šÚ[™È‹ˆ˜Ü™X]]š]H‹ˆ˜Y\Xš[]H‹ˆœÝ˜ZYÚ›ÜØ\™‹ˆœÝ]\È]›ÚY[˜ÙH‹ˆ›[Ù\ÝH‹ˆœ™\Ú[Y[˜ÙH‹ˆ™[[Ý[Û˜[ÛÛ›Û‹ˆš[™\[™[˜ÙH‹ˆB‚ˆYˆ›Ü›X[\ÙWÝ˜Z]ÚÙ^J˜[YJN‚ˆ^HÝŠˆ˜[YHÜˆˆ‚ˆ
+KœÝš\
+
+K˜Ø\ÙY›Û
+
+B‚ˆ›ÜˆÚ\˜XÝ\ˆ[ˆ
+ˆ—È‹ˆ‹H‹ˆ¸ $È‹ˆ¸ %‹ˆ‹È‹ˆ
+N‚ˆ^H^œ™\XÙJˆÚ\˜XÝ\‹ˆˆ‹ˆ
+B‚ˆ™]\›ˆˆ‹š›Ú[Šˆ^œÜ]
+
+Bˆ
+B‚ˆ™]\›ˆÂˆ™\Ý[ˆ›Üˆ™\Ý[[ˆ™\Ý[ÂˆYˆ›Ü›X[\ÙWÝ˜Z]ÚÙ^Jˆ™\Ý[™Ù]
+›˜[YHŠBˆ
+H[ˆ[ÝÙYÝ˜Z]ÚÙ^\ÂˆB‚‚™YˆZ[Ü™\ÜÛœÙWÜÝ[\×Ù›Ü—ÙÝZY[˜ÙWÛÝÛ™\ŠˆÝZY[˜ÙWÛÝÛ™\‹ŠN‚ˆˆˆ‚ˆZ[™\ÜÛœÙK\Ý[H™\Ý[È›ÜˆZ]\Ž‚‚ˆH\Ý[š]][Û‚ˆH\ÝÜšXØ[›ØÙ\ÜÐØ[™Y]B‚ˆHRH[™Ú[\Ù\È\È[\ˆÛÈ]Ù\È›Ý™YYÈZ[Bˆ[\™HØ[™Y]H]Z[ÛÛ^™Y›Ü™HÙ[™\˜][™ÈÝZY[˜ÙK‚ˆˆˆ‚‚ˆ›ØÙ\ÜÈHÝZY[˜ÙWÛÝÛ™\‹œ›ØÙ\ÜÂ‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÈTÕÔ’PÐSÐS‘QUBˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆYˆÙ]]Š›ØÙ\ÜËš\×Ú\ÝÜšXØ[‹˜[ÙJN‚ˆ›Ùš[HHZ[Ú\ÝÜšXØ[ØØ[™Y]WÜ›Ùš[JˆÝZY[˜ÙWÛÝÛ™\‚ˆ
+B‚ˆ\ÝÜšXØ[ØÛÛ\][˜ÚY\ÈH
+ˆ›Ùš[K™Ù]
+œ\œÛÛ˜[]WØÛÛ\][˜ÚY\ÈŠBˆÜˆ×Bˆ
+B‚ˆ\œÛÛ˜[]WØÛÛ\][˜ÚY\ÈH×B‚ˆ›Üˆ][H[ˆ\ÝÜšXØ[ØÛÛ\][˜ÚY\Î‚ˆ\œÛÛ˜[]WØÛÛ\][˜ÚY\Ë˜\[™
+Âˆ˜ÛÛ\][˜ÞHŽˆ
+ˆ][K™Ù]
+˜ÛÛ\][˜ÞHŠBˆÜˆ][K™Ù]
+›˜[YHŠBˆ
+KˆœÝ[ˆŽˆ][K™Ù]
+œÝ[ˆŠKˆœÝ[—Ü›Ý[™YŽˆ][K™Ù]
+ˆœÝ[—Ü›Ý[™Y‚ˆ
+Kˆœ\˜Ù[[HŽˆ][K™Ù]
+œ\˜Ù[[HŠKˆœÛÝ\˜ÙHŽˆš\ÝÜšXØ[Ú[\Ü‹ˆJB‚ˆ™]\›ˆZ[Ü™\ÜÛœÙWÜÝ[WÜ™\Ý[Êˆ\œÛÛ˜[]WØÛÛ\][˜ÚY\Âˆ
+B‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÈPÕU‘HÐS‘QUBˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆ^[ØYHÝZY[˜ÙWÛÝÛ™\‹œÛÝ˜WÜ^[ØYÜˆßB‚ˆXÝ]š]Y\ÈH\Ý
+ˆÝZY[˜ÙWÛÝÛ™\‹œÛÝ˜WØXÝ]š]Y\ÂˆÜˆ^[ØY™Ù]
+˜XÝ]š]Y\ÈŠBˆÜˆ×Bˆ
+B‚ˆYˆ›ÝXÝ]š]Y\Î‚ˆ›Üˆ\ÙH[ˆ^[ØY™Ù]
+œ\Ù\ÈŠHÜˆ×N‚ˆXÝ]š]Y\Ë™^[™
+ˆ\ÙK™Ù]
+˜XÝ]š]Y\ÈŠHÜˆ×Bˆ
+B‚ˆ\œÛÛ˜[]WØÛÛ\][˜ÚY\ÈH×B‚ˆ›ÜˆXÝ]š]H[ˆXÝ]š]Y\Î‚ˆXÝ]š]WÛ˜[YHH
+ˆXÝ]š]K™Ù]
+˜XÝ]š]HŠBˆÜˆˆ‚ˆ
+KœÝš\
+
+K›ÝÙ\Š
+B‚ˆ\×Ü\œÛÛ˜[]WØXÝ]š]HH
+ˆXÝ]š]WÛ˜[YHOHœ\œÛÛ˜[]H\ÜÙ\ÜÛY[‚ˆÜˆXÝ]š]WÛ˜[YHOH
+ˆœÛÝ˜H\œÛÛ˜[]H]Y\Ý[Û›˜Z\™H‚ˆ
+BˆÜˆœ\œÛÛ˜[]Hˆ[ˆXÝ]š]WÛ˜[YBˆ
+B‚ˆYˆ›Ý\×Ü\œÛÛ˜[]WØXÝ]š]N‚ˆÛÛ[YB‚ˆ›ÜˆÛÛ\][˜ÞH[ˆ
+ˆXÝ]š]K™Ù]
+˜ÛÛ\][˜ÚY\ÈŠBˆÜˆ×Bˆ
+N‚ˆ\œÛÛ˜[]WØÛÛ\][˜ÚY\Ë˜\[™
+Âˆ˜ÛÛ\][˜ÞHŽˆÛÛ\][˜ÞK™Ù]
+ˆ˜ÛÛ\][˜ÞH‚ˆ
+KˆœÝ[ˆŽˆÛÛ\][˜ÞK™Ù]
+œÝ[ˆŠKˆœÝ[—Ü›Ý[™YŽˆÛÛ\][˜ÞK™Ù]
+ˆœÝ[—Ü›Ý[™Y‚ˆ
+Kˆœ\˜Ù[[HŽˆÛÛ\][˜ÞK™Ù]
+ˆœ\˜Ù[[H‚ˆ
+KˆJB‚ˆ™]\›ˆZ[Ü™\ÜÛœÙWÜÝ[WÜ™\Ý[Êˆ\œÛÛ˜[]WØÛÛ\][˜ÚY\Âˆ
+B‚‚™YˆZ[Ü›Ùš[WØÛÛ˜\ÝØ[˜[\Ú\×Ù›Ü—ÙÝZY[˜ÙWÛÝÛ™\ŠˆÝZY[˜ÙWÛÝÛ™\‹ˆ
+‹ˆ[™ÝXYÙWØÛÙOHœÝˆ‹ŠN‚ˆˆˆZ[ÛÛ˜\Ý]šY[˜ÙH\Ú[™ÈHØ[YHØ[›ÛšXØ[›Ùš[H™\ÛÛ™\‹ˆˆˆ‚ˆ›ØÙ\ÜÈHÝZY[˜ÙWÛÝÛ™\‹œ›ØÙ\ÜÂ‚ˆYˆÙ]]Š›ØÙ\ÜËš\×Ú\ÝÜšXØ[‹˜[ÙJN‚ˆ\ÝÜšXØ[Ü›Ùš[HHZ[Ú\ÝÜšXØ[ØØ[™Y]WÜ›Ùš[JˆÝZY[˜ÙWÛÝÛ™\‚ˆ
+BˆÛÝ\˜ÙHHš\ÝÜšXØ[Ú[\Ü‚ˆÛÛ\][˜ÚY\ÈHÂˆÂˆ˜ÛÛ\][˜ÞHŽˆ][K™Ù]
+˜ÛÛ\][˜ÞHŠHÜˆ][K™Ù]
+›˜[YHŠKˆœÝ[ˆŽˆ][K™Ù]
+œÝ[ˆŠKˆœÝ[—Ü›Ý[™YŽˆ][K™Ù]
+œÝ[—Ü›Ý[™YŠKˆBˆ›Üˆ][H[ˆ
+\ÝÜšXØ[Ü›Ùš[K™Ù]
+œ\œÛÛ˜[]WØÛÛ\][˜ÚY\ÈŠHÜˆ×JBˆBˆXÝ]š]Y\ÈHÞÂˆ˜XÝ]š]HŽˆ”\œÛÛ˜[]H\ÜÙ\ÜÛY[‹ˆ˜ÛÛ\][˜ÚY\ÈŽˆÛÛ\][˜ÚY\ËˆWBˆ[ÙN‚ˆ^[ØYHÝZY[˜ÙWÛÝÛ™\‹œÛÝ˜WÜ^[ØYÜˆßBˆXÝ]š]Y\ÈH\Ý
+ˆÝZY[˜ÙWÛÝÛ™\‹œÛÝ˜WØXÝ]š]Y\ÂˆÜˆ^[ØY™Ù]
+˜XÝ]š]Y\ÈŠBˆÜˆ×Bˆ
+BˆYˆ›ÝXÝ]š]Y\Î‚ˆ›Üˆ\ÙH[ˆ^[ØY™Ù]
+œ\Ù\ÈŠHÜˆ×N‚ˆXÝ]š]Y\Ë™^[™
+\ÙK™Ù]
+˜XÝ]š]Y\ÈŠHÜˆ×JBˆÛÝ\˜ÙHHœÛÝ˜WØ\ÜÙ\ÜÛY[‚‚ˆ\œÛÛ˜[]WÜ™\ÜÈHZ[Ü\œÛÛ˜[]WÜ™\Ü×Ù›Ü—ØØ[™Y]JˆÛÝ˜WØXÝ]š]Y\ÏXXÝ]š]Y\Ëˆ
+Bˆ™\ÛÛ™YÜ™\ÜH™^
+ˆ
+ˆ™\Ü›Üˆ™\Ü[ˆ\œÛÛ˜[]WÜ™\ÜÂˆYˆ™\Ü™Ù]
+œ™\ÜÚYŠHOH˜Z]Ú[™XØ]Ü—Ü›Ùš[H‚ˆ
+Kˆ›Û™Kˆ
+Bˆ\œÛÛ˜[]WÜ›Ùš[HH
+ˆZ[Ü›Ùš[WÙœ›ÛWÜ™\ÛÛ™YÜ™\Ü
+ˆ™\ÛÛ™YÜ™\Ü\™\ÛÛ™YÜ™\Üˆ[™ÝXYÙO[[™ÝXYÙWØÛÙKˆ[˜ÛYWÛZ\ÜÚ[™×Ý˜Z]ÏQ˜[ÙKˆ
+BˆYˆ™\ÛÛ™YÜ™\Üˆ[ÙH›Û™Bˆ
+Bˆ™]\›ˆZ[Ü›Ùš[WØÛÛ˜\ÝØ[˜[\Ú\Êˆ\œÛÛ˜[]WÜ›Ùš[Kˆ[™ÝXYÙO[[™ÝXYÙWØÛÙKˆÛÝ\˜ÙO\ÛÝ\˜ÙKˆ
+B‚‚™YˆZ[Û[Ý]˜][Û—Ú[œÚYÚÜÙXÝ[ÛŠˆ\WØÛÛ\][˜ÚY\ËˆØ[™Y]WÛ˜[YOHˆ‹ŠN‚ˆˆˆ‚ˆZ[HÛÛ\]H[Ý]˜][Ûˆ›Ùš[H\ÙY[ˆØ[™Y]H[œÚYÚË‚‚ˆ[Ý]˜][Ûˆ™\Ý[È™]Z[ˆ™XÚ\ÙHÕU‘HØÛÜ™\Èœ›ÛHHÈH›Üˆ˜[šÚ[™È[™\Ü^K‚‚ˆH›Ùš[N‚ˆH™\Ù\™\ÈÛÝ˜IÜÈ›Ý\ˆ[Ý]˜][Ûˆ\™X\ÂˆHÚÝÜÈ[]˜Z[X›H[Ý]˜][Ûˆ˜XÝÜœÂˆHY[YšY\È[Ü™H›ÛZ[™[[™\ÜÈÙ[˜[š]™\œÂˆHÙ\È›Ý[\œ™]ÝÈØÛÜ™\È\ÈÙXZÛ™\ÜÙ\ÈÜˆ]]ÛX]XÈ[[Ý]˜]ÜœÂˆˆˆ‚ˆØ[™Y]WÛX™[H
+ˆ
+Ø[™Y]WÛ˜[YHÜˆˆŠKœÝš\
+
+BˆÜˆ•HØ[™Y]H‚ˆ
+B‚ˆYˆ›Ü›X[\ÙWÛ˜[YJ˜[YJN‚ˆ^HÝŠ˜[YHÜˆˆŠKœÝš\
+
+K›ÝÙ\Š
+B‚ˆ™\XÙ[Y[ÈHÂˆ—ÈŽˆˆ‹ˆ‹HŽˆˆ‹ˆ¸ $ÈŽˆˆ‹ˆ‹ÈŽˆˆ‹ˆ‰ˆŽˆˆ[™‹ˆB‚ˆ›ÜˆÛ™]È[ˆ™\XÙ[Y[Ëš][\Ê
+N‚ˆ^H^œ™\XÙJÛ™]ÊB‚ˆ™]\›ˆˆ‹š›Ú[Š^œÜ]
+
+JB‚ˆYˆÙ]ÜØÛÜ™J][JN‚ˆˆˆ‚ˆ[Ý]˜][Ûˆ\Ù\ÈÛÝ˜IÜÈš]™K\Ú[ÕU‘HØØ[K‚‚ˆÈ›Ý˜[˜XÚÈÈ\˜Ù[[HÜˆÕSˆ\™K™XØ]\ÙHÜÙH˜[Y\Âˆ]\Ý›Ý™H™\Ù[Y\ÈØÛÜ™\ÈÝ]Ùˆš]™K‚ˆˆˆ‚‚ˆ›ÜˆÙ^H[ˆ
+ˆœÝ]™H‹ˆœØÛÜ™H‹ˆœÝ]™WÜ›Ý[™Y‹ˆ
+N‚ˆ˜[YHH][K™Ù]
+Ù^JB‚ˆYˆ˜[YH\È›Û™N‚ˆÛÛ[YB‚ˆžN‚ˆØÛÜ™HH›Ø]
+˜[YJBˆ^Ù\
+\Q\œ›Ü‹˜[YQ\œ›ÜŠN‚ˆÛÛ[YB‚ˆØÛÜ™HHX^
+KŒZ[ŠKŒØÛÜ™JJB‚ˆ™]\›ˆ[
+ØÛÜ™JHYˆØÛÜ™Kš\×Ú[YÙ\Š
+H[ÙHØÛÜ™B‚ˆ™]\›ˆ›Û™Bˆˆ˜XÝÜ—Ú[\œ™]][ÛœÈHÂˆ˜]XÚY[ŽˆÂˆœÝ[[X\žWÜ˜\ÙHŽˆ
+ˆ˜ÛÜÙHÛÜšÚ[™È™[][ÛœÚ\È[™HÛX\ˆÙ[œÙHÙˆ™[Û™Ú[™È‚ˆ
+KˆœÝ\ÜÜ˜\ÙHŽˆ
+ˆœ™YÝ[\ˆÛÛX›Ü˜][Û‹]]X[Ý\Ü[™\ÝY™[][ÛœÚ\È‚ˆ
+KˆÜÝ^Žˆ
+ˆžÛ˜[Y_H\ÈZÙ[HÈØZ[ˆ[™\™ÞHœ›ÛHÛÜÙHÛÜšÚ[™È™[][ÛœÚ\Ë‚ˆ˜ÛÛX›Ü˜][Ûˆ[™HÛX\ˆÙ[œÙHÙˆ™[Û™Ú[™Ëˆ™YÝ[\ˆ[\˜XÝ[Û‹‚ˆ›]]X[Ý\Ü[™ÜÜ[š]Y\ÈÈZ[Ý›Û™ÈÛÛ›™XÝ[ÛœÈÚ]‚ˆ˜ÛÛXYÝY\ÈX^HÛÛšX]HÈ[™ØYÙ[Y[Ý™\ˆ[YKˆ‚ˆ
+KˆK‚ˆ˜Ý\ÝÛY\—ÜÙ\šXÙHŽˆÂˆœÝ[[X\žWÜ˜\ÙHŽˆ
+ˆš[[™ÈÝ\ÝÛY\œÈ[™[™\œÝ[™[™ÈZ\ˆ™YYÈ‚ˆ
+KˆœÝ\ÜÜ˜\ÙHŽˆ
+ˆœ™YÝ[\ˆÝ\ÝÛY\ˆÛÛXÝ[™ÜÜ[š]Y\ÈÈ›ÝšYH\ÙY[Ù\šXÙH‚ˆ
+KˆÜÝ^Žˆ
+ˆžÛ˜[Y_H\ÈZÙ[HÈ™H[Ý]˜]YžH[™\œÝ[™[™ÈÝ\ÝÛY\ˆ™YYÈ‚ˆ˜[™›ÝšY[™È[[Ù\šXÙKˆ^HX^HØZ[ˆ[™\™ÞHœ›ÛHZ[[™È‚ˆœÝ›Û™ÈÝ\ÝÛY\ˆ™[][ÛœÚ\ËÛÛš[™ÈÝ\ÝÛY\ˆ›Ø›[\È[™ÙYZ[™È‚ˆ]Z\ˆÛÜšÈÜ™X]\ÈHÜÚ]]™HÝ\ÝÛY\ˆ^\šY[˜ÙKˆ‚ˆ
+KˆK‚ˆÛÜš×ÛY™WØ˜[[˜ÙHŽˆÂˆœÝ[[X\žWÜ˜\ÙHŽˆ
+ˆ˜HÝ\ÝZ[˜X›H˜[[˜ÙH™]ÙY[ˆÛÜšÈ[™Y™HÝ]ÚYHÛÜšÈ‚ˆ
+KˆœÝ\ÜÜ˜\ÙHŽˆ
+ˆ˜ÛX\ˆ›Ý[™\šY\ËHX[˜YÙXX›HÛÜšÛØY[™HÝ\ÝZ[˜X›HXÙH‚ˆ
+KˆÜÝ^Žˆ
+ˆžÛ˜[Y_H\ÈZÙ[HÈ˜[YHHÝ\ÝZ[˜X›H˜[[˜ÙH™]ÙY[ˆÛÜšÈ[™‚ˆ›Y™HÝ]ÚYHÛÜšËˆÛX\ˆ^XÝ][ÛœË™X\ÛÛ˜X›H›Ý[™\šY\È[™‚ˆ™[›ÝYÚ›^Xš[]HÈX[˜YÙH\œÛÛ˜[ÛÛ[Z]Y[ÈX^H[XZ[Z[ˆ‚ˆ™[™\™ÞH[™[™ØYÙ[Y[Ý™\ˆ[YKˆ‚ˆ
+KˆK‚ˆœ[ÜWÙ]™[ÜY[ŽˆÂˆœÝ[[X\žWÜ˜\ÙHŽˆ
+ˆš[[™ÈÝ\ˆ[ÜHX\›ˆ[™]™[Ü‚ˆ
+KˆœÝ\ÜÜ˜\ÙHŽˆ
+ˆ›ÜÜ[š]Y\ÈÈÛØXÚÝ\Ü[™]™[ÜÝ\œÈ‚ˆ
+KˆÜÝ^Žˆ
+ˆžÛ˜[Y_H\ÈZÙ[HÈØZ[ˆ[™\™ÞHœ›ÛH[[™ÈÝ\ˆ[ÜHÜ›ÝÈ[™‚ˆ™]™[Üˆ^HX^H[š›ÞHÛØXÚ[™ËÚ\š[™ÈÛ›ÝÛYÙH[™›ÝšY[™È‚ˆœÝ\Ü][˜X›\ÈÛÛXYÝY\ÈÜˆX[HY[X™\œÈÈÝ™[™Ý[ˆZ\ˆ‚ˆœÚÚ[È[™ÛÛ™šY[˜ÙKˆ‚ˆ
+KˆK‚ˆœÝXš[]HŽˆÂˆœÝ[[X\žWÜ˜\ÙHŽˆ
+ˆ˜ÛÛ[Z]K™YXÝXš[]H[™HÙ[œÙHÙˆÙXÝ\š]H‚ˆ
+KˆœÝ\ÜÜ˜\ÙHŽˆ
+ˆ˜ÛX\ˆÝXÝ\™\ËÛÛ[Z]H[™H™YXÝX›HÛÜšÚ[™È[š\›Û›Y[‚ˆ
+KˆÜÝ^Žˆ
+ˆžÛ˜[Y_H\ÈZÙ[HÈ™H[Ý]˜]YžHÛÛ[Z]K™YXÝXš[]H[™‚ˆ˜HÙ[œÙHÙˆÙXÝ\š]H]ÛÜšËˆÛX\ˆÝXÝ\™\Ë\[™X›HÛÛ™][ÛœÈ‚ˆ˜[™ÛÛ™šY[˜ÙHX›Ý]Ú]Y\ÈZXYX^HÝ\ÜÝ\ÝZ[™Y[™ØYÙ[Y[ˆ‚ˆ
+KˆK‚ˆ˜]]Üš]HŽˆÂˆœÝ[[X\žWÜ˜\ÙHŽˆ
+ˆš[™›Y[˜ÙK™\ÜÛœÚXš[]H[™ÜÜ[š]Y\ÈÈXY‚ˆ
+KˆœÝ\ÜÜ˜\ÙHŽˆ
+ˆ™XÚ\Ú[Û‹[XZÚ[™È™\ÜÛœÚXš[]H[™ØÛÜHÈÚ\H\™XÝ[Ûˆ‚ˆ
+KˆÜÝ^Žˆ
+ˆžÛ˜[Y_H\ÈZÙ[HÈ™H[Ý]˜]YžH]š[™È[™›Y[˜ÙH[™YX[š[™Ù[‚ˆœ™\ÜÛœÚXš[]Kˆ^HX^HØZ[ˆ[™\™ÞHœ›ÛHXY[™ÈÝ\œËÚ\[™È‚ˆ™\™XÝ[Ûˆ[™™Z[™È\ÝYÈXZÙHXÚ\Ú[ÛœÈ]Y™™XÝÝ]ÛÛY\Ëˆ‚ˆ
+KˆK‚ˆš[™\[™[˜ÙHŽˆÂˆœÝ[[X\žWÜ˜\ÙHŽˆ
+ˆ™œ™YYÛHÈXZÙHXÚ\Ú[ÛœÈ[™Ú\HÝÈÛÜšÈ\ÈØ\œšYYÝ]‚ˆ
+KˆœÝ\ÜÜ˜\ÙHŽˆ
+ˆ\Ý\œÛÛ˜[ÝÛ™\œÚ\[™œ™YYÛHœ›ÛH[›™XÙ\ÜØ\žHÛÛ›Û‚ˆ
+KˆÜÝ^Žˆ
+ˆžÛ˜[Y_H\ÈZÙ[HÈ˜[YHœ™YYÛH[ˆÝÈÛÜšÈ\È[›™Y[™Ø\œšYY‚ˆ›Ý]ˆ^HX^H™H[ÜÝ[™ØYÙYÚ[ˆ\ÝYÈXZÙHXÚ\Ú[ÛœËÜ™Ø[š\ÙH‚ˆZ\ˆÝÛˆÛÜšÛØY[™\ÙHZ\ˆYÙ[Y[Ú]Ý][›™XÙ\ÜØ\žHÛÛ›Ûˆ‚ˆ
+KˆK‚ˆœ™XÛÙÛš][ÛˆŽˆÂˆœÝ[[X\žWÜ˜\ÙHŽˆ
+ˆœ™XÛÙÛš][Ûˆ[™š\ÚX›H\™XÚX][Ûˆ›Üˆ\œÛÛ˜[ÛÛšX][Ûˆ‚ˆ
+KˆœÝ\ÜÜ˜\ÙHŽˆ
+ˆ˜ÛX\ˆ™YY˜XÚÈ[™XÚÛ›ÝÛYÙ[Y[ÙˆY™›Ü[™™\Ý[È‚ˆ
+KˆÜÝ^Žˆ
+ˆžÛ˜[Y_H\ÈZÙ[HÈ\™XÚX]Hš\ÚX›H™XÛÙÛš][Ûˆ›ÜˆZ\ˆÛÜšÈ‚ˆ˜[™ÛÛšX][Û‹ˆÛX\ˆ™YY˜XÚË˜Z\ÙH[™XÚÛ›ÝÛYÙ[Y[Ùˆ‚ˆœÝXØÙ\ÜÙ[\™›Ü›X[˜ÙHX^H™Z[™›Ü˜ÙH[Ý]˜][Ûˆ[™[™ØYÙ[Y[ˆ‚ˆ
+KˆK‚ˆ›XZÚ[™×ØWÙY™™\™[˜ÙHŽˆÂˆœÝ[[X\žWÜ˜\ÙHŽˆ
+ˆ˜Ü™X][™ÈHYX[š[™Ù[[™ÜÚ]]™H[\XÝ‚ˆ
+KˆœÝ\ÜÜ˜\ÙHŽˆ
+ˆ˜HÛX\ˆ\œÜÙH[™š\ÚX›HÛÛ›™XÝ[Ûˆ™]ÙY[ˆÛÜšÈ[™ÚY\ˆ[\XÝ‚ˆ
+KˆÜÝ^Žˆ
+ˆžÛ˜[Y_H\ÈZÙ[HÈ™H[Ý]˜]YžHÙYZ[™È]Z\ˆÛÜšÈÛÛšX]\È‚ˆÈÛÛY][™ÈYX[š[™Ù[ˆ^HX^HØZ[ˆ[™\™ÞHœ›ÛH›Û\ÈÚ\™HH‚ˆœ\œÜÙH\ÈÛX\ˆ[™Ú\™HZ\ˆÛÛšX][ÛˆÜ™X]\ÈHš\ÚX›H‚ˆœÜÚ]]™H[\XÝ›ÜˆÝ\œÈÜˆHÚY\ˆÜ™Ø[š\Ø][Û‹ˆ‚ˆ
+KˆK‚ˆ˜XÜ]Z\Ú][ÛˆŽˆÂˆœÝ[[X\žWÜ˜\ÙHŽˆ
+ˆ™š[˜[˜ÚX[™]Ø\™[™[™ÚX›HÝ]ÛÛY\È‚ˆ
+KˆœÝ\ÜÜ˜\ÙHŽˆ
+ˆ˜ÛX\ˆ™]Ø\™È[™Hš\ÚX›HÛÛ›™XÝ[Ûˆ™]ÙY[ˆÛÛšX][Ûˆ[™ØZ[ˆ‚ˆ
+KˆÜÝ^Žˆ
+ˆžÛ˜[Y_H\ÈZÙ[HÈ™H[Ý]˜]YžH[™ÚX›H™]Ø\™È[™š[˜[˜ÚX[‚ˆ›Ý]ÛÛY\Ëˆ^HX^H™\ÜÛ™ÜÚ]]™[HÚ[ˆÝ›Û™ÈÛÛšX][Ûˆ\È‚ˆ˜ÛÛ›™XÝYÈÛX\ˆ™[™Yš]Ë[˜Ù[]™\ÈÜˆÜÜ[š]Y\È›ÜˆX]\šX[ØZ[‹ˆ‚ˆ
+KˆK‚ˆ˜XÚY]™[Y[ŽˆÂˆœÝ[[X\žWÜ˜\ÙHŽˆ
+ˆ˜Ú[[™Ú[™ÈÛØ[Ëš\ÚX›H›ÙÜ™\ÜÈ[™XÚY]™[Y[‚ˆ
+KˆœÝ\ÜÜ˜\ÙHŽˆ
+ˆ˜ÛX\ˆ\™Ù]ËÝ™]Ú[™ÈØš™XÝ]™\È[™š\ÚX›HYX\Ý\™\ÈÙˆÝXØÙ\ÜÈ‚ˆ
+KˆÜÝ^Žˆ
+ˆžÛ˜[Y_H\ÈZÙ[HÈØZ[ˆ[™\™ÞHœ›ÛHÛX\ˆ[™Ú[[™Ú[™ÈÛØ[Ëˆ‚ˆ•^HX^H[š›ÞHÝ™\˜ÛÛZ[™ÈY™šXÝ[Y\ËYX\Ý\š[™È›ÙÜ™\ÜÈ[™ÙYZ[™È‚ˆ]Ý\ÝZ[™YY™›Ü\ÈYÈHYX[š[™Ù[XÚY]™[Y[ˆ‚ˆ
+KˆK‚ˆœ]X[]HŽˆÂˆœÝ[[X\žWÜ˜\ÙHŽˆ
+ˆœ›ÙXÚ[™ÈXØÝ\˜]H[™YÚ\]X[]HÛÜšÈ‚ˆ
+KˆœÝ\ÜÜ˜\ÙHŽˆ
+ˆšYÚÝ[™\™È[™[›ÝYÚ[YHÈ[]™\ˆ™[XX›H™\Ý[È‚ˆ
+KˆÜÝ^Žˆ
+ˆžÛ˜[Y_H\ÈZÙ[HÈ™H[Ý]˜]YžH›ÙXÚ[™ÈÛÜšÈÙˆHÛÛœÚ\Ý[H‚ˆšYÚÝ[™\™ˆ^HX^HZÙHšYH[ˆXØÝ\˜XÞK™[XXš[]H[™‚ˆ™[œÝ\š[™È]Hš[˜[™\Ý[YY]È›Ý^XÝ][ÛœÈ[™YÜ™YYÛÛ[Z]Y[Ëˆ‚ˆ
+KˆK‚ˆ›X\›š[™ÈŽˆÂˆœÝ[[X\žWÜ˜\ÙHŽˆ
+ˆ›X\›š[™Ë]™[ÜY[[™Z[[™È™]ÈØ\Xš[]H‚ˆ
+KˆœÝ\ÜÜ˜\ÙHŽˆ
+ˆœ™YÝ[\ˆÜÜ[š]Y\ÈÈ]™[ÜÛ›ÝÛYÙH[™X\›ˆ™]ÈÚÚ[È‚ˆ
+KˆÜÝ^Žˆ
+ˆžÛ˜[Y_H\ÈZÙ[HÈØZ[ˆ[™\™ÞHœ›ÛHX\›š[™È[™]™[Ü[™È™]È‚ˆ˜Ø\Xš[]Y\ËˆÜÜ[š]Y\ÈÈ^[™Z\ˆÛ›ÝÛYÙK˜XÝ\ÙH™]È‚ˆœÚÚ[È[™ÛÛ[YH›ÙÜ™\ÜÚ[™ÈX^H™H[\Ü[›ÜˆÛ™Ù\‹]\›H[™ØYÙ[Y[ˆ‚ˆ
+KˆK‚ˆ™]XÜÈŽˆÂˆœÝ[[X\žWÜ˜\ÙHŽˆ
+ˆ˜ÛX\ˆ]XØ[š[˜Ú\\È[™[YÛ›Y[Ú]\œÛÛ˜[˜[Y\È‚ˆ
+KˆœÝ\ÜÜ˜\ÙHŽˆ
+ˆ˜[œÜ\™[XÚ\Ú[ÛœÈ[™Ü™Ø[š\Ø][Û˜[Ý[™\™È][YÛˆÚ]Z\ˆ˜[Y\È‚ˆ
+KˆÜÝ^Žˆ
+ˆžÛ˜[Y_H\ÈZÙ[HÈXÙHÛÛœÚY\˜X›H[\Ü[˜ÙHÛˆ]XØ[Ý[™\™È‚ˆ˜[™\œÛÛ˜[š[˜Ú\\Ëˆ^HX^H™H[ÜÝ[™ØYÙY[ˆ[š\›Û›Y[ÈÚ\™H‚ˆ™XÚ\Ú[ÛœÈ\™H˜[œÜ\™[[™Ü™Ø[š\Ø][Û˜[˜XÝXÙ\È[YÛˆÚ]Ú]‚ˆ^HÛÛœÚY\ˆ˜Z\ˆ[™™\ÜÛœÚX›Kˆ‚ˆ
+KˆK‚ˆ˜ÛÛ[Y\˜ÚX[Ù›ØÝ\ÈŽˆÂˆœÝ[[X\žWÜ˜\ÙHŽˆ
+ˆ˜ÛÛ[Y\˜ÚX[[\XÝ[™YX\Ý\˜X›H\Ú[™\ÜÈ˜[YH‚ˆ
+KˆœÝ\ÜÜ˜\ÙHŽˆ
+ˆš\ÚX›H\Ú[™\ÜÈÝ]ÛÛY\È[™HÛX\ˆÛÛ›™XÝ[Ûˆ™]ÙY[ˆÛÜšÈ[™ÛÛ[Y\˜ÚX[™\Ý[È‚ˆ
+KˆÜÝ^Žˆ
+ˆžÛ˜[Y_H\ÈZÙ[HÈ™H[Ý]˜]YžHÜ™X][™Èš\ÚX›HÛÛ[Y\˜ÚX[˜[YKˆ‚ˆ•^HX^HØZ[ˆ[™\™ÞHœ›ÛH[™\œÝ[™[™ÈÝÈZ\ˆÛÜšÈÛÛšX]\ÈÈ‚ˆœ™]™[YKÜ›ÝÝÜˆÝ\ˆYX\Ý\˜X›H\Ú[™\ÜÈÝ]ÛÛY\Ëˆ‚ˆ
+KˆK‚ˆ˜Ý\š[ÜÚ]HŽˆÂˆœÝ[[X\žWÜ˜\ÙHŽˆ
+ˆ™^Üš[™È™]È[™›Ü›X][Ûˆ[™[™˜[Z[X\ˆ]Y\Ý[ÛœÈ‚ˆ
+KˆœÝ\ÜÜ˜\ÙHŽˆ
+ˆ›ÜÜ[š]Y\ÈÈ[™\ÝYØ]K\ØÛÝ™\ˆ[™ÛÛ™H[™˜[Z[X\ˆ›Ø›[\È‚ˆ
+KˆÜÝ^Žˆ
+ˆžÛ˜[Y_H\ÈZÙ[HÈØZ[ˆ[™\™ÞHœ›ÛH^Üš[™È™]È[™›Ü›X][Ûˆ[™‚ˆ[™\œÝ[™[™È[™˜[Z[X\ˆÜXÜËˆ^HX^H[š›ÞH[™\ÝYØ][™È]Y\Ý[ÛœË‚ˆ™\ØÛÝ™\š[™È™]È\œÜXÝ]™\È[™ÛÛš[™È›Ø›[\È]Ý[][]HZ\ˆ[\™\Ýˆ‚ˆ
+KˆK‚ˆ˜Ü™X]]š]HŽˆÂˆœÝ[[X\žWÜ˜\ÙHŽˆ
+ˆ™Ù[™\˜][™ÈYX\È[™š[™[™ÈÜšYÚ[˜[ÛÛ][ÛœÈ‚ˆ
+KˆœÝ\ÜÜ˜\ÙHŽˆ
+ˆœ›ÛÛHÈ^\š[Y[Ú[[™ÙH\ÝX›\ÚY\›ØXÚ\È[™]™[Ü™]ÈYX\È‚ˆ
+KˆÜÝ^Žˆ
+ˆžÛ˜[Y_H\ÈZÙ[HÈ™H[Ý]˜]YžHÜÜ[š]Y\ÈÈÙ[™\˜]HYX\È‚ˆ˜[™š[™ÜšYÚ[˜[ÛÛ][ÛœËˆ^HX^HØZ[ˆ[™\™ÞHœ›ÛH^\š[Y[][Û‹‚ˆ˜Ü™X]]™H›Ø›[K\ÛÛš[™È[™ÛÜšÈ][ÝÜÈ\ÝX›\ÚY\›ØXÚ\È‚ˆÈ™H™XÛÛœÚY\™Yˆ‚ˆ
+KˆK‚ˆ™[š›Þ[Y[ŽˆÂˆœÝ[[X\žWÜ˜\ÙHŽˆ
+ˆ˜[ˆ[š›ÞXX›H[™ÜÚ]]™HÛÜšÚ[™È][ÜÜ\™H‚ˆ
+KˆœÝ\ÜÜ˜\ÙHŽˆ
+ˆœÜÚ]]™H™[][ÛœÚ\Ë[[Ý\ˆ[™[ˆ[™ØYÚ[™È^K]ËY^H[š\›Û›Y[‚ˆ
+KˆÜÝ^Žˆ
+ˆžÛ˜[Y_H\ÈZÙ[HÈ˜[YH[ˆ[š›ÞXX›H[™ÜÚ]]™H][ÜÜ\™H]ÛÜšËˆ‚ˆ•^HX^HØZ[ˆ[™\™ÞHœ›ÛHœšY[™H™[][ÛœÚ\Ë[[Ý\ˆ[™HÛÜšÚ[™È‚ˆ™[š\›Û›Y[Ú\™H^K]ËY^HXÝ]š]Y\È™Y[[™ØYÚ[™È[™\œÛÛ˜[HØ]\ÙžZ[™Ëˆ‚ˆ
+KˆK‚ˆ˜\šY]HŽˆÂˆœÝ[[X\žWÜ˜\ÙHŽˆ
+ˆ˜\šY]KÚ[™ÙH[™Y™™\™[\\ÈÙˆÛÜšÈ‚ˆ
+KˆœÝ\ÜÜ˜\ÙHŽˆ
+ˆ˜HÚ[™Ú[™ÈZ^Ùˆ\ÚÜËÚ[[™Ù\È[™Ø^\ÈÙˆÛÜšÚ[™È‚ˆ
+KˆÜÝ^Žˆ
+ˆžÛ˜[Y_H\ÈZÙ[HÈ™H[Ý]˜]YžH˜\šY]H[™Ú[™ÙH[ˆZ\ˆÛÜšËˆ‚ˆ•^HX^HØZ[ˆ[™\™ÞHœ›ÛH[Ýš[™È™]ÙY[ˆY™™\™[\ÚÜË[˜ÛÝ[\š[™È‚ˆ›™]ÈÚ[[™Ù\È[™\Ú[™ÈHœ›ØY˜[™ÙHÙˆÚÚ[È˜]\ˆ[ˆ›ÛÝÚ[™È‚ˆHØ[YH›Ý][™H›ÜˆÛ™È\š[ÙËˆ‚ˆ
+KˆK‚ˆœš\ÚÈŽˆÂˆœÝ[[X\žWÜ˜\ÙHŽˆ
+ˆ˜Ú[[™ÙK[˜Ù\Z[H[™Ø[Ý[]Yš\ÚÈ‚ˆ
+KˆœÝ\ÜÜ˜\ÙHŽˆ
+ˆœ›ÛÛHÈXZÙHÛÛœÚY\™YXÚ\Ú[ÛœÈÚ[ˆÝ]ÛÛY\È\™H›Ý[HÛ›ÝÛˆ‚ˆ
+KˆÜÝ^Žˆ
+ˆžÛ˜[Y_H\ÈZÙ[HÈ™H[Ý]˜]YžHÚ]X][ÛœÈÚ\™HHÝ]ÛÛYH\È‚ˆ››Ý[HÛ›ÝÛˆ[™Ú\™HØ[Ý[]Yš\ÚÈ\È\ÙˆHÛÜšËˆ^H‚ˆ›X^H™HÛÛY›ÜX›HXZÚ[™ÈXÚ\Ú[ÛœÈÚ]Ý]ÛÛ\]HÙ\Z[H[™‚ˆ›X^HØZ[ˆ[™\™ÞHœ›ÛH›Û\È]Ù™™\ˆÚ[[™ÙKXÙH[™HÜÜ[š]H‚ˆÈÙYHÚ]\ˆH›ÛÛÝ\œÙHÙˆXÝ[Ûˆ^\ÈÙ™‹ˆ‚ˆ
+KˆKˆB‚ˆ[Ý]˜][Û—Û[Ù[HÂˆÂˆšÙ^HŽˆ˜™[Û™Ú[™È‹ˆ]HŽˆ™[Û™Ú[™È‹ˆœÝX]HŽˆ
+ˆ”ÛØÚX[ÛÛ›™XÝ[Û‹Ý\Ü[™HÙ[œÙHÙˆ™[Û™Ú[™È]ÛÜšÈ‚ˆ
+KˆšXÛÛ—ØÛ\ÜÈŽˆ™˜K\ÛÛY˜K\[ÜKYÜ›Ý\‹ˆ™˜XÝÜœÈŽˆÂˆÂˆšÙ^HŽˆ˜]XÚY[‹ˆ›˜[YHŽˆY™š[X][Ûˆ‹ˆ˜[X\Ù\ÈŽˆÂˆ˜]XÚY[‹ˆ˜Y™š[X][Ûˆ‹ˆKˆ™\ØÜš\[ÛˆŽˆ
+ˆ•˜[YHÛØÚX[[\˜XÝ[ÛˆÚ]Ý\œÈ]ÛÜšËˆ\È\ÈHš[X\žHš]™\ˆ›Üˆ[Kˆ[š›Þ\ÈH™Y[[™ÈÙˆ™[Û™Ú[™ÈÈHX[H[™\Èš]™[ˆžH]™[Ü[™ÈÝ›Û™È›Û™È[™ÛÛÙÛÜšÚ[™È™[][ÛœÚ\Ëˆ‚ˆ
+KˆKˆÂˆšÙ^HŽˆ˜Ý\ÝÛY\—ÜÙ\šXÙH‹ˆ›˜[YHŽˆÝ\ÝÛY\ˆÙ\šXÙH‹ˆ˜[X\Ù\ÈŽˆÂˆ˜Ý\ÝÛY\ˆÙ\šXÙH‹ˆ˜Ý\ÝÛY\ˆ›ØÝ\È‹ˆKˆ™\ØÜš\[ÛˆŽˆ
+ˆ•š]™\È[ˆHÝ\ÝÛY\‹[ÜšY[Y›ÛHÚ\™H^HÙ]È[[™Ý\ÜÝ\œËˆ˜[Y\ÈZ[[™È™[][ÛœÚ\ÈÚ]Ý\ÝÛY\œÈ[™[™\œÝ[™[™ÈÝ\ÝÛY\ˆ™YYËˆXÙ\ÈÜ™X][\\Ú\ÈÛˆYY][™È[™^ÙYY[™ÈÝ\ÝÛY\ˆ™YYÈ[™^XÝ][ÛœËˆ‚ˆ
+KˆKˆÂˆšÙ^HŽˆÛÜš×ÛY™WØ˜[[˜ÙH‹ˆ›˜[YHŽˆ•ÛÜšË[Y™H˜[[˜ÙH‹ˆ˜[X\Ù\ÈŽˆÂˆÛÜšÈY™H˜[[˜ÙH‹ˆÛÜšË[Y™H˜[[˜ÙH‹ˆKˆ™\ØÜš\[ÛˆŽˆ
+ˆ•˜[Y\ÈÛÜšË[Y™H˜[[˜ÙHÛÈ^HØ[ˆ[š[Z\ˆÛÛ[Z]Y[È›Ý]ÛÜšÈ[™Ý]ÚYKˆÛÚÜÈ›ÜˆÛX\ˆ›Ý[™\šY\ÈÛÈ^HØ[ˆÝÚ]ÚÙ™ˆ]H[™ÙˆHÛÜšÙ^H[™]›ÝH][YHÈÝ\ˆXÝ]š]Y\È]\™H[\Ü[ˆ‚ˆ
+KˆKˆÂˆšÙ^HŽˆœ[ÜWÙ]™[ÜY[‹ˆ›˜[YHŽˆ”[ÜH]™[ÜY[‹ˆ˜[X\Ù\ÈŽˆÂˆœ[ÜH]™[ÜY[‹ˆ™]™[Ü[™È[ÜH‹ˆKˆ™\ØÜš\[ÛˆŽˆ
+ˆ’[È[™Ý\ÜÈÝ\œÈ[™XÝ]™[HÛÛšX]\ÈÈZ\ˆ]™[ÜY[ˆ[š›Þ\ÈÝZY[™ÈÝ\œÈ›ÝYÚY™šXÝ[[Y\È[™[[™ÈÝ\œÈÝ™\˜ÛÛYHY™\œÚ]HÜˆÚ[[™Ù\ËˆÙ™™\œÈ›ØXÝ]™HÝ\ÜÛÈÝ\œÈØ[ˆÜ›ÝËˆ‚ˆ
+KˆKˆÂˆšÙ^HŽˆœÝXš[]H‹ˆ›˜[YHŽˆ”ÝXš[]H‹ˆ˜[X\Ù\ÈŽˆÂˆœÝXš[]H‹ˆœÙXÝ\š]H‹ˆKˆ™\ØÜš\[ÛˆŽˆ
+ˆ•Ø[ÈÈ™Y[ÙXÝ\™H]ÛÜšÈ[™Ú[›Ø˜X›H™Y™\ˆÈÛÜšÈ[ˆ[ˆ[™\ÝžHÜˆÜ™Ø[š\Ø][Ûˆ^HÙYH\ÈÝX›KˆXÙ\È[\Ü[˜ÙHÛˆ™Y[[™È]Z\ˆÜÚ][Ûˆ]ÛÜšÈ\ÈÙXÝ\™H[™\ÈZÙ[HÈ™H[Ü™HÛÛ˜Ù\›™YÚ]]š[™ÈÝXš[]H[ˆZ\ˆ›ÛKˆ‚ˆ
+KˆKˆKˆKˆÂˆšÙ^HŽˆš[™›Y[˜ÙH‹ˆ]HŽˆ’[\XÝ‹ˆœÝX]HŽˆ
+ˆ]]Û›Û^K™XÛÙÛš][Ûˆ[™ÜÜ[š]Y\ÈÈÚ\HÝ]ÛÛY\È‚ˆ
+KˆšXÛÛ—ØÛ\ÜÈŽˆ™˜K\ÛÛY˜KZ[™\Ú[\ˆ‹ˆ™˜XÝÜœÈŽˆÂˆÂˆšÙ^HŽˆ˜]]Üš]H‹ˆ›˜[YHŽˆ]]Üš]H‹ˆ˜[X\Ù\ÈŽˆÂˆ˜]]Üš]H‹ˆKˆ™\ØÜš\[ÛˆŽˆ
+ˆ•˜[Y\ÈHÜÜ[š]HÈZÙHÛˆXY\œÚ\ÜÚ][ÛœÈ[™HÜÜ[š]H›Üˆ›Û[Ý[Û‹ˆ\™XÚX]\È›Û\ÈÚ\™H\™H\È›ÛÛHÈÙ]\™XÝ[Û‹Ü™Ø[š\ÙHÝ\œÈ[™[œÝ\™HÛÜšÈ\ÈÛ™H›Ü\›Kˆ‚ˆ
+KˆKˆÂˆšÙ^HŽˆš[™\[™[˜ÙH‹ˆ›˜[YHŽˆ]]Û›Û^H‹ˆ˜[X\Ù\ÈŽˆÂˆš[™\[™[˜ÙH‹ˆ˜]]Û›Û^H‹ˆœÙ[ˆ]\›Z[˜][Ûˆ‹ˆœÙ[ˆ\™XÝ[Ûˆ‹ˆKˆ™\ØÜš\[ÛˆŽˆ
+ˆ•˜[Y\ÈHœ™YYÛHÈXZÙHZ\ˆÝÛˆXÚ\Ú[ÛœÈX›Ý]ÝÈÈ[ˆZ\ˆ[YH[™Ü™Ø[š\ÙHZ\ˆÛÜšËˆ\™›Ü›\È]Z\ˆ™\ÝÚ[ˆ\ÝYÈÙ]Z\ˆÝÛˆÛÜšÈ\™XÝ[Ûˆ[™ÛÛ\]HZ\ˆÛÜšÈ[ˆHØ^H^HÙYHš]ˆ‚ˆ
+KˆKˆÂˆšÙ^HŽˆœ™XÛÙÛš][Ûˆ‹ˆ›˜[YHŽˆ”™XÛÙÛš][Ûˆ‹ˆ˜[X\Ù\ÈŽˆÂˆœ™XÛÙÛš][Ûˆ‹ˆKˆ™\ØÜš\[ÛˆŽˆ
+ˆ’\È[Ý]˜]YžH™XÛÙÛš][Û‹˜Z\ÙH[™\™XÚX][Û‹ˆš[Üš]\Ù\ÈXÝ]š]Y\ÈÜˆ›Ú™XÝÈ]\™Hš\ÚX›H[ˆHÜ™Ø[š\Ø][ÛˆÛÈÝ\œÈØ[ˆÙYHHÛÜšÈ^HÈ[™H˜[YH^HYˆÜÚ]]™H™YY˜XÚÈ[™˜Z\ÙH\™H[Ý]˜][™È›Üˆ[Kˆ‚ˆ
+KˆKˆÂˆšÙ^HŽˆ›XZÚ[™×ØWÙY™™\™[˜ÙH‹ˆ›˜[YHŽˆ“XZÚ[™ÈHY™™\™[˜ÙH‹ˆ˜[X\Ù\ÈŽˆÂˆ›XZÚ[™ÈHY™™\™[˜ÙH‹ˆ›XZÙHHY™™\™[˜ÙH‹ˆœ\œÜÙH‹ˆKˆ™\ØÜš\[ÛˆŽˆ
+ˆ•Ø[ÈÈ™Y[]^HXZÙHHÜÚ]]™HY™™\™[˜ÙHÈÝ\œËˆÛÛœÚY\œÈ][\Ü[È™H\Ùˆ[ˆÜ™Ø[š\Ø][ÛˆÚÜÙHÛØ[È[™\œÜÙHÙY[HÛÜÚ[HÈ[K[™È™HX›HÈÙYHÝÈZ\ˆÛÜšÈ\ÈH™[™YšXÚX[[\XÝÛˆÛØÚY]H]\™ÙKˆ‚ˆ
+KˆKˆÂˆšÙ^HŽˆ˜XÜ]Z\Ú][Ûˆ‹ˆ›˜[YHŽˆXÜ]Z\Ú][Ûˆ‹ˆ˜[X\Ù\ÈŽˆÂˆ˜XÜ]Z\Ú][Ûˆ‹ˆœ™]Ø\™‹ˆ™š[˜[˜ÚX[™]Ø\™‹ˆKˆ™\ØÜš\[ÛˆŽˆ
+ˆ’\È[Ý]˜]YžHš[˜[˜ÚX[™]Ø\™[™žHÛÜšÚ[™È[ˆHÙ[\ZY›ÛHÛÈ^HØ[ˆY™›Ü™H[™ÜÈ^HØ[Ú]Ý]]š[™ÈÈÛÜœžHX›Ý]ÛÜÝËˆH›ØÝ\ÈÛˆØ[\žH[™™[™Yš]È\ÈÝ›Û™ÎÈ]˜XÝ]™H™[][™\˜][Ûˆ\È[Ý]˜][™Ëˆ‚ˆ
+KˆKˆKˆKˆÂˆšÙ^HŽˆ™Ü›ÝÝ‹ˆ]HŽˆ‘Ü›ÝÝ‹ˆœÝX]HŽˆ
+ˆXÚY]™[Y[]X[]K]™[ÜY[[™YX[š[™Ù[Ý[™\™È‚ˆ
+KˆšXÛÛ—ØÛ\ÜÈŽˆ™˜K\ÛÛY˜KX\œ›ÝË]™[™]\‹ˆ™˜XÝÜœÈŽˆÂˆÂˆšÙ^HŽˆ˜XÚY]™[Y[‹ˆ›˜[YHŽˆXÚY]™[Y[‹ˆ˜[X\Ù\ÈŽˆÂˆ˜XÚY]™[Y[‹ˆœ\™›Ü›X[˜ÙH‹ˆKˆ™\ØÜš\[ÛˆŽˆ
+ˆ’\È[™\™Ú\ÙYžHYš[™Y[™Ú[[™Ú[™ÈÛØ[ÈÈÛÜšÈÝØ\™Ëˆ›Ù™\ÜÚ[Û˜[HÚ[[™Ú[™ÈÜÜ[š]Y\È\™H[\Ü[Èš]™\ÈÛˆÛÛ\]][Ûˆ[™[ˆ[š\›Û›Y[Ú\™H^H]™HHÜÜ[š]HÈÛÛ\\™HZ\ˆ\™›Ü›X[˜ÙHÈÝ\œËˆ‚ˆ
+KˆKˆÂˆšÙ^HŽˆœ]X[]H‹ˆ›˜[YHŽˆ”]X[]H‹ˆ˜[X\Ù\ÈŽˆÂˆœ]X[]H‹ˆKˆ™\ØÜš\[ÛˆŽˆ
+ˆ’\È[Ý]˜]YžH[]™\š[™ÈYÚ\]X[]H™\Ý[ÈÛˆHÛÛœÚ\Ý[˜\Ú\ËˆZÙ\ÈšYH[ˆ›ÙXÚ[™ÈÛÜšÈ]\È[ˆ[™HÚ]›ÝÚ]^H]™H›ÛZ\ÙY[™Ú]\È^XÝYÙˆ[Kˆ[œÝ\™\ÈZ\ˆÛÜšÈ\ÈÛÛ\]Y\È\™™XÝH\ÈÜÜÚX›Kˆ‚ˆ
+KˆKˆÂˆšÙ^HŽˆ›X\›š[™È‹ˆ›˜[YHŽˆ“X\›š[™È‹ˆ˜[X\Ù\ÈŽˆÂˆ›X\›š[™È‹ˆ™]™[ÜY[‹ˆKˆ™\ØÜš\[ÛˆŽˆ
+ˆ’\Èš]™[ˆžHHÜÜ[š]HÈX\›ˆ[™]™[ÜZ\ˆ^\\ÙKˆ™Y[ÈÛÛY›ÜX›H[ˆ[ˆ[š\›Û›Y[Ú\™H\™H\™H[HÙˆÜÜ[š]Y\È›ÜˆÛ™ÛÚ[™È˜Z[š[™È[™]™[ÜY[ÈX\Ý\ˆ™]ÈÚÚ[Ëˆ‚ˆ
+KˆKˆÂˆšÙ^HŽˆ™]XÜÈ‹ˆ›˜[YHŽˆ‘]XÜÈ‹ˆ˜[X\Ù\ÈŽˆÂˆ™]XÜÈ‹ˆ™]XØ[Ý[™\™È‹ˆKˆ™\ØÜš\[ÛˆŽˆ
+ˆ“XZ[Z[œÈYÚ]XØ[Ý[™\™È›Üˆ[\Ù[™\È[™HÜ™Ø[š\Ø][Ûˆ^HÛÜšÈ›Ü‹ˆY\™\ÈÈ[™\ÝžHÝZY[[™\È[™™\Ý\˜XÝXÙH™\]Z\™[Y[ËˆZÙ\ÈšYH[ˆZ\ˆ›Ù™\ÜÚ[Û˜[[YÜš]H[™[š›Þ\ÈÛÜšÚ[™È[ˆ[ˆÜ™Ø[š\Ø][ÛˆÚÜÙH]XØ[˜[Y\È\™H[ˆ[™HÚ]Z\ˆÝÛ‹ˆ‚ˆ
+KˆKˆÂˆšÙ^HŽˆ˜ÛÛ[Y\˜ÚX[Ù›ØÝ\È‹ˆ›˜[YHŽˆÛÛ[Y\˜ÚX[˜[YH‹ˆ˜[X\Ù\ÈŽˆÂˆ˜ÛÛ[Y\˜ÚX[›ØÝ\È‹ˆ˜ÛÛ[Y\˜ÚX[˜[YH‹ˆ˜ÛÛ[Y\˜ÚX[H›ØÝ\ÙY‹ˆKˆ™\ØÜš\[ÛˆŽˆ
+ˆ•š]™\È[ˆHÛÛ[Y\˜ÚX[H›ØÝ\ÙY›ÛH[™ÛÛšX]\ÈÈHÜ™Ø[š\Ø][Û‰ÜÈš[˜[˜ÚX[ÝXØÙ\ÜËˆ˜[Y\ÈÙYZ[™ÈHÛÛ›™XÝ[Ûˆ™]ÙY[ˆZ\ˆ›ÛH[™HÜ™Ø[š\Ø][Û‰ÜÈ™\Ý[ËˆØZ[œÈ[™\™ÞHœ›ÛHÙYZ[™ÈÝÈZ\ˆÛÜšÈXYÈÈÛÛ[Y\˜ÚX[›Ùš]ˆ‚ˆ
+KˆKˆKˆKˆÂˆšÙ^HŽˆš[\™\Ý‹ˆ]HŽˆ’[\™\Ý‹ˆœÝX]HŽˆ
+ˆ‘^Ü˜][Û‹Ü™X]]š]K[š›Þ[Y[˜\šY]H[™š\ÚÈ‚ˆ
+KˆšXÛÛ—ØÛ\ÜÈŽˆ™˜K\ÛÛY˜K[YÚ[ˆ‹ˆ™˜XÝÜœÈŽˆÂˆÂˆšÙ^HŽˆ˜Ý\š[ÜÚ]H‹ˆ›˜[YHŽˆÝ\š[ÜÚ]H‹ˆ˜[X\Ù\ÈŽˆÂˆ˜Ý\š[ÜÚ]H‹ˆKˆ™\ØÜš\[ÛˆŽˆ
+ˆ‘^Ü™\È[™\ØÛÝ™\œÈ™]È[™ÜËˆ\œÝY\ÈÛ›ÝÛYÙH[™^\šY[˜ÙKZÙ\ÈY˜[YÙHÙˆÜÜ[š]Y\È›Üˆ™]È^\šY[˜Ù\È[™™]È[™›Ü›X][Û‹[™^Ü™\ÈH[™ÜÈ]Ø\\™HZ\ˆ[\™\Ýˆ‚ˆ
+KˆKˆÂˆšÙ^HŽˆ˜Ü™X]]š]H‹ˆ›˜[YHŽˆÜ™X]]š]H‹ˆ˜[X\Ù\ÈŽˆÂˆ˜Ü™X]]š]H‹ˆKˆ™\ØÜš\[ÛˆŽˆ
+ˆ‘[š›Þ\È^\˜Ú\Ú[™ÈÜ™X]]š]K[šÚ[™ÈÝ]ÚYHH›ÞÙ[™\˜][™È™]ÈYX\È[™Y[YžZ[™È™]ÈÛÛ][ÛœËˆYX\È[™ÝYÙÙ\Ý[ÛœÈ\™HZÙ[HÈ™H\ÙY[›Ý\ÝÜšYÚ[˜[›ÜˆHØZÙHÙˆ™Z[™ÈY™™\™[Üˆ[š\]YKˆ‚ˆ
+KˆKˆÂˆšÙ^HŽˆ™[š›Þ[Y[‹ˆ›˜[YHŽˆ‘[š›Þ[Y[‹ˆ˜[X\Ù\ÈŽˆÂˆ™[š›Þ[Y[‹ˆš›ÞH‹ˆ™[ˆ‹ˆKˆ™\ØÜš\[ÛˆŽˆ
+ˆ•˜[Y\È[ˆ[š\›Û›Y[Ú\™H^H[š›ÞHZ\ˆÛÜšÈ]Ø[ˆ[ÛÈ]™H[ˆÚ]Z\ˆÛÛXYÝY\Ëˆš]™\È[ˆ[ˆX\ÞKYÛÚ[™È[š\›Û›Y[Ú\™H^HØ[ˆ^™\ÜÈZ\ˆ^Y[ÚYKÚ\™H[[Ý\ˆÚ]ÛÛXYÝY\È[™™HXØÙ\Y›ÜˆÚÈ^H\™Kˆ‚ˆ
+KˆKˆÂˆšÙ^HŽˆ˜\šY]H‹ˆ›˜[YHŽˆ•˜\šY]H‹ˆ˜[X\Ù\ÈŽˆÂˆ˜\šY]H‹ˆ˜\šX][Ûˆ‹ˆKˆ™\ØÜš\[ÛˆŽˆ
+ˆ’\È[Ý]˜]YžHH›ÛH]Ù™™\œÈHÝÙˆ˜\šY]H[™HÜÜ[š]HÈÛÜšÈÚ]X[žHY™™\™[[™ÜËˆš]™\È[ˆH]™\œÙH›ÛHÚ]HZ^Ùˆ\ÚÜÈ[™›Ú™XÝÈÚ\™H^HØ[ˆ›ØÝ\ÈZ\ˆ][[ÛˆÛˆY™™\™[ÛÜšÈ[X[™È[™ZÙHY˜[YÙHÙˆZ\ˆY™™\™[ÚÚ[Ëˆ‚ˆ
+KˆKˆÂˆšÙ^HŽˆœš\ÚÈ‹ˆ›˜[YHŽˆ”š\ÚÈ‹ˆ˜[X\Ù\ÈŽˆÂˆœš\ÚÈ‹ˆœš\ÚÈZÚ[™È‹ˆKˆ™\ØÜš\[ÛˆŽˆ
+ˆ’\È[Ý]˜]YžHš\ÚÈ]ÛÜšÈ[™žH]š[™ÈÈ˜XÙHÚ]X][ÛœÈÚ\™HHÝ]ÛÛYH\È[˜ÛX\‹ˆ\ÈÛÛY›ÜX›HXZÚ[™Èš\ÚÞHXÚ\Ú[ÛœÈ[™š]™\È[ˆ›Û\È][ÝÈ›ÛÛHÈ^\šY[˜ÙHHš[ÙˆZÚ[™ÈHš\ÚÈ[™[ˆÙYZ[™ÈYˆ]^\ÈÙ™‹ˆ‚ˆ
+KˆKˆKˆKˆB‚ˆÛÝ\˜ÙWÛÛÚÝ\HßB‚ˆ›Üˆ][H[ˆ\WØÛÛ\][˜ÚY\ÈÜˆ×NˆˆÛÛ\][˜ÞWÛ˜[YHH›Ü›X[\ÙWÛ˜[YJˆ][K™Ù]
+˜ÛÛ\][˜ÞHŠBˆ
+B‚ˆYˆÛÛ\][˜ÞWÛ˜[YN‚ˆÛÝ\˜ÙWÛÛÚÝ\ØÛÛ\][˜ÞWÛ˜[YWHH][B‚ˆYˆš[™ÜÛÝ\˜ÙJ˜XÝÜŠN‚ˆ›Üˆ[X\È[ˆ˜XÝÜ‹™Ù]
+˜[X\Ù\È‹×JN‚ˆÛÝ\˜ÙHHÛÝ\˜ÙWÛÛÚÝ\™Ù]
+ˆ›Ü›X[\ÙWÛ˜[YJ[X\ÊBˆ
+B‚ˆYˆÛÝ\˜ÙN‚ˆ™]\›ˆÛÝ\˜ÙB‚ˆ™]\›ˆ›Û™B‚ˆYˆÙ]Ø˜[™
+ØÛÜ™JN‚ˆYˆØÛÜ™H\È›Û™N‚ˆ™]\›ˆÂˆšÙ^HŽˆ›Z\ÜÚ[™È‹ˆ›X™[Žˆ“›Ý]˜Z[X›H‹ˆB‚ˆYˆØÛÜ™HHŽ‚ˆ™]\›ˆÂˆšÙ^HŽˆ›ÝÙ\ˆ‹ˆ›X™[Žˆ“ÝÙ\ˆ‹ˆB‚ˆYˆØÛÜ™HOHÎ‚ˆ™]\›ˆÂˆšÙ^HŽˆ›ZY‹ˆ›X™[Žˆ“ZY\˜[™ÙH‹ˆB‚ˆ™]\›ˆÂˆšÙ^HŽˆšYÚ\ˆ‹ˆ›X™[Žˆ’YÚ\ˆ‹ˆB‚ˆYˆZ[ÜÙYÛY[ÊØÛÜ™JN‚ˆ™]\›ˆÂˆÂˆ›[X™\ˆŽˆ[X™\‹ˆ™š[YŽˆ
+ˆØÛÜ™H\È›Ý›Û™Bˆ[™[X™\ˆHØÛÜ™Bˆ
+KˆBˆ›Üˆ[X™\ˆ[ˆ˜[™ÙJKŠBˆB‚ˆ\ÙYÜÛÝ\˜ÙWÚYÈHÙ]
+
+BˆÛXZ[œÈH×Bˆ[Ú][\ÈH×Bˆ][WÛÜ™\ˆH‚ˆ›ÜˆÛXZ[—Ú[™^ÛXZ[—ØÛÛ™šYÈ[ˆ[[Y\˜]J[Ý]˜][Û—Û[Ù[
+N‚ˆÛXZ[—Ú][\ÈH×B‚ˆ›Üˆ˜XÝÜˆ[ˆÛXZ[—ØÛÛ™šYÖÈ™˜XÝÜœÈ—N‚ˆÛÝ\˜ÙHHš[™ÜÛÝ\˜ÙJ˜XÝÜŠBˆØÛÜ™HHÙ]ÜØÛÜ™JÛÝ\˜ÙJHYˆÛÝ\˜ÙH[ÙH›Û™Bˆ˜[™HÙ]Ø˜[™
+ØÛÜ™JB‚ˆ[\œ™]][Û—ØÛÛ™šYÈH˜XÝÜ—Ú[\œ™]][ÛœË™Ù]
+ˆ˜XÝÜ–ÈšÙ^H—KˆßKˆ
+B‚ˆYˆÛÝ\˜ÙN‚ˆ\ÙYÜÛÝ\˜ÙWÚYË˜Y
+Y
+ÛÝ\˜ÙJJB‚ˆ][HHÂˆšÙ^HŽˆ˜XÝÜ–ÈšÙ^H—Kˆ›˜[YHŽˆ˜XÝÜ–È›˜[YH—Kˆ™\ØÜš\[ÛˆŽˆ˜XÝÜ–È™\ØÜš\[Ûˆ—Kˆ™ÛXZ[ˆŽˆÛXZ[—ØÛÛ™šYÖÈ]H—Kˆ™ÛXZ[—Ù]HŽˆÛXZ[—ØÛÛ™šYËˆ™ÛXZ[—Ú[™^ŽˆÛXZ[—Ú[™^ˆœØÛÜ™HŽˆØÛÜ™Kˆ˜]˜Z[X›HŽˆØÛÜ™H\È›Ý›Û™KˆœÙYÛY[ÈŽˆZ[ÜÙYÛY[ÊØÛÜ™JKˆ˜˜[™ÚÙ^HŽˆ˜[™ÈšÙ^H—Kˆ˜˜[™ÛX™[Žˆ˜[™È›X™[—Kˆœ\˜Ù[[HŽˆ
+ˆÛÝ\˜ÙK™Ù]
+œ\˜Ù[[HŠBˆYˆÛÝ\˜ÙBˆ[ÙH›Û™Bˆ
+KˆœÛÝ\˜ÙWÛ˜[YHŽˆ
+ˆÛÝ\˜ÙK™Ù]
+˜ÛÛ\][˜ÞHŠBˆYˆÛÝ\˜ÙBˆ[ÙH›Û™Bˆ
+Kˆ›Ü™\ˆŽˆ][WÛÜ™\‹ˆœÝ[[X\žWÜ˜\ÙHŽˆ[\œ™]][Û—ØÛÛ™šYË™Ù]
+ˆœÝ[[X\žWÜ˜\ÙH‹ˆ˜XÝÜ–È›˜[YH—K›ÝÙ\Š
+Kˆ
+K‚ˆœÝ\ÜÜ˜\ÙHŽˆ[\œ™]][Û—ØÛÛ™šYË™Ù]
+ˆœÝ\ÜÜ˜\ÙH‹ˆ˜XÝÜ–È™\ØÜš\[Ûˆ—K›ÝÙ\Š
+Kˆ
+K‚ˆÜÚ[\œ™]][ÛˆŽˆ
+ˆ[\œ™]][Û—ØÛÛ™šYË™Ù]
+ÜÝ^‹ˆŠK™›Ü›X]
+ˆ˜[YOXØ[™Y]WÛX™[ˆ
+BˆYˆ[\œ™]][Û—ØÛÛ™šYË™Ù]
+ÜÝ^ŠBˆ[ÙH
+ˆˆžØØ[™Y]WÛX™[H\X\œÈÈ™H\XÝ[\›H[Ý]˜]Y‚ˆˆ˜žH\È\ÜXÝÙˆHÛÜšÚ[™È[š\›Û›Y[ˆ‚ˆ
+Bˆ
+KˆB‚ˆ][WÛÜ™\ˆ
+ÏHBˆÛXZ[—Ú][\Ë˜\[™
+][JBˆ[Ú][\Ë˜\[™
+][JB‚ˆÛXZ[—Ú][\ÈHÛÜY
+ˆÛXZ[—Ú][\ËˆÙ^O[[X™H][Nˆ
+ˆ][VÈœØÛÜ™H—H\È›Û™KˆJ][VÈœØÛÜ™H—HÜˆ
+Kˆ][VÈ›Ü™\ˆ—Kˆ
+Kˆ
+B‚ˆÛXZ[œË˜\[™
+ÂˆšÙ^HŽˆÛXZ[—ØÛÛ™šYÖÈšÙ^H—Kˆ]HŽˆÛXZ[—ØÛÛ™šYÖÈ]H—KˆœÝX]HŽˆÛXZ[—ØÛÛ™šYÖÈœÝX]H—KˆšXÛÛ—ØÛ\ÜÈŽˆÛXZ[—ØÛÛ™šYÖÈšXÛÛ—ØÛ\ÜÈ—Kˆš][\ÈŽˆÛXZ[—Ú][\ËˆJB‚‚ˆ]˜Z[X›WÚ][\ÈHÂˆ][Bˆ›Üˆ][H[ˆ[Ú][\ÂˆYˆ][VÈ˜]˜Z[X›H—BˆB‚ˆYˆ›Ý]˜Z[X›WÚ][\Î‚ˆ™]\›ˆ›Û™B‚ˆÛÜYÙ\ØÈHÛÜY
+ˆ]˜Z[X›WÚ][\ËˆÙ^O[[X™H][Nˆ
+ˆZ][VÈœØÛÜ™H—Kˆ][VÈ›Ü™\ˆ—Kˆ
+Kˆ
+B‚ˆÛÜYØ\ØÈHÛÜY
+ˆ]˜Z[X›WÚ][\ËˆÙ^O[[X™H][Nˆ
+ˆ][VÈœØÛÜ™H—Kˆ][VÈ›Ü™\ˆ—Kˆ
+Kˆ
+B‚ˆYÚ\ÝÜØÛÜ™HHX^
+ˆ][VÈœØÛÜ™H—Bˆ›Üˆ][H[ˆ]˜Z[X›WÚ][\Âˆ
+B‚ˆÝÙ\ÝÜØÛÜ™HHZ[Šˆ][VÈœØÛÜ™H—Bˆ›Üˆ][H[ˆ]˜Z[X›WÚ][\Âˆ
+B‚ˆ\×Ü›Ùš[WÙY™™\™[˜ÙHH
+ˆYÚ\ÝÜØÛÜ™HOHÝÙ\ÝÜØÛÜ™Bˆ
+B‚ˆYˆ\×Ü›Ùš[WÙY™™\™[˜ÙN‚ˆ[Ý]˜]ÜœÈHÛÜYÙ\ØÖÎŒ×Bˆ\Ü×ØÙ[˜[Ùš]™\œÈHÛÜYØ\ØÖÎŒ×Bˆ[ÙN‚ˆ[Ý]˜]ÜœÈH×Bˆ\Ü×ØÙ[˜[Ùš]™\œÈH×B‚ˆYˆ›Ú[—Ý^
+˜[Y\ÊN‚ˆ˜[Y\ÈHÂˆ˜[YBˆ›Üˆ˜[YH[ˆ˜[Y\ÂˆYˆ˜[YBˆB‚ˆYˆ›Ý˜[Y\Î‚ˆ™]\›ˆˆ‚‚ˆYˆ[Š˜[Y\ÊHOHN‚ˆ™]\›ˆ˜[Y\ÖÌB‚ˆYˆ[Š˜[Y\ÊHOHŽ‚ˆ™]\›ˆˆ[™‹š›Ú[Š˜[Y\ÊB‚ˆ™]\›ˆ
+ˆˆžÉË	Ëš›Ú[Š˜[Y\ÖÎ‹LWJ_H[™Ý˜[Y\ÖËLW_H‚ˆ
+B‚ˆYˆ›Ú[—Û˜[Y\Ê][\ÊN‚ˆ˜[Y\ÈHÂˆ][VÈ›˜[YH—Bˆ›Üˆ][H[ˆ][\ÂˆB‚ˆYˆ›Ý˜[Y\Î‚ˆ™]\›ˆˆ‚‚ˆYˆ[Š˜[Y\ÊHOHN‚ˆ™]\›ˆ˜[Y\ÖÌB‚ˆYˆ[Š˜[Y\ÊHOHŽ‚ˆ™]\›ˆˆ[™‹š›Ú[Š˜[Y\ÊB‚ˆ™]\›ˆ
+ˆˆžÉË	Ëš›Ú[Š˜[Y\ÖÎ‹LWJ_H[™Û˜[Y\ÖËLW_H‚ˆ
+B‚ˆ›Üˆ][H[ˆ[Ý]˜]ÜœÎ‚ˆ][VÈš[\œ™]][Ûˆ—HH][K™Ù]
+ˆÜÚ[\œ™]][Ûˆ‚ˆ
+HÜˆ
+ˆˆžØØ[™Y]WÛX™[H\X\œÈÈ™H\XÝ[\›H[Ý]˜]Y‚ˆˆ˜žHÚ][K™Ù]
+	Û˜[YIË	Ý\È\ÜXÝÙˆÛÜšÉÊK›ÝÙ\Š
+_Kˆ‚ˆ
+B‚ˆ›Üˆ][H[ˆ\Ü×ØÙ[˜[Ùš]™\œÎ‚ˆ][VÈš[\œ™]][Ûˆ—HH
+ˆˆžÚ][VÉÙ\ØÜš\[Û‰×_H\È\X\œÈÈ™HH\ÜÈÙ[˜[‚ˆˆœÛÝ\˜ÙHÙˆ[™\™ÞH›ÜˆHØ[™Y]Kˆ‚ˆ
+B‚ˆYˆ[Ý]˜]ÜœÎ‚ˆ[Ý]˜][Û˜[Ý[Y\ÈH›Ú[—Ý^
+Âˆ][VÈœÝ[[X\žWÜ˜\ÙH—Bˆ›Üˆ][H[ˆ[Ý]˜]ÜœÂˆJB‚ˆÝ\Ü]™WØÛÛ™][ÛœÈH›Ú[—Ý^
+Âˆ][VÈœÝ\ÜÜ˜\ÙH—Bˆ›Üˆ][H[ˆ[Ý]˜]ÜœÂˆJB‚ˆÝ[[X\žHH
+ˆˆžØØ[™Y]WÛX™[H\ÈZÙ[HÈ™H[™\™Ú\ÙYžH‚ˆˆžÛ[Ý]˜][Û˜[Ý[Y\ßKˆHÛÜšÚ[™È[š\›Û›Y[]Ù™™\œÈ‚ˆˆžÜÝ\Ü]™WØÛÛ™][ÛœßHX^H\™Y›Ü™HÝ\ÜÝ\ÝZ[™Y‚ˆˆ™[™ØYÙ[Y[ˆ‚ˆ
+Bˆ[ÙN‚ˆÝ[[X\žHH
+ˆˆžØØ[™Y]WÛX™[IÜÈ[Ý]˜][Ûˆ›Ùš[H\È™[]]™[H]™[‹‚ˆˆÚ]›ÈÛX\ˆÙ\\˜][Ûˆ™]ÙY[ˆ[Ü™H›ÛZ[™[[™\ÜÈ‚ˆˆ˜Ù[˜[[Ý]˜][Û˜[š]™\œËˆ‚ˆ
+B‚ˆ™]\›ˆÂˆ]HŽˆ“[Ý]˜][Ûˆ›Ùš[H‹ˆœÝ[[X\žHŽˆÝ[[X\žKˆ™ÛXZ[œÈŽˆÛXZ[œËˆÈ›]Ú\]H]›ÚYÈ™[Z[™ÈÛˆ™\ÝY[\]HXÝ[Û˜\žHÛÚÝ\‚ˆÈ\ÙH][\È™]Z[ˆHØ[YH™XÚ\ÙHØÛÜ™\È\ÙY›Üˆ˜[šÚ[™Ë‚ˆ˜Ú\Ú][\ÈŽˆ]˜Z[X›WÚ][\Ëˆ›[Ý]˜]ÜœÈŽˆ[Ý]˜]ÜœËˆ›\Ü×ØÙ[˜[Ùš]™\œÈŽˆ\Ü×ØÙ[˜[Ùš]™\œË‚ˆÈ[\Ü˜\žHÛÛ\]Xš[]HÚ]H™]š[Ý\È[\]KÙ]HÝXÝ\™K‚ˆ™[[Ý]˜]ÜœÈŽˆ\Ü×ØÙ[˜[Ùš]™\œË‚ˆ˜]˜Z[X›WØÛÝ[Žˆ[Š]˜Z[X›WÚ][\ÊKˆšYÚ\ÝÜØÛÜ™HŽˆYÚ\ÝÜØÛÜ™Kˆ›ÝÙ\ÝÜØÛÜ™HŽˆÝÙ\ÝÜØÛÜ™Kˆš\×Ü›Ùš[WÙY™™\™[˜ÙHŽˆ\×Ü›Ùš[WÙY™™\™[˜ÙKˆB‚‚™YˆZ[ÜÛÝ˜WÜ™\Ü×Ù›Ü—ÝZJ™\ÜÊN‚ˆˆˆ‚ˆ™\\™H[™\ÜÈ™XÙZ]™Yœ›ÛHHÛÝ˜HÙXšÛÚÈ›ÜˆHRK‚‚ˆ]™\žH™\ÜÚ]H˜[YT“\È[˜ÛYY‚ˆÛ›ÝÛˆ™\ÜÛÙ\È™XÙZ]™HÛX[™\ˆ\Ü^H˜[Y\Ë‚ˆ[šÛ›ÝÛˆ™\ÜÈ˜[˜XÚÈÈH]HÝ\YYžHÛÝ˜K‚ˆˆˆ‚‚ˆ]WÛX\HÂˆÈÛÙÛš]]™HØ[™Y]H™\ÜÂˆ•WÐÐS‘QUWÓÑÒPÐSÔ‘PTÓÓ’S‘ÈŽˆ
+ˆ“ÙÚXØ[™X\ÛÛš[™È8 $ÈØ[™Y]H™\Ü‚ˆ
+Kˆ•WÐÐS‘QUWÓ•SQT’PÐSÔ‘PTÓÓ’S‘ÈŽˆ
+ˆ“[Y\šXØ[™X\ÛÛš[™È8 $ÈØ[™Y]H™\Ü‚ˆ
+Kˆ•WÐÐS‘QUWÕ‘TSÔ‘PTÓÓ’S‘ÈŽˆ
+ˆ•™\˜˜[™X\ÛÛš[™È8 $ÈØ[™Y]H™\Ü‚ˆ
+K‚ˆÈÛÙÛš]]™H˜XÝ][Û™\ˆ™\ÜÂˆ•WÔPÕUSÓ‘T—ÓÑÒPÐSÔ‘PTÓÓ’S‘ÈŽˆ
+ˆ“ÙÚXØ[™X\ÛÛš[™È8 $È˜XÝ][Û™\ˆ™\Ü‚ˆ
+Kˆ•WÔPÕUSÓ‘T—Ó•SQT’PÐSÔ‘PTÓÓ’S‘ÈŽˆ
+ˆ“[Y\šXØ[™X\ÛÛš[™È8 $È˜XÝ][Û™\ˆ™\Ü‚ˆ
+Kˆ•WÔPÕUSÓ‘T—Õ‘TSÔ‘PTÓÓ’S‘ÈŽˆ
+ˆ•™\˜˜[™X\ÛÛš[™È8 $È˜XÝ][Û™\ˆ™\Ü‚ˆ
+K‚ˆÈ\œÛÛ˜[]H™\ÜÂˆ•WÔÓÕWÔWÐÐS‘QUWÕRUŽˆ
+ˆ”\œÛÛ˜[]H˜Z]™\Ü8 $ÈØ[™Y]H‚ˆ
+Kˆ”ÓÕWÔWÕX[WÕWÓ›Ü™XÜÈŽˆ
+ˆ•X[H›Ùš[H‚ˆ
+Kˆ•WÔLÎÔ™XÜZ]Y[Ô™\ÜŽˆ
+ˆÛÛ\][˜ÞH™\Ü[™[\šY]ÈÝZYH‚ˆ
+Kˆ•WÔÛÝ˜WÔWÐØ\™Y\—Ü™\ÜŽˆ
+ˆØ\™Y\ˆ™\Ü‚ˆ
+Kˆ•WÔÛÝ˜WÔWÑ\˜Z[Y[Žˆ
+ˆ‘\˜Z[Y[™\Ü‚ˆ
+Kˆ”ÓÕWÔWÑ•SÕRUÔ“Ñ’SWÕWÓ›Ü™XÜÈŽˆ
+ˆ‘[\œÛÛ˜[]H˜Z]›Ùš[H‚ˆ
+Kˆ•WÔÛÝ˜WÔWÓXY\œÚ\Žˆ
+ˆ“XY\œÚ\™\Ü‚ˆ
+Kˆ”ÛÝ˜WÔWÓXY\œÚ\ÓX[˜YÙ\—ÕWÓ›Ü™XÜ×ÓÛ›HŽˆ
+ˆ“XY\œÚ\™\Ü8 $ÈX[˜YÙ\ˆ™\œÚ[Ûˆ‚ˆ
+Kˆ•WÔÛÝ˜WÔWÔÝ[X[ÑHŽˆ
+ˆ”Ý[X[H™\Ü‚ˆ
+Kˆ•WÔWÔ˜XÝ][Û™\—ÔØ[\×Ô™\ÜŽˆ
+ˆ”Ø[\È›Ùš[H8 $È˜XÝ][Û™\ˆ™\Ü‚ˆ
+Kˆ•WÔÓÕWÔWÔÕP•RUÔ‘TÔ•Žˆ
+ˆ•˜Z][™[™XØ]Üˆ›Ùš[H‚ˆ
+Kˆ•WÔWÕX[WÐÛÛ\ÜÚ]HŽˆ
+ˆ•X[HÛÛ\ÜÚ]H™\Ü‚ˆ
+KˆB‚ˆYˆÙ]ØØ]YÛÜžJÛÙK]JN‚ˆ^HˆžØÛÙ_HÝ]_H‹›ÝÙ\Š
+B‚ˆYˆ›ÙÚXØ[ˆ[ˆ^‚ˆ™]\›ˆ“ÙÚXØ[™X\ÛÛš[™È‚‚ˆYˆ›[Y\šXØ[ˆ[ˆ^‚ˆ™]\›ˆ“[Y\šXØ[™X\ÛÛš[™È‚‚ˆYˆ™\˜˜[ˆ[ˆ^‚ˆ™]\›ˆ•™\˜˜[™X\ÛÛš[™È‚‚ˆYˆ[žJÛÜ™[ˆ^›ÜˆÛÜ™[ˆ
+ˆœ\œÛÛ˜[]H‹ˆœH‹ˆ˜Z]‹ˆ›XY\œÚ\‹ˆ˜Ø\™Y\ˆ‹ˆ™\˜Z[Y[‹ˆœÝ[X[‹ˆœØ[\È‹ˆX[H‹ˆ
+JN‚ˆ™]\›ˆ”\œÛÛ˜[]H‚‚ˆYˆ›[Ý]˜][Ûˆˆ[ˆ^Üˆ›\Hˆ[ˆ^‚ˆ™]\›ˆ“[Ý]˜][Ûˆ‚‚ˆ™]\›ˆ\ÜÙ\ÜÛY[™\Ü‚‚ˆ™\Ý[H×B‚ˆ›Üˆ™\Ü[ˆ™\ÜÈÜˆ×N‚ˆYˆ›Ý\Ú[œÝ[˜ÙJ™\ÜXÝ
+N‚ˆÛÛ[YB‚ˆ\›H
+™\Ü™Ù]
+\›ŠHÜˆˆŠKœÝš\
+
+B‚ˆYˆ›Ý\›Üˆ›ÝÚ\×ÜØY™WÙ^\›˜[Ý\›
+\›
+N‚ˆÛÛ[YB‚ˆÛÙHH
+™\Ü™Ù]
+˜ÛÙHŠHÜˆˆŠKœÝš\
+
+BˆÜšYÚ[˜[Ý]HH
+™\Ü™Ù]
+]HŠHÜˆˆŠKœÝš\
+
+B‚ˆ\Ü^WÝ]HH
+ˆ]WÛX\™Ù]
+ÛÙJBˆÜˆÜšYÚ[˜[Ý]BˆÜˆÛÙBˆÜˆ\ÜÙ\ÜÛY[™\Ü‚ˆ
+B‚ˆ\×ØØ[™Y]WÜ™\ÜH›ÛÛ
+ˆ™\Ü™Ù]
+š\×ØØ[™Y]WÜ™\ÜŠBˆ
+B‚ˆ™\Ý[˜\[™
+Âˆ˜ÛÙHŽˆÛÙKˆ\›Žˆ\›ˆ]HŽˆ\Ü^WÝ]Kˆ›ÜšYÚ[˜[Ý]HŽˆÜšYÚ[˜[Ý]Kˆ˜Ø]YÛÜžHŽˆÙ]ØØ]YÛÜžJˆÛÙOXÛÙKˆ]O[ÜšYÚ[˜[Ý]Kˆ
+Kˆ˜]YY[˜ÙHŽˆ
+ˆØ[™Y]H™\Ü‚ˆYˆ\×ØØ[™Y]WÜ™\Üˆ[ÙH”˜XÝ][Û™\ˆ™\Ü‚ˆ
+Kˆš\×ØØ[™Y]WÜ™\ÜŽˆ\×ØØ[™Y]WÜ™\ÜˆJB‚ˆÈØ[™Y]H™\ÜÈš\œÝ[ˆ˜XÝ][Û™\ˆ™\ÜË‚ˆ™]\›ˆÛÜY
+ˆ™\Ý[ˆÙ^O[[X™H][Nˆ
+ˆ›Ý][VÈš\×ØØ[™Y]WÜ™\Ü—Kˆ][VÈ˜Ø]YÛÜžH—K›ÝÙ\Š
+Kˆ][VÈ]H—K›ÝÙ\Š
+Kˆ
+Kˆ
+B‚‚™YˆÛ›Ü›X[\ÙWØÛÛXš[™YÜ]Y\Ý[ÛŠˆ][KŠHOˆXÝ›Û™N‚ˆˆˆ‚ˆÛÛ™\]Y\Ý[ÛœÈœ›ÛHY™™\™[RH[Ù[\È[ÈÛ™HÚ\™YÚ\K‚ˆˆˆ‚‚ˆYˆ\Ú[œÝ[˜ÙJ][KÝŠN‚ˆ]Y\Ý[ÛˆH][KœÝš\
+
+B‚ˆYˆ›Ý]Y\Ý[ÛŽ‚ˆ™]\›ˆ›Û™B‚ˆ™]\›ˆÂˆœ]Y\Ý[ÛˆŽˆ]Y\Ý[Û‹ˆÚHŽˆˆ‹ˆ›\Ý[—Ù›ÜˆŽˆˆ‹ˆ˜Z]ÈŽˆ×KˆB‚ˆYˆ›Ý\Ú[œÝ[˜ÙJ][KXÝ
+N‚ˆ™]\›ˆ›Û™B‚ˆ]Y\Ý[ÛˆHÝŠˆ][K™Ù]
+œ]Y\Ý[ÛˆŠBˆÜˆˆ‚ˆ
+KœÝš\
+
+B‚ˆYˆ›Ý]Y\Ý[ÛŽ‚ˆ™]\›ˆ›Û™B‚ˆÚHHÝŠˆ][K™Ù]
+ÚHŠBˆÜˆˆ‚ˆ
+KœÝš\
+
+B‚ˆ\Ý[—Ù›ÜˆHÝŠˆ][K™Ù]
+›\Ý[—Ù›ÜˆŠBˆÜˆˆ‚ˆ
+KœÝš\
+
+B‚ˆ˜]×Ý˜Z]ÈH][K™Ù]
+˜Z]ÈŠBˆ˜Z]ÈH×B‚ˆYˆ\Ú[œÝ[˜ÙJ˜]×Ý˜Z]Ë\Ý
+N‚ˆ˜Z]ÈHÂˆÝŠ˜Z]
+KœÝš\
+
+Bˆ›Üˆ˜Z][ˆ˜]×Ý˜Z]ÂˆYˆÝŠ˜Z]
+KœÝš\
+
+BˆB‚ˆ™]\›ˆÂˆœ]Y\Ý[ÛˆŽˆ]Y\Ý[Û‹ˆÚHŽˆÚKˆ›\Ý[—Ù›ÜˆŽˆ\Ý[—Ù›Ü‹ˆ˜Z]ÈŽˆ˜Z]ËˆB‚‚ˆÈ[[˜HÛÛXš[™Y]Y\Ý[ÛœÈLNˆ˜]ÚB™YˆZ[ØÛÛXš[™YØØ[™Y]WÜ]Y\Ý[ÛœÊˆ[š]][Û‹ŠHOˆXÝ‚ˆˆˆ‚ˆÛÛXÝØ]™Y]Y\Ý[ÛœÈœ›ÛH\œÛÛ˜[]K[Ý]˜][Ûˆ[™ÛÙÛš]]™K‚‚ˆ›ÈY][Û˜[RHÙ[™\˜][Ûˆ\[œÈ\™K‚‚ˆHÛÙÛš]]™HÛÝ\˜ÙHÝ\ÜÈ›Ý‚ˆHH™]ÈÙ\\˜]HÛÙÛš]]™H]Y\Ý[ÛœÈšY[ˆHHÛ\ˆÛÙÛš]]™H[\œ™]][ÛˆšY[\ÈH˜[˜XÚÂˆˆˆ‚‚ˆ]Y\Ý[Û—ÜÛÝ\˜Ù\ÈHÂˆÂˆšÙ^HŽˆœ\œÛÛ˜[]H‹ˆ]HŽˆÊ”\œÛÛ˜[]H]Y\Ý[ÛœÈŠKˆ™\ØÜš\[ÛˆŽˆÊˆ‘^Ü™HÝÈ™[]˜[\œÛÛ˜[]H™Y™\™[˜Ù\È‚ˆ˜\X\ˆ[ˆ˜XÝXØ[Ú]X][ÛœËˆ‚ˆ
+Kˆœ™\Ý[ÜÛÝ\˜Ù\ÈŽˆÂˆÂˆœ™\Ý[ÙšY[Žˆ˜ZWÜ\œÛÛ˜[]WÜ]Y\Ý[ÛœÈ‹ˆœÝ]\×ÙšY[Žˆ
+ˆ˜ZWÜ\œÛÛ˜[]WÜ]Y\Ý[Ûœ×ÜÝ]\È‚ˆ
+KˆKˆKˆKˆÂˆšÙ^HŽˆ›[Ý]˜][Ûˆ‹ˆ]HŽˆÊ“[Ý]˜][Ûˆ]Y\Ý[ÛœÈŠKˆ™\ØÜš\[ÛˆŽˆÊˆ‘^Ü™HÚ]X^HÜ™X]H[™\™ÞK[™ØYÙ[Y[‚ˆ˜[™Ý\ÝZ[˜X›H[Ý]˜][Û‹ˆ‚ˆ
+Kˆœ™\Ý[ÜÛÝ\˜Ù\ÈŽˆÂˆÂˆÈ™]ÈÙ\\˜]H[Ý]˜][Ûˆ]Y\Ý[ÛœÈ™\Ý[‚ˆœ™\Ý[ÙšY[Žˆ
+ˆ˜ZWÛ[Ý]˜][Û—Ü]Y\Ý[ÛœÈ‚ˆ
+KˆœÝ]\×ÙšY[Žˆ
+ˆ˜ZWÛ[Ý]˜][Û—Ü]Y\Ý[Ûœ×ÜÝ]\È‚ˆ
+KˆKˆÂˆÈ˜XÚÝØ\™ËXÛÛ\]X›H˜[˜XÚÈ›ÜˆÛ\ˆ™\Ý[Ë‚ˆœ™\Ý[ÙšY[Žˆ
+ˆ˜ZWÛ[Ý]˜][Û—Ú[\œ™]][Ûˆ‚ˆ
+KˆœÝ]\×ÙšY[Žˆ
+ˆ˜ZWÛ[Ý]˜][Û—Ú[\œ™]][Û—ÜÝ]\È‚ˆ
+KˆKˆKˆKˆÂˆšÙ^HŽˆ˜ÛÙÛš]]™H‹ˆ]HŽˆÊÛÙÛš]]™H]Y\Ý[ÛœÈŠKˆ™\ØÜš\[ÛˆŽˆÊˆ‘^Ü™HÝÈHÛÙÛš]]™H\ÜÙ\ÜÛY[™\Ý[È‚ˆœ™[]HÈ˜XÝXØ[[X[™È[™ÛÜšÚ[™ÈY]ÙËˆ‚ˆ
+Kˆœ™\Ý[ÜÛÝ\˜Ù\ÈŽˆÂˆÂˆÈ™]ÈÙ\\˜]HÛÙÛš]]™H]Y\Ý[ÛœÈ™\Ý[‚ˆœ™\Ý[ÙšY[Žˆ
+ˆ˜ZWØÛÙÛš]]™WÜ]Y\Ý[ÛœÈ‚ˆ
+KˆœÝ]\×ÙšY[Žˆ
+ˆ˜ZWØÛÙÛš]]™WÜ]Y\Ý[Ûœ×ÜÝ]\È‚ˆ
+KˆKˆÂˆÈ˜XÚÝØ\™ËXÛÛ\]X›H˜[˜XÚÈ›ÜˆÛ\ˆ™\Ý[Ë‚ˆœ™\Ý[ÙšY[Žˆ
+ˆ˜ZWØÛÙÛš]]™WÚ[\œ™]][Ûˆ‚ˆ
+KˆœÝ]\×ÙšY[Žˆ
+ˆ˜ZWØÛÙÛš]]™WÚ[\œ™]][Û—ÜÝ]\È‚ˆ
+KˆKˆKˆKˆB‚ˆÈÌNLNˆÙ[˜[[\šY]ÈÜ™\‹ÛÝ[È[™[YH\Ý[X]\Ë‚ˆ›ÜˆÛÝ\˜ÙH[ˆ]Y\Ý[Û—ÜÛÝ\˜Ù\Î‚ˆ[\šY]×ÛY]HHÙ]Ú[\šY]×ÜÙXÝ[Û—ØÛÛ™šYÊˆÛÝ\˜ÙVÈšÙ^H—Bˆ
+B‚ˆÛÝ\˜ÙVÈš[\šY]×ÛÜ™\ˆ—HH
+ˆ[\šY]×ÛY]VÈ›Ü™\ˆ—Bˆ
+BˆÛÝ\˜ÙVÈ\™Ù]Ü]Y\Ý[Û—ØÛÝ[—HH
+ˆ[\šY]×ÛY]VÈœ]Y\Ý[Û—ØÛÝ[—Bˆ
+BˆÛÝ\˜ÙVÈ™\Ý[X]YÛZ[]\È—HH
+ˆ[\šY]×ÛY]VÈ™\Ý[X]YÛZ[]\È—Bˆ
+B‚ˆ]Y\Ý[Û—ÜÛÝ\˜Ù\ËœÛÜ
+ˆÙ^O[[X™HÛÝ\˜ÙNˆÛÝ\˜ÙVÈš[\šY]×ÛÜ™\ˆ—Bˆ
+B‚ˆÙXÝ[ÛœÈH×BˆÝ[ØÛÝ[H‚ˆ›ÜˆÛÝ\˜ÙH[ˆ]Y\Ý[Û—ÜÛÝ\˜Ù\Î‚ˆ˜]×Ü]Y\Ý[ÛœÈH×BˆÝ]\ÈH››ÝÜÝ\Y‚‚ˆÈžHXXÚÛÛ™šYÝ\™Y™\Ý[ÛÝ\˜ÙH[ˆÜ™\‹‚ˆÈHš\œÝÛÝ\˜ÙHÛÛZ[š[™È]Y\Ý[ÛœÈÚ[œË‚ˆ›Üˆ™\Ý[ÜÛÝ\˜ÙH[ˆÛÝ\˜ÙVÈœ™\Ý[ÜÛÝ\˜Ù\È—N‚ˆØ]™YÜ™\Ý[H
+ˆÙ]]Šˆ[š]][Û‹ˆ™\Ý[ÜÛÝ\˜ÙVÈœ™\Ý[ÙšY[—KˆßKˆ
+BˆÜˆßBˆ
+B‚ˆÜÜÚX›WÜ]Y\Ý[ÛœÈH
+ˆØ]™YÜ™\Ý[™Ù]
+œ]Y\Ý[ÛœÈŠBˆÜˆ×Bˆ
+B‚ˆYˆ›Ý\Ú[œÝ[˜ÙJÜÜÚX›WÜ]Y\Ý[ÛœË\Ý
+N‚ˆÛÛ[YB‚ˆYˆ›ÝÜÜÚX›WÜ]Y\Ý[ÛœÎ‚ˆÛÛ[YB‚ˆ˜]×Ü]Y\Ý[ÛœÈHÜÜÚX›WÜ]Y\Ý[ÛœÂ‚ˆÝ]\ÈH
+ˆÙ]]Šˆ[š]][Û‹ˆ™\Ý[ÜÛÝ\˜ÙVÈœÝ]\×ÙšY[—Kˆ››ÝÜÝ\Y‹ˆ
+BˆÜˆ››ÝÜÝ\Y‚ˆ
+B‚ˆœ™XZÂ‚ˆ]Y\Ý[ÛœÈH×B‚ˆ›Üˆ˜]×Ü]Y\Ý[Ûˆ[ˆ˜]×Ü]Y\Ý[ÛœÎ‚ˆ]Y\Ý[ÛˆH
+ˆÛ›Ü›X[\ÙWØÛÛXš[™YÜ]Y\Ý[ÛŠˆ˜]×Ü]Y\Ý[Û‚ˆ
+Bˆ
+B‚ˆYˆ]Y\Ý[ÛŽ‚ˆ]Y\Ý[ÛœË˜\[™
+]Y\Ý[ÛŠB‚ˆYˆ›Ý]Y\Ý[ÛœÎ‚ˆÛÛ[YB‚ˆÙXÝ[ÛœË˜\[™
+ÂˆšÙ^HŽˆÛÝ\˜ÙVÈšÙ^H—Kˆ]HŽˆÛÝ\˜ÙVÈ]H—Kˆ™\ØÜš\[ÛˆŽˆÛÝ\˜ÙVÈ™\ØÜš\[Ûˆ—KˆœÝ]\ÈŽˆÝ]\Ëˆš\×ÛÝ]]YŽˆÝ]\ÈOH›Ý]]Y‹ˆœ]Y\Ý[ÛœÈŽˆ]Y\Ý[ÛœËˆœ]Y\Ý[Û—ØÛÝ[Žˆ[Š]Y\Ý[ÛœÊKˆ\™Ù]Ü]Y\Ý[Û—ØÛÝ[Žˆ
+ˆÛÝ\˜ÙVÈ\™Ù]Ü]Y\Ý[Û—ØÛÝ[—Bˆ
+Kˆ™\Ý[X]YÛZ[]\ÈŽˆ
+ˆÛÝ\˜ÙVÈ™\Ý[X]YÛZ[]\È—Bˆ
+Kˆš[\šY]×ÛÜ™\ˆŽˆ
+ˆÛÝ\˜ÙVÈš[\šY]×ÛÜ™\ˆ—Bˆ
+KˆJB‚ˆÝ[ØÛÝ[
+ÏH[Š]Y\Ý[ÛœÊB‚ˆ™]\›ˆÂˆœÙXÝ[ÛœÈŽˆÙXÝ[ÛœËˆÝ[ØÛÝ[ŽˆÝ[ØÛÝ[ˆš\×Ü]Y\Ý[ÛœÈŽˆÝ[ØÛÝ[ˆˆB‚‚™YˆÛ›Ü›X[\ÙWÙš[˜[ÛÝ]]Û\Ý
+ˆ˜[YKˆ
+‹ˆ[Z]LËŠHOˆ\ÝÜÝ—N‚ˆˆˆ‚ˆ™]\›ˆHÛX[ˆ[™[Z]Y\ÝÙˆ\Ü^XX›HÝš[™ÜË‚ˆˆˆ‚‚ˆYˆ›Ý\Ú[œÝ[˜ÙJ˜[YK\Ý
+N‚ˆ™]\›ˆ×B‚ˆ][\ÈH×B‚ˆ›Üˆ][H[ˆ˜[YN‚ˆ^HÝŠˆ][BˆÜˆˆ‚ˆ
+KœÝš\
+
+B‚ˆYˆ›Ý^‚ˆÛÛ[YB‚ˆ][\Ë˜\[™
+^
+B‚ˆYˆ[Š][\ÊHH[Z]‚ˆœ™XZÂ‚ˆ™]\›ˆ][\Â‚‚™YˆZ[ØØ[™Y]WÙš[˜[ÛÝ]]
+ˆ[š]][Û‹ˆ
+‹ˆÛÛXš[™YÜ]Y\Ý[ÛœÏS›Û™KŠHOˆXÝ‚ˆˆˆ‚ˆ\ÜÙ[X›HHØ[™Y]IÜÈ^\Ý[™ÈØ]™YRHÛÛ[[ÈÛ™Bˆ\œÜÙKX˜\ÙYš[˜[Ý]]‚‚ˆ\È[˜Ý[ÛˆÙ\È›ÝXZÙH[žH™]ÈRH™\]Y\Ý‚ˆˆˆ‚‚ˆ›ØÙ\ÜÈH[š]][Û‹œ›ØÙ\ÜÂ‚ˆÝ™\šY]×Ü™\Ý[H
+ˆ[š]][Û‹˜ZWÜ\œÜÙWÙš]ˆÜˆßBˆ
+B‚ˆ\œÛÛ˜[]WÜ™\Ý[H
+ˆ[š]][Û‹˜ZWÜ\œÛÛ˜[]WÚ[\œ™]][Û‚ˆÜˆßBˆ
+B‚ˆ[Ý]˜][Û—Ü™\Ý[H
+ˆ[š]][Û‹˜ZWÛ[Ý]˜][Û—Ú[\œ™]][Û‚ˆÜˆßBˆ
+B‚ˆÛÙÛš]]™WÜ™\Ý[H
+ˆ[š]][Û‹˜ZWØÛÙÛš]]™WÚ[\œ™]][Û‚ˆÜˆßBˆ
+B‚ˆYˆÛÛXš[™YÜ]Y\Ý[ÛœÈ\È›Û™N‚ˆÛÛXš[™YÜ]Y\Ý[ÛœÈH
+ˆZ[ØÛÛXš[™YØØ[™Y]WÜ]Y\Ý[ÛœÊˆ[š]][Û‚ˆ
+Bˆ
+B‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÈ\œÜÙHX™[ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKB‚ˆYˆ\Ø]Šˆ›ØÙ\ÜËˆ™Ù]Ü\œÜÙWÙ\Ü^H‹ˆ
+N‚ˆ\œÜÙWÛX™[H
+ˆ›ØÙ\ÜË™Ù]Ü\œÜÙWÙ\Ü^J
+BˆÜˆˆ‚ˆ
+KœÝš\
+
+Bˆ[ÙN‚ˆ\œÜÙWÛX™[Hˆ‚‚ˆYˆ›Ý\œÜÙWÛX™[‚ˆ\œÜÙWÛX™[H
+ˆÝŠˆ›ØÙ\ÜËœ\œÜÙBˆÜˆˆ‚ˆ
+Bˆœ™\XÙJ—È‹ˆŠBˆœÝš\
+
+Bˆ]J
+Bˆ
+B‚ˆYˆ›Ý\œÜÙWÛX™[‚ˆ\œÜÙWÛX™[H‘Ù[™\˜[[œÚYÚÈ‚‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÈRHÝ™\šY]ÂˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKB‚ˆÝ™\šY]×ÜÝ[[X\žHHÝŠˆÝ™\šY]×Ü™\Ý[™Ù]
+œÝ[[X\žHŠBˆÜˆˆ‚ˆ
+KœÝš\
+
+B‚ˆÝ™\šY]×ÜÝ\Ü[™ÈH
+ˆÛ›Ü›X[\ÙWÙš[˜[ÛÝ]]Û\Ý
+ˆÝ™\šY]×Ü™\Ý[™Ù]
+ˆšÙ^WØ[YÛ›Y[‚ˆ
+Kˆ[Z]LËˆ
+Bˆ
+B‚ˆÝ™\šY]×Ù^Ü™HH
+ˆÛ›Ü›X[\ÙWÙš[˜[ÛÝ]]Û\Ý
+ˆÝ™\šY]×Ü™\Ý[™Ù]
+ˆ˜\™X\×Ý×Ý™\šYžH‚ˆ
+Kˆ[Z]LËˆ
+Bˆ
+B‚ˆÝYÙÙ\ÝYÛ™^ÜÝ\HÝŠˆÝ™\šY]×Ü™\Ý[™Ù]
+ˆœÝYÙÙ\ÝYÛ™^ÜÝ\‚ˆ
+BˆÜˆˆ‚ˆ
+KœÝš\
+
+B‚ˆÝ™\šY]×ØÛÛ^Û›ÝHHÝŠˆÝ™\šY]×Ü™\Ý[™Ù]
+ˆ˜ÛÛ^Û›ÝH‚ˆ
+BˆÜˆˆ‚ˆ
+KœÝš\
+
+B‚ˆ\×ÛÝ™\šY]ÈH›ÛÛ
+ˆÝ™\šY]×ÜÝ[[X\žBˆÜˆÝ™\šY]×ÜÝ\Ü[™ÂˆÜˆÝ™\šY]×Ù^Ü™BˆÜˆÝYÙÙ\ÝYÛ™^ÜÝ\ˆ
+B‚ˆÝ™\šY]×ÜÝ]\ÈH
+ˆ[š]][Û‹˜ZWÜ\œÜÙWÙš]ÜÝ]\ÂˆÜˆ››ÝÜÝ\Y‚ˆ
+B‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÈ\ÜÙ\ÜÛY[\ÜXÚYšXÈ[\œ™]][ÛœÂˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKB‚ˆ\ÜÙ\ÜÛY[ØÛÛ™šYÈHÂˆÂˆšÙ^HŽˆœ\œÛÛ˜[]H‹ˆ]HŽˆ”\œÛÛ˜[]H‹ˆ™\ØÜš\[ÛˆŽˆ
+ˆ“ZÙ[H™Z]š[Ý\˜[™Y™\™[˜Ù\È[™‚ˆšÝÈ^HX^H\X\ˆ[ˆ˜XÝXÙKˆ‚ˆ
+Kˆœ™\Ý[Žˆ\œÛÛ˜[]WÜ™\Ý[ˆœÝ]\ÈŽˆ
+ˆ[š]][Û‚ˆ˜ZWÜ\œÛÛ˜[]WÚ[\œ™]][Û—ÜÝ]\ÂˆÜˆ››ÝÜÝ\Y‚ˆ
+KˆœÝ[[X\žWÚÙ^HŽˆš[\œ™]][Ûˆ‹ˆœÝ\ÜÚÙ^HŽˆ
+ˆœÝ\Ü]™WÜ]\›œÈ‚ˆ
+Kˆ™^Ü™WÚÙ^HŽˆ
+ˆ˜\™X\×Ý×Ù^Ü™H‚ˆ
+KˆKˆÂˆšÙ^HŽˆ›[Ý]˜][Ûˆ‹ˆ]HŽˆ“[Ý]˜][Ûˆ‹ˆ™\ØÜš\[ÛˆŽˆ
+ˆ”ÜÜÚX›HÛÝ\˜Ù\ÈÙˆ[™ØYÙ[Y[[™\™ÞH‚ˆ˜[™^XÝ][ÛˆÙ][™Ëˆ‚ˆ
+Kˆœ™\Ý[Žˆ[Ý]˜][Û—Ü™\Ý[ˆœÝ]\ÈŽˆ
+ˆ[š]][Û‚ˆ˜ZWÛ[Ý]˜][Û—Ú[\œ™]][Û—ÜÝ]\ÂˆÜˆ››ÝÜÝ\Y‚ˆ
+KˆœÝ[[X\žWÚÙ^HŽˆš[\œ™]][Ûˆ‹ˆœÝ\ÜÚÙ^HŽˆ
+ˆ™[™ØYÙ[Y[ØÛÛ™][ÛœÈ‚ˆ
+Kˆ™^Ü™WÚÙ^HŽˆ
+ˆ˜\™X\×Ý×ØÛ\šYžH‚ˆ
+KˆKˆÂˆšÙ^HŽˆ˜ÛÙÛš]]™H‹ˆ]HŽˆÛÙÛš]]™H‹ˆ™\ØÜš\[ÛˆŽˆ
+ˆ’[™XØ][ÛœÈœ›ÛHH]˜Z[X›H‚ˆœ™X\ÛÛš[™È\ÜÙ\ÜÛY[Ëˆ‚ˆ
+Kˆœ™\Ý[ŽˆÛÙÛš]]™WÜ™\Ý[ˆœÝ]\ÈŽˆ
+ˆ[š]][Û‚ˆ˜ZWØÛÙÛš]]™WÚ[\œ™]][Û—ÜÝ]\ÂˆÜˆ››ÝÜÝ\Y‚ˆ
+KˆœÝ[[X\žWÚÙ^HŽˆš[\œ™]][Ûˆ‹ˆœÝ\ÜÚÙ^HŽˆ›Û™Kˆ™^Ü™WÚÙ^HŽˆ˜ÛÛœÚY\˜][ÛœÈ‹ˆKˆB‚ˆ\ÜÙ\ÜÛY[ÜÙXÝ[ÛœÈH×B‚ˆ›ÜˆÛÛ™šYÈ[ˆ\ÜÙ\ÜÛY[ØÛÛ™šYÎ‚ˆ™\Ý[HÛÛ™šYÖÈœ™\Ý[—B‚ˆÝ[[X\žHHÝŠˆ™\Ý[™Ù]
+ˆÛÛ™šYÖÈœÝ[[X\žWÚÙ^H—Bˆ
+BˆÜˆˆ‚ˆ
+KœÝš\
+
+B‚ˆÝ\ÜÚ][\ÈH×B‚ˆYˆÛÛ™šYÖÈœÝ\ÜÚÙ^H—N‚ˆÝ\ÜÚ][\ÈH
+ˆÛ›Ü›X[\ÙWÙš[˜[ÛÝ]]Û\Ý
+ˆ™\Ý[™Ù]
+ˆÛÛ™šYÖÈœÝ\ÜÚÙ^H—Bˆ
+Kˆ[Z]LËˆ
+Bˆ
+B‚ˆ^Ü™WÚ][\ÈH
+ˆÛ›Ü›X[\ÙWÙš[˜[ÛÝ]]Û\Ý
+ˆ™\Ý[™Ù]
+ˆÛÛ™šYÖÈ™^Ü™WÚÙ^H—Bˆ
+Kˆ[Z]LËˆ
+BˆYˆÛÛ™šYÖÈ™^Ü™WÚÙ^H—Bˆ[ÙH×Bˆ
+B‚ˆYˆ›Ý
+ˆÝ[[X\žBˆÜˆÝ\ÜÚ][\ÂˆÜˆ^Ü™WÚ][\Âˆ
+N‚ˆÛÛ[YB‚ˆÝ]\ÈH
+ˆÛÛ™šYÖÈœÝ]\È—BˆÜˆ››ÝÜÝ\Y‚ˆ
+B‚ˆ\ÜÙ\ÜÛY[ÜÙXÝ[ÛœË˜\[™
+ÂˆšÙ^HŽˆÛÛ™šYÖÈšÙ^H—Kˆ]HŽˆÛÛ™šYÖÈ]H—Kˆ™\ØÜš\[ÛˆŽˆ
+ˆÛÛ™šYÖÈ™\ØÜš\[Ûˆ—Bˆ
+KˆœÝ[[X\žHŽˆÝ[[X\žKˆœÝ\ÜÚ][\ÈŽˆÝ\ÜÚ][\Ëˆ™^Ü™WÚ][\ÈŽˆ^Ü™WÚ][\ËˆœÝ]\ÈŽˆÝ]\Ëˆš\×ÛÝ]]YŽˆ
+ˆÝ]\ÈOH›Ý]]Y‚ˆ
+KˆJB‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÈÝ]\È[™]˜Z[Xš[]BˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKB‚ˆÛÝ\˜ÙWÜÝ]\Ù\ÈHÂˆÙXÝ[Û–ÈœÝ]\È—Bˆ›ÜˆÙXÝ[Ûˆ[ˆ\ÜÙ\ÜÛY[ÜÙXÝ[ÛœÂˆB‚ˆYˆ\×ÛÝ™\šY]Î‚ˆÛÝ\˜ÙWÜÝ]\Ù\Ë˜\[™
+ˆÝ™\šY]×ÜÝ]\Âˆ
+B‚ˆ\×ÛÝ]]YØÛÛ[H[žJˆÝ]\ÈOH›Ý]]Y‚ˆ›ÜˆÝ]\È[ˆÛÝ\˜ÙWÜÝ]\Ù\Âˆ
+B‚ˆ\×Ü]Y\Ý[ÛœÈH›ÛÛ
+ˆÛÛXš[™YÜ]Y\Ý[ÛœË™Ù]
+ˆš\×Ü]Y\Ý[ÛœÈ‚ˆ
+Bˆ
+B‚ˆ]Y\Ý[Û—ØÛÝ[H[
+ˆÛÛXš[™YÜ]Y\Ý[ÛœË™Ù]
+ˆÝ[ØÛÝ[‚ˆ
+BˆÜˆˆ
+B‚ˆ\×ØÛÛ[H›ÛÛ
+ˆ\×ÛÝ™\šY]ÂˆÜˆ\ÜÙ\ÜÛY[ÜÙXÝ[ÛœÂˆÜˆ\×Ü]Y\Ý[ÛœÂˆ
+B‚ˆ™]\›ˆÂˆœ\œÜÙWÛX™[Žˆ\œÜÙWÛX™[‚ˆ›Ý™\šY]ÈŽˆÂˆœÝ[[X\žHŽˆÝ™\šY]×ÜÝ[[X\žKˆœÝ\Ü[™ÈŽˆÝ™\šY]×ÜÝ\Ü[™Ëˆ™^Ü™HŽˆÝ™\šY]×Ù^Ü™KˆœÝYÙÙ\ÝYÛ™^ÜÝ\Žˆ
+ˆÝYÙÙ\ÝYÛ™^ÜÝ\ˆ
+Kˆ˜ÛÛ^Û›ÝHŽˆ
+ˆÝ™\šY]×ØÛÛ^Û›ÝBˆ
+KˆœÝ]\ÈŽˆÝ™\šY]×ÜÝ]\Ëˆš\×ÛÝ]]YŽˆ
+ˆÝ™\šY]×ÜÝ]\ÈOH›Ý]]Y‚ˆ
+Kˆš\×ØÛÛ[Žˆ\×ÛÝ™\šY]ËˆK‚ˆ˜\ÜÙ\ÜÛY[ÜÙXÝ[ÛœÈŽˆ
+ˆ\ÜÙ\ÜÛY[ÜÙXÝ[ÛœÂˆ
+K‚ˆ˜ÛÛXš[™YÜ]Y\Ý[ÛœÈŽˆ
+ˆÛÛXš[™YÜ]Y\Ý[ÛœÂˆ
+K‚ˆœ]Y\Ý[Û—ØÛÝ[Žˆ]Y\Ý[Û—ØÛÝ[ˆš\×Ü]Y\Ý[ÛœÈŽˆ\×Ü]Y\Ý[ÛœË‚ˆœÛÝ\˜ÙWØÛÝ[Žˆ
+ˆ[Š\ÜÙ\ÜÛY[ÜÙXÝ[ÛœÊBˆ
+È
+HYˆ\×ÛÝ™\šY]È[ÙH
+Bˆ
+K‚ˆš\×ÛÝ]]YØÛÛ[Žˆ
+ˆ\×ÛÝ]]YØÛÛ[ˆ
+K‚ˆš\×ØÛÛ[Žˆ\×ØÛÛ[ˆB‚™YˆZ[ØØ[™Y]WÙ]Z[ØÛÛ^
+ˆ›ØÙ\ÜËˆ[š]][Û‹ˆ[™ÝXYÙOHœÝˆ‹ŠN‚ˆØ[™Y]HH[š]][Û‹˜Ø[™Y]BˆØ[™Y]WÜ™\ÜÛ[™ÝXYÙHHÙ]]Šˆ›ØÙ\ÜËˆ˜Ø[™Y]WÛ[™ÝXYÙH‹ˆœÝˆ‹ˆ
+HÜˆœÝˆ‚ˆ^[ØYH[š]][Û‹œÛÝ˜WÜ^[ØYÜˆßB‚ˆ˜]×ÜÛÝ˜WÜ^[ØYÚœÛÛˆHœÛÛ‹™[\Êˆ^[ØYˆ[™[L‹ˆ[œÝ\™WØ\ØÚZOQ˜[ÙKˆY˜][\Ý‹ˆ
+B‚ˆXÝ]š]Y\ÈH[š]][Û‹œÛÝ˜WØXÝ]š]Y\ÈÜˆ^[ØY™Ù]
+˜XÝ]š]Y\ÈŠHÜˆ×B‚ˆYˆ›ÝXÝ]š]Y\Î‚ˆ›Üˆ\ÙH[ˆ^[ØY™Ù]
+œ\Ù\ÈŠHÜˆ×N‚ˆXÝ]š]Y\Ë™^[™
+\ÙK™Ù]
+˜XÝ]š]Y\ÈŠHÜˆ×JB‚ˆ˜]×ÜÛÝ˜WØXÝ]š]Y\×ÚœÛÛˆHœÛÛ‹™[\ÊˆXÝ]š]Y\Ëˆ[™[L‹ˆ[œÝ\™WØ\ØÚZOQ˜[ÙKˆY˜][\Ý‹ˆ
+H‚ˆYˆÙ]Ø\ÜÙ\ÜÛY[ÚÙ^J˜[YJN‚ˆˆˆ‚ˆÛÛ™\È›Ý›Ú™XÝY]H\Ý˜[Y\È[™ÛÝ˜HXÝ]š]H˜[Y\Âˆ[ÈHØ[YH[\›˜[Ù^KÛÈÙHØ[ˆ]›ÚY\XØ]\Ë‚ˆˆˆ‚ˆ^H
+˜[YHÜˆˆŠKœÝš\
+
+K›ÝÙ\Š
+B‚ˆYˆœ\œÛÛ˜[]Hˆ[ˆ^Üˆ^[ˆÈœH‹œ\œÛÛ›YÚ]ŸN‚ˆ™]\›ˆœ\œÛÛ˜[]H‚‚ˆYˆ›[Ý]˜][Ûˆˆ[ˆ^Üˆ^[ˆÈ›\H‹›[Ý]˜][Ûˆ]Y\Ý[Û›˜Z\™HŸN‚ˆ™]\›ˆ›[Ý]˜][Ûˆ‚‚ˆYˆ›[Y\šXØ[ˆ[ˆ^Üˆ›[Y\šXÈˆ[ˆ^Üˆ›[Y\š\ÚÈˆ[ˆ^‚ˆ™]\›ˆ›[Y\šXØ[‚‚ˆYˆ›ÙÚXØ[ˆ[ˆ^Üˆ›ÙÚ\ÚÈˆ[ˆ^‚ˆ™]\›ˆ›ÙÚXØ[‚‚ˆYˆ™\˜˜[ˆ[ˆ^‚ˆ™]\›ˆ™\˜˜[‚‚ˆYˆ›Û™K\]Y\Ý[Ûˆˆ[ˆ^Üˆ›Û™H]Y\Ý[Ûˆˆ[ˆ^‚ˆ™]\›ˆ›Û™WÜ]Y\Ý[Ûˆ‚‚ˆ™]\›ˆ^‚‚ˆYˆÙ]Ø˜\ÙWÜÝ]\×Ù›Ü—ÛZ\ÜÚ[™×ØXÝ]š]J[š]][ÛŠN‚ˆˆˆ‚ˆÝ]\È›Üˆ\ÜÙ\ÜÛY[È]\™H\ÙˆHÛÝ˜H›Ú™XÝˆ]È›ÝY]^\Ý[ˆ[š]][Û‹œÛÝ˜WØXÝ]š]Y\Ë‚ˆˆˆ‚ˆÝ]\ÈH
+[š]][Û‹œÝ]\ÈÜˆˆŠKœÝš\
+
+K›ÝÙ\Š
+B‚ˆYˆÝ]\ÈOH˜ÛÛ\]YŽ‚ˆ™]\›ˆ˜ÛÛ\]Y‚‚ˆYˆÝ]\ÈOHœÝ\YŽ‚ˆ™]\›ˆ››ÝÜÝ\Y‚‚ˆYˆÝ]\ÈOHœÙ[Ž‚ˆ™]\›ˆœÙ[‚‚ˆYˆÝ]\ÈOH˜Ü™X]YŽ‚ˆ™]\›ˆ˜Ü™X]Y‚‚ˆ™]\›ˆÝ]\ÈÜˆ˜Ü™X]Y‚‚‚ˆYˆÙ]Ù\Ü^WÜÝ]\Ê˜]×ÜÝ]\ÊN‚ˆÝ]\ÈH
+˜]×ÜÝ]\ÈÜˆˆŠKœÝš\
+
+K›ÝÙ\Š
+B‚ˆYˆÝ]\È[ˆÂˆ˜ÛÛ\]Y‹ˆ˜ÛÛ\]H‹ˆ™š[š\ÚY‹ˆ™Û™H‹ˆœ™\Ý[]˜Z[X›H‹ˆœ™\Ý[Ø]˜Z[X›H‹ˆN‚ˆ™]\›ˆ˜ÛÛ\]Y‚‚ˆYˆÝ]\È[ˆÂˆœÝ\Y‹ˆš[ˆ›ÙÜ™\ÜÈ‹ˆš[—Ü›ÙÜ™\ÜÈ‹ˆN‚ˆ™]\›ˆœÝ\Y‚‚ˆYˆÝ]\È[ˆÂˆœÙ[‹ˆš[š]Y‹ˆN‚ˆ™]\›ˆœÙ[‚‚ˆYˆÝ]\È[ˆÂˆ˜Ü™X]Y‹ˆ››ÝÜÙ[‹ˆ››ÝÙ[‹ˆN‚ˆ™]\›ˆ˜Ü™X]Y‚‚ˆYˆÝ]\È[ˆÂˆ˜YY‹ˆ››ÝÜÝ\Y‹ˆ››ÝÝ\Y‹ˆN‚ˆ™]\›ˆ››ÝÜÝ\Y‚‚ˆÈÛÝ˜HØ[ˆ™]\›ˆ\ÜËÙ˜Z[›ÜˆÛX[ØÛÜ™Y\ÜÙ\ÜÛY[Ë‚ˆ™]\›ˆÝ]\ÈÜˆ˜Ü™X]Y‚‚‚ˆYˆZ[ÜÙ[Ø\ÜÙ\ÜÛY[Ê›ØÙ\ÜË[š]][Û‹XÝ]š]Y\ÊN‚ˆˆˆ‚ˆÚÝÜÈHXÝX[\ÜÙ\ÜÛY[È[˜ÛYY[ˆHÛÝ˜H›Ú™XÝ‚‚ˆ˜\ÙHÛÝ\˜ÙN‚ˆH›Ú™XÝY]K\ÝË˜\ÙYÛˆ›ØÙ\ÜË˜XØÛÝ[ØÛÙH
+È›ØÙ\ÜËœ›Ú™XÝØÛÙB‚ˆÝ]\ÈÛÝ\˜ÙN‚ˆH[š]][Û‹œÛÝ˜WØXÝ]š]Y\ËÚ[ˆ]˜Z[X›B‚ˆX]Ú[™Î‚ˆH\Ù\È[\›˜[\ÜÙ\ÜÛY[Ù^\È[œÝXYÙˆ^XÝ\Ü^H˜[Y\Ë‚ˆˆˆ‚‚ˆY]HH›Ú™XÝY]K›Øš™XÝË™š[\Šˆ›ÝšY\HœÛÝ˜H‹ˆXØÛÝ[ØÛÙO\›ØÙ\ÜË˜XØÛÝ[ØÛÙKˆ›Ú™XÝØÛÙO\›ØÙ\ÜËœ›Ú™XÝØÛÙKˆ
+K™š\œÝ
+
+B‚ˆ\Ý×Ü˜]ÈH
+Ù]]ŠY]K\ÝÈ‹ˆŠHÜˆˆŠKœÝš\
+
+HYˆY]H[ÙHˆ‚‚ˆ›Ú™XÝÝ\ÝÈHÂˆ\ÝÛ˜[YKœÝš\
+
+Bˆ›Üˆ\ÝÛ˜[YH[ˆ\Ý×Ü˜]ËœÜ]
+‹ŠBˆYˆ\ÝÛ˜[YKœÝš\
+
+BˆB‚ˆXÝ]š]WØžWÚÙ^HHßB‚ˆ›Üˆ][H[ˆXÝ]š]Y\Î‚ˆXÝ]š]WÛ˜[YHH][K™Ù]
+˜XÝ]š]HŠHÜˆˆ‚ˆXÝ]š]WÚÙ^HHÙ]Ø\ÜÙ\ÜÛY[ÚÙ^JXÝ]š]WÛ˜[YJB‚ˆYˆXÝ]š]WÚÙ^N‚ˆXÝ]š]WØžWÚÙ^VØXÝ]š]WÚÙ^WHH][B‚ˆ˜\ÙWÜÝ]\ÈHÙ]Ø˜\ÙWÜÝ]\×Ù›Ü—ÛZ\ÜÚ[™×ØXÝ]š]J[š]][ÛŠBˆÙ[Ø\ÜÙ\ÜÛY[ÈH×Bˆ\ÙYÚÙ^\ÈHÙ]
+
+B‚ˆÈKˆÝ\Ú]HXÝX[\ÝÈ[ˆ›Ú™XÝY]K‚ˆ›Üˆ\ÝÛ˜[YH[ˆ›Ú™XÝÝ\ÝÎ‚ˆ\ÝÚÙ^HHÙ]Ø\ÜÙ\ÜÛY[ÚÙ^J\ÝÛ˜[YJBˆX]Ú[™×ØXÝ]š]HHXÝ]š]WØžWÚÙ^K™Ù]
+\ÝÚÙ^JB‚ˆYˆX]Ú[™×ØXÝ]š]N‚ˆ\Ü^WÛ˜[YHHX]Ú[™×ØXÝ]š]K™Ù]
+˜XÝ]š]HŠHÜˆ\ÝÛ˜[YBˆÝ]\ÈHÙ]Ù\Ü^WÜÝ]\ÊX]Ú[™×ØXÝ]š]K™Ù]
+œÝ]\ÈŠJBˆÛÝ\˜ÙHHœÛÝ˜WØXÝ]š]H‚ˆ[ÙN‚ˆ\Ü^WÛ˜[YHH\ÝÛ˜[YBˆÝ]\ÈH˜\ÙWÜÝ]\ÂˆÛÝ\˜ÙHHœ›Ú™XÝÛY]H‚‚ˆÙ[Ø\ÜÙ\ÜÛY[Ë˜\[™
+Âˆ˜XÝ]š]HŽˆ\Ü^WÛ˜[YKˆœÝ]\ÈŽˆÝ]\ËˆœÛÝ\˜ÙHŽˆÛÝ\˜ÙKˆšÙ^HŽˆ\ÝÚÙ^KˆJB‚ˆ\ÙYÚÙ^\Ë˜Y
+\ÝÚÙ^JB‚ˆÈ‹ˆØY™]H™]ˆYÛÝ˜HXÝ]š]Y\ÈÛ›HYˆZ\ˆÙ^HØ\È›Ý[™XYHÚÝÛ‹‚ˆ›Üˆ][H[ˆXÝ]š]Y\Î‚ˆXÝ]š]WÛ˜[YHH][K™Ù]
+˜XÝ]š]HŠHÜˆˆ‚ˆXÝ]š]WÚÙ^HHÙ]Ø\ÜÙ\ÜÛY[ÚÙ^JXÝ]š]WÛ˜[YJB‚ˆYˆXÝ]š]WÚÙ^H[™XÝ]š]WÚÙ^H›Ý[ˆ\ÙYÚÙ^\Î‚ˆÙ[Ø\ÜÙ\ÜÛY[Ë˜\[™
+Âˆ˜XÝ]š]HŽˆXÝ]š]WÛ˜[YKˆœÝ]\ÈŽˆÙ]Ù\Ü^WÜÝ]\Ê][K™Ù]
+œÝ]\ÈŠJKˆœÛÝ\˜ÙHŽˆœÛÝ˜WØXÝ]š]WÙ^˜H‹ˆšÙ^HŽˆXÝ]š]WÚÙ^KˆJB‚ˆ\ÙYÚÙ^\Ë˜Y
+XÝ]š]WÚÙ^JB‚ˆ™]\›ˆÙ[Ø\ÜÙ\ÜÛY[Â‚‚ˆÙ[Ø\ÜÙ\ÜÛY[ÈHZ[ÜÙ[Ø\ÜÙ\ÜÛY[Êˆ›ØÙ\ÜÏ\›ØÙ\ÜËˆ[š]][ÛZ[š]][Û‹ˆXÝ]š]Y\ÏXXÝ]š]Y\Ëˆ
+B‚ˆ\ÜÙ\ÜÛY[ÚÙ^\×Ú[—Ü›ØÙ\ÜÈHÛÜY
+Âˆ\ÜÙ\ÜÛY[™Ù]
+šÙ^HŠBˆ›Üˆ\ÜÙ\ÜÛY[[ˆÙ[Ø\ÜÙ\ÜÛY[ÂˆYˆ\ÜÙ\ÜÛY[™Ù]
+šÙ^HŠBˆJBˆ\×Ü\œÛÛ˜[]WØ\ÜÙ\ÜÛY[Ú[—Ü›ØÙ\ÜÈH
+ˆœ\œÛÛ˜[]Hˆ[ˆ\ÜÙ\ÜÛY[ÚÙ^\×Ú[—Ü›ØÙ\ÜÂˆ
+Bˆ\×Û[Ý]˜][Û—Ø\ÜÙ\ÜÛY[Ú[—Ü›ØÙ\ÜÈH
+ˆ›[Ý]˜][Ûˆˆ[ˆ\ÜÙ\ÜÛY[ÚÙ^\×Ú[—Ü›ØÙ\ÜÂˆ
+Bˆ\×ØÛÙÛš]]™WØ\ÜÙ\ÜÛY[×Ú[—Ü›ØÙ\ÜÈH[žJˆÙ^H[ˆ\ÜÙ\ÜÛY[ÚÙ^\×Ú[—Ü›ØÙ\ÜÂˆ›ÜˆÙ^H[ˆ
+™\˜˜[‹›ÙÚXØ[‹›[Y\šXØ[ŠBˆ
+B‚ˆXÝ]š]WÙ]™[ÈH
+ˆXÝ]š]Q]™[›Øš™XÝÂˆ™š[\ŠÛÛ\[žO\›ØÙ\ÜË˜ÛÛ\[žK›ØÙ\ÜÏ\›ØÙ\ÜËØ[™Y]OXØ[™Y]JBˆœÙ[XÝÜ™[]Y
+˜XÝÜˆ‹˜Ø[™Y]H‹š[š]][ÛˆŠVÎLBˆ
+B‚ˆœ›ÛH\Ë™[XZ[Ë›[Ù[È[\Ü[XZ[ÙÂ‚ˆ[XZ[ÛÙ×ÚYÈHÂˆ
+]™[›Y]HÜˆßJK™Ù]
+™[XZ[ÛÙ×ÚYŠBˆ›Üˆ]™[[ˆXÝ]š]WÙ]™[ÂˆYˆ
+]™[›Y]HÜˆßJK™Ù]
+™[XZ[ÛÙ×ÚYŠBˆB‚ˆ[XZ[ÛÙÜ×ØžWÚYHÂˆÙËšYˆÙÂˆ›ÜˆÙÈ[ˆ[XZ[ÙË›Øš™XÝË™š[\ŠY×Ú[Y[XZ[ÛÙ×ÚYÊBˆB‚ˆ›Üˆ]™[[ˆXÝ]š]WÙ]™[Î‚ˆ[XZ[ÛÙ×ÚYH
+]™[›Y]HÜˆßJK™Ù]
+™[XZ[ÛÙ×ÚYŠBˆ]™[™[XZ[ÛÙÈH[XZ[ÛÙÜ×ØžWÚY™Ù]
+[XZ[ÛÙ×ÚY
+B‚ˆYˆ\×Ü™X[Ü™\Ý[
+ÛÛ\][˜ÚY\ÊN‚ˆ™]\›ˆ[žJˆÛÛ\™Ù]
+œØÛÜ™HŠH\È›Ý›Û™BˆÜˆÛÛ\™Ù]
+œÝ]™HŠH\È›Ý›Û™BˆÜˆÛÛ\™Ù]
+œÝ]™WÜ›Ý[™YŠH\È›Ý›Û™BˆÜˆÛÛ\™Ù]
+œÝ[ˆŠH\È›Ý›Û™BˆÜˆÛÛ\™Ù]
+œÝ[—Ü›Ý[™YŠH\È›Ý›Û™BˆÜˆÛÛ\™Ù]
+œ\˜Ù[[HŠH\È›Ý›Û™Bˆ›ÜˆÛÛ\[ˆÛÛ\][˜ÚY\Âˆ
+B‚ˆXÝ]š]WØÛÝ[H[ŠÙ[Ø\ÜÙ\ÜÛY[ÊB‚ˆÛÛ\]YÜÝ]\Ù\ÈHÂˆ˜ÛÛ\]Y‹ˆ˜ÛÛ\]H‹ˆ™š[š\ÚY‹ˆ™Û™H‹ˆœ™\Ý[]˜Z[X›H‹ˆœ™\Ý[Ø]˜Z[X›H‹ˆB‚ˆ\Ý×ØÛÛ\]YØÛÝ[HÝ[JˆBˆ›ÜˆXÝ]š]H[ˆXÝ]š]Y\ÂˆYˆ
+XÝ]š]K™Ù]
+œÝ]\ÈŠHÜˆˆŠKœÝš\
+
+K›ÝÙ\Š
+H[ˆÛÛ\]YÜÝ]\Ù\Âˆ
+B‚ˆ\×Ø[žWØÛÛ\]YØ\ÜÙ\ÜÛY[H\Ý×ØÛÛ\]YØÛÝ[ˆ‚ˆ[Ø\ÜÙ\ÜÛY[×ØÛÛ\]YH
+ˆXÝ]š]WØÛÝ[ˆˆ[™\Ý×ØÛÛ\]YØÛÝ[HXÝ]š]WØÛÝ[ˆ
+B‚ˆ\WØÛÛ\][˜ÚY\ÈH×Bˆ\œÛÛ˜[]WØÛÛ\][˜ÚY\ÈH×Bˆ\×Û[Ý]˜][Û—Ü™\Ý[ÈH˜[ÙBˆ\×Ü\œÛÛ˜[]WÜ™\Ý[ÈH˜[ÙB‚ˆ›Üˆ][H[ˆXÝ]š]Y\Î‚ˆXÝ]š]WÛ˜[YHH
+][K™Ù]
+˜XÝ]š]HŠHÜˆˆŠKœÝš\
+
+K›ÝÙ\Š
+BˆÛÛ\][˜ÚY\ÈH][K™Ù]
+˜ÛÛ\][˜ÚY\È‹×JHÜˆ×B‚ˆ\×Û[Ý]˜][Û—ØXÝ]š]HH
+ˆXÝ]š]WÛ˜[YHOH›[Ý]˜][Ûˆ]Y\Ý[Û›˜Z\™H‚ˆÜˆXÝ]š]WÛ˜[YHOHœÛÝ˜H[Ý]˜][Ûˆ]Y\Ý[Û›˜Z\™H‚ˆÜˆ›[Ý]˜][Ûˆˆ[ˆXÝ]š]WÛ˜[YBˆ
+B‚ˆYˆ\×Û[Ý]˜][Û—ØXÝ]š]N‚ˆYˆ\×Ü™X[Ü™\Ý[
+ÛÛ\][˜ÚY\ÊN‚ˆ\×Û[Ý]˜][Û—Ü™\Ý[ÈHYB‚ˆ›ÜˆÛÛ\[ˆÛÛ\][˜ÚY\Î‚ˆ\WØÛÛ\][˜ÚY\Ë˜\[™
+Âˆ˜ÛÛ\][˜ÞHŽˆÛÛ\™Ù]
+˜ÛÛ\][˜ÞHŠKˆÈÙY\H™XÚ\ÙHÕU‘H˜[YH\ÈHØ[›ÛšXØ[ØÛÜ™K‚ˆœØÛÜ™HŽˆ
+ˆÛÛ\™Ù]
+œÝ]™HŠBˆYˆÛÛ\™Ù]
+œÝ]™HŠH\È›Ý›Û™Bˆ[ÙHÛÛ\™Ù]
+œÝ]™WÜ›Ý[™YŠBˆ
+KˆœÝ]™WÜ›Ý[™YŽˆÛÛ\™Ù]
+œÝ]™WÜ›Ý[™YŠKˆœÝ]™HŽˆÛÛ\™Ù]
+œÝ]™HŠKˆœÝ[—Ü›Ý[™YŽˆÛÛ\™Ù]
+œÝ[—Ü›Ý[™YŠKˆœÝ[ˆŽˆÛÛ\™Ù]
+œÝ[ˆŠKˆœ\˜Ù[[HŽˆÛÛ\™Ù]
+œ\˜Ù[[HŠKˆJB‚ˆ\×Ü\œÛÛ˜[]WØXÝ]š]HH
+ˆXÝ]š]WÛ˜[YHOHœ\œÛÛ˜[]H\ÜÙ\ÜÛY[‚ˆÜˆXÝ]š]WÛ˜[YHOHœÛÝ˜H\œÛÛ˜[]H]Y\Ý[Û›˜Z\™H‚ˆÜˆœ\œÛÛ˜[]Hˆ[ˆXÝ]š]WÛ˜[YBˆ
+B‚ˆYˆ\×Ü\œÛÛ˜[]WØXÝ]š]N‚ˆYˆ\×Ü™X[Ü™\Ý[
+ÛÛ\][˜ÚY\ÊN‚ˆ\×Ü\œÛÛ˜[]WÜ™\Ý[ÈHYB‚ˆ›ÜˆÛÛ\[ˆÛÛ\][˜ÚY\Î‚ˆ\œÛÛ˜[]WØÛÛ\][˜ÚY\Ë˜\[™
+Âˆ˜ÛÛ\][˜ÞHŽˆÛÛ\™Ù]
+˜ÛÛ\][˜ÞHŠK‚ˆÈX[HÝ[\È\ÙHÛÝ˜IÜÈš]™K\Ú[ÕU‘HØØ[K‚ˆœÝ]™HŽˆÛÛ\™Ù]
+œÝ]™HŠKˆœÝ]™WÜ›Ý[™YŽˆÛÛ\™Ù]
+œÝ]™WÜ›Ý[™YŠK‚ˆÈÜ™[˜\žH\œÛÛ˜[]H˜Z]È[™™\ÜÛœÙHÝ[\È\ÙHÕS‹‚ˆœÝ[ˆŽˆÛÛ\™Ù]
+œÝ[ˆŠKˆœÝ[—Ü›Ý[™YŽˆÛÛ\™Ù]
+œÝ[—Ü›Ý[™YŠK‚ˆœ\˜Ù[[HŽˆÛÛ\™Ù]
+œ\˜Ù[[HŠKˆJB‚ˆ\œÛÛ˜[]WØÛÛ\][˜ÚY\ÈHÛÜY
+ˆ\œÛÛ˜[]WØÛÛ\][˜ÚY\ËˆÙ^O[[X™Hˆ
+™Ù]
+˜ÛÛ\][˜ÞHŠHÜˆˆŠK›ÝÙ\Š
+Bˆ
+B‚ˆ™\ÜÛœÙWÜÝ[\ÈHZ[Ü™\ÜÛœÙWÜÝ[WÜ™\Ý[Êˆ\œÛÛ˜[]WØÛÛ\][˜ÚY\Âˆ
+H‚ˆX[WÜÝ[WÜ›Ùš[HHZ[ÝX[WÜÝ[WÜ›Ùš[Jˆ\œÛÛ˜[]WØÛÛ\][˜ÚY\Âˆ
+B‚ˆ[Ý]˜][Û—ÜØÛÜ™\ÈHZ[ÜØÛÜ™\×ØžWØÛÛ\][˜ÞJ\WØÛÛ\][˜ÚY\ÊB‚ˆ[Ý]˜][Û—Ú[œÚYÚÈHZ[Û[Ý]˜][Û—Ú[œÚYÚÜÙXÝ[ÛŠˆ\WØÛÛ\][˜ÚY\ËˆØ[™Y]WÛ˜[YOXØ[™Y]K™š\œÝÛ˜[YKˆ
+B‚ˆ˜XÝ][Û™\—Ü™\ÜHZ[Ü˜XÝ][Û™\—Ü™\Ü
+ˆÛÛ\][˜ÚY\Ï[\WØÛÛ\][˜ÚY\Ëˆ
+B‚ˆX[˜YÙ\—Ü™\ÜHZ[ÛX[˜YÙ\—Ü™\Ü
+ˆÛÛ\][˜ÚY\Ï[\WØÛÛ\][˜ÚY\Ëˆ
+B‚ˆØ[™Y]WÜ™\ÜHZ[ØØ[™Y]WÜ™\Ü
+ˆÛÛ\][˜ÚY\Ï[\WØÛÛ\][˜ÚY\Ëˆ[™ÝXYÙWØÛÙOXØ[™Y]WÜ™\ÜÛ[™ÝXYÙKˆ
+B‚ˆÛØXÚ[™×Ü™\ÜHZ[Û[Ý]˜][Û—ØÛØXÚ[™×Ü™\Ü
+ˆÛÛ\][˜ÚY\Ï[\WØÛÛ\][˜ÚY\Ëˆ
+B‚ˆ\œÛÛ˜[]WÝ˜Z]×Ù›Ü—ÜÙ[XÝ[ÛˆH
+ˆ^˜XÝÜ\œÛÛ˜[]WÜ]Y\Ý[Û—Ý˜Z]Êˆ[š]][Û‚ˆ
+Bˆ
+B‚ˆ[Ý]˜][Û—Ü™\Ü×Ù›Ü—ÝZHHÂˆ˜XÝ][Û™\—Ü™\ÜˆX[˜YÙ\—Ü™\ÜˆÛØXÚ[™×Ü™\ÜˆØ[™Y]WÜ™\ÜˆB‚ˆYˆØY™WÛ[Ý]˜][Û—ÜØÛÜ™J][JN‚ˆ™]\›ˆ][K™Ù]
+œØÛÜ™HŠHYˆ][K™Ù]
+œØÛÜ™HŠH\È›Ý›Û™H[ÙHLB‚ˆYˆØY™WÜ\œÛÛ˜[]WÜØÛÜ™J][JN‚ˆ™]\›ˆ][K™Ù]
+œÝ[—Ü›Ý[™YŠHYˆ][K™Ù]
+œÝ[—Ü›Ý[™YŠH\È›Ý›Û™H[ÙHLB‚ˆ˜[YÛ\WØÛÛ\][˜ÚY\ÈHÂˆÛÛ\›ÜˆÛÛ\[ˆ\WØÛÛ\][˜ÚY\ÂˆYˆÛÛ\™Ù]
+œØÛÜ™HŠH\È›Ý›Û™BˆB‚ˆ˜[YÜ\œÛÛ˜[]WØÛÛ\][˜ÚY\ÈHÂˆÛÛ\›ÜˆÛÛ\[ˆ\œÛÛ˜[]WØÛÛ\][˜ÚY\ÂˆYˆÛÛ\™Ù]
+œÝ[—Ü›Ý[™YŠH\È›Ý›Û™BˆB‚ˆÛÜYÛ\WÙ\ØÈHÛÜY
+ˆ˜[YÛ\WØÛÛ\][˜ÚY\ËˆÙ^O\ØY™WÛ[Ý]˜][Û—ÜØÛÜ™Kˆ™]™\œÙOUYKˆ
+B‚ˆÛÜYÜ\œÛÛ˜[]WÙ\ØÈHÛÜY
+ˆ˜[YÜ\œÛÛ˜[]WØÛÛ\][˜ÚY\ËˆÙ^O\ØY™WÜ\œÛÛ˜[]WÜØÛÜ™Kˆ™]™\œÙOUYKˆ
+B‚ˆÜÛ[Ý]˜][ÛœÈHÛÜYÛ\WÙ\ØÖÎŒ×BˆÜÜ\œÛÛ˜[]WÝ˜Z]ÈHÛÜYÜ\œÛÛ˜[]WÙ\ØÖÎŒ×B‚ˆÛÜYÛ\WØ\ØÈHÛÜY
+ˆ˜[YÛ\WØÛÛ\][˜ÚY\ËˆÙ^O\ØY™WÛ[Ý]˜][Û—ÜØÛÜ™Kˆ
+B‚ˆÛÜYÜ\œÛÛ˜[]WØ\ØÈHÛÜY
+ˆ˜[YÜ\œÛÛ˜[]WØÛÛ\][˜ÚY\ËˆÙ^O\ØY™WÜ\œÛÛ˜[]WÜØÛÜ™Kˆ
+B‚ˆ[Ý]˜][Û—Ù]™[ÜY[Ø\™X\ÈHÛÜYÛ\WØ\ØÖÎŒ—Bˆ\œÛÛ˜[]WÙ]™[ÜY[Ø\™X\ÈHÛÜYÜ\œÛÛ˜[]WØ\ØÖÎŒ—B‚ˆ[Y\šXØ[Ü\˜Ù[[HH›Û™BˆÙÚXØ[Ü\˜Ù[[HH›Û™Bˆ™\˜˜[Ü\˜Ù[[HH›Û™B‚ˆ\×Ý™\˜˜[Ü™\Ý[ÈH˜[ÙBˆ\×ÛÙÚXØ[Ü™\Ý[ÈH˜[ÙBˆ\×Û[Y\šXØ[Ü™\Ý[ÈH˜[ÙB‚ˆ›Üˆ][H[ˆXÝ]š]Y\Î‚ˆXÝ]š]WÛ˜[YHH][K™Ù]
+˜XÝ]š]H‹ˆŠBˆXÝ]š]WÚÙ^HHÙ]Ø\ÜÙ\ÜÛY[ÚÙ^JXÝ]š]WÛ˜[YJB‚ˆÛÛ\][˜ÚY\ÈH][K™Ù]
+˜ÛÛ\][˜ÚY\È‹×JHÜˆ×Bˆš\œÝØÛÛ\HÛÛ\][˜ÚY\ÖÌHYˆÛÛ\][˜ÚY\È[ÙHßB‚ˆ\˜Ù[[HHš\œÝØÛÛ\™Ù]
+œ\˜Ù[[HŠB‚ˆYˆXÝ]š]WÚÙ^HOH›[Y\šXØ[Ž‚ˆ[Y\šXØ[Ü\˜Ù[[HH\˜Ù[[Bˆ\×Û[Y\šXØ[Ü™\Ý[ÈH\˜Ù[[H\È›Ý›Û™B‚ˆ[YˆXÝ]š]WÚÙ^HOH›ÙÚXØ[Ž‚ˆÙÚXØ[Ü\˜Ù[[HH\˜Ù[[Bˆ\×ÛÙÚXØ[Ü™\Ý[ÈH\˜Ù[[H\È›Ý›Û™B‚ˆ[YˆXÝ]š]WÚÙ^HOH™\˜˜[Ž‚ˆ™\˜˜[Ü\˜Ù[[HH\˜Ù[[Bˆ\×Ý™\˜˜[Ü™\Ý[ÈH\˜Ù[[H\È›Ý›Û™B‚ˆ\×ØXš[]WÜ™\Ý[ÈH
+ˆ\×Ý™\˜˜[Ü™\Ý[ÂˆÜˆ\×ÛÙÚXØ[Ü™\Ý[ÂˆÜˆ\×Û[Y\šXØ[Ü™\Ý[Âˆ
+B‚ˆÙ[™\˜[Ú[œÚYÚÚ[œ]HZ[ÙÙ[™\˜[Ú[œÚYÚÚ[œ]
+ˆ\œÛÛ˜[]WØÛÛ\][˜ÚY\Ï\\œÛÛ˜[]WØÛÛ\][˜ÚY\Ëˆ[Ý]˜][Û—ØÛÛ\][˜ÚY\Ï[\WØÛÛ\][˜ÚY\Ëˆ™\˜˜[Ü\˜Ù[[O]™\˜˜[Ü\˜Ù[[KˆÙÚXØ[Ü\˜Ù[[O[ÙÚXØ[Ü\˜Ù[[Kˆ[Y\šXØ[Ü\˜Ù[[O[[Y\šXØ[Ü\˜Ù[[Kˆ
+B‚ˆš[
+OOHÑS‘TSS”ÒQÒS”UOOHŠBˆš[
+œÛÛ‹™[\ÊˆÙ[™\˜[Ú[œÚYÚÚ[œ]ˆ[™[L‹ˆ[œÝ\™WØ\ØÚZOQ˜[ÙKˆY˜][\Ý‹ˆ
+JBˆš[
+OOHÑÑS‘TSS”ÒQÒS”UOOHŠB‚ˆXš[]WÜ™\Ü×Ù›Ü—ÝZHHÂˆ›Ý™\šY]ÈŽˆ×Kˆ™\˜˜[ŽˆZ[ØÛÙÛš]]™WÜ™\Ü×Ù›Ü—Ý\Ý
+ˆ\ÝÚÙ^OH™\˜˜[‹ˆ\˜Ù[[O]™\˜˜[Ü\˜Ù[[Kˆ[™ÝXYÙWØÛÙOXØ[™Y]WÜ™\ÜÛ[™ÝXYÙKˆ
+HYˆ™\˜˜[Ü\˜Ù[[H\È›Ý›Û™H[ÙH›Û™K‚ˆ›ÙÚXØ[ŽˆZ[ØÛÙÛš]]™WÜ™\Ü×Ù›Ü—Ý\Ý
+ˆ\ÝÚÙ^OH›ÙÚXØ[‹ˆ\˜Ù[[O[ÙÚXØ[Ü\˜Ù[[Kˆ[™ÝXYÙWØÛÙOXØ[™Y]WÜ™\ÜÛ[™ÝXYÙKˆ
+HYˆÙÚXØ[Ü\˜Ù[[H\È›Ý›Û™H[ÙH›Û™K‚ˆ›[Y\šXØ[ŽˆZ[ØÛÙÛš]]™WÜ™\Ü×Ù›Ü—Ý\Ý
+ˆ\ÝÚÙ^OH›[Y\šXØ[‹ˆ\˜Ù[[O[[Y\šXØ[Ü\˜Ù[[Kˆ[™ÝXYÙWØÛÙOXØ[™Y]WÜ™\ÜÛ[™ÝXYÙKˆ
+HYˆ[Y\šXØ[Ü\˜Ù[[H\È›Ý›Û™H[ÙH›Û™KˆB‚ˆYˆXš[]WÜ™\Ü×Ù›Ü—ÝZVÈ™\˜˜[—N‚ˆXš[]WÜ™\Ü×Ù›Ü—ÝZVÈ›Ý™\šY]È—K˜\[™
+ÂˆšÙ^HŽˆ™\˜˜[‹ˆ›X™[Žˆ•™\˜˜[‹ˆœ\˜Ù[[HŽˆ™\˜˜[Ü\˜Ù[[KˆJB‚ˆYˆXš[]WÜ™\Ü×Ù›Ü—ÝZVÈ›ÙÚXØ[—N‚ˆXš[]WÜ™\Ü×Ù›Ü—ÝZVÈ›Ý™\šY]È—K˜\[™
+ÂˆšÙ^HŽˆ›ÙÚXØ[‹ˆ›X™[Žˆ“ÙÚXØ[‹ˆœ\˜Ù[[HŽˆÙÚXØ[Ü\˜Ù[[KˆJB‚ˆYˆXš[]WÜ™\Ü×Ù›Ü—ÝZVÈ›[Y\šXØ[—N‚ˆXš[]WÜ™\Ü×Ù›Ü—ÝZVÈ›Ý™\šY]È—K˜\[™
+ÂˆšÙ^HŽˆ›[Y\šXØ[‹ˆ›X™[Žˆ“[Y\šXØ[‹ˆœ\˜Ù[[HŽˆ[Y\šXØ[Ü\˜Ù[[KˆJB‚ˆ›Ú™XÝÜ™\Ý[ÈH[š]][Û‹œ›Ú™XÝÜ™\Ý[ÈÜˆßBˆ™\ÜÈH[š]][Û‹œÛÝ˜WÜ™\ÜÈÜˆ^[ØY™Ù]
+œ™\ÜÈŠHÜˆ×B‚ˆÛÝ˜WÜ™\Ü×Ù›Ü—ÝZHHZ[ÜÛÝ˜WÜ™\Ü×Ù›Ü—ÝZJˆ™\ÜÂˆ
+B‚ˆ›Ú™XÝÜØÛÜ™\ÈH
+ˆ›Ú™XÝÜ™\Ý[Ë™Ù]
+œ›Ú™XÝÜØÛÜ™\È‹×JBˆYˆ\Ú[œÝ[˜ÙJ›Ú™XÝÜ™\Ý[ËXÝ
+Bˆ[ÙH×Bˆ
+B‚ˆÛÛ\][˜ÞWÜØÛÜ™\ÈH
+ˆ›Ú™XÝÜ™\Ý[Ë™Ù]
+˜ÛÛ\][˜ÞWÜØÛÜ™\È‹×JBˆYˆ\Ú[œÝ[˜ÙJ›Ú™XÝÜ™\Ý[ËXÝ
+Bˆ[ÙH×Bˆ
+B‚ˆÝ™\˜[ÜØÛÜ™HH
+ˆ›Ú™XÝÜ™\Ý[Ë™Ù]
+›Ý™\˜[ÜØÛÜ™HŠBˆYˆ\Ú[œÝ[˜ÙJ›Ú™XÝÜ™\Ý[ËXÝ
+Bˆ[™›Ú™XÝÜ™\Ý[Ë™Ù]
+›Ý™\˜[ÜØÛÜ™HŠH\È›Ý›Û™Bˆ[ÙH[š]][Û‹›Ý™\˜[ÜØÛÜ™Bˆ
+B‚ˆÛÛXš[™YÜ]Y\Ý[ÛœÈH
+ˆZ[ØÛÛXš[™YØØ[™Y]WÜ]Y\Ý[ÛœÊˆ[š]][Û‚ˆ
+Bˆ
+B‚ˆš[˜[ÛÝ]]H
+ˆZ[ØØ[™Y]WÙš[˜[ÛÝ]]
+ˆ[š]][Û‹ˆÛÛXš[™YÜ]Y\Ý[ÛœÏXÛÛXš[™YÜ]Y\Ý[ÛœËˆ
+Bˆ
+B‚ˆXš[]WÜ™\Ý[ÈH×Bˆ[Ý]˜][Û—Ü™\Ý[ÈH×Bˆ[ØÛÛ\][˜ÚY\ÈH×B‚ˆ›Üˆ][H[ˆXÝ]š]Y\Î‚ˆXÝ]š]WÛ˜[YHH][K™Ù]
+˜XÝ]š]H‹ˆŠHÜˆˆ‚ˆ][WÜÝ]\ÈH][K™Ù]
+œÝ]\È‹ˆŠHÜˆˆ‚ˆ][WÜØÛÜ™HH][K™Ù]
+œØÛÜ™HŠBˆ][WØÛÛ\][˜ÚY\ÈH][K™Ù]
+˜ÛÛ\][˜ÚY\È‹×JHÜˆ×B‚ˆ›ÜˆÛÛ\[ˆ][WØÛÛ\][˜ÚY\Î‚ˆ[ØÛÛ\][˜ÚY\Ë˜\[™
+Âˆ˜XÝ]š]HŽˆXÝ]š]WÛ˜[YKˆœÝ]\ÈŽˆ][WÜÝ]\Ëˆ˜ÛÛ\][˜ÞHŽˆÛÛ\™Ù]
+˜ÛÛ\][˜ÞHŠKˆœÝ]™HŽˆÛÛ\™Ù]
+œÝ]™HŠKˆœÝ]™WÜ›Ý[™YŽˆÛÛ\™Ù]
+œÝ]™WÜ›Ý[™YŠKˆœÝ[ˆŽˆÛÛ\™Ù]
+œÝ[ˆŠKˆœÝ[—Ü›Ý[™YŽˆÛÛ\™Ù]
+œÝ[—Ü›Ý[™YŠKˆœ\˜Ù[[HŽˆÛÛ\™Ù]
+œ\˜Ù[[HŠKˆ˜\ÜÙ\ÜÛY[ØÙ[™HŽˆÛÛ\™Ù]
+˜\ÜÙ\ÜÛY[ØÙ[™HŠKˆJB‚ˆYˆXÝ]š]WÛ˜[YH[ˆÂˆ”ÛÝ˜HÙÚXØ[™X\ÛÛš[™È\ÜÙ\ÜÛY[‹ˆ”ÛÝ˜H[Y\šXØ[™X\ÛÛš[™È\ÜÙ\ÜÛY[‹ˆ”ÛÝ˜H™\˜˜[™X\ÛÛš[™È\ÜÙ\ÜÛY[‹ˆN‚ˆš\œÝØÛÛ\H][WØÛÛ\][˜ÚY\ÖÌHYˆ][WØÛÛ\][˜ÚY\È[ÙHßB‚ˆX™[ÛX\HÂˆ”ÛÝ˜HÙÚXØ[™X\ÛÛš[™È\ÜÙ\ÜÛY[Žˆ“ÙÚXØ[‹ˆ”ÛÝ˜H[Y\šXØ[™X\ÛÛš[™È\ÜÙ\ÜÛY[Žˆ“[Y\šXØ[‹ˆ”ÛÝ˜H™\˜˜[™X\ÛÛš[™È\ÜÙ\ÜÛY[Žˆ•™\˜˜[‹ˆB‚ˆXš[]WÜ™\Ý[Ë˜\[™
+Âˆ˜XÝ]š]HŽˆXÝ]š]WÛ˜[YKˆ›X™[ŽˆX™[ÛX\™Ù]
+XÝ]š]WÛ˜[YKXÝ]š]WÛ˜[YJKˆœÝ]\ÈŽˆ][WÜÝ]\ËˆœØÛÜ™HŽˆ][WÜØÛÜ™Kˆ˜ÛÛ\][˜ÞHŽˆš\œÝØÛÛ\™Ù]
+˜ÛÛ\][˜ÞHŠKˆœÝ]™HŽˆš\œÝØÛÛ\™Ù]
+œÝ]™HŠKˆœÝ]™WÜ›Ý[™YŽˆš\œÝØÛÛ\™Ù]
+œÝ]™WÜ›Ý[™YŠKˆœÝ[ˆŽˆš\œÝØÛÛ\™Ù]
+œÝ[ˆŠKˆœÝ[—Ü›Ý[™YŽˆš\œÝØÛÛ\™Ù]
+œÝ[—Ü›Ý[™YŠKˆœ\˜Ù[[HŽˆš\œÝØÛÛ\™Ù]
+œ\˜Ù[[HŠKˆJB‚ˆ[YˆXÝ]š]WÛ˜[YHOH“[Ý]˜][Ûˆ]Y\Ý[Û›˜Z\™HŽ‚ˆ›ÜˆÛÛ\[ˆ][WØÛÛ\][˜ÚY\Î‚ˆ[Ý]˜][Û—Ü™\Ý[Ë˜\[™
+Âˆ˜XÝ]š]HŽˆXÝ]š]WÛ˜[YKˆ˜ÛÛ\][˜ÞHŽˆÛÛ\™Ù]
+˜ÛÛ\][˜ÞHŠKˆœÝ]™HŽˆÛÛ\™Ù]
+œÝ]™HŠKˆœÝ]™WÜ›Ý[™YŽˆÛÛ\™Ù]
+œÝ]™WÜ›Ý[™YŠKˆœÝ[ˆŽˆÛÛ\™Ù]
+œÝ[ˆŠKˆœÝ[—Ü›Ý[™YŽˆÛÛ\™Ù]
+œÝ[—Ü›Ý[™YŠKˆœ\˜Ù[[HŽˆÛÛ\™Ù]
+œ\˜Ù[[HŠKˆ˜\ÜÙ\ÜÛY[ØÙ[™HŽˆÛÛ\™Ù]
+˜\ÜÙ\ÜÛY[ØÙ[™HŠKˆJB‚ˆXš[]WÛÜ™\ˆHÈ•™\˜˜[ŽˆK“ÙÚXØ[Žˆ‹“[Y\šXØ[ŽˆßBˆXš[]WÜ™\Ý[ËœÛÜ
+Ù^O[[X™HˆXš[]WÛÜ™\‹™Ù]
+È›X™[—KNJJB‚ˆ[Ý]˜][Û—Ü™\Ý[ËœÛÜ
+ˆÙ^O[[X™Hˆ
+™Ù]
+˜ÛÛ\][˜ÞHŠHÜˆˆŠK›ÝÙ\Š
+Bˆ
+B‚ˆXœ˜\žWÜÝ]\×ÛÛÚÝ\HÂˆ˜ÛÛÜ\˜]]™HŽˆ››ÝÜÝ\Y‹ˆœÙ[œÚ]]š]HŽˆ››ÝÜÝ\Y‹ˆX[]ÛÜšÈŽˆ››ÝÜÝ\Y‹ˆ˜YÜ™YXX›[™\ÜÈŽˆ››ÝÜÝ\Y‹ˆ™[\]HŽˆ››ÝÜÝ\Y‹ˆÛ\˜[˜ÙHŽˆ››ÝÜÝ\Y‹ˆ›\Ý[š[™ÈŽˆ››ÝÜÝ\Y‹ˆØ\›]Žˆ››ÝÜÝ\Y‹ˆœÝ\Ü[™ÈŽˆ››ÝÜÝ\Y‹ˆ™]™[Ü[™×ÛÝ\œÈŽˆ››ÝÜÝ\Y‹ˆš[[™\ÜÈŽˆ››ÝÜÝ\Y‹ˆ˜ÛÛœÚY\˜]HŽˆ››ÝÜÝ\Y‹ˆ˜ÛÛ›™XÝ[™ÈŽˆ››ÝÜÝ\Y‹ˆ›Ü[—ØÛÛ[][šXØ][ÛˆŽˆ››ÝÜÝ\Y‹ˆ˜Z[[™×Û™]ÛÜšÜÈŽˆ››ÝÜÝ\Y‹ˆš[š]X][™×ØÛÛXÝŽˆ››ÝÜÝ\Y‹ˆ™[˜[ZXÈŽˆ››ÝÜÝ\Y‹ˆ™[™\™Ù]XÈŽˆ››ÝÜÝ\Y‹ˆ™[\ÚX\ÝXÈŽˆ››ÝÜÝ\Y‹ˆœš\Ú×Ø\]]HŽˆ››ÝÜÝ\Y‹ˆš[™›Y[X[Žˆ››ÝÜÝ\Y‹ˆœ\œÝXY[™ÈŽˆ››ÝÜÝ\Y‹ˆ™\Ú\™WÝ×ÛXYŽˆ››ÝÜÝ\Y‹ˆ˜\ÜÙ\]™HŽˆ››ÝÜÝ\Y‹ˆ™ÛØ[Ù›ØÝ\ÙYŽˆ››ÝÜÝ\Y‹ˆ˜ÛÛ\]]]™HŽˆ››ÝÜÝ\Y‹ˆ˜Ú[[™ÙHŽˆ››ÝÜÝ\Y‹ˆœÙ[—Ù\ØÚ\[™HŽˆ››ÝÜÝ\Y‹ˆœÝXÝ\™YŽˆ››ÝÜÝ\Y‹ˆœ[›š[™×Ø[™ÛÜ™Ø[š\Ú[™ÈŽˆ››ÝÜÝ\Y‹ˆ˜][[Û—Ý×Ù]Z[Žˆ››ÝÜÝ\Y‹ˆšÙY\[™×Ü›ÛZ\Ù\ÈŽˆ››ÝÜÝ\Y‹ˆ˜[˜[]XØ[Žˆ››ÝÜÝ\Y‹ˆ™]WÙ›ØÝ\ÈŽˆ››ÝÜÝ\Y‹ˆ™]˜[X][™ÈŽˆ››ÝÜÝ\Y‹ˆ˜[˜[\Ú[™×Ü›Ø›[\ÈŽˆ››ÝÜÝ\Y‹ˆ˜ÛÛ\^Ý[šÚ[™ÈŽˆ››ÝÜÝ\Y‹ˆœÝ˜]YÚX×Ý[šÚ[™ÈŽˆ››ÝÜÝ\Y‹ˆ˜ÛÛ˜Ù\X[Žˆ››ÝÜÝ\Y‹ˆ˜Ý\š[ÜÚ]HŽˆ››ÝÜÝ\Y‹ˆ˜Ü™X]]š]HŽˆ››ÝÜÝ\Y‹ˆš[››Ý˜][™ÈŽˆ››ÝÜÝ\Y‹ˆ™Ù[™\˜][™×ÚYX\ÈŽˆ››ÝÜÝ\Y‹ˆ™^\š[Y[[™ÈŽˆ››ÝÜÝ\Y‹ˆ˜Y\Xš[]HŽˆ››ÝÜÝ\Y‹ˆ˜Y\[™×Ý×ØÚ[™ÙHŽˆ››ÝÜÝ\Y‹ˆ™›^X›HŽˆ››ÝÜÝ\Y‹ˆ˜\šY]HŽˆ››ÝÜÝ\Y‹ˆœÝ˜ZYÚ›ÜØ\™Žˆ››ÝÜÝ\Y‹ˆ˜Y\š[™×Ý×Ü[\ÈŽˆ››ÝÜÝ\Y‹ˆ˜Ø[™YŽˆ››ÝÜÝ\Y‹ˆ™X\›™\ÝŽˆ››ÝÜÝ\Y‹ˆœÝ]\×Ø]›ÚY[˜ÙHŽˆ››ÝÜÝ\Y‹ˆ™YØ[]\šX[ˆŽˆ››ÝÜÝ\Y‹ˆ˜ÛÛXÝ]™HŽˆ››ÝÜÝ\Y‹ˆ˜]›ÚY[™×ÜÝ]\ÈŽˆ››ÝÜÝ\Y‹ˆ›[Ù\ÝHŽˆ››ÝÜÝ\Y‹ˆš[X›HŽˆ››ÝÜÝ\Y‹ˆ›[Ù\ÝŽˆ››ÝÜÝ\Y‹ˆ˜]›ÚY[™×Ø][[ÛˆŽˆ››ÝÜÝ\Y‹ˆœ™\Ú[Y[˜ÙHŽˆ››ÝÜÝ\Y‹ˆÝYÚÛZ[™YŽˆ››ÝÜÝ\Y‹ˆœ™XÛÝ™\š[™ÈŽˆ››ÝÜÝ\Y‹ˆ›Ü[Z\ÝXÈŽˆ››ÝÜÝ\Y‹ˆ™[[Ý[Û˜[ØÛÛ›ÛŽˆ››ÝÜÝ\Y‹ˆ˜ÛÛ›Û[™×ÜÝ™\ÜÈŽˆ››ÝÜÝ\Y‹ˆ˜Ø[HŽˆ››ÝÜÝ\Y‹ˆ˜ÛÛ\ÜÙYŽˆ››ÝÜÝ\Y‹ˆš[™\[™[˜ÙHŽˆ››ÝÜÝ\Y‹ˆœÙ[—Ü™[X[Žˆ››ÝÜÝ\Y‹ˆœÙ[—ØÛÛZ[™YŽˆ››ÝÜÝ\Y‹ˆ[šÚ[™×Ú[™\[™[HŽˆ››ÝÜÝ\Y‹ˆB‚ˆ\œÛÛ˜[]WÜ™\ÜÈHZ[Ü\œÛÛ˜[]WÜ™\Ü×Ù›Ü—ØØ[™Y]JˆÛÝ˜WØXÝ]š]Y\ÏXXÝ]š]Y\ËˆXœ˜\žWÜÝ]\×ÛÛÚÝ\[Xœ˜\žWÜÝ]\×ÛÛÚÝ\ˆ
+B‚ˆ\œÛÛ˜[]WÜ™\ÜÈHZ[Ü\œÛÛ˜[]WÜ™\Ü×Ù›Ü—ØØ[™Y]JˆÛÝ˜WØXÝ]š]Y\ÏXXÝ]š]Y\ËˆXœ˜\žWÜÝ]\×ÛÛÚÝ\[Xœ˜\žWÜÝ]\×ÛÛÚÝ\ˆ
+B‚ˆ\œÛÛ˜[]WÜ›Ùš[WÜ™\ÜH™^
+ˆ
+ˆ™\Üˆ›Üˆ™\Ü[ˆ\œÛÛ˜[]WÜ™\ÜÂˆYˆ™\Ü™Ù]
+œ™\ÜÚYŠHOH˜Z]Ú[™XØ]Ü—Ü›Ùš[H‚ˆ
+Kˆ›Û™Kˆ
+B‚ˆ\œÛÛ˜[]WÜ›Ùš[HH
+ˆZ[Ü›Ùš[WÙœ›ÛWÜ™\ÛÛ™YÜ™\Ü
+ˆ™\ÛÛ™YÜ™\Ü\\œÛÛ˜[]WÜ›Ùš[WÜ™\Üˆ[™ÝXYÙO[[™ÝXYÙKˆ[˜ÛYWÛZ\ÜÚ[™×Ý˜Z]ÏQ˜[ÙKˆ
+BˆYˆ\œÛÛ˜[]WÜ›Ùš[WÜ™\Üˆ[ÙH›Û™Bˆ
+B‚ˆ]˜Z[X›WÜ™\Ü×ØÛÝ[H‚ˆYˆ\×Ý™\˜˜[Ü™\Ý[Î‚ˆ]˜Z[X›WÜ™\Ü×ØÛÝ[
+ÏH‚‚ˆYˆ\×Û[Y\šXØ[Ü™\Ý[Î‚ˆ]˜Z[X›WÜ™\Ü×ØÛÝ[
+ÏH‚‚ˆYˆ\×ÛÙÚXØ[Ü™\Ý[Î‚ˆ]˜Z[X›WÜ™\Ü×ØÛÝ[
+ÏH‚‚ˆYˆ\×Û[Ý]˜][Û—Ü™\Ý[Î‚ˆ]˜Z[X›WÜ™\Ü×ØÛÝ[
+ÏH‚ˆYˆ\×Ü\œÛÛ˜[]WÜ™\Ý[Î‚ˆ]˜Z[X›WÜ™\Ü×ØÛÝ[
+ÏHLB‚ˆ\×Ø[žWÜ™\Ý[ÈH
+ˆ\×ØXš[]WÜ™\Ý[ÂˆÜˆ\×Û[Ý]˜][Û—Ü™\Ý[ÂˆÜˆ\×Ü\œÛÛ˜[]WÜ™\Ý[Âˆ
+B‚ˆ\œÜÙWÜ™\ÜHÙ]Ü™\ÜÛ[ÙWØÛÛ[
+›ØÙ\ÜËœ\œÜÙJB‚ˆš[
+OOHT”ÔÑH‘TÔ•P•QÈOOHŠBˆš[
+”“ÐÑTÔÈT”ÔÑNˆ‹™\Š›ØÙ\ÜËœ\œÜÙJJBˆš[
+”T”ÔÑH‘TÔ•ˆ‹\œÜÙWÜ™\Ü
+Bˆš[
+OOHÔT”ÔÑH‘TÔ•P•QÈOOHŠB‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÈ\œÜÙHÛÛ^È™\Ü[ÙBˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÈ›Üˆ›ÝÈÙHÝ[\ÙHH^\Ý[™È›ØÙ\ÜÔ›ÛPÛÛ^[Ù[ˆÈ]^ÜÙH]È[\]\È\È›Ý›ÛWØÛÛ^[™\œÜÙWØÛÛ^‚ˆÈ\È]È\È[Ý™HÝØ\™ÈH[Ü™HÙ[™\˜[œ\œÜÙHÛÛ^ˆÙ]\ˆÈÚ]Ý]™[˜[Z[™È[Ù[ÈÜˆœ™XZÚ[™ÈÛ[\]\Ë‚ˆ\œÜÙWØÛÛ^ÛØšˆHÙ]]Š›ØÙ\ÜËœ›ÛWØÛÛ^‹›Û™JBˆ›ÛWØÛÛ^ÛØšˆH\œÜÙWØÛÛ^ÛØš‚‚ˆ\×Ü\œÜÙWØÛÛ^H
+ˆ\œÜÙWØÛÛ^ÛØš‹š\×ØÛÛ[
+
+BˆYˆ\œÜÙWØÛÛ^ÛØš‚ˆ[ÙH˜[ÙBˆ
+B‚ˆØ[™Y]WØZWÝ\]WÜÝ]HH
+ˆZ[ØØ[™Y]WØZWÝ\]WÜÝ]Jˆ[š]][ÛZ[š]][Û‹ˆ›ØÙ\ÜÏ\›ØÙ\ÜËˆ\œÜÙWØÛÛ^\\œÜÙWØÛÛ^ÛØš‹ˆ
+Bˆ
+B‚ˆÛÛ^Ý]HHˆ‚‚ˆYˆ\×Ü\œÜÙWØÛÛ^‚ˆÛÛ^Ý]HH
+ˆ\œÜÙWØÛÛ^ÛØš‹œ›ÛWÝ]BˆÜˆ\œÜÙWØÛÛ^ÛØš‹š›Ø—ØY™\\Ù[Y[ÎŽBˆÜˆ\È›ØÙ\ÜÈÛÛ^‚ˆ
+B‚ˆÈ˜XÚÝØ\™ËXÛÛ\]X›H˜[YH›Üˆ^\Ý[™È[\]\Âˆ\×Ü›ÛWØÛÛ^H\×Ü\œÜÙWØÛÛ^‚ˆÛÛ^ØÛÛ™šYÈHÙ]Ü\œÜÙWØÛÛ^ØÛÛ™šYÊ›ØÙ\ÜËœ\œÜÙJB‚ˆÈ™]È™\Ü[ÙN‚ˆÈH™Ù[™\˜[ˆH›ÈYYÛÛ^Û›H\ÝX˜\ÙY[œÚYÚÂˆÈH˜ÛÛ^ˆH\Ý]H
+È\œÜÙH
+ÈYYÛÛ^ˆØ[™Y]WÚ[œÚYÚ×Û[ÙHH
+ˆ˜ÛÛ^‚ˆYˆ\×Ü\œÜÙWØÛÛ^ˆ[ÙH™Ù[™\˜[‚ˆ
+B‚ˆÈÙY\HÛ\œÜÙKÜ™\ÜÙ^H]˜Z[X›HÙ\\˜][K‚ˆÈÈ›Ý\ÙH\È\ÈHÙ[™\˜[ØÛÛ^[ÙK‚ˆ\œÜÙWÜ™\ÜÚÙ^HH\œÜÙWÜ™\Ü™Ù]
+šÙ^HŠB‚ˆÚÝ×Ü›ÛWØÛÛ^Ü›Û\H›Ý\×Ü\œÜÙWØÛÛ^ˆÚÝ×ØÛÛ^Ü›Û\HÚÝ×Ü›ÛWØÛÛ^Ü›Û\‚ˆÚÝ×ØÛÛ^Ü›Û\HÚÝ×Ü›ÛWØÛÛ^Ü›Û\‚ˆÜš]XØ[ØÛÛ\][˜ÚY\×ØXÝ]™HH\×Ü\œÜÙWØÛÛ^ˆÛÛ\][˜ÞWÛÝ™\šY]×ØXÝ]™HH›Ý\×Ü\œÜÙWØÛÛ^‚ˆ™\ÜÛ[ÙHH˜ÛÛ^ˆYˆ\×Ü\œÜÙWØÛÛ^[ÙH™Ù[™\˜[‚‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÈ[\Ü˜\žH[[^H]H›ÜˆØ[™Y]H[œÚYÚÂˆÈ]\ˆ\ÈØ[ˆ™H™\XÙYžHÝXÝ\™YRH”ÓÓˆÝ]]‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKB‚ˆØ[™Y]WÚ[œÚYÚÈHZ[ØØ[™Y]WÚ[œÚYÚÊˆ[ÙOXØ[™Y]WÚ[œÚYÚ×Û[ÙKˆÙ[™\˜[Ú[œÚYÚÚ[œ]YÙ[™\˜[Ú[œÚYÚÚ[œ]ˆ›ØÙ\Ü×Ü\œÜÙO\›ØÙ\ÜËœ\œÜÙKˆ
+B‚ˆØ[™Y]WÚ[œÚYÚÖÈ˜ÛÙÛš]]™WÜ™\Ý[È—HH
+ˆZ[ØÛÙÛš]]™WÚ[œÚYÚÜ™\Ý[Êˆ™\˜˜[Ü\˜Ù[[O]™\˜˜[Ü\˜Ù[[KˆÙÚXØ[Ü\˜Ù[[O[ÙÚXØ[Ü\˜Ù[[Kˆ[Y\šXØ[Ü\˜Ù[[O[[Y\šXØ[Ü\˜Ù[[Kˆ
+Bˆ
+Bˆ\×ØÛÛ\]YØÛÙÛš]]™WÜ™\Ý[ÈH[žJˆ™\Ý[™Ù]
+˜ÛÛ\]YŠBˆ[™™\Ý[™Ù]
+šÙ^HŠH[ˆ\ÜÙ\ÜÛY[ÚÙ^\×Ú[—Ü›ØÙ\ÜÂˆ›Üˆ™\Ý[[ˆØ[™Y]WÚ[œÚYÚÖÈ˜ÛÙÛš]]™WÜ™\Ý[È—Bˆ
+B‚ˆš[
+OOH“VP“HRHÓÓ‘USÓˆP•QÈOOHŠBˆš[
+”“ÐÑTÔÈT”ÔÑNˆ‹™\Š›ØÙ\ÜËœ\œÜÙJJBˆš[
+”T”ÔÑHTÈ“VP“Nˆ‹›ØÙ\ÜËœ\œÜÙHOH™›^X›HŠBˆš[
+’TÈS–H‘TÕSÎˆ‹\×Ø[žWÜ™\Ý[ÊBˆš[
+’TÈT”ÓÓSUH‘TÕSÎˆ‹\×Ü\œÛÛ˜[]WÜ™\Ý[ÊBˆš[
+’TÈSÕUUSÓˆ‘TÕSÎˆ‹\×Û[Ý]˜][Û—Ü™\Ý[ÊBˆš[
+’TÈP’SUH‘TÕSÎˆ‹\×ØXš[]WÜ™\Ý[ÊBˆš[
+OOHÑ“VP“HRHÓÓ‘USÓˆP•QÈOOHŠB‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÈXÚ\Ú[ÛˆÝ\ÜˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKB‚ˆ™WÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜH
+ˆ[š]][Û‹˜ZWÜ™WÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜˆÜˆßBˆ
+B‚ˆÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜH
+ˆ[š]][Û‹˜ZWÜÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜˆÜˆßBˆ
+B‚ˆ[\šY]×Û›Ý\ÈH
+ˆ[š]][Û‹š[\šY]×Û›Ý\ÂˆÜˆˆ‚ˆ
+KœÝš\
+
+B‚ˆ\×Ü™WÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜH›ÛÛ
+ˆ
+ˆ™WÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\Ü™Ù]
+ˆ›Ý™\˜[ÜÞ[\Ú\È‚ˆ
+BˆÜˆˆ‚ˆ
+KœÝš\
+
+Bˆ
+B‚ˆ\×ÜÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜH›ÛÛ
+ˆ
+ˆÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\Ü™Ù]
+ˆ›Ý™\˜[ÜÞ[\Ú\È‚ˆ
+BˆÜˆˆ‚ˆ
+KœÝš\
+
+BˆÜˆ[žJˆÝŠ˜[YHÜˆˆŠKœÝš\
+
+Bˆ›Üˆ˜[YH[ˆ
+ˆÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\Ü™Ù]
+˜ÛÛ[Ø›ØÚÜÈŠBˆÜˆßBˆ
+K˜[Y\Ê
+Bˆ
+Bˆ
+B‚ˆœ›ÛH\Ë˜Ø[™Y]WÜ™\Ý[Ëœ™\Ù[][Ûˆ[\Ü
+ˆZ[ØØ[™Y]WÜ™\Ý[Ü[™[ØÛÛ^ˆ
+BˆØ[™Y]WÜ™\Ý[ØÛÛ^HZ[ØØ[™Y]WÜ™\Ý[Ü[™[ØÛÛ^
+ˆ›ØÙ\ÜË[š]][Û‹ˆ
+B‚ˆ™]\›ˆÂˆ˜ÛÛ\[žHŽˆ›ØÙ\ÜË˜ÛÛ\[žKˆœ™\ÜØœ˜[™[™ÈŽˆÙ]Ü™\ÜØœ˜[™[™Ê›ØÙ\ÜË˜ÛÛ\[žJKˆœ›ØÙ\ÜÈŽˆ›ØÙ\ÜËˆš[š]][ÛˆŽˆ[š]][Û‹ˆš[ˆŽˆ[š]][Û‹ˆ˜Ø[™Y]HŽˆØ[™Y]Kˆ
+Š˜Ø[™Y]WÜ™\Ý[ØÛÛ^ˆ˜XÝ]š]WÙ]™[ÈŽˆXÝ]š]WÙ]™[Ë‚ˆ˜XÝ]š]Y\ÈŽˆXÝ]š]Y\ËˆœÙ[Ø\ÜÙ\ÜÛY[ÈŽˆÙ[Ø\ÜÙ\ÜÛY[Ëˆ˜\ÜÙ\ÜÛY[ÚÙ^\×Ú[—Ü›ØÙ\ÜÈŽˆ\ÜÙ\ÜÛY[ÚÙ^\×Ú[—Ü›ØÙ\ÜËˆš\×Ü\œÛÛ˜[]WØ\ÜÙ\ÜÛY[Ú[—Ü›ØÙ\ÜÈŽˆ\×Ü\œÛÛ˜[]WØ\ÜÙ\ÜÛY[Ú[—Ü›ØÙ\ÜËˆš\×Û[Ý]˜][Û—Ø\ÜÙ\ÜÛY[Ú[—Ü›ØÙ\ÜÈŽˆ\×Û[Ý]˜][Û—Ø\ÜÙ\ÜÛY[Ú[—Ü›ØÙ\ÜËˆš\×ØÛÙÛš]]™WØ\ÜÙ\ÜÛY[×Ú[—Ü›ØÙ\ÜÈŽˆ\×ØÛÙÛš]]™WØ\ÜÙ\ÜÛY[×Ú[—Ü›ØÙ\ÜËˆš\×ØÛÛ\]YØÛÙÛš]]™WÜ™\Ý[ÈŽˆ\×ØÛÛ\]YØÛÙÛš]]™WÜ™\Ý[Ëˆœ›Ú™XÝÜ™\Ý[ÈŽˆ›Ú™XÝÜ™\Ý[Ëˆœ›Ú™XÝÜØÛÜ™\ÈŽˆ›Ú™XÝÜØÛÜ™\Ëˆ˜ÛÛ\][˜ÞWÜØÛÜ™\ÈŽˆÛÛ\][˜ÞWÜØÛÜ™\Ëˆ›Ý™\˜[ÜØÛÜ™HŽˆÝ™\˜[ÜØÛÜ™Kˆœ™\ÜÈŽˆ™\ÜË‚ˆ˜Xš[]WÜ™\Ý[ÈŽˆXš[]WÜ™\Ý[Ëˆ›[Ý]˜][Û—Ü™\Ý[ÈŽˆ[Ý]˜][Û—Ü™\Ý[Ëˆ˜[ØÛÛ\][˜ÚY\ÈŽˆ[ØÛÛ\][˜ÚY\Ë‚ˆ›[Y\šXØ[Ü\˜Ù[[HŽˆ[Y\šXØ[Ü\˜Ù[[Kˆ›ÙÚXØ[Ü\˜Ù[[HŽˆÙÚXØ[Ü\˜Ù[[Kˆ™\˜˜[Ü\˜Ù[[HŽˆ™\˜˜[Ü\˜Ù[[Kˆš\×ØXš[]WÜ™\Ý[ÈŽˆ\×ØXš[]WÜ™\Ý[Ë‚ˆ›\WØÛÛ\][˜ÚY\ÈŽˆ\WØÛÛ\][˜ÚY\Ëˆœ\œÛÛ˜[]WØÛÛ\][˜ÚY\ÈŽˆ\œÛÛ˜[]WØÛÛ\][˜ÚY\Ë‚ˆ\Ý×ÜÙ[ØÛÝ[ŽˆXÝ]š]WØÛÝ[ˆ\Ý×ØÛÛ\]YØÛÝ[Žˆ\Ý×ØÛÛ\]YØÛÝ[ˆ˜]˜Z[X›WÜ™\Ü×ØÛÝ[Žˆ[ŠÛÝ˜WÜ™\Ü×Ù›Ü—ÝZJKˆ™[XZ[ÛÙÜ×ØžWÚYŽˆ[XZ[ÛÙÜ×ØžWÚYˆœÛÝ˜WÜ™\Ü×Ù›Ü—ÝZHŽˆÛÝ˜WÜ™\Ü×Ù›Ü—ÝZKˆ˜]˜Z[X›WÜ™\Ü×ØÛÝ[Žˆ[ŠÛÝ˜WÜ™\Ü×Ù›Ü—ÝZJK‚ˆš\×Ø[žWÜ™\Ý[ÈŽˆ\×Ø[žWÜ™\Ý[Ëˆš\×Ø[žWØÛÛ\]YØ\ÜÙ\ÜÛY[Žˆ\×Ø[žWØÛÛ\]YØ\ÜÙ\ÜÛY[ˆ˜[Ø\ÜÙ\ÜÛY[×ØÛÛ\]YŽˆ[Ø\ÜÙ\ÜÛY[×ØÛÛ\]Y‚ˆÜÛ[Ý]˜][ÛœÈŽˆÜÛ[Ý]˜][ÛœËˆÜÜ\œÛÛ˜[]WÝ˜Z]ÈŽˆÜÜ\œÛÛ˜[]WÝ˜Z]Ëˆ›[Ý]˜][Û—Ù]™[ÜY[Ø\™X\ÈŽˆ[Ý]˜][Û—Ù]™[ÜY[Ø\™X\Ëˆœ\œÛÛ˜[]WÙ]™[ÜY[Ø\™X\ÈŽˆ\œÛÛ˜[]WÙ]™[ÜY[Ø\™X\Ë‚ˆ›[Ý]˜][Û—ÜØÛÜ™\ÈŽˆ[Ý]˜][Û—ÜØÛÜ™\Ëˆ›[Ý]˜][Û—Ü™\Ü×Ù›Ü—ÝZHŽˆ[Ý]˜][Û—Ü™\Ü×Ù›Ü—ÝZKˆ˜Xš[]WÜ™\Ü×Ù›Ü—ÝZHŽˆXš[]WÜ™\Ü×Ù›Ü—ÝZKˆœ\œÛÛ˜[]WÜ™\ÜÈŽˆ\œÛÛ˜[]WÜ™\ÜËˆœ\œÛÛ˜[]WÜ›Ùš[HŽˆ\œÛÛ˜[]WÜ›Ùš[Kˆœ›Ùš[WØÛÛ˜\ÝØ[˜[\Ú\ÈŽˆZ[Ü›Ùš[WØÛÛ˜\ÝØ[˜[\Ú\Êˆ\œÛÛ˜[]WÜ›Ùš[Kˆ[™ÝXYÙO[[™ÝXYÙKˆÛÝ\˜ÙOHœ\œÛÛ˜[]WØ\ÜÙ\ÜÛY[‹ˆ
+Kˆš\×Û[Ý]˜][Û—Ü™\Ý[ÈŽˆ\×Û[Ý]˜][Û—Ü™\Ý[Ëˆš\×Ü\œÛÛ˜[]WÜ™\Ý[ÈŽˆ\×Ü\œÛÛ˜[]WÜ™\Ý[Ë‚ˆÈ^\Ý[™È™\ÜÜ\œÜÙHÛÛ[ˆœ\œÜÙWÜ™\ÜŽˆ\œÜÙWÜ™\Üˆœ\œÜÙWÜ™\ÜÚÙ^HŽˆ\œÜÙWÜ™\ÜÚÙ^K‚ˆÈØ[™Y]H[œÚYÚÂˆ˜Ø[™Y]WÚ[œÚYÚÈŽˆØ[™Y]WÚ[œÚYÚËˆ˜Ø[™Y]WÚ[œÚYÚ×Û[ÙHŽˆØ[™Y]WÚ[œÚYÚ×Û[ÙKˆœ™\ÜÛ[ÙHŽˆ™\ÜÛ[ÙKˆ™Ù[™\˜[Ú[œÚYÚÚ[œ]ŽˆÙ[™\˜[Ú[œÚYÚÚ[œ]‚ˆÈ\œÜÙHÛÛ^ˆœ\œÜÙWØÛÛ^Žˆ\œÜÙWØÛÛ^ÛØš‹ˆš\×Ü\œÜÙWØÛÛ^Žˆ\×Ü\œÜÙWØÛÛ^ˆ˜ÛÛ^ØÛÛ™šYÈŽˆÛÛ^ØÛÛ™šYËˆœÚÝ×ØÛÛ^Ü›Û\ŽˆÚÝ×ØÛÛ^Ü›Û\‚ˆÈ˜XÚÝØ\™ËXÛÛ\]X›H˜[Y\Âˆœ›ÛWØÛÛ^Žˆ›ÛWØÛÛ^ÛØš‹ˆš\×Ü›ÛWØÛÛ^Žˆ\×Ü›ÛWØÛÛ^ˆœÚÝ×Ü›ÛWØÛÛ^Ü›Û\ŽˆÚÝ×Ü›ÛWØÛÛ^Ü›Û\‚ˆœÝ[[X\žWÛÝÛ™\ˆŽˆ[š]][Û‹ˆœ˜]×ÜÛÝ˜WÜ^[ØYÚœÛÛˆŽˆ˜]×ÜÛÝ˜WÜ^[ØYÚœÛÛ‹ˆœ˜]×ÜÛÝ˜WØXÝ]š]Y\×ÚœÛÛˆŽˆ˜]×ÜÛÝ˜WØXÝ]š]Y\×ÚœÛÛ‹‚ˆœ™\ÜÛœÙWÜÝ[\ÈŽˆ™\ÜÛœÙWÜÝ[\Ëˆœ™\ÜÛœÙWÜÝ[WÜÙYÛY[ÈŽˆ˜[™ÙJKLJK‚ˆœ™\ÜÛœÙWÜÝ[WÙÝZY[˜ÙHŽˆ
+ˆ[š]][Û‹˜ZWÜ™\ÜÛœÙWÜÝ[WÙÝZY[˜ÙBˆÜˆßBˆ
+K‚ˆœ™\ÜÛœÙWÜÝ[WÙÝZY[˜ÙWÜÝ]\ÈŽˆ
+ˆ[š]][Û‹˜ZWÜ™\ÜÛœÙWÜÝ[WÙÝZY[˜ÙWÜÝ]\Âˆ
+Kˆœ™\ÜÛœÙWÜÝ[WÜÚYWÜÙYÛY[ÈŽˆ˜[™ÙJKŠK‚ˆœ™\ÜÛœÙWÜÝ[WÙÝZY[˜ÙWÜÝ™X[WÝ\›Žˆ™]™\œÙJˆ
+ˆœ›ØÙ\ÜÙ\Îœ›ØÙ\Ü×ØØ[™Y]WÈ‚ˆœ™\ÜÛœÙWÜÝ[WÙÝZY[˜ÙWÜÝ™X[H‚ˆ
+KˆÝØ\™ÜÏ^Âˆœ›ØÙ\Ü×ÚYŽˆ›ØÙ\ÜËšYˆ˜Ø[™Y]WÚYŽˆØ[™Y]KšYˆKˆ
+K‚ˆ™ÛØ˜[ØZWÝ\]WÜ[—Ý\›Žˆ™]™\œÙJˆ
+ˆœ›ØÙ\ÜÙ\Îˆ‚ˆœ›ØÙ\Ü×ØØ[™Y]WÙÛØ˜[È‚ˆ˜ZWÝ\]WÜ[ˆ‚ˆ
+KˆÝØ\™ÜÏ^Âˆœ›ØÙ\Ü×ÚYŽˆ›ØÙ\ÜËšYˆ˜Ø[™Y]WÚYŽˆØ[™Y]KšYˆKˆ
+K‚ˆÈÛØ˜[RH\]HÝ]Bˆ˜Ø[™Y]WØZWÝ\]WÜÝ]HŽˆ
+ˆØ[™Y]WØZWÝ\]WÜÝ]Bˆ
+K‚ˆš\×ÛÝ]]YØZWÚ[œÚYÚÈŽˆ
+ˆØ[™Y]WØZWÝ\]WÜÝ]VÂˆš\×ÛÝ]]YÚ[œÚYÚÈ‚ˆBˆ
+K‚ˆ›Ý]]YØZWÜÙXÝ[ÛœÈŽˆ
+ˆØ[™Y]WØZWÝ\]WÜÝ]VÂˆœÙXÝ[ÛœÈ‚ˆBˆ
+K‚ˆ›Ý]]YØZWÜÙXÝ[Û—ØÛÝ[Žˆ
+ˆØ[™Y]WØZWÝ\]WÜÝ]VÂˆœÙXÝ[Û—ØÛÝ[‚ˆBˆ
+K‚ˆ›Ý]]YØZWÜ\œÜÙWØÚ[™ÙYŽˆ
+ˆØ[™Y]WØZWÝ\]WÜÝ]VÂˆœ\œÜÙWØÚ[™ÙY‚ˆBˆ
+K‚ˆ›Ý]]YØZWØÛÛ^ØÚ[™ÙYŽˆ
+ˆØ[™Y]WØZWÝ\]WÜÝ]VÂˆ˜ÛÛ^ØÚ[™ÙY‚ˆBˆ
+K‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÈXÚ\Ú[ÛˆÝ\ÜˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKB‚ˆœ™WÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜŽˆ
+ˆ™WÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\Üˆ
+K‚ˆœ™WÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜÜÝ]\ÈŽˆ
+ˆ[š]][Û‚ˆ˜ZWÜ™WÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜÜÝ]\ÂˆÜˆ››ÝÜÝ\Y‚ˆ
+K‚ˆœ™WÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜÙÙ[™\˜]YØ]Žˆ
+ˆ[š]][Û‚ˆ˜ZWÜ™WÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜÙÙ[™\˜]YØ]ˆ
+K‚ˆš\×Ü™WÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜŽˆ
+ˆ\×Ü™WÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\Üˆ
+K‚ˆœ™WÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜÜÝ™X[WÝ\›Žˆ™]™\œÙJˆ
+ˆœ›ØÙ\ÜÙ\Îˆ‚ˆœ›ØÙ\Ü×ØØ[™Y]WÜ™WÚ[\šY]×È‚ˆ™XÚ\Ú[Û—ÜÝ\ÜÜÝ™X[H‚ˆ
+KˆÝØ\™ÜÏ^Âˆœ›ØÙ\Ü×ÚYŽˆ›ØÙ\ÜËšYˆ˜Ø[™Y]WÚYŽˆØ[™Y]KšYˆKˆ
+K‚ˆœ™WÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜÜ™YÙ[™\˜]WÝ\›Žˆ™]™\œÙJˆ
+ˆœ›ØÙ\ÜÙ\Îˆ‚ˆœ›ØÙ\Ü×ØØ[™Y]WÜ™WÚ[\šY]×È‚ˆ™XÚ\Ú[Û—ÜÝ\ÜÜ™YÙ[™\˜]H‚ˆ
+KˆÝØ\™ÜÏ^Âˆœ›ØÙ\Ü×ÚYŽˆ›ØÙ\ÜËšYˆ˜Ø[™Y]WÚYŽˆØ[™Y]KšYˆKˆ
+K‚‚ˆÈ[\šY]È]šY[˜ÙB‚ˆš[\šY]×Û›Ý\ÈŽˆ[\šY]×Û›Ý\Ë‚ˆš[\šY]×Û›Ý\×Ý\]WÝ\›Žˆ™]™\œÙJˆ
+ˆœ›ØÙ\ÜÙ\Îˆ‚ˆœ›ØÙ\Ü×ØØ[™Y]WÈ‚ˆš[\šY]×Û›Ý\×Ý\]H‚ˆ
+KˆÝØ\™ÜÏ^Âˆœ›ØÙ\Ü×ÚYŽˆ›ØÙ\ÜËšYˆ˜Ø[™Y]WÚYŽˆØ[™Y]KšYˆKˆ
+K‚ˆš\×Ú[\šY]×Û›Ý\ÈŽˆ›ÛÛ
+ˆ[\šY]×Û›Ý\Âˆ
+K‚ˆš[\šY]×Û›Ý\×Ý\]YØ]Žˆ
+ˆ[š]][Û‹š[\šY]×Û›Ý\×Ý\]YØ]ˆ
+K‚ˆš[\šY]×Û›Ý\×Ý\]YØžHŽˆ
+ˆ[š]][Û‹š[\šY]×Û›Ý\×Ý\]YØžBˆ
+K‚‚ˆÈÜÝZ[\šY]ÈXÚ\Ú[ÛˆÝ\Ü‚ˆœÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜŽˆ
+ˆÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\Üˆ
+K‚ˆœÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜÜÝ™X[WÝ\›Žˆ™]™\œÙJˆ
+ˆœ›ØÙ\ÜÙ\Îˆ‚ˆœ›ØÙ\Ü×ØØ[™Y]WÜÜÝÚ[\šY]×È‚ˆ™XÚ\Ú[Û—ÜÝ\ÜÜÝ™X[H‚ˆ
+KˆÝØ\™ÜÏ^Âˆœ›ØÙ\Ü×ÚYŽˆ›ØÙ\ÜËšYˆ˜Ø[™Y]WÚYŽˆØ[™Y]KšYˆKˆ
+K‚ˆœÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜÜ™YÙ[™\˜]WÝ\›Žˆ™]™\œÙJˆ
+ˆœ›ØÙ\ÜÙ\Îˆ‚ˆœ›ØÙ\Ü×ØØ[™Y]WÜÜÝÚ[\šY]×È‚ˆ™XÚ\Ú[Û—ÜÝ\ÜÜ™YÙ[™\˜]H‚ˆ
+KˆÝØ\™ÜÏ^Âˆœ›ØÙ\Ü×ÚYŽˆ›ØÙ\ÜËšYˆ˜Ø[™Y]WÚYŽˆØ[™Y]KšYˆKˆ
+K‚ˆœÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜÜÝ]\ÈŽˆ
+ˆ[š]][Û‚ˆ˜ZWÜÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜÜÝ]\ÂˆÜˆ››ÝÜÝ\Y‚ˆ
+K‚ˆœÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜÙÙ[™\˜]YØ]Žˆ
+ˆ[š]][Û‚ˆ˜ZWÜÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜÙÙ[™\˜]YØ]ˆ
+K‚ˆš\×ÜÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜŽˆ
+ˆ\×ÜÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\Üˆ
+K‚ˆœÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜÛ›Ý\×Ý™\œÚ[ÛˆŽˆ
+ˆ[š]][Û‚ˆ˜ZWÜÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜÛ›Ý\×Ý™\œÚ[Û‚ˆ
+K‚ˆÈ\œÜÙKX˜\ÙYš[˜[Ý]]ˆ™š[˜[ÛÝ]]Žˆš[˜[ÛÝ]]‚ˆš\×Ùš[˜[ÛÝ]]Žˆ
+ˆš[˜[ÛÝ]]Èš\×ØÛÛ[—Bˆ
+K‚ˆ™š[˜[ÛÝ]]Ú\×ÛÝ]]YØÛÛ[Žˆ
+ˆš[˜[ÛÝ]]Âˆš\×ÛÝ]]YØÛÛ[‚ˆBˆ
+K‚ˆ™š[˜[ÛÝ]]Ü™Yœ™\ÚÝ\›Žˆ™]™\œÙJˆ
+ˆœ›ØÙ\ÜÙ\Îˆ‚ˆœ›ØÙ\Ü×ØØ[™Y]WÙš[˜[ÛÝ]]‚ˆ
+KˆÝØ\™ÜÏ^Âˆœ›ØÙ\Ü×ÚYŽˆ›ØÙ\ÜËšYˆ˜Ø[™Y]WÚYŽˆØ[™Y]KšYˆKˆ
+K‚ˆ›[Ý]˜][Û—Ú[œÚYÚÈŽˆ[Ý]˜][Û—Ú[œÚYÚË‚ˆX[WÜÝ[WÜ›Ùš[HŽˆX[WÜÝ[WÜ›Ùš[Kˆ›XY\œÚ\Ü™\ÜØÛÛ[ŽˆZ[ÛXY\œÚ\Ü™\ÜØÛÛ[
+[™ÝXYÙK\œÛÛ˜[]WØÛÛ\][˜ÚY\ÊKˆ™\˜Z[Y[Ü™\ÜØÛÛ[ŽˆZ[Ù\˜Z[Y[Ü™\ÜØÛÛ[
+[™ÝXYÙK\œÛÛ˜[]WØÛÛ\][˜ÚY\ÊKˆÈÛÙÛš]]™HRH[\œ™]][Û‚ˆ˜ÛÙÛš]]™WÚ[\œ™]][ÛˆŽˆ
+ˆ[š]][Û‹˜ZWØÛÙÛš]]™WÚ[\œ™]][Û‚ˆÜˆßBˆ
+K‚ˆ˜ÛÙÛš]]™WÚ[\œ™]][Û—ÜÝ]\ÈŽˆ
+ˆ[š]][Û‚ˆ˜ZWØÛÙÛš]]™WÚ[\œ™]][Û—ÜÝ]\ÂˆÜˆ››ÝÜÝ\Y‚ˆ
+K‚ˆ˜ÛÙÛš]]™WÚ[\œ™]][Û—ÜÝ™X[WÝ\›Žˆ™]™\œÙJˆ
+ˆœ›ØÙ\ÜÙ\Îˆ‚ˆœ›ØÙ\Ü×ØØ[™Y]WØÛÙÛš]]™WÈ‚ˆš[\œ™]][Û—ÜÝ™X[H‚ˆ
+KˆÝØ\™ÜÏ^Âˆœ›ØÙ\Ü×ÚYŽˆ›ØÙ\ÜËšYˆ˜Ø[™Y]WÚYŽˆØ[™Y]KšYˆKˆ
+K‚ˆ˜ÛÙÛš]]™WÜ]Y\Ý[ÛœÈŽˆ
+ˆ[š]][Û‹˜ZWØÛÙÛš]]™WÜ]Y\Ý[ÛœÂˆÜˆßBˆ
+K‚ˆ˜ÛÙÛš]]™WÜ]Y\Ý[Ûœ×ÜÝ]\ÈŽˆ
+ˆ[š]][Û‹˜ZWØÛÙÛš]]™WÜ]Y\Ý[Ûœ×ÜÝ]\ÂˆÜˆ››ÝÜÝ\Y‚ˆ
+K‚ˆ˜ÛÙÛš]]™WÜ]Y\Ý[Ûœ×ÜÝ™X[WÝ\›Žˆ™]™\œÙJˆœ›ØÙ\ÜÙ\Îœ›ØÙ\Ü×ØØ[™Y]WØÛÙÛš]]™WÜ]Y\Ý[Ûœ×ÜÝ™X[H‹ˆÝØ\™ÜÏ^Âˆœ›ØÙ\Ü×ÚYŽˆ›ØÙ\ÜËšYˆ˜Ø[™Y]WÚYŽˆØ[™Y]KšYˆKˆ
+K‚ˆ˜ÛÙÛš]]™WÜ]Y\Ý[Ûœ×Ü™YÙ[™\˜]WÝ\›Žˆ™]™\œÙJˆœ›ØÙ\ÜÙ\Îœ›ØÙ\Ü×ØØ[™Y]WØÛÙÛš]]™WÜ]Y\Ý[Ûœ×Ü™YÙ[™\˜]H‹ˆÝØ\™ÜÏ^Âˆœ›ØÙ\Ü×ÚYŽˆ›ØÙ\ÜËšYˆ˜Ø[™Y]WÚYŽˆØ[™Y]KšYˆKˆ
+K‚ˆ˜ÛÙÛš]]™WÚ[\œ™]][Û—Ü™YÙ[™\˜]WÝ\›Žˆ™]™\œÙJˆ
+ˆœ›ØÙ\ÜÙ\Îˆ‚ˆœ›ØÙ\Ü×ØØ[™Y]WØÛÙÛš]]™WÈ‚ˆš[\œ™]][Û—Ü™YÙ[™\˜]H‚ˆ
+KˆÝØ\™ÜÏ^Âˆœ›ØÙ\Ü×ÚYŽˆ›ØÙ\ÜËšYˆ˜Ø[™Y]WÚYŽˆØ[™Y]KšYˆKˆ
+KˆÈ[Ý]˜][ÛˆRH[\œ™]][Û‚ˆ›[Ý]˜][Û—Ú[\œ™]][ÛˆŽˆ
+ˆ[š]][Û‹˜ZWÛ[Ý]˜][Û—Ú[\œ™]][Û‚ˆÜˆßBˆ
+K‚ˆ›[Ý]˜][Û—Ú[\œ™]][Û—ÜÝ]\ÈŽˆ
+ˆ[š]][Û‚ˆ˜ZWÛ[Ý]˜][Û—Ú[\œ™]][Û—ÜÝ]\ÂˆÜˆ››ÝÜÝ\Y‚ˆ
+K‚ˆ›[Ý]˜][Û—Ú[\œ™]][Û—ÜÝ™X[WÝ\›Žˆ™]™\œÙJˆ
+ˆœ›ØÙ\ÜÙ\Îˆ‚ˆœ›ØÙ\Ü×ØØ[™Y]WÛ[Ý]˜][Û—È‚ˆš[\œ™]][Û—ÜÝ™X[H‚ˆ
+KˆÝØ\™ÜÏ^Âˆœ›ØÙ\Ü×ÚYŽˆ›ØÙ\ÜËšYˆ˜Ø[™Y]WÚYŽˆØ[™Y]KšYˆKˆ
+K‚ˆ›[Ý]˜][Û—Ú[\œ™]][Û—Ü™YÙ[™\˜]WÝ\›Žˆ™]™\œÙJˆ
+ˆœ›ØÙ\ÜÙ\Îˆ‚ˆœ›ØÙ\Ü×ØØ[™Y]WÛ[Ý]˜][Û—È‚ˆš[\œ™]][Û—Ü™YÙ[™\˜]H‚ˆ
+KˆÝØ\™ÜÏ^Âˆœ›ØÙ\Ü×ÚYŽˆ›ØÙ\ÜËšYˆ˜Ø[™Y]WÚYŽˆØ[™Y]KšYˆKˆ
+K‚ˆÈ[Ý]˜][ÛˆRH]Y\Ý[ÛœÂˆ›[Ý]˜][Û—Ü]Y\Ý[ÛœÈŽˆ
+ˆ[š]][Û‹˜ZWÛ[Ý]˜][Û—Ü]Y\Ý[ÛœÂˆÜˆßBˆ
+K‚ˆ›[Ý]˜][Û—Ü]Y\Ý[Ûœ×ÜÝ]\ÈŽˆ
+ˆ[š]][Û‹˜ZWÛ[Ý]˜][Û—Ü]Y\Ý[Ûœ×ÜÝ]\ÂˆÜˆ››ÝÜÝ\Y‚ˆ
+K‚ˆ›[Ý]˜][Û—Ü]Y\Ý[Ûœ×ÜÝ™X[WÝ\›Žˆ™]™\œÙJˆ
+ˆœ›ØÙ\ÜÙ\Îˆ‚ˆœ›ØÙ\Ü×ØØ[™Y]WÛ[Ý]˜][Û—È‚ˆœ]Y\Ý[Ûœ×ÜÝ™X[H‚ˆ
+KˆÝØ\™ÜÏ^Âˆœ›ØÙ\Ü×ÚYŽˆ›ØÙ\ÜËšYˆ˜Ø[™Y]WÚYŽˆØ[™Y]KšYˆKˆ
+K‚ˆ›[Ý]˜][Û—Ü]Y\Ý[Ûœ×Ü™YÙ[™\˜]WÝ\›Žˆ™]™\œÙJˆ
+ˆœ›ØÙ\ÜÙ\Îˆ‚ˆœ›ØÙ\Ü×ØØ[™Y]WÛ[Ý]˜][Û—È‚ˆœ]Y\Ý[Ûœ×Ü™YÙ[™\˜]H‚ˆ
+KˆÝØ\™ÜÏ^Âˆœ›ØÙ\Ü×ÚYŽˆ›ØÙ\ÜËšYˆ˜Ø[™Y]WÚYŽˆØ[™Y]KšYˆKˆ
+K‚ˆÈ\œÛÛ˜[]HRH[\œ™]][Û‚ˆœ\œÛÛ˜[]WÚ[\œ™]][ÛˆŽˆ
+ˆ[š]][Û‹˜ZWÜ\œÛÛ˜[]WÚ[\œ™]][Û‚ˆÜˆßBˆ
+K‚ˆœ\œÛÛ˜[]WÚ[\œ™]][Û—ÜÝ]\ÈŽˆ
+ˆ[š]][Û‹˜ZWÜ\œÛÛ˜[]WÚ[\œ™]][Û—ÜÝ]\ÂˆÜˆ››ÝÜÝ\Y‚ˆ
+K‚ˆœ\œÛÛ˜[]WÚ[\œ™]][Û—ÜÝ™X[WÝ\›Žˆ™]™\œÙJˆ
+ˆœ›ØÙ\ÜÙ\Îˆ‚ˆœ›ØÙ\Ü×ØØ[™Y]WÜ\œÛÛ˜[]WÈ‚ˆš[\œ™]][Û—ÜÝ™X[H‚ˆ
+KˆÝØ\™ÜÏ^Âˆœ›ØÙ\Ü×ÚYŽˆ›ØÙ\ÜËšYˆ˜Ø[™Y]WÚYŽˆØ[™Y]KšYˆKˆ
+K‚ˆœ\œÛÛ˜[]WÚ[\œ™]][Û—Ü™YÙ[™\˜]WÝ\›Žˆ™]™\œÙJˆ
+ˆœ›ØÙ\ÜÙ\Îˆ‚ˆœ›ØÙ\Ü×ØØ[™Y]WÜ\œÛÛ˜[]WÈ‚ˆš[\œ™]][Û—Ü™YÙ[™\˜]H‚ˆ
+KˆÝØ\™ÜÏ^Âˆœ›ØÙ\Ü×ÚYŽˆ›ØÙ\ÜËšYˆ˜Ø[™Y]WÚYŽˆØ[™Y]KšYˆKˆ
+K‚ˆ›X[˜YÙ\—Ü™\ÜÜ\œÛÛ˜[]HŽˆ
+ˆ[š]][Û‹˜ZWÛX[˜YÙ\—Ü™\ÜÜ\œÛÛ˜[]HÜˆßBˆ
+Kˆ›X[˜YÙ\—Ü™\ÜÜ\œÛÛ˜[]WÜÝ]\ÈŽˆ
+ˆ[š]][Û‹˜ZWÛX[˜YÙ\—Ü™\ÜÜ\œÛÛ˜[]WÜÝ]\ÈÜˆ››ÝÜÝ\Y‚ˆ
+Kˆ›X[˜YÙ\—Ü™\ÜÜ\œÛÛ˜[]WÜÝ™X[WÝ\›Žˆ™]™\œÙJˆœ›ØÙ\ÜÙ\Îœ›ØÙ\Ü×ØØ[™Y]WÛX[˜YÙ\—Ü™\ÜÜ\œÛÛ˜[]WÜÝ™X[H‹ˆÝØ\™ÜÏ^Èœ›ØÙ\Ü×ÚYŽˆ›ØÙ\ÜËšY˜Ø[™Y]WÚYŽˆØ[™Y]KšYKˆ
+Kˆ›X[˜YÙ\—Ü™\ÜÜ\œÛÛ˜[]WÜ™YÙ[™\˜]WÝ\›Žˆ™]™\œÙJˆœ›ØÙ\ÜÙ\Îœ›ØÙ\Ü×ØØ[™Y]WÛX[˜YÙ\—Ü™\ÜÜ\œÛÛ˜[]WÜ™YÙ[™\˜]H‹ˆÝØ\™ÜÏ^Èœ›ØÙ\Ü×ÚYŽˆ›ØÙ\ÜËšY˜Ø[™Y]WÚYŽˆØ[™Y]KšYKˆ
+K‚ˆÈ\œÛÛ˜[]HRH]Y\Ý[ÛœÂˆœ\œÛÛ˜[]WÜ]Y\Ý[ÛœÈŽˆ
+ˆ[š]][Û‹˜ZWÜ\œÛÛ˜[]WÜ]Y\Ý[ÛœÂˆÜˆßBˆ
+K‚ˆÈÛÛXš[™Y\ÜÙ\ÜÛY[]Y\Ý[ÛœÂˆ˜ÛÛXš[™YÜ]Y\Ý[ÛœÈŽˆÛÛXš[™YÜ]Y\Ý[ÛœË‚ˆ˜ÛÛXš[™YÜ]Y\Ý[Û—ÜÙXÝ[ÛœÈŽˆ
+ˆÛÛXš[™YÜ]Y\Ý[ÛœÖÈœÙXÝ[ÛœÈ—Bˆ
+K‚ˆ˜ÛÛXš[™YÜ]Y\Ý[Ûœ×Ü™Yœ™\ÚÝ\›Žˆ™]™\œÙJˆ
+ˆœ›ØÙ\ÜÙ\Îˆ‚ˆœ›ØÙ\Ü×ØØ[™Y]WØÛÛXš[™YÜ]Y\Ý[ÛœÈ‚ˆ
+KˆÝØ\™ÜÏ^Âˆœ›ØÙ\Ü×ÚYŽˆ›ØÙ\ÜËšYˆ˜Ø[™Y]WÚYŽˆØ[™Y]KšYˆKˆ
+K‚ˆ˜ÛÛXš[™YÜ]Y\Ý[Û—ØÛÝ[Žˆ
+ˆÛÛXš[™YÜ]Y\Ý[ÛœÖÈÝ[ØÛÝ[—Bˆ
+K‚ˆš\×ØÛÛXš[™YÜ]Y\Ý[ÛœÈŽˆ
+ˆÛÛXš[™YÜ]Y\Ý[ÛœÖÈš\×Ü]Y\Ý[ÛœÈ—Bˆ
+K‚ˆœ\œÛÛ˜[]WÜ]Y\Ý[Ûœ×ÜÝ]\ÈŽˆ
+ˆ[š]][Û‚ˆ˜ZWÜ\œÛÛ˜[]WÜ]Y\Ý[Ûœ×ÜÝ]\ÂˆÜˆ››ÝÜÝ\Y‚ˆ
+K‚ˆœÙ[XÝYÜ\œÛÛ˜[]WÝ˜Z]ÈŽˆ
+ˆ[š]][Û‹œÙ[XÝYÜ\œÛÛ˜[]WÝ˜Z]ÂˆÜˆ×Bˆ
+K‚ˆœ\œÛÛ˜[]WÝ˜Z]×Ù›Ü—ÜÙ[XÝ[ÛˆŽˆ
+ˆ\œÛÛ˜[]WÝ˜Z]×Ù›Ü—ÜÙ[XÝ[Û‚ˆ
+K‚ˆœ\œÛÛ˜[]WÜ]Y\Ý[Ûœ×ÜÝ™X[WÝ\›Žˆ™]™\œÙJˆ
+ˆœ›ØÙ\ÜÙ\Îˆ‚ˆœ›ØÙ\Ü×ØØ[™Y]WÜ\œÛÛ˜[]WÈ‚ˆœ]Y\Ý[Ûœ×ÜÝ™X[H‚ˆ
+KˆÝØ\™ÜÏ^Âˆœ›ØÙ\Ü×ÚYŽˆ›ØÙ\ÜËšYˆ˜Ø[™Y]WÚYŽˆØ[™Y]KšYˆKˆ
+K‚ˆœ\œÛÛ˜[]WÜ]Y\Ý[Ûœ×Ü™YÙ[™\˜]WÝ\›Žˆ™]™\œÙJˆ
+ˆœ›ØÙ\ÜÙ\Îˆ‚ˆœ›ØÙ\Ü×ØØ[™Y]WÜ\œÛÛ˜[]WÈ‚ˆœ]Y\Ý[Ûœ×Ü™YÙ[™\˜]H‚ˆ
+KˆÝØ\™ÜÏ^Âˆœ›ØÙ\Ü×ÚYŽˆ›ØÙ\ÜËšYˆ˜Ø[™Y]WÚYŽˆØ[™Y]KšYˆKˆ
+K‚ˆœ\œÛÛ˜[]WÝ˜Z]×Ý\]WÝ\›Žˆ™]™\œÙJˆ
+ˆœ›ØÙ\ÜÙ\Îˆ‚ˆœ›ØÙ\Ü×ØØ[™Y]WÜ\œÛÛ˜[]WÈ‚ˆ˜Z]×Ý\]H‚ˆ
+KˆÝØ\™ÜÏ^Âˆœ›ØÙ\Ü×ÚYŽˆ›ØÙ\ÜËšYˆ˜Ø[™Y]WÚYŽˆØ[™Y]KšYˆKˆ
+KˆB‚™YˆÙ]Ù\Ú›Ø\™ØXÝ]š]WÙ›Ü—Ý\Ù\Š\Ù\‹[Z]LL
+N‚ˆÛÛ\[žHHÙ]ØÛÛ\[žWÙ›Ü—Ý\Ù\Š\Ù\ŠB‚ˆYˆ›ÝÛÛ\[žN‚ˆ™]\›ˆXÝ]š]Q]™[›Øš™XÝË››Û™J
+B‚ˆ\›\ÈHÙ]ÙY™™XÝ]™WÛÜ™Ý[š]Ü\›Z\ÜÚ[ÛœÊ\Ù\‹ÛÛ\[žJB‚ˆÝÛ—ÚYÈHÝZY›ÜˆZY[ˆ\›\Ëš][\Ê
+HYˆOH›ÝÛˆ—Bˆš\ÚX›WÚYÈHÝZY›ÜˆZY[ˆ\›\Ëš][\Ê
+HYˆ[ˆ
+šY]Ù\ˆ‹™Y]ÜˆŠWB‚ˆ›ØÙ\Ü×ÜHHJÛÛ\[žOXÛÛ\[žK\×Ø\˜Ú]™YQ˜[ÙJH	ˆ
+ˆJÜ™×Ý[š]ÚY×Ú[]š\ÚX›WÚYÊHˆJÜ™×Ý[š]ÚY×Ú[[ÝÛ—ÚYËÜ™X]YØžO]\Ù\ŠBˆ
+B‚ˆXØÙ\ÜÚX›WÜ›ØÙ\Ü×ÚYÈH
+ˆ\Ý›ØÙ\ÜË›Øš™XÝÂˆ™š[\Š›ØÙ\Ü×ÜJBˆ˜[Y\×Û\Ý
+šY‹›]UYJBˆ
+B‚ˆ™]\›ˆ
+ˆXÝ]š]Q]™[›Øš™XÝÂˆ™š[\ŠˆÛÛ\[žOXÛÛ\[žKˆ›ØÙ\Ü×ÚY×Ú[XXØÙ\ÜÚX›WÜ›ØÙ\Ü×ÚYËˆ
+BˆœÙ[XÝÜ™[]Y
+ˆ˜XÝÜˆ‹ˆ˜Ø[™Y]H‹ˆœ›ØÙ\ÜÈ‹ˆš[š]][Ûˆ‹ˆ
+Bˆ›Ü™\—ØžJ‹XÜ™X]YØ]ŠVÎ›[Z]Bˆ
+B‚™YˆÙÙ]ØXÝ]™WØÛÛ\[žWÙ›Ü—Ý\Ù\Š\Ù\ŠN‚ˆÈÛHH˜\˜H\ˆHÛÛ\[žH\ˆ\Ù\ˆ\ÝNˆH°íœœÝBˆHHÛÛ\[žSY[X™\‹›Øš™XÝËœÙ[XÝÜ™[]Y
+˜ÛÛ\[žHŠK™š[\Š\Ù\]\Ù\ŠK™š\œÝ
+
+Bˆ™]\›ˆK˜ÛÛ\[žHYˆH[ÙH›Û™B‚‚™Yˆ\Ù\—ØØ[—ØXØÙ\Ü×Ü›ØÙ\ÜÊ\Ù\‹›ØÙ\ÜÊHOˆ›ÛÛ‚ˆÈ[[˜HYZ[œÈØ[ˆXØÙ\ÜÈ]™\žHÝ\ÝÛY\ˆ›ØÙ\ÜËˆÈ[˜ÛY[™ÈØ[™Y]H[œÚYÚÈ[™RH[™Ú[Ë‚ˆYˆ\×ØYZ[Š\Ù\ŠN‚ˆ™]\›ˆYBˆÛÛ\[žWÚYH
+ˆÛÛ\[žSY[X™\‹›Øš™XÝÂˆ™š[\Š\Ù\]\Ù\ŠBˆ˜[Y\×Û\Ý
+˜ÛÛ\[žWÚY‹›]UYJBˆ™š\œÝ
+
+Bˆ
+Bˆ™]\›ˆ›ÛÛ
+ÛÛ\[žWÚY[™›ØÙ\ÜË˜ÛÛ\[žWÚYOHÛÛ\[žWÚY
+B‚ÙÚ[—Ü™\]Z\™Y™\]Z\™WÔÔÕ™Yˆ›ØÙ\Ü×ØØ[™Y]WÙÛØ˜[ØZWÝ\]WÜ[Šˆ™\]Y\Ýˆ›ØÙ\Ü×ÚYˆØ[™Y]WÚYŠN‚ˆˆˆ‚ˆ™]\›ˆHœ™\Ú[ˆ›Üˆ\][™ÈÝ]]YRH[œÚYÚË‚‚ˆ\È[™Ú[Ù\È›Ý[]K™\Ù]Üˆ™YÙ[™\˜]H[ž][™Ë‚ˆ^\Ý[™ÈRHÛÛ[™[XZ[œÈ[˜Ú[™ÙY[[HÛY[Ý\ÂˆXXÚ[™]šYX[™YÙ[™\˜][Û‹‚ˆˆˆ‚‚ˆ›ØÙ\ÜÈHÙ]ÛØš™XÝÛÜ—Í
+ˆ\Ý›ØÙ\ÜËˆÏ\›ØÙ\Ü×ÚYˆ
+B‚ˆYˆ›Ý\Ù\—ØØ[—ØXØÙ\Ü×Ü›ØÙ\ÜÊˆ™\]Y\Ý\Ù\‹ˆ›ØÙ\ÜËˆ
+N‚ˆ™]\›ˆ™\ÜÛœÙQ›Ü˜šY[Šˆ–[ÝHÈ›Ý]™HXØÙ\ÜÈÈ\È›Ú™XÝˆ‚ˆ
+B‚ˆYˆ›ØÙ\ÜËš\×Ú\ÝÜšXØ[‚ˆ™]\›ˆœÛÛ”™\ÜÛœÙJˆÂˆ™\œ›ÜˆŽˆ
+ˆ‘ÛØ˜[RH\][™È\È›ÝÛÛ›™XÝY‚ˆ™›Üˆ\ÝÜšXØ[Ø[™Y]\ÈY]ˆ‚ˆ
+BˆKˆÝ]\ÏMˆ
+B‚ˆ[š]][ÛˆHÙ]ÛØš™XÝÛÜ—Í
+ˆ\Ý[š]][Û‹›Øš™XÝËœÙ[XÝÜ™[]Y
+ˆ˜Ø[™Y]H‹ˆœ›ØÙ\ÜÈ‹ˆ
+Kˆ›ØÙ\ÜÏ\›ØÙ\ÜËˆØ[™Y]WÚYXØ[™Y]WÚYˆ
+B‚ˆ\œÜÙWØÛÛ^HÙ]]Šˆ›ØÙ\ÜËˆœ›ÛWØÛÛ^‹ˆ›Û™Kˆ
+B‚ˆ\]WÜÝ]HH
+ˆZ[ØØ[™Y]WØZWÝ\]WÜÝ]Jˆ[š]][ÛZ[š]][Û‹ˆ›ØÙ\ÜÏ\›ØÙ\ÜËˆ\œÜÙWØÛÛ^\\œÜÙWØÛÛ^ˆ
+Bˆ
+B‚ˆÙXÝ[ÛœÈH×B‚ˆÙXÝ[ÛœÈH×B‚ˆ›ÜˆÙXÝ[Ûˆ[ˆ\]WÜÝ]VÈœÙXÝ[ÛœÈ—N‚ˆÙXÝ[Û—ÚÙ^HHÙXÝ[Û–ÈšÙ^H—Bˆ™YÙ[™\˜]WÝ\›H™]™\œÙJˆˆœ›ØÙ\ÜÙ\ÎžÜÙXÝ[Û–ÉÜ›Ý]WÛ˜[YI×_H‹ˆÝØ\™ÜÏ^Âˆœ›ØÙ\Ü×ÚYŽˆ›ØÙ\ÜËšYˆ˜Ø[™Y]WÚYŽˆØ[™Y]WÚYˆKˆ
+B‚ˆÙXÝ[ÛœË˜\[™
+ÂˆšÙ^HŽˆÙXÝ[Û—ÚÙ^Kˆ›X™[ŽˆÙXÝ[Û–È›X™[—Kˆœ™X\ÛÛœÈŽˆÙXÝ[Û–Èœ™X\ÛÛœÈ—Kˆœ™YÙ[™\˜]WÝ\›Žˆ™YÙ[™\˜]WÝ\›ˆJB‚ˆ™]\›ˆœÛÛ”™\ÜÛœÙJˆÂˆ›ÚÈŽˆYKˆš\×Ý\]\ÈŽˆ›ÛÛ
+ˆ\]WÜÝ]VÂˆš\×ÛÝ]]YÚ[œÚYÚÈ‚ˆBˆ
+KˆœÙXÝ[Û—ØÛÝ[Žˆ[ŠˆÙXÝ[ÛœÂˆ
+KˆœÙXÝ[ÛœÈŽˆÙXÝ[ÛœËˆœ\œÜÙWØÚ[™ÙYŽˆ›ÛÛ
+ˆ\]WÜÝ]VÂˆœ\œÜÙWØÚ[™ÙY‚ˆBˆ
+Kˆ˜ÛÛ^ØÚ[™ÙYŽˆ›ÛÛ
+ˆ\]WÜÝ]VÂˆ˜ÛÛ^ØÚ[™ÙY‚ˆBˆ
+KˆBˆ
+B‚‚ÙÚ[—Ü™\]Z\™Y™Yˆ›ØÙ\Ü×ØØ[™Y]WÜ™WÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜÜÝ™X[Jˆ™\]Y\Ýˆ›ØÙ\Ü×ÚYˆØ[™Y]WÚYŠN‚ˆˆˆ‚ˆÝ™X[H[™Ø]™H[[˜IÜÈ™KZ[\šY]ÈXÚ\Ú[ÛˆÝ\Ü‚‚ˆH™\Ý[ÛÛXš[™\È^\Ý[™ÈØ]™Y\ÜÙ\ÜÛY[[\œ™]][ÛœËˆY[YšY\È[˜Ù\Z[H[™Ù[XÝÈš[Üš]H˜[Y][Ûˆ]Y\Ý[ÛœË‚‚ˆ]Ù\È›Ý›ÝšYHHX]ÚØÛÜ™KÝZ]Xš[]H™\™XÝÜ‚ˆÙ[XÝ[Ûˆ™XÛÛ[Y[™][Û‹‚ˆˆˆ‚‚ˆ›ØÙ\ÜÈHÙ]ÛØš™XÝÛÜ—Í
+ˆ\Ý›ØÙ\ÜËˆÏ\›ØÙ\Ü×ÚYˆ
+B‚ˆYˆ›Ý\Ù\—ØØ[—ØXØÙ\Ü×Ü›ØÙ\ÜÊˆ™\]Y\Ý\Ù\‹ˆ›ØÙ\ÜËˆ
+N‚ˆ™]\›ˆ™\ÜÛœÙQ›Ü˜šY[Šˆ–[ÝHÈ›Ý]™HXØÙ\ÜÈÈ\È›Ú™XÝˆ‚ˆ
+Bˆˆ[š]][ÛˆHÙ]ØØ[™Y]WØZWÛÝÛ™\Šˆ›ØÙ\ÜËˆØ[™Y]WÚYˆ
+B‚ˆYˆ[š]][Û‹œÝ]\ÈOH˜ÛÛ\]YŽ‚ˆ™]\›ˆœÛÛ”™\ÜÛœÙJˆÂˆ™\œ›ÜˆŽˆ
+ˆ•HØ[™Y]H\È›ÝÛÛ\]Y‚ˆH\ÜÙ\ÜÛY[ÈY]ˆ‚ˆ
+BˆKˆÝ]\ÏMˆ
+B‚ˆÈ[[˜Hš[˜[Ý]]™KZ[\šY]È[™ÝXYÙH˜]ÚBˆ[™ÝXYÙWØÛÙHHÙ]Ü™\]Y\ÝØZWÛ[™ÝXYÙJˆ™\]Y\Ýˆ
+BˆX\š×ØZWØÛÛ[ÛÝ]]YÚY—Û[™ÝXYÙWØÚ[™ÙY
+ˆ[š]][Û‹ˆÛÛ[ÚÙ^OHœ™WÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\Ü‹ˆ™\Ý[ÙšY[H˜ZWÜ™WÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\Ü‹ˆÝ]\×ÙšY[Jˆ˜ZWÜ™WÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜÜÝ]\È‚ˆ
+Kˆ[™ÝXYÙWØÛÙO[[™ÝXYÙWØÛÙKˆ
+B‚ˆÝ\œ™[ÜÝ]\ÈH
+ˆ[š]][Û‚ˆ˜ZWÜ™WÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜÜÝ]\ÂˆÜˆ››ÝÜÝ\Y‚ˆ
+B‚ˆØ]™YÜ™\Ý[H
+ˆ[š]][Û‚ˆ˜ZWÜ™WÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜˆÜˆßBˆ
+B‚ˆÝ\œ™[Ü\œÜÙHH›Ü›X[^™WÜ\œÜÙWÚÙ^Jˆ›ØÙ\ÜËœ\œÜÙBˆ
+B‚ˆØ]™YÜ\œÜÙHH›Ü›X[^™WÜ\œÜÙWÚÙ^Jˆ[š]][Û‚ˆ˜ZWÜ™WÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜÜ\œÜÙBˆ
+B‚ˆÈØY™]H™][ˆØ\ÙHH›ØÙ\ÜÈ\œÜÙHÚ[™ÙYÚ]Ý]ˆÈH›Ü›X[Ý]]Y[X\šÚ[™È›ÝÈ™Z[™ÈšYÙÙ\™Y‚ˆYˆ
+ˆØ]™YÜ™\Ý[ˆ[™Ý\œ™[ÜÝ]\ÈOH˜ÛÛ\]Y‚ˆ[™Ø]™YÜ\œÜÙHOHÝ\œ™[Ü\œÜÙBˆ
+N‚ˆÝ\œ™[ÜÝ]\ÈH›Ý]]Y‚‚ˆ[š]][Û‹˜ZWÜ™WÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜÜÝ]\ÈH
+ˆ›Ý]]Y‚ˆ
+B‚ˆ[š]][Û‹œØ]™Jˆ\]WÙšY[ÏVÂˆ
+ˆ˜ZWÜ™WÚ[\šY]×È‚ˆ™XÚ\Ú[Û—ÜÝ\ÜÜÝ]\È‚ˆ
+KˆBˆ
+B‚ˆÈ™]\›ˆ[ˆ[™XYHÛÛ\]Y™\Ý[Ú]Ý]Ü™X][™ÂˆÈ[›Ý\ˆÜ[RH™\]Y\Ý‚ˆYˆ
+ˆZWØÛÛ[Û[™ÝXYÙWÛX]Ú\Êˆ[š]][Û‹ˆœ™WÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\Ü‹ˆ[™ÝXYÙWØÛÙKˆ
+Bˆ[™ÚÝ[Ü™]\›—ÜØ]™YØZWÜ™\Ý[
+ˆØ]™YÜ™\Ý[ˆÝ\œ™[ÜÝ]\Ëˆ
+Bˆ
+N‚ˆYˆ^\Ý[™×ÙÙ[™\˜]ÜŠ
+N‚ˆZY[œÛÛ‹™[\ÊˆÂˆ\HŽˆœØ]™YÜ™\Ý[‹ˆ™]HŽˆØ]™YÜ™\Ý[ˆœÝ]\ÈŽˆÝ\œ™[ÜÝ]\ËˆKˆ[œÝ\™WØ\ØÚZOQ˜[ÙKˆ
+H
+È—ˆ‚‚ˆ™\ÜÛœÙHHÝ™X[Z[™Ò™\ÜÛœÙJˆ^\Ý[™×ÙÙ[™\˜]ÜŠ
+KˆÛÛ[Ý\OJˆ˜\XØ][Û‹Þ[™œÛÛŽÈÚ\œÙ]]]‹N‚ˆ
+Kˆ
+B‚ˆ™\ÜÛœÙVÈØXÚKPÛÛ›Û—HH››ËXØXÚH‚ˆ™\ÜÛœÙVÈ–PXØÙ[PY™™\š[™È—HH››È‚‚ˆ™]\›ˆ™\ÜÛœÙB‚ˆYˆÝ\œ™[ÜÝ]\ÈOH™Ù[™\˜][™ÈŽ‚ˆ™]\›ˆœÛÛ”™\ÜÛœÙJˆÂˆ™\œ›ÜˆŽˆ
+ˆ”™KZ[\šY]ÈXÚ\Ú[ÛˆÝ\Ü‚ˆš\È[™XYH™Z[™ÈÙ[™\˜]Yˆ‚ˆ
+BˆKˆÝ]\ÏMKˆ
+B‚ˆ[š]][Û‹˜ZWÜ™WÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜÜÝ]\ÈH
+ˆ™Ù[™\˜][™È‚ˆ
+B‚ˆ[š]][Û‹œØ]™Jˆ\]WÙšY[ÏVÂˆ
+ˆ˜ZWÜ™WÚ[\šY]×È‚ˆ™XÚ\Ú[Û—ÜÝ\ÜÜÝ]\È‚ˆ
+KˆBˆ
+B‚ˆYˆÙ[™\˜]ÜŠ
+N‚ˆ™\Ý[H
+ˆÜ™X]WÙ[\WÜ™WÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\Ü
+ˆ[š]][Û‹ˆ[™ÝXYÙWØÛÙO[[™ÝXYÙWØÛÙKˆ
+Bˆ
+B‚ˆ™XÙZ]™YÙÛ™WÙ]™[H˜[ÙB‚ˆžN‚ˆ›Üˆ]™[[ˆ
+ˆÝ™X[WÜ™WÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\Ü
+ˆÝÛ™\Z[š]][Û‹ˆ[™ÝXYÙWØÛÙO[[™ÝXYÙWØÛÙKˆ
+Bˆ
+N‚ˆ™\Ý[H
+ˆ\WÜ™WÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜÙ]™[
+ˆ™\Ý[ˆ]™[ˆ
+Bˆ
+B‚ˆYˆ]™[™Ù]
+\HŠHOH™Û™HŽ‚ˆ™XÙZ]™YÙÛ™WÙ]™[HYB‚ˆYˆ]™[™Ù]
+\HŠHOHœ›Ùš[WØÛÛ˜\ÝÈŽ‚ˆ]™[HÂˆ\HŽˆœ›Ùš[WØÛÛ˜\ÝÈ‹ˆš][\ÈŽˆÝZY[˜ÙK™Ù]
+œ›Ùš[WØÛÛ˜\ÝÈŠHÜˆ×KˆB‚ˆZY[œÛÛ‹™[\Êˆ]™[ˆ[œÝ\™WØ\ØÚZOQ˜[ÙKˆ
+H
+È—ˆ‚‚ˆYˆ›Ý™XÙZ]™YÙÛ™WÙ]™[‚ˆZY[œÛÛ‹™[\ÊˆÂˆ\HŽˆ™Û™H‹ˆKˆ[œÝ\™WØ\ØÚZOQ˜[ÙKˆ
+H
+È—ˆ‚‚ˆØ]™WÜ™WÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\Ü
+ˆÝÛ™\Z[š]][Û‹ˆ™\Ý[\™\Ý[ˆ[™ÝXYÙWØÛÙO[[™ÝXYÙWØÛÙKˆ
+B‚ˆ^Ù\^Ù\[Ûˆ\È\œ›ÜŽ‚ˆ[š]][Û‹˜ZWÜ™WÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜÜÝ]\ÈH
+ˆ™˜Z[Y‚ˆ
+B‚ˆ[š]][Û‹œØ]™Jˆ\]WÙšY[ÏVÂˆ
+ˆ˜ZWÜ™WÚ[\šY]×È‚ˆ™XÚ\Ú[Û—ÜÝ\ÜÜÝ]\È‚ˆ
+KˆBˆ
+B‚ˆZY[œÛÛ‹™[\ÊˆÂˆ\HŽˆ™\œ›Üˆ‹ˆ›Y\ÜØYÙHŽˆÝŠ\œ›ÜŠKˆKˆ[œÝ\™WØ\ØÚZOQ˜[ÙKˆ
+H
+È—ˆ‚‚ˆ™\ÜÛœÙHHÝ™X[Z[™Ò™\ÜÛœÙJˆÙ[™\˜]ÜŠ
+KˆÛÛ[Ý\OJˆ˜\XØ][Û‹Þ[™œÛÛŽÈÚ\œÙ]]]‹N‚ˆ
+Kˆ
+B‚ˆ™\ÜÛœÙVÈØXÚKPÛÛ›Û—HH››ËXØXÚH‚ˆ™\ÜÛœÙVÈ–PXØÙ[PY™™\š[™È—HH››È‚‚ˆ™]\›ˆ™\ÜÛœÙB‚‚ÙÚ[—Ü™\]Z\™Y™\]Z\™WÔÔÕ™Yˆ›ØÙ\Ü×ØØ[™Y]WÜ™WÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜÜ™YÙ[™\˜]Jˆ™\]Y\Ýˆ›ØÙ\Ü×ÚYˆØ[™Y]WÚYŠN‚ˆˆˆ‚ˆ™\Ù]H™KZ[\šY]ÈXÚ\Ú[ÛˆÝ\Ü[™™]\›‚ˆHÝ™X[HT“›ÜˆHœ™\ÚÙ[™\˜][Û‹‚ˆˆˆ‚‚ˆ›ØÙ\ÜÈHÙ]ÛØš™XÝÛÜ—Í
+ˆ\Ý›ØÙ\ÜËˆÏ\›ØÙ\Ü×ÚYˆ
+B‚ˆYˆ›Ý\Ù\—ØØ[—ØXØÙ\Ü×Ü›ØÙ\ÜÊˆ™\]Y\Ý\Ù\‹ˆ›ØÙ\ÜËˆ
+N‚ˆ™]\›ˆ™\ÜÛœÙQ›Ü˜šY[Šˆ–[ÝHÈ›Ý]™HXØÙ\ÜÈÈ\È›Ú™XÝˆ‚ˆ
+B‚ˆˆ[š]][ÛˆHÙ]ØØ[™Y]WØZWÛÝÛ™\Šˆ›ØÙ\ÜËˆØ[™Y]WÚYˆ
+B‚ˆ[š]][Û‹˜ZWÜ™WÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜÜÝ]\ÈH
+ˆ››ÝÜÝ\Y‚ˆ
+B‚ˆ[š]][Û‹˜ZWÜ™WÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜÙÙ[™\˜]YØ]H
+ˆ›Û™Bˆ
+B‚ˆ[š]][Û‹˜ZWÜ™WÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜÜ\œÜÙHHˆ‚‚ˆ[š]][Û‹œØ]™Jˆ\]WÙšY[ÏVÂˆ
+ˆ˜ZWÜ™WÚ[\šY]×È‚ˆ™XÚ\Ú[Û—ÜÝ\ÜÜÝ]\È‚ˆ
+Kˆ
+ˆ˜ZWÜ™WÚ[\šY]×È‚ˆ™XÚ\Ú[Û—ÜÝ\ÜÙÙ[™\˜]YØ]‚ˆ
+Kˆ
+ˆ˜ZWÜ™WÚ[\šY]×È‚ˆ™XÚ\Ú[Û—ÜÝ\ÜÜ\œÜÙH‚ˆ
+KˆBˆ
+B‚ˆ™]\›ˆœÛÛ”™\ÜÛœÙJˆÂˆ›ÚÈŽˆYKˆœÝ™X[WÝ\›Žˆ™]™\œÙJˆ
+ˆœ›ØÙ\ÜÙ\Îˆ‚ˆœ›ØÙ\Ü×ØØ[™Y]WÜ™WÚ[\šY]×È‚ˆ™XÚ\Ú[Û—ÜÝ\ÜÜÝ™X[H‚ˆ
+KˆÝØ\™ÜÏ^Âˆœ›ØÙ\Ü×ÚYŽˆ›ØÙ\ÜËšYˆ˜Ø[™Y]WÚYŽˆØ[™Y]WÚYˆKˆ
+KˆBˆ
+B‚‚ÙÚ[—Ü™\]Z\™Y™Yˆ›ØÙ\Ü×ØØ[™Y]WÜÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜÜÝ™X[Jˆ™\]Y\Ýˆ›ØÙ\Ü×ÚYˆØ[™Y]WÚYŠN‚ˆˆˆ‚ˆÝ™X[H[™Ø]™HÜÝZ[\šY]ÈXÚ\Ú[ÛˆÝ\Ü‚‚ˆH™\Ý[ÛÛ\\™\ÈØ]™Y\ÜÙ\ÜÛY[[\œ™]][ÛœÈÚ]ˆ[\šY]È›Ý\È[™Ø[™Y]H^[\\Ë‚‚ˆ]Ù\È›Ý›ÝšYHHX]Ú[™È™\™XÝÝZ]Xš[]H˜][™ÂˆÜˆÙ[XÝ[Ûˆ™XÛÛ[Y[™][Û‹‚ˆˆˆ‚‚ˆ›ØÙ\ÜÈHÙ]ÛØš™XÝÛÜ—Í
+ˆ\Ý›ØÙ\ÜËˆÏ\›ØÙ\Ü×ÚYˆ
+B‚ˆYˆ›Ý\Ù\—ØØ[—ØXØÙ\Ü×Ü›ØÙ\ÜÊˆ™\]Y\Ý\Ù\‹ˆ›ØÙ\ÜËˆ
+N‚ˆ™]\›ˆ™\ÜÛœÙQ›Ü˜šY[Šˆ–[ÝHÈ›Ý]™HXØÙ\ÜÈÈ\È›Ú™XÝˆ‚ˆ
+Bˆˆ[š]][ÛˆHÙ]ØØ[™Y]WØZWÛÝÛ™\Šˆ›ØÙ\ÜËˆØ[™Y]WÚYˆ
+B‚ˆYˆ[š]][Û‹œÝ]\ÈOH˜ÛÛ\]YŽ‚ˆ™]\›ˆœÛÛ”™\ÜÛœÙJˆÂˆ™\œ›ÜˆŽˆ
+ˆ•HØ[™Y]H\È›ÝÛÛ\]Y‚ˆH\ÜÙ\ÜÛY[ÈY]ˆ‚ˆ
+BˆKˆÝ]\ÏMˆ
+B‚ˆ[\šY]×Û›Ý\ÈH
+ˆ[š]][Û‹š[\šY]×Û›Ý\ÂˆÜˆˆ‚ˆ
+KœÝš\
+
+B‚ˆYˆ›Ý[\šY]×Û›Ý\Î‚ˆ™]\›ˆœÛÛ”™\ÜÛœÙJˆÂˆ™\œ›ÜˆŽˆ
+ˆY[™Ø]™H[\šY]È›Ý\È™Y›Ü™H‚ˆ™Ù[™\˜][™ÈÜÝZ[\šY]ÈXÚ\Ú[ÛˆÝ\Üˆ‚ˆ
+BˆKˆÝ]\ÏMˆ
+B‚ˆÈ[[˜Hš[˜[Ý]]ÜÝZ[\šY]È[™ÝXYÙH˜]ÚBˆ[™ÝXYÙWØÛÙHHÙ]Ü™\]Y\ÝØZWÛ[™ÝXYÙJˆ™\]Y\Ýˆ
+BˆX\š×ØZWØÛÛ[ÛÝ]]YÚY—Û[™ÝXYÙWØÚ[™ÙY
+ˆ[š]][Û‹ˆÛÛ[ÚÙ^OHœÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\Ü‹ˆ™\Ý[ÙšY[H˜ZWÜÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\Ü‹ˆÝ]\×ÙšY[Jˆ˜ZWÜÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜÜÝ]\È‚ˆ
+Kˆ[™ÝXYÙWØÛÙO[[™ÝXYÙWØÛÙKˆ
+B‚ˆÝ\œ™[ÜÝ]\ÈH
+ˆ[š]][Û‚ˆ˜ZWÜÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜÜÝ]\ÂˆÜˆ››ÝÜÝ\Y‚ˆ
+B‚ˆØ]™YÜ™\Ý[H
+ˆ[š]][Û‚ˆ˜ZWÜÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜˆÜˆßBˆ
+B‚ˆÝ\œ™[Ü\œÜÙHH›Ü›X[^™WÜ\œÜÙWÚÙ^Jˆ›ØÙ\ÜËœ\œÜÙBˆ
+B‚ˆØ]™YÜ\œÜÙHH›Ü›X[^™WÜ\œÜÙWÚÙ^Jˆ[š]][Û‚ˆ˜ZWÜÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜÜ\œÜÙBˆ
+B‚ˆÝ\œ™[Û›Ý\×Ý™\œÚ[ÛˆH
+ˆ[š]][Û‹š[\šY]×Û›Ý\×Ý\]YØ]ˆ
+B‚ˆØ]™YÛ›Ý\×Ý™\œÚ[ÛˆH
+ˆ[š]][Û‚ˆ˜ZWÜÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜÛ›Ý\×Ý™\œÚ[Û‚ˆ
+B‚ˆ\œÜÙWÚ\×ØÚ[™ÙYH
+ˆØ]™YÜ\œÜÙHOHÝ\œ™[Ü\œÜÙBˆ
+B‚ˆ›Ý\×Ú]™WØÚ[™ÙYH›ÛÛ
+ˆÝ\œ™[Û›Ý\×Ý™\œÚ[Û‚ˆ[™
+ˆ›ÝØ]™YÛ›Ý\×Ý™\œÚ[Û‚ˆÜˆ
+ˆÝ\œ™[Û›Ý\×Ý™\œÚ[Û‚ˆˆØ]™YÛ›Ý\×Ý™\œÚ[Û‚ˆ
+Bˆ
+Bˆ
+B‚ˆÈØY™]H™][ˆØ\ÙH\œÜÙHÜˆ[\šY]È›Ý\ÈÚ[™ÙYˆÈÚ]Ý]H›Ü›X[Ý]]Y›ÝÈ™Z[™ÈšYÙÙ\™Y‚ˆYˆ
+ˆØ]™YÜ™\Ý[ˆ[™Ý\œ™[ÜÝ]\ÈOH˜ÛÛ\]Y‚ˆ[™
+ˆ\œÜÙWÚ\×ØÚ[™ÙYˆÜˆ›Ý\×Ú]™WØÚ[™ÙYˆ
+Bˆ
+N‚ˆÝ\œ™[ÜÝ]\ÈH›Ý]]Y‚‚ˆ[š]][Û‹˜ZWÜÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜÜÝ]\ÈH
+ˆ›Ý]]Y‚ˆ
+B‚ˆ[š]][Û‹œØ]™Jˆ\]WÙšY[ÏVÂˆ
+ˆ˜ZWÜÜÝÚ[\šY]×È‚ˆ™XÚ\Ú[Û—ÜÝ\ÜÜÝ]\È‚ˆ
+KˆBˆ
+B‚ˆÈ™]\›ˆ[ˆ^\Ý[™ÈÛÛ\]YÜˆÝ]]Y™\Ý[‚ˆYˆ
+ˆZWØÛÛ[Û[™ÝXYÙWÛX]Ú\Êˆ[š]][Û‹ˆœÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\Ü‹ˆ[™ÝXYÙWØÛÙKˆ
+Bˆ[™ÚÝ[Ü™]\›—ÜØ]™YØZWÜ™\Ý[
+ˆØ]™YÜ™\Ý[ˆÝ\œ™[ÜÝ]\Ëˆ
+Bˆ
+N‚ˆYˆ^\Ý[™×ÙÙ[™\˜]ÜŠ
+N‚ˆZY[œÛÛ‹™[\ÊˆÂˆ\HŽˆœØ]™YÜ™\Ý[‹ˆ™]HŽˆØ]™YÜ™\Ý[ˆœÝ]\ÈŽˆÝ\œ™[ÜÝ]\ËˆKˆ[œÝ\™WØ\ØÚZOQ˜[ÙKˆ
+H
+È—ˆ‚‚ˆ™\ÜÛœÙHHÝ™X[Z[™Ò™\ÜÛœÙJˆ^\Ý[™×ÙÙ[™\˜]ÜŠ
+KˆÛÛ[Ý\OJˆ˜\XØ][Û‹Þ[™œÛÛŽÈÚ\œÙ]]]‹N‚ˆ
+Kˆ
+B‚ˆ™\ÜÛœÙVÈØXÚKPÛÛ›Û—HH››ËXØXÚH‚ˆ™\ÜÛœÙVÈ–PXØÙ[PY™™\š[™È—HH››È‚‚ˆ™]\›ˆ™\ÜÛœÙB‚ˆYˆÝ\œ™[ÜÝ]\ÈOH™Ù[™\˜][™ÈŽ‚ˆ™]\›ˆœÛÛ”™\ÜÛœÙJˆÂˆ™\œ›ÜˆŽˆ
+ˆ”ÜÝZ[\šY]ÈXÚ\Ú[ÛˆÝ\Ü‚ˆš\È[™XYH™Z[™ÈÙ[™\˜]Yˆ‚ˆ
+BˆKˆÝ]\ÏMKˆ
+B‚ˆ[š]][Û‹˜ZWÜÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜÜÝ]\ÈH
+ˆ™Ù[™\˜][™È‚ˆ
+B‚ˆ[š]][Û‹œØ]™Jˆ\]WÙšY[ÏVÂˆ
+ˆ˜ZWÜÜÝÚ[\šY]×È‚ˆ™XÚ\Ú[Û—ÜÝ\ÜÜÝ]\È‚ˆ
+KˆBˆ
+B‚ˆYˆÙ[™\˜]ÜŠ
+N‚ˆ™\Ý[H
+ˆÜ™X]WÙ[\WÜÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\Ü
+ˆ[š]][Û‹ˆ[™ÝXYÙWØÛÙO[[™ÝXYÙWØÛÙKˆ
+Bˆ
+B‚ˆ™XÙZ]™YÙÛ™WÙ]™[H˜[ÙB‚ˆžN‚ˆ›Üˆ]™[[ˆ
+ˆÝ™X[WÜÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\Ü
+ˆÝÛ™\Z[š]][Û‹ˆ[™ÝXYÙWØÛÙO[[™ÝXYÙWØÛÙKˆ
+Bˆ
+N‚ˆ™\Ý[H
+ˆ\WÜÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜÙ]™[
+ˆ™\Ý[ˆ]™[ˆ
+Bˆ
+B‚ˆYˆ]™[™Ù]
+\HŠHOH™Û™HŽ‚ˆ™XÙZ]™YÙÛ™WÙ]™[HYB‚ˆZY[œÛÛ‹™[\Êˆ]™[ˆ[œÝ\™WØ\ØÚZOQ˜[ÙKˆ
+H
+È—ˆ‚‚ˆZY[œÛÛ‹™[\ÊˆÂˆ\HŽˆœ™\Ý[ÙXYÈ‹ˆ™]HŽˆÂˆ›Ý™\˜[ÜÞ[\Ú\×ØÚ\˜XÝ\œÈŽˆ[ŠˆÝŠˆ™\Ý[™Ù]
+ˆ›Ý™\˜[ÜÞ[\Ú\È‚ˆ
+BˆÜˆˆ‚ˆ
+KœÝš\
+
+Bˆ
+Kˆ˜ÛÛ[Ø›ØÚ×ØÚ\˜XÝ\œÈŽˆÂˆÙ^Nˆ[ŠˆÝŠˆ
+ˆ™\Ý[™Ù]
+ˆ˜ÛÛ[Ø›ØÚÜÈ‚ˆ
+BˆÜˆßBˆ
+K™Ù]
+Ù^JBˆÜˆˆ‚ˆ
+KœÝš\
+
+Bˆ
+Bˆ›ÜˆÙ^H[ˆ
+ˆ›Ý™\˜[ÜXÝ\™H‹ˆš[\šY]×ÜÝ[[X\žH‹ˆ™^Ü™WÙ\\ˆ‹ˆÙ[™Z[™×Ý\È‹ˆ
+BˆKˆKˆKˆ[œÝ\™WØ\ØÚZOQ˜[ÙKˆ
+H
+È—ˆ‚‚ˆÝ™\˜[ÜÞ[\Ú\ÈH
+ˆ™\Ý[™Ù]
+ˆ›Ý™\˜[ÜÞ[\Ú\È‚ˆ
+BˆÜˆˆ‚ˆ
+KœÝš\
+
+B‚ˆYˆ›ÝÝ™\˜[ÜÞ[\Ú\Î‚ˆ˜Z\ÙH˜[YQ\œ›ÜŠˆ•HRH™\ÜÛœÙHY›ÝÛÛZ[ˆ‚ˆ˜[ˆÝ™\˜[Þ[\Ú\Ëˆ‚ˆ
+B‚ˆÝ\ÜYÚ[™XØ][ÛœÈH
+ˆ™\Ý[™Ù]
+ˆœÝ\ÜYÚ[™XØ][ÛœÈ‚ˆ
+BˆÜˆ×Bˆ
+B‚ˆYYÛX[˜ÙHH
+ˆ™\Ý[™Ù]
+ˆ˜YYÛX[˜ÙH‚ˆ
+BˆÜˆ×Bˆ
+B‚ˆYˆ›Ý
+ˆÝ\ÜYÚ[™XØ][ÛœÂˆÜˆYYÛX[˜ÙBˆ
+N‚ˆ˜Z\ÙH˜[YQ\œ›ÜŠˆ•HRH™\ÜÛœÙHY›ÝÛÛZ[ˆ‚ˆ˜[Y\ÜÙ\ÜÛY[[™[\šY]ÈÛÛ\\š\ÛÛœËˆ‚ˆ
+B‚ˆ™[XZ[š[™×Ý[˜Ù\Z[Y\ÈH
+ˆ™\Ý[™Ù]
+ˆœ™[XZ[š[™×Ý[˜Ù\Z[Y\È‚ˆ
+BˆÜˆ×Bˆ
+B‚ˆYˆ›Ý™XÙZ]™YÙÛ™WÙ]™[‚ˆZY[œÛÛ‹™[\ÊˆÂˆ\HŽˆ™Û™H‹ˆKˆ[œÝ\™WØ\ØÚZOQ˜[ÙKˆ
+H
+È—ˆ‚‚ˆØ]™WÜÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\Ü
+ˆÝÛ™\Z[š]][Û‹ˆ™\Ý[\™\Ý[ˆ[™ÝXYÙWØÛÙO[[™ÝXYÙWØÛÙKˆ
+B‚ˆ^Ù\^Ù\[Ûˆ\È\œ›ÜŽ‚ˆ[š]][Û‹˜ZWÜÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜÜÝ]\ÈH
+ˆ™˜Z[Y‚ˆ
+B‚ˆ[š]][Û‹œØ]™Jˆ\]WÙšY[ÏVÂˆ
+ˆ˜ZWÜÜÝÚ[\šY]×È‚ˆ™XÚ\Ú[Û—ÜÝ\ÜÜÝ]\È‚ˆ
+KˆBˆ
+B‚ˆZY[œÛÛ‹™[\ÊˆÂˆ\HŽˆ™\œ›Üˆ‹ˆ›Y\ÜØYÙHŽˆÝŠ\œ›ÜŠKˆKˆ[œÝ\™WØ\ØÚZOQ˜[ÙKˆ
+H
+È—ˆ‚‚ˆ™\ÜÛœÙHHÝ™X[Z[™Ò™\ÜÛœÙJˆÙ[™\˜]ÜŠ
+KˆÛÛ[Ý\OJˆ˜\XØ][Û‹Þ[™œÛÛŽÈÚ\œÙ]]]‹N‚ˆ
+Kˆ
+B‚ˆ™\ÜÛœÙVÈØXÚKPÛÛ›Û—HH››ËXØXÚH‚ˆ™\ÜÛœÙVÈ–PXØÙ[PY™™\š[™È—HH››È‚‚ˆ™]\›ˆ™\ÜÛœÙB‚ÙÚ[—Ü™\]Z\™Y™\]Z\™WÔÔÕ™Yˆ›ØÙ\Ü×ØØ[™Y]WÜÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜÜ™YÙ[™\˜]Jˆ™\]Y\Ýˆ›ØÙ\Ü×ÚYˆØ[™Y]WÚYŠN‚ˆˆˆ‚ˆ™\Ù]ÜÝZ[\šY]ÈXÚ\Ú[ÛˆÝ\Ü[™™]\›‚ˆHÝ™X[HT“›Üˆœ™\ÚÙ[™\˜][Û‹‚ˆˆˆ‚‚ˆ›ØÙ\ÜÈHÙ]ÛØš™XÝÛÜ—Í
+ˆ\Ý›ØÙ\ÜËˆÏ\›ØÙ\Ü×ÚYˆ
+B‚ˆYˆ›Ý\Ù\—ØØ[—ØXØÙ\Ü×Ü›ØÙ\ÜÊˆ™\]Y\Ý\Ù\‹ˆ›ØÙ\ÜËˆ
+N‚ˆ™]\›ˆ™\ÜÛœÙQ›Ü˜šY[Šˆ–[ÝHÈ›Ý]™HXØÙ\ÜÈÈ\È›Ú™XÝˆ‚ˆ
+Bˆˆ[š]][ÛˆHÙ]ØØ[™Y]WØZWÛÝÛ™\Šˆ›ØÙ\ÜËˆØ[™Y]WÚYˆ
+B‚ˆYˆ›Ý
+ˆ[š]][Û‹š[\šY]×Û›Ý\ÂˆÜˆˆ‚ˆ
+KœÝš\
+
+N‚ˆ™]\›ˆœÛÛ”™\ÜÛœÙJˆÂˆ™\œ›ÜˆŽˆ
+ˆY[™Ø]™H[\šY]È›Ý\È™Y›Ü™H‚ˆ™Ù[™\˜][™ÈÜÝZ[\šY]ÈXÚ\Ú[ÛˆÝ\Üˆ‚ˆ
+BˆKˆÝ]\ÏMˆ
+B‚ˆ[š]][Û‹˜ZWÜÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜÜÝ]\ÈH
+ˆ››ÝÜÝ\Y‚ˆ
+B‚ˆ[š]][Û‹˜ZWÜÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜÙÙ[™\˜]YØ]H
+ˆ›Û™Bˆ
+B‚ˆ[š]][Û‹˜ZWÜÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜÜ\œÜÙHHˆ‚‚ˆ[š]][Û‹˜ZWÜÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜÛ›Ý\×Ý™\œÚ[ÛˆH
+ˆ›Û™Bˆ
+B‚ˆ[š]][Û‹œØ]™Jˆ\]WÙšY[ÏVÂˆ
+ˆ˜ZWÜÜÝÚ[\šY]×È‚ˆ™XÚ\Ú[Û—ÜÝ\ÜÜÝ]\È‚ˆ
+Kˆ
+ˆ˜ZWÜÜÝÚ[\šY]×È‚ˆ™XÚ\Ú[Û—ÜÝ\ÜÙÙ[™\˜]YØ]‚ˆ
+Kˆ
+ˆ˜ZWÜÜÝÚ[\šY]×È‚ˆ™XÚ\Ú[Û—ÜÝ\ÜÜ\œÜÙH‚ˆ
+Kˆ
+ˆ˜ZWÜÜÝÚ[\šY]×È‚ˆ™XÚ\Ú[Û—ÜÝ\ÜÛ›Ý\×Ý™\œÚ[Ûˆ‚ˆ
+KˆBˆ
+B‚ˆ™]\›ˆœÛÛ”™\ÜÛœÙJˆÂˆ›ÚÈŽˆYKˆœÝ™X[WÝ\›Žˆ™]™\œÙJˆ
+ˆœ›ØÙ\ÜÙ\Îˆ‚ˆœ›ØÙ\Ü×ØØ[™Y]WÜÜÝÚ[\šY]×È‚ˆ™XÚ\Ú[Û—ÜÝ\ÜÜÝ™X[H‚ˆ
+KˆÝØ\™ÜÏ^Âˆœ›ØÙ\Ü×ÚYŽˆ›ØÙ\ÜËšYˆ˜Ø[™Y]WÚYŽˆØ[™Y]WÚYˆKˆ
+KˆBˆ
+B‚‚ÙÚ[—Ü™\]Z\™Y™\]Z\™WÔÔÕ™Yˆ›ØÙ\Ü×ØØ[™Y]WÚ[\šY]×Û›Ý\×Ý\]Jˆ™\]Y\Ýˆ›ØÙ\Ü×ÚYˆØ[™Y]WÚYŠN‚ˆˆˆ‚ˆØ]™H[\šY]È›Ý\È[™Ø[™Y]H^[\\Ë‚‚ˆ\][™ÈH›Ý\ÈX\šÜÈ[žH^\Ý[™ÈÜÝZ[\šY]ÂˆXÚ\Ú[ÛˆÝ\Ü\ÈÝ]]Y‚ˆˆˆ‚‚ˆ›ØÙ\ÜÈHÙ]ÛØš™XÝÛÜ—Í
+ˆ\Ý›ØÙ\ÜËˆÏ\›ØÙ\Ü×ÚYˆ
+B‚ˆYˆ›Ý\Ù\—ØØ[—ØXØÙ\Ü×Ü›ØÙ\ÜÊˆ™\]Y\Ý\Ù\‹ˆ›ØÙ\ÜËˆ
+N‚ˆ™]\›ˆ™\ÜÛœÙQ›Ü˜šY[Šˆ–[ÝHÈ›Ý]™HXØÙ\ÜÈÈ\È›Ú™XÝˆ‚ˆ
+B‚ˆ[š]][ÛˆHÙ]ØØ[™Y]WØZWÛÝÛ™\Šˆ›ØÙ\ÜËˆØ[™Y]WÚYˆ
+B‚ˆžN‚ˆ^[ØYHœÛÛ‹›ØYÊˆ™\]Y\Ý˜›ÙK™XÛÙJ]‹NŠBˆÜˆžßH‚ˆ
+Bˆ^Ù\œÛÛ‹’”ÓÓ‘XÛÙQ\œ›ÜŽ‚ˆ™]\›ˆœÛÛ”™\ÜÛœÙJˆÂˆ™\œ›ÜˆŽˆ’[˜[Y”ÓÓˆ^[ØYˆ‚ˆKˆÝ]\ÏMˆ
+B‚ˆ˜]×Û›Ý\ÈH^[ØY™Ù]
+ˆš[\šY]×Û›Ý\È‹ˆˆ‹ˆ
+B‚ˆYˆ˜]×Û›Ý\È\È›Û™N‚ˆ˜]×Û›Ý\ÈHˆ‚‚ˆYˆ›Ý\Ú[œÝ[˜ÙJ˜]×Û›Ý\ËÝŠN‚ˆ™]\›ˆœÛÛ”™\ÜÛœÙJˆÂˆ™\œ›ÜˆŽˆ
+ˆ’[\šY]È›Ý\È]\Ý™HÝ\YY‚ˆ˜\È^ˆ‚ˆ
+BˆKˆÝ]\ÏMˆ
+B‚ˆ[\šY]×Û›Ý\ÈH˜]×Û›Ý\ËœÝš\
+
+B‚ˆYˆ[Š[\šY]×Û›Ý\ÊHˆÌ‚ˆ™]\›ˆœÛÛ”™\ÜÛœÙJˆÂˆ™\œ›ÜˆŽˆ
+ˆ’[\šY]È›Ý\ÈX^H›Ý^ÙYY‚ˆŒÌÚ\˜XÝ\œËˆ‚ˆ
+BˆKˆÝ]\ÏMˆ
+B‚ˆ\]YØ]H[Y^›Û™K››ÝÊ
+B‚ˆ[š]][Û‹š[\šY]×Û›Ý\ÈH
+ˆ[\šY]×Û›Ý\Âˆ
+B‚ˆ[š]][Û‹š[\šY]×Û›Ý\×Ý\]YØ]H
+ˆ\]YØ]ˆ
+B‚ˆ[š]][Û‹š[\šY]×Û›Ý\×Ý\]YØžHH
+ˆ™\]Y\Ý\Ù\‚ˆ
+B‚ˆÈ[ˆ^\Ý[™ÈÜÝZ[\šY]ÈÞ[\Ú\È›ÈÛ™Ù\‚ˆÈ™Y›XÝÈH]\Ý[\šY]È]šY[˜ÙK‚ˆYˆ
+ˆ[š]][Û‚ˆ˜ZWÜÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\Üˆ
+N‚ˆ[š]][Û‹˜ZWÜÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜÜÝ]\ÈH
+ˆ›Ý]]Y‚ˆ
+Bˆ[ÙN‚ˆ[š]][Û‹˜ZWÜÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜÜÝ]\ÈH
+ˆ››ÝÜÝ\Y‚ˆ
+B‚ˆ[š]][Û‹œØ]™Jˆ\]WÙšY[ÏVÂˆš[\šY]×Û›Ý\È‹ˆš[\šY]×Û›Ý\×Ý\]YØ]‹ˆš[\šY]×Û›Ý\×Ý\]YØžH‹ˆ
+ˆ˜ZWÜÜÝÚ[\šY]×È‚ˆ™XÚ\Ú[Û—ÜÝ\ÜÜÝ]\È‚ˆ
+KˆBˆ
+B‚ˆ™]\›ˆœÛÛ”™\ÜÛœÙJˆÂˆ›ÚÈŽˆYKˆš[\šY]×Û›Ý\ÈŽˆ[\šY]×Û›Ý\Ëˆš\×Ú[\šY]×Û›Ý\ÈŽˆ›ÛÛ
+ˆ[\šY]×Û›Ý\Âˆ
+Kˆ\]YØ]Žˆ
+ˆ\]YØ]š\ÛÙ›Ü›X]
+
+Bˆ
+Kˆ\]YØžHŽˆ
+ˆ™\]Y\Ý\Ù\‹™Ù]Ù[Û˜[YJ
+BˆÜˆ™\]Y\Ý\Ù\‹™Ù]Ý\Ù\›˜[YJ
+Bˆ
+KˆœÜÝÚ[\šY]×ÜÝ]\ÈŽˆ
+ˆ[š]][Û‚ˆ˜ZWÜÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜÜÝ]\Âˆ
+KˆBˆ
+B‚‚ÙÚ[—Ü™\]Z\™Y™Yˆ›ØÙ\Ü×ØØ[™Y]WÙš[˜[ÛÝ]]
+ˆ™\]Y\Ýˆ›ØÙ\Ü×ÚYˆØ[™Y]WÚYŠN‚ˆˆˆ‚ˆ™]\›ˆH]\ÝØ]™YØ[™Y]Hš[˜[Ý]]ˆ\È™[™\™YS‚ˆˆˆ‚‚ˆ›ØÙ\ÜÈHÙ]ÛØš™XÝÛÜ—Í
+ˆ\Ý›ØÙ\ÜËˆÏ\›ØÙ\Ü×ÚYˆ
+B‚ˆYˆ›Ý\Ù\—ØØ[—ØXØÙ\Ü×Ü›ØÙ\ÜÊˆ™\]Y\Ý\Ù\‹ˆ›ØÙ\ÜËˆ
+N‚ˆ™]\›ˆ™\ÜÛœÙQ›Ü˜šY[Šˆ–[ÝHÈ›Ý]™HXØÙ\ÜÈÈ\È›Ú™XÝˆ‚ˆ
+Bˆˆ[š]][ÛˆHÙ]ØØ[™Y]WØZWÛÝÛ™\Šˆ›ØÙ\ÜËˆØ[™Y]WÚYˆ
+B‚ˆÈ[[˜Hš[˜[Ý]]™KZ[\šY]È[™ÝXYÙH˜]ÚBˆ[™ÝXYÙWØÛÙHHÙ]Ü™\]Y\ÝØZWÛ[™ÝXYÙJˆ™\]Y\Ýˆ
+BˆX\š×ØZWØÛÛ[ÛÝ]]YÚY—Û[™ÝXYÙWØÚ[™ÙY
+ˆ[š]][Û‹ˆÛÛ[ÚÙ^OHœ™WÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\Ü‹ˆ™\Ý[ÙšY[H˜ZWÜ™WÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\Ü‹ˆÝ]\×ÙšY[Jˆ˜ZWÜ™WÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜÜÝ]\È‚ˆ
+Kˆ[™ÝXYÙWØÛÙO[[™ÝXYÙWØÛÙKˆ
+B‚ˆ™WÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜH
+ˆ[š]][Û‹˜ZWÜ™WÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜˆÜˆßBˆ
+B‚ˆÈÌNˆ™\\™H›Üˆ[\šY]È\Ù\ÈHØ]™Y™\ÜÛœÙK\Ý[BˆÈ[\šY]È\›ØXÚœ›ÛHHØ[YHÛ™KXØ[™\ÜÛœÙK\Ý[H™\Ý[‚ˆ™\ÜÛœÙWÜÝ[WÙÝZY[˜ÙHH
+ˆ[š]][Û‹˜ZWÜ™\ÜÛœÙWÜÝ[WÙÝZY[˜ÙBˆÜˆßBˆ
+B‚ˆÈ[[˜Hš[˜[Ý]]ÜÝZ[\šY]È[™ÝXYÙH˜]ÚBˆ[™ÝXYÙWØÛÙHHÙ]Ü™\]Y\ÝØZWÛ[™ÝXYÙJˆ™\]Y\Ýˆ
+BˆX\š×ØZWØÛÛ[ÛÝ]]YÚY—Û[™ÝXYÙWØÚ[™ÙY
+ˆ[š]][Û‹ˆÛÛ[ÚÙ^OHœÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\Ü‹ˆ™\Ý[ÙšY[H˜ZWÜÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\Ü‹ˆÝ]\×ÙšY[Jˆ˜ZWÜÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜÜÝ]\È‚ˆ
+Kˆ[™ÝXYÙWØÛÙO[[™ÝXYÙWØÛÙKˆ
+B‚ˆÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜH
+ˆ[š]][Û‹˜ZWÜÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜˆÜˆßBˆ
+B‚ˆvçMx¶‰žËkºwµçHY\ÜØYÙ\ËœÝXØÙ\ÜÊ™\]Y\Ýˆ”ÚÚXÚØYH\Ý[Ü™\Ý[ÉÜÙ[ØÛÝ[	×_HØ[™Y]
+\ŠKˆŠB‚ˆYˆ™\Ý[È™\œ›ÜœÈ—N‚ˆ›Üˆ\œˆ[ˆ™\Ý[È™\œ›ÜœÈ—N‚ˆY\ÜØYÙ\Ë™\œ›ÜŠ™\]Y\Ýˆ’Ý[™H[HÚÚXÚØH[Ù\œ–ÉÙ[XZ[	×_NˆÙ\œ–ÉÙ\œ›Ü‰×_HŠB‚ˆYˆ™\Ý[ÈœÙ[ØÛÝ[—HOH‚ˆYˆ™\Ý[ÈœÚÚ\YØÛÝ[—N‚ˆY\ÜØYÙ\Ëš[™›Ê™\]Y\Ý’[™Ù]ÚÚXÚØY\È
+[HX\šÙ\˜YH˜\ˆ™Y[ˆÚÚXÚØYKÚYðé[™ËÚÛ\˜JKˆŠBˆ[ÙN‚ˆY\ÜØYÙ\ËØ\›š[™Ê™\]Y\Ý’[™Ù]ÚÚXÚØY\ËˆÛÛH™[YY[[™[ˆÝ˜[‹ˆŠB‚ˆ™]\›ˆ™Y\™XÝ
+œ›ØÙ\ÜÙ\Îœ›ØÙ\Ü×Ù]Z[‹Ï\›ØÙ\ÜËœÊB‚ÙÚ[—Ü™\]Z\™Y™Yˆ›ØÙ\Ü×ØØ[™Y]WÙ]Z[
+™\]Y\Ý›ØÙ\Ü×ÚYØ[™Y]WÚY
+N‚ˆ›ØÙ\ÜÈHÙ]ÛØš™XÝÛÜ—Í
+\Ý›ØÙ\ÜËÏ\›ØÙ\Ü×ÚY
+B‚ˆYˆ›Ý\Ù\—ØØ[—ØXØÙ\Ü×Ü›ØÙ\ÜÊ™\]Y\Ý\Ù\‹›ØÙ\ÜÊN‚ˆ™]\›ˆ™\ÜÛœÙQ›Ü˜šY[Š–[ÝHÈ›Ý]™HXØÙ\ÜÈÈ\È›Ú™XÝˆŠB‚ˆ\×ØZ˜^H™\]Y\ÝšXY\œË™Ù]
+ž\™\]Y\ÝY]Ú]ŠHOH–S™\]Y\Ý‚ˆ[™ÝXYÙWØÛÙHHÙ]Ü™\]Y\ÝØZWÛ[™ÝXYÙJ™\]Y\Ý
+B‚ˆYˆ›ØÙ\ÜËš\×Ú\ÝÜšXØ[‚ˆ\ÝÜšXØ[ØØ[™Y]HHÙ]ÛØš™XÝÛÜ—Í
+ˆ\ÝÜšXØ[›ØÙ\ÜÐØ[™Y]K›Øš™XÝÂˆœÙ[XÝÜ™[]Y
+ˆ˜Ø[™Y]H‹ˆœ›ØÙ\ÜÈ‹ˆ˜Ü™X]YØžH‹ˆ
+Bˆœ™Y™]ÚÜ™[]Y
+ˆœ™\ÜÈ‹ˆ˜\ÜÙ\ÜÛY[Ü™\Ý[××ÜØÛÜ™\È‹ˆ˜\ÜÙ\ÜÛY[Ü™\Ý[××Ú[\ÜÙš[H‹ˆ
+Kˆ›ØÙ\ÜÏ\›ØÙ\ÜËˆØ[™Y]WÚYXØ[™Y]WÚYˆ
+B‚ˆX\š×ØZWØÛÛ[ÛÝ]]YÚY—Û[™ÝXYÙWØÚ[™ÙY
+ˆ\ÝÜšXØ[ØØ[™Y]KˆÛÛ[ÚÙ^OHœ\œÛÛ˜[]WÚ[\œ™]][Ûˆ‹ˆ™\Ý[ÙšY[H˜ZWÜ\œÛÛ˜[]WÚ[\œ™]][Ûˆ‹ˆÝ]\×ÙšY[H˜ZWÜ\œÛÛ˜[]WÚ[\œ™]][Û—ÜÝ]\È‹ˆ[™ÝXYÙWØÛÙO[[™ÝXYÙWØÛÙKˆ
+B‚ˆX\š×ØZWØÛÛ[ÛÝ]]YÚY—Û[™ÝXYÙWØÚ[™ÙY
+ˆ\ÝÜšXØ[ØØ[™Y]KˆÛÛ[ÚÙ^OHœ\œÛÛ˜[]WÜ]Y\Ý[ÛœÈ‹ˆ™\Ý[ÙšY[H˜ZWÜ\œÛÛ˜[]WÜ]Y\Ý[ÛœÈ‹ˆÝ]\×ÙšY[H˜ZWÜ\œÛÛ˜[]WÜ]Y\Ý[Ûœ×ÜÝ]\È‹ˆ[™ÝXYÙWØÛÙO[[™ÝXYÙWØÛÙKˆ
+B‚ˆÝHZ[Ú\ÝÜšXØ[ØØ[™Y]WÙ]Z[ØÛÛ^
+ˆ›ØÙ\ÜÏ\›ØÙ\ÜËˆ\ÝÜšXØ[ØØ[™Y]OZ\ÝÜšXØ[ØØ[™Y]Kˆ[™ÝXYÙO[[™ÝXYÙWØÛÙKˆ
+B‚ˆ™]\›ˆ™[™\Šˆ™\]Y\Ýˆ˜Ý\ÝÛY\‹Ü›ØÙ\ÜÙ\Ë×ØØ[™Y]WÙ]Z[ÜÚY]š[‹ˆÝˆ
+B‚ˆÝHÂˆ˜ÛÛ\[žHŽˆ›ØÙ\ÜË˜ÛÛ\[žKˆœ›ØÙ\ÜÈŽˆ›ØÙ\ÜËˆ˜Ø[™Y]HŽˆ\ÝÜšXØ[ØØ[™Y]K˜Ø[™Y]Kˆš\ÝÜšXØ[ØØ[™Y]HŽˆ\ÝÜšXØ[ØØ[™Y]Kˆš\ÝÜšXØ[Ü™\ÜÈŽˆ\ÝÜšXØ[ØØ[™Y]Kœ™\ÜË˜[
+
+Kˆš\×Ú\ÝÜšXØ[ŽˆYKˆ˜\ÜÙ\ÜÛY[Ü™\Ý[ÈŽˆ\ÜÙ\ÜÛY[Ü™\Ý[ËˆB‚ˆ[ÙN‚ˆ[š]][ÛˆHÙ]ÛØš™XÝÛÜ—Í
+ˆ\Ý[š]][Û‹›Øš™XÝËœÙ[XÝÜ™[]Y
+˜Ø[™Y]HŠKˆ›ØÙ\ÜÏ\›ØÙ\ÜËˆØ[™Y]WÚYXØ[™Y]WÚYˆ
+B‚ˆX\š×ØZWØÛÛ[ÛÝ]]YÚY—Û[™ÝXYÙWØÚ[™ÙY
+ˆ[š]][Û‹ˆÛÛ[ÚÙ^OHœ\œÜÙWÙš]‹ˆ™\Ý[ÙšY[H˜ZWÜ\œÜÙWÙš]‹ˆÝ]\×ÙšY[H˜ZWÜ\œÜÙWÙš]ÜÝ]\È‹ˆ[™ÝXYÙWØÛÙOYÙ]Ü™\]Y\ÝØZWÛ[™ÝXYÙJ™\]Y\Ý
+Kˆ
+B‚ˆX\š×ØZWØÛÛ[ÛÝ]]YÚY—Û[™ÝXYÙWØÚ[™ÙY
+ˆ[š]][Û‹ˆÛÛ[ÚÙ^OHœ™\ÜÛœÙWÜÝ[WÙÝZY[˜ÙH‹ˆ™\Ý[ÙšY[H˜ZWÜ™\ÜÛœÙWÜÝ[WÙÝZY[˜ÙH‹ˆÝ]\×ÙšY[H˜ZWÜ™\ÜÛœÙWÜÝ[WÙÝZY[˜ÙWÜÝ]\È‹ˆ[™ÝXYÙWØÛÙO[[™ÝXYÙWØÛÙKˆ
+BˆX\š×ØZWØÛÛ[ÛÝ]]YÚY—Û[™ÝXYÙWØÚ[™ÙY
+ˆ[š]][Û‹ˆÛÛ[ÚÙ^OH˜ÛÙÛš]]™WÚ[\œ™]][Ûˆ‹ˆ™\Ý[ÙšY[H˜ZWØÛÙÛš]]™WÚ[\œ™]][Ûˆ‹ˆÝ]\×ÙšY[H˜ZWØÛÙÛš]]™WÚ[\œ™]][Û—ÜÝ]\È‹ˆ[™ÝXYÙWØÛÙO[[™ÝXYÙWØÛÙKˆ
+BˆX\š×ØZWØÛÛ[ÛÝ]]YÚY—Û[™ÝXYÙWØÚ[™ÙY
+ˆ[š]][Û‹ˆÛÛ[ÚÙ^OH˜ÛÙÛš]]™WÜ]Y\Ý[ÛœÈ‹ˆ™\Ý[ÙšY[H˜ZWØÛÙÛš]]™WÜ]Y\Ý[ÛœÈ‹ˆÝ]\×ÙšY[H˜ZWØÛÙÛš]]™WÜ]Y\Ý[Ûœ×ÜÝ]\È‹ˆ[™ÝXYÙWØÛÙO[[™ÝXYÙWØÛÙKˆ
+BˆX\š×ØZWØÛÛ[ÛÝ]]YÚY—Û[™ÝXYÙWØÚ[™ÙY
+ˆ[š]][Û‹ˆÛÛ[ÚÙ^OH›[Ý]˜][Û—Ú[\œ™]][Ûˆ‹ˆ™\Ý[ÙšY[H˜ZWÛ[Ý]˜][Û—Ú[\œ™]][Ûˆ‹ˆÝ]\×ÙšY[H˜ZWÛ[Ý]˜][Û—Ú[\œ™]][Û—ÜÝ]\È‹ˆ[™ÝXYÙWØÛÙO[[™ÝXYÙWØÛÙKˆ
+BˆX\š×ØZWØÛÛ[ÛÝ]]YÚY—Û[™ÝXYÙWØÚ[™ÙY
+ˆ[š]][Û‹ˆÛÛ[ÚÙ^OH›[Ý]˜][Û—Ü]Y\Ý[ÛœÈ‹ˆ™\Ý[ÙšY[H˜ZWÛ[Ý]˜][Û—Ü]Y\Ý[ÛœÈ‹ˆÝ]\×ÙšY[H˜ZWÛ[Ý]˜][Û—Ü]Y\Ý[Ûœ×ÜÝ]\È‹ˆ[™ÝXYÙWØÛÙO[[™ÝXYÙWØÛÙKˆ
+BˆX\š×ØZWØÛÛ[ÛÝ]]YÚY—Û[™ÝXYÙWØÚ[™ÙY
+ˆ[š]][Û‹ˆÛÛ[ÚÙ^OHœ\œÛÛ˜[]WÚ[\œ™]][Ûˆ‹ˆ™\Ý[ÙšY[H˜ZWÜ\œÛÛ˜[]WÚ[\œ™]][Ûˆ‹ˆÝ]\×ÙšY[H˜ZWÜ\œÛÛ˜[]WÚ[\œ™]][Û—ÜÝ]\È‹ˆ[™ÝXYÙWØÛÙO[[™ÝXYÙWØÛÙKˆ
+BˆX\š×ØZWØÛÛ[ÛÝ]]YÚY—Û[™ÝXYÙWØÚ[™ÙY
+ˆ[š]][Û‹ˆÛÛ[ÚÙ^OHœ\œÛÛ˜[]WÜ]Y\Ý[ÛœÈ‹ˆ™\Ý[ÙšY[H˜ZWÜ\œÛÛ˜[]WÜ]Y\Ý[ÛœÈ‹ˆÝ]\×ÙšY[H˜ZWÜ\œÛÛ˜[]WÜ]Y\Ý[Ûœ×ÜÝ]\È‹ˆ[™ÝXYÙWØÛÙO[[™ÝXYÙWØÛÙKˆ
+BˆÈ[[˜Hš[˜[Ý]]™KZ[\šY]È[™ÝXYÙH˜]ÚBˆX\š×ØZWØÛÛ[ÛÝ]]YÚY—Û[™ÝXYÙWØÚ[™ÙY
+ˆ[š]][Û‹ˆÛÛ[ÚÙ^OHœ™WÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\Ü‹ˆ™\Ý[ÙšY[H˜ZWÜ™WÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\Ü‹ˆÝ]\×ÙšY[Jˆ˜ZWÜ™WÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜÜÝ]\È‚ˆ
+Kˆ[™ÝXYÙWØÛÙO[[™ÝXYÙWØÛÙKˆ
+B‚ˆÈ[[˜Hš[˜[Ý]]ÜÝZ[\šY]È[™ÝXYÙH˜]ÚBˆX\š×ØZWØÛÛ[ÛÝ]]YÚY—Û[™ÝXYÙWØÚ[™ÙY
+ˆ[š]][Û‹ˆÛÛ[ÚÙ^OHœÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\Ü‹ˆ™\Ý[ÙšY[H˜ZWÜÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\Ü‹ˆÝ]\×ÙšY[Jˆ˜ZWÜÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜÜÝ]\È‚ˆ
+Kˆ[™ÝXYÙWØÛÙO[[™ÝXYÙWØÛÙKˆ
+B‚ˆÝHZ[ØØ[™Y]WÙ]Z[ØÛÛ^
+ˆ›ØÙ\ÜÏ\›ØÙ\ÜËˆ[š]][ÛZ[š]][Û‹ˆ[™ÝXYÙO[[™ÝXYÙWØÛÙKˆ
+B‚ˆÝÈš\×Ú\ÝÜšXØ[—HH˜[ÙB‚ˆœ›ÛH\Ë˜XØÛÝ[Ë][Ë›Ü™×ØXØÙ\ÜÈ[\Ü\Ù\—ØØ[—ÙY]Ü›ØÙ\ÜÂˆÝÈ˜Ø[—ÛX[˜YÙWØØ[™Y]WÜ™\Ý[È—HH
+ˆ›ÝÝ™Ù]
+š\×Ú\ÝÜšXØ[‹˜[ÙJBˆ[™\Ù\—ØØ[—ÙY]Ü›ØÙ\ÜÊ™\]Y\Ý\Ù\‹›ØÙ\ÜË˜ÛÛ\[žK›ØÙ\ÜÊBˆ
+B‚ˆYˆ\×ØZ˜^‚ˆ™]\›ˆ™[™\Šˆ™\]Y\Ýˆ˜Ý\ÝÛY\‹Ü›ØÙ\ÜÙ\Ë×ØØ[™Y]WÙ]Z[ÜÚY]š[‹ˆÝˆ
+B‚ˆ™]\›ˆ™[™\Šˆ™\]Y\Ýˆ˜Ý\ÝÛY\‹Ü›ØÙ\ÜÙ\ËÜ›ØÙ\Ü×ØØ[™Y]WÙ]Z[š[‹ˆÝˆ
+B‚‚ÙÚ[—Ü™\]Z\™Y™Yˆ›ØÙ\Ü×Ú[š]][Û—ÜÝ]\Ù\Ê™\]Y\ÝÊN‚ˆ›ØÙ\ÜÈHÙ]ÛØš™XÝÛÜ—Í
+\Ý›ØÙ\ÜËÏ\ÊB‚ˆÈðéÙ\š]ÚÛÛ›ÛˆYˆ›Ý\Ù\—ØØ[—ØXØÙ\Ü×Ü›ØÙ\ÜÊ™\]Y\Ý\Ù\‹›ØÙ\ÜÊN‚ˆ™]\›ˆ™\ÜÛœÙQ›Ü˜šY[Š–[ÝHÈ›Ý]™HXØÙ\ÜÈÈ\È›Ú™XÝˆŠB‚ˆ\ÈH
+ˆ\Ý[š]][Û‹›Øš™XÝÂˆ™š[\Š›ØÙ\ÜÏ\›ØÙ\ÜË™[[Ý™YÙœ›ÛWÜ›ØÙ\Ü×Ø]×Ú\Û[UYJBˆœÙ[XÝÜ™[]Y
+˜Ø[™Y]HŠBˆœ™Y™]ÚÜ™[]Y
+˜\ÜÙ\ÜÛY[Ý\ØYÙ\ÈŠBˆ›Ü™\—ØžJ˜Ü™X]YØ]ŠBˆ
+BˆÛÛ[[œÈH›Ú™XÝÝ\ÝØÛÛ[[œÊˆ›ØÙ\ÜËˆ›Ú™XÝY]K›Øš™XÝË™š[\ŠˆXØÛÝ[ØÛÙO\›ØÙ\ÜË˜XØÛÝ[ØÛÙK›Ú™XÝØÛÙO\›ØÙ\ÜËœ›Ú™XÝØÛÙKˆ
+K™š\œÝ
+
+Kˆ
+Bˆ[™ÈHÙ]Û[™ÝXYÙJ
+HÜˆœÝˆ‚ˆ™]\›ˆœÛÛ”™\ÜÛœÙJÂˆš[š]][ÛœÈŽˆÂˆÂˆšYŽˆ[‹šYˆœÝ]\ÈŽˆ[‹œÝ]\Ëˆ˜ÛÛ\]YØ]Žˆ[‹˜ÛÛ\]YØ]š\ÛÙ›Ü›X]
+
+HYˆ[‹˜ÛÛ\]YØ][ÙH›Û™KˆœÛÝ˜WÛÝ™\˜[ÜÝ]\ÈŽˆÙ]]Š[‹œÛÝ˜WÛÝ™\˜[ÜÝ]\È‹ˆŠHÜˆˆ‹ˆ˜\ÜÙ\ÜÛY[ÈŽˆ[š]][Û—Ý\ÝÜÝ]\Ù\Ê[‹ÛÛ[[œË[™ÊKˆBˆ›Üˆ[ˆ[ˆ\ÂˆBˆJB‚‚ÙÚ[—Ü™\]Z\™Y™Yˆ›ØÙ\Ü×Ø\˜Ú]™J™\]Y\ÝÊN‚ˆØšˆHÙ]ÛØš™XÝÛÜ—Í
+\Ý›ØÙ\ÜËÏ\ÊB‚ˆYˆ™\]Y\Ý›Y]ÙOH”ÔÕŽ‚ˆ™]\›ˆ™\ÜÛœÙQ›Ü˜šY[Š”ÔÕ™\]Z\™YˆŠB‚ˆÛÛ\[žHHÙ]ØÛÛ\[žWÙ›Ü—Ý\Ù\Š™\]Y\Ý\Ù\ŠBˆYˆ›ÝÛÛ\[žHÜˆØš‹˜ÛÛ\[žWÚYOHÛÛ\[žKšY‚ˆ™]\›ˆ™\ÜÛœÙQ›Ü˜šY[Š“›ÈXØÙ\ÜËˆŠB‚ˆYˆ›Ý\Ù\—ØØ[—ÙY]Ü›ØÙ\ÜÊ™\]Y\Ý\Ù\‹ÛÛ\[žKØšŠN‚ˆ™]\›ˆ™\ÜÛœÙQ›Ü˜šY[Šˆ‘H\ˆ[H™Z0íœšYÚ]]\šÚ]™\˜H]0éˆ›Ú™ZÝ]ˆ‚ˆYˆ
+Ù]Û[™ÝXYÙJ
+HÜˆˆŠKœÝ\ÝÚ]
+œÝˆŠBˆ[ÙH–[ÝHÈ›Ý]™H\›Z\ÜÚ[ÛˆÈ\˜Ú]™H\È›Ú™XÝˆ‚ˆ
+B‚ˆYˆ›Ý\Ù\—ØØ[—ØXØÙ\Ü×Ü›ØÙ\ÜÊ™\]Y\Ý\Ù\‹ØšŠN‚ˆ™]\›ˆ™\ÜÛœÙQ›Ü˜šY[Š–[ÝHÈ›Ý]™HXØÙ\ÜÈÈ\È›Ú™XÝˆŠB‚ˆØš‹˜\˜Ú]™J
+B‚ˆÙ×Ù]™[
+ˆÛÛ\[žOXÛÛ\[žKˆ™\˜PXÝ]š]Q]™[•™\˜‹”“ÐÑTÔ×ÐTÒU‘QˆXÝÜ\™\]Y\Ý\Ù\‹ˆ›ØÙ\ÜÏ[Øš‹ˆ
+B‚ˆY\ÜØYÙ\ËœÝXØÙ\ÜÊˆ™\]Y\Ýˆ”›Ú™ZÝ]\šÚ]™\˜Y\ËˆˆYˆ
+Ù]Û[™ÝXYÙJ
+HÜˆˆŠKœÝ\ÝÚ]
+œÝˆŠBˆ[ÙH•H›Ú™XÝØ\È\˜Ú]™Yˆ‹ˆ
+Bˆ™]\›ˆ™Y\™XÝ
+œ›ØÙ\ÜÙ\Îœ›ØÙ\Ü×Û\ÝŠB‚‚ÙÚ[—Ü™\]Z\™Y™Yˆ›ØÙ\Ü×Ý[˜\˜Ú]™J™\]Y\ÝÊN‚ˆØšˆHÙ]ÛØš™XÝÛÜ—Í
+\Ý›ØÙ\ÜËÏ\ÊB‚ˆYˆ™\]Y\Ý›Y]ÙOH”ÔÕŽ‚ˆ™]\›ˆ™\ÜÛœÙQ›Ü˜šY[Š”ÔÕ™\]Z\™YˆŠB‚ˆÛÛ\[žHHÙ]ØÛÛ\[žWÙ›Ü—Ý\Ù\Š™\]Y\Ý\Ù\ŠBˆYˆ›ÝÛÛ\[žHÜˆØš‹˜ÛÛ\[žWÚYOHÛÛ\[žKšY‚ˆ™]\›ˆ™\ÜÛœÙQ›Ü˜šY[Š“›ÈXØÙ\ÜËˆŠB‚ˆYˆ›Ý\Ù\—ØØ[—ÙY]Ü›ØÙ\ÜÊ™\]Y\Ý\Ù\‹ÛÛ\[žKØšŠN‚ˆ™]\›ˆ™\ÜÛœÙQ›Ü˜šY[Šˆ‘H\ˆ[H™Z0íœšYÚ]]0é]\œÝ0éH]0éˆ›Ú™ZÝ]ˆ‚ˆYˆ
+Ù]Û[™ÝXYÙJ
+HÜˆˆŠKœÝ\ÝÚ]
+œÝˆŠBˆ[ÙH–[ÝHÈ›Ý]™H\›Z\ÜÚ[ÛˆÈ™\ÝÜ™H\È›Ú™XÝˆ‚ˆ
+B‚ˆYˆ›Ý\Ù\—ØØ[—ØXØÙ\Ü×Ü›ØÙ\ÜÊ™\]Y\Ý\Ù\‹ØšŠN‚ˆ™]\›ˆ™\ÜÛœÙQ›Ü˜šY[Š–[ÝHÈ›Ý]™HXØÙ\ÜÈÈ\È›Ú™XÝˆŠB‚ˆØš‹[˜\˜Ú]™J
+BˆY\ÜØYÙ\ËœÝXØÙ\ÜÊˆ™\]Y\Ýˆ”›Ú™ZÝ]0é]\œÝ0é\ËˆˆYˆ
+Ù]Û[™ÝXYÙJ
+HÜˆˆŠKœÝ\ÝÚ]
+œÝˆŠBˆ[ÙH•H›Ú™XÝØ\È™\ÝÜ™Yˆ‹ˆ
+Bˆ™]\›ˆ™Y\™XÝ
+œ›ØÙ\ÜÙ\Îœ›ØÙ\Ü×Û\ÝŠB‚‚ÙÚ[—Ü™\]Z\™Y™Yˆ›ØÙ\Ü×ØØ[™Y]WÜÝ[[X\žWÜÝ™X[Jˆ™\]Y\Ýˆ›ØÙ\Ü×ÚYˆØ[™Y]WÚYŠN‚ˆ›ØÙ\ÜÈHÙ]ÛØš™XÝÛÜ—Í
+ˆ\Ý›ØÙ\ÜËˆÏ\›ØÙ\Ü×ÚYˆ
+B‚ˆYˆ›Ý\Ù\—ØØ[—ØXØÙ\Ü×Ü›ØÙ\ÜÊ™\]Y\Ý\Ù\‹›ØÙ\ÜÊN‚ˆ™]\›ˆ™\ÜÛœÙQ›Ü˜šY[Šˆ–[ÝHÈ›Ý]™HXØÙ\ÜÈÈ\È›Ú™XÝˆ‚ˆ
+B‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÈTÕÔ’PÐSÐS‘QUBˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆYˆ›ØÙ\ÜËš\×Ú\ÝÜšXØ[‚ˆÝ[[X\žWÛÝÛ™\ˆHÙ]ÛØš™XÝÛÜ—Í
+ˆ\ÝÜšXØ[›ØÙ\ÜÐØ[™Y]K›Øš™XÝÂˆœÙ[XÝÜ™[]Y
+˜Ø[™Y]H‹œ›ØÙ\ÜÈŠBˆœ™Y™]ÚÜ™[]Y
+ˆ˜\ÜÙ\ÜÛY[Ü™\Ý[××ÜØÛÜ™\È‹ˆ˜\ÜÙ\ÜÛY[Ü™\Ý[××Ú[\ÜÙš[H‹ˆ
+Kˆ›ØÙ\ÜÏ\›ØÙ\ÜËˆØ[™Y]WÚYXØ[™Y]WÚYˆ
+B‚ˆ\×Ú\ÝÜšXØ[HYB‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÈPÕU‘HÐS‘QUBˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆ[ÙN‚ˆÝ[[X\žWÛÝÛ™\ˆHÙ]ÛØš™XÝÛÜ—Í
+ˆ\Ý[š]][Û‹›Øš™XÝËœÙ[XÝÜ™[]Y
+ˆ˜Ø[™Y]H‹ˆœ›ØÙ\ÜÈ‹ˆ
+Kˆ›ØÙ\ÜÏ\›ØÙ\ÜËˆØ[™Y]WÚYXØ[™Y]WÚYˆ
+B‚ˆ\×Ú\ÝÜšXØ[H˜[ÙB‚ˆÈXÝ]™HØ[™Y]\È]\Ý]™HÛÛ\]Y[\ÜÙ\ÜÛY[Ë‚ˆYˆÝ[[X\žWÛÝÛ™\‹œÝ]\ÈOH˜ÛÛ\]YŽ‚ˆ™]\›ˆœÛÛ”™\ÜÛœÙJˆÂˆ™\œ›ÜˆŽˆ
+ˆØ[™Y]H\È›ÝÛÛ\]Y‚ˆH\ÜÙ\ÜÛY[ÈY]ˆ‚ˆ
+BˆKˆÝ]\ÏMˆ
+B‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÈ‘UT“ˆVTÕS‘ÈÕSSPT–BˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆYˆÚÝ[Ü™]\›—ÜØ]™YØZWÜ™\Ý[
+ˆÝ[[X\žWÛÝÛ™\‹˜ZWÜÝ[[X\žKˆÝ[[X\žWÛÝÛ™\‹˜ZWÜÝ[[X\žWÜÝ]\Ëˆ
+N‚ˆYˆ^\Ý[™×ÙÙ[™\˜]ÜŠ
+N‚ˆZY[Ý[[X\žWÛÝÛ™\‹˜ZWÜÝ[[X\žB‚ˆ™\ÜÛœÙHHÝ™X[Z[™Ò™\ÜÛœÙJˆ^\Ý[™×ÙÙ[™\˜]ÜŠ
+KˆÛÛ[Ý\OH^ÜZ[ŽÈÚ\œÙ]]]‹N‹ˆ
+B‚ˆ™\ÜÛœÙVÈØXÚKPÛÛ›Û—HH››ËXØXÚH‚ˆ™\ÜÛœÙVÈ–PXØÙ[PY™™\š[™È—HH››È‚‚ˆ™]\›ˆ™\ÜÛœÙB‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÈ‘U‘S•TPÐUHÑS‘TUSÓ‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆYˆÝ[[X\žWÛÝÛ™\‹˜ZWÜÝ[[X\žWÜÝ]\ÈOH™Ù[™\˜][™ÈŽ‚ˆ™]\›ˆœÛÛ”™\ÜÛœÙJˆÂˆ™\œ›ÜˆŽˆ
+ˆ”Ý[[X\žH\È[™XYH™Z[™ÈÙ[™\˜]Yˆ‚ˆ
+BˆKˆÝ]\ÏMKˆ
+B‚ˆÝ[[X\žWÛÝÛ™\‹˜ZWÜÝ[[X\žWÜÝ]\ÈH™Ù[™\˜][™È‚ˆÝ[[X\žWÛÝÛ™\‹œØ]™Jˆ\]WÙšY[ÏVÈ˜ZWÜÝ[[X\žWÜÝ]\È—Bˆ
+B‚ˆ[™ÝXYÙWØÛÙHHÙ]Ü™\]Y\ÝØZWÛ[™ÝXYÙJˆ™\]Y\Ýˆ
+B‚ˆX\š×ØZWØÛÛ[ÛÝ]]YÚY—Û[™ÝXYÙWØÚ[™ÙY
+ˆÝ[[X\žWÛÝÛ™\‹ˆÛÛ[ÚÙ^OH˜Ø[™Y]WÜÝ[[X\žH‹ˆ™\Ý[ÙšY[H˜ZWÜÝ[[X\žH‹ˆÝ]\×ÙšY[H˜ZWÜÝ[[X\žWÜÝ]\È‹ˆ[™ÝXYÙWØÛÙO[[™ÝXYÙWØÛÙKˆ
+B‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÈÕ‘PSHÑS‘TUSÓ‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆYˆÙ[™\˜]ÜŠ
+N‚ˆ[Ý^Hˆ‚‚ˆžN‚ˆÝ™X[HHÝ™X[WØØ[™Y]WÜÝ[[X\žJˆÝ[[X\žWÛÝÛ™\‹ˆ[™ÝXYÙWØÛÙO[[™ÝXYÙWØÛÙKˆ
+B‚ˆ›ÜˆÚ[šÈ[ˆÝ™X[N‚ˆ[Ý^
+ÏHÚ[šÂˆZY[Ú[šÂ‚ˆØ]™WØØ[™Y]WÜÝ[[X\žJˆÝ[[X\žWÛÝÛ™\‹ˆ[Ý^ˆ[™ÝXYÙWØÛÙO[[™ÝXYÙWØÛÙKˆ
+B‚ˆ^Ù\^Ù\[Ûˆ\È\œ›ÜŽ‚ˆÝ[[X\žWÛÝÛ™\‹˜ZWÜÝ[[X\žWÜÝ]\ÈH™˜Z[Y‚‚ˆÝ[[X\žWÛÝÛ™\‹œØ]™Jˆ\]WÙšY[ÏVÂˆ˜ZWÜÝ[[X\žWÜÝ]\È‹ˆBˆ
+B‚ˆZY[ˆ——–Ñ\œ›ÜŽˆÜÝŠ\œ›ÜŠ_WH‚‚ˆ™\ÜÛœÙHHÝ™X[Z[™Ò™\ÜÛœÙJˆÙ[™\˜]ÜŠ
+KˆÛÛ[Ý\OH^ÜZ[ŽÈÚ\œÙ]]]‹N‹ˆ
+B‚ˆ™\ÜÛœÙVÈØXÚKPÛÛ›Û—HH››ËXØXÚH‚ˆ™\ÜÛœÙVÈ–PXØÙ[PY™™\š[™È—HH››È‚‚ˆ™]\›ˆ™\ÜÛœÙB‚‚ÙÚ[—Ü™\]Z\™Y™Yˆ›ØÙ\Ü×ØØ[™Y]WÜ™\ÜÛœÙWÜÝ[WÙÝZY[˜ÙWÜÝ™X[Jˆ™\]Y\Ýˆ›ØÙ\Ü×ÚYˆØ[™Y]WÚYŠN‚ˆˆˆ‚ˆÝ™X[H[™Ø]™HRK\Ý\ÜY™\ÜÛœÙK\Ý[HÝZY[˜ÙK‚‚ˆ^\Ý[™ÈÛÛ\]YÝZY[˜ÙH\È™]\›™YÚ]Ý]XZÚ[™ÈH™]ÂˆÜ[RH™\]Y\Ý‚‚ˆÝZY[˜ÙH\È™YÙ[™\˜]YÚ[ˆ]ÈÝ]\È\Î‚ˆH›ÝÜÝ\YˆHÝ]]YˆH˜Z[Yˆˆˆ‚‚ˆ›ØÙ\ÜÈHÙ]ÛØš™XÝÛÜ—Í
+ˆ\Ý›ØÙ\ÜËˆÏ\›ØÙ\Ü×ÚYˆ
+B‚ˆYˆ›Ý\Ù\—ØØ[—ØXØÙ\Ü×Ü›ØÙ\ÜÊˆ™\]Y\Ý\Ù\‹ˆ›ØÙ\ÜËˆ
+N‚ˆ™]\›ˆ™\ÜÛœÙQ›Ü˜šY[Šˆ–[ÝHÈ›Ý]™HXØÙ\ÜÈÈ\È›Ú™XÝˆ‚ˆ
+B‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÈ’S‘HÓÔ”‘PÕÕRQSÑHÕÓ‘T‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆYˆ›ØÙ\ÜËš\×Ú\ÝÜšXØ[‚ˆÝZY[˜ÙWÛÝÛ™\ˆHÙ]ÛØš™XÝÛÜ—Í
+ˆ\ÝÜšXØ[›ØÙ\ÜÐØ[™Y]K›Øš™XÝÂˆœÙ[XÝÜ™[]Y
+ˆ˜Ø[™Y]H‹ˆœ›ØÙ\ÜÈ‹ˆ
+Kˆ›ØÙ\ÜÏ\›ØÙ\ÜËˆØ[™Y]WÚYXØ[™Y]WÚYˆ
+B‚ˆ[ÙN‚ˆÝZY[˜ÙWÛÝÛ™\ˆHÙ]ÛØš™XÝÛÜ—Í
+ˆ\Ý[š]][Û‹›Øš™XÝÂˆœÙ[XÝÜ™[]Y
+ˆ˜Ø[™Y]H‹ˆœ›ØÙ\ÜÈ‹ˆ
+Kˆ›ØÙ\ÜÏ\›ØÙ\ÜËˆØ[™Y]WÚYXØ[™Y]WÚYˆ
+B‚ˆ[™ÝXYÙWØÛÙHHÙ]Ü™\]Y\ÝØZWÛ[™ÝXYÙJ™\]Y\Ý
+BˆX\š×ØZWØÛÛ[ÛÝ]]YÚY—Û[™ÝXYÙWØÚ[™ÙY
+ˆÝZY[˜ÙWÛÝÛ™\‹ˆÛÛ[ÚÙ^OHœ™\ÜÛœÙWÜÝ[WÙÝZY[˜ÙH‹ˆ™\Ý[ÙšY[H˜ZWÜ™\ÜÛœÙWÜÝ[WÙÝZY[˜ÙH‹ˆÝ]\×ÙšY[H˜ZWÜ™\ÜÛœÙWÜÝ[WÙÝZY[˜ÙWÜÝ]\È‹ˆ[™ÝXYÙWØÛÙO[[™ÝXYÙWØÛÙKˆ
+B‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÈ•RS‘TÔÓ”ÑKTÕSH‘TÕSÂˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆ™\ÜÛœÙWÜÝ[\ÈH
+ˆZ[Ü™\ÜÛœÙWÜÝ[\×Ù›Ü—ÙÝZY[˜ÙWÛÝÛ™\ŠˆÝZY[˜ÙWÛÝÛ™\‚ˆ
+Bˆ
+B‚ˆ]˜Z[X›WÜ™\ÜÛœÙWÜÝ[\ÈHÂˆÝ[Bˆ›ÜˆÝ[H[ˆ™\ÜÛœÙWÜÝ[\ÂˆYˆÝ[K™Ù]
+˜]˜Z[X›HŠBˆ[™Ý[K™Ù]
+šÙ^HŠHOHœÛØÚX[Ù\Ú\˜Xš[]H‚ˆBˆ›Ùš[WØÛÛ˜\ÝØ[˜[\Ú\ÈHZ[Ü›Ùš[WØÛÛ˜\ÝØ[˜[\Ú\×Ù›Ü—ÙÝZY[˜ÙWÛÝÛ™\ŠˆÝZY[˜ÙWÛÝÛ™\‹ˆ[™ÝXYÙWØÛÙO[[™ÝXYÙWØÛÙKˆ
+BˆXÝ]™WÜ›Ùš[WØÛÛ˜\ÝÈH
+ˆ›Ùš[WØÛÛ˜\ÝØ[˜[\Ú\Ë™Ù]
+˜XÝ]˜]YØÛÛ˜\ÝÈŠHÜˆ×Bˆ
+B‚ˆYˆ›Ý]˜Z[X›WÜ™\ÜÛœÙWÜÝ[\Î‚ˆ™]\›ˆœÛÛ”™\ÜÛœÙJˆÂˆ™\œ›ÜˆŽˆ
+ˆ“›È™\ÜÛœÙK\Ý[H™\Ý[È\™H‚ˆ˜]˜Z[X›H›Üˆ\ÈØ[™Y]Kˆ‚ˆ
+BˆKˆÝ]\ÏMˆ
+B‚ˆÝ\œ™[ÜÝ]\ÈH
+ˆÝZY[˜ÙWÛÝÛ™\‚ˆ˜ZWÜ™\ÜÛœÙWÜÝ[WÙÝZY[˜ÙWÜÝ]\ÂˆÜˆ››ÝÜÝ\Y‚ˆ
+B‚ˆØ]™YÙÝZY[˜ÙHH
+ˆÝZY[˜ÙWÛÝÛ™\‹˜ZWÜ™\ÜÛœÙWÜÝ[WÙÝZY[˜ÙBˆÜˆßBˆ
+B‚ˆYˆ
+ˆØ]™YÙÝZY[˜ÙBˆ[™Ý\œ™[ÜÝ]\ÈOH˜ÛÛ\]Y‚ˆ[™Ø]™YÙÝZY[˜ÙK™Ù]
+—ÜØÚ[XWÝ™\œÚ[ÛˆŠBˆOH‘TÔÓ”ÑWÔÕSWÑÕRQSÑWÔÐÒSPWÕ‘T”ÒSÓ‚ˆ
+N‚ˆÝ\œ™[ÜÝ]\ÈH›Ý]]Y‚ˆÝZY[˜ÙWÛÝÛ™\‹˜ZWÜ™\ÜÛœÙWÜÝ[WÙÝZY[˜ÙWÜÝ]\ÈH›Ý]]Y‚ˆÝZY[˜ÙWÛÝÛ™\‹œØ]™J\]WÙšY[ÏVÂˆ˜ZWÜ™\ÜÛœÙWÜÝ[WÙÝZY[˜ÙWÜÝ]\È‹ˆJB‚ˆÝ\œ™[Ü\œÜÙHH
+ˆ›ØÙ\ÜËœ\œÜÙBˆÜˆˆ‚ˆ
+KœÝš\
+
+K›ÝÙ\Š
+B‚ˆØ]™YÜ\œÜÙHH
+ˆÝZY[˜ÙWÛÝÛ™\‚ˆ˜ZWÜ™\ÜÛœÙWÜÝ[WÙÝZY[˜ÙWÜ\œÜÙBˆÜˆˆ‚ˆ
+KœÝš\
+
+K›ÝÙ\Š
+B‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÈÐQ‘UHÒPÒÈ“ÔˆÒS‘ÑQT”ÔÑBˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆYˆ
+ˆØ]™YÙÝZY[˜ÙBˆ[™Ý\œ™[ÜÝ]\ÈOH˜ÛÛ\]Y‚ˆ[™Ø]™YÜ\œÜÙHOHÝ\œ™[Ü\œÜÙBˆ
+N‚ˆÝ\œ™[ÜÝ]\ÈH›Ý]]Y‚‚ˆÝZY[˜ÙWÛÝÛ™\‹˜ZWÜ™\ÜÛœÙWÜÝ[WÙÝZY[˜ÙWÜÝ]\ÈH
+ˆ›Ý]]Y‚ˆ
+B‚ˆÝZY[˜ÙWÛÝÛ™\‹œØ]™J\]WÙšY[ÏVÂˆ˜ZWÜ™\ÜÛœÙWÜÝ[WÙÝZY[˜ÙWÜÝ]\È‹ˆJB‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÈ‘UT“ˆÐU‘QÕRQSÑBˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆYˆ
+ˆØ]™YÙÝZY[˜ÙBˆ[™Ý\œ™[ÜÝ]\ÈOH˜ÛÛ\]Y‚ˆ[™ZWØÛÛ[Û[™ÝXYÙWÛX]Ú\ÊˆÝZY[˜ÙWÛÝÛ™\‹ˆœ™\ÜÛœÙWÜÝ[WÙÝZY[˜ÙH‹ˆ[™ÝXYÙWØÛÙKˆ
+Bˆ
+N‚ˆYˆ^\Ý[™×ÙÙ[™\˜]ÜŠ
+N‚ˆZY[œÛÛ‹™[\ÊˆÂˆ\HŽˆœØ]™YÜ™\Ý[‹ˆ™]HŽˆØ]™YÙÝZY[˜ÙKˆœÝ]\ÈŽˆÝ\œ™[ÜÝ]\ËˆKˆ[œÝ\™WØ\ØÚZOQ˜[ÙKˆ
+H
+È—ˆ‚‚ˆ™\ÜÛœÙHHÝ™X[Z[™Ò™\ÜÛœÙJˆ^\Ý[™×ÙÙ[™\˜]ÜŠ
+KˆÛÛ[Ý\OJˆ˜\XØ][Û‹Þ[™œÛÛŽÈÚ\œÙ]]]‹N‚ˆ
+Kˆ
+B‚ˆ™\ÜÛœÙVÈØXÚKPÛÛ›Û—HH››ËXØXÚH‚ˆ™\ÜÛœÙVÈ–PXØÙ[PY™™\š[™È—HH››È‚‚ˆ™]\›ˆ™\ÜÛœÙB‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÈ‘U‘S•TPÐUHÑS‘TUSÓ‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆYˆÝ\œ™[ÜÝ]\ÈOH™Ù[™\˜][™ÈŽ‚ˆ™]\›ˆœÛÛ”™\ÜÛœÙJˆÂˆ™\œ›ÜˆŽˆ
+ˆ”™\ÜÛœÙK\Ý[HÝZY[˜ÙH\È[™XYH‚ˆ˜™Z[™ÈÙ[™\˜]Yˆ‚ˆ
+BˆKˆÝ]\ÏMKˆ
+B‚ˆÝZY[˜ÙWÛÝÛ™\‹˜ZWÜ™\ÜÛœÙWÜÝ[WÙÝZY[˜ÙWÜÝ]\ÈH
+ˆ™Ù[™\˜][™È‚ˆ
+B‚ˆÝZY[˜ÙWÛÝÛ™\‹œØ]™J\]WÙšY[ÏVÂˆ˜ZWÜ™\ÜÛœÙWÜÝ[WÙÝZY[˜ÙWÜÝ]\È‹ˆJB‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÈÕ‘PSHÑS‘TUSÓ‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆYˆÙ[™\˜]ÜŠ
+N‚ˆÝZY[˜ÙHH
+ˆÜ™X]WÙ[\WÜ™\ÜÛœÙWÜÝ[WÙÝZY[˜ÙJˆÝZY[˜ÙWÛÝÛ™\‹ˆ[™ÝXYÙWØÛÙO[[™ÝXYÙWØÛÙKˆ
+Bˆ
+B‚ˆ™XÙZ]™YÙÛ™WÙ]™[H˜[ÙB‚ˆžN‚ˆ›Üˆ]™[[ˆÝ™X[WÜ™\ÜÛœÙWÜÝ[WÙÝZY[˜ÙJˆÝZY[˜ÙWÛÝÛ™\YÝZY[˜ÙWÛÝÛ™\‹ˆ™\ÜÛœÙWÜÝ[\ÏX]˜Z[X›WÜ™\ÜÛœÙWÜÝ[\Ëˆ[™ÝXYÙWØÛÙO[[™ÝXYÙWØÛÙKˆ›Ùš[WØÛÛ˜\ÝØ[˜[\Ú\Ï\›Ùš[WØÛÛ˜\ÝØ[˜[\Ú\Ëˆ
+N‚ˆÝZY[˜ÙHH
+ˆ\WÜ™\ÜÛœÙWÜÝ[WÙÝZY[˜ÙWÙ]™[
+ˆÝZY[˜ÙKˆ]™[ˆ[ÝÙYÜ›Ùš[WØÛÛ˜\ÝÏXXÝ]™WÜ›Ùš[WØÛÛ˜\ÝËˆ
+Bˆ
+B‚ˆYˆ]™[™Ù]
+\HŠHOH™Û™HŽ‚ˆ™XÙZ]™YÙÛ™WÙ]™[HYB‚ˆZY[œÛÛ‹™[\Êˆ]™[ˆ[œÝ\™WØ\ØÚZOQ˜[ÙKˆ
+H
+È—ˆ‚‚ˆÈÈ›ÝØ]™H[ˆ[\HÜˆX[›Ü›YYRH™\Ý[‚ˆYˆ›Ý
+ˆÝZY[˜ÙK™Ù]
+œÝ[[X\žHŠBˆÜˆˆ‚ˆ
+KœÝš\
+
+N‚ˆ˜Z\ÙH˜[YQ\œ›ÜŠˆ•HRH™\ÜÛœÙHY›ÝÛÛZ[ˆ‚ˆ˜HÝZY[˜ÙHÝ[[X\žKˆ‚ˆ
+B‚ˆYˆ›Ý™XÙZ]™YÙÛ™WÙ]™[‚ˆZY[œÛÛ‹™[\ÊÂˆ\HŽˆ™Û™H‹ˆJH
+È—ˆ‚‚ˆØ]™WÜ™\ÜÛœÙWÜÝ[WÙÝZY[˜ÙJˆÝZY[˜ÙWÛÝÛ™\YÝZY[˜ÙWÛÝÛ™\‹ˆÝZY[˜ÙOYÝZY[˜ÙKˆ[™ÝXYÙWØÛÙO[[™ÝXYÙWØÛÙKˆ
+B‚ˆ^Ù\^Ù\[Ûˆ\È\œ›ÜŽ‚ˆÝZY[˜ÙWÛÝÛ™\‹˜ZWÜ™\ÜÛœÙWÜÝ[WÙÝZY[˜ÙWÜÝ]\ÈH
+ˆ™˜Z[Y‚ˆ
+B‚ˆÝZY[˜ÙWÛÝÛ™\‹œØ]™J\]WÙšY[ÏVÂˆ˜ZWÜ™\ÜÛœÙWÜÝ[WÙÝZY[˜ÙWÜÝ]\È‹ˆJB‚ˆZY[œÛÛ‹™[\ÊˆÂˆ\HŽˆ™\œ›Üˆ‹ˆ›Y\ÜØYÙHŽˆÝŠ\œ›ÜŠKˆKˆ[œÝ\™WØ\ØÚZOQ˜[ÙKˆ
+H
+È—ˆ‚‚ˆ™\ÜÛœÙHHÝ™X[Z[™Ò™\ÜÛœÙJˆÙ[™\˜]ÜŠ
+KˆÛÛ[Ý\OJˆ˜\XØ][Û‹Þ[™œÛÛŽÈÚ\œÙ]]]‹N‚ˆ
+Kˆ
+B‚ˆ™\ÜÛœÙVÈØXÚKPÛÛ›Û—HH››ËXØXÚH‚ˆ™\ÜÛœÙVÈ–PXØÙ[PY™™\š[™È—HH››È‚‚ˆ™]\›ˆ™\ÜÛœÙB‚‚ÙÚ[—Ü™\]Z\™Y™\]Z\™WÔÔÕ™Yˆ›ØÙ\Ü×ØØ[™Y]WÜ™\ÜÛœÙWÜÝ[WÙÝZY[˜ÙWÜ™YÙ[™\˜]Jˆ™\]Y\Ýˆ›ØÙ\Ü×ÚYˆØ[™Y]WÚYŠN‚ˆˆˆ‚ˆ™\\™H™\ÜÛœÙK\Ý[HÝZY[˜ÙH›Üˆ™YÙ[™\˜][Û‹‚‚ˆH^\Ý[™ÈØ]™Y™\Ý[\È™]Z[™Y[[H™]ÂˆÙ[™\˜][Ûˆ\ÈÛÛ\]YÝXØÙ\ÜÙ[K‚ˆˆˆ‚‚ˆ›ØÙ\ÜÈHÙ]ÛØš™XÝÛÜ—Í
+ˆ\Ý›ØÙ\ÜËˆÏ\›ØÙ\Ü×ÚYˆ
+B‚ˆYˆ›Ý\Ù\—ØØ[—ØXØÙ\Ü×Ü›ØÙ\ÜÊˆ™\]Y\Ý\Ù\‹ˆ›ØÙ\ÜËˆ
+N‚ˆ™]\›ˆ™\ÜÛœÙQ›Ü˜šY[Šˆ–[ÝHÈ›Ý]™HXØÙ\ÜÈÈ\È›Ú™XÝˆ‚ˆ
+B‚ˆYˆ›ØÙ\ÜËš\×Ú\ÝÜšXØ[‚ˆ™]\›ˆœÛÛ”™\ÜÛœÙJˆÂˆ™\œ›ÜˆŽˆ
+ˆ‘ÛØ˜[™\ÜÛœÙK\Ý[H™YÙ[™\˜][Ûˆ‚ˆš\È›ÝÛÛ›™XÝY›Üˆ\ÝÜšXØ[‚ˆ˜Ø[™Y]\ÈY]ˆ‚ˆ
+BˆKˆÝ]\ÏMˆ
+B‚ˆ[š]][ÛˆHÙ]ÛØš™XÝÛÜ—Í
+ˆ\Ý[š]][Û‹ˆ›ØÙ\ÜÏ\›ØÙ\ÜËˆØ[™Y]WÚYXØ[™Y]WÚYˆ
+B‚ˆYˆ[š]][Û‹œÝ]\ÈOH˜ÛÛ\]YŽ‚ˆ™]\›ˆœÛÛ”™\ÜÛœÙJˆÂˆ™\œ›ÜˆŽˆ
+ˆ•HØ[™Y]H\È›ÝÛÛ\]Y‚ˆH\ÜÙ\ÜÛY[ÈY]ˆ‚ˆ
+BˆKˆÝ]\ÏMˆ
+B‚ˆ[š]][Û‹˜ZWÜ™\ÜÛœÙWÜÝ[WÙÝZY[˜ÙWÜÝ]\ÈH
+ˆ››ÝÜÝ\Y‚ˆ
+B‚ˆ[š]][Û‹˜ZWÜ™\ÜÛœÙWÜÝ[WÙÝZY[˜ÙWÙÙ[™\˜]YØ]H
+ˆ›Û™Bˆ
+B‚ˆ[š]][Û‹˜ZWÜ™\ÜÛœÙWÜÝ[WÙÝZY[˜ÙWÜ\œÜÙHHˆ‚‚ˆ[š]][Û‹œØ]™Jˆ\]WÙšY[ÏVÂˆ˜ZWÜ™\ÜÛœÙWÜÝ[WÙÝZY[˜ÙWÜÝ]\È‹ˆ˜ZWÜ™\ÜÛœÙWÜÝ[WÙÝZY[˜ÙWÙÙ[™\˜]YØ]‹ˆ˜ZWÜ™\ÜÛœÙWÜÝ[WÙÝZY[˜ÙWÜ\œÜÙH‹ˆBˆ
+B‚ˆ™]\›ˆœÛÛ”™\ÜÛœÙJˆÂˆ›ÚÈŽˆYKˆœÝ™X[WÝ\›Žˆ™]™\œÙJˆ
+ˆœ›ØÙ\ÜÙ\Îˆ‚ˆœ›ØÙ\Ü×ØØ[™Y]WÈ‚ˆœ™\ÜÛœÙWÜÝ[WÙÝZY[˜ÙWÜÝ™X[H‚ˆ
+KˆÝØ\™ÜÏ^Âˆœ›ØÙ\Ü×ÚYŽˆ›ØÙ\ÜËšYˆ˜Ø[™Y]WÚYŽˆØ[™Y]WÚYˆKˆ
+KˆBˆ
+B‚‚ÙÚ[—Ü™\]Z\™Y™Yˆ›ØÙ\Ü×ØØ[™Y]WÜ\œÜÙWÙš]ÜÝ™X[Jˆ™\]Y\Ýˆ›ØÙ\Ü×ÚYˆØ[™Y]WÚYŠN‚ˆš[
+ˆˆ–ÔT”ÔÑH’UHÝ™X[H™\]Y\ÝY‚ˆˆœ›ØÙ\ÜÏ^Ü›ØÙ\Ü×ÚYKØ[™Y]O^ØØ[™Y]WÚYH‹ˆ›\ÚUYKˆ
+B‚ˆ›ØÙ\ÜÈHÙ]ÛØš™XÝÛÜ—Í
+ˆ\Ý›ØÙ\ÜËˆÏ\›ØÙ\Ü×ÚYˆ
+B‚ˆš[
+ˆˆ–ÔT”ÔÑH’UH›ØÙ\ÜÈ›Ý[™ˆ‚ˆˆžÜ›ØÙ\ÜËšYK\œÜÙO^Ü›ØÙ\ÜËœ\œÜÙ_H‹ˆ›\ÚUYKˆ
+B‚ˆYˆ›Ý\Ù\—ØØ[—ØXØÙ\Ü×Ü›ØÙ\ÜÊˆ™\]Y\Ý\Ù\‹ˆ›ØÙ\ÜËˆ
+N‚ˆš[
+ˆ–ÔT”ÔÑH’UHXØÙ\ÜÈ[šYY‹ˆ›\ÚUYKˆ
+B‚ˆ™]\›ˆ™\ÜÛœÙQ›Ü˜šY[Šˆ–[ÝHÈ›Ý]™HXØÙ\ÜÈÈ\È›Ú™XÝˆ‚ˆ
+B‚ˆYˆ›Ý\œÜÙWÜÝ\Ü×Ùš]
+›ØÙ\ÜÊN‚ˆš[
+ˆ–ÔT”ÔÑH’UH\œÜÙHÙ\È›ÝÝ\Üš]‹ˆ›\ÚUYKˆ
+B‚ˆ™]\›ˆœÛÛ”™\ÜÛœÙJˆÂˆ™\œ›ÜˆŽˆ
+ˆ•\È›Ú™XÝÙ\È›ÝÝ\Ü‚ˆRHÝ™\šY]Ëˆ‚ˆ
+BˆKˆÝ]\ÏMˆ
+B‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÈ’S‘HÓÔ”‘PÕRHÕÓ‘T‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKB‚ˆYˆ›ØÙ\ÜËš\×Ú\ÝÜšXØ[‚ˆÝÛ™\ˆHÙ]ÛØš™XÝÛÜ—Í
+ˆ\ÝÜšXØ[›ØÙ\ÜÐØ[™Y]K›Øš™XÝÂˆœÙ[XÝÜ™[]Y
+ˆ˜Ø[™Y]H‹ˆœ›ØÙ\ÜÈ‹ˆ
+Bˆœ™Y™]ÚÜ™[]Y
+ˆ˜\ÜÙ\ÜÛY[Ü™\Ý[××ÜØÛÜ™\È‹ˆ˜\ÜÙ\ÜÛY[Ü™\Ý[××Ú[\ÜÙš[H‹ˆ
+Kˆ›ØÙ\ÜÏ\›ØÙ\ÜËˆØ[™Y]WÚYXØ[™Y]WÚYˆ
+B‚ˆ\×Ú\ÝÜšXØ[HYB‚ˆ[ÙN‚ˆÝÛ™\ˆHÙ]ÛØš™XÝÛÜ—Í
+ˆ\Ý[š]][Û‹›Øš™XÝËœÙ[XÝÜ™[]Y
+ˆ˜Ø[™Y]H‹ˆœ›ØÙ\ÜÈ‹ˆ
+Kˆ›ØÙ\ÜÏ\›ØÙ\ÜËˆØ[™Y]WÚYXØ[™Y]WÚYˆ
+B‚ˆ\×Ú\ÝÜšXØ[H˜[ÙB‚ˆ[™ÝXYÙWØÛÙHHÙ]Ü™\]Y\ÝØZWÛ[™ÝXYÙJˆ™\]Y\Ýˆ
+B‚ˆX\š×ØZWØÛÛ[ÛÝ]]YÚY—Û[™ÝXYÙWØÚ[™ÙY
+ˆÝÛ™\‹ˆÛÛ[ÚÙ^OHœ\œÜÙWÙš]‹ˆ™\Ý[ÙšY[H˜ZWÜ\œÜÙWÙš]‹ˆÝ]\×ÙšY[H˜ZWÜ\œÜÙWÙš]ÜÝ]\È‹ˆ[™ÝXYÙWØÛÙO[[™ÝXYÙWØÛÙKˆ
+B‚ˆš[
+ˆˆ–ÔT”ÔÑH’UHÝÛ™\ˆ›Ý[™ˆ‚ˆˆšY^ÛÝÛ™\‹šYK‚ˆˆš\ÝÜšXØ[^Ú\×Ú\ÝÜšXØ[K‚ˆˆ™š]ÜÝ]\Ï^ÛÝÛ™\‹˜ZWÜ\œÜÙWÙš]ÜÝ]\ßK‚ˆˆš\×ÜØ]™YÙš]^Ø›ÛÛ
+ÝÛ™\‹˜ZWÜ\œÜÙWÙš]
+_H‹ˆ›\ÚUYKˆ
+B‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÈ‘TURT‘HUPTÕÓ‘H‘PSTÔÑTÔÓQS•‘TÕSˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÂˆÈRHÝ™\šY]ÈX^H™HÙ[™\˜]Y›ÙÜ™\ÜÚ]™[H\È\ÜÙ\ÜÛY[ˆÈ™\Ý[È™XÛÛYH]˜Z[X›KˆHØ[™Y]HÙ\È›Ý™YYÂˆÈ]™HÛÛ\]YH[\™H\ÜÙ\ÜÛY[›ØÙ\ÜË‚ˆÂˆ\ÜÙ\ÜÛY[Ù]šY[˜ÙK\ÜÙ\ÜÛY[Ý\WØÛÝ[H
+ˆZ[Ø\ÜÙ\ÜÛY[Ù]šY[˜ÙJˆÝÛ™\‚ˆ
+Bˆ
+B‚ˆYˆ\ÜÙ\ÜÛY[Ý\WØÛÝ[N‚ˆš[
+ˆ–ÔT”ÔÑH’UH›È\ÜÙ\ÜÛY[™\Ý[È]˜Z[X›H‹ˆ›\ÚUYKˆ
+B‚ˆ™]\›ˆœÛÛ”™\ÜÛœÙJˆÂˆ™\œ›ÜˆŽˆ
+ˆ“›È\ÜÙ\ÜÛY[™\Ý[È\™H‚ˆ˜]˜Z[X›H›Üˆ\ÈØ[™Y]HY]ˆ‚ˆ
+BˆKˆÝ]\ÏMˆ
+B‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÈ‘UT“ˆÐU‘Q‘TÕSˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKB‚ˆYˆ
+ˆZWØÛÛ[Û[™ÝXYÙWÛX]Ú\ÊˆÝÛ™\‹ˆœ\œÜÙWÙš]‹ˆ[™ÝXYÙWØÛÙKˆ
+Bˆ[™ÚÝ[Ü™]\›—ÜØ]™YØZWÜ™\Ý[
+ˆÝÛ™\‹˜ZWÜ\œÜÙWÙš]ˆÝÛ™\‹˜ZWÜ\œÜÙWÙš]ÜÝ]\Ëˆ
+Bˆ
+N‚ˆš[
+ˆ–ÔT”ÔÑH’UH™]\›š[™ÈØ]™Y™\Ý[‹ˆ›\ÚUYKˆ
+B‚ˆ™]\›ˆœÛÛ”™\ÜÛœÙJˆÂˆ™]HŽˆÝÛ™\‹˜ZWÜ\œÜÙWÙš]ˆœÝ]\ÈŽˆÝÛ™\‹˜ZWÜ\œÜÙWÙš]ÜÝ]\Ëˆ™Ù[™\˜]YŽˆ˜[ÙKˆBˆ
+B‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÈ‘U‘S•TPÐUHÑS‘TUSÓ‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKB‚ˆYˆÝÛ™\‹˜ZWÜ\œÜÙWÙš]ÜÝ]\ÈOH™Ù[™\˜][™ÈŽ‚ˆš[
+ˆ–ÔT”ÔÑH’UH[™XYHX\šÙY\ÈÙ[™\˜][™È‹ˆ›\ÚUYKˆ
+B‚ˆ™]\›ˆœÛÛ”™\ÜÛœÙJˆÂˆ™\œ›ÜˆŽˆ
+ˆRHÝ™\šY]È\È[™XYH‚ˆ˜™Z[™ÈÙ[™\˜]Yˆ‚ˆ
+BˆKˆÝ]\ÏMKˆ
+B‚ˆÝÛ™\‹˜ZWÜ\œÜÙWÙš]ÜÝ]\ÈH™Ù[™\˜][™È‚‚ˆÝÛ™\‹œØ]™Jˆ\]WÙšY[ÏVÂˆ˜ZWÜ\œÜÙWÙš]ÜÝ]\È‹ˆBˆ
+B‚ˆš[
+ˆ–ÔT”ÔÑH’UHÝ]\ÈÚ[™ÙYÈÙ[™\˜][™È‹ˆ›\ÚUYKˆ
+B‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÈÑS‘TUHHÓÓTUH‘TÕSˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKB‚ˆ\œÜÙWÙš]HÜ™X]WÙ[\WÜ\œÜÙWÙš]
+ˆÝÛ™\‚ˆ
+B‚ˆžN‚ˆš[
+ˆ–ÔT”ÔÑH’UHÝ\[™ÈÛÛ\]HÜ[RH™\ÜÛœÙH‹ˆ›\ÚUYKˆ
+B‚ˆ›Üˆ]™[[ˆÙ[™\˜]WØØ[™Y]WÜ\œÜÙWÙš]Ù]™[ÊˆÝÛ™\‹ˆ[™ÝXYÙWØÛÙO[[™ÝXYÙWØÛÙKˆ
+N‚ˆYˆ]™[™Ù]
+\HŠHOH™\œ›ÜˆŽ‚ˆ˜Z\ÙH˜[YQ\œ›ÜŠˆ]™[™Ù]
+›Y\ÜØYÙHŠBˆÜˆRHÝ™\šY]ÈÙ[™\˜][Ûˆ˜Z[Yˆ‚ˆ
+B‚ˆ\œÜÙWÙš]H\WÜ\œÜÙWÙš]Ù]™[
+ˆ\œÜÙWÙš]ˆ]™[ˆ
+B‚ˆØ]™WØØ[™Y]WÜ\œÜÙWÙš]
+ˆÝÛ™\‹ˆ\œÜÙWÙš]ˆ[™ÝXYÙWØÛÙO[[™ÝXYÙWØÛÙKˆ
+B‚ˆš[
+ˆ–ÔT”ÔÑH’UH™\Ý[Ø]™YÝXØÙ\ÜÙ[H‹ˆ›\ÚUYKˆ
+B‚ˆ™]\›ˆœÛÛ”™\ÜÛœÙJˆÂˆ™]HŽˆ\œÜÙWÙš]ˆœÝ]\ÈŽˆ˜ÛÛ\]Y‹ˆ™Ù[™\˜]YŽˆYKˆBˆ
+B‚ˆ^Ù\^Ù\[Ûˆ\È^Î‚ˆš[
+ˆ–ÔT”ÔÑH’UHT”“ÔŽˆ‹ˆ™\Š^ÊKˆ›\ÚUYKˆ
+B‚ˆÝÛ™\‹˜ZWÜ\œÜÙWÙš]ÜÝ]\ÈH™˜Z[Y‚‚ˆÝÛ™\‹œØ]™Jˆ\]WÙšY[ÏVÂˆ˜ZWÜ\œÜÙWÙš]ÜÝ]\È‹ˆBˆ
+B‚ˆ™]\›ˆœÛÛ”™\ÜÛœÙJˆÂˆ™\œ›ÜˆŽˆÝŠ^ÊBˆÜˆRHÝ™\šY]ÈÙ[™\˜][Ûˆ˜Z[Yˆ‚ˆKˆÝ]\ÏMLˆ
+B‚ÙÚ[—Ü™\]Z\™Y™\]Z\™WÔÔÕ™Yˆ›ØÙ\Ü×ØØ[™Y]WÜ\œÜÙWÙš]Ü™YÙ[™\˜]Jˆ™\]Y\Ýˆ›ØÙ\Ü×ÚYˆØ[™Y]WÚYŠN‚ˆ›ØÙ\ÜÈHÙ]ÛØš™XÝÛÜ—Í
+ˆ\Ý›ØÙ\ÜËˆÏ\›ØÙ\Ü×ÚYˆ
+B‚ˆYˆ›Ý\Ù\—ØØ[—ØXØÙ\Ü×Ü›ØÙ\ÜÊ™\]Y\Ý\Ù\‹›ØÙ\ÜÊN‚ˆ™]\›ˆ™\ÜÛœÙQ›Ü˜šY[Šˆ–[ÝHÈ›Ý]™HXØÙ\ÜÈÈ\È›Ú™XÝˆ‚ˆ
+B‚ˆYˆ›Ý\œÜÙWÜÝ\Ü×Ùš]
+›ØÙ\ÜÊN‚ˆ™]\›ˆœÛÛ”™\ÜÛœÙJˆÂˆ™\œ›ÜˆŽˆ
+ˆ‘›^X›H›Ú™XÝÈÈ›ÝÝ\Ü‚ˆœ\œÜÙKYš][˜[\Ú\Ëˆ‚ˆ
+BˆKˆÝ]\ÏMˆ
+BˆˆYˆ›ØÙ\ÜËš\×Ú\ÝÜšXØ[‚ˆ[š]][ÛˆHÙ]ÛØš™XÝÛÜ—Í
+ˆ\ÝÜšXØ[›ØÙ\ÜÐØ[™Y]K›Øš™XÝËœÙ[XÝÜ™[]Y
+ˆ˜Ø[™Y]H‹ˆœ›ØÙ\ÜÈ‹ˆ
+Kˆ›ØÙ\ÜÏ\›ØÙ\ÜËˆØ[™Y]WÚYXØ[™Y]WÚYˆ
+Bˆ[ÙN‚ˆ[š]][ÛˆHÙ]ÛØš™XÝÛÜ—Í
+ˆ\Ý[š]][Û‹›Øš™XÝËœÙ[XÝÜ™[]Y
+ˆ˜Ø[™Y]H‹ˆœ›ØÙ\ÜÈ‹ˆ
+Kˆ›ØÙ\ÜÏ\›ØÙ\ÜËˆØ[™Y]WÚYXØ[™Y]WÚYˆ
+B‚ˆ[š]][Û‹˜ZWÜ\œÜÙWÙš]ÜÝ]\ÈH››ÝÜÝ\Y‚ˆ[š]][Û‹˜ZWÜ\œÜÙWÙš]ÙÙ[™\˜]YØ]H›Û™Bˆ[š]][Û‹˜ZWÜ\œÜÙWÙš]Ü\œÜÙHHˆ‚‚ˆ[š]][Û‹œØ]™Jˆ\]WÙšY[ÏVÂˆ˜ZWÜ\œÜÙWÙš]ÜÝ]\È‹ˆ˜ZWÜ\œÜÙWÙš]ÙÙ[™\˜]YØ]‹ˆ˜ZWÜ\œÜÙWÙš]Ü\œÜÙH‹ˆBˆ
+B‚ˆ™]\›ˆœÛÛ”™\ÜÛœÙJˆÂˆ›ÚÈŽˆYKˆ™Ù[™\˜][Û—Ý\›Žˆ™]™\œÙJˆœ›ØÙ\ÜÙ\Îœ›ØÙ\Ü×ØØ[™Y]WÜ\œÜÙWÙš]ÜÝ™X[H‹ˆÝØ\™ÜÏ^Âˆœ›ØÙ\Ü×ÚYŽˆ›ØÙ\ÜËšYˆ˜Ø[™Y]WÚYŽˆØ[™Y]WÚYˆKˆ
+KˆBˆ
+B‚ÙÚ[—Ü™\]Z\™Y™Yˆ›ØÙ\Ü×ØÜ™X]WÝŒŠ™\]Y\Ý
+N‚ˆÛY[HÛÝ˜PÛY[
+
+Bˆ\œ›ÜˆH›Û™B‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÈKˆ0é]HÛÝ˜K\›Ú™ZÝœ°é[ˆTBˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆžN‚ˆXØÛÝ[ÈHÛY[™Ù]Ý[\]WØXØÛÝ[×ÝÚ]Ü›Ú™XÝÊ
+Bˆ^Ù\^Ù\[Ûˆ\ÈN‚ˆXØÛÝ[ÈH×Bˆ\œ›ÜˆHÝŠJB‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÈ‹ˆ0é]H›Ú™XÝY]HðéHšHØ[ˆ]H˜[[‹\Ý\ˆÜÝ‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆY]\ÈH›Ú™XÝY]K›Øš™XÝË™š[\Š›ÝšY\HœÛÝ˜HŠBˆY]WÛX\HÊK˜XØÛÝ[ØÛÙKKœ›Ú™XÝØÛÙJNˆH›ÜˆH[ˆY]\ßB‚ˆ›Ú™XÝÚYÛX\HßBˆ[\]WØØ\™ÈH×B‚ˆ›ÜˆXØÛÝ[[ˆXØÛÝ[Î‚ˆXØÈH
+XØÛÝ[™Ù]
+˜ÛÙHŠHÜˆˆŠKœÝš\
+
+B‚ˆ›Üˆ›Ú™XÝ[ˆ
+XØÛÝ[™Ù]
+œ›Ú™XÝÈŠHÜˆ×JN‚ˆ›Ú—ØÛÙHH
+›Ú™XÝ™Ù]
+˜ÛÙHŠHÜˆˆŠKœÝš\
+
+BˆÛÝ˜WÛ˜[YHH
+›Ú™XÝ™Ù]
+›˜[YHŠHÜˆ›Ú—ØÛÙJKœÝš\
+
+B‚ˆ˜[YHHˆžØXØß_Ü›Ú—ØÛÙ_H‚ˆ›Ú™XÝÚYÛX\Ý˜[YWHH›Ú™XÝ™Ù]
+šYŠB‚ˆY]HHY]WÛX\™Ù]
+
+XØË›Ú—ØÛÙJJBˆ]HHÙ]]ŠY]Kš[\›—Û˜[YH‹›Û™JHÜˆÛÝ˜WÛ˜[YB‚ˆ\ØÜš\[ÛˆHˆ‚ˆ\ÝÈH×Bˆ[™ÝXYÙ\ÈH×B‚ˆYˆY]N‚ˆ\ØÜš\[ÛˆH
+Ù]]ŠY]K››Ý\È‹›Û™JHÜˆˆŠKœÝš\
+
+B‚ˆ\Ý×Ü˜]ÈH
+Ù]]ŠY]K\ÝÈ‹›Û™JHÜˆˆŠKœÝš\
+
+B‚ˆYˆ\Ý×Ü˜]Î‚ˆ\ÝÈHÂˆ\ÝœÝš\
+
+K›ÝÙ\Š
+Bˆ›Üˆ\Ý[ˆ\Ý×Ü˜]ËœÜ]
+‹ŠBˆYˆ\ÝœÝš\
+
+BˆB‚ˆ[™ÝXYÙ\×Ü˜]ÈH
+Ù]]ŠY]K›[™ÝXYÙ\È‹›Û™JHÜˆˆŠKœÝš\
+
+B‚ˆYˆ[™ÝXYÙ\×Ü˜]Î‚ˆ[™ÝXYÙ\ÈHÂˆ[™ÝXYÙKœÝš\
+
+Bˆ›Üˆ[™ÝXYÙH[ˆ[™ÝXYÙ\×Ü˜]ËœÜ]
+‹ŠBˆYˆ[™ÝXYÙKœÝš\
+
+BˆB‚ˆÈ˜[˜XÚÎ‚ˆÈÛH›Ú™XÝY]HØZÛ˜\ˆ\Ý\ˆ0éÙ\ˆ[[˜HÛÛXš[˜][Û™[‚ˆÈ\™ZÝœ°é[ˆÛÝ˜K\›Ú™ZÝ]È˜[[‹‚ˆYˆ›Ý\ÝÎ‚ˆ\ÝÈH^˜XÝÝ\Ý×Ùœ›ÛWÜ›Ú™XÝÛ˜[YJÛÝ˜WÛ˜[YJB‚ˆ[\]WØØ\™Ë˜\[™
+Âˆ˜[YHŽˆ˜[YKˆ]HŽˆ]Kˆ™\ØÜš\[ÛˆŽˆ\ØÜš\[Û‹ˆ\ÝÈŽˆ\ÝËˆ›[™ÝXYÙ\ÈŽˆ[™ÝXYÙ\ËˆšXÛÛ—ØÛ\ÜÈŽˆÙ]Ý[\]WÚXÛÛ—ØÛ\ÜÊ\ÝË]JKˆ˜XØÛÝ[ØÛÙHŽˆXØËˆœ›Ú™XÝØÛÙHŽˆ›Ú—ØÛÙKˆœÛÝ˜WÛ˜[YHŽˆÛÝ˜WÛ˜[YKˆœÛÝ˜WÜ›Ú™XÝÚYŽˆ›Ú™XÝ™Ù]
+šYŠKˆJB‚ˆ[\]WØØ\™ËœÛÜ
+Ù^O[[X™Hˆ
+È]H—HÜˆˆŠK›ÝÙ\Š
+JB‚ˆÈÛ›HXØÛÝ[È[ˆÛÛ\[šY\ÈÚ\™H\È\Ù\ˆ\ÈHY[X™\ˆØ[ˆ™HÙ[XÝY‚ˆY[X™\œÚ\ÈH\Ý
+ˆÛÛ\[žSY[X™\‹›Øš™XÝÂˆ™š[\Š\Ù\\™\]Y\Ý\Ù\ŠBˆœÙ[XÝÜ™[]Y
+˜ÛÛ\[žHŠBˆ
+BˆYˆ›ÝY[X™\œÚ\Î‚ˆY\ÜØYÙ\Ë™\œ›ÜŠ™\]Y\Ý–[ÝH\™H›Ý[šÙYÈHÛÛ\[žKˆŠBˆ™]\›ˆ™Y\™XÝ
+œ›ØÙ\ÜÙ\Îœ›ØÙ\Ü×Û\ÝŠB‚ˆXØÙ\ÜÚX›WÚYÈHÙ]
+
+Bˆ›ÜˆY[X™\œÚ\[ˆY[X™\œÚ\Î‚ˆXØÙ\ÜÚX›WÚYË\]JˆÙ]ØXØÙ\ÜÚX›WÛÜ™Ý[š]ÚYÊ™\]Y\Ý\Ù\‹Y[X™\œÚ\˜ÛÛ\[žJBˆ
+BˆÜ™×Ý[š]ÈH\Ý
+ˆÜ™Õ[š]›Øš™XÝÂˆ™š[\Šˆ××Ú[XXØÙ\ÜÚX›WÚYËˆÛÛ\[žWÚY×Ú[VÛY[X™\œÚ\˜ÛÛ\[žWÚY›ÜˆY[X™\œÚ\[ˆY[X™\œÚ\×Kˆ
+BˆœÙ[XÝÜ™[]Y
+˜ÛÛ\[žHŠBˆ›Ü™\—ØžJ˜ÛÛ\[žW×Û˜[YH‹›˜[YH‹œÈŠBˆ
+BˆYˆ›ÝÜ™×Ý[š]Î‚ˆY\ÜØYÙ\Ë™\œ›ÜŠ™\]Y\Ý–[ÝHÈ›Ý]™H[ˆ\ÜÚYÛ™YXØÛÝ[ˆŠBˆ™]\›ˆ™Y\™XÝ
+œ›ØÙ\ÜÙ\Îœ›ØÙ\Ü×Û\ÝŠB‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÈˆÔÕˆÚØ\H›ØÙ\ÜÙ[‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆYˆ™\]Y\Ý›Y]ÙOH”ÔÕŽ‚ˆ›Ü›HH\Ý›ØÙ\ÜÕÚ^˜\™Ü™X]Q›Ü›J™\]Y\Ý”ÔÕÜ™×Ý[š]Ï[Ü™×Ý[š]ÊB‚ˆYˆ›Ü›Kš\×Ý˜[Y
+
+N‚ˆÙ[XÝYÝ[š]H
+ˆ›Ü›K˜ÛX[™YÙ]VÈ›Ü™×Ý[š]—BˆYˆ[ŠÜ™×Ý[š]ÊHˆBˆ[ÙHÜ™×Ý[š]ÖÌBˆ
+BˆÛÛ\[žHHÙ[XÝYÝ[š]˜ÛÛ\[žBˆ\œÜÙHH›Ü›K˜ÛX[™YÙ]K™Ù]
+œ\œÜÙHŠBˆÙ[XÝYÝ\ÝÈH›Ü›K˜ÛX[™YÙ]K™Ù]
+œÙ[XÝYÝ\ÝÈŠHÜˆ×B‚ˆØ[™Y]WÛ[™ÝXYÙHH
+ˆ›Ü›K˜ÛX[™YÙ]K™Ù]
+˜Ø[™Y]WÛ[™ÝXYÙHŠBˆÜˆœÝˆ‚ˆ
+B‚ˆ˜[YHH
+›Ü›K˜ÛX[™YÙ]K™Ù]
+›˜[YHŠHÜˆˆŠKœÝš\
+
+B‚ˆÈÛH[°é™\™[ˆ[HÚÜ™]ˆ˜[[‹ÚØ\H]]]ÛX]\ÚÝˆYˆ›Ý˜[YN‚ˆ˜[YHHZ[ÙY˜][Ü›ØÙ\Ü×Û˜[YJˆ\œÜÙO\\œÜÙKˆÙ[XÝYÝ\ÝÏ\Ù[XÝYÝ\ÝËˆ
+B‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÈKˆX]ÚH˜[H\Ý\ˆ[Ý°éÛÝ˜K\›Ú™ZÝˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆžN‚ˆ™\ÛÛ™YÝ[\]HH™\ÛÛ™WÜÛÝ˜WÝ[\]JˆÙ[XÝYÝ\ÝÏ\Ù[XÝYÝ\ÝËˆ[\]WØØ\™Ï][\]WØØ\™Ëˆ
+Bˆ^Ù\˜[YQ\œ›Üˆ\È^Î‚ˆ›Ü›K˜YÙ\œ›ÜŠœÙ[XÝYÝ\ÝÈ‹ÝŠ^ÊJB‚ˆ™]\›ˆ™[™\Š™\]Y\Ý˜Ý\ÝÛY\‹Ü›ØÙ\ÜÙ\ËÜ›ØÙ\Ü×ØÜ™X]WÝŒ‹š[‹Âˆ™›Ü›HŽˆ›Ü›Kˆ™\œ›ÜˆŽˆ\œ›Ü‹ˆœ›ØÙ\Ü×Ü\œÜÙ\ÈŽˆ“ÐÑTÔ×ÔT”ÔÑTËˆ˜]˜Z[X›WÝ\ÝÈŽˆURSP“WÕTÕËˆœ\œÜÙWÜ™XÛÛ[Y[™YÝ\ÝÈŽˆT”ÔÑWÔ‘PÓÓSQS‘QÕTÕËˆ[\]WØØ\™ÈŽˆ[\]WØØ\™Ëˆ[\]\×ØÛÝ[Žˆ[Š[\]WØØ\™ÊKˆ˜XØÛÝ[×ØÛÝ[Žˆ[ŠXØÛÝ[ÊKˆ›Ü™×Ý[š]ÈŽˆÜ™×Ý[š]ËˆJB‚ˆYˆ›Ý™\ÛÛ™YÝ[\]N‚ˆÙ[XÝYÛX™[ÈHÂˆÝŠ\ÝÈ›X™[—JBˆ›Üˆ\Ý[ˆURSP“WÕTÕÂˆYˆ\ÝÈšÙ^H—H[ˆÙ[XÝYÝ\ÝÂˆB‚ˆÙ[XÝYÛX™[H
+ˆˆ
+È‹š›Ú[ŠÙ[XÝYÛX™[ÊBˆÜˆÊHÙ[XÝY\ÝÈŠBˆ
+B‚ˆ›Ü›K˜YÙ\œ›ÜŠˆœÙ[XÝYÝ\ÝÈ‹ˆ
+ˆˆ“›ÈX]Ú[™ÈÛÝ˜H›Ú™XÝØ\È›Ý[™›ÜˆÜÙ[XÝYÛX™[Kˆ‚ˆ”X\ÙHÚXÚÈ]H›Ú™XÝ^\ÝÈ[™]]È›Ú™XÝY]H‚ˆœ™XÛÜ™ÛÛZ[œÈHÛÜœ™XÝ\ÝËˆ‚ˆ
+Kˆ
+B‚ˆ™]\›ˆ™[™\Š™\]Y\Ý˜Ý\ÝÛY\‹Ü›ØÙ\ÜÙ\ËÜ›ØÙ\Ü×ØÜ™X]WÝŒ‹š[‹Âˆ™›Ü›HŽˆ›Ü›Kˆ™\œ›ÜˆŽˆ\œ›Ü‹ˆœ›ØÙ\Ü×Ü\œÜÙ\ÈŽˆ“ÐÑTÔ×ÔT”ÔÑTËˆ˜]˜Z[X›WÝ\ÝÈŽˆURSP“WÕTÕËˆœ\œÜÙWÜ™XÛÛ[Y[™YÝ\ÝÈŽˆT”ÔÑWÔ‘PÓÓSQS‘QÕTÕËˆ[\]WØØ\™ÈŽˆ[\]WØØ\™Ëˆ[\]\×ØÛÝ[Žˆ[Š[\]WØØ\™ÊKˆ˜XØÛÝ[×ØÛÝ[Žˆ[ŠXØÛÝ[ÊKˆ›Ü™×Ý[š]ÈŽˆÜ™×Ý[š]ËˆJBˆˆ‚‚ˆXØÈH™\ÛÛ™YÝ[\]VÈ˜XØÛÝ[ØÛÙH—Bˆ›ÚˆH™\ÛÛ™YÝ[\]VÈœ›Ú™XÝØÛÙH—Bˆ˜[YHH™\ÛÛ™YÝ[\]VÈ˜[YH—B‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÈËˆÚØ\H\Ý›ØÙ\ÜÂˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆØšˆH\Ý›ØÙ\ÜÊˆ˜[YO[˜[YKˆÛÛ\[žOXÛÛ\[žKˆÜ™×Ý[š]\Ù[XÝYÝ[š]ˆ›ÝšY\HœÛÝ˜H‹ˆXØÛÝ[ØÛÙOXXØËˆ›Ú™XÝØÛÙO\›Ú‹ˆÜ™X]YØžO\™\]Y\Ý\Ù\‹ˆ\œÜÙO\\œÜÙKˆÙ[XÝYÝ\ÝÏ\Ù[XÝYÝ\ÝËˆØ[™Y]WÛ[™ÝXYÙOXØ[™Y]WÛ[™ÝXYÙKˆØ[™Y]WÜ™\Ý[×Ù[˜X›YJˆ›Ü›K˜ÛX[™YÙ]K™Ù]
+˜Ø[™Y]WÜ™\Ý[×Ù[˜X›YŠBˆÜˆ˜[ÙBˆ
+Kˆ
+B‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÈˆðé›Ú™XÝÛ˜[YWÜÛ˜\ÚÝˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆY]HHY]WÛX\™Ù]
+
+XØË›ÚŠJB‚ˆYˆY]H[™Ù]]ŠY]Kš[\›—Û˜[YH‹›Û™JN‚ˆØš‹œ›Ú™XÝÛ˜[YWÜÛ˜\ÚÝHY]Kš[\›—Û˜[YBˆ[ÙN‚ˆØš‹œ›Ú™XÝÛ˜[YWÜÛ˜\ÚÝH
+ˆ™\ÛÛ™YÝ[\]K™Ù]
+œÛÝ˜WÛ˜[YHŠBˆÜˆ™\ÛÛ™YÝ[\]K™Ù]
+]HŠBˆÜˆ›Ú‚ˆ
+B‚ˆØš‹œØ]™J
+Bˆ™\]Y\ÝœÙ\ÜÚ[Û–È˜XÝ]™WÛÜ™×Ý[š]ÚY—HHÙ[XÝYÝ[š]œÂ‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÈKˆÜ\˜HX™[ÂˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆX™[Û˜[Y\ÈH›Ü›K˜ÛX[™YÙ]K™Ù]
+›X™[×Ý^ŠHÜˆ×B‚ˆÈÛHX™[×Ý^°éZØ\ˆÛÛ[XH[ˆÛÛHÝš[™È\Ý0é]°íœˆ\ÝBˆYˆ\Ú[œÝ[˜ÙJX™[Û˜[Y\ËÝŠN‚ˆX™[Û˜[Y\ÈHÂˆ][KœÝš\
+
+Bˆ›Üˆ][H[ˆX™[Û˜[Y\ËœÜ]
+‹ŠBˆYˆ][KœÝš\
+
+BˆB‚ˆYˆX™[Û˜[Y\Î‚ˆX™[ÛØšœÈH×B‚ˆ›ÜˆX™[Û˜[YH[ˆX™[Û˜[Y\Î‚ˆX‹ÈH›ØÙ\ÜÓX™[›Øš™XÝË™Ù]ÛÜ—ØÜ™X]JˆÛÛ\[žOXÛÛ\[žKˆ˜[YO[X™[Û˜[YKˆ
+BˆX™[ÛØšœË˜\[™
+XŠB‚ˆØš‹›X™[ËœÙ]
+X™[ÛØšœÊBˆ[ÙN‚ˆØš‹›X™[Ë˜ÛX\Š
+B‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÈLˆÙÙØHXÝ]š]BˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÙ×Ù]™[
+ˆÛÛ\[žOXÛÛ\[žKˆ™\˜PXÝ]š]Q]™[•™\˜‹”“ÐÑTÔ×ÐÔ‘PUQˆXÝÜ\™\]Y\Ý\Ù\‹ˆ›ØÙ\ÜÏ[Øš‹ˆY]O^Âˆœ›ØÙ\Ü×Û˜[YHŽˆØš‹›˜[YKˆœ\œÜÙHŽˆØš‹œ\œÜÙKˆœÙ[XÝYÝ\ÝÈŽˆØš‹œÙ[XÝYÝ\ÝËˆœ™\ÛÛ™YÜÛÝ˜WÝ[\]HŽˆ˜[YKˆœÛÝ˜WÜ›Ú™XÝÚYŽˆ›Ú™XÝÚYÛX\™Ù]
+˜[YJKˆKˆ
+B‚ˆY\ÜØYÙ\ËœÝXØÙ\ÜÊ™\]Y\Ý”›Ú™ZÝ]ÚØ\Y\ËˆŠBˆ™]\›ˆ™Y\™XÝ
+œ›ØÙ\ÜÙ\Îœ›ØÙ\Ü×Ù]Z[‹Ï[Øš‹œÊBˆˆ[ÙN‚ˆš[
+”“ÐÑTÔÈÔ‘PUH“Ô“HT”“Ô”Îˆ‹›Ü›K™\œ›ÜœË˜\×ÚœÛÛŠ
+JBˆš[
+”ÔÕUNˆ‹™\]Y\Ý”ÔÕ
+B‚ˆY\ÜØYÙ\Ë™\œ›ÜŠ™\]Y\Ý•H›Ú™XÝÛÝ[›Ý™HÜ™X]YˆX\ÙHÚXÚÈHšY[ËˆŠB‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÈLKˆÑUˆš\ØHÛH›Ü›BˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆ[ÙN‚ˆ›Ü›HH\Ý›ØÙ\ÜÕÚ^˜\™Ü™X]Q›Ü›JÜ™×Ý[š]Ï[Ü™×Ý[š]ÊB‚ˆ™]\›ˆ™[™\Š™\]Y\Ý˜Ý\ÝÛY\‹Ü›ØÙ\ÜÙ\ËÜ›ØÙ\Ü×ØÜ™X]WÝŒ‹š[‹Âˆ™›Ü›HŽˆ›Ü›Kˆ™\œ›ÜˆŽˆ\œ›Ü‹ˆœ›ØÙ\Ü×Ü\œÜÙ\ÈŽˆ“ÐÑTÔ×ÔT”ÔÑTËˆ˜]˜Z[X›WÝ\ÝÈŽˆURSP“WÕTÕËˆœ\œÜÙWÜ™XÛÛ[Y[™YÝ\ÝÈŽˆT”ÔÑWÔ‘PÓÓSQS‘QÕTÕËˆ[\]WØØ\™ÈŽˆ[\]WØØ\™Ëˆ[\]\×ØÛÝ[Žˆ[Š[\]WØØ\™ÊKˆ˜XØÛÝ[×ØÛÝ[Žˆ[ŠXØÛÝ[ÊKˆ›Ü™×Ý[š]ÈŽˆÜ™×Ý[š]ËˆJB‚™Yˆ›Ü›X[\ÙWÙš]™WÜÚ[ÜØÛÜ™Jˆ˜[YKŠHOˆ[›Ø]›Û™N‚ˆˆˆ‚ˆ›Ü›X[\ÙH[ˆ^\Ý[™ÈÕU‘HØÛÜ™HÚ[H™\Ù\š[™ÈXÚ[X[Ë‚ˆˆˆ‚‚ˆYˆ˜[YH\È›Û™N‚ˆ™]\›ˆ›Û™B‚ˆžN‚ˆØÛÜ™HH›Ø]
+˜[YJBˆ^Ù\
+\Q\œ›Ü‹˜[YQ\œ›ÜŠN‚ˆ™]\›ˆ›Û™B‚ˆØÛÜ™HHX^
+KŒZ[ŠKŒØÛÜ™JJB‚ˆ™]\›ˆ[
+ØÛÜ™JHYˆØÛÜ™Kš\×Ú[YÙ\Š
+H[ÙHØÛÜ™B‚‚™YˆÛÛ™\ÜÝ[—Ý×Ùš]™WÜÚ[
+ˆ˜[YKŠHOˆ[›Û™N‚ˆˆˆ‚ˆÛÛ™\H›Ý[™YÕSˆ™\Ý[œ›ÛHx $ÌL[Âˆ[[˜IÜÈš]™K\Ú[\Ü^HØØ[K‚‚ˆx $ÌˆOˆBˆø $ÍOˆ‚ˆx $ÍˆOˆÂˆø $ÎOˆˆx $ÌLOˆBˆˆˆ‚‚ˆYˆ˜[YH\È›Û™N‚ˆ™]\›ˆ›Û™B‚ˆžN‚ˆÝ[ˆH[
+ˆ›Ý[™
+›Ø]
+˜[YJJBˆ
+Bˆ^Ù\
+\Q\œ›Ü‹˜[YQ\œ›ÜŠN‚ˆ™]\›ˆ›Û™B‚ˆÝ[ˆHX^
+ˆKˆZ[ŠLÝ[ŠKˆ
+B‚ˆ™]\›ˆ
+ˆÝ[ˆ
+ÈBˆ
+HËÈ‚‚‚™YˆÙ]Ú\ÝÜšXØ[Ùš]™WÜÚ[ÜØÛÜ™Jˆ][KŠHOˆ[›Û™N‚ˆˆˆ‚ˆ™]\›ˆHš]™K\Ú[ÕU‘HØÛÜ™H›Üˆ\ÝÜšXØ[ˆ[Ý]˜][Ûˆ[™X[HÝ[H™\Ý[Ë‚‚ˆ™]È\ÝÜšXØ[[\ÜÈ™\Ù\™HHÜšYÚ[˜[ØØ[K‚‚ˆHÛ™WÝ×Ùš]™H™\Ý[È\™H[™XYHÕU‘H[™]\Ýˆ“Õ™HÛÛ™\Yœ›ÛHÕS‹‚ˆHÛ\ˆYØXÞH]HÚ]Ý]ÕU‘H[™›Ü›X][ÛˆX^Bˆ˜[˜XÚÈÈÛÛ™\œÚ[Ûˆœ›ÛHÕS‹‚ˆˆˆ‚‚ˆØØ[HHÝŠˆ][K™Ù]
+œØØ[HŠBˆÜˆˆ‚ˆ
+KœÝš\
+
+K›ÝÙ\Š
+B‚ˆYˆØØ[H[ˆÂˆŒK]ËMH‹ˆŒWÝ×ÍH‹ˆŒHÈH‹ˆ›Û™K]ËYš]™H‹ˆ›Û™WÝ×Ùš]™H‹ˆN‚ˆØØ[HH›Û™WÝ×Ùš]™H‚‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÈUU‘H’U‘KTÒS•ÈÕU‘H‘TÕSˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKB‚ˆYˆ
+ˆØØ[HOH›Û™WÝ×Ùš]™H‚ˆÜˆ][K™Ù]
+œÝ]™HŠH\È›Ý›Û™BˆÜˆ][K™Ù]
+œÝ]™WÜ›Ý[™YŠH\È›Ý›Û™Bˆ
+N‚ˆ›ÜˆÙ^H[ˆ
+ˆœÝ]™H‹ˆœÝ]™WÜ›Ý[™Y‹ˆœØÛÜ™H‹ˆ
+N‚ˆ˜[YHH][K™Ù]
+Ù^JB‚ˆYˆ˜[YH\È›Û™N‚ˆÛÛ[YB‚ˆ™]\›ˆ›Ü›X[\ÙWÙš]™WÜÚ[ÜØÛÜ™Jˆ˜[YBˆ
+B‚ˆ™]\›ˆ›Û™B‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÈQÐPÖHSPÒÂˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÂˆÈÛ\ˆ\ÝÜšXØ[]HX^HÛ›HÛÛZ[ˆÕS‹‚ˆÈÛÛ™\]]HÈHš]™K\Ú[\Ü^HØØ[K‚ˆÂˆ›ÜˆÙ^H[ˆ
+ˆœÝ[ˆ‹ˆœÝ[—Ü›Ý[™Y‹ˆœØÛÜ™H‹ˆ
+N‚ˆ˜[YHH][K™Ù]
+Ù^JB‚ˆYˆ˜[YH\È›Û™N‚ˆÛÛ[YB‚ˆ™]\›ˆÛÛ™\ÜÝ[—Ý×Ùš]™WÜÚ[
+ˆ˜[YBˆ
+B‚ˆ™]\›ˆ›Û™B‚™YˆZ[Ú\ÝÜšXØ[ØØ[™Y]WÙ]Z[ØÛÛ^
+ˆ›ØÙ\ÜËˆ\ÝÜšXØ[ØØ[™Y]Kˆ[™ÝXYÙOHœÝˆ‹ŠN‚ˆˆˆ‚ˆZ[Ø[™Y]HÚY]ÛÛ^›ÜˆH\ÝÜšXØ[Ø[™Y]K‚‚ˆ\ÝÜšXØ[\ÜÙ\ÜÛY[]H\È›Ü›X[\ÙY›ÝYÚˆZ[Ú\ÝÜšXØ[ØØ[™Y]WÜ›Ùš[J
+H[™[ˆ^ÜÙY\Ú[™ÈHØ[YBˆÛÛ^Ù^\È\ÈH™YÝ[\ˆØ[™Y]HÚY]‚‚ˆ\ÝÜšXØ[Ø[™Y]\È[Ø^\È\ÙHÙ[™\˜[[œÚYÚ[ÙH™XØ]\ÙH›ÂˆÜšYÚ[˜[›ØÙ\ÜÈ\œÜÙHÜˆÛÛ^\È]˜Z[X›K‚ˆˆˆ‚ˆØ[™Y]HH\ÝÜšXØ[ØØ[™Y]K˜Ø[™Y]BˆØ[™Y]WÜ™\ÜÛ[™ÝXYÙHHÙ]]Šˆ›ØÙ\ÜËˆ˜Ø[™Y]WÛ[™ÝXYÙH‹ˆœÝˆ‹ˆ
+HÜˆœÝˆ‚‚ˆ›Ùš[HHZ[Ú\ÝÜšXØ[ØØ[™Y]WÜ›Ùš[Jˆ\ÝÜšXØ[ØØ[™Y]Bˆ
+B‚ˆ\ÜÙ\ÜÛY[Ü™\Ý[ÈH›Ùš[VÈ˜\ÜÙ\ÜÛY[Ü™\Ý[È—B‚ˆ[Ý]˜][Û—ØÛÛ\][˜ÚY\ÈH›Ùš[VÈ›[Ý]˜][Û—ØÛÛ\][˜ÚY\È—Bˆ\œÛÛ˜[]WØÛÛ\][˜ÚY\ÈH›Ùš[VÈœ\œÛÛ˜[]WØÛÛ\][˜ÚY\È—BˆX[WÜÝ[WÜØÛÜ™\ÈH›Ùš[VÈX[WÜÝ[WÜØÛÜ™\È—BˆXš[]WÜ™\Ý[ÈH›Ùš[VÈ˜Xš[]WÜ™\Ý[È—B‚ˆ\×Û[Ý]˜][Û—Ü™\Ý[ÈH›Ùš[VÈš\×Û[Ý]˜][Û—Ü™\Ý[È—Bˆ\×Ü\œÛÛ˜[]WÜ™\Ý[ÈH›Ùš[VÈš\×Ü\œÛÛ˜[]WÜ™\Ý[È—Bˆ\×ØXš[]WÜ™\Ý[ÈH›Ùš[VÈš\×ØXš[]WÜ™\Ý[È—Bˆ\×Ø[žWÜ™\Ý[ÈH›Ùš[VÈš\×Ø[žWÜ™\Ý[È—B‚ˆÈ\ÝÜšXØ[^˜XÝÈÛÛZ[ˆÛÛ\]Y™\Ý[]K‚ˆ[Ø\ÜÙ\ÜÛY[×ØÛÛ\]YH\×Ø[žWÜ™\Ý[Â‚ˆ™\˜˜[Ü™\Ý[HXš[]WÜ™\Ý[Ë™Ù]
+™\˜˜[ŠBˆÙÚXØ[Ü™\Ý[HXš[]WÜ™\Ý[Ë™Ù]
+›ÙÚXØ[ŠBˆ[Y\šXØ[Ü™\Ý[HXš[]WÜ™\Ý[Ë™Ù]
+›[Y\šXØ[ŠB‚ˆ™\˜˜[Ü\˜Ù[[HH
+ˆ™\˜˜[Ü™\Ý[™Ù]
+˜[YHŠBˆYˆ™\˜˜[Ü™\Ý[ˆ[ÙH›Û™Bˆ
+B‚ˆÙÚXØ[Ü\˜Ù[[HH
+ˆÙÚXØ[Ü™\Ý[™Ù]
+˜[YHŠBˆYˆÙÚXØ[Ü™\Ý[ˆ[ÙH›Û™Bˆ
+B‚ˆ[Y\šXØ[Ü\˜Ù[[HH
+ˆ[Y\šXØ[Ü™\Ý[™Ù]
+˜[YHŠBˆYˆ[Y\šXØ[Ü™\Ý[ˆ[ÙH›Û™Bˆ
+B‚ˆ\×Ý™\˜˜[Ü™\Ý[ÈH™\˜˜[Ü™\Ý[\È›Ý›Û™Bˆ\×ÛÙÚXØ[Ü™\Ý[ÈHÙÚXØ[Ü™\Ý[\È›Ý›Û™Bˆ\×Û[Y\šXØ[Ü™\Ý[ÈH[Y\šXØ[Ü™\Ý[\È›Ý›Û™B‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÈÛÛ™\HÛÛ[[Ûˆ›Ùš[H[ÈÝXÝ\™\È[™XYH\ÙYžHH[\]BˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKB‚ˆ[Ý]˜][Û—Ü™\Ý[ÈH×Bˆ\WØÛÛ\][˜ÚY\ÈH×B‚ˆ›Üˆ][H[ˆ[Ý]˜][Û—ØÛÛ\][˜ÚY\Î‚ˆ˜]×ÜØÛÜ™HH][K™Ù]
+ˆœØÛÜ™H‚ˆ
+B‚ˆš]™WÜÚ[ÜØÛÜ™HH
+ˆÙ]Ú\ÝÜšXØ[Ùš]™WÜÚ[ÜØÛÜ™Jˆ][Bˆ
+Bˆ
+B‚ˆ˜]×ÜÝ[ˆH][K™Ù]
+ˆœÝ[ˆ‚ˆ
+B‚ˆÈH˜]]™HÛ™K]ËYš]™H[Ý]˜][Ûˆ™\Ý[\ÈÕU‘K›ÝÕS‹‚ˆÈÈ›Ý\XØ]H][ÈH\œÛÛ˜[]HØØ[HšY[Ë‚ˆYˆ
+ˆ˜]×ÜÝ[ˆ\È›Û™Bˆ[™ÝŠ][K™Ù]
+œØØ[HŠHÜˆˆŠKœÝš\
+
+K›ÝÙ\Š
+Bˆ›Ý[ˆÂˆ›Û™WÝ×Ùš]™H‹ˆ›Û™K]ËYš]™H‹ˆŒWÝ×ÍH‹ˆŒK]ËMH‹ˆŒHÈH‹ˆBˆ
+N‚ˆ˜]×ÜÝ[ˆH˜]×ÜØÛÜ™B‚ˆ˜]×ÜÝ[—Ü›Ý[™YH][K™Ù]
+ˆœÝ[—Ü›Ý[™Y‚ˆ
+B‚ˆYˆ
+ˆ˜]×ÜÝ[—Ü›Ý[™Y\È›Û™Bˆ[™˜]×ÜÝ[ˆ\È›Ý›Û™Bˆ
+N‚ˆ˜]×ÜÝ[—Ü›Ý[™YH[
+ˆ›Ý[™
+›Ø]
+˜]×ÜÝ[ŠJBˆ
+B‚ˆ›Ü›X[\ÙYÚ][HHÂˆ˜XÝ]š]HŽˆ
+ˆ“[Ý]˜][Ûˆ]Y\Ý[Û›˜Z\™H‚ˆ
+K‚ˆ˜ÛÛ\][˜ÞHŽˆ
+ˆ][K™Ù]
+˜ÛÛ\][˜ÞHŠBˆÜˆ][K™Ù]
+›˜[YHŠBˆ
+K‚ˆÈš]™K\Ú[™\Ý[\ÙYžH[Ý]˜][ÛˆRK‚ˆœØÛÜ™HŽˆš]™WÜÚ[ÜØÛÜ™KˆœÝ]™HŽˆš]™WÜÚ[ÜØÛÜ™KˆœÝ]™WÜ›Ý[™YŽˆ
+ˆ[
+›Ý[™
+›Ø]
+š]™WÜÚ[ÜØÛÜ™JJJBˆYˆš]™WÜÚ[ÜØÛÜ™H\È›Ý›Û™Bˆ[ÙH›Û™Bˆ
+KˆœØØ[HŽˆ][K™Ù]
+œØØ[HŠK‚ˆÈ™\Ù\™HHÜšYÚ[˜[[\ÜYÕSˆ]šY[˜ÙK‚ˆœÝ[ˆŽˆ˜]×ÜÝ[‹ˆœÝ[—Ü›Ý[™YŽˆ˜]×ÜÝ[—Ü›Ý[™Y‚ˆœ\˜Ù[[HŽˆ][K™Ù]
+ˆœ\˜Ù[[H‚ˆ
+K‚ˆ˜\ÜÙ\ÜÛY[ØÙ[™HŽˆ›Û™KˆœÛÝ\˜ÙHŽˆš\ÝÜšXØ[Ú[\Ü‹ˆB‚ˆ[Ý]˜][Û—Ü™\Ý[Ë˜\[™
+ˆ›Ü›X[\ÙYÚ][K˜ÛÜJ
+Bˆ
+B‚ˆ\WØÛÛ\][˜ÚY\Ë˜\[™
+ˆ›Ü›X[\ÙYÚ][K˜ÛÜJ
+Bˆ
+B‚ˆ›Ü›X[\ÙYÜ\œÛÛ˜[]WØÛÛ\][˜ÚY\ÈH×B‚ˆ›Üˆ][H[ˆ\œÛÛ˜[]WØÛÛ\][˜ÚY\Î‚ˆ›Ü›X[\ÙYÜ\œÛÛ˜[]WØÛÛ\][˜ÚY\Ë˜\[™
+Âˆ˜ÛÛ\][˜ÞHŽˆ][K™Ù]
+˜ÛÛ\][˜ÞHŠHÜˆ][K™Ù]
+›˜[YHŠKˆœØÛÜ™HŽˆ][K™Ù]
+œØÛÜ™HŠKˆœÝ[ˆŽˆ][K™Ù]
+œÝ[ˆŠKˆœÝ[—Ü›Ý[™YŽˆ][K™Ù]
+œÝ[—Ü›Ý[™YŠKˆœ\˜Ù[[HŽˆ][K™Ù]
+œ\˜Ù[[HŠKˆ˜Ø]YÛÜžHŽˆ][K™Ù]
+˜Ø]YÛÜžHŠKˆœÛÝ\˜ÙHŽˆš\ÝÜšXØ[Ú[\Ü‹ˆJB‚ˆ›Ü›X[\ÙYÝX[WÜÝ[WÜØÛÜ™\ÈH×B‚ˆ›Üˆ][H[ˆX[WÜÝ[WÜØÛÜ™\Î‚ˆ˜]×ÜØÛÜ™HH][K™Ù]
+ˆœØÛÜ™H‚ˆ
+B‚ˆš]™WÜÚ[ÜØÛÜ™HH
+ˆÙ]Ú\ÝÜšXØ[Ùš]™WÜÚ[ÜØÛÜ™Jˆ][Bˆ
+Bˆ
+B‚ˆ˜]×ÜÝ[ˆH][K™Ù]
+ˆœÝ[ˆ‚ˆ
+B‚ˆYˆ˜]×ÜÝ[ˆ\È›Û™N‚ˆ˜]×ÜÝ[ˆH˜]×ÜØÛÜ™B‚ˆ˜]×ÜÝ[—Ü›Ý[™YH][K™Ù]
+ˆœÝ[—Ü›Ý[™Y‚ˆ
+B‚ˆYˆ
+ˆ˜]×ÜÝ[—Ü›Ý[™Y\È›Û™Bˆ[™˜]×ÜÝ[ˆ\È›Ý›Û™Bˆ
+N‚ˆ˜]×ÜÝ[—Ü›Ý[™YH[
+ˆ›Ý[™
+›Ø]
+˜]×ÜÝ[ŠJBˆ
+B‚ˆ›Ü›X[\ÙYÝX[WÜÝ[WÜØÛÜ™\Ë˜\[™
+Âˆ˜ÛÛ\][˜ÞHŽˆ
+ˆ][K™Ù]
+˜ÛÛ\][˜ÞHŠBˆÜˆ][K™Ù]
+›˜[YHŠBˆ
+K‚ˆÈš]™K\Ú[™\Ý[\ÙYžHX[HÝ[\Ë‚ˆœØÛÜ™HŽˆš]™WÜÚ[ÜØÛÜ™KˆœÝ]™HŽˆš]™WÜÚ[ÜØÛÜ™KˆœÝ]™WÜ›Ý[™YŽˆš]™WÜÚ[ÜØÛÜ™KˆœØØ[HŽˆ][K™Ù]
+œØØ[HŠK‚ˆÈ™\Ù\™HÜšYÚ[˜[[\ÜYÕS‹‚ˆœÝ[ˆŽˆ˜]×ÜÝ[‹ˆœÝ[—Ü›Ý[™YŽˆ˜]×ÜÝ[—Ü›Ý[™Y‚ˆœ\˜Ù[[HŽˆ][K™Ù]
+ˆœ\˜Ù[[H‚ˆ
+K‚ˆ˜Ø]YÛÜžHŽˆX[WÜÝ[H‹ˆœÛÝ\˜ÙHŽˆš\ÝÜšXØ[Ú[\Ü‹ˆJB‚ˆ[Ý]˜][Û—Ü™\Ý[ÈHÛÜY
+ˆ[Ý]˜][Û—Ü™\Ý[ËˆÙ^O[[X™H][Nˆ
+ˆ][K™Ù]
+˜ÛÛ\][˜ÞHŠHÜˆˆ‚ˆ
+K›ÝÙ\Š
+Kˆ
+B‚ˆ\WØÛÛ\][˜ÚY\ÈHÛÜY
+ˆ\WØÛÛ\][˜ÚY\ËˆÙ^O[[X™H][Nˆ
+ˆ][K™Ù]
+˜ÛÛ\][˜ÞHŠHÜˆˆ‚ˆ
+K›ÝÙ\Š
+Kˆ
+B‚ˆ›Ü›X[\ÙYÜ\œÛÛ˜[]WØÛÛ\][˜ÚY\ÈHÛÜY
+ˆ›Ü›X[\ÙYÜ\œÛÛ˜[]WØÛÛ\][˜ÚY\ËˆÙ^O[[X™H][Nˆ
+ˆ][K™Ù]
+˜ÛÛ\][˜ÞHŠHÜˆˆ‚ˆ
+K›ÝÙ\Š
+Kˆ
+B‚ˆ™\ÜÛœÙWÜÝ[\ÈHZ[Ü™\ÜÛœÙWÜÝ[WÜ™\Ý[Êˆ›Ü›X[\ÙYÜ\œÛÛ˜[]WØÛÛ\][˜ÚY\Âˆ
+B‚ˆ›Ü›X[\ÙYÝX[WÜÝ[WÜØÛÜ™\ÈHÛÜY
+ˆ›Ü›X[\ÙYÝX[WÜÝ[WÜØÛÜ™\ËˆÙ^O[[X™H][Nˆ
+ˆ][K™Ù]
+˜ÛÛ\][˜ÞHŠHÜˆˆ‚ˆ
+K›ÝÙ\Š
+Kˆ
+B‚ˆX[WÜÝ[WÜ›Ùš[HH
+ˆZ[ÝX[WÜÝ[WÜ›Ùš[Jˆ›Ü›X[\ÙYÝX[WÜÝ[WÜØÛÜ™\Âˆ
+Bˆ
+B‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÈÚ\™YØÛÜ™H[\œÂˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKB‚ˆYˆØY™WÜØÛÜ™J][JN‚ˆˆˆ‚ˆ™]\›ˆHš\œÝ]˜Z[X›H[Y\šXÈ˜[YK‚‚ˆ^XÚ]›Û™HÚXÚÜÈ\™H\ÙYÛÈHYÚ][X]H˜[YHÙˆ\È›ÝÜÝ‚ˆˆˆ‚ˆ›ÜˆÙ^H[ˆ
+ˆœØÛÜ™H‹ˆœÝ[—Ü›Ý[™Y‹ˆœÝ]™WÜ›Ý[™Y‹ˆœ\˜Ù[[H‹ˆ
+N‚ˆ˜[YHH][K™Ù]
+Ù^JB‚ˆYˆ˜[YH\È›Ý›Û™N‚ˆ™]\›ˆ˜[YB‚ˆ™]\›ˆLB‚ˆÜÛ[Ý]˜][ÛœÈHÛÜY
+ˆ\WØÛÛ\][˜ÚY\ËˆÙ^O\ØY™WÜØÛÜ™Kˆ™]™\œÙOUYKˆ
+VÎŒ×B‚ˆÛÛXš[™YÜ\œÛÛ˜[]WÜØÛÜ™\ÈH
+ˆ›Ü›X[\ÙYÜ\œÛÛ˜[]WØÛÛ\][˜ÚY\Âˆ
+È›Ü›X[\ÙYÝX[WÜÝ[WÜØÛÜ™\Âˆ
+B‚ˆÜÜ\œÛÛ˜[]WÝ˜Z]ÈHÛÜY
+ˆÛÛXš[™YÜ\œÛÛ˜[]WÜØÛÜ™\ËˆÙ^O\ØY™WÜØÛÜ™Kˆ™]™\œÙOUYKˆ
+VÎŒ×B‚ˆ[Ý]˜][Û—Ù]™[ÜY[Ø\™X\ÈHÛÜY
+ˆ\WØÛÛ\][˜ÚY\ËˆÙ^O\ØY™WÜØÛÜ™Kˆ
+VÎŒ—B‚ˆ\œÛÛ˜[]WÙ]™[ÜY[Ø\™X\ÈHÛÜY
+ˆÛÛXš[™YÜ\œÛÛ˜[]WÜØÛÜ™\ËˆÙ^O\ØY™WÜØÛÜ™Kˆ
+VÎŒ—B‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÈ]HÝ\YYÈHÙ[™\˜[[œÚYÚ[™Ú[™BˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKB‚ˆÙ[™\˜[Ú[œÚYÚÚ[œ]HZ[ÙÙ[™\˜[Ú[œÚYÚÚ[œ]
+ˆ\œÛÛ˜[]WØÛÛ\][˜ÚY\Ï[›Ü›X[\ÙYÜ\œÛÛ˜[]WØÛÛ\][˜ÚY\Ëˆ[Ý]˜][Û—ØÛÛ\][˜ÚY\Ï[\WØÛÛ\][˜ÚY\Ëˆ™\˜˜[Ü\˜Ù[[O]™\˜˜[Ü\˜Ù[[KˆÙÚXØ[Ü\˜Ù[[O[ÙÚXØ[Ü\˜Ù[[Kˆ[Y\šXØ[Ü\˜Ù[[O[[Y\šXØ[Ü\˜Ù[[Kˆ
+B‚ˆÈ[\Ü˜\žH]™[ÜY[ÙÙÚ[™Ë‚ˆÈ™[[Ý™H\ÙHš[ÈÛ˜ÙH[\ÜY›Ùš[\È]™H™Y[ˆ™\šYšYY‚ˆš[
+OOHTÕÔ’PÐSÑS‘TSS”ÒQÒS”UOOHŠBˆš[
+œÛÛ‹™[\ÊˆÙ[™\˜[Ú[œÚYÚÚ[œ]ˆ[™[L‹ˆ[œÝ\™WØ\ØÚZOQ˜[ÙKˆY˜][\Ý‹ˆ
+JBˆš[
+OOHÒTÕÔ’PÐSÑS‘TSS”ÒQÒS”UOOHŠB‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÈXš[]H™\ÜÂˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKB‚ˆXš[]WÜ™\Ü×Ù›Ü—ÝZHHÂˆ›Ý™\šY]ÈŽˆ×Kˆ™\˜˜[Žˆ
+ˆZ[ØÛÙÛš]]™WÜ™\Ü×Ù›Ü—Ý\Ý
+ˆ\ÝÚÙ^OH™\˜˜[‹ˆ\˜Ù[[O]™\˜˜[Ü\˜Ù[[Kˆ[™ÝXYÙWØÛÙOXØ[™Y]WÜ™\ÜÛ[™ÝXYÙKˆ
+BˆYˆ™\˜˜[Ü\˜Ù[[H\È›Ý›Û™Bˆ[ÙH›Û™Bˆ
+Kˆ›ÙÚXØ[Žˆ
+ˆZ[ØÛÙÛš]]™WÜ™\Ü×Ù›Ü—Ý\Ý
+ˆ\ÝÚÙ^OH›ÙÚXØ[‹ˆ\˜Ù[[O[ÙÚXØ[Ü\˜Ù[[Kˆ[™ÝXYÙWØÛÙOXØ[™Y]WÜ™\ÜÛ[™ÝXYÙKˆ
+BˆYˆÙÚXØ[Ü\˜Ù[[H\È›Ý›Û™Bˆ[ÙH›Û™Bˆ
+Kˆ›[Y\šXØ[Žˆ
+ˆZ[ØÛÙÛš]]™WÜ™\Ü×Ù›Ü—Ý\Ý
+ˆ\ÝÚÙ^OH›[Y\šXØ[‹ˆ\˜Ù[[O[[Y\šXØ[Ü\˜Ù[[Kˆ[™ÝXYÙWØÛÙOXØ[™Y]WÜ™\ÜÛ[™ÝXYÙKˆ
+BˆYˆ[Y\šXØ[Ü\˜Ù[[H\È›Ý›Û™Bˆ[ÙH›Û™Bˆ
+KˆB‚ˆYˆXš[]WÜ™\Ü×Ù›Ü—ÝZVÈ™\˜˜[—N‚ˆXš[]WÜ™\Ü×Ù›Ü—ÝZVÈ›Ý™\šY]È—K˜\[™
+ÂˆšÙ^HŽˆ™\˜˜[‹ˆ›X™[Žˆ•™\˜˜[‹ˆœ\˜Ù[[HŽˆ™\˜˜[Ü\˜Ù[[KˆJB‚ˆYˆXš[]WÜ™\Ü×Ù›Ü—ÝZVÈ›ÙÚXØ[—N‚ˆXš[]WÜ™\Ü×Ù›Ü—ÝZVÈ›Ý™\šY]È—K˜\[™
+ÂˆšÙ^HŽˆ›ÙÚXØ[‹ˆ›X™[Žˆ“ÙÚXØ[‹ˆœ\˜Ù[[HŽˆÙÚXØ[Ü\˜Ù[[KˆJB‚ˆYˆXš[]WÜ™\Ü×Ù›Ü—ÝZVÈ›[Y\šXØ[—N‚ˆXš[]WÜ™\Ü×Ù›Ü—ÝZVÈ›Ý™\šY]È—K˜\[™
+ÂˆšÙ^HŽˆ›[Y\šXØ[‹ˆ›X™[Žˆ“[Y\šXØ[‹ˆœ\˜Ù[[HŽˆ[Y\šXØ[Ü\˜Ù[[KˆJB‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÈ[Ý]˜][Ûˆ™\ÜÂˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKB‚ˆ[Ý]˜][Û—ÜØÛÜ™\ÈHZ[ÜØÛÜ™\×ØžWØÛÛ\][˜ÞJˆ\WØÛÛ\][˜ÚY\Âˆ
+B‚ˆ[Ý]˜][Û—Ú[œÚYÚÈHZ[Û[Ý]˜][Û—Ú[œÚYÚÜÙXÝ[ÛŠˆ\WØÛÛ\][˜ÚY\ËˆØ[™Y]WÛ˜[YOXØ[™Y]K™š\œÝÛ˜[YKˆ
+B‚ˆ[Ý]˜][Û—Ü™\Ü×Ù›Ü—ÝZHH×B‚ˆYˆ\×Û[Ý]˜][Û—Ü™\Ý[Î‚ˆ[Ý]˜][Û—Ü™\Ü×Ù›Ü—ÝZHHÂˆZ[Ü˜XÝ][Û™\—Ü™\Ü
+ˆÛÛ\][˜ÚY\Ï[\WØÛÛ\][˜ÚY\Ëˆ
+KˆZ[ÛX[˜YÙ\—Ü™\Ü
+ˆÛÛ\][˜ÚY\Ï[\WØÛÛ\][˜ÚY\Ëˆ
+KˆZ[Û[Ý]˜][Û—ØÛØXÚ[™×Ü™\Ü
+ˆÛÛ\][˜ÚY\Ï[\WØÛÛ\][˜ÚY\Ëˆ
+KˆZ[ØØ[™Y]WÜ™\Ü
+ˆÛÛ\][˜ÚY\Ï[\WØÛÛ\][˜ÚY\Ëˆ[™ÝXYÙWØÛÙOXØ[™Y]WÜ™\ÜÛ[™ÝXYÙKˆ
+KˆB‚‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÈ\œÛÛ˜[]H™\ÜÈ[™›Ùš[BˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKB‚ˆ\œÛÛ˜[]WÜ™\ÜÈH×Bˆ\œÛÛ˜[]WÜ›Ùš[HH›Û™B‚ˆYˆ\×Ü\œÛÛ˜[]WÜ™\Ý[Î‚ˆ\ÝÜšXØ[Ü\œÛÛ˜[]WØÛÛ\][˜ÚY\ÈH
+ˆ›Ü›X[\ÙYÜ\œÛÛ˜[]WØÛÛ\][˜ÚY\Âˆ
+È›Ü›X[\ÙYÝX[WÜÝ[WÜØÛÜ™\Âˆ
+B‚ˆ\ÝÜšXØ[Ü\œÛÛ˜[]WØXÝ]š]Y\ÈHÂˆÂˆ˜XÝ]š]HŽˆ”\œÛÛ˜[]H\ÜÙ\ÜÛY[‹ˆœÝ]\ÈŽˆ˜ÛÛ\]Y‹ˆ˜ÛÛ\][˜ÚY\ÈŽˆ
+ˆ\ÝÜšXØ[Ü\œÛÛ˜[]WØÛÛ\][˜ÚY\Âˆ
+KˆBˆB‚ˆ\œÛÛ˜[]WÜ™\ÜÈH
+ˆZ[Ü\œÛÛ˜[]WÜ™\Ü×Ù›Ü—ØØ[™Y]JˆÛÝ˜WØXÝ]š]Y\ÏJˆ\ÝÜšXØ[Ü\œÛÛ˜[]WØXÝ]š]Y\Âˆ
+Kˆ
+Bˆ
+B‚ˆ\œÛÛ˜[]WÜ›Ùš[WÜ™\ÜH™^
+ˆ
+ˆ™\Üˆ›Üˆ™\Ü[ˆ\œÛÛ˜[]WÜ™\ÜÂˆYˆ™\Ü™Ù]
+œ™\ÜÚYŠBˆOH˜Z]Ú[™XØ]Ü—Ü›Ùš[H‚ˆ
+Kˆ›Û™Kˆ
+B‚ˆYˆ\œÛÛ˜[]WÜ›Ùš[WÜ™\Ü‚ˆ\œÛÛ˜[]WÜ›Ùš[HH
+ˆZ[Ü›Ùš[WÙœ›ÛWÜ™\ÛÛ™YÜ™\Ü
+ˆ™\ÛÛ™YÜ™\ÜJˆ\œÛÛ˜[]WÜ›Ùš[WÜ™\Üˆ
+Kˆ[™ÝXYÙO[[™ÝXYÙKˆ[˜ÛYWÛZ\ÜÚ[™×Ý˜Z]ÏQ˜[ÙKˆ
+Bˆ
+B‚ˆ]˜Z[X›WÜ™\Ü×ØÛÝ[H‚ˆYˆ\×Ý™\˜˜[Ü™\Ý[Î‚ˆ]˜Z[X›WÜ™\Ü×ØÛÝ[
+ÏH‚‚ˆYˆ\×ÛÙÚXØ[Ü™\Ý[Î‚ˆ]˜Z[X›WÜ™\Ü×ØÛÝ[
+ÏH‚‚ˆYˆ\×Û[Y\šXØ[Ü™\Ý[Î‚ˆ]˜Z[X›WÜ™\Ü×ØÛÝ[
+ÏH‚‚ˆYˆ\×Û[Ý]˜][Û—Ü™\Ý[Î‚ˆ]˜Z[X›WÜ™\Ü×ØÛÝ[
+ÏH[Šˆ[Ý]˜][Û—Ü™\Ü×Ù›Ü—ÝZBˆ
+B‚ˆYˆ\×Ü\œÛÛ˜[]WÜ™\Ý[Î‚ˆ]˜Z[X›WÜ™\Ü×ØÛÝ[
+ÏH[Šˆ\œÛÛ˜[]WÜ™\ÜÂˆ
+B‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÈÙ[™\˜[Ø[™Y]H[œÚYÚÂˆÂˆÈ\È\ÈH[\Ü˜\žH]\›Z[š\ÝXÈ˜[˜XÚËˆ]\‹™\XÙH\È›ØÚÂˆÈÚ]H^XÝØ[YH[œÚYÚÙ[™\˜]Üˆ\ÙYžHXÝ]™HÙ[™\˜[[[ÙH›Ùš[\Ë‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKB‚ˆØ[™Y]WÚ[œÚYÚÈHÂˆœÝ[[X\žHŽˆ›Û™KˆšÙ^WÜÝ™[™ÝÈŽˆ×Kˆ˜\™X\×Ý×Ù^Ü™HŽˆ×Kˆœ]Y\Ý[ÛœÈŽˆ×Kˆ™š]Žˆ›Û™Kˆ˜ÛÙÛš]]™WÜ™\Ý[ÈŽˆZ[ØÛÙÛš]]™WÚ[œÚYÚÜ™\Ý[Êˆ™\˜˜[Ü\˜Ù[[O]™\˜˜[Ü\˜Ù[[KˆÙÚXØ[Ü\˜Ù[[O[ÙÚXØ[Ü\˜Ù[[Kˆ[Y\šXØ[Ü\˜Ù[[O[[Y\šXØ[Ü\˜Ù[[Kˆ
+KˆBˆ\×ØÛÛ\]YØÛÙÛš]]™WÜ™\Ý[ÈH[žJˆ™\Ý[™Ù]
+˜ÛÛ\]YŠBˆ[™™\Ý[™Ù]
+šÙ^HŠH[ˆ\ÜÙ\ÜÛY[ÚÙ^\×Ú[—Ü›ØÙ\ÜÂˆ›Üˆ™\Ý[[ˆØ[™Y]WÚ[œÚYÚÖÈ˜ÛÙÛš]]™WÜ™\Ý[È—Bˆ
+B‚ˆYˆ\×Ø[žWÜ™\Ý[Î‚ˆØ[™Y]WÚ[œÚYÚÖÈœÝ[[X\žH—HHÂˆ˜›ÙHŽˆ
+ˆ•\ÈØ[™Y]H›Ùš[H\È˜\ÙYÛˆÝXÝ\™Y\ÝÜšXØ[‚ˆ”ÓÕH\ÜÙ\ÜÛY[]KˆH[œÚYÚÈ\™H™\Ù[Y[ˆÙ[™\˜[‚ˆ›[ÙH™XØ]\ÙH›ÈÜšYÚ[˜[›ØÙ\ÜÈ\œÜÙHÜˆ›ÛHÛÛ^\È‚ˆ˜]˜Z[X›Kˆ‚ˆ
+BˆB‚ˆ›Üˆ][H[ˆÜÜ\œÛÛ˜[]WÝ˜Z]ÖÎŒ—N‚ˆÛÛ\][˜ÞHH][K™Ù]
+˜ÛÛ\][˜ÞHŠBˆ˜[YHHØY™WÜØÛÜ™J][JB‚ˆØ[™Y]WÚ[œÚYÚÖÈšÙ^WÜÝ™[™ÝÈ—K˜\[™
+Âˆ]HŽˆÛÛ\][˜ÞKˆ˜›ÙHŽˆ
+ˆ•\È\ÈÛ™HÙˆHØ[™Y]IÜÈYÚ\ˆ[\ÜY\œÛÛ˜[]H‚ˆ›ÜˆX[HÝ[HØÛÜ™\Ëˆ‚ˆ
+KˆšÝ×Ú]ÛX^WÜÚÝÈŽˆ
+ˆ•\ÈX^H\X\ˆ\ÈH™XÝ\œš[™È™Z]š[Ý\˜[™Y™\™[˜ÙH[ˆ‚ˆœ™[]˜[ÛÜšÈÚ]X][ÛœËˆ‚ˆ
+KˆÚWÚ]ÛX]\œÈŽˆ
+ˆ•\È[YHX^H™H\ÙY[Ú[ˆÛÛœÚY\š[™ÈHØ[™Y]IÜÈ‚ˆ™Ù[™\˜[ÛÜšÈÝ[H[™ÛÛšX][Û‹ˆ‚ˆ
+Kˆ™]šY[˜ÙHŽˆÂˆˆžØÛÛ\][˜Þ_NˆÝ˜[Y_H‚ˆKˆJB‚ˆ›Üˆ][H[ˆÜÛ[Ý]˜][ÛœÖÎŒ—N‚ˆÛÛ\][˜ÞHH][K™Ù]
+˜ÛÛ\][˜ÞHŠBˆ˜[YHHØY™WÜØÛÜ™J][JB‚ˆØ[™Y]WÚ[œÚYÚÖÈšÙ^WÜÝ™[™ÝÈ—K˜\[™
+Âˆ]HŽˆÛÛ\][˜ÞKˆ˜›ÙHŽˆ
+ˆ•\È\ÈÛ™HÙˆHØ[™Y]IÜÈYÚ\ˆ[\ÜY[Ý]˜][Ûˆ‚ˆœØÛÜ™\Ëˆ‚ˆ
+KˆšÝ×Ú]ÛX^WÜÚÝÈŽˆ
+ˆ•\ÈX^H[™XØ]HHÛÛ™][ÛœÈÜˆXÝ]š]Y\È][™‚ˆÈ[™\™Ú\ÙH[™[™ØYÙHHØ[™Y]Kˆ‚ˆ
+KˆÚWÚ]ÛX]\œÈŽˆ
+ˆ“[Ý]˜][Û˜[š]™\œÈØ[ˆY™™XÝ[™ØYÙ[Y[Ø]\Ù˜XÝ[Ûˆ‚ˆ˜[™Û™Ù\‹]\›H™][[Û‹ˆ‚ˆ
+Kˆ™]šY[˜ÙHŽˆÂˆˆžØÛÛ\][˜Þ_NˆÝ˜[Y_H‚ˆKˆJB‚ˆ›Üˆ][H[ˆ\œÛÛ˜[]WÙ]™[ÜY[Ø\™X\ÖÎŒ—N‚ˆÛÛ\][˜ÞHH][K™Ù]
+˜ÛÛ\][˜ÞHŠBˆ˜[YHHØY™WÜØÛÜ™J][JB‚ˆØ[™Y]WÚ[œÚYÚÖÈ˜\™X\×Ý×Ù^Ü™H—K˜\[™
+Âˆ]HŽˆÛÛ\][˜ÞKˆ˜›ÙHŽˆ
+ˆ•\È\ÈÛ™HÙˆHØ[™Y]IÜÈÝÙ\ˆ[\ÜY\œÛÛ˜[]H‚ˆ›ÜˆX[HÝ[HØÛÜ™\Ëˆ‚ˆ
+Kˆ™^Ü™WÝ›ÝYÚŽˆ
+ˆ\ÚÈ›Üˆ^[\\ÈÙˆÚ]X][ÛœÈÚ\™H\È™Z]š[Ý\ˆ\È[Ü™H‚ˆ›Üˆ\ÜÈ˜]\˜[›ÜˆHØ[™Y]Kˆ‚ˆ
+KˆÚ]Ý×Û\Ý[—Ù›ÜˆŽˆ
+ˆ“\Ý[ˆ›ÜˆÛÛ^Ù[‹X]Ø\™[™\ÜÈ[™Ý˜]YÚY\ÈH‚ˆ˜Ø[™Y]H\Ù\ÈÈY\ˆ‚ˆ
+Kˆ™]šY[˜ÙHŽˆÂˆˆžØÛÛ\][˜Þ_NˆÝ˜[Y_H‚ˆKˆJB‚ˆ›Üˆ][H[ˆ[Ý]˜][Û—Ù]™[ÜY[Ø\™X\ÖÎŒ—N‚ˆÛÛ\][˜ÞHH][K™Ù]
+˜ÛÛ\][˜ÞHŠBˆ˜[YHHØY™WÜØÛÜ™J][JB‚ˆØ[™Y]WÚ[œÚYÚÖÈ˜\™X\×Ý×Ù^Ü™H—K˜\[™
+Âˆ]HŽˆÛÛ\][˜ÞKˆ˜›ÙHŽˆ
+ˆ•\È\ÈÛ™HÙˆHØ[™Y]IÜÈÝÙ\ˆ[\ÜY[Ý]˜][Ûˆ‚ˆœØÛÜ™\Ëˆ‚ˆ
+Kˆ™^Ü™WÝ›ÝYÚŽˆ
+ˆ\ÚÈÚXÚ\\ÈÙˆÛÜšÈÚ]X][ÛœÈ[™È™YXÙH[™\™ÞK‚ˆš[\™\ÝÜˆ[™ØYÙ[Y[ˆ‚ˆ
+KˆÚ]Ý×Û\Ý[—Ù›ÜˆŽˆ
+ˆ“\Ý[ˆ›ÜˆÚ]HØ[™Y]H™YYÈœ›ÛHH›ÛKX[˜YÙ\ˆ‚ˆ˜[™ÛÜšÚ[™È[š\›Û›Y[ˆ‚ˆ
+Kˆ™]šY[˜ÙHŽˆÂˆˆžØÛÛ\][˜Þ_NˆÝ˜[Y_H‚ˆKˆJB‚ˆYˆ\×Ø[žWÜ™\Ý[Î‚ˆØ[™Y]WÚ[œÚYÚÖÈœ]Y\Ý[ÛœÈ—HHÂˆÂˆ˜Ø]YÛÜžHŽˆœÝ™[™ÝÈ‹ˆ˜Ø]YÛÜžWÛX™[Žˆ”Ý™[™Ý‹ˆœ]Y\Ý[ÛˆŽˆ
+ˆ•ÚXÚ\ÈÙˆ[Ý\ˆÛÜšÈ[™Èœš[™ÈÝ][Ý\ˆ‚ˆœÝ›Û™Ù\Ý]X[]Y\ÏÈ‚ˆ
+KˆÚHŽˆ
+ˆ•\È[È˜[Y]HÚ]\ˆH[\ÜY\ÜÙ\ÜÛY[‚ˆœ›Ùš[HX]Ú\ÈHØ[™Y]IÜÈÝÛˆ^\šY[˜ÙKˆ‚ˆ
+Kˆ›\Ý[—Ù›ÜˆŽˆ
+ˆÛÛ˜Ü™]H^[\\È[™ÛÛœÚ\Ý[˜ÞHÚ]HÝ›Û™Ù\Ý‚ˆ˜\ÜÙ\ÜÛY[[Y\Ëˆ‚ˆ
+KˆKˆÂˆ˜Ø]YÛÜžHŽˆ™^Ü™H‹ˆ˜Ø]YÛÜžWÛX™[Žˆ‘^Ü™H‹ˆœ]Y\Ý[ÛˆŽˆ
+ˆ\™H\™HÚ]X][ÛœÈÚ\™H[Ý\ˆ\ÝX[ÛÜšÚ[™ÈÝ[H‚ˆ˜™XÛÛY\È\ÜÈY™™XÝ]™OÈ‚ˆ
+KˆÚHŽˆ
+ˆ•\È[ÈYÛÛ^ÈÝÙ\ˆÜˆ\ÜÈ™Y™\œ™YØÛÜ™\È‚ˆÚ]Ý]™X][™È[H]]ÛX]XØ[H\ÈÙXZÛ™\ÜÙ\Ëˆ‚ˆ
+Kˆ›\Ý[—Ù›ÜˆŽˆ
+ˆ”Ù[‹X]Ø\™[™\ÜËX[˜ÙH[™˜XÝXØ[Y\][Ûˆ‚ˆœÝ˜]YÚY\Ëˆ‚ˆ
+KˆKˆÂˆ˜Ø]YÛÜžHŽˆ›[Ý]˜][Ûˆ‹ˆ˜Ø]YÛÜžWÛX™[Žˆ“[Ý]˜][Ûˆ‹ˆœ]Y\Ý[ÛˆŽˆ
+ˆ•Ú]\HÙˆÛÜšÚ[™È[š\›Û›Y[Ú]™\È[ÝHH[ÜÝ‚ˆ™[™\™ÞHÝ™\ˆ[YOÈ‚ˆ
+KˆÚHŽˆ
+ˆ•\È[ÈÛÛ›™XÝ[\ÜY[Ý]˜][ÛˆØÛÜ™\ÈÈXÝX[‚ˆÛÜšÚ[™ÈÛÛ™][ÛœËˆ‚ˆ
+Kˆ›\Ý[—Ù›ÜˆŽˆ
+ˆ‘š]™\œË[[Ý]˜]ÜœÈ[™[š\›Û›Y[[™Y™\™[˜Ù\Ëˆ‚ˆ
+KˆKˆB‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÈXY\ˆ\ÜÙ\ÜÛY[ØXÝ]š]H[™›Ü›X][Û‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKB‚ˆÙ[Ø\ÜÙ\ÜÛY[ÈH×B‚ˆ›Üˆ™\Ý[[ˆ\ÜÙ\ÜÛY[Ü™\Ý[Î‚ˆÙ[Ø\ÜÙ\ÜÛY[Ë˜\[™
+Âˆ˜XÝ]š]HŽˆ™\Ý[˜\ÜÙ\ÜÛY[Ý\K]J
+KˆœÝ]\ÈŽˆ
+ˆ
+™\Ý[œÝ]\ÈÜˆ˜ÛÛ\]YŠBˆœÝš\
+
+Bˆ›ÝÙ\Š
+Bˆ
+KˆJB‚ˆ\ÜÙ\ÜÛY[ÚÙ^\×Ú[—Ü›ØÙ\ÜÈHÙ]
+
+Bˆ›Üˆ™\Ý[[ˆ\ÜÙ\ÜÛY[Ü™\Ý[Î‚ˆ\ÜÙ\ÜÛY[Ý\HHÝŠˆ™\Ý[˜\ÜÙ\ÜÛY[Ý\HÜˆˆ‚ˆ
+KœÝš\
+
+K›ÝÙ\Š
+B‚ˆYˆœ\œÛÛ˜[]Hˆ[ˆ\ÜÙ\ÜÛY[Ý\HÜˆœ\œÛÛ›YÈˆ[ˆ\ÜÙ\ÜÛY[Ý\N‚ˆ\ÜÙ\ÜÛY[ÚÙ^\×Ú[—Ü›ØÙ\ÜË˜Y
+œ\œÛÛ˜[]HŠBˆ[Yˆ›[Ý]˜][Ûˆˆ[ˆ\ÜÙ\ÜÛY[Ý\N‚ˆ\ÜÙ\ÜÛY[ÚÙ^\×Ú[—Ü›ØÙ\ÜË˜Y
+›[Ý]˜][ÛˆŠBˆ[Yˆ›[Y\šXØ[ˆ[ˆ\ÜÙ\ÜÛY[Ý\HÜˆ›[Y\šXÈˆ[ˆ\ÜÙ\ÜÛY[Ý\HÜˆ›[Y\š\ÚÈˆ[ˆ\ÜÙ\ÜÛY[Ý\N‚ˆ\ÜÙ\ÜÛY[ÚÙ^\×Ú[—Ü›ØÙ\ÜË˜Y
+›[Y\šXØ[ŠBˆ[Yˆ›ÙÚXØ[ˆ[ˆ\ÜÙ\ÜÛY[Ý\HÜˆ›ÙÚ\ÚÈˆ[ˆ\ÜÙ\ÜÛY[Ý\N‚ˆ\ÜÙ\ÜÛY[ÚÙ^\×Ú[—Ü›ØÙ\ÜË˜Y
+›ÙÚXØ[ŠBˆ[Yˆ™\˜˜[ˆ[ˆ\ÜÙ\ÜÛY[Ý\N‚ˆ\ÜÙ\ÜÛY[ÚÙ^\×Ú[—Ü›ØÙ\ÜË˜Y
+™\˜˜[ŠB‚ˆ\ÜÙ\ÜÛY[ÚÙ^\×Ú[—Ü›ØÙ\ÜÈHÛÜY
+\ÜÙ\ÜÛY[ÚÙ^\×Ú[—Ü›ØÙ\ÜÊBˆ\×Ü\œÛÛ˜[]WØ\ÜÙ\ÜÛY[Ú[—Ü›ØÙ\ÜÈH
+ˆœ\œÛÛ˜[]Hˆ[ˆ\ÜÙ\ÜÛY[ÚÙ^\×Ú[—Ü›ØÙ\ÜÂˆ
+Bˆ\×Û[Ý]˜][Û—Ø\ÜÙ\ÜÛY[Ú[—Ü›ØÙ\ÜÈH
+ˆ›[Ý]˜][Ûˆˆ[ˆ\ÜÙ\ÜÛY[ÚÙ^\×Ú[—Ü›ØÙ\ÜÂˆ
+Bˆ\×ØÛÙÛš]]™WØ\ÜÙ\ÜÛY[×Ú[—Ü›ØÙ\ÜÈH[žJˆÙ^H[ˆ\ÜÙ\ÜÛY[ÚÙ^\×Ú[—Ü›ØÙ\ÜÂˆ›ÜˆÙ^H[ˆ
+™\˜˜[‹›ÙÚXØ[‹›[Y\šXØ[ŠBˆ
+B‚ˆ[ØÛÛ\][˜ÚY\ÈH
+ˆ\WØÛÛ\][˜ÚY\Âˆ
+È›Ü›X[\ÙYÜ\œÛÛ˜[]WØÛÛ\][˜ÚY\Âˆ
+È›Ü›X[\ÙYÝX[WÜÝ[WÜØÛÜ™\Âˆ
+B‚ˆÛÛXš[™YÜ]Y\Ý[ÛœÈH
+ˆZ[ØÛÛXš[™YØØ[™Y]WÜ]Y\Ý[ÛœÊˆ\ÝÜšXØ[ØØ[™Y]Bˆ
+Bˆ
+B‚ˆ™WÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜH
+ˆ\ÝÜšXØ[ØØ[™Y]Bˆ˜ZWÜ™WÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜˆÜˆßBˆ
+B‚ˆÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜH
+ˆ\ÝÜšXØ[ØØ[™Y]Bˆ˜ZWÜÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜˆÜˆßBˆ
+B‚ˆ[\šY]×Û›Ý\ÈH
+ˆ\ÝÜšXØ[ØØ[™Y]Kš[\šY]×Û›Ý\ÂˆÜˆˆ‚ˆ
+KœÝš\
+
+B‚ˆ\×Ü™WÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜH›ÛÛ
+ˆ
+ˆ™WÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\Ü™Ù]
+ˆ›Ý™\˜[ÜÞ[\Ú\È‚ˆ
+BˆÜˆˆ‚ˆ
+KœÝš\
+
+Bˆ
+B‚ˆ\×ÜÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜH›ÛÛ
+ˆ
+ˆÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\Ü™Ù]
+ˆ›Ý™\˜[ÜÞ[\Ú\È‚ˆ
+BˆÜˆˆ‚ˆ
+KœÝš\
+
+BˆÜˆ[žJˆÝŠ˜[YHÜˆˆŠKœÝš\
+
+Bˆ›Üˆ˜[YH[ˆ
+ˆÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\Ü™Ù]
+˜ÛÛ[Ø›ØÚÜÈŠBˆÜˆßBˆ
+K˜[Y\Ê
+Bˆ
+Bˆ
+B‚ˆ™]\›ˆÂˆ˜ÛÛ\[žHŽˆ›ØÙ\ÜË˜ÛÛ\[žKˆœ›ØÙ\ÜÈŽˆ›ØÙ\ÜËˆ˜Ø[™Y]HŽˆØ[™Y]K‚ˆš\ÝÜšXØ[ØØ[™Y]HŽˆ\ÝÜšXØ[ØØ[™Y]Kˆš\ÝÜšXØ[Ü™\ÜÈŽˆ\ÝÜšXØ[ØØ[™Y]Kœ™\ÜË˜[
+
+Kˆ˜\ÜÙ\ÜÛY[Ü™\Ý[ÈŽˆ\ÜÙ\ÜÛY[Ü™\Ý[Ë‚ˆš\×Ú\ÝÜšXØ[ŽˆYK‚ˆÈ\ÝÜšXØ[Ø[™Y]\È]™H›È]™H[š]][Û‹‚ˆš[š]][ÛˆŽˆ›Û™Kˆš[ˆŽˆ›Û™Kˆ˜\ÜÙ\ÜÛY[Ý\›Žˆ›Û™Kˆ˜XÝ]š]WÙ]™[ÈŽˆ×Kˆ™[XZ[ÛÙÜ×ØžWÚYŽˆßK‚ˆÈXY\ˆ[™›Ü›X][Û‹‚ˆœÙ[Ø\ÜÙ\ÜÛY[ÈŽˆÙ[Ø\ÜÙ\ÜÛY[Ëˆ˜\ÜÙ\ÜÛY[ÚÙ^\×Ú[—Ü›ØÙ\ÜÈŽˆ\ÜÙ\ÜÛY[ÚÙ^\×Ú[—Ü›ØÙ\ÜËˆš\×Ü\œÛÛ˜[]WØ\ÜÙ\ÜÛY[Ú[—Ü›ØÙ\ÜÈŽˆ\×Ü\œÛÛ˜[]WØ\ÜÙ\ÜÛY[Ú[—Ü›ØÙ\ÜËˆš\×Û[Ý]˜][Û—Ø\ÜÙ\ÜÛY[Ú[—Ü›ØÙ\ÜÈŽˆ\×Û[Ý]˜][Û—Ø\ÜÙ\ÜÛY[Ú[—Ü›ØÙ\ÜËˆš\×ØÛÙÛš]]™WØ\ÜÙ\ÜÛY[×Ú[—Ü›ØÙ\ÜÈŽˆ\×ØÛÙÛš]]™WØ\ÜÙ\ÜÛY[×Ú[—Ü›ØÙ\ÜËˆš\×ØÛÛ\]YØÛÙÛš]]™WÜ™\Ý[ÈŽˆ\×ØÛÛ\]YØÛÙÛš]]™WÜ™\Ý[Ëˆ\Ý×ÜÙ[ØÛÝ[Žˆ\ÜÙ\ÜÛY[Ü™\Ý[Ë˜ÛÝ[
+
+Kˆ\Ý×ØÛÛ\]YØÛÝ[Žˆ\ÜÙ\ÜÛY[Ü™\Ý[Ë˜ÛÝ[
+
+K‚ˆÈÚ\™Y™\Ý[›YÜË‚ˆš\×Û[Ý]˜][Û—Ü™\Ý[ÈŽˆ\×Û[Ý]˜][Û—Ü™\Ý[Ëˆš\×Ü\œÛÛ˜[]WÜ™\Ý[ÈŽˆ\×Ü\œÛÛ˜[]WÜ™\Ý[Ëˆš\×ØXš[]WÜ™\Ý[ÈŽˆ\×ØXš[]WÜ™\Ý[Ëˆš\×Ý™\˜˜[Ü™\Ý[ÈŽˆ\×Ý™\˜˜[Ü™\Ý[Ëˆš\×ÛÙÚXØ[Ü™\Ý[ÈŽˆ\×ÛÙÚXØ[Ü™\Ý[Ëˆš\×Û[Y\šXØ[Ü™\Ý[ÈŽˆ\×Û[Y\šXØ[Ü™\Ý[Ëˆš\×Ø[žWÜ™\Ý[ÈŽˆ\×Ø[žWÜ™\Ý[Ëˆ˜[Ø\ÜÙ\ÜÛY[×ØÛÛ\]YŽˆ[Ø\ÜÙ\ÜÛY[×ØÛÛ\]Y‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÈš[˜[Ý]]ÈXÚ\Ú[ÛˆÝ\ÜˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKB‚ˆœ™WÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜŽˆ
+ˆ™WÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\Üˆ
+K‚ˆœ™WÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜÜÝ]\ÈŽˆ
+ˆ\ÝÜšXØ[ØØ[™Y]Bˆ˜ZWÜ™WÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜÜÝ]\ÂˆÜˆ››ÝÜÝ\Y‚ˆ
+K‚ˆœ™WÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜÙÙ[™\˜]YØ]Žˆ
+ˆ\ÝÜšXØ[ØØ[™Y]Bˆ˜ZWÜ™WÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜÙÙ[™\˜]YØ]ˆ
+K‚ˆš\×Ü™WÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜŽˆ
+ˆ\×Ü™WÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\Üˆ
+K‚ˆœ™WÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜÜÝ™X[WÝ\›Žˆ™]™\œÙJˆ
+ˆœ›ØÙ\ÜÙ\Îˆ‚ˆœ›ØÙ\Ü×ØØ[™Y]WÜ™WÚ[\šY]×È‚ˆ™XÚ\Ú[Û—ÜÝ\ÜÜÝ™X[H‚ˆ
+KˆÝØ\™ÜÏ^Âˆœ›ØÙ\Ü×ÚYŽˆ›ØÙ\ÜËšYˆ˜Ø[™Y]WÚYŽˆØ[™Y]KšYˆKˆ
+K‚ˆœ™WÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜÜ™YÙ[™\˜]WÝ\›Žˆ™]™\œÙJˆ
+ˆœ›ØÙ\ÜÙ\Îˆ‚ˆœ›ØÙ\Ü×ØØ[™Y]WÜ™WÚ[\šY]×È‚ˆ™XÚ\Ú[Û—ÜÝ\ÜÜ™YÙ[™\˜]H‚ˆ
+KˆÝØ\™ÜÏ^Âˆœ›ØÙ\Ü×ÚYŽˆ›ØÙ\ÜËšYˆ˜Ø[™Y]WÚYŽˆØ[™Y]KšYˆKˆ
+K‚ˆš[\šY]×Û›Ý\ÈŽˆ[\šY]×Û›Ý\Ë‚ˆš\×Ú[\šY]×Û›Ý\ÈŽˆ›ÛÛ
+ˆ[\šY]×Û›Ý\Âˆ
+K‚ˆš[\šY]×Û›Ý\×Ý\]YØ]Žˆ
+ˆ\ÝÜšXØ[ØØ[™Y]Bˆš[\šY]×Û›Ý\×Ý\]YØ]ˆ
+K‚ˆš[\šY]×Û›Ý\×Ý\]YØžHŽˆ
+ˆ\ÝÜšXØ[ØØ[™Y]Bˆš[\šY]×Û›Ý\×Ý\]YØžBˆ
+K‚ˆš[\šY]×Û›Ý\×Ý\]WÝ\›Žˆ™]™\œÙJˆ
+ˆœ›ØÙ\ÜÙ\Îˆ‚ˆœ›ØÙ\Ü×ØØ[™Y]WÈ‚ˆš[\šY]×Û›Ý\×Ý\]H‚ˆ
+KˆÝØ\™ÜÏ^Âˆœ›ØÙ\Ü×ÚYŽˆ›ØÙ\ÜËšYˆ˜Ø[™Y]WÚYŽˆØ[™Y]KšYˆKˆ
+K‚ˆœÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜŽˆ
+ˆÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\Üˆ
+K‚ˆœÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜÜÝ]\ÈŽˆ
+ˆ\ÝÜšXØ[ØØ[™Y]Bˆ˜ZWÜÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜÜÝ]\ÂˆÜˆ››ÝÜÝ\Y‚ˆ
+K‚ˆœÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜÙÙ[™\˜]YØ]Žˆ
+ˆ\ÝÜšXØ[ØØ[™Y]Bˆ˜ZWÜÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜÙÙ[™\˜]YØ]ˆ
+K‚ˆš\×ÜÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜŽˆ
+ˆ\×ÜÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\Üˆ
+K‚ˆœÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜÜÝ™X[WÝ\›Žˆ™]™\œÙJˆ
+ˆœ›ØÙ\ÜÙ\Îˆ‚ˆœ›ØÙ\Ü×ØØ[™Y]WÜÜÝÚ[\šY]×È‚ˆ™XÚ\Ú[Û—ÜÝ\ÜÜÝ™X[H‚ˆ
+KˆÝØ\™ÜÏ^Âˆœ›ØÙ\Ü×ÚYŽˆ›ØÙ\ÜËšYˆ˜Ø[™Y]WÚYŽˆØ[™Y]KšYˆKˆ
+K‚ˆœÜÝÚ[\šY]×ÙXÚ\Ú[Û—ÜÝ\ÜÜ™YÙ[™\˜]WÝ\›Žˆ™]™\œÙJˆ
+ˆœ›ØÙ\ÜÙ\Îˆ‚ˆœ›ØÙ\Ü×ØØ[™Y]WÜÜÝÚ[\šY]×È‚ˆ™XÚ\Ú[Û—ÜÝ\ÜÜ™YÙ[™\˜]H‚ˆ
+KˆÝØ\™ÜÏ^Âˆœ›ØÙ\Ü×ÚYŽˆ›ØÙ\ÜËšYˆ˜Ø[™Y]WÚYŽˆØ[™Y]KšYˆKˆ
+K‚ˆ™š[˜[ÛÝ]]Ü™Yœ™\ÚÝ\›Žˆ™]™\œÙJˆ
+ˆœ›ØÙ\ÜÙ\Îˆ‚ˆœ›ØÙ\Ü×ØØ[™Y]WÙš[˜[ÛÝ]]‚ˆ
+KˆÝØ\™ÜÏ^Âˆœ›ØÙ\Ü×ÚYŽˆ›ØÙ\ÜËšYˆ˜Ø[™Y]WÚYŽˆØ[™Y]KšYˆKˆ
+K‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÈ\ÝÜšXØ[ÛÙÛš]]™HRBˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKB‚ˆ˜ÛÙÛš]]™WÚ[\œ™]][ÛˆŽˆ
+ˆ\ÝÜšXØ[ØØ[™Y]Bˆ˜ZWØÛÙÛš]]™WÚ[\œ™]][Û‚ˆÜˆßBˆ
+K‚ˆ˜ÛÙÛš]]™WÚ[\œ™]][Û—ÜÝ]\ÈŽˆ
+ˆ\ÝÜšXØ[ØØ[™Y]Bˆ˜ZWØÛÙÛš]]™WÚ[\œ™]][Û—ÜÝ]\ÂˆÜˆ››ÝÜÝ\Y‚ˆ
+K‚ˆ˜ÛÙÛš]]™WÚ[\œ™]][Û—ÜÝ™X[WÝ\›Žˆ™]™\œÙJˆ
+ˆœ›ØÙ\ÜÙ\Îˆ‚ˆœ›ØÙ\Ü×ØØ[™Y]WØÛÙÛš]]™WÈ‚ˆš[\œ™]][Û—ÜÝ™X[H‚ˆ
+KˆÝØ\™ÜÏ^Âˆœ›ØÙ\Ü×ÚYŽˆ›ØÙ\ÜËšYˆ˜Ø[™Y]WÚYŽˆØ[™Y]KšYˆKˆ
+K‚ˆ˜ÛÙÛš]]™WÚ[\œ™]][Û—Ü™YÙ[™\˜]WÝ\›Žˆ™]™\œÙJˆ
+ˆœ›ØÙ\ÜÙ\Îˆ‚ˆœ›ØÙ\Ü×ØØ[™Y]WØÛÙÛš]]™WÈ‚ˆš[\œ™]][Û—Ü™YÙ[™\˜]H‚ˆ
+KˆÝØ\™ÜÏ^Âˆœ›ØÙ\Ü×ÚYŽˆ›ØÙ\ÜËšYˆ˜Ø[™Y]WÚYŽˆØ[™Y]KšYˆKˆ
+K‚ˆ˜ÛÙÛš]]™WÜ]Y\Ý[ÛœÈŽˆ
+ˆ\ÝÜšXØ[ØØ[™Y]Bˆ˜ZWØÛÙÛš]]™WÜ]Y\Ý[ÛœÂˆÜˆßBˆ
+K‚ˆ˜ÛÙÛš]]™WÜ]Y\Ý[Ûœ×ÜÝ]\ÈŽˆ
+ˆ\ÝÜšXØ[ØØ[™Y]Bˆ˜ZWØÛÙÛš]]™WÜ]Y\Ý[Ûœ×ÜÝ]\ÂˆÜˆ››ÝÜÝ\Y‚ˆ
+K‚ˆ˜ÛÙÛš]]™WÜ]Y\Ý[Ûœ×ÜÝ™X[WÝ\›Žˆ™]™\œÙJˆ
+ˆœ›ØÙ\ÜÙ\Îˆ‚ˆœ›ØÙ\Ü×ØØ[™Y]WØÛÙÛš]]™WÈ‚ˆœ]Y\Ý[Ûœ×ÜÝ™X[H‚ˆ
+KˆÝØ\™ÜÏ^Âˆœ›ØÙ\Ü×ÚYŽˆ›ØÙ\ÜËšYˆ˜Ø[™Y]WÚYŽˆØ[™Y]KšYˆKˆ
+K‚ˆ˜ÛÙÛš]]™WÜ]Y\Ý[Ûœ×Ü™YÙ[™\˜]WÝ\›Žˆ™]™\œÙJˆ
+ˆœ›ØÙ\ÜÙ\Îˆ‚ˆœ›ØÙ\Ü×ØØ[™Y]WØÛÙÛš]]™WÈ‚ˆœ]Y\Ý[Ûœ×Ü™YÙ[™\˜]H‚ˆ
+KˆÝØ\™ÜÏ^Âˆœ›ØÙ\Ü×ÚYŽˆ›ØÙ\ÜËšYˆ˜Ø[™Y]WÚYŽˆØ[™Y]KšYˆKˆ
+K‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÈÛÛXš[™Y\ÜÙ\ÜÛY[]Y\Ý[ÛœÂˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKB‚ˆ˜ÛÛXš[™YÜ]Y\Ý[ÛœÈŽˆ
+ˆÛÛXš[™YÜ]Y\Ý[ÛœÂˆ
+K‚ˆ˜ÛÛXš[™YÜ]Y\Ý[Û—ÜÙXÝ[ÛœÈŽˆ
+ˆÛÛXš[™YÜ]Y\Ý[ÛœÖÈœÙXÝ[ÛœÈ—Bˆ
+K‚ˆ˜ÛÛXš[™YÜ]Y\Ý[Û—ØÛÝ[Žˆ
+ˆÛÛXš[™YÜ]Y\Ý[ÛœÖÈÝ[ØÛÝ[—Bˆ
+K‚ˆš\×ØÛÛXš[™YÜ]Y\Ý[ÛœÈŽˆ
+ˆÛÛXš[™YÜ]Y\Ý[ÛœÖÈš\×Ü]Y\Ý[ÛœÈ—Bˆ
+K‚ˆ˜ÛÛXš[™YÜ]Y\Ý[Ûœ×Ü™Yœ™\ÚÝ\›Žˆ™]™\œÙJˆ
+ˆœ›ØÙ\ÜÙ\Îˆ‚ˆœ›ØÙ\Ü×ØØ[™Y]WØÛÛXš[™YÜ]Y\Ý[ÛœÈ‚ˆ
+KˆÝØ\™ÜÏ^Âˆœ›ØÙ\Ü×ÚYŽˆ›ØÙ\ÜËšYˆ˜Ø[™Y]WÚYŽˆØ[™Y]KšYˆKˆ
+K‚ˆÈ›Ü›X[\ÙY\ÜÙ\ÜÛY[]K‚ˆ›[Ý]˜][Û—Ü™\Ý[ÈŽˆ[Ý]˜][Û—Ü™\Ý[Ëˆ›\WØÛÛ\][˜ÚY\ÈŽˆ\WØÛÛ\][˜ÚY\Ëˆœ\œÛÛ˜[]WØÛÛ\][˜ÚY\ÈŽˆ
+ˆ›Ü›X[\ÙYÜ\œÛÛ˜[]WØÛÛ\][˜ÚY\Âˆ
+KˆX[WÜÝ[WÜØÛÜ™\ÈŽˆ›Ü›X[\ÙYÝX[WÜÝ[WÜØÛÜ™\Ëˆ˜[ØÛÛ\][˜ÚY\ÈŽˆ[ØÛÛ\][˜ÚY\Ëˆ˜Xš[]WÜ™\Ý[ÈŽˆXš[]WÜ™\Ý[Ë‚ˆ™\˜˜[Ü\˜Ù[[HŽˆ™\˜˜[Ü\˜Ù[[Kˆ›ÙÚXØ[Ü\˜Ù[[HŽˆÙÚXØ[Ü\˜Ù[[Kˆ›[Y\šXØ[Ü\˜Ù[[HŽˆ[Y\šXØ[Ü\˜Ù[[K‚ˆÈ^\Ý[™È™\ÜZ[\œË‚ˆ›[Ý]˜][Û—ÜØÛÜ™\ÈŽˆ[Ý]˜][Û—ÜØÛÜ™\Ëˆ›[Ý]˜][Û—Ú[œÚYÚÈŽˆ[Ý]˜][Û—Ú[œÚYÚËˆ›[Ý]˜][Û—Ü™\Ü×Ù›Ü—ÝZHŽˆ[Ý]˜][Û—Ü™\Ü×Ù›Ü—ÝZKˆ˜Xš[]WÜ™\Ü×Ù›Ü—ÝZHŽˆXš[]WÜ™\Ü×Ù›Ü—ÝZKˆœ\œÛÛ˜[]WÜ™\ÜÈŽˆ\œÛÛ˜[]WÜ™\ÜËˆœ\œÛÛ˜[]WÜ›Ùš[HŽˆ\œÛÛ˜[]WÜ›Ùš[Kˆœ›Ùš[WØÛÛ˜\ÝØ[˜[\Ú\ÈŽˆZ[Ü›Ùš[WØÛÛ˜\ÝØ[˜[\Ú\Êˆ\œÛÛ˜[]WÜ›Ùš[Kˆ[™ÝXYÙO[[™ÝXYÙKˆÛÝ\˜ÙOHœ\œÛÛ˜[]WØ\ÜÙ\ÜÛY[‹ˆ
+Kˆ˜]˜Z[X›WÜ™\Ü×ØÛÝ[Žˆ]˜Z[X›WÜ™\Ü×ØÛÝ[‚ˆÈÙ[™\˜[[œÚYÚ]K‚ˆ˜Ø[™Y]WÚ[œÚYÚÈŽˆØ[™Y]WÚ[œÚYÚËˆ™Ù[™\˜[Ú[œÚYÚÚ[œ]ŽˆÙ[™\˜[Ú[œÚYÚÚ[œ]‚ˆÜÛ[Ý]˜][ÛœÈŽˆÜÛ[Ý]˜][ÛœËˆÜÜ\œÛÛ˜[]WÝ˜Z]ÈŽˆÜÜ\œÛÛ˜[]WÝ˜Z]Ëˆ›[Ý]˜][Û—Ù]™[ÜY[Ø\™X\ÈŽˆ
+ˆ[Ý]˜][Û—Ù]™[ÜY[Ø\™X\Âˆ
+Kˆœ\œÛÛ˜[]WÙ]™[ÜY[Ø\™X\ÈŽˆ
+ˆ\œÛÛ˜[]WÙ]™[ÜY[Ø\™X\Âˆ
+K‚ˆÈ\ÝÜšXØ[Ø[™Y]\È[Ø^\È\ÙHÙ[™\˜[[ÙK‚ˆœ\œÜÙWÜ™\ÜŽˆ›Û™Kˆœ™\ÜÛ[ÙHŽˆ™Ù[™\˜[‹ˆ˜ÛÛ^ØÛÛ™šYÈŽˆßKˆœÚÝ×ØÛÛ^Ü›Û\Žˆ˜[ÙKˆœÝ[[X\žWÛÝÛ™\ˆŽˆ\ÝÜšXØ[ØØ[™Y]K‚ˆÈÛÛ\]Xš[]HÙ^\È^XÝY[Ù]Ú\™H[ˆH[\]K‚ˆ˜XÝ]š]Y\ÈŽˆ×Kˆœ›Ú™XÝÜ™\Ý[ÈŽˆßKˆœ›Ú™XÝÜØÛÜ™\ÈŽˆ×Kˆ˜ÛÛ\][˜ÞWÜØÛÜ™\ÈŽˆ×Kˆ›Ý™\˜[ÜØÛÜ™HŽˆ›Û™Kˆœ™\ÜÈŽˆ×K‚ˆÈ\ÝÜšXØ[\œÛÛ˜[]HRH[\œ™]][Û‚ˆœ\œÛÛ˜[]WÚ[\œ™]][ÛˆŽˆ
+ˆ\ÝÜšXØ[ØØ[™Y]Bˆ˜ZWÜ\œÛÛ˜[]WÚ[\œ™]][Û‚ˆÜˆßBˆ
+K‚ˆX[WÜÝ[WÜ›Ùš[HŽˆX[WÜÝ[WÜ›Ùš[Kˆ›XY\œÚ\Ü™\ÜØÛÛ[ŽˆZ[ÛXY\œÚ\Ü™\ÜØÛÛ[
+[™ÝXYÙK›Ü›X[\ÙYÜ\œÛÛ˜[]WØÛÛ\][˜ÚY\È
+È›Ü›X[\ÙYÝX[WÜÝ[WÜØÛÜ™\ÊKˆ™\˜Z[Y[Ü™\ÜØÛÛ[ŽˆZ[Ù\˜Z[Y[Ü™\ÜØÛÛ[
+[™ÝXYÙK›Ü›X[\ÙYÜ\œÛÛ˜[]WØÛÛ\][˜ÚY\ÊK‚ˆœ\œÛÛ˜[]WÚ[\œ™]][Û—ÜÝ]\ÈŽˆ
+ˆ\ÝÜšXØ[ØØ[™Y]Bˆ˜ZWÜ\œÛÛ˜[]WÚ[\œ™]][Û—ÜÝ]\ÂˆÜˆ››ÝÜÝ\Y‚ˆ
+K‚ˆœ\œÛÛ˜[]WÚ[\œ™]][Û—ÜÝ™X[WÝ\›Žˆ™]™\œÙJˆ
+ˆœ›ØÙ\ÜÙ\Îˆ‚ˆœ›ØÙ\Ü×ØØ[™Y]WÜ\œÛÛ˜[]WÈ‚ˆš[\œ™]][Û—ÜÝ™X[H‚ˆ
+KˆÝØ\™ÜÏ^Âˆœ›ØÙ\Ü×ÚYŽˆ›ØÙ\ÜËšYˆ˜Ø[™Y]WÚYŽˆØ[™Y]KšYˆKˆ
+K‚ˆœ\œÛÛ˜[]WÚ[\œ™]][Û—Ü™YÙ[™\˜]WÝ\›Žˆ™]™\œÙJˆ
+ˆœ›ØÙ\ÜÙ\Îˆ‚ˆœ›ØÙ\Ü×ØØ[™Y]WÜ\œÛÛ˜[]WÈ‚ˆš[\œ™]][Û—Ü™YÙ[™\˜]H‚ˆ
+KˆÝØ\™ÜÏ^Âˆœ›ØÙ\Ü×ÚYŽˆ›ØÙ\ÜËšYˆ˜Ø[™Y]WÚYŽˆØ[™Y]KšYˆKˆ
+K‚ˆ›X[˜YÙ\—Ü™\ÜÜ\œÛÛ˜[]HŽˆ
+ˆ\ÝÜšXØ[ØØ[™Y]K˜ZWÛX[˜YÙ\—Ü™\ÜÜ\œÛÛ˜[]HÜˆßBˆ
+Kˆ›X[˜YÙ\—Ü™\ÜÜ\œÛÛ˜[]WÜÝ]\ÈŽˆ
+ˆ\ÝÜšXØ[ØØ[™Y]K˜ZWÛX[˜YÙ\—Ü™\ÜÜ\œÛÛ˜[]WÜÝ]\ÈÜˆ››ÝÜÝ\Y‚ˆ
+Kˆ›X[˜YÙ\—Ü™\ÜÜ\œÛÛ˜[]WÜÝ™X[WÝ\›Žˆ™]™\œÙJˆœ›ØÙ\ÜÙ\Îœ›ØÙ\Ü×ØØ[™Y]WÛX[˜YÙ\—Ü™\ÜÜ\œÛÛ˜[]WÜÝ™X[H‹ˆÝØ\™ÜÏ^Èœ›ØÙ\Ü×ÚYŽˆ›ØÙ\ÜËšY˜Ø[™Y]WÚYŽˆØ[™Y]KšYKˆ
+Kˆ›X[˜YÙ\—Ü™\ÜÜ\œÛÛ˜[]WÜ™YÙ[™\˜]WÝ\›Žˆ™]™\œÙJˆœ›ØÙ\ÜÙ\Îœ›ØÙ\Ü×ØØ[™Y]WÛX[˜YÙ\—Ü™\ÜÜ\œÛÛ˜[]WÜ™YÙ[™\˜]H‹ˆÝØ\™ÜÏ^Èœ›ØÙ\Ü×ÚYŽˆ›ØÙ\ÜËšY˜Ø[™Y]WÚYŽˆØ[™Y]KšYKˆ
+K‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÈ\ÝÜšXØ[\œÛÛ˜[]H]Y\Ý[ÛœÂˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKB‚ˆœ\œÛÛ˜[]WÜ]Y\Ý[ÛœÈŽˆ
+ˆ\ÝÜšXØ[ØØ[™Y]Bˆ˜ZWÜ\œÛÛ˜[]WÜ]Y\Ý[ÛœÂˆÜˆßBˆ
+K‚ˆœ\œÛÛ˜[]WÜ]Y\Ý[Ûœ×ÜÝ]\ÈŽˆ
+ˆ\ÝÜšXØ[ØØ[™Y]Bˆ˜ZWÜ\œÛÛ˜[]WÜ]Y\Ý[Ûœ×ÜÝ]\ÂˆÜˆ››ÝÜÝ\Y‚ˆ
+K‚ˆœÙ[XÝYÜ\œÛÛ˜[]WÝ˜Z]ÈŽˆ
+ˆ\ÝÜšXØ[ØØ[™Y]BˆœÙ[XÝYÜ\œÛÛ˜[]WÝ˜Z]ÂˆÜˆ×Bˆ
+K‚ˆœ\œÛÛ˜[]WÜ]Y\Ý[Ûœ×ÜÝ™X[WÝ\›Žˆ™]™\œÙJˆ
+ˆœ›ØÙ\ÜÙ\Îˆ‚ˆœ›ØÙ\Ü×ØØ[™Y]WÜ\œÛÛ˜[]WÈ‚ˆœ]Y\Ý[Ûœ×ÜÝ™X[H‚ˆ
+KˆÝØ\™ÜÏ^Âˆœ›ØÙ\Ü×ÚYŽˆ›ØÙ\ÜËšYˆ˜Ø[™Y]WÚYŽˆØ[™Y]KšYˆKˆ
+K‚ˆœ\œÛÛ˜[]WÜ]Y\Ý[Ûœ×Ü™YÙ[™\˜]WÝ\›Žˆ™]™\œÙJˆ
+ˆœ›ØÙ\ÜÙ\Îˆ‚ˆœ›ØÙ\Ü×ØØ[™Y]WÜ\œÛÛ˜[]WÈ‚ˆœ]Y\Ý[Ûœ×Ü™YÙ[™\˜]H‚ˆ
+KˆÝØ\™ÜÏ^Âˆœ›ØÙ\Ü×ÚYŽˆ›ØÙ\ÜËšYˆ˜Ø[™Y]WÚYŽˆØ[™Y]KšYˆKˆ
+K‚ˆœ\œÛÛ˜[]WÝ˜Z]×Ý\]WÝ\›Žˆ™]™\œÙJˆ
+ˆœ›ØÙ\ÜÙ\Îˆ‚ˆœ›ØÙ\Ü×ØØ[™Y]WÜ\œÛÛ˜[]WÈ‚ˆ˜Z]×Ý\]H‚ˆ
+KˆÝØ\™ÜÏ^Âˆœ›ØÙ\Ü×ÚYŽˆ›ØÙ\ÜËšYˆ˜Ø[™Y]WÚYŽˆØ[™Y]KšYˆKˆ
+K‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÈ\ÝÜšXØ[[Ý]˜][ÛˆRBˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKB‚ˆ›[Ý]˜][Û—Ú[\œ™]][ÛˆŽˆ
+ˆ\ÝÜšXØ[ØØ[™Y]Bˆ˜ZWÛ[Ý]˜][Û—Ú[\œ™]][Û‚ˆÜˆßBˆ
+K‚ˆ›[Ý]˜][Û—Ú[\œ™]][Û—ÜÝ]\ÈŽˆ
+ˆ\ÝÜšXØ[ØØ[™Y]Bˆ˜ZWÛ[Ý]˜][Û—Ú[\œ™]][Û—ÜÝ]\ÂˆÜˆ››ÝÜÝ\Y‚ˆ
+K‚ˆ›[Ý]˜][Û—Ú[\œ™]][Û—ÜÝ™X[WÝ\›Žˆ™]™\œÙJˆ
+ˆœ›ØÙ\ÜÙ\Îˆ‚ˆœ›ØÙ\Ü×ØØ[™Y]WÛ[Ý]˜][Û—È‚ˆš[\œ™]][Û—ÜÝ™X[H‚ˆ
+KˆÝØ\™ÜÏ^Âˆœ›ØÙ\Ü×ÚYŽˆ›ØÙ\ÜËšYˆ˜Ø[™Y]WÚYŽˆØ[™Y]KšYˆKˆ
+K‚ˆ›[Ý]˜][Û—Ú[\œ™]][Û—Ü™YÙ[™\˜]WÝ\›Žˆ™]™\œÙJˆ
+ˆœ›ØÙ\ÜÙ\Îˆ‚ˆœ›ØÙ\Ü×ØØ[™Y]WÛ[Ý]˜][Û—È‚ˆš[\œ™]][Û—Ü™YÙ[™\˜]H‚ˆ
+KˆÝØ\™ÜÏ^Âˆœ›ØÙ\Ü×ÚYŽˆ›ØÙ\ÜËšYˆ˜Ø[™Y]WÚYŽˆØ[™Y]KšYˆKˆ
+K‚ˆ›[Ý]˜][Û—Ü]Y\Ý[ÛœÈŽˆ
+ˆ\ÝÜšXØ[ØØ[™Y]Bˆ˜ZWÛ[Ý]˜][Û—Ü]Y\Ý[ÛœÂˆÜˆßBˆ
+K‚ˆ›[Ý]˜][Û—Ü]Y\Ý[Ûœ×ÜÝ]\ÈŽˆ
+ˆ\ÝÜšXØ[ØØ[™Y]Bˆ˜ZWÛ[Ý]˜][Û—Ü]Y\Ý[Ûœ×ÜÝ]\ÂˆÜˆ››ÝÜÝ\Y‚ˆ
+K‚ˆ›[Ý]˜][Û—Ü]Y\Ý[Ûœ×ÜÝ™X[WÝ\›Žˆ™]™\œÙJˆ
+ˆœ›ØÙ\ÜÙ\Îˆ‚ˆœ›ØÙ\Ü×ØØ[™Y]WÛ[Ý]˜][Û—È‚ˆœ]Y\Ý[Ûœ×ÜÝ™X[H‚ˆ
+KˆÝØ\™ÜÏ^Âˆœ›ØÙ\Ü×ÚYŽˆ›ØÙ\ÜËšYˆ˜Ø[™Y]WÚYŽˆØ[™Y]KšYˆKˆ
+K‚ˆ›[Ý]˜][Û—Ü]Y\Ý[Ûœ×Ü™YÙ[™\˜]WÝ\›Žˆ™]™\œÙJˆ
+ˆœ›ØÙ\ÜÙ\Îˆ‚ˆœ›ØÙ\Ü×ØØ[™Y]WÛ[Ý]˜][Û—È‚ˆœ]Y\Ý[Ûœ×Ü™YÙ[™\˜]H‚ˆ
+KˆÝØ\™ÜÏ^Âˆœ›ØÙ\Ü×ÚYŽˆ›ØÙ\ÜËšYˆ˜Ø[™Y]WÚYŽˆØ[™Y]KšYˆKˆ
+K‚ˆœ™\ÜÛœÙWÜÝ[\ÈŽˆ™\ÜÛœÙWÜÝ[\Ë‚ˆœ™\ÜÛœÙWÜÝ[WÜÙYÛY[ÈŽˆ˜[™ÙJKLJK‚ˆœ™\ÜÛœÙWÜÝ[WÜÚYWÜÙYÛY[ÈŽˆ˜[™ÙJKŠK‚ˆœ™\ÜÛœÙWÜÝ[WÙÝZY[˜ÙHŽˆ
+ˆ\ÝÜšXØ[ØØ[™Y]Bˆ˜ZWÜ™\ÜÛœÙWÜÝ[WÙÝZY[˜ÙBˆÜˆßBˆ
+K‚ˆœ™\ÜÛœÙWÜÝ[WÙÝZY[˜ÙWÜÝ]\ÈŽˆ
+ˆ\ÝÜšXØ[ØØ[™Y]Bˆ˜ZWÜ™\ÜÛœÙWÜÝ[WÙÝZY[˜ÙWÜÝ]\Âˆ
+K‚ˆœ™\ÜÛœÙWÜÝ[WÙÝZY[˜ÙWÜÝ™X[WÝ\›Žˆ™]™\œÙJˆ
+ˆœ›ØÙ\ÜÙ\Îœ›ØÙ\Ü×ØØ[™Y]WÈ‚ˆœ™\ÜÛœÙWÜÝ[WÙÝZY[˜ÙWÜÝ™X[H‚ˆ
+KˆÝØ\™ÜÏ^Âˆœ›ØÙ\Ü×ÚYŽˆ›ØÙ\ÜËšYˆ˜Ø[™Y]WÚYŽˆØ[™Y]KšYˆKˆ
+KˆB‚‚ÙÚ[—Ü™\]Z\™Y™\]Z\™WÔÔÕ™Yˆ›ØÙ\Ü×ØØ[™Y]WÜÝ[[X\žWÜ™YÙ[™\˜]Jˆ™\]Y\Ýˆ›ØÙ\Ü×ÚYˆØ[™Y]WÚYŠN‚ˆ›ØÙ\ÜÈHÙ]ÛØš™XÝÛÜ—Í
+ˆ\Ý›ØÙ\ÜËˆÏ\›ØÙ\Ü×ÚYˆ
+B‚ˆYˆ›Ý\Ù\—ØØ[—ØXØÙ\Ü×Ü›ØÙ\ÜÊ™\]Y\Ý\Ù\‹›ØÙ\ÜÊN‚ˆ™]\›ˆ™\ÜÛœÙQ›Ü˜šY[Šˆ–[ÝHÈ›Ý]™HXØÙ\ÜÈÈ\È›Ú™XÝˆ‚ˆ
+B‚ˆYˆ›ØÙ\ÜËš\×Ú\ÝÜšXØ[‚ˆÝ[[X\žWÛÝÛ™\ˆHÙ]ÛØš™XÝÛÜ—Í
+ˆ\ÝÜšXØ[›ØÙ\ÜÐØ[™Y]K›Øš™XÝËˆ›ØÙ\ÜÏ\›ØÙ\ÜËˆØ[™Y]WÚYXØ[™Y]WÚYˆ
+B‚ˆ[ÙN‚ˆÝ[[X\žWÛÝÛ™\ˆHÙ]ÛØš™XÝÛÜ—Í
+ˆ\Ý[š]][Û‹›Øš™XÝËˆ›ØÙ\ÜÏ\›ØÙ\ÜËˆØ[™Y]WÚYXØ[™Y]WÚYˆ
+B‚ˆÝ[[X\žWÛÝÛ™\‹˜ZWÜÝ[[X\žWÜÝ]\ÈH››ÝÜÝ\Y‚ˆÝ[[X\žWÛÝÛ™\‹˜ZWÜÝ[[X\žWÙÙ[™\˜]YØ]H›Û™B‚ˆÝ[[X\žWÛÝÛ™\‹œØ]™Jˆ\]WÙšY[ÏVÂˆ˜ZWÜÝ[[X\žWÜÝ]\È‹ˆ˜ZWÜÝ[[X\žWÙÙ[™\˜]YØ]‹ˆBˆ
+B‚ˆ™]\›ˆœÛÛ”™\ÜÛœÙJÂˆ›ÚÈŽˆYKˆœÝ™X[WÝ\›Žˆ™]™\œÙJˆœ›ØÙ\ÜÙ\Îœ›ØÙ\Ü×ØØ[™Y]WÜÝ[[X\žWÜÝ™X[H‹ˆÝØ\™ÜÏ^Âˆœ›ØÙ\Ü×ÚYŽˆ›ØÙ\ÜËšYˆ˜Ø[™Y]WÚYŽˆØ[™Y]WÚYˆKˆ
+KˆJB‚‚ÙÚ[—Ü™\]Z\™Y™Yˆ›ØÙ\Ü×ØØ[™Y]WØÛÙÛš]]™WÚ[\œ™]][Û—ÜÝ™X[Jˆ™\]Y\Ýˆ›ØÙ\Ü×ÚYˆØ[™Y]WÚYŠN‚ˆˆˆ‚ˆÝ™X[H[™Ø]™H[ˆRK\Ý\ÜY[\œ™]][ÛˆÙˆBˆØ[™Y]IÜÈ]˜Z[X›HÛÙÛš]]™H\ÜÙ\ÜÛY[™\Ý[Ë‚ˆˆˆ‚‚ˆ›ØÙ\ÜÈHÙ]ÛØš™XÝÛÜ—Í
+ˆ\Ý›ØÙ\ÜËˆÏ\›ØÙ\Ü×ÚYˆ
+B‚ˆYˆ›Ý\Ù\—ØØ[—ØXØÙ\Ü×Ü›ØÙ\ÜÊˆ™\]Y\Ý\Ù\‹ˆ›ØÙ\ÜËˆ
+N‚ˆ™]\›ˆ™\ÜÛœÙQ›Ü˜šY[Šˆ–[ÝHÈ›Ý]™HXØÙ\ÜÈÈ\È›Ú™XÝˆ‚ˆ
+B‚ˆYˆ›ØÙ\ÜËš\×Ú\ÝÜšXØ[‚ˆ[š]][ÛˆHÙ]ÛØš™XÝÛÜ—Í
+ˆ\ÝÜšXØ[›ØÙ\ÜÐØ[™Y]K›Øš™XÝÂˆœÙ[XÝÜ™[]Y
+ˆ˜Ø[™Y]H‹ˆœ›ØÙ\ÜÈ‹ˆ
+Bˆœ™Y™]ÚÜ™[]Y
+ˆ˜\ÜÙ\ÜÛY[Ü™\Ý[××ÜØÛÜ™\È‹ˆ˜\ÜÙ\ÜÛY[Ü™\Ý[××Ú[\ÜÙš[H‹ˆ
+Kˆ›ØÙ\ÜÏ\›ØÙ\ÜËˆØ[™Y]WÚYXØ[™Y]WÚYˆ
+Bˆ[ÙN‚ˆ[š]][ÛˆHÙ]ÛØš™XÝÛÜ—Í
+ˆ\Ý[š]][Û‹›Øš™XÝËœÙ[XÝÜ™[]Y
+ˆ˜Ø[™Y]H‹ˆœ›ØÙ\ÜÈ‹ˆ
+Kˆ›ØÙ\ÜÏ\›ØÙ\ÜËˆØ[™Y]WÚYXØ[™Y]WÚYˆ
+B‚ˆ[™ÝXYÙWØÛÙHHÙ]Ü™\]Y\ÝØZWÛ[™ÝXYÙJˆ™\]Y\Ýˆ
+BˆX\š×ØZWØÛÛ[ÛÝ]]YÚY—Û[™ÝXYÙWØÚ[™ÙY
+ˆ[š]][Û‹ˆÛÛ[ÚÙ^OH˜ÛÙÛš]]™WÚ[\œ™]][Ûˆ‹ˆ™\Ý[ÙšY[H˜ZWØÛÙÛš]]™WÚ[\œ™]][Ûˆ‹ˆÝ]\×ÙšY[H˜ZWØÛÙÛš]]™WÚ[\œ™]][Û—ÜÝ]\È‹ˆ[™ÝXYÙWØÛÙO[[™ÝXYÙWØÛÙKˆ
+B‚ˆÛÙÛš]]™WÜ™\Ý[ÈH
+ˆZ[ØÛÙÛš]]™WÜ™\Ý[×Ù›Ü—ØZWÛÝÛ™\Šˆ[š]][Û‚ˆ
+Bˆ
+B‚ˆYˆ›ÝÛÙÛš]]™WÜ™\Ý[Î‚ˆ™]\›ˆœÛÛ”™\ÜÛœÙJˆÂˆ™\œ›ÜˆŽˆ
+ˆ“›ÈÛÙÛš]]™H\ÜÙ\ÜÛY[™\Ý[È‚ˆ˜\™H]˜Z[X›H›Üˆ\ÈØ[™Y]Kˆ‚ˆ
+BˆKˆÝ]\ÏMˆ
+B‚ˆÝ\œ™[ÜÝ]\ÈH
+ˆ[š]][Û‹˜ZWØÛÙÛš]]™WÚ[\œ™]][Û—ÜÝ]\ÂˆÜˆ››ÝÜÝ\Y‚ˆ
+B‚ˆØ]™YÚ[\œ™]][ÛˆH
+ˆ[š]][Û‹˜ZWØÛÙÛš]]™WÚ[\œ™]][Û‚ˆÜˆßBˆ
+B‚ˆÝ\œ™[Ü\œÜÙHH
+ˆ›ØÙ\ÜËœ\œÜÙBˆÜˆˆ‚ˆ
+KœÝš\
+
+K›ÝÙ\Š
+B‚ˆØ]™YÜ\œÜÙHH
+ˆ[š]][Û‹˜ZWØÛÙÛš]]™WÚ[\œ™]][Û—Ü\œÜÙBˆÜˆˆ‚ˆ
+KœÝš\
+
+K›ÝÙ\Š
+B‚ˆÈØY™]HÚXÚÈ[ˆØ\ÙHH\œÜÙHÚ[™ÙYÚ]Ý]H›Ü›X[ˆÈÝ]]Y[X\šÚ[™È›ÝÈ™Z[™ÈšYÙÙ\™Y‚ˆYˆ
+ˆØ]™YÚ[\œ™]][Û‚ˆ[™Ý\œ™[ÜÝ]\ÈOH˜ÛÛ\]Y‚ˆ[™Ø]™YÜ\œÜÙHOHÝ\œ™[Ü\œÜÙBˆ
+N‚ˆÝ\œ™[ÜÝ]\ÈH›Ý]]Y‚‚ˆ[š]][Û‹˜ZWØÛÙÛš]]™WÚ[\œ™]][Û—ÜÝ]\ÈH
+ˆ›Ý]]Y‚ˆ
+B‚ˆ[š]][Û‹œØ]™J\]WÙšY[ÏVÂˆ˜ZWØÛÙÛš]]™WÚ[\œ™]][Û—ÜÝ]\È‹ˆJB‚ˆÈ™]\›ˆHÛÛ\]YØ]™Y™\Ý[Ú]Ý]H™]ÈÜ[RH™\]Y\Ý‚ˆYˆ
+ˆZWØÛÛ[Û[™ÝXYÙWÛX]Ú\Êˆ[š]][Û‹ˆ˜ÛÙÛš]]™WÚ[\œ™]][Ûˆ‹ˆ[™ÝXYÙWØÛÙKˆ
+Bˆ[™ÚÝ[Ü™]\›—ÜØ]™YØZWÜ™\Ý[
+ˆØ]™YÚ[\œ™]][Û‹ˆÝ\œ™[ÜÝ]\Ëˆ
+Bˆ
+N‚ˆYˆ^\Ý[™×ÙÙ[™\˜]ÜŠ
+N‚ˆZY[œÛÛ‹™[\ÊˆÂˆ\HŽˆœØ]™YÜ™\Ý[‹ˆ™]HŽˆØ]™YÚ[\œ™]][Û‹ˆœÝ]\ÈŽˆÝ\œ™[ÜÝ]\ËˆKˆ[œÝ\™WØ\ØÚZOQ˜[ÙKˆ
+H
+È—ˆ‚‚ˆ™\ÜÛœÙHHÝ™X[Z[™Ò™\ÜÛœÙJˆ^\Ý[™×ÙÙ[™\˜]ÜŠ
+KˆÛÛ[Ý\OJˆ˜\XØ][Û‹Þ[™œÛÛŽÈÚ\œÙ]]]‹N‚ˆ
+Kˆ
+B‚ˆ™\ÜÛœÙVÈØXÚKPÛÛ›Û—HH››ËXØXÚH‚ˆ™\ÜÛœÙVÈ–PXØÙ[PY™™\š[™È—HH››È‚‚ˆ™]\›ˆ™\ÜÛœÙB‚ˆYˆÝ\œ™[ÜÝ]\ÈOH™Ù[™\˜][™ÈŽ‚ˆ™]\›ˆœÛÛ”™\ÜÛœÙJˆÂˆ™\œ›ÜˆŽˆ
+ˆ•HÛÙÛš]]™H[\œ™]][Ûˆ\È‚ˆ˜[™XYH™Z[™ÈÙ[™\˜]Yˆ‚ˆ
+BˆKˆÝ]\ÏMKˆ
+B‚ˆ[š]][Û‹˜ZWØÛÙÛš]]™WÚ[\œ™]][Û—ÜÝ]\ÈH
+ˆ™Ù[™\˜][™È‚ˆ
+B‚ˆ[š]][Û‹œØ]™J\]WÙšY[ÏVÂˆ˜ZWØÛÙÛš]]™WÚ[\œ™]][Û—ÜÝ]\È‹ˆJB‚ˆYˆÙ[™\˜]ÜŠ
+N‚ˆ[\œ™]][ÛˆH
+ˆÜ™X]WÙ[\WØÛÙÛš]]™WÚ[\œ™]][ÛŠˆ[š]][Û‹ˆ[™ÝXYÙWØÛÙO[[™ÝXYÙWØÛÙKˆ
+Bˆ
+B‚ˆ™XÙZ]™YÙÛ™WÙ]™[H˜[ÙB‚ˆžN‚ˆ›Üˆ]™[[ˆÝ™X[WØÛÙÛš]]™WÚ[\œ™]][ÛŠˆÝÛ™\Z[š]][Û‹ˆÛÙÛš]]™WÜ™\Ý[ÏXÛÙÛš]]™WÜ™\Ý[Ëˆ[™ÝXYÙWØÛÙO[[™ÝXYÙWØÛÙKˆ
+N‚ˆ[\œ™]][ÛˆH
+ˆ\WØÛÙÛš]]™WÚ[\œ™]][Û—Ù]™[
+ˆ[\œ™]][Û‹ˆ]™[ˆ
+Bˆ
+B‚ˆYˆ]™[™Ù]
+\HŠHOH™Û™HŽ‚ˆ™XÙZ]™YÙÛ™WÙ]™[HYB‚ˆZY[œÛÛ‹™[\Êˆ]™[ˆ[œÝ\™WØ\ØÚZOQ˜[ÙKˆ
+H
+È—ˆ‚‚ˆÈÈ›ÝØ]™H[ˆ[\HÜˆX[›Ü›YYRH™\Ý[‚ˆYˆ›Ý
+ˆ[\œ™]][Û‹™Ù]
+š[\œ™]][ÛˆŠBˆÜˆˆ‚ˆ
+KœÝš\
+
+N‚ˆ˜Z\ÙH˜[YQ\œ›ÜŠˆ•HRH™\ÜÛœÙHY›ÝÛÛZ[ˆ‚ˆ˜HÛÙÛš]]™H[\œ™]][Û‹ˆ‚ˆ
+B‚ˆYˆ›Ý™XÙZ]™YÙÛ™WÙ]™[‚ˆZY[œÛÛ‹™[\ÊˆÂˆ\HŽˆ™Û™H‹ˆKˆ[œÝ\™WØ\ØÚZOQ˜[ÙKˆ
+H
+È—ˆ‚‚ˆØ]™WØÛÙÛš]]™WÚ[\œ™]][ÛŠˆÝÛ™\Z[š]][Û‹ˆ[\œ™]][ÛZ[\œ™]][Û‹ˆ[™ÝXYÙWØÛÙO[[™ÝXYÙWØÛÙKˆ
+B‚ˆ^Ù\^Ù\[Ûˆ\È\œ›ÜŽ‚ˆ[š]][Û‹˜ZWØÛÙÛš]]™WÚ[\œ™]][Û—ÜÝ]\ÈH
+ˆ™˜Z[Y‚ˆ
+B‚ˆ[š]][Û‹œØ]™J\]WÙšY[ÏVÂˆ˜ZWØÛÙÛš]]™WÚ[\œ™]][Û—ÜÝ]\È‹ˆJB‚ˆZY[œÛÛ‹™[\ÊˆÂˆ\HŽˆ™\œ›Üˆ‹ˆ›Y\ÜØYÙHŽˆÝŠ\œ›ÜŠKˆKˆ[œÝ\™WØ\ØÚZOQ˜[ÙKˆ
+H
+È—ˆ‚‚ˆ™\ÜÛœÙHHÝ™X[Z[™Ò™\ÜÛœÙJˆÙ[™\˜]ÜŠ
+KˆÛÛ[Ý\OJˆ˜\XØ][Û‹Þ[™œÛÛŽÈÚ\œÙ]]]‹N‚ˆ
+Kˆ
+B‚ˆ™\ÜÛœÙVÈØXÚKPÛÛ›Û—HH››ËXØXÚH‚ˆ™\ÜÛœÙVÈ–PXØÙ[PY™™\š[™È—HH››È‚‚ˆ™]\›ˆ™\ÜÛœÙB‚‚ÙÚ[—Ü™\]Z\™Y™\]Z\™WÔÔÕ™Yˆ›ØÙ\Ü×ØØ[™Y]WØÛÙÛš]]™WÚ[\œ™]][Û—Ü™YÙ[™\˜]Jˆ™\]Y\Ýˆ›ØÙ\Ü×ÚYˆØ[™Y]WÚYŠN‚ˆˆˆ‚ˆÛX\ˆHØ]™YÛÙÛš]]™H[\œ™]][Ûˆ[™™]\›‚ˆHÝ™X[HT“›ÜˆHœ™\ÚÙ[™\˜][Û‹‚ˆˆˆ‚‚ˆ›ØÙ\ÜÈHÙ]ÛØš™XÝÛÜ—Í
+ˆ\Ý›ØÙ\ÜËˆÏ\›ØÙ\Ü×ÚYˆ
+B‚ˆYˆ›Ý\Ù\—ØØ[—ØXØÙ\Ü×Ü›ØÙ\ÜÊˆ™\]Y\Ý\Ù\‹ˆ›ØÙ\ÜËˆ
+N‚ˆ™]\›ˆ™\ÜÛœÙQ›Ü˜šY[Šˆ–[ÝHÈ›Ý]™HXØÙ\ÜÈÈ\È›Ú™XÝˆ‚ˆ
+B‚‚ˆYˆ›ØÙ\ÜËš\×Ú\ÝÜšXØ[‚ˆ[š]][ÛˆHÙ]ÛØš™XÝÛÜ—Í
+ˆ\ÝÜšXØ[›ØÙ\ÜÐØ[™Y]Kˆ›ØÙ\ÜÏ\›ØÙ\ÜËˆØ[™Y]WÚYXØ[™Y]WÚYˆ
+Bˆ[ÙN‚ˆ[š]][ÛˆHÙ]ÛØš™XÝÛÜ—Í
+ˆ\Ý[š]][Û‹ˆ›ØÙ\ÜÏ\›ØÙ\ÜËˆØ[™Y]WÚYXØ[™Y]WÚYˆ
+B‚ˆ[š]][Û‹˜ZWØÛÙÛš]]™WÚ[\œ™]][Û—ÜÝ]\ÈH
+ˆ››ÝÜÝ\Y‚ˆ
+Bˆ[š]][Û‹˜ZWØÛÙÛš]]™WÚ[\œ™]][Û—ÙÙ[™\˜]YØ]H
+ˆ›Û™Bˆ
+Bˆ[š]][Û‹˜ZWØÛÙÛš]]™WÚ[\œ™]][Û—Ü\œÜÙHHˆ‚‚ˆ[š]][Û‹œØ]™Jˆ\]WÙšY[ÏVÂˆ˜ZWØÛÙÛš]]™WÚ[\œ™]][Û—ÜÝ]\È‹ˆ˜ZWØÛÙÛš]]™WÚ[\œ™]][Û—ÙÙ[™\˜]YØ]‹ˆ˜ZWØÛÙÛš]]™WÚ[\œ™]][Û—Ü\œÜÙH‹ˆBˆ
+B‚ˆ™]\›ˆœÛÛ”™\ÜÛœÙJˆÂˆ›ÚÈŽˆYKˆœÝ™X[WÝ\›Žˆ™]™\œÙJˆ
+ˆœ›ØÙ\ÜÙ\Îˆ‚ˆœ›ØÙ\Ü×ØØ[™Y]WØÛÙÛš]]™WÈ‚ˆš[\œ™]][Û—ÜÝ™X[H‚ˆ
+KˆÝØ\™ÜÏ^Âˆœ›ØÙ\Ü×ÚYŽˆ›ØÙ\ÜËšYˆ˜Ø[™Y]WÚYŽˆØ[™Y]WÚYˆKˆ
+KˆBˆ
+B‚‚ÙÚ[—Ü™\]Z\™Y™Yˆ›ØÙ\Ü×ØØ[™Y]WØÛÙÛš]]™WÜ]Y\Ý[Ûœ×ÜÝ™X[Jˆ™\]Y\Ýˆ›ØÙ\Ü×ÚYˆØ[™Y]WÚYŠN‚ˆˆˆ‚ˆÝ™X[H[™Ø]™HRK\Ý\ÜYÛÙÛš]]™H]Y\Ý[ÛœË‚‚ˆÛÙÛš]]™H]Y\Ý[ÛœÈ\™HÙ[™\˜]Y[™ÝÜ™Y[™\[™[Bˆœ›ÛHHÛÙÛš]]™H[\œ™]][Û‹‚ˆˆˆ‚‚ˆ›ØÙ\ÜÈHÙ]ÛØš™XÝÛÜ—Í
+ˆ\Ý›ØÙ\ÜËˆÏ\›ØÙ\Ü×ÚYˆ
+B‚ˆYˆ›Ý\Ù\—ØØ[—ØXØÙ\Ü×Ü›ØÙ\ÜÊˆ™\]Y\Ý\Ù\‹ˆ›ØÙ\ÜËˆ
+N‚ˆ™]\›ˆ™\ÜÛœÙQ›Ü˜šY[Šˆ–[ÝHÈ›Ý]™HXØÙ\ÜÈÈ\È›Ú™XÝˆ‚ˆ
+B‚‚ˆYˆ›ØÙ\ÜËš\×Ú\ÝÜšXØ[‚ˆ[š]][ÛˆHÙ]ÛØš™XÝÛÜ—Í
+ˆ\ÝÜšXØ[›ØÙ\ÜÐØ[™Y]Kˆ›ØÙ\ÜÏ\›ØÙ\ÜËˆØ[™Y]WÚYXØ[™Y]WÚYˆ
+Bˆ[ÙN‚ˆ[š]][ÛˆHÙ]ÛØš™XÝÛÜ—Í
+ˆ\Ý[š]][Û‹ˆ›ØÙ\ÜÏ\›ØÙ\ÜËˆØ[™Y]WÚYXØ[™Y]WÚYˆ
+B‚ˆ[™ÝXYÙWØÛÙHHÙ]Ü™\]Y\ÝØZWÛ[™ÝXYÙJˆ™\]Y\Ýˆ
+BˆX\š×ØZWØÛÛ[ÛÝ]]YÚY—Û[™ÝXYÙWØÚ[™ÙY
+ˆ[š]][Û‹ˆÛÛ[ÚÙ^OH˜ÛÙÛš]]™WÜ]Y\Ý[ÛœÈ‹ˆ™\Ý[ÙšY[H˜ZWØÛÙÛš]]™WÜ]Y\Ý[ÛœÈ‹ˆÝ]\×ÙšY[H˜ZWØÛÙÛš]]™WÜ]Y\Ý[Ûœ×ÜÝ]\È‹ˆ[™ÝXYÙWØÛÙO[[™ÝXYÙWØÛÙKˆ
+B‚ˆÛÙÛš]]™WÜ™\Ý[ÈH
+ˆZ[ØÛÙÛš]]™WÜ™\Ý[×Ù›Ü—ØZWÛÝÛ™\Šˆ[š]][Û‚ˆ
+Bˆ
+B‚ˆYˆ›ÝÛÙÛš]]™WÜ™\Ý[Î‚ˆ™]\›ˆœÛÛ”™\ÜÛœÙJˆÂˆ™\œ›ÜˆŽˆ
+ˆ“›ÈÛÙÛš]]™H\ÜÙ\ÜÛY[™\Ý[È‚ˆ˜\™H]˜Z[X›H›Üˆ\ÈØ[™Y]Kˆ‚ˆ
+BˆKˆÝ]\ÏMˆ
+B‚ˆÝ\œ™[ÜÝ]\ÈH
+ˆ[š]][Û‹˜ZWØÛÙÛš]]™WÜ]Y\Ý[Ûœ×ÜÝ]\ÂˆÜˆ››ÝÜÝ\Y‚ˆ
+B‚ˆØ]™YÜ™\Ý[H
+ˆ[š]][Û‹˜ZWØÛÙÛš]]™WÜ]Y\Ý[ÛœÂˆÜˆßBˆ
+B‚ˆÝ\œ™[Ü\œÜÙHH
+ˆ›ØÙ\ÜËœ\œÜÙBˆÜˆˆ‚ˆ
+KœÝš\
+
+K›ÝÙ\Š
+B‚ˆØ]™YÜ\œÜÙHH
+ˆ[š]][Û‹˜ZWØÛÙÛš]]™WÜ]Y\Ý[Ûœ×Ü\œÜÙBˆÜˆˆ‚ˆ
+KœÝš\
+
+K›ÝÙ\Š
+B‚ˆÈØY™]HÚXÚÈYˆH›ØÙ\ÜÈ\œÜÙH\ÈÚ[™ÙY‚ˆYˆ
+ˆØ]™YÜ™\Ý[ˆ[™Ý\œ™[ÜÝ]\ÈOH˜ÛÛ\]Y‚ˆ[™Ø]™YÜ\œÜÙHOHÝ\œ™[Ü\œÜÙBˆ
+N‚ˆÝ\œ™[ÜÝ]\ÈH›Ý]]Y‚‚ˆ[š]][Û‹˜ZWØÛÙÛš]]™WÜ]Y\Ý[Ûœ×ÜÝ]\ÈH
+ˆ›Ý]]Y‚ˆ
+B‚ˆ[š]][Û‹œØ]™Jˆ\]WÙšY[ÏVÂˆ˜ZWØÛÙÛš]]™WÜ]Y\Ý[Ûœ×ÜÝ]\È‹ˆBˆ
+B‚ˆÈ™]\›ˆ™]š[Ý\ÛHÙ[™\˜]Y]Y\Ý[ÛœÈÚ[ˆ]˜Z[X›K‚ˆYˆ
+ˆZWØÛÛ[Û[™ÝXYÙWÛX]Ú\Êˆ[š]][Û‹ˆ˜ÛÙÛš]]™WÜ]Y\Ý[ÛœÈ‹ˆ[™ÝXYÙWØÛÙKˆ
+Bˆ[™ÚÝ[Ü™]\›—ÜØ]™YØZWÜ™\Ý[
+ˆØ]™YÜ™\Ý[ˆÝ\œ™[ÜÝ]\Ëˆ
+Bˆ
+N‚ˆYˆ^\Ý[™×ÙÙ[™\˜]ÜŠ
+N‚ˆZY[œÛÛ‹™[\ÊˆÂˆ\HŽˆœØ]™YÜ™\Ý[‹ˆ™]HŽˆØ]™YÜ™\Ý[ˆœÝ]\ÈŽˆÝ\œ™[ÜÝ]\ËˆKˆ[œÝ\™WØ\ØÚZOQ˜[ÙKˆ
+H
+È—ˆ‚‚ˆ™\ÜÛœÙHHÝ™X[Z[™Ò™\ÜÛœÙJˆ^\Ý[™×ÙÙ[™\˜]ÜŠ
+KˆÛÛ[Ý\OJˆ˜\XØ][Û‹Þ[™œÛÛŽÈÚ\œÙ]]]‹N‚ˆ
+Kˆ
+B‚ˆ™\ÜÛœÙVÈØXÚKPÛÛ›Û—HH››ËXØXÚH‚ˆ™\ÜÛœÙVÈ–PXØÙ[PY™™\š[™È—HH››È‚‚ˆ™]\›ˆ™\ÜÛœÙB‚ˆYˆÝ\œ™[ÜÝ]\ÈOH™Ù[™\˜][™ÈŽ‚ˆ™]\›ˆœÛÛ”™\ÜÛœÙJˆÂˆ™\œ›ÜˆŽˆ
+ˆ•HÛÙÛš]]™H]Y\Ý[ÛœÈ\™H‚ˆ˜[™XYH™Z[™ÈÙ[™\˜]Yˆ‚ˆ
+BˆKˆÝ]\ÏMKˆ
+B‚ˆ[š]][Û‹˜ZWØÛÙÛš]]™WÜ]Y\Ý[Ûœ×ÜÝ]\ÈH
+ˆ™Ù[™\˜][™È‚ˆ
+B‚ˆ[š]][Û‹œØ]™Jˆ\]WÙšY[ÏVÂˆ˜ZWØÛÙÛš]]™WÜ]Y\Ý[Ûœ×ÜÝ]\È‹ˆBˆ
+B‚ˆYˆÙ[™\˜]ÜŠ
+N‚ˆ™\Ý[HÜ™X]WÙ[\WØÛÙÛš]]™WÜ]Y\Ý[ÛœÊˆ[š]][Û‹ˆ[™ÝXYÙWØÛÙO[[™ÝXYÙWØÛÙKˆ
+B‚ˆ™XÙZ]™YÙÛ™WÙ]™[H˜[ÙB‚ˆžN‚ˆ›Üˆ]™[[ˆÝ™X[WØÛÙÛš]]™WÜ]Y\Ý[ÛœÊˆÝÛ™\Z[š]][Û‹ˆÛÙÛš]]™WÜ™\Ý[ÏXÛÙÛš]]™WÜ™\Ý[Ëˆ[™ÝXYÙWØÛÙO[[™ÝXYÙWØÛÙKˆ
+N‚ˆ™\Ý[H\WØÛÙÛš]]™WÜ]Y\Ý[Ûœ×Ù]™[
+ˆ™\Ý[ˆ]™[ˆ
+B‚ˆYˆ]™[™Ù]
+\HŠHOH™Û™HŽ‚ˆ™XÙZ]™YÙÛ™WÙ]™[HYB‚ˆZY[œÛÛ‹™[\Êˆ]™[ˆ[œÝ\™WØ\ØÚZOQ˜[ÙKˆ
+H
+È—ˆ‚‚ˆ]Y\Ý[ÛœÈH
+ˆ™\Ý[™Ù]
+œ]Y\Ý[ÛœÈŠBˆÜˆ×Bˆ
+B‚ˆYˆ›Ý]Y\Ý[ÛœÎ‚ˆ˜Z\ÙH˜[YQ\œ›ÜŠˆ•HRH™\ÜÛœÙHY›ÝÛÛZ[ˆ‚ˆ˜[YÛÙÛš]]™H]Y\Ý[ÛœËˆ‚ˆ
+B‚ˆYˆ›Ý™XÙZ]™YÙÛ™WÙ]™[‚ˆZY[œÛÛ‹™[\ÊˆÂˆ\HŽˆ™Û™H‹ˆKˆ[œÝ\™WØ\ØÚZOQ˜[ÙKˆ
+H
+È—ˆ‚‚ˆØ]™WØÛÙÛš]]™WÜ]Y\Ý[ÛœÊˆÝÛ™\Z[š]][Û‹ˆ™\Ý[\™\Ý[ˆ[™ÝXYÙWØÛÙO[[™ÝXYÙWØÛÙKˆ
+B‚ˆ^Ù\^Ù\[Ûˆ\È\œ›ÜŽ‚ˆ[š]][Û‹˜ZWØÛÙÛš]]™WÜ]Y\Ý[Ûœ×ÜÝ]\ÈH
+ˆ™˜Z[Y‚ˆ
+B‚ˆ[š]][Û‹œØ]™Jˆ\]WÙšY[ÏVÂˆ˜ZWØÛÙÛš]]™WÜ]Y\Ý[Ûœ×ÜÝ]\È‹ˆBˆ
+B‚ˆZY[œÛÛ‹™[\ÊˆÂˆ\HŽˆ™\œ›Üˆ‹ˆ›Y\ÜØYÙHŽˆÝŠ\œ›ÜŠKˆKˆ[œÝ\™WØ\ØÚZOQ˜[ÙKˆ
+H
+È—ˆ‚‚ˆ™\ÜÛœÙHHÝ™X[Z[™Ò™\ÜÛœÙJˆÙ[™\˜]ÜŠ
+KˆÛÛ[Ý\OJˆ˜\XØ][Û‹Þ[™œÛÛŽÈÚ\œÙ]]]‹N‚ˆ
+Kˆ
+B‚ˆ™\ÜÛœÙVÈØXÚKPÛÛ›Û—HH››ËXØXÚH‚ˆ™\ÜÛœÙVÈ–PXØÙ[PY™™\š[™È—HH››È‚‚ˆ™]\›ˆ™\ÜÛœÙB‚ÙÚ[—Ü™\]Z\™Y™\]Z\™WÔÔÕ™Yˆ›ØÙ\Ü×ØØ[™Y]WØÛÙÛš]]™WÜ]Y\Ý[Ûœ×Ü™YÙ[™\˜]Jˆ™\]Y\Ýˆ›ØÙ\Ü×ÚYˆØ[™Y]WÚYŠN‚ˆˆˆ‚ˆ™\Ù]Û›HHÛÙÛš]]™H]Y\Ý[ÛœÈ[™™]\›ˆBˆÝ™X[HT“›ÜˆHœ™\ÚÙ[™\˜][Û‹‚‚ˆHÛÙÛš]]™H[\œ™]][Ûˆ\È›ÝÚ[™ÙY‚ˆˆˆ‚‚ˆ›ØÙ\ÜÈHÙ]ÛØš™XÝÛÜ—Í
+ˆ\Ý›ØÙ\ÜËˆÏ\›ØÙ\Ü×ÚYˆ
+B‚ˆYˆ›Ý\Ù\—ØØ[—ØXØÙ\Ü×Ü›ØÙ\ÜÊˆ™\]Y\Ý\Ù\‹ˆ›ØÙ\ÜËˆ
+N‚ˆ™]\›ˆ™\ÜÛœÙQ›Ü˜šY[Šˆ–[ÝHÈ›Ý]™HXØÙ\ÜÈÈ\È›Ú™XÝˆ‚ˆ
+B‚ˆYˆ›ØÙ\ÜËš\×Ú\ÝÜšXØ[‚ˆ[š]][ÛˆHÙ]ÛØš™XÝÛÜ—Í
+ˆ\ÝÜšXØ[›ØÙ\ÜÐØ[™Y]Kˆ›ØÙ\ÜÏ\›ØÙ\ÜËˆØ[™Y]WÚYXØ[™Y]WÚYˆ
+Bˆ[ÙN‚ˆ[š]][ÛˆHÙ]ÛØš™XÝÛÜ—Í
+ˆ\Ý[š]][Û‹ˆ›ØÙ\ÜÏ\›ØÙ\ÜËˆØ[™Y]WÚYXØ[™Y]WÚYˆ
+B‚ˆ[š]][Û‹˜ZWØÛÙÛš]]™WÜ]Y\Ý[Ûœ×ÜÝ]\ÈH
+ˆ››ÝÜÝ\Y‚ˆ
+B‚ˆ[š]][Û‹˜ZWØÛÙÛš]]™WÜ]Y\Ý[Ûœ×ÙÙ[™\˜]YØ]H
+ˆ›Û™Bˆ
+B‚ˆ[š]][Û‹˜ZWØÛÙÛš]]™WÜ]Y\Ý[Ûœ×Ü\œÜÙHHˆ‚‚ˆ[š]][Û‹œØ]™Jˆ\]WÙšY[ÏVÂˆ˜ZWØÛÙÛš]]™WÜ]Y\Ý[Ûœ×ÜÝ]\È‹ˆ˜ZWØÛÙÛš]]™WÜ]Y\Ý[Ûœ×ÙÙ[™\˜]YØ]‹ˆ˜ZWØÛÙÛš]]™WÜ]Y\Ý[Ûœ×Ü\œÜÙH‹ˆBˆ
+B‚ˆ™]\›ˆœÛÛ”™\ÜÛœÙJˆÂˆ›ÚÈŽˆYK‚ˆœÝ™X[WÝ\›Žˆ™]™\œÙJˆ
+ˆœ›ØÙ\ÜÙ\Îˆ‚ˆœ›ØÙ\Ü×ØØ[™Y]WØÛÙÛš]]™WÈ‚ˆœ]Y\Ý[Ûœ×ÜÝ™X[H‚ˆ
+KˆÝØ\™ÜÏ^Âˆœ›ØÙ\Ü×ÚYŽˆ›ØÙ\ÜËšYˆ˜Ø[™Y]WÚYŽˆØ[™Y]WÚYˆKˆ
+KˆBˆ
+B‚‚ÙÚ[—Ü™\]Z\™Y™Yˆ›ØÙ\Ü×ØØ[™Y]WÛ[Ý]˜][Û—Ú[\œ™]][Û—ÜÝ™X[Jˆ™\]Y\Ýˆ›ØÙ\Ü×ÚYˆØ[™Y]WÚYŠN‚ˆˆˆ‚ˆÝ™X[H[™Ø]™H[ˆRK\Ý\ÜY[\œ™]][ÛˆÙˆBˆØ[™Y]IÜÈ[Ý]˜][Ûˆ\ÜÙ\ÜÛY[™\Ý[Ë‚ˆˆˆ‚‚ˆ›ØÙ\ÜÈHÙ]ÛØš™XÝÛÜ—Í
+ˆ\Ý›ØÙ\ÜËˆÏ\›ØÙ\Ü×ÚYˆ
+B‚ˆYˆ›Ý\Ù\—ØØ[—ØXØÙ\Ü×Ü›ØÙ\ÜÊˆ™\]Y\Ý\Ù\‹ˆ›ØÙ\ÜËˆ
+N‚ˆ™]\›ˆ™\ÜÛœÙQ›Ü˜šY[Šˆ–[ÝHÈ›Ý]™HXØÙ\ÜÈÈ\È›Ú™XÝˆ‚ˆ
+B‚ˆYˆ›ØÙ\ÜËš\×Ú\ÝÜšXØ[‚ˆ[š]][ÛˆHÙ]ÛØš™XÝÛÜ—Í
+ˆ\ÝÜšXØ[›ØÙ\ÜÐØ[™Y]K›Øš™XÝÂˆœÙ[XÝÜ™[]Y
+ˆ˜Ø[™Y]H‹ˆœ›ØÙ\ÜÈ‹ˆ
+Bˆœ™Y™]ÚÜ™[]Y
+ˆ˜\ÜÙ\ÜÛY[Ü™\Ý[××ÜØÛÜ™\È‹ˆ˜\ÜÙ\ÜÛY[Ü™\Ý[××Ú[\ÜÙš[H‹ˆ
+Kˆ›ØÙ\ÜÏ\›ØÙ\ÜËˆØ[™Y]WÚYXØ[™Y]WÚYˆ
+Bˆ[ÙN‚ˆ[š]][ÛˆHÙ]ÛØš™XÝÛÜ—Í
+ˆ\Ý[š]][Û‹›Øš™XÝËœÙ[XÝÜ™[]Y
+ˆ˜Ø[™Y]H‹ˆœ›ØÙ\ÜÈ‹ˆ
+Kˆ›ØÙ\ÜÏ\›ØÙ\ÜËˆØ[™Y]WÚYXØ[™Y]WÚYˆ
+B‚ˆ[™ÝXYÙWØÛÙHHÙ]Ü™\]Y\ÝØZWÛ[™ÝXYÙJˆ™\]Y\Ýˆ
+BˆX\š×ØZWØÛÛ[ÛÝ]]YÚY—Û[™ÝXYÙWØÚ[™ÙY
+ˆ[š]][Û‹ˆÛÛ[ÚÙ^OH›[Ý]˜][Û—Ú[\œ™]][Ûˆ‹ˆ™\Ý[ÙšY[H˜ZWÛ[Ý]˜][Û—Ú[\œ™]][Ûˆ‹ˆÝ]\×ÙšY[H˜ZWÛ[Ý]˜][Û—Ú[\œ™]][Û—ÜÝ]\È‹ˆ[™ÝXYÙWØÛÙO[[™ÝXYÙWØÛÙKˆ
+B‚ˆ[Ý]˜][Û—Ü™\Ý[ÈH
+ˆZ[Û[Ý]˜][Û—Ü™\Ý[×Ù›Ü—ØZWÛÝÛ™\Šˆ[š]][Û‚ˆ
+Bˆ
+B‚ˆYˆ›Ý[Ý]˜][Û—Ü™\Ý[Î‚ˆ™]\›ˆœÛÛ”™\ÜÛœÙJˆÂˆ™\œ›ÜˆŽˆ
+ˆ“›È[Ý]˜][Ûˆ\ÜÙ\ÜÛY[™\Ý[È‚ˆ˜\™H]˜Z[X›H›Üˆ\ÈØ[™Y]Kˆ‚ˆ
+BˆKˆÝ]\ÏMˆ
+B‚ˆÝ\œ™[ÜÝ]\ÈH
+ˆ[š]][Û‹˜ZWÛ[Ý]˜][Û—Ú[\œ™]][Û—ÜÝ]\ÂˆÜˆ››ÝÜÝ\Y‚ˆ
+B‚ˆØ]™YÚ[\œ™]][ÛˆH
+ˆ[š]][Û‹˜ZWÛ[Ý]˜][Û—Ú[\œ™]][Û‚ˆÜˆßBˆ
+B‚ˆÝ\œ™[Ü\œÜÙHH
+ˆ›ØÙ\ÜËœ\œÜÙBˆÜˆˆ‚ˆ
+KœÝš\
+
+K›ÝÙ\Š
+B‚ˆØ]™YÜ\œÜÙHH
+ˆ[š]][Û‹˜ZWÛ[Ý]˜][Û—Ú[\œ™]][Û—Ü\œÜÙBˆÜˆˆ‚ˆ
+KœÝš\
+
+K›ÝÙ\Š
+B‚ˆÈ^˜HØY™]HYˆH\œÜÙHÚ[™ÙYÚ]Ý]H›Ü›X[ˆÈÝ]]Y[X\šÚ[™È›ÝÈ™Z[™ÈšYÙÙ\™Y‚ˆYˆ
+ˆØ]™YÚ[\œ™]][Û‚ˆ[™Ý\œ™[ÜÝ]\ÈOH˜ÛÛ\]Y‚ˆ[™Ø]™YÜ\œÜÙHOHÝ\œ™[Ü\œÜÙBˆ
+N‚ˆÝ\œ™[ÜÝ]\ÈH›Ý]]Y‚‚ˆ[š]][Û‹˜ZWÛ[Ý]˜][Û—Ú[\œ™]][Û—ÜÝ]\ÈH
+ˆ›Ý]]Y‚ˆ
+B‚ˆ[š]][Û‹œØ]™J\]WÙšY[ÏVÂˆ˜ZWÛ[Ý]˜][Û—Ú[\œ™]][Û—ÜÝ]\È‹ˆJB‚ˆÈ™]\›ˆ[ˆ^\Ý[™ÈÛÛ\]Y[\œ™]][Û‹‚ˆYˆ
+ˆZWØÛÛ[Û[™ÝXYÙWÛX]Ú\Êˆ[š]][Û‹ˆ›[Ý]˜][Û—Ú[\œ™]][Ûˆ‹ˆ[™ÝXYÙWØÛÙKˆ
+Bˆ[™ÚÝ[Ü™]\›—ÜØ]™YØZWÜ™\Ý[
+ˆØ]™YÚ[\œ™]][Û‹ˆÝ\œ™[ÜÝ]\Ëˆ
+Bˆ
+N‚ˆYˆ^\Ý[™×ÙÙ[™\˜]ÜŠ
+N‚ˆZY[œÛÛ‹™[\ÊˆÂˆ\HŽˆœØ]™YÜ™\Ý[‹ˆ™]HŽˆØ]™YÚ[\œ™]][Û‹ˆœÝ]\ÈŽˆÝ\œ™[ÜÝ]\ËˆKˆ[œÝ\™WØ\ØÚZOQ˜[ÙKˆ
+H
+È—ˆ‚‚ˆ™\ÜÛœÙHHÝ™X[Z[™Ò™\ÜÛœÙJˆ^\Ý[™×ÙÙ[™\˜]ÜŠ
+KˆÛÛ[Ý\OJˆ˜\XØ][Û‹Þ[™œÛÛŽÈÚ\œÙ]]]‹N‚ˆ
+Kˆ
+B‚ˆ™\ÜÛœÙVÈØXÚKPÛÛ›Û—HH››ËXØXÚH‚ˆ™\ÜÛœÙVÈ–PXØÙ[PY™™\š[™È—HH››È‚‚ˆ™]\›ˆ™\ÜÛœÙB‚ˆYˆÝ\œ™[ÜÝ]\ÈOH™Ù[™\˜][™ÈŽ‚ˆ™]\›ˆœÛÛ”™\ÜÛœÙJˆÂˆ™\œ›ÜˆŽˆ
+ˆ•H[Ý]˜][Ûˆ[\œ™]][Ûˆ\È‚ˆ˜[™XYH™Z[™ÈÙ[™\˜]Yˆ‚ˆ
+BˆKˆÝ]\ÏMKˆ
+B‚ˆ[š]][Û‹˜ZWÛ[Ý]˜][Û—Ú[\œ™]][Û—ÜÝ]\ÈH
+ˆ™Ù[™\˜][™È‚ˆ
+B‚ˆ[š]][Û‹œØ]™J\]WÙšY[ÏVÂˆ˜ZWÛ[Ý]˜][Û—Ú[\œ™]][Û—ÜÝ]\È‹ˆJB‚ˆYˆÙ[™\˜]ÜŠ
+N‚ˆ[\œ™]][ÛˆH
+ˆÜ™X]WÙ[\WÛ[Ý]˜][Û—Ú[\œ™]][ÛŠˆ[š]][Û‹ˆ[™ÝXYÙWØÛÙO[[™ÝXYÙWØÛÙKˆ
+Bˆ
+B‚ˆ™XÙZ]™YÙÛ™WÙ]™[H˜[ÙB‚ˆžN‚ˆ›Üˆ]™[[ˆÝ™X[WÛ[Ý]˜][Û—Ú[\œ™]][ÛŠˆÝÛ™\Z[š]][Û‹ˆ[Ý]˜][Û—Ü™\Ý[Ï[[Ý]˜][Û—Ü™\Ý[Ëˆ[™ÝXYÙWØÛÙO[[™ÝXYÙWØÛÙKˆ
+N‚ˆ[\œ™]][ÛˆH
+ˆ\WÛ[Ý]˜][Û—Ú[\œ™]][Û—Ù]™[
+ˆ[\œ™]][Û‹ˆ]™[ˆ
+Bˆ
+B‚ˆYˆ]™[™Ù]
+\HŠHOH™Û™HŽ‚ˆ™XÙZ]™YÙÛ™WÙ]™[HYB‚ˆZY[œÛÛ‹™[\Êˆ]™[ˆ[œÝ\™WØ\ØÚZOQ˜[ÙKˆ
+H
+È—ˆ‚‚ˆYˆ›Ý
+ˆ[\œ™]][Û‹™Ù]
+š[\œ™]][ÛˆŠBˆÜˆˆ‚ˆ
+KœÝš\
+
+N‚ˆ˜Z\ÙH˜[YQ\œ›ÜŠˆ•HRH™\ÜÛœÙHY›ÝÛÛZ[ˆ‚ˆ˜H[Ý]˜][Ûˆ[\œ™]][Û‹ˆ‚ˆ
+B‚ˆYˆ›Ý™XÙZ]™YÙÛ™WÙ]™[‚ˆZY[œÛÛ‹™[\ÊˆÂˆ\HŽˆ™Û™H‹ˆKˆ[œÝ\™WØ\ØÚZOQ˜[ÙKˆ
+H
+È—ˆ‚‚ˆØ]™WÛ[Ý]˜][Û—Ú[\œ™]][ÛŠˆÝÛ™\Z[š]][Û‹ˆ[\œ™]][ÛZ[\œ™]][Û‹ˆ[™ÝXYÙWØÛÙO[[™ÝXYÙWØÛÙKˆ
+B‚ˆ^Ù\^Ù\[Ûˆ\È\œ›ÜŽ‚ˆ[š]][Û‹˜ZWÛ[Ý]˜][Û—Ú[\œ™]][Û—ÜÝ]\ÈH
+ˆ™˜Z[Y‚ˆ
+B‚ˆ[š]][Û‹œØ]™J\]WÙšY[ÏVÂˆ˜ZWÛ[Ý]˜][Û—Ú[\œ™]][Û—ÜÝ]\È‹ˆJB‚ˆZY[œÛÛ‹™[\ÊˆÂˆ\HŽˆ™\œ›Üˆ‹ˆ›Y\ÜØYÙHŽˆÝŠ\œ›ÜŠKˆKˆ[œÝ\™WØ\ØÚZOQ˜[ÙKˆ
+H
+È—ˆ‚‚ˆ™\ÜÛœÙHHÝ™X[Z[™Ò™\ÜÛœÙJˆÙ[™\˜]ÜŠ
+KˆÛÛ[Ý\OJˆ˜\XØ][Û‹Þ[™œÛÛŽÈÚ\œÙ]]]‹N‚ˆ
+Kˆ
+B‚ˆ™\ÜÛœÙVÈØXÚKPÛÛ›Û—HH››ËXØXÚH‚ˆ™\ÜÛœÙVÈ–PXØÙ[PY™™\š[™È—HH››È‚‚ˆ™]\›ˆ™\ÜÛœÙB‚‚ÙÚ[—Ü™\]Z\™Y™\]Z\™WÔÔÕ™Yˆ›ØÙ\Ü×ØØ[™Y]WÛ[Ý]˜][Û—Ú[\œ™]][Û—Ü™YÙ[™\˜]Jˆ™\]Y\Ýˆ›ØÙ\Ü×ÚYˆØ[™Y]WÚYŠN‚ˆˆˆ‚ˆÛX\ˆHØ]™Y[Ý]˜][Ûˆ[\œ™]][Ûˆ[™™]\›‚ˆHÝ™X[HT“›ÜˆHœ™\ÚÙ[™\˜][Û‹‚ˆˆˆ‚‚ˆ›ØÙ\ÜÈHÙ]ÛØš™XÝÛÜ—Í
+ˆ\Ý›ØÙ\ÜËˆÏ\›ØÙ\Ü×ÚYˆ
+B‚ˆYˆ›Ý\Ù\—ØØ[—ØXØÙ\Ü×Ü›ØÙ\ÜÊˆ™\]Y\Ý\Ù\‹ˆ›ØÙ\ÜËˆ
+N‚ˆ™]\›ˆ™\ÜÛœÙQ›Ü˜šY[Šˆ–[ÝHÈ›Ý]™HXØÙ\ÜÈÈ\È›Ú™XÝˆ‚ˆ
+B‚ˆYˆ›ØÙ\ÜËš\×Ú\ÝÜšXØ[‚ˆ[š]][ÛˆHÙ]ÛØš™XÝÛÜ—Í
+ˆ\ÝÜšXØ[›ØÙ\ÜÐØ[™Y]Kˆ›ØÙ\ÜÏ\›ØÙ\ÜËˆØ[™Y]WÚYXØ[™Y]WÚYˆ
+Bˆ[ÙN‚ˆ[š]][ÛˆHÙ]ÛØš™XÝÛÜ—Í
+ˆ\Ý[š]][Û‹ˆ›ØÙ\ÜÏ\›ØÙ\ÜËˆØ[™Y]WÚYXØ[™Y]WÚYˆ
+B‚ˆ[š]][Û‹˜ZWÛ[Ý]˜][Û—Ú[\œ™]][Û—ÜÝ]\ÈH
+ˆ››ÝÜÝ\Y‚ˆ
+Bˆ[š]][Û‹˜ZWÛ[Ý]˜][Û—Ú[\œ™]][Û—ÙÙ[™\˜]YØ]H
+ˆ›Û™Bˆ
+Bˆ[š]][Û‹˜ZWÛ[Ý]˜][Û—Ú[\œ™]][Û—Ü\œÜÙHHˆ‚‚‚ˆ[š]][Û‹œØ]™J\]WÙšY[ÏVÂˆ˜ZWÛ[Ý]˜][Û—Ú[\œ™]][Û—ÜÝ]\È‹ˆ˜ZWÛ[Ý]˜][Û—Ú[\œ™]][Û—ÙÙ[™\˜]YØ]‹ˆ˜ZWÛ[Ý]˜][Û—Ú[\œ™]][Û—Ü\œÜÙH‹ˆJB‚ˆ™]\›ˆœÛÛ”™\ÜÛœÙJˆÂˆ›ÚÈŽˆYKˆœÝ™X[WÝ\›Žˆ™]™\œÙJˆ
+ˆœ›ØÙ\ÜÙ\Îˆ‚ˆœ›ØÙ\Ü×ØØ[™Y]WÛ[Ý]˜][Û—È‚ˆš[\œ™]][Û—ÜÝ™X[H‚ˆ
+KˆÝØ\™ÜÏ^Âˆœ›ØÙ\Ü×ÚYŽˆ›ØÙ\ÜËšYˆ˜Ø[™Y]WÚYŽˆØ[™Y]WÚYˆKˆ
+KˆBˆ
+B‚ÙÚ[—Ü™\]Z\™Y™Yˆ›ØÙ\Ü×ØØ[™Y]WÛ[Ý]˜][Û—Ü]Y\Ý[Ûœ×ÜÝ™X[Jˆ™\]Y\Ýˆ›ØÙ\Ü×ÚYˆØ[™Y]WÚYŠN‚ˆˆˆ‚ˆÝ™X[H[™Ø]™HRK\Ý\ÜY[Ý]˜][Ûˆ]Y\Ý[ÛœË‚‚ˆ[Ý]˜][Ûˆ]Y\Ý[ÛœÈ\™HÙ[™\˜]Y[™ÝÜ™Y[™\[™[Bˆœ›ÛHH[Ý]˜][Ûˆ[\œ™]][Û‹‚ˆˆˆ‚‚ˆ›ØÙ\ÜÈHÙ]ÛØš™XÝÛÜ—Í
+ˆ\Ý›ØÙ\ÜËˆÏ\›ØÙ\Ü×ÚYˆ
+B‚ˆYˆ›Ý\Ù\—ØØ[—ØXØÙ\Ü×Ü›ØÙ\ÜÊˆ™\]Y\Ý\Ù\‹ˆ›ØÙ\ÜËˆ
+N‚ˆ™]\›ˆ™\ÜÛœÙQ›Ü˜šY[Šˆ–[ÝHÈ›Ý]™HXØÙ\ÜÈÈ\È›Ú™XÝˆ‚ˆ
+B‚ˆYˆ›ØÙ\ÜËš\×Ú\ÝÜšXØ[‚ˆ[š]][ÛˆHÙ]ÛØš™XÝÛÜ—Í
+ˆ\ÝÜšXØ[›ØÙ\ÜÐØ[™Y]K›Øš™XÝÂˆœÙ[XÝÜ™[]Y
+ˆ˜Ø[™Y]H‹ˆœ›ØÙ\ÜÈ‹ˆ
+Bˆœ™Y™]ÚÜ™[]Y
+ˆ˜\ÜÙ\ÜÛY[Ü™\Ý[××ÜØÛÜ™\È‹ˆ˜\ÜÙ\ÜÛY[Ü™\Ý[××Ú[\ÜÙš[H‹ˆ
+Kˆ›ØÙ\ÜÏ\›ØÙ\ÜËˆØ[™Y]WÚYXØ[™Y]WÚYˆ
+Bˆ[ÙN‚ˆ[š]][ÛˆHÙ]ÛØš™XÝÛÜ—Í
+ˆ\Ý[š]][Û‹›Øš™XÝËœÙ[XÝÜ™[]Y
+ˆ˜Ø[™Y]H‹ˆœ›ØÙ\ÜÈ‹ˆ
+Kˆ›ØÙ\ÜÏ\›ØÙ\ÜËˆØ[™Y]WÚYXØ[™Y]WÚYˆ
+B‚ˆ[™ÝXYÙWØÛÙHHÙ]Ü™\]Y\ÝØZWÛ[™ÝXYÙJˆ™\]Y\Ýˆ
+BˆX\š×ØZWØÛÛ[ÛÝ]]YÚY—Û[™ÝXYÙWØÚ[™ÙY
+ˆ[š]][Û‹ˆÛÛ[ÚÙ^OH›[Ý]˜][Û—Ü]Y\Ý[ÛœÈ‹ˆ™\Ý[ÙšY[H˜ZWÛ[Ý]˜][Û—Ü]Y\Ý[ÛœÈ‹ˆÝ]\×ÙšY[H˜ZWÛ[Ý]˜][Û—Ü]Y\Ý[Ûœ×ÜÝ]\È‹ˆ[™ÝXYÙWØÛÙO[[™ÝXYÙWØÛÙKˆ
+B‚ˆ[Ý]˜][Û—Ü™\Ý[ÈH
+ˆZ[Û[Ý]˜][Û—Ü™\Ý[×Ù›Ü—ØZWÛÝÛ™\Šˆ[š]][Û‚ˆ
+Bˆ
+B‚ˆYˆ›Ý[Ý]˜][Û—Ü™\Ý[Î‚ˆ™]\›ˆœÛÛ”™\ÜÛœÙJˆÂˆ™\œ›ÜˆŽˆ
+ˆ“›È[Ý]˜][Ûˆ\ÜÙ\ÜÛY[™\Ý[È‚ˆ˜\™H]˜Z[X›H›Üˆ\ÈØ[™Y]Kˆ‚ˆ
+BˆKˆÝ]\ÏMˆ
+B‚ˆÝ\œ™[ÜÝ]\ÈH
+ˆ[š]][Û‹˜ZWÛ[Ý]˜][Û—Ü]Y\Ý[Ûœ×ÜÝ]\ÂˆÜˆ››ÝÜÝ\Y‚ˆ
+B‚ˆØ]™YÜ™\Ý[H
+ˆ[š]][Û‹˜ZWÛ[Ý]˜][Û—Ü]Y\Ý[ÛœÂˆÜˆßBˆ
+B‚ˆÝ\œ™[Ü\œÜÙHH
+ˆ›ØÙ\ÜËœ\œÜÙBˆÜˆˆ‚ˆ
+KœÝš\
+
+K›ÝÙ\Š
+B‚ˆØ]™YÜ\œÜÙHH
+ˆ[š]][Û‹˜ZWÛ[Ý]˜][Û—Ü]Y\Ý[Ûœ×Ü\œÜÙBˆÜˆˆ‚ˆ
+KœÝš\
+
+K›ÝÙ\Š
+B‚ˆÈØY™]HÚXÚÈYˆH›ØÙ\ÜÈ\œÜÙH\ÈÚ[™ÙY‚ˆYˆ
+ˆØ]™YÜ™\Ý[ˆ[™Ý\œ™[ÜÝ]\ÈOH˜ÛÛ\]Y‚ˆ[™Ø]™YÜ\œÜÙHOHÝ\œ™[Ü\œÜÙBˆ
+N‚ˆÝ\œ™[ÜÝ]\ÈH›Ý]]Y‚‚ˆ[š]][Û‹˜ZWÛ[Ý]˜][Û—Ü]Y\Ý[Ûœ×ÜÝ]\ÈH
+ˆ›Ý]]Y‚ˆ
+B‚ˆ[š]][Û‹œØ]™Jˆ\]WÙšY[ÏVÂˆ˜ZWÛ[Ý]˜][Û—Ü]Y\Ý[Ûœ×ÜÝ]\È‹ˆBˆ
+B‚ˆÈ™]\›ˆ™]š[Ý\ÛHÙ[™\˜]Y]Y\Ý[ÛœÈÚ[ˆ]˜Z[X›K‚ˆYˆ
+ˆZWØÛÛ[Û[™ÝXYÙWÛX]Ú\Êˆ[š]][Û‹ˆ›[Ý]˜][Û—Ü]Y\Ý[ÛœÈ‹ˆ[™ÝXYÙWØÛÙKˆ
+Bˆ[™ÚÝ[Ü™]\›—ÜØ]™YØZWÜ™\Ý[
+ˆØ]™YÜ™\Ý[ˆÝ\œ™[ÜÝ]\Ëˆ
+Bˆ
+N‚ˆYˆ^\Ý[™×ÙÙ[™\˜]ÜŠ
+N‚ˆZY[œÛÛ‹™[\ÊˆÂˆ\HŽˆœØ]™YÜ™\Ý[‹ˆ™]HŽˆØ]™YÜ™\Ý[ˆœÝ]\ÈŽˆÝ\œ™[ÜÝ]\ËˆKˆ[œÝ\™WØ\ØÚZOQ˜[ÙKˆ
+H
+È—ˆ‚‚ˆ™\ÜÛœÙHHÝ™X[Z[™Ò™\ÜÛœÙJˆ^\Ý[™×ÙÙ[™\˜]ÜŠ
+KˆÛÛ[Ý\OJˆ˜\XØ][Û‹Þ[™œÛÛŽÈÚ\œÙ]]]‹N‚ˆ
+Kˆ
+B‚ˆ™\ÜÛœÙVÈØXÚKPÛÛ›Û—HH››ËXØXÚH‚ˆ™\ÜÛœÙVÈ–PXØÙ[PY™™\š[™È—HH››È‚‚ˆ™]\›ˆ™\ÜÛœÙB‚ˆYˆÝ\œ™[ÜÝ]\ÈOH™Ù[™\˜][™ÈŽ‚ˆ™]\›ˆœÛÛ”™\ÜÛœÙJˆÂˆ™\œ›ÜˆŽˆ
+ˆ•H[Ý]˜][Ûˆ]Y\Ý[ÛœÈ\™H‚ˆ˜[™XYH™Z[™ÈÙ[™\˜]Yˆ‚ˆ
+BˆKˆÝ]\ÏMKˆ
+B‚ˆ[š]][Û‹˜ZWÛ[Ý]˜][Û—Ü]Y\Ý[Ûœ×ÜÝ]\ÈH
+ˆ™Ù[™\˜][™È‚ˆ
+B‚ˆ[š]][Û‹œØ]™Jˆ\]WÙšY[ÏVÂˆ˜ZWÛ[Ý]˜][Û—Ü]Y\Ý[Ûœ×ÜÝ]\È‹ˆBˆ
+B‚ˆYˆÙ[™\˜]ÜŠ
+N‚ˆ™\Ý[HÜ™X]WÙ[\WÛ[Ý]˜][Û—Ü]Y\Ý[ÛœÊˆ[š]][Û‹ˆ[™ÝXYÙWØÛÙO[[™ÝXYÙWØÛÙKˆ
+B‚ˆ™XÙZ]™YÙÛ™WÙ]™[H˜[ÙB‚ˆžN‚ˆ›Üˆ]™[[ˆÝ™X[WÛ[Ý]˜][Û—Ü]Y\Ý[ÛœÊˆÝÛ™\Z[š]][Û‹ˆ[Ý]˜][Û—Ü™\Ý[Ï[[Ý]˜][Û—Ü™\Ý[Ëˆ[™ÝXYÙWØÛÙO[[™ÝXYÙWØÛÙKˆ
+N‚ˆ™\Ý[H\WÛ[Ý]˜][Û—Ü]Y\Ý[Ûœ×Ù]™[
+ˆ™\Ý[ˆ]™[ˆ
+B‚ˆYˆ]™[™Ù]
+\HŠHOH™Û™HŽ‚ˆ™XÙZ]™YÙÛ™WÙ]™[HYB‚ˆZY[œÛÛ‹™[\Êˆ]™[ˆ[œÝ\™WØ\ØÚZOQ˜[ÙKˆ
+H
+È—ˆ‚‚ˆ]Y\Ý[ÛœÈH
+ˆ™\Ý[™Ù]
+œ]Y\Ý[ÛœÈŠBˆÜˆ×Bˆ
+B‚ˆYˆ›Ý]Y\Ý[ÛœÎ‚ˆ˜Z\ÙH˜[YQ\œ›ÜŠˆ•HRH™\ÜÛœÙHY›ÝÛÛZ[ˆ‚ˆ˜[Y[Ý]˜][Ûˆ]Y\Ý[ÛœËˆ‚ˆ
+B‚ˆYˆ›Ý™XÙZ]™YÙÛ™WÙ]™[‚ˆZY[œÛÛ‹™[\ÊˆÂˆ\HŽˆ™Û™H‹ˆKˆ[œÝ\™WØ\ØÚZOQ˜[ÙKˆ
+H
+È—ˆ‚‚ˆØ]™WÛ[Ý]˜][Û—Ü]Y\Ý[ÛœÊˆÝÛ™\Z[š]][Û‹ˆ™\Ý[\™\Ý[ˆ[™ÝXYÙWØÛÙO[[™ÝXYÙWØÛÙKˆ
+B‚ˆ^Ù\^Ù\[Ûˆ\È\œ›ÜŽ‚ˆ[š]][Û‹˜ZWÛ[Ý]˜][Û—Ü]Y\Ý[Ûœ×ÜÝ]\ÈH
+ˆ™˜Z[Y‚ˆ
+B‚ˆ[š]][Û‹œØ]™Jˆ\]WÙšY[ÏVÂˆ˜ZWÛ[Ý]˜][Û—Ü]Y\Ý[Ûœ×ÜÝ]\È‹ˆBˆ
+B‚ˆZY[œÛÛ‹™[\ÊˆÂˆ\HŽˆ™\œ›Üˆ‹ˆ›Y\ÜØYÙHŽˆÝŠ\œ›ÜŠKˆKˆ[œÝ\™WØ\ØÚZOQ˜[ÙKˆ
+H
+È—ˆ‚‚ˆ™\ÜÛœÙHHÝ™X[Z[™Ò™\ÜÛœÙJˆÙ[™\˜]ÜŠ
+KˆÛÛ[Ý\OJˆ˜\XØ][Û‹Þ[™œÛÛŽÈÚ\œÙ]]]‹N‚ˆ
+Kˆ
+B‚ˆ™\ÜÛœÙVÈØXÚKPÛÛ›Û—HH››ËXØXÚH‚ˆ™\ÜÛœÙVÈ–PXØÙ[PY™™\š[™È—HH››È‚‚ˆ™]\›ˆ™\ÜÛœÙB‚‚™YˆÙ]ØØ[™Y]WØZWÛÝÛ™\Šˆ›ØÙ\ÜËˆØ[™Y]WÚYŠN‚ˆˆˆ‚ˆ™]\›ˆH[Ù[[œÝ[˜ÙH]ÝÛœÈØ[™Y]HRHÛÛ[‚‚ˆXÝ]™H›ØÙ\ÜÎ‚ˆ\Ý[š]][Û‚‚ˆ\ÝÜšXØ[›ØÙ\ÜÎ‚ˆ\ÝÜšXØ[›ØÙ\ÜÐØ[™Y]Bˆˆˆ‚‚ˆYˆ›ØÙ\ÜËš\×Ú\ÝÜšXØ[‚ˆ™]\›ˆÙ]ÛØš™XÝÛÜ—Í
+ˆ\ÝÜšXØ[›ØÙ\ÜÐØ[™Y]K›Øš™XÝÂˆœÙ[XÝÜ™[]Y
+ˆ˜Ø[™Y]H‹ˆœ›ØÙ\ÜÈ‹ˆ
+Kˆ›ØÙ\ÜÏ\›ØÙ\ÜËˆØ[™Y]WÚYXØ[™Y]WÚYˆ
+B‚ˆ™]\›ˆÙ]ÛØš™XÝÛÜ—Í
+ˆ\Ý[š]][Û‹›Øš™XÝËœÙ[XÝÜ™[]Y
+ˆ˜Ø[™Y]H‹ˆœ›ØÙ\ÜÈ‹ˆ
+Kˆ›ØÙ\ÜÏ\›ØÙ\ÜËˆØ[™Y]WÚYXØ[™Y]WÚYˆ
+B‚‚ÙÚ[—Ü™\]Z\™Y™\]Z\™WÔÔÕ™Yˆ›ØÙ\Ü×ØØ[™Y]WÛ[Ý]˜][Û—Ü]Y\Ý[Ûœ×Ü™YÙ[™\˜]Jˆ™\]Y\Ýˆ›ØÙ\Ü×ÚYˆØ[™Y]WÚYŠN‚ˆˆˆ‚ˆ™\Ù]Û›HH[Ý]˜][Ûˆ]Y\Ý[ÛœÈ[™™]\›ˆBˆÝ™X[HT“›ÜˆHœ™\ÚÙ[™\˜][Û‹‚‚ˆH[Ý]˜][Ûˆ[\œ™]][Ûˆ\È›ÝÚ[™ÙY‚ˆˆˆ‚‚ˆ›ØÙ\ÜÈHÙ]ÛØš™XÝÛÜ—Í
+ˆ\Ý›ØÙ\ÜËˆÏ\›ØÙ\Ü×ÚYˆ
+B‚ˆYˆ›Ý\Ù\—ØØ[—ØXØÙ\Ü×Ü›ØÙ\ÜÊˆ™\]Y\Ý\Ù\‹ˆ›ØÙ\ÜËˆ
+N‚ˆ™]\›ˆ™\ÜÛœÙQ›Ü˜šY[Šˆ–[ÝHÈ›Ý]™HXØÙ\ÜÈÈ\È›Ú™XÝˆ‚ˆ
+B‚‚ˆYˆ›ØÙ\ÜËš\×Ú\ÝÜšXØ[‚ˆ[š]][ÛˆHÙ]ÛØš™XÝÛÜ—Í
+ˆ\ÝÜšXØ[›ØÙ\ÜÐØ[™Y]Kˆ›ØÙ\ÜÏ\›ØÙ\ÜËˆØ[™Y]WÚYXØ[™Y]WÚYˆ
+Bˆ[ÙN‚ˆ[š]][ÛˆHÙ]ÛØš™XÝÛÜ—Í
+ˆ\Ý[š]][Û‹ˆ›ØÙ\ÜÏ\›ØÙ\ÜËˆØ[™Y]WÚYXØ[™Y]WÚYˆ
+B‚ˆ[š]][Û‹˜ZWÛ[Ý]˜][Û—Ü]Y\Ý[Ûœ×ÜÝ]\ÈH
+ˆ››ÝÜÝ\Y‚ˆ
+B‚ˆ[š]][Û‹˜ZWÛ[Ý]˜][Û—Ü]Y\Ý[Ûœ×ÙÙ[™\˜]YØ]H
+ˆ›Û™Bˆ
+B‚ˆ[š]][Û‹˜ZWÛ[Ý]˜][Û—Ü]Y\Ý[Ûœ×Ü\œÜÙHHˆ‚‚ˆ[š]][Û‹œØ]™Jˆ\]WÙšY[ÏVÂˆ˜ZWÛ[Ý]˜][Û—Ü]Y\Ý[Ûœ×ÜÝ]\È‹ˆ˜ZWÛ[Ý]˜][Û—Ü]Y\Ý[Ûœ×ÙÙ[™\˜]YØ]‹ˆ˜ZWÛ[Ý]˜][Û—Ü]Y\Ý[Ûœ×Ü\œÜÙH‹ˆBˆ
+B‚ˆ™]\›ˆœÛÛ”™\ÜÛœÙJˆÂˆ›ÚÈŽˆYKˆœÝ™X[WÝ\›Žˆ™]™\œÙJˆ
+ˆœ›ØÙ\ÜÙ\Îˆ‚ˆœ›ØÙ\Ü×ØØ[™Y]WÛ[Ý]˜][Û—È‚ˆœ]Y\Ý[Ûœ×ÜÝ™X[H‚ˆ
+KˆÝØ\™ÜÏ^Âˆœ›ØÙ\Ü×ÚYŽˆ›ØÙ\ÜËšYˆ˜Ø[™Y]WÚYŽˆØ[™Y]WÚYˆKˆ
+KˆBˆ
+B‚‚ÙÚ[—Ü™\]Z\™Y™Yˆ›ØÙ\Ü×ØØ[™Y]WÜ\œÛÛ˜[]WÚ[\œ™]][Û—ÜÝ™X[Jˆ™\]Y\Ýˆ›ØÙ\Ü×ÚYˆØ[™Y]WÚYŠN‚ˆˆˆ‚ˆÝ™X[H[™Ø]™H[ˆRK\Ý\ÜY[\œ™]][ÛˆÙˆBˆØ[™Y]IÜÈ\œÛÛ˜[]H˜Z]›Ùš[K‚‚ˆÝ\ÜÈ›Ý‚ˆHXÝ]™H\Ý[š]][ÛˆØ[™Y]\ÂˆH[\ÜY\ÝÜšXØ[›ØÙ\ÜÐØ[™Y]HØ[™Y]\Âˆˆˆ‚‚ˆ›ØÙ\ÜÈHÙ]ÛØš™XÝÛÜ—Í
+ˆ\Ý›ØÙ\ÜËˆÏ\›ØÙ\Ü×ÚYˆ
+B‚ˆYˆ›Ý\Ù\—ØØ[—ØXØÙ\Ü×Ü›ØÙ\ÜÊˆ™\]Y\Ý\Ù\‹ˆ›ØÙ\ÜËˆ
+N‚ˆ™]\›ˆ™\ÜÛœÙQ›Ü˜šY[Šˆ–[ÝHÈ›Ý]™HXØÙ\ÜÈÈ\È›Ú™XÝˆ‚ˆ
+B‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÈ’S‘HÓÔ”‘PÕÕÓ‘T‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKB‚ˆYˆ›ØÙ\ÜËš\×Ú\ÝÜšXØ[‚ˆÝÛ™\ˆHÙ]ÛØš™XÝÛÜ—Í
+ˆ\ÝÜšXØ[›ØÙ\ÜÐØ[™Y]K›Øš™XÝÂˆœÙ[XÝÜ™[]Y
+ˆ˜Ø[™Y]H‹ˆœ›ØÙ\ÜÈ‹ˆ
+Bˆœ™Y™]ÚÜ™[]Y
+ˆ˜\ÜÙ\ÜÛY[Ü™\Ý[××ÜØÛÜ™\È‹ˆ˜\ÜÙ\ÜÛY[Ü™\Ý[××Ú[\ÜÙš[H‹ˆ
+Kˆ›ØÙ\ÜÏ\›ØÙ\ÜËˆØ[™Y]WÚYXØ[™Y]WÚYˆ
+B‚ˆ[ÙN‚ˆÝÛ™\ˆHÙ]ÛØš™XÝÛÜ—Í
+ˆ\Ý[š]][Û‹›Øš™XÝËœÙ[XÝÜ™[]Y
+ˆ˜Ø[™Y]H‹ˆœ›ØÙ\ÜÈ‹ˆ
+Kˆ›ØÙ\ÜÏ\›ØÙ\ÜËˆØ[™Y]WÚYXØ[™Y]WÚYˆ
+B‚ˆ[™ÝXYÙWØÛÙHHÙ]Ü™\]Y\ÝØZWÛ[™ÝXYÙJ™\]Y\Ý
+BˆX\š×ØZWØÛÛ[ÛÝ]]YÚY—Û[™ÝXYÙWØÚ[™ÙY
+ˆÝÛ™\‹ˆÛÛ[ÚÙ^OHœ\œÛÛ˜[]WÚ[\œ™]][Ûˆ‹ˆ™\Ý[ÙšY[H˜ZWÜ\œÛÛ˜[]WÚ[\œ™]][Ûˆ‹ˆÝ]\×ÙšY[H˜ZWÜ\œÛÛ˜[]WÚ[\œ™]][Û—ÜÝ]\È‹ˆ[™ÝXYÙWØÛÙO[[™ÝXYÙWØÛÙKˆ
+B‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÈ•RST”ÓÓSUHU’QSÑBˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKB‚ˆ\œÛÛ˜[]WÜ™\Ý[ÈH
+ˆZ[Ü\œÛÛ˜[]WÜ™\Ý[×Ù›Ü—ØZWÛÝÛ™\ŠˆÝÛ™\‚ˆ
+Bˆ
+B‚ˆYˆ›Ý\œÛÛ˜[]WÜ™\Ý[Î‚ˆ™]\›ˆœÛÛ”™\ÜÛœÙJˆÂˆ™\œ›ÜˆŽˆ
+ˆ“›È\œÛÛ˜[]H\ÜÙ\ÜÛY[™\Ý[È‚ˆ˜\™H]˜Z[X›H›Üˆ\ÈØ[™Y]Kˆ‚ˆ
+BˆKˆÝ]\ÏMˆ
+B‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÈÕT”‘S•ÐU‘QÕUBˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKB‚ˆÝ\œ™[ÜÝ]\ÈH
+ˆÝÛ™\‹˜ZWÜ\œÛÛ˜[]WÚ[\œ™]][Û—ÜÝ]\ÂˆÜˆ››ÝÜÝ\Y‚ˆ
+B‚ˆØ]™YÚ[\œ™]][ÛˆH
+ˆÝÛ™\‹˜ZWÜ\œÛÛ˜[]WÚ[\œ™]][Û‚ˆÜˆßBˆ
+B‚ˆÝ\œ™[Ü\œÜÙHH›Ü›X[^™WÜ\œÜÙWÚÙ^Jˆ›ØÙ\ÜËœ\œÜÙBˆ
+B‚ˆØ]™YÜ\œÜÙHH›Ü›X[^™WÜ\œÜÙWÚÙ^JˆÝÛ™\‹˜ZWÜ\œÛÛ˜[]WÚ[\œ™]][Û—Ü\œÜÙBˆ
+B‚ˆÈØY™]HÚXÚÈ[ˆØ\ÙHH\œÜÙHÚ[™ÙYÚ]Ý]H›Ü›X[ˆÈÝ]]Y[X\šÚ[™È›ÝÈ™Z[™ÈšYÙÙ\™Y‚ˆYˆ
+ˆØ]™YÚ[\œ™]][Û‚ˆ[™Ý\œ™[ÜÝ]\ÈOH˜ÛÛ\]Y‚ˆ[™Ø]™YÜ\œÜÙHOHÝ\œ™[Ü\œÜÙBˆ
+N‚ˆÝ\œ™[ÜÝ]\ÈH›Ý]]Y‚‚ˆÝÛ™\‹˜ZWÜ\œÛÛ˜[]WÚ[\œ™]][Û—ÜÝ]\ÈH
+ˆ›Ý]]Y‚ˆ
+B‚ˆÝÛ™\‹œØ]™J\]WÙšY[ÏVÂˆ˜ZWÜ\œÛÛ˜[]WÚ[\œ™]][Û—ÜÝ]\È‹ˆJB‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÈ‘UT“ˆÐU‘Q‘TÕSˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKB‚ˆYˆ
+ˆZWØÛÛ[Û[™ÝXYÙWÛX]Ú\ÊˆÝÛ™\‹ˆœ\œÛÛ˜[]WÚ[\œ™]][Ûˆ‹ˆ[™ÝXYÙWØÛÙKˆ
+Bˆ[™ÚÝ[Ü™]\›—ÜØ]™YØZWÜ™\Ý[
+ˆØ]™YÚ[\œ™]][Û‹ˆÝ\œ™[ÜÝ]\Ëˆ
+Bˆ
+N‚ˆYˆ^\Ý[™×ÙÙ[™\˜]ÜŠ
+N‚ˆZY[œÛÛ‹™[\ÊˆÂˆ\HŽˆœØ]™YÜ™\Ý[‹ˆ™]HŽˆØ]™YÚ[\œ™]][Û‹ˆœÝ]\ÈŽˆÝ\œ™[ÜÝ]\ËˆKˆ[œÝ\™WØ\ØÚZOQ˜[ÙKˆ
+H
+È—ˆ‚‚ˆ™\ÜÛœÙHHÝ™X[Z[™Ò™\ÜÛœÙJˆ^\Ý[™×ÙÙ[™\˜]ÜŠ
+KˆÛÛ[Ý\OJˆ˜\XØ][Û‹Þ[™œÛÛŽÈÚ\œÙ]]]‹N‚ˆ
+Kˆ
+B‚ˆ™\ÜÛœÙVÈØXÚKPÛÛ›Û—HH››ËXØXÚH‚ˆ™\ÜÛœÙVÈ–PXØÙ[PY™™\š[™È—HH››È‚‚ˆ™]\›ˆ™\ÜÛœÙB‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÈ‘U‘S•TPÐUHÑS‘TUSÓ‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKB‚ˆYˆÝ\œ™[ÜÝ]\ÈOH™Ù[™\˜][™ÈŽ‚ˆ™]\›ˆœÛÛ”™\ÜÛœÙJˆÂˆ™\œ›ÜˆŽˆ
+ˆ•H\œÛÛ˜[]H[\œ™]][Ûˆ\È‚ˆ˜[™XYH™Z[™ÈÙ[™\˜]Yˆ‚ˆ
+BˆKˆÝ]\ÏMKˆ
+B‚ˆÝÛ™\‹˜ZWÜ\œÛÛ˜[]WÚ[\œ™]][Û—ÜÝ]\ÈH
+ˆ™Ù[™\˜][™È‚ˆ
+B‚ˆÝÛ™\‹œØ]™J\]WÙšY[ÏVÂˆ˜ZWÜ\œÛÛ˜[]WÚ[\œ™]][Û—ÜÝ]\È‹ˆJB‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÈÕ‘PSHÑS‘TUSÓ‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKB‚ˆYˆÙ[™\˜]ÜŠ
+N‚ˆ[\œ™]][ÛˆH
+ˆÜ™X]WÙ[\WÜ\œÛÛ˜[]WÚ[\œ™]][ÛŠˆÝÛ™\‹ˆ[™ÝXYÙWØÛÙO[[™ÝXYÙWØÛÙKˆ
+Bˆ
+B‚ˆ™XÙZ]™YÙÛ™WÙ]™[H˜[ÙB‚ˆžN‚ˆ›Üˆ]™[[ˆÝ™X[WÜ\œÛÛ˜[]WÚ[\œ™]][ÛŠˆÝÛ™\[ÝÛ™\‹ˆ\œÛÛ˜[]WÜ™\Ý[Ï\\œÛÛ˜[]WÜ™\Ý[Ëˆ[™ÝXYÙWØÛÙO[[™ÝXYÙWØÛÙKˆ
+N‚ˆ[\œ™]][ÛˆH
+ˆ\WÜ\œÛÛ˜[]WÚ[\œ™]][Û—Ù]™[
+ˆ[\œ™]][Û‹ˆ]™[ˆ
+Bˆ
+B‚ˆYˆ]™[™Ù]
+\HŠHOH™Û™HŽ‚ˆ™XÙZ]™YÙÛ™WÙ]™[HYB‚ˆZY[œÛÛ‹™[\Êˆ]™[ˆ[œÝ\™WØ\ØÚZOQ˜[ÙKˆ
+H
+È—ˆ‚‚ˆYˆ›Ý
+ˆ[\œ™]][Û‹™Ù]
+ˆš[\œ™]][Ûˆ‚ˆ
+BˆÜˆˆ‚ˆ
+KœÝš\
+
+N‚ˆ˜Z\ÙH˜[YQ\œ›ÜŠˆ•HRH™\ÜÛœÙHY›ÝÛÛZ[ˆ‚ˆ˜H\œÛÛ˜[]H[\œ™]][Û‹ˆ‚ˆ
+B‚ˆYˆ›Ý™XÙZ]™YÙÛ™WÙ]™[‚ˆZY[œÛÛ‹™[\ÊˆÂˆ\HŽˆ™Û™H‹ˆKˆ[œÝ\™WØ\ØÚZOQ˜[ÙKˆ
+H
+È—ˆ‚‚ˆØ]™WÜ\œÛÛ˜[]WÚ[\œ™]][ÛŠˆÝÛ™\[ÝÛ™\‹ˆ[\œ™]][ÛZ[\œ™]][Û‹ˆ[™ÝXYÙWØÛÙO[[™ÝXYÙWØÛÙKˆ
+B‚ˆ^Ù\^Ù\[Ûˆ\È\œ›ÜŽ‚ˆÝÛ™\‹˜ZWÜ\œÛÛ˜[]WÚ[\œ™]][Û—ÜÝ]\ÈH
+ˆ™˜Z[Y‚ˆ
+B‚ˆÝÛ™\‹œØ]™J\]WÙšY[ÏVÂˆ˜ZWÜ\œÛÛ˜[]WÚ[\œ™]][Û—ÜÝ]\È‹ˆJB‚ˆZY[œÛÛ‹™[\ÊˆÂˆ\HŽˆ™\œ›Üˆ‹ˆ›Y\ÜØYÙHŽˆÝŠ\œ›ÜŠKˆKˆ[œÝ\™WØ\ØÚZOQ˜[ÙKˆ
+H
+È—ˆ‚‚ˆ™\ÜÛœÙHHÝ™X[Z[™Ò™\ÜÛœÙJˆÙ[™\˜]ÜŠ
+KˆÛÛ[Ý\OJˆ˜\XØ][Û‹Þ[™œÛÛŽÈÚ\œÙ]]]‹N‚ˆ
+Kˆ
+B‚ˆ™\ÜÛœÙVÈØXÚKPÛÛ›Û—HH››ËXØXÚH‚ˆ™\ÜÛœÙVÈ–PXØÙ[PY™™\š[™È—HH››È‚‚ˆ™]\›ˆ™\ÜÛœÙB‚‚ÙÚ[—Ü™\]Z\™Y™\]Z\™WÔÔÕ™Yˆ›ØÙ\Ü×ØØ[™Y]WÜ\œÛÛ˜[]WÚ[\œ™]][Û—Ü™YÙ[™\˜]Jˆ™\]Y\Ýˆ›ØÙ\Ü×ÚYˆØ[™Y]WÚYŠN‚ˆˆˆ‚ˆÛX\ˆHØ]™Y\œÛÛ˜[]H[\œ™]][Ûˆ[™™]\›‚ˆHÝ™X[HT“›ÜˆHœ™\ÚÙ[™\˜][Û‹‚ˆˆˆ‚‚ˆ›ØÙ\ÜÈHÙ]ÛØš™XÝÛÜ—Í
+ˆ\Ý›ØÙ\ÜËˆÏ\›ØÙ\Ü×ÚYˆ
+B‚ˆYˆ›Ý\Ù\—ØØ[—ØXØÙ\Ü×Ü›ØÙ\ÜÊˆ™\]Y\Ý\Ù\‹ˆ›ØÙ\ÜËˆ
+N‚ˆ™]\›ˆ™\ÜÛœÙQ›Ü˜šY[Šˆ–[ÝHÈ›Ý]™HXØÙ\ÜÈÈ\È›Ú™XÝˆ‚ˆ
+B‚ˆYˆ›ØÙ\ÜËš\×Ú\ÝÜšXØ[‚ˆÝÛ™\ˆHÙ]ÛØš™XÝÛÜ—Í
+ˆ\ÝÜšXØ[›ØÙ\ÜÐØ[™Y]K›Øš™XÝÂˆœÙ[XÝÜ™[]Y
+ˆ˜Ø[™Y]H‹ˆœ›ØÙ\ÜÈ‹ˆ
+Kˆ›ØÙ\ÜÏ\›ØÙ\ÜËˆØ[™Y]WÚYXØ[™Y]WÚYˆ
+B‚ˆ[ÙN‚ˆÝÛ™\ˆHÙ]ÛØš™XÝÛÜ—Í
+ˆ\Ý[š]][Û‹›Øš™XÝËœÙ[XÝÜ™[]Y
+ˆ˜Ø[™Y]H‹ˆœ›ØÙ\ÜÈ‹ˆ
+Kˆ›ØÙ\ÜÏ\›ØÙ\ÜËˆØ[™Y]WÚYXØ[™Y]WÚYˆ
+B‚ˆÝÛ™\‹˜ZWÜ\œÛÛ˜[]WÚ[\œ™]][Û—ÜÝ]\ÈH
+ˆ››ÝÜÝ\Y‚ˆ
+B‚ˆÝÛ™\‹˜ZWÜ\œÛÛ˜[]WÚ[\œ™]][Û—ÙÙ[™\˜]YØ]H
+ˆ›Û™Bˆ
+B‚ˆÝÛ™\‹˜ZWÜ\œÛÛ˜[]WÚ[\œ™]][Û—Ü\œÜÙHHˆ‚‚ˆÝÛ™\‹œØ]™J\]WÙšY[ÏVÂˆ˜ZWÜ\œÛÛ˜[]WÚ[\œ™]][Û—ÜÝ]\È‹ˆ˜ZWÜ\œÛÛ˜[]WÚ[\œ™]][Û—ÙÙ[™\˜]YØ]‹ˆ˜ZWÜ\œÛÛ˜[]WÚ[\œ™]][Û—Ü\œÜÙH‹ˆJB‚ˆ™]\›ˆœÛÛ”™\ÜÛœÙJˆÂˆ›ÚÈŽˆYK‚ˆœÝ™X[WÝ\›Žˆ™]™\œÙJˆ
+ˆœ›ØÙ\ÜÙ\Îˆ‚ˆœ›ØÙ\Ü×ØØ[™Y]WÜ\œÛÛ˜[]WÈ‚ˆš[\œ™]][Û—ÜÝ™X[H‚ˆ
+KˆÝØ\™ÜÏ^Âˆœ›ØÙ\Ü×ÚYŽˆ›ØÙ\ÜËšYˆ˜Ø[™Y]WÚYŽˆØ[™Y]WÚYˆKˆ
+KˆBˆ
+B‚‚ÙÚ[—Ü™\]Z\™Y™Yˆ›ØÙ\Ü×ØØ[™Y]WÛX[˜YÙ\—Ü™\ÜÜ\œÛÛ˜[]WÜÝ™X[Jˆ™\]Y\Ýˆ›ØÙ\Ü×ÚYˆØ[™Y]WÚYŠN‚ˆ›ØÙ\ÜÈHÙ]ÛØš™XÝÛÜ—Í
+\Ý›ØÙ\ÜËÏ\›ØÙ\Ü×ÚY
+BˆYˆ›Ý\Ù\—ØØ[—ØXØÙ\Ü×Ü›ØÙ\ÜÊ™\]Y\Ý\Ù\‹›ØÙ\ÜÊN‚ˆ™]\›ˆ™\ÜÛœÙQ›Ü˜šY[Š–[ÝHÈ›Ý]™HXØÙ\ÜÈÈ\È›Ú™XÝˆŠB‚ˆÝÛ™\—Û[Ù[H
+ˆ\ÝÜšXØ[›ØÙ\ÜÐØ[™Y]HYˆ›ØÙ\ÜËš\×Ú\ÝÜšXØ[[ÙH\Ý[š]][Û‚ˆ
+BˆÝÛ™\ˆHÙ]ÛØš™XÝÛÜ—Í
+ˆÝÛ™\—Û[Ù[›Øš™XÝËœÙ[XÝÜ™[]Y
+˜Ø[™Y]H‹œ›ØÙ\ÜÈŠKˆ›ØÙ\ÜÏ\›ØÙ\ÜËˆØ[™Y]WÚYXØ[™Y]WÚYˆ
+Bˆ[™ÝXYÙWØÛÙHHÙ]Ü™\]Y\ÝØZWÛ[™ÝXYÙJ™\]Y\Ý
+BˆX\š×ØZWØÛÛ[ÛÝ]]YÚY—Û[™ÝXYÙWØÚ[™ÙY
+ˆÝÛ™\‹ˆÛÛ[ÚÙ^OH›X[˜YÙ\—Ü™\ÜÜ\œÛÛ˜[]H‹ˆ™\Ý[ÙšY[H˜ZWÛX[˜YÙ\—Ü™\ÜÜ\œÛÛ˜[]H‹ˆÝ]\×ÙšY[H˜ZWÛX[˜YÙ\—Ü™\ÜÜ\œÛÛ˜[]WÜÝ]\È‹ˆ[™ÝXYÙWØÛÙO[[™ÝXYÙWØÛÙKˆ
+B‚ˆ\œÛÛ˜[]WÜ™\Ý[ÈHZ[Ü\œÛÛ˜[]WÜ™\Ý[×Ù›Ü—ØZWÛÝÛ™\ŠÝÛ™\ŠBˆYˆ›Ý\œÛÛ˜[]WÜ™\Ý[Î‚ˆ™]\›ˆœÛÛ”™\ÜÛœÙJˆÈ™\œ›ÜˆŽˆ“›È\œÛÛ˜[]H\ÜÙ\ÜÛY[™\Ý[È\™H]˜Z[X›H›Üˆ\ÈØ[™Y]KˆŸKˆÝ]\ÏMˆ
+B‚ˆØ]™YHÝÛ™\‹˜ZWÛX[˜YÙ\—Ü™\ÜÜ\œÛÛ˜[]HÜˆßBˆÙ[™\˜]YØ]HÝÛ™\‹˜ZWÛX[˜YÙ\—Ü™\ÜÜ\œÛÛ˜[]WÙÙ[™\˜]YØ]ˆÛÛ^Ý\]YØ]HÙ]]ŠÙ]]Š›ØÙ\ÜËœ›ÛWØÛÛ^‹›Û™JK\]YØ]‹›Û™JBˆ›Ý\×Ý\]YØ]HÙ]]ŠÝÛ™\‹š[\šY]×Û›Ý\×Ý\]YØ]‹›Û™JBˆ]\ÝÜ]Y\Ý[Û—Û›ÝHH›Û™BˆYˆ›Ý›ØÙ\ÜËš\×Ú\ÝÜšXØ[‚ˆœ›ÛHš[\šY]×Ü]Y\Ý[Û—Û[Ù[È[\Ü[\šY]Ô]Y\Ý[Û“›ÝBˆ]\ÝÜ]Y\Ý[Û—Û›ÝHH
+ˆ[\šY]Ô]Y\Ý[Û“›ÝK›Øš™XÝÂˆ™š[\Š›ØÙ\ÜÏ\›ØÙ\ÜËØ[™Y]O[ÝÛ™\‹˜Ø[™Y]JBˆ™^ÛYJ›ÝOHˆŠBˆ˜YÙÜ™YØ]J]\ÝSX^
+\]YØ]ŠJBˆ™Ù]
+›]\ÝŠBˆ
+B‚ˆ\×ØÝ\œ™[H
+ˆ›ÛÛ
+Ø]™Y
+Bˆ[™ÝÛ™\‹˜ZWÛX[˜YÙ\—Ü™\ÜÜ\œÛÛ˜[]WÜÝ]\ÈOH˜ÛÛ\]Y‚ˆ[™ZWØÛÛ[Û[™ÝXYÙWÛX]Ú\ÊÝÛ™\‹›X[˜YÙ\—Ü™\ÜÜ\œÛÛ˜[]H‹[™ÝXYÙWØÛÙJBˆ[™›Ü›X[^™WÜ\œÜÙWÚÙ^JÝÛ™\‹˜ZWÛX[˜YÙ\—Ü™\ÜÜ\œÛÛ˜[]WÜ\œÜÙJBˆOH›Ü›X[^™WÜ\œÜÙWÚÙ^J›ØÙ\ÜËœ\œÜÙJBˆ[™›Ý
+ÛÛ^Ý\]YØ][™Ù[™\˜]YØ][™ÛÛ^Ý\]YØ]ˆÙ[™\˜]YØ]
+Bˆ[™›Ý
+›Ý\×Ý\]YØ][™Ù[™\˜]YØ][™›Ý\×Ý\]YØ]ˆÙ[™\˜]YØ]
+Bˆ[™›Ý
+]\ÝÜ]Y\Ý[Û—Û›ÝH[™Ù[™\˜]YØ][™]\ÝÜ]Y\Ý[Û—Û›ÝHˆÙ[™\˜]YØ]
+Bˆ
+BˆYˆ\×ØÝ\œ™[‚ˆYˆ^\Ý[™×ÙÙ[™\˜]ÜŠ
+N‚ˆZY[œÛÛ‹™[\ÊˆÈ\HŽˆœØ]™YÜ™\Ý[‹™]HŽˆØ]™YœÝ]\ÈŽˆ˜ÛÛ\]YŸKˆ[œÝ\™WØ\ØÚZOQ˜[ÙKˆ
+H
+È—ˆ‚‚ˆ™\ÜÛœÙHHÝ™X[Z[™Ò™\ÜÛœÙJˆ^\Ý[™×ÙÙ[™\˜]ÜŠ
+KˆÛÛ[Ý\OH˜\XØ][Û‹Þ[™œÛÛŽÈÚ\œÙ]]]‹N‹ˆ
+Bˆ™\ÜÛœÙVÈØXÚKPÛÛ›Û—HH››ËXØXÚH‚ˆ™\ÜÛœÙVÈ–PXØÙ[PY™™\š[™È—HH››È‚ˆ™]\›ˆ™\ÜÛœÙB‚ˆYˆÝÛ™\‹˜ZWÛX[˜YÙ\—Ü™\ÜÜ\œÛÛ˜[]WÜÝ]\ÈOH™Ù[™\˜][™ÈŽ‚ˆ™]\›ˆœÛÛ”™\ÜÛœÙJˆÈ™\œ›ÜˆŽˆ“X[˜YÙ\‹\™\Ü\œÛÛ˜[]HÛÛ[\È[™XYH™Z[™ÈÙ[™\˜]YˆŸKˆÝ]\ÏMKˆ
+B‚ˆÝÛ™\‹˜ZWÛX[˜YÙ\—Ü™\ÜÜ\œÛÛ˜[]WÜÝ]\ÈH™Ù[™\˜][™È‚ˆÝÛ™\‹œØ]™J\]WÙšY[ÏVÈ˜ZWÛX[˜YÙ\—Ü™\ÜÜ\œÛÛ˜[]WÜÝ]\È—JB‚ˆYˆÙ[™\˜]ÜŠ
+N‚ˆ™\Ý[H[\WÛX[˜YÙ\—Ü™\ÜÜ\œÛÛ˜[]J
+Bˆ™XÙZ]™YHÙ]
+
+Bˆ™XÙZ]™YÙÛ™HH˜[ÙBˆ^XÝYHÂˆ
+[YVÈšÙ^H—K\
+Bˆ›Üˆ[YH[ˆT”ÓÓSUWÓPSQÑT—Ô‘TÔ•ÕSQTÂˆ›Üˆ\[ˆ
+\Ýš[‹˜Ø[™Y]WÙ\ØÜšX™\ÈŠBˆBˆžN‚ˆ›Üˆ]™[[ˆÝ™X[WÛX[˜YÙ\—Ü™\ÜÜ\œÛÛ˜[]JˆÝÛ™\[ÝÛ™\‹ˆ[™ÝXYÙWØÛÙO[[™ÝXYÙWØÛÙKˆ
+N‚ˆ™\Ý[H\WÛX[˜YÙ\—Ü™\ÜÜ\œÛÛ˜[]WÙ]™[
+™\Ý[]™[
+BˆYˆ]™[™Ù]
+\HŠHOH™Û™HŽ‚ˆ™XÙZ]™YÙÛ™HHYBˆ[Yˆ]™[™Ù]
+\HŠHOH›X[˜YÙ\—Ü™\ÜÜ\œÛÛ˜[]WÝ^Ž‚ˆ™XÙZ]™Y˜Y
+
+]™[™Ù]
+[YHŠK]™[™Ù]
+œ\ŠJJBˆZY[œÛÛ‹™[\Ê]™[[œÝ\™WØ\ØÚZOQ˜[ÙJH
+È—ˆ‚‚ˆYˆ™XÙZ]™YOH^XÝY‚ˆ˜Z\ÙH˜[YQ\œ›ÜŠˆ•HRH™\ÜÛœÙHY›ÝÛÛZ[ˆ[Ú^X[˜YÙ\‹\™\Ü\œÛÛ˜[]H^Ëˆ‚ˆ
+BˆYˆ›Ý™XÙZ]™YÙÛ™N‚ˆZY[œÛÛ‹™[\ÊÈ\HŽˆ™Û™HŸJH
+È—ˆ‚ˆØ]™WÛX[˜YÙ\—Ü™\ÜÜ\œÛÛ˜[]JˆÝÛ™\[ÝÛ™\‹ˆ™\Ý[\™\Ý[ˆ[™ÝXYÙWØÛÙO[[™ÝXYÙWØÛÙKˆ
+BˆZY[œÛÛ‹™[\ÊÂˆ\HŽˆ›X[˜YÙ\—Ü™\ÜÜ\œÛÛ˜[]WØÛÛ\]H‹ˆ™]HŽˆ™\Ý[ˆK[œÝ\™WØ\ØÚZOQ˜[ÙJH
+È—ˆ‚ˆ^Ù\^Ù\[Ûˆ\È\œ›ÜŽ‚ˆÝÛ™\‹˜ZWÛX[˜YÙ\—Ü™\ÜÜ\œÛÛ˜[]WÜÝ]\ÈH™˜Z[Y‚ˆÝÛ™\‹œØ]™J\]WÙšY[ÏVÈ˜ZWÛX[˜YÙ\—Ü™\ÜÜ\œÛÛ˜[]WÜÝ]\È—JBˆZY[œÛÛ‹™[\ÊÈ\HŽˆ™\œ›Üˆ‹›Y\ÜØYÙHŽˆÝŠ\œ›ÜŠ_K[œÝ\™WØ\ØÚZOQ˜[ÙJH
+È—ˆ‚‚ˆ™\ÜÛœÙHHÝ™X[Z[™Ò™\ÜÛœÙJˆÙ[™\˜]ÜŠ
+KˆÛÛ[Ý\OH˜\XØ][Û‹Þ[™œÛÛŽÈÚ\œÙ]]]‹N‹ˆ
+Bˆ™\ÜÛœÙVÈØXÚKPÛÛ›Û—HH››ËXØXÚH‚ˆ™\ÜÛœÙVÈ–PXØÙ[PY™™\š[™È—HH››È‚ˆ™]\›ˆ™\ÜÛœÙB‚‚ÙÚ[—Ü™\]Z\™Y™\]Z\™WÔÔÕ™Yˆ›ØÙ\Ü×ØØ[™Y]WÛX[˜YÙ\—Ü™\ÜÜ\œÛÛ˜[]WÜ™YÙ[™\˜]Jˆ™\]Y\Ýˆ›ØÙ\Ü×ÚYˆØ[™Y]WÚYŠN‚ˆ›ØÙ\ÜÈHÙ]ÛØš™XÝÛÜ—Í
+\Ý›ØÙ\ÜËÏ\›ØÙ\Ü×ÚY
+BˆYˆ›Ý\Ù\—ØØ[—ØXØÙ\Ü×Ü›ØÙ\ÜÊ™\]Y\Ý\Ù\‹›ØÙ\ÜÊN‚ˆ™]\›ˆ™\ÜÛœÙQ›Ü˜šY[Š–[ÝHÈ›Ý]™HXØÙ\ÜÈÈ\È›Ú™XÝˆŠB‚ˆÝÛ™\—Û[Ù[H
+ˆ\ÝÜšXØ[›ØÙ\ÜÐØ[™Y]HYˆ›ØÙ\ÜËš\×Ú\ÝÜšXØ[[ÙH\Ý[š]][Û‚ˆ
+BˆÝÛ™\ˆHÙ]ÛØš™XÝÛÜ—Í
+ˆÝÛ™\—Û[Ù[›Øš™XÝËœÙ[XÝÜ™[]Y
+˜Ø[™Y]H‹œ›ØÙ\ÜÈŠKˆ›ØÙ\ÜÏ\›ØÙ\ÜËˆØ[™Y]WÚYXØ[™Y]WÚYˆ
+BˆÝÛ™\‹˜ZWÛX[˜YÙ\—Ü™\ÜÜ\œÛÛ˜[]WÜÝ]\ÈH››ÝÜÝ\Y‚ˆÝÛ™\‹˜ZWÛX[˜YÙ\—Ü™\ÜÜ\œÛÛ˜[]WÙÙ[™\˜]YØ]H›Û™BˆÝÛ™\‹˜ZWÛX[˜YÙ\—Ü™\ÜÜ\œÛÛ˜[]WÜ\œÜÙHHˆ‚ˆÝÛ™\‹œØ]™J\]WÙšY[ÏVÂˆ˜ZWÛX[˜YÙ\—Ü™\ÜÜ\œÛÛ˜[]WÜÝ]\È‹ˆ˜ZWÛX[˜YÙ\—Ü™\ÜÜ\œÛÛ˜[]WÙÙ[™\˜]YØ]‹ˆ˜ZWÛX[˜YÙ\—Ü™\ÜÜ\œÛÛ˜[]WÜ\œÜÙH‹ˆJBˆ™]\›ˆœÛÛ”™\ÜÛœÙJÂˆ›ÚÈŽˆYKˆœÝ™X[WÝ\›Žˆ™]™\œÙJˆœ›ØÙ\ÜÙ\Îœ›ØÙ\Ü×ØØ[™Y]WÛX[˜YÙ\—Ü™\ÜÜ\œÛÛ˜[]WÜÝ™X[H‹ˆÝØ\™ÜÏ^Èœ›ØÙ\Ü×ÚYŽˆ›ØÙ\ÜËšY˜Ø[™Y]WÚYŽˆØ[™Y]WÚYKˆ
+KˆJB‚ÙÚ[—Ü™\]Z\™Y™Yˆ›ØÙ\Ü×ØØ[™Y]WÜ\œÛÛ˜[]WÜ]Y\Ý[Ûœ×ÜÝ™X[Jˆ™\]Y\Ýˆ›ØÙ\Ü×ÚYˆØ[™Y]WÚYŠN‚ˆˆˆ‚ˆÝ™X[H[™Ø]™HRK\Ý\ÜY\œÛÛ˜[]H˜Z]ÝYÙÙ\Ý[ÛœÂˆ[™\œÜÙKX]Ø\™H]Y\Ý[ÛœË‚ˆˆˆ‚‚ˆ›ØÙ\ÜÈHÙ]ÛØš™XÝÛÜ—Í
+ˆ\Ý›ØÙ\ÜËˆÏ\›ØÙ\Ü×ÚYˆ
+B‚ˆYˆ›Ý\Ù\—ØØ[—ØXØÙ\Ü×Ü›ØÙ\ÜÊˆ™\]Y\Ý\Ù\‹ˆ›ØÙ\ÜËˆ
+N‚ˆ™]\›ˆ™\ÜÛœÙQ›Ü˜šY[Šˆ–[ÝHÈ›Ý]™HXØÙ\ÜÈÈ\È›Ú™XÝˆ‚ˆ
+B‚ˆYˆ›ØÙ\ÜËš\×Ú\ÝÜšXØ[‚ˆ[š]][ÛˆHÙ]ÛØš™XÝÛÜ—Í
+ˆ\ÝÜšXØ[›ØÙ\ÜÐØ[™Y]K›Øš™XÝÂˆœÙ[XÝÜ™[]Y
+ˆ˜Ø[™Y]H‹ˆœ›ØÙ\ÜÈ‹ˆ
+Bˆœ™Y™]ÚÜ™[]Y
+ˆ˜\ÜÙ\ÜÛY[Ü™\Ý[××ÜØÛÜ™\È‹ˆ˜\ÜÙ\ÜÛY[Ü™\Ý[××Ú[\ÜÙš[H‹ˆ
+Kˆ›ØÙ\ÜÏ\›ØÙ\ÜËˆØ[™Y]WÚYXØ[™Y]WÚYˆ
+Bˆ[ÙN‚ˆ[š]][ÛˆHÙ]ÛØš™XÝÛÜ—Í
+ˆ\Ý[š]][Û‹›Øš™XÝËœÙ[XÝÜ™[]Y
+ˆ˜Ø[™Y]H‹ˆœ›ØÙ\ÜÈ‹ˆ
+Kˆ›ØÙ\ÜÏ\›ØÙ\ÜËˆØ[™Y]WÚYXØ[™Y]WÚYˆ
+B‚ˆ[™ÝXYÙWØÛÙHHÙ]Ü™\]Y\ÝØZWÛ[™ÝXYÙJ™\]Y\Ý
+BˆX\š×ØZWØÛÛ[ÛÝ]]YÚY—Û[™ÝXYÙWØÚ[™ÙY
+ˆ[š]][Û‹ˆÛÛ[ÚÙ^OHœ\œÛÛ˜[]WÜ]Y\Ý[ÛœÈ‹ˆ™\Ý[ÙšY[H˜ZWÜ\œÛÛ˜[]WÜ]Y\Ý[ÛœÈ‹ˆÝ]\×ÙšY[H˜ZWÜ\œÛÛ˜[]WÜ]Y\Ý[Ûœ×ÜÝ]\È‹ˆ[™ÝXYÙWØÛÙO[[™ÝXYÙWØÛÙKˆ
+B‚ˆ\œÛÛ˜[]WÜ™\Ý[ÈH
+ˆZ[Ü\œÛÛ˜[]WÜ]Y\Ý[Û—Ý˜Z]×Ù›Ü—ØZWÛÝÛ™\Šˆ[š]][Û‚ˆ
+Bˆ
+B‚ˆYˆ›Ý\œÛÛ˜[]WÜ™\Ý[Î‚ˆ™]\›ˆœÛÛ”™\ÜÛœÙJˆÂˆ™\œ›ÜˆŽˆ
+ˆ“›È\œÛÛ˜[]H\ÜÙ\ÜÛY[™\Ý[È‚ˆ˜\™H]˜Z[X›H›Üˆ\ÈØ[™Y]Kˆ‚ˆ
+BˆKˆÝ]\ÏMˆ
+B‚ˆÝ\œ™[ÜÝ]\ÈH
+ˆ[š]][Û‹˜ZWÜ\œÛÛ˜[]WÜ]Y\Ý[Ûœ×ÜÝ]\ÂˆÜˆ››ÝÜÝ\Y‚ˆ
+B‚ˆØ]™YÜ™\Ý[H
+ˆ[š]][Û‹˜ZWÜ\œÛÛ˜[]WÜ]Y\Ý[ÛœÂˆÜˆßBˆ
+B‚ˆÝ\œ™[Ü\œÜÙHH
+ˆ›ØÙ\ÜËœ\œÜÙBˆÜˆˆ‚ˆ
+KœÝš\
+
+K›ÝÙ\Š
+B‚ˆØ]™YÜ\œÜÙHH
+ˆ[š]][Û‹˜ZWÜ\œÛÛ˜[]WÜ]Y\Ý[Ûœ×Ü\œÜÙBˆÜˆˆ‚ˆ
+KœÝš\
+
+K›ÝÙ\Š
+B‚ˆYˆ
+ˆØ]™YÜ™\Ý[ˆ[™Ý\œ™[ÜÝ]\ÈOH˜ÛÛ\]Y‚ˆ[™Ø]™YÜ\œÜÙHOHÝ\œ™[Ü\œÜÙBˆ
+N‚ˆÝ\œ™[ÜÝ]\ÈH›Ý]]Y‚‚ˆ[š]][Û‹˜ZWÜ\œÛÛ˜[]WÜ]Y\Ý[Ûœ×ÜÝ]\ÈH
+ˆ›Ý]]Y‚ˆ
+B‚ˆ[š]][Û‹œØ]™J\]WÙšY[ÏVÂˆ˜ZWÜ\œÛÛ˜[]WÜ]Y\Ý[Ûœ×ÜÝ]\È‹ˆJB‚ˆYˆ
+ˆZWØÛÛ[Û[™ÝXYÙWÛX]Ú\Êˆ[š]][Û‹ˆœ\œÛÛ˜[]WÜ]Y\Ý[ÛœÈ‹ˆ[™ÝXYÙWØÛÙKˆ
+Bˆ[™ÚÝ[Ü™]\›—ÜØ]™YØZWÜ™\Ý[
+ˆØ]™YÜ™\Ý[ˆÝ\œ™[ÜÝ]\Ëˆ
+Bˆ
+N‚ˆYˆ^\Ý[™×ÙÙ[™\˜]ÜŠ
+N‚ˆZY[œÛÛ‹™[\ÊˆÂˆ\HŽˆœØ]™YÜ™\Ý[‹ˆ™]HŽˆØ]™YÜ™\Ý[ˆœÝ]\ÈŽˆÝ\œ™[ÜÝ]\ËˆKˆ[œÝ\™WØ\ØÚZOQ˜[ÙKˆ
+H
+È—ˆ‚‚ˆ™\ÜÛœÙHHÝ™X[Z[™Ò™\ÜÛœÙJˆ^\Ý[™×ÙÙ[™\˜]ÜŠ
+KˆÛÛ[Ý\OJˆ˜\XØ][Û‹Þ[™œÛÛŽÈÚ\œÙ]]]‹N‚ˆ
+Kˆ
+B‚ˆ™\ÜÛœÙVÈØXÚKPÛÛ›Û—HH››ËXØXÚH‚ˆ™\ÜÛœÙVÈ–PXØÙ[PY™™\š[™È—HH››È‚‚ˆ™]\›ˆ™\ÜÛœÙB‚ˆYˆÝ\œ™[ÜÝ]\ÈOH™Ù[™\˜][™ÈŽ‚ˆ™]\›ˆœÛÛ”™\ÜÛœÙJˆÂˆ™\œ›ÜˆŽˆ
+ˆ•H\œÛÛ˜[]H]Y\Ý[ÛœÈ\™H‚ˆ˜[™XYH™Z[™ÈÙ[™\˜]Yˆ‚ˆ
+BˆKˆÝ]\ÏMKˆ
+B‚ˆ[š]][Û‹˜ZWÜ\œÛÛ˜[]WÜ]Y\Ý[Ûœ×ÜÝ]\ÈH
+ˆ™Ù[™\˜][™È‚ˆ
+B‚ˆ[š]][Û‹œØ]™J\]WÙšY[ÏVÂˆ˜ZWÜ\œÛÛ˜[]WÜ]Y\Ý[Ûœ×ÜÝ]\È‹ˆJB‚ˆYˆÙ[™\˜]ÜŠ
+N‚ˆ™\Ý[HÜ™X]WÙ[\WÜ\œÛÛ˜[]WÜ]Y\Ý[ÛœÊˆ[š]][Û‹ˆ[™ÝXYÙWØÛÙO[[™ÝXYÙWØÛÙKˆ
+B‚ˆ™XÙZ]™YÙÛ™WÙ]™[H˜[ÙB‚ˆžN‚ˆ›Üˆ]™[[ˆÝ™X[WÜ\œÛÛ˜[]WÜ]Y\Ý[ÛœÊˆÝÛ™\Z[š]][Û‹ˆ\œÛÛ˜[]WÜ™\Ý[Ï\\œÛÛ˜[]WÜ™\Ý[Ëˆ[™ÝXYÙWØÛÙO[[™ÝXYÙWØÛÙKˆ
+N‚ˆ™\Ý[H\WÜ\œÛÛ˜[]WÜ]Y\Ý[Ûœ×Ù]™[
+ˆ™\Ý[ˆ]™[ˆ
+B‚ˆYˆ]™[™Ù]
+\HŠHOH™Û™HŽ‚ˆ™XÙZ]™YÙÛ™WÙ]™[HYB‚ˆZY[œÛÛ‹™[\Êˆ]™[ˆ[œÝ\™WØ\ØÚZOQ˜[ÙKˆ
+H
+È—ˆ‚‚ˆÙ[XÝYÝ˜Z]ÈH
+ˆ™\Ý[™Ù]
+œÙ[XÝYÝ˜Z]ÈŠBˆÜˆ×Bˆ
+B‚ˆ]Y\Ý[ÛœÈH
+ˆ™\Ý[™Ù]
+œ]Y\Ý[ÛœÈŠBˆÜˆ×Bˆ
+B‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆÈ˜[Y]HÛ›H[[˜IÜÈXÚšXØ[Ü›ÙXÝ™\]Z\™[Y[Ë‚ˆÂˆÈYZ[š\Ý˜]ÜœÈÛÛ›Û‚ˆÈHÝÈX[žH]Y\Ý[ÛœÈ\™HÙ[™\˜]YˆÈHÝÈ˜Z]È\™H\ÙYXÜ›ÜÜÈ]Y\Ý[ÛœÂˆÈHÚ]\ˆ]™\žHÙ[XÝY˜Z]™YYÈ]Y\Ý[ÛˆÛÝ™\˜YÙBˆÂˆÈ[[˜HÛ›H™\]Z\™\Î‚ˆÈH]X\ÝÛ™H˜[YÙ[XÝY˜Z]ˆÈH›È[Ü™H[ˆÚ^Ù[XÝY˜Z]È™XØ]\ÙHHRBˆÈÝ\œ™[HÝ\ÜÈHX^[][HÙˆÚ^ˆÈH]X\ÝÛ™H˜[Y]Y\Ý[Û‚ˆÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKB‚ˆYˆ›Ý
+ˆHH[ŠÙ[XÝYÝ˜Z]ÊHH‚ˆ
+N‚ˆ˜Z\ÙH˜[YQ\œ›ÜŠˆ•H\œÛÛ˜[]H˜Z]Ù[XÝ[ÛˆØ\È[˜[Yˆ‚ˆ
+B‚ˆYˆ›Ý]Y\Ý[ÛœÎ‚ˆ˜Z\ÙH˜[YQ\œ›ÜŠˆ•HRH™\ÜÛœÙHY›ÝÛÛZ[ˆ‚ˆ˜[Y\œÛÛ˜[]H]Y\Ý[ÛœËˆ‚ˆ
+B‚ˆYˆ›Ý™XÙZ]™YÙÛ™WÙ]™[‚ˆZY[œÛÛ‹™[\ÊˆÂˆ\HŽˆ™Û™H‹ˆKˆ[œÝ\™WØ\ØÚZOQ˜[ÙKˆ
+H
+È—ˆ‚‚ˆØ]™WÜ\œÛÛ˜[]WÜ]Y\Ý[ÛœÊˆÝÛ™\Z[š]][Û‹ˆ™\Ý[\™\Ý[ˆ[™ÝXYÙWØÛÙO[[™ÝXYÙWØÛÙKˆ
+B‚ˆ^Ù\^Ù\[Ûˆ\È\œ›ÜŽ‚ˆ[š]][Û‹˜ZWÜ\œÛÛ˜[]WÜ]Y\Ý[Ûœ×ÜÝ]\ÈH
+ˆ™˜Z[Y‚ˆ
+B‚ˆ[š]][Û‹œØ]™J\]WÙšY[ÏVÂˆ˜ZWÜ\œÛÛ˜[]WÜ]Y\Ý[Ûœ×ÜÝ]\È‹ˆJB‚ˆZY[œÛÛ‹™[\ÊˆÂˆ\HŽˆ™\œ›Üˆ‹ˆ›Y\ÜØYÙHŽˆÝŠ\œ›ÜŠKˆKˆ[œÝ\™WØ\ØÚZOQ˜[ÙKˆ
+H
+È—ˆ‚‚ˆ™\ÜÛœÙHHÝ™X[Z[™Ò™\ÜÛœÙJˆÙ[™\˜]ÜŠ
+KˆÛÛ[Ý\OJˆ˜\XØ][Û‹Þ[™œÛÛŽÈÚ\œÙ]]]‹N‚ˆ
+Kˆ
+B‚ˆ™\ÜÛœÙVÈØXÚKPÛÛ›Û—HH››ËXØXÚH‚ˆ™\ÜÛœÙVÈ–PXØÙ[PY™™\š[™È—HH››È‚‚ˆ™]\›ˆ™\ÜÛœÙB‚‚ÙÚ[—Ü™\]Z\™Y™\]Z\™WÔÔÕ™Yˆ›ØÙ\Ü×ØØ[™Y]WÜ\œÛÛ˜[]WÜ]Y\Ý[Ûœ×Ü™YÙ[™\˜]Jˆ™\]Y\Ýˆ›ØÙ\Ü×ÚYˆØ[™Y]WÚYŠN‚ˆˆˆ‚ˆÛX\ˆHØ]™Y\œÛÛ˜[]H]Y\Ý[ÛœÈ[™™]\›‚ˆHÝ™X[HT“›ÜˆHœ™\ÚÙ[™\˜][Û‹‚ˆˆˆ‚‚ˆ›ØÙ\ÜÈHÙ]ÛØš™XÝÛÜ—Í
+ˆ\Ý›ØÙ\ÜËˆÏ\›ØÙ\Ü×ÚYˆ
+B‚ˆYˆ›Ý\Ù\—ØØ[—ØXØÙ\Ü×Ü›ØÙ\ÜÊˆ™\]Y\Ý\Ù\‹ˆ›ØÙ\ÜËˆ
+N‚ˆ™]\›ˆ™\ÜÛœÙQ›Ü˜šY[Šˆ–[ÝHÈ›Ý]™HXØÙ\ÜÈÈ\È›Ú™XÝˆ‚ˆ
+B‚ˆYˆ›ØÙ\ÜËš\×Ú\ÝÜšXØ[‚ˆ[š]][ÛˆHÙ]ÛØš™XÝÛÜ—Í
+ˆ\ÝÜšXØ[›ØÙ\ÜÐØ[™Y]Kˆ›ØÙ\ÜÏ\›ØÙ\ÜËˆØ[™Y]WÚYXØ[™Y]WÚYˆ
+Bˆ[ÙN‚ˆ[š]][ÛˆHÙ]ÛØš™XÝÛÜ—Í
+ˆ\Ý[š]][Û‹ˆ›ØÙ\ÜÏ\›ØÙ\ÜËˆØ[™Y]WÚYXØ[™Y]WÚYˆ
+B‚ˆ[š]][Û‹˜ZWÜ\œÛÛ˜[]WÜ]Y\Ý[Ûœ×ÜÝ]\ÈH
+ˆ››ÝÜÝ\Y‚ˆ
+Bˆ[š]][Û‹˜ZWÜ\œÛÛ˜[]WÜ]Y\Ý[Ûœ×ÙÙ[™\˜]YØ]H
+ˆ›Û™Bˆ
+Bˆ[š]][Û‹˜ZWÜ\œÛÛ˜[]WÜ]Y\Ý[Ûœ×Ü\œÜÙHHˆ‚‚ˆ[š]][Û‹œØ]™J\]WÙšY[ÏVÂˆ˜ZWÜ\œÛÛ˜[]WÜ]Y\Ý[Ûœ×ÜÝ]\È‹ˆ˜ZWÜ\œÛÛ˜[]WÜ]Y\Ý[Ûœ×ÙÙ[™\˜]YØ]‹ˆ˜ZWÜ\œÛÛ˜[]WÜ]Y\Ý[Ûœ×Ü\œÜÙH‹ˆJB‚ˆ™]\›ˆœÛÛ”™\ÜÛœÙJˆÂˆ›ÚÈŽˆYKˆœÝ™X[WÝ\›Žˆ™]™\œÙJˆ
+ˆœ›ØÙ\ÜÙ\Îˆ‚ˆœ›ØÙ\Ü×ØØ[™Y]WÜ\œÛÛ˜[]WÈ‚ˆœ]Y\Ý[Ûœ×ÜÝ™X[H‚ˆ
+KˆÝØ\™ÜÏ^Âˆœ›ØÙ\Ü×ÚYŽˆ›ØÙ\ÜËšYˆ˜Ø[™Y]WÚYŽˆØ[™Y]WÚYˆKˆ
+KˆBˆ
+B‚‚ÙÚ[—Ü™\]Z\™Y™\]Z\™WÔÔÕ™Yˆ›ØÙ\Ü×ØØ[™Y]WÜ\œÛÛ˜[]WÝ˜Z]×Ý\]Jˆ™\]Y\Ýˆ›ØÙ\Ü×ÚYˆØ[™Y]WÚYŠN‚ˆˆˆ‚ˆØ]™HH\Ù\‰ÜÈ\œÛÛ˜[]H˜Z]Ù[XÝ[Û‹‚‚ˆ[ˆ[\H\ÝYX[œÈ][[˜HÚÝ[ÚÛÜÙH™[]˜[ˆ˜Z]È]]ÛX]XØ[HÚ[ˆ]Y\Ý[ÛœÈ\™HÙ[™\˜]Y‚ˆˆˆ‚‚ˆ›ØÙ\ÜÈHÙ]ÛØš™XÝÛÜ—Í
+ˆ\Ý›ØÙ\ÜËˆÏ\›ØÙ\Ü×ÚYˆ
+B‚ˆYˆ›Ý\Ù\—ØØ[—ØXØÙ\Ü×Ü›ØÙ\ÜÊˆ™\]Y\Ý\Ù\‹ˆ›ØÙ\ÜËˆ
+N‚ˆ™]\›ˆ™\ÜÛœÙQ›Ü˜šY[Šˆ–[ÝHÈ›Ý]™HXØÙ\ÜÈÈ\È›Ú™XÝˆ‚ˆ
+B‚ˆYˆ›ØÙ\ÜËš\×Ú\ÝÜšXØ[‚ˆ[š]][ÛˆHÙ]ÛØš™XÝÛÜ—Í
+ˆ\ÝÜšXØ[›ØÙ\ÜÐØ[™Y]K›Øš™XÝÂˆœÙ[XÝÜ™[]Y
+ˆ˜Ø[™Y]H‹ˆœ›ØÙ\ÜÈ‹ˆ
+Bˆœ™Y™]ÚÜ™[]Y
+ˆ˜\ÜÙ\ÜÛY[Ü™\Ý[××ÜØÛÜ™\È‹ˆ˜\ÜÙ\ÜÛY[Ü™\Ý[××Ú[\ÜÙš[H‹ˆ
+Kˆ›ØÙ\ÜÏ\›ØÙ\ÜËˆØ[™Y]WÚYXØ[™Y]WÚYˆ
+Bˆ[ÙN‚ˆ[š]][ÛˆHÙ]ÛØš™XÝÛÜ—Í
+ˆ\Ý[š]][Û‹›Øš™XÝËœÙ[XÝÜ™[]Y
+ˆ˜Ø[™Y]H‹ˆœ›ØÙ\ÜÈ‹ˆ
+Kˆ›ØÙ\ÜÏ\›ØÙ\ÜËˆØ[™Y]WÚYXØ[™Y]WÚYˆ
+B‚ˆžN‚ˆ^[ØYHœÛÛ‹›ØYÊˆ™\]Y\Ý˜›ÙK™XÛÙJ]‹NŠBˆÜˆžßH‚ˆ
+Bˆ^Ù\œÛÛ‹’”ÓÓ‘XÛÙQ\œ›ÜŽ‚ˆ™]\›ˆœÛÛ”™\ÜÛœÙJˆÂˆ™\œ›ÜˆŽˆ’[˜[Y”ÓÓˆ^[ØYˆ‚ˆKˆÝ]\ÏMˆ
+B‚ˆ˜]×Ý˜Z]ÈH^[ØY™Ù]
+˜Z]ÈŠB‚ˆYˆ›Ý\Ú[œÝ[˜ÙJ˜]×Ý˜Z]Ë\Ý
+N‚ˆ™]\›ˆœÛÛ”™\ÜÛœÙJˆÂˆ™\œ›ÜˆŽˆ
+ˆ•˜Z]È]\Ý™HÝ\YY\ÈH\Ýˆ‚ˆ
+BˆKˆÝ]\ÏMˆ
+Bˆˆ\œÛÛ˜[]WÜ™\Ý[ÈH
+ˆZ[Ü\œÛÛ˜[]WÜ]Y\Ý[Û—Ý˜Z]×Ù›Ü—ØZWÛÝÛ™\Šˆ[š]][Û‚ˆ
+Bˆ
+B‚ˆÙ[XÝYÝ˜Z]ÈH
+ˆ›Ü›X[\ÙWÜÙ[XÝYÝ˜Z]ÊˆÙ[XÝYÝ˜Z]Ï\˜]×Ý˜Z]Ëˆ]˜Z[X›WÜ™\Ý[Ï\\œÛÛ˜[]WÜ™\Ý[Ëˆ
+Bˆ
+B‚ˆÈ™\›ÈÙ[XÝY˜Z]ÈYX[œÈ]]ÛX]XÈÙ[XÝ[Û‹‚ˆÈHX[X[Ù[XÝ[ÛˆX^HÛÛZ[ˆ›È[Ü™H[ˆÚ^˜Z]Ë‚ˆYˆ[ŠÙ[XÝYÝ˜Z]ÊHˆŽ‚ˆ™]\›ˆœÛÛ”™\ÜÛœÙJˆÂˆ™\œ›ÜˆŽˆ
+ˆ”Ù[XÝ›È[Ü™H[ˆÚ^‚ˆ˜]˜Z[X›H\œÛÛ˜[]H˜Z]Ëˆ‚ˆ
+BˆKˆÝ]\ÏMˆ
+B‚ˆ[š]][Û‹œÙ[XÝYÜ\œÛÛ˜[]WÝ˜Z]ÈH
+ˆÙ[XÝYÝ˜Z]Âˆ
+B‚ˆ[š]][Û‹˜ZWÜ\œÛÛ˜[]WÜ]Y\Ý[Ûœ×ÜÝ]\ÈH
+ˆ›Ý]]Y‚ˆYˆ[š]][Û‹˜ZWÜ\œÛÛ˜[]WÜ]Y\Ý[ÛœÂˆ[ÙH››ÝÜÝ\Y‚ˆ
+B‚ˆ[š]][Û‹œØ]™Jˆ\]WÙšY[ÏVÂˆœÙ[XÝYÜ\œÛÛ˜[]WÝ˜Z]È‹ˆ˜ZWÜ\œÛÛ˜[]WÜ]Y\Ý[Ûœ×ÜÝ]\È‹ˆBˆ
+B‚ˆ™]\›ˆœÛÛ”™\ÜÛœÙJˆÂˆ›ÚÈŽˆYKˆœÙ[XÝYÝ˜Z]ÈŽˆÙ[XÝYÝ˜Z]ËˆœÙ[XÝ[Û—Û[ÙHŽˆ
+ˆ›X[X[‚ˆYˆÙ[XÝYÝ˜Z]Âˆ[ÙH˜]]ÛX]XÈ‚ˆ
+Kˆœ]Y\Ý[Ûœ×ÜÝ]\ÈŽˆ
+ˆ[š]][Û‚ˆ˜ZWÜ\œÛÛ˜[]WÜ]Y\Ý[Ûœ×ÜÝ]\Âˆ
+KˆBˆ
+B

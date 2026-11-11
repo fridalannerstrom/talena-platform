@@ -4349,6 +4349,15 @@ msgstr "AI-sammanfattning"
 msgid "AI Summary"
 msgstr "AI-sammanfattning"
 
+msgid "AI overview"
+msgstr "AI-översikt"
+
+msgid "Response-style guidance"
+msgstr "Vägledning om svarsstil"
+
+msgid "Manager-report personality texts"
+msgstr "Personlighetstexter i chefsrapporten"
+
 #: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:41
 #, fuzzy
 #| msgid ""
