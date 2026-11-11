@@ -4356,7 +4356,7 @@ msgid "Response-style guidance"
 msgstr "Vägledning om svarsstil"
 
 msgid "Manager-report personality texts"
-msgstr "Personlighetstexter i chefsrapporten"
+msgstr "Chefsrapport – personlighetstexter"
 
 #: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:41
 #, fuzzy
