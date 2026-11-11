@@ -21,7 +21,7 @@
           cautionReason: "Varför det behöver valideras",
           approachTitle: "Så når du fram i samtalet",
           approachIntro:
-            "Tips på hur du kan anpassa kommunikationen inför samtalet",
+            "Tipsen bygger på hur tydlig personens profil är och grundar sig på personens svarsstilar",
           approachSectionTitle: "Kommunikationsstrategi",
         }
       : {
@@ -36,7 +36,7 @@
           cautionReason: "Why this needs validation",
           approachTitle: "How to reach this candidate in conversation",
           approachIntro:
-            "Tips on how to adapt your communication before the conversation.",
+            "The tips are based on how clear the person's profile is and grounded in their response styles.",
           approachSectionTitle: "Communication strategy",
         };
 
