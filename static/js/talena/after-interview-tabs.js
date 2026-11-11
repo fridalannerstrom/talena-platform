@@ -1101,7 +1101,16 @@
         const line = rawLine.trim();
         if (!line) return;
         const event = JSON.parse(line);
-        if (event.type === "content_block_delta" && event.block === blockKey) {
+        if (event.type === "manager_report_personality_text") {
+          document.dispatchEvent(new CustomEvent(
+            "talena:manager-personality-updated",
+            { detail: {
+              theme: event.theme,
+              part: event.part,
+              text: event.text || "",
+            } }
+          ));
+        } else if (event.type === "content_block_delta" && event.block === blockKey) {
           received += event.text || "";
           if (!preserveManualEdit) body.textContent = received;
         } else if (event.type === "content_block_error" && event.block === blockKey) {

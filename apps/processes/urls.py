@@ -202,6 +202,22 @@ urlpatterns = [
     path(
         (
             "<int:process_id>/candidates/"
+            "<int:candidate_id>/manager-report-personality/stream/"
+        ),
+        views.process_candidate_manager_report_personality_stream,
+        name="process_candidate_manager_report_personality_stream",
+    ),
+    path(
+        (
+            "<int:process_id>/candidates/"
+            "<int:candidate_id>/manager-report-personality/regenerate/"
+        ),
+        views.process_candidate_manager_report_personality_regenerate,
+        name="process_candidate_manager_report_personality_regenerate",
+    ),
+    path(
+        (
+            "<int:process_id>/candidates/"
             "<int:candidate_id>/combined-questions/"
         ),
         views.process_candidate_combined_questions,
@@ -400,6 +416,8 @@ _PROCESS_EDIT_ROUTE_NAMES = {
     "process_candidate_personality_traits_update",
     "process_candidate_personality_interpretation_stream",
     "process_candidate_personality_interpretation_regenerate",
+    "process_candidate_manager_report_personality_stream",
+    "process_candidate_manager_report_personality_regenerate",
     "process_candidate_cognitive_questions_stream",
     "process_candidate_cognitive_questions_regenerate",
     "process_candidate_pre_interview_decision_support_stream",
