@@ -12181,13 +12181,26 @@ def process_candidate_manager_report_personality_stream(
                 if event.get("type") == "done":
                     received_done = True
                 elif event.get("type") == "manager_report_personality_text":
-                    received.add((event.get("theme"), event.get("part")))
+                    field = (event.get("theme"), event.get("part"))
+                    if field in expected:
+                        received.add(field)
                 yield json.dumps(event, ensure_ascii=False) + "\n"
 
-            if received != expected:
+            if not received:
                 raise ValueError(
-                    "The AI response did not contain all six manager-report personality texts."
+                    "The AI response did not contain any manager-report personality texts."
                 )
+            for theme_key, part in sorted(expected - received):
+                event = {
+                    "type": "manager_report_personality_text",
+                    "theme": theme_key,
+                    "part": part,
+                    "text": "",
+                }
+                received.add((theme_key, part))
+                result = apply_manager_report_personality_event(result, event)
+                yield json.dumps(event, ensure_ascii=False) + "\n"
+
             if not received_done:
                 yield json.dumps({"type": "done"}) + "\n"
             save_manager_report_personality(

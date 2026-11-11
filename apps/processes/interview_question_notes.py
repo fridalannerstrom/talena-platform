@@ -649,15 +649,26 @@ def _manager_report_personality_events(owner, language_code, *, force=False):
             if event.get("type") == "done":
                 received_done_event = True
             elif event.get("type") == "manager_report_personality_text":
-                received_report_texts.add(
-                    (event.get("theme"), event.get("part"))
-                )
+                field = (event.get("theme"), event.get("part"))
+                if field in expected:
+                    received_report_texts.add(field)
             yield event
 
-        if received_report_texts != expected:
+        if not received_report_texts:
             raise ValueError(
-                "The AI response did not contain all six manager-report personality texts."
+                "The AI response did not contain any manager-report personality texts."
             )
+        for theme_key, part in sorted(expected - received_report_texts):
+            event = {
+                "type": "manager_report_personality_text",
+                "theme": theme_key,
+                "part": part,
+                "text": "",
+            }
+            received_report_texts.add((theme_key, part))
+            result = apply_manager_report_personality_event(result, event)
+            yield event
+
         if not received_done_event:
             yield {"type": "done"}
 
