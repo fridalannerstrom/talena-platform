@@ -20,6 +20,59 @@ def normalize_language(language):
     return "sv" if str(language or "").lower().startswith("sv") else "en"
 
 
+COMMUNICATION_PREFERENCE_BUCKETS = ("prominent", "situational", "less_likely")
+
+
+def _build_individual_report_communication_summary(member_profiles):
+    """Aggregate communication guidance from accessible individual reports.
+
+    Keep this anonymous: the AI insight may describe team patterns, but must not
+    attribute a style or score to a particular person.
+    """
+    styles_by_key = {}
+    members_with_report = 0
+
+    for member in member_profiles:
+        if member.get("has_scores"):
+            members_with_report += 1
+
+        profile = member.get("profile") or {}
+        for style in profile.get("styles") or []:
+            if not style.get("available"):
+                continue
+
+            style_key = style.get("key")
+            if not style_key:
+                continue
+
+            entry = styles_by_key.setdefault(
+                style_key,
+                {
+                    "style": style.get("title") or style_key,
+                    "communication_tendency": style.get("communication_tendency", ""),
+                    "members_with_style_result": 0,
+                    "member_counts": {
+                        bucket: 0 for bucket in COMMUNICATION_PREFERENCE_BUCKETS
+                    },
+                },
+            )
+            entry["members_with_style_result"] += 1
+            preference = (style.get("relevance") or {}).get("key")
+            if preference in entry["member_counts"]:
+                entry["member_counts"][preference] += 1
+
+    return {
+        "members_with_individual_report": members_with_report,
+        "members_missing_individual_report": max(
+            0, len(member_profiles) - members_with_report
+        ),
+        "styles": sorted(
+            styles_by_key.values(),
+            key=lambda item: item["style"],
+        ),
+    }
+
+
 GOAL_LABELS = {
     "understand_collaboration": {
         "sv": "Förstå hur vi samarbetar",
@@ -40,7 +93,12 @@ GOAL_LABELS = {
 }
 
 
-def build_team_insight_input(team, accessible_processes, language="en"):
+def build_team_insight_input(
+    team,
+    accessible_processes,
+    language="en",
+    include_individual_communication=False,
+):
     language = normalize_language(language)
     process_ids = list(accessible_processes.values_list("id", flat=True))
     accessible_ids = _accessible_candidate_ids(accessible_processes)
@@ -80,6 +138,12 @@ def build_team_insight_input(team, accessible_processes, language="en"):
         ),
         "team_style_summary": available_styles,
     }
+    if include_individual_communication:
+        prompt_context["anonymous_individual_report_communication_summary"] = (
+            _build_individual_report_communication_summary(
+                stats["member_profiles"]
+            )
+        )
 
     live_versions = list(
         TestInvitation.objects.filter(
@@ -133,8 +197,30 @@ def build_team_insight_input(team, accessible_processes, language="en"):
             process_id__in=process_ids,
             status="completed",
         ).values("candidate_id").distinct().count(),
-        "sources": ["live_sova", "historical_import"],
+        "sources": [
+            "live_sova",
+            "historical_import",
+            *(
+                ["individual_team_reports"]
+                if include_individual_communication
+                else []
+            ),
+        ],
     }
+    if include_individual_communication:
+        communication_summary = prompt_context[
+            "anonymous_individual_report_communication_summary"
+        ]
+        source_metadata.update(
+            {
+                "members_with_individual_team_report": communication_summary[
+                    "members_with_individual_report"
+                ],
+                "members_missing_individual_team_report": communication_summary[
+                    "members_missing_individual_report"
+                ],
+            }
+        )
     return (
         prompt_context,
         signature,
@@ -156,7 +242,12 @@ def generate_team_insight(*, team, insight_type, accessible_processes, user, lan
         member_count,
         result_count,
         source_metadata,
-    ) = build_team_insight_input(team, accessible_processes, language)
+    ) = build_team_insight_input(
+        team,
+        accessible_processes,
+        language,
+        include_individual_communication=(insight_type == "communication_styles"),
+    )
     if member_count == 0 or result_count == 0:
         raise ValueError("No team assessment data is available yet.")
 
@@ -166,14 +257,27 @@ def generate_team_insight(*, team, insight_type, accessible_processes, user, lan
     )
     # The fixed contract is protected application guidance. Admin prompts only
     # set the tone, focus and length for their own independent insight.
-    technical_contract = (
-        f"Write one team-level insight only in {language}. Use only the "
-        "supplied team context and aggregated results. Do not make claims about "
-        "individual members, team quality, performance, diagnosis, or causes. "
-        "Do not infer anything from missing results. Clearly mention when the "
-        "available evidence is limited. Treat patterns as possibilities to "
-        "explore, not conclusions. Return plain text only.\n\n"
-    )
+    if insight_type == "communication_styles":
+        technical_contract = (
+            f"Write one team-level insight only in {language}. Use the supplied "
+            "team context, aggregated results, and anonymous communication-style "
+            "summary derived from accessible individual team reports. Use that "
+            "summary only to describe team-level patterns; never identify or "
+            "describe a specific member or repeat individual scores. Do not make "
+            "claims about team quality, performance, diagnosis, or causes. Do "
+            "not infer anything from missing results. Clearly mention when the "
+            "available evidence is limited. Treat patterns as possibilities to "
+            "explore, not conclusions. Return plain text only.\n\n"
+        )
+    else:
+        technical_contract = (
+            f"Write one team-level insight only in {language}. Use only the "
+            "supplied team context and aggregated results. Do not make claims "
+            "about individual members, team quality, performance, diagnosis, or "
+            "causes. Do not infer anything from missing results. Clearly mention "
+            "when the available evidence is limited. Treat patterns as "
+            "possibilities to explore, not conclusions. Return plain text only.\n\n"
+        )
     client = get_openai_client()
     response = client.chat.completions.create(
         model=get_chat_model(),
