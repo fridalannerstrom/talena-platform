@@ -34,4 +34,6 @@ be rerun safely. Generated records are marked as synthetic demo data and use
 `example.invalid` email addresses.
 
 The command refuses to run unless the selected settings use local SQLite,
-`DEBUG=True`, and a local/development/test environment.
+`DEBUG=True`, and a local/development/test environment. Seeding itself makes no
+AI calls. Generating the AI communication-style insight requires the local
+OpenAI configuration used by the application.
