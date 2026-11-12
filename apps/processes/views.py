@@ -216,6 +216,9 @@ from apps.reports.libraries.personality.resolver import build_personality_report
 from apps.reports.libraries.personality.profile_contrasts import (
     build_profile_contrast_analysis,
 )
+from apps.reports.libraries.personality.communication_guidance import (
+    build_static_communication_guidance,
+)
 from apps.reports.libraries.personality.builder import (
     build_profile_from_resolved_report,
 )
@@ -3454,6 +3457,11 @@ def build_candidate_detail_context(
         "ability_reports_for_ui": ability_reports_for_ui,
         "personality_reports": personality_reports,
         "personality_profile": personality_profile,
+        "static_communication_guidance": build_static_communication_guidance(
+            personality_profile,
+            response_styles,
+            language=language,
+        ),
         "profile_contrast_analysis": build_profile_contrast_analysis(
             personality_profile,
             language=language,
@@ -10083,6 +10091,11 @@ def build_historical_candidate_detail_context(
         "ability_reports_for_ui": ability_reports_for_ui,
         "personality_reports": personality_reports,
         "personality_profile": personality_profile,
+        "static_communication_guidance": build_static_communication_guidance(
+            personality_profile,
+            response_styles,
+            language=language,
+        ),
         "profile_contrast_analysis": build_profile_contrast_analysis(
             personality_profile,
             language=language,

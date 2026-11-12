@@ -1,0 +1,68 @@
+<div class="static-communication-guidance" data-static-communication-guidance>
+  {% if static_communication_guidance.profile_title %}
+    <section class="purpose-fit-section mb-4" data-static-profile-status="{{ static_communication_guidance.profile_status }}">
+      <h3 class="purpose-fit-section-title fs-4 fw-bold mb-2">{{ static_communication_guidance.profile_title }}</h3>
+      <p class="mb-4">{{ static_communication_guidance.profile_interpretation }}</p>
+
+      <h4 class="purpose-fit-section-title fs-6 fw-semibold mb-3">Att utforska i intervjun</h4>
+      <div class="row g-3">
+        {% for tip in static_communication_guidance.profile_tips %}
+          <div class="col-lg-6">
+            <div class="d-flex align-items-start gap-2 h-100">
+              <span class="purpose-fit-list-icon flex-shrink-0"><i data-feather="arrow-right"></i></span>
+              <span>{{ tip }}</span>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </section>
+  {% else %}
+    <p class="text-muted small mb-3" role="status" data-static-profile-status="unavailable">
+      Profilbedömning visas inte eftersom underlaget inte räcker.
+    </p>
+  {% endif %}
+
+  {% if static_communication_guidance.social_desirability_available %}
+    <section class="purpose-fit-section" data-static-social-desirability>
+      <h3 class="purpose-fit-section-title fs-4 fw-bold mb-2">Social önskvärdhet</h3>
+
+      <div class="mb-4">
+        <p class="mb-0">{{ static_communication_guidance.social_desirability_guidance.interpretation }}</p>
+      </div>
+
+      <div class="row g-4">
+        {% if static_communication_guidance.social_desirability_guidance.tips %}
+          <div class="col-lg-6">
+            <h4 class="purpose-fit-section-title fs-6 fw-semibold mb-3">Att tänka på i samtalet</h4>
+            <ul class="list-unstyled mb-0">
+              {% for tip in static_communication_guidance.social_desirability_guidance.tips %}
+                <li class="d-flex align-items-start gap-2 mb-3">
+                  <span class="purpose-fit-list-icon flex-shrink-0"><i data-feather="arrow-right"></i></span>
+                  <span>{{ tip }}</span>
+                </li>
+              {% endfor %}
+            </ul>
+          </div>
+        {% endif %}
+
+        {% if static_communication_guidance.social_desirability_guidance.questions %}
+          <div class="col-lg-6">
+            <h4 class="purpose-fit-section-title fs-6 fw-semibold mb-3">Frågor att använda som stöd</h4>
+            <ul class="list-unstyled mb-0">
+              {% for question in static_communication_guidance.social_desirability_guidance.questions %}
+                <li class="d-flex align-items-start gap-2 mb-3">
+                  <span class="purpose-fit-list-icon flex-shrink-0"><i data-feather="message-circle"></i></span>
+                  <span>{{ question }}</span>
+                </li>
+              {% endfor %}
+            </ul>
+          </div>
+        {% endif %}
+      </div>
+    </section>
+  {% else %}
+    <p class="text-muted small mb-0" role="status" data-static-social-desirability="unavailable">
+      Resultat för social önskvärdhet saknas.
+    </p>
+  {% endif %}
+</div>

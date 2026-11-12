@@ -616,6 +616,10 @@
 
 
       <!-- RESPONSE STYLE RESULTS -->
+      {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+        {% include "customer/processes/partials/candidate_insights/_static_communication_guidance.html" %}
+      {% else %}
+
       <div class="response-style-card">
 
         {% for style in response_styles %}
@@ -749,10 +753,7 @@
         {% endfor %}
 
       </div>
-
-      
-
-
+      {% endif %}
 
       <!-- FOOTER -->
       <div class="small text-muted border-bottom mt-4 pb-4">
