@@ -24,6 +24,26 @@
 
 > Talena erbjuder en konfigurerbar modell för ändamålsbaserad lagring. Som föreslagen standard för vanliga privata rekryteringar begränsas den ordinarie åtkomsten senast 90 dagar efter dokumenterat avslut. Därefter får endast personuppgifter med ett särskilt dokumenterat och tillåtet bevarandeändamål lagras med begränsad åtkomst. Talenas föreslagna övre standardgräns för sådan prövad lagring är 12 månader från avslut, med tidigare gallring när ändamålet upphör och separata undantag för lagkrav eller styrkta rättsliga anspråk. Den personuppgiftsansvarigas dokumenterade instruktioner och tillämplig rätt har företräde framför produktens förvalda alternativ.
 
+## AI-maskering och lokal NER: informationskrav till kund och kandidat (#300, 2026-10-23)
+
+**Status: dokumentationskrav och textförslag, inte publiceringsgodkänt eller bekräftad NER-drift.** Talent Qode ska vara transparent i kundriktad integritetspolicy, AI-beskrivning och vid behov licens-/tredjepartsförteckning. Texten nedan ska anpassas till den **faktiska produktionskonfigurationen** och granskas av jurist/ansvarig före publicering.
+
+### Förslag till lättläst saktext när funktionerna är verifierade
+
+> Talena använder tekniska skydd för att minska mängden direkt identifierande personuppgifter i underlag som behandlas av AI. Innan ett OpenAI-anrop görs försöker Talena ersätta vissa uppgifter, exempelvis kandidatnamn, andra personnamn, e-postadresser, telefonnummer och svenska personnummer, med neutrala markörer. Om ytterligare språklig namnigenkänning (NER) aktiveras används lokalt körda språkmodeller i Talenas servermiljö för svenska och engelska texter. Modellerna används för att upptäcka identifierare före överföringen och innebär inte i sig att kandidattext skickas till en separat NER-tjänst. Maskeringen är ett skydd för dataminimering/pseudonymisering och kan inte garantera full anonymisering: testresultat, intervjuanteckningar, unika händelser eller andra kombinationer av uppgifter kan fortfarande vara personuppgifter. Talena använder OpenAI som separat leverantör för vissa AI-funktioner; personuppgiftsbehandling, mottagare, behandlingsregion och lagringstider beskrivs enligt verifierade avtals- och driftsvillkor.
+
+**Transparenschecklista före publicering:**
+
+- [ ] Beskriv skyddet korrekt för de AI-funktioner som faktiskt är driftsatta, inklusive vilka direkta identifierare som maskeras och hur kända kandidatnamn hanteras.
+- [ ] Ange om lokal NER verkligen är aktiverad i produktion; namnge i så fall aktuella modeller, ändamål, språk och versioner (t.ex. `sv_core_news_sm` och `en_core_web_sm`).
+- [ ] Klargör att lokal NER-modell inte är en separat extern inference-/datamottagare, men skilj detta från OpenAI och andra eventuella mottagare.
+- [ ] Var tydlig om kvarvarande risk för indirekt identifierbar information och att pseudonymisering inte är juridisk anonymisering.
+- [ ] Granska licensvillkor och relevanta krav på attribution/notis/tredjepartslicensinformation för svensk modell (angiven CC BY-SA 4.0) och engelsk modell (angiven MIT), utan att påstå att licensgodkännande redan har skett.
+- [ ] Säkerställ att OpenAI-region, avtal/DPA, retention, ansvarsfördelning och eventuella kandidat-/kundinformationskrav stämmer med produktionsläget; publicera inte obekräftade EU-/ZDR-utfästelser.
+- [ ] Godkänn slutversionen juridiskt och verksamhetsmässigt och samordna med #300, #301, #303 och #304.
+
+**Anteckning från produktägarsidan:** Licensupplägget bedöms preliminärt se genomförbart ut, men detta är inte ett formellt juristbesked. Modellkvalitet, dev/stage-verifiering och riskacceptans återstår innan #300 kan stängas.
+
 ## Kvar innan vi får använda texten externt
 
 - [ ] Bekräfta vilka roller Talent Qode respektive kunden har för varje behandling: personuppgiftsansvarig, biträde och eventuellt underbiträde.
