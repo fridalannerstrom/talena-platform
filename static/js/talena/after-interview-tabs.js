@@ -2795,8 +2795,8 @@
     const updateReportStatus = () => {
       if (!hasCompiledPostInterviewResult) return;
       const hasUnsavedNotes = Boolean(notesInput && notesInput.value !== originalSavedNotes);
-      const isOutdated = outputRoot?.dataset.postInterviewStatus === "outdated";
-      const needsUpdate = hasUnsavedNotes || isOutdated;
+      const isContextChanged = outputRoot?.dataset.postInterviewContextChanged === "true";
+      const needsUpdate = hasUnsavedNotes || isContextChanged;
       const currentJourneyStep = needsUpdate ? 1 : 2;
       journeySteps.querySelectorAll(".after-interview-journey__step").forEach((step, index) => {
         step.classList.toggle("is-current", index === currentJourneyStep);
