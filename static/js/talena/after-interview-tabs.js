@@ -2489,38 +2489,91 @@
 
     if (personalityRoot) {
       managerReportAiTasks.push(async () => {
-        const regenerateButton = personalityRoot.querySelector("[data-personality-ai-regenerate]");
-        if (
-          !regenerateButton ||
-          !personalityRoot.dataset.regenerateUrl ||
-          !personalityRoot.dataset.streamUrl
-        ) {
+        const regenerateUrl =
+          personalityRoot.dataset.managerPersonalityRegenerateUrl;
+        const streamUrl =
+          personalityRoot.dataset.managerPersonalityStreamUrl;
+
+        if (!regenerateUrl || !streamUrl) {
           throw new Error(copy().sectionGenerationFailed);
         }
 
-        const existingError = personalityRoot.querySelector("[data-personality-ai-error]");
-        existingError?.classList.add("d-none");
-
-        if (!regenerateButton.disabled) regenerateButton.click();
-
-        let sawGeneration = regenerateButton.disabled;
-        const deadline = Date.now() + 180000;
-        while (Date.now() < deadline) {
-          await new Promise((resolve) => window.setTimeout(resolve, 200));
-          if (regenerateButton.disabled) sawGeneration = true;
-          if (sawGeneration && !regenerateButton.disabled) break;
+        const startResponse = await fetch(regenerateUrl, {
+          method: "POST",
+          headers: {
+            "X-CSRFToken": csrfToken(),
+            "X-Requested-With": "XMLHttpRequest",
+            "Content-Type": "application/json",
+          },
+          credentials: "same-origin",
+          body: JSON.stringify({}),
+        });
+        const startData = await startResponse.json();
+        if (!startResponse.ok) {
+          throw new Error(startData.error || copy().sectionGenerationFailed);
         }
 
-        if (!sawGeneration || regenerateButton.disabled) {
+        const response = await fetch(startData.stream_url || streamUrl, {
+          headers: {
+            Accept: "application/x-ndjson",
+            "X-Requested-With": "XMLHttpRequest",
+          },
+          credentials: "same-origin",
+        });
+        if (!response.ok || !response.body) {
+          let message = copy().sectionGenerationFailed;
+          try {
+            message = (await response.json()).error || message;
+          } catch (_error) {}
+          throw new Error(message);
+        }
+
+        const expected = new Set(
+          copy().managerPersonalityThemes.flatMap((theme) => [
+            `${theme.key}/testbild`,
+            `${theme.key}/candidate_describes`,
+          ])
+        );
+        const received = new Set();
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder("utf-8");
+        let buffer = "";
+        let receivedDone = false;
+
+        const handleLine = (rawLine) => {
+          const line = rawLine.trim();
+          if (!line) return;
+          const event = JSON.parse(line);
+
+          if (event.type === "error") {
+            throw new Error(event.message || copy().sectionGenerationFailed);
+          }
+          if (event.type === "done") {
+            receivedDone = true;
+            return;
+          }
+          if (event.type !== "manager_report_personality_text") return;
+
+          const key = `${event.theme}/${event.part}`;
+          if (!expected.has(key)) return;
+          received.add(key);
+          renderPersonalityText(event.theme, event.part, event.text || "");
+        };
+
+        while (true) {
+          const chunk = await reader.read();
+          if (chunk.done) break;
+          buffer += decoder.decode(chunk.value, { stream: true });
+          const lines = buffer.split("\n");
+          buffer = lines.pop() || "";
+          lines.forEach(handleLine);
+        }
+
+        buffer += decoder.decode();
+        if (buffer.trim()) handleLine(buffer);
+
+        if (!receivedDone || received.size !== expected.size) {
           throw new Error(copy().sectionGenerationFailed);
-        }
-
-        const currentError = personalityRoot.querySelector("[data-personality-ai-error]");
-        if (
-          personalityRoot.dataset.status !== "completed" ||
-          (currentError && !currentError.classList.contains("d-none"))
-        ) {
-          throw new Error(currentError?.textContent?.trim() || copy().sectionGenerationFailed);
         }
       });
     }
