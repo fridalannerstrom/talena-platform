@@ -12243,15 +12243,15 @@ def process_candidate_manager_report_personality_stream(
                 language_code=language_code,
             )
             for event in pending_events:
-                yield json.dumps(event, ensure_ascii=False) + "\\n"
+                yield json.dumps(event, ensure_ascii=False) + "\n"
             yield json.dumps({
                 "type": "manager_report_personality_complete",
                 "data": result,
-            }, ensure_ascii=False) + "\\n"
+            }, ensure_ascii=False) + "\n"
         except Exception as error:
             owner.ai_manager_report_personality_status = "failed"
             owner.save(update_fields=["ai_manager_report_personality_status"])
-            yield json.dumps({"type": "error", "message": str(error)}, ensure_ascii=False) + "\\n"
+            yield json.dumps({"type": "error", "message": str(error)}, ensure_ascii=False) + "\n"
 
 
     response = StreamingHttpResponse(
