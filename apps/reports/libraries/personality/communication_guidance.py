@@ -176,6 +176,39 @@ def _social_desirability_text(
     return _SOCIAL_DESIRABILITY_TEXT[key]
 
 
+
+def _format_social_desirability(
+    paragraphs: tuple[str, ...],
+) -> dict[str, Any] | None:
+    """Separate interpretation, practical guidance, and example questions for display."""
+    if not paragraphs:
+        return None
+
+    tips: list[str] = []
+    questions: list[str] = []
+    marker = " Fråga exempelvis: "
+
+    for paragraph in paragraphs[1:]:
+        if paragraph == "Fråga exempelvis:":
+            continue
+        if marker in paragraph:
+            tip, question = paragraph.split(marker, maxsplit=1)
+            if tip.strip():
+                tips.append(tip.strip())
+            if question.strip():
+                questions.append(question.strip())
+        elif paragraph.startswith("”"):
+            questions.append(paragraph)
+        else:
+            tips.append(paragraph)
+
+    return {
+        "interpretation": paragraphs[0],
+        "tips": tips,
+        "questions": questions,
+    }
+
+
 def build_static_communication_guidance(
     personality_profile: dict[str, Any] | None,
     response_styles: list[dict[str, Any]] | None,
@@ -195,25 +228,35 @@ def build_static_communication_guidance(
 
     profile_status = "unavailable"
     profile_title = ""
-    profile_paragraphs: tuple[str, ...] = ()
+    profile_interpretation = ""
+    profile_tips: list[str] = []
 
     if len(scores) >= minimum_coverage and middle_count >= PROFILE_MIDDLE_THRESHOLD:
         profile_status = "middle"
         profile_title = "MITTEN-profil"
-        profile_paragraphs = _MIDDLE_PROFILE_TEXT
+        profile_interpretation, middle_follow_up = _MIDDLE_PROFILE_TEXT[0].split(
+            " Utforska ",
+            maxsplit=1,
+        )
+        profile_tips = [
+            "Utforska " + middle_follow_up,
+            _MIDDLE_PROFILE_TEXT[1],
+        ]
     elif len(scores) >= minimum_coverage and clear_count >= PROFILE_CLEAR_THRESHOLD:
         profile_status = "clear"
         profile_title = "TYDLIG-profil"
-        profile_paragraphs = _CLEAR_PROFILE_TEXT
+        profile_interpretation = _CLEAR_PROFILE_TEXT[0]
+        profile_tips = [_CLEAR_PROFILE_TEXT[1]]
 
     social_text = _social_desirability_text(response_styles)
     return {
         "localized": True,
         "profile_status": profile_status,
         "profile_title": profile_title,
-        "profile_paragraphs": profile_paragraphs,
+        "profile_interpretation": profile_interpretation,
+        "profile_tips": profile_tips,
         "social_desirability_available": bool(social_text),
-        "social_desirability_paragraphs": social_text,
+        "social_desirability_guidance": _format_social_desirability(social_text),
         "available": profile_status != "unavailable" or bool(social_text),
         "available_trait_count": len(scores),
         "middle_trait_count": middle_count,
