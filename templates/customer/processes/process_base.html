@@ -4782,6 +4782,8 @@ notifyCandidateAiContentUpdated(
         window.TALENA_PROCESS_I18N.interpretationCouldNotBeRegenerated
       );
     }
+
+    root.dataset.managerPersonalityStatus = "completed";
   }
 
 
@@ -4837,6 +4839,8 @@ notifyCandidateAiContentUpdated(
           data.stream_url ||
           streamUrl
         );
+        regenerateButton.disabled = true;
+        regenerateButton.setAttribute("aria-busy", "true");
         await regenerateManagerReportPersonality();
 
       } catch (error) {
@@ -4860,6 +4864,7 @@ notifyCandidateAiContentUpdated(
       } finally {
         regenerateButton.disabled =
           false;
+        regenerateButton.removeAttribute("aria-busy");
 
         refreshIcons();
       }
