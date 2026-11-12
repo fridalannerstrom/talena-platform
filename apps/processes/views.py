@@ -3394,6 +3394,17 @@ def build_candidate_detail_context(
         )
     )
 
+    post_interview_generated_at = (
+        invitation.ai_post_interview_decision_support_generated_at
+    )
+    role_context_updated_at = getattr(purpose_context_obj, "updated_at", None)
+    post_interview_context_changed = bool(
+        has_post_interview_decision_support
+        and post_interview_generated_at
+        and role_context_updated_at
+        and role_context_updated_at > post_interview_generated_at
+    )
+
     from apps.candidate_results.presentation import (
         build_candidate_result_panel_context,
     )
@@ -3687,6 +3698,7 @@ def build_candidate_detail_context(
         "has_post_interview_decision_support": (
             has_post_interview_decision_support
         ),
+        "post_interview_context_changed": post_interview_context_changed,
 
         "post_interview_decision_support_notes_version": (
             invitation
@@ -5179,6 +5191,21 @@ def process_candidate_final_output(
         )
     )
 
+    post_interview_generated_at = (
+        invitation.ai_post_interview_decision_support_generated_at
+    )
+    role_context_updated_at = getattr(
+        getattr(process, "role_context", None),
+        "updated_at",
+        None,
+    )
+    post_interview_context_changed = bool(
+        has_post_interview_decision_support
+        and post_interview_generated_at
+        and role_context_updated_at
+        and role_context_updated_at > post_interview_generated_at
+    )
+
     # #187:
     # Prepare for interview embeds the shared assessment-question
     # partial inside _final_output.html. Because this whole root is
@@ -5340,6 +5367,7 @@ def process_candidate_final_output(
             "has_post_interview_decision_support": (
                 has_post_interview_decision_support
             ),
+            "post_interview_context_changed": post_interview_context_changed,
 
             "final_output_refresh_url": (
                 refresh_url
@@ -9927,6 +9955,7 @@ def build_historical_candidate_detail_context(
         "has_post_interview_decision_support": (
             has_post_interview_decision_support
         ),
+        "post_interview_context_changed": False,
 
         "post_interview_decision_support_stream_url": reverse(
             (
