@@ -103,86 +103,87 @@ _SOCIAL_DESIRABILITY_TEXT = {
 
 
 _MIDDLE_PROFILE_TEXT_EN = (
-    "The profile suggests that the person's behaviour depends largely on the situation. "
+    "The profile suggests that the person's behaviour largely depends on the situation. "
     "Explore when the person recognises themselves in the descriptions on the left and "
     "right of the profile. Ask for specific examples.",
-    "The person may need more context to answer interview questions. Be prepared to "
-    "clarify questions and allow a little extra time for the conversation.",
+    "The person may need more context to answer the interview questions. Be prepared to "
+    "clarify the questions and allow a little extra time for the conversation.",
 )
 
 _CLEAR_PROFILE_TEXT_EN = (
-    "The profile gives a clear picture of how the person tends to act. They are likely "
-    "to recognise themselves in the descriptions and find it easy to give specific examples.",
+    "The profile gives a clear picture of how the person usually acts. The person will "
+    "probably recognise themselves in the descriptions and find it easy to give specific examples.",
     "Use the descriptions as a starting point for the conversation. Also explore whether "
-    "there are situations in which the person acts differently, to gain a more nuanced picture.",
+    "there are situations where the person acts differently, to gain a more nuanced picture.",
 )
 
 _SOCIAL_DESIRABILITY_TEXT_EN = {
     "low": (
-        "The person's self-assessment is significantly more self-critical compared with "
-        "others. Take a coaching and encouraging approach.",
-        "Start by sharing the result and asking whether the person recognises themselves "
-        "in it and what reference points they use when assessing themselves. For example: "
-        "“Your answers suggest that you assess yourself more critically than other people "
-        "tend to. Do you recognise that? Who or what do you compare yourself with?”",
-        "Help the person develop a more balanced view of both what has been difficult and "
-        "what they have achieved by exploring one trait in each area where they may have "
-        "underestimated themselves.",
-        "Ask for specific examples and explore whether the person's self-description does "
-        "justice to their actions. It may also help to explore how others have described "
-        "their strengths and contributions.",
+        "The person's self-ratings are significantly more self-critical than other "
+        "people's. Take a coaching and encouraging approach.",
+        "Start by highlighting the result and asking whether the person recognises "
+        "themselves in it and what reference points they use when assessing themselves. "
+        "For example: “Your answers suggest that you assess yourself more self-critically "
+        "than others usually do. Do you recognise that? Who or what do you compare yourself with?”",
+        "Help the person nuance their view of both what has been difficult and what they "
+        "have actually succeeded at by exploring one trait in each area where they may "
+        "have underestimated themselves.",
+        "Ask for specific examples and explore whether the person's self-description "
+        "does justice to their actions. It may also be helpful to explore how others have "
+        "described the person's strengths and contributions.",
         "For example:",
-        "“You rated X as something that comes less naturally to you. Can you tell me about "
-        "a time when it still went well? What did you do?”",
-        "“What strengths have others recognised in you? Can you give an example of when "
-        "they showed up?”",
+        "“You have rated X as something that comes less naturally to you. Can you tell "
+        "me about an occasion when it still went well? What did you do then?”",
+        "“What strengths have others highlighted in you? Can you give an example of when "
+        "they were evident?”",
     ),
     "mild_low": (
-        "The person's self-assessment tends to be more self-critical compared with others. "
-        "Explore whether they recognise this and what reference points they use when "
-        "assessing themselves. For example: “Your answers suggest that you may be somewhat "
-        "self-critical in how you assess yourself. Do you recognise that? Who or what do "
-        "you compare yourself with?”",
+        "The person's self-assessment tends to be more self-critical than that of others. "
+        "Explore whether the person recognises this and what reference points they use "
+        "when assessing themselves. For example: “Your answers suggest that you may be "
+        "somewhat self-critical in your assessment of yourself. Do you recognise this? "
+        "Who or what do you compare yourself with?”",
         "During the conversation, be alert to whether the person downplays their strengths "
-        "or focuses on what could have gone better. Choose a trait in the profile to explore "
-        "further where the person may have underestimated themselves.",
+        "or focuses on what could have gone better. Choose a trait in the profile to "
+        "explore further where the person may have underestimated themselves.",
         "Ask for specific examples and help the person put their own contribution into "
-        "words. It may also help to explore how others have described their strengths and "
-        "contributions.",
+        "words. It may also be helpful to explore how others have described the person's "
+        "strengths and contributions.",
         "For example:",
         "“What did you contribute in that situation, even if everything did not go as you "
         "had hoped? What might someone who was there say you contributed?”",
     ),
     "balanced": (
-        "The person's self-assessment is within the average range. This suggests that they "
-        "have described themselves in a balanced way, with no clear tendency to present "
-        "themselves as overly positive or to be overly self-critical.",
-        "Use the profile and ask for specific examples of how the person tends to act. "
-        "Explore both situations where the descriptions fit and situations where the person "
-        "acts differently. This helps you understand when and how the behaviours show up.",
+        "The person's self-rating is within the average range. This suggests that the "
+        "person has described themselves in a balanced way, without a clear tendency to "
+        "present themselves as overly positive or to be overly self-critical.",
+        "Use the profile as a starting point and ask for specific examples of how the "
+        "person usually acts. Explore both situations where the descriptions fit and "
+        "situations where the person acts differently. This helps you understand when "
+        "and how the behaviours come into play.",
         "For example:",
         "“When do you recognise yourself in this description? Are there situations where "
         "you act differently?”",
     ),
     "mild_high": (
-        "The person's self-ratings tend to present them in a more socially desirable light "
-        "compared with others. Follow up positive descriptions with specific examples.",
-        "Clarify what the person themselves did, especially when their answers refer to what "
-        "“people” usually do or what “we” achieved. Also explore when it has been harder to "
-        "maintain that behaviour.",
+        "The person's self-assessment tends to be more socially desirable than that of others. "
+        "Follow up positive descriptions with specific examples.",
+        "Clarify what the person has done themselves, especially when the answers concern "
+        "what “people” usually do or what “we” have achieved. Also explore when the "
+        "behaviour has been more difficult to maintain.",
         "For example:",
-        "“You said that you solved the situation together. What was your specific contribution?”",
+        "“You say that you solved the situation together. What was your specific contribution?”",
     ),
     "high": (
-        "The person's self-ratings are significantly more socially desirable compared with "
-        "others. Pay particular attention to how their descriptions show up in practice in "
-        "areas that matter for the role.",
+        "The person's self-ratings are significantly more socially desirable than other "
+        "people's. Pay particular attention to understanding how the person's descriptions "
+        "show up in practice in areas that are central to the role.",
         "Ask for several specific examples and follow up on the person's own actions, the "
-        "outcome and what was challenging. Create space for them to talk about mistakes and "
-        "setbacks, using a curious and exploratory approach.",
+        "result and what was challenging. Create space for the person to talk about "
+        "mistakes and setbacks, with a curious and exploratory approach.",
         "For example:",
-        "“Tell me about a time when something did not go as you had planned. What happened? "
-        "What did you do, and what did you learn?”",
+        "“Tell me about an occasion when something did not go as you had thought and "
+        "planned. What happened? What did you do, and what did you learn?”",
     ),
 }
 
