@@ -233,7 +233,7 @@ def build_static_communication_guidance(
 
     if len(scores) >= minimum_coverage and middle_count >= PROFILE_MIDDLE_THRESHOLD:
         profile_status = "middle"
-        profile_title = "MITTEN-profil"
+        profile_title = "Situationsbaserad profil"
         profile_interpretation, middle_follow_up = _MIDDLE_PROFILE_TEXT[0].split(
             " Utforska ",
             maxsplit=1,
@@ -244,7 +244,7 @@ def build_static_communication_guidance(
         ]
     elif len(scores) >= minimum_coverage and clear_count >= PROFILE_CLEAR_THRESHOLD:
         profile_status = "clear"
-        profile_title = "TYDLIG-profil"
+        profile_title = "Tydlig profil"
         profile_interpretation = _CLEAR_PROFILE_TEXT[0]
         profile_tips = [_CLEAR_PROFILE_TEXT[1]]
 
