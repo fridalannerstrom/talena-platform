@@ -265,109 +265,21 @@
 
 
         <!-- RESPONSE-STYLE INTERVIEW APPROACH -->
-        {% if LANGUAGE_CODE|slice:":2" == "sv" %}
-          <section class="border-top pt-4 mt-4" data-static-communication-strategy>
-            <h3 class="insight-summary-title mb-1">Kommunikationsstrategi</h3>
-            <p class="text-muted small mb-0">Tipsen bygger på hur tydlig personens profil är och grundar sig på personens svarsstilar</p>
-            <div class="mt-3">
-              {% include "customer/processes/partials/candidate_insights/_static_communication_guidance.html" %}
-            </div>
-          </section>
-        {% else %}
-
-
-        <section
-          class="border-top pt-4 mt-4"
-          data-response-style-interview-guidance
-        >
-
-          <div>
-
-            <div class="insight-summary-kicker">
-              ✨ {% trans "AI-generated insight" %}
-            </div>
-
-            <h3 class="insight-summary-title mb-1">
-              {% trans "How to approach the conversation" %}
-            </h3>
-
-            <p class="text-muted small mb-0">
-              {% blocktrans %}Practical interview guidance based on how the candidate used the personality questionnaire response scale.{% endblocktrans %}
-            </p>
-
-          </div>
-
-          <div
-            class="mt-3"
-            data-response-style-interview-content
-            {% if not response_style_guidance.recommended_approach and not response_style_guidance.questions %}
-              hidden
+        <section class="border-top pt-4 mt-4" data-static-communication-strategy>
+          <h3 class="insight-summary-title mb-1">
+            {% if LANGUAGE_CODE|slice:":2" == "sv" %}Kommunikationsstrategi{% else %}Communication strategy{% endif %}
+          </h3>
+          <p class="text-muted small mb-0">
+            {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+              Tipsen bygger på hur tydlig personens profil är och grundar sig på personens svarsstilar.
+            {% else %}
+              These tips are based on how clear the person's profile is and on their response styles.
             {% endif %}
-          >
-
-            <section
-              class="purpose-fit-section"
-              data-response-style-interview-approach-section
-              {% if not response_style_guidance.recommended_approach %}
-                hidden
-              {% endif %}
-            >
-
-              <div class="purpose-fit-section-title mb-2">
-                {% trans "Recommended approach" %}
-              </div>
-
-              <div
-                class="purpose-fit-summary"
-                data-response-style-interview-approach
-              >{{ response_style_guidance.recommended_approach }}</div>
-
-            </section>
-
-            <section
-              class="purpose-fit-list-card mt-3"
-              data-response-style-interview-questions-section
-              {% if not response_style_guidance.questions %}
-                hidden
-              {% endif %}
-            >
-
-              <div class="purpose-fit-section-title">
-                {% trans "Questions to explore" %}
-              </div>
-
-              <ul
-                class="purpose-fit-list"
-                data-response-style-interview-questions
-              >
-
-                {% for question in response_style_guidance.questions %}
-                  <li>
-                    <span class="purpose-fit-list-icon">
-                      <i data-feather="message-circle"></i>
-                    </span>
-                    <span>{{ question }}</span>
-                  </li>
-                {% endfor %}
-
-              </ul>
-
-            </section>
-
+          </p>
+          <div class="mt-3">
+            {% include "customer/processes/partials/candidate_insights/_static_communication_guidance.html" %}
           </div>
-
-          <div
-            class="text-muted small mt-3"
-            data-response-style-interview-empty
-            {% if response_style_guidance.recommended_approach or response_style_guidance.questions %}
-              hidden
-            {% endif %}
-          >
-            {% trans "Response-style interview guidance is not available yet." %}
-          </div>
-
         </section>
-        {% endif %}
 
 
         {% if pre_interview_decision_support.context_note %}
