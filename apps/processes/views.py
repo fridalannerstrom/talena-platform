@@ -3394,6 +3394,17 @@ def build_candidate_detail_context(
         )
     )
 
+    post_interview_generated_at = (
+        invitation.ai_post_interview_decision_support_generated_at
+    )
+    role_context_updated_at = getattr(purpose_context_obj, "updated_at", None)
+    post_interview_context_changed = bool(
+        has_post_interview_decision_support
+        and post_interview_generated_at
+        and role_context_updated_at
+        and role_context_updated_at > post_interview_generated_at
+    )
+
     from apps.candidate_results.presentation import (
         build_candidate_result_panel_context,
     )
@@ -3687,6 +3698,7 @@ def build_candidate_detail_context(
         "has_post_interview_decision_support": (
             has_post_interview_decision_support
         ),
+        "post_interview_context_changed": post_interview_context_changed,
 
         "post_interview_decision_support_notes_version": (
             invitation
@@ -5179,6 +5191,21 @@ def process_candidate_final_output(
         )
     )
 
+    post_interview_generated_at = (
+        invitation.ai_post_interview_decision_support_generated_at
+    )
+    role_context_updated_at = getattr(
+        getattr(process, "role_context", None),
+        "updated_at",
+        None,
+    )
+    post_interview_context_changed = bool(
+        has_post_interview_decision_support
+        and post_interview_generated_at
+        and role_context_updated_at
+        and role_context_updated_at > post_interview_generated_at
+    )
+
     # #187:
     # Prepare for interview embeds the shared assessment-question
     # partial inside _final_output.html. Because this whole root is
@@ -5340,6 +5367,7 @@ def process_candidate_final_output(
             "has_post_interview_decision_support": (
                 has_post_interview_decision_support
             ),
+            "post_interview_context_changed": post_interview_context_changed,
 
             "final_output_refresh_url": (
                 refresh_url
@@ -9927,6 +9955,7 @@ def build_historical_candidate_detail_context(
         "has_post_interview_decision_support": (
             has_post_interview_decision_support
         ),
+        "post_interview_context_changed": False,
 
         "post_interview_decision_support_stream_url": reverse(
             (
@@ -12180,6 +12209,7 @@ def process_candidate_manager_report_personality_stream(
         result = empty_manager_report_personality()
         received = set()
         received_done = False
+        pending_events = []
         expected = {
             (theme["key"], part)
             for theme in PERSONALITY_MANAGER_REPORT_THEMES
@@ -12197,30 +12227,23 @@ def process_candidate_manager_report_personality_stream(
                     field = (event.get("theme"), event.get("part"))
                     if field in expected:
                         received.add(field)
-                yield json.dumps(event, ensure_ascii=False) + "\n"
+                pending_events.append(event)
 
-            if not received:
+            if not received_done or received != expected:
+                missing = sorted(expected - received)
                 raise ValueError(
-                    "The AI response did not contain any manager-report personality texts."
+                    "The AI response was incomplete; the previous manager "
+                    "report was kept. Missing fields: "
+                    + ", ".join(f"{theme}/{part}" for theme, part in missing)
                 )
-            for theme_key, part in sorted(expected - received):
-                event = {
-                    "type": "manager_report_personality_text",
-                    "theme": theme_key,
-                    "part": part,
-                    "text": "",
-                }
-                received.add((theme_key, part))
-                result = apply_manager_report_personality_event(result, event)
-                yield json.dumps(event, ensure_ascii=False) + "\n"
 
-            if not received_done:
-                yield json.dumps({"type": "done"}) + "\n"
             save_manager_report_personality(
                 owner=owner,
                 result=result,
                 language_code=language_code,
             )
+            for event in pending_events:
+                yield json.dumps(event, ensure_ascii=False) + "\n"
             yield json.dumps({
                 "type": "manager_report_personality_complete",
                 "data": result,
@@ -12229,6 +12252,7 @@ def process_candidate_manager_report_personality_stream(
             owner.ai_manager_report_personality_status = "failed"
             owner.save(update_fields=["ai_manager_report_personality_status"])
             yield json.dumps({"type": "error", "message": str(error)}, ensure_ascii=False) + "\n"
+
 
     response = StreamingHttpResponse(
         generator(),

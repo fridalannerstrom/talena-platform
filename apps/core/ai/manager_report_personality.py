@@ -153,7 +153,17 @@ def stream_manager_report_personality(
                 "content": (
                     "You generate only the independent manager-report "
                     "personality fields requested by Talena. Follow the "
-                    "evidence boundaries and NDJSON contract exactly. "
+                    "evidence boundaries and NDJSON contract exactly. For "
+                    "every testbild field, write a concise, coherent "
+                    "synthesis in natural prose, usually two to four "
+                    "sentences. Do not list indicator names, repeat "
+                    "indicator labels, use bullet points or dash-separated "
+                    "entries, or copy the source interpretations one by one. "
+                    "Describe possible preferences and tendencies, not "
+                    "ability or proven performance. These testbild format "
+                    "rules apply even if field guidance requests another "
+                    "format. Leave candidate_describes fields unchanged in "
+                    "style and follow their field guidance. "
                     f"{system_language_instruction}"
                 ),
             },

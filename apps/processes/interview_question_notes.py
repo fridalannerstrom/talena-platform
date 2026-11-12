@@ -576,6 +576,7 @@ def _manager_report_personality_events(owner, language_code, *, force=False):
         PERSONALITY_MANAGER_REPORT_THEMES,
         PARTS,
         apply_manager_report_personality_event,
+        build_personality_indicator_interpretations,
         empty_manager_report_personality,
         save_manager_report_personality,
         stream_manager_report_personality,
@@ -594,6 +595,10 @@ def _manager_report_personality_events(owner, language_code, *, force=False):
         for theme in PERSONALITY_MANAGER_REPORT_THEMES
         for part in PARTS
     }
+    indicator_interpretations = build_personality_indicator_interpretations(
+        owner,
+        language_code=language_code,
+    )
     generated_at = owner.ai_manager_report_personality_generated_at
     context_updated_at = getattr(
         getattr(owner.process, "role_context", None),
@@ -638,6 +643,7 @@ def _manager_report_personality_events(owner, language_code, *, force=False):
     result = empty_manager_report_personality()
     received_done_event = False
     received_report_texts = set()
+    report_text_events = []
 
     try:
         yield {"type": "manager_report_personality_started"}
@@ -645,38 +651,65 @@ def _manager_report_personality_events(owner, language_code, *, force=False):
             owner=owner,
             language_code=language_code,
         ):
-            result = apply_manager_report_personality_event(result, event)
             if event.get("type") == "done":
                 received_done_event = True
-            elif event.get("type") == "manager_report_personality_text":
-                field = (event.get("theme"), event.get("part"))
-                if field in expected:
-                    received_report_texts.add(field)
-            yield event
+                continue
+            if event.get("type") != "manager_report_personality_text":
+                continue
 
-        if not received_report_texts:
-            raise ValueError(
-                "The AI response did not contain any manager-report personality texts."
-            )
-        for theme_key, part in sorted(expected - received_report_texts):
-            event = {
-                "type": "manager_report_personality_text",
-                "theme": theme_key,
-                "part": part,
-                "text": "",
-            }
-            received_report_texts.add((theme_key, part))
+            field = (event.get("theme"), event.get("part"))
+            if field not in expected:
+                continue
+
+            received_report_texts.add(field)
             result = apply_manager_report_personality_event(result, event)
-            yield event
+            report_text_events.append(event)
+
+        missing_fields = expected - received_report_texts
+        if missing_fields:
+            missing_names = ", ".join(
+                f"{theme}/{part}"
+                for theme, part in sorted(missing_fields)
+            )
+            raise ValueError(
+                "The AI response was incomplete "
+                f"(missing fields: {missing_names}). Existing report text was kept."
+            )
 
         if not received_done_event:
-            yield {"type": "done"}
+            raise ValueError(
+                "The AI response ended before the report was complete. "
+                "Existing report text was kept."
+            )
+
+        empty_testbild_with_evidence = [
+            theme["key"]
+            for theme in PERSONALITY_MANAGER_REPORT_THEMES
+            if str(indicator_interpretations.get(theme["key"]) or "").strip()
+            and not str(
+                (result.get(theme["key"]) or {}).get("testbild") or ""
+            ).strip()
+        ]
+        if empty_testbild_with_evidence:
+            raise ValueError(
+                "The AI returned empty Testbild text despite available "
+                "personality interpretations for: "
+                + ", ".join(empty_testbild_with_evidence)
+                + ". Existing report text was kept."
+            )
 
         save_manager_report_personality(
             owner=owner,
             result=result,
             language_code=language_code,
         )
+
+        # Only publish the new text after the complete response has passed
+        # validation and has been saved. Failed partial generations must not
+        # clear working text in the page.
+        for event in report_text_events:
+            yield event
+        yield {"type": "done"}
         yield {"type": "manager_report_personality_complete"}
     except Exception as error:
         logger.exception(
@@ -689,7 +722,6 @@ def _manager_report_personality_events(owner, language_code, *, force=False):
             "type": "manager_report_personality_error",
             "message": str(error),
         }
-
 
 @login_required
 @require_GET
