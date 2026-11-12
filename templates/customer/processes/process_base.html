@@ -4660,6 +4660,133 @@ notifyCandidateAiContentUpdated(
   }
 
 
+  async function regenerateManagerReportPersonality() {
+    const managerRegenerateUrl =
+      root.dataset.managerPersonalityRegenerateUrl;
+
+    if (!managerRegenerateUrl) {
+      return;
+    }
+
+    const startResponse = await fetch(
+      managerRegenerateUrl,
+      {
+        method: "POST",
+        headers: {
+          "X-CSRFToken": getCookie("csrftoken"),
+          "X-Requested-With": "XMLHttpRequest",
+          "Content-Type": "application/json",
+        },
+        credentials: "same-origin",
+        body: JSON.stringify({}),
+      }
+    );
+    const startData = await startResponse.json();
+
+    if (!startResponse.ok) {
+      throw new Error(
+        startData.error ||
+        window.TALENA_PROCESS_I18N.interpretationCouldNotBeRegenerated
+      );
+    }
+
+    const streamResponse = await fetch(
+      startData.stream_url || root.dataset.managerPersonalityStreamUrl,
+      {
+        headers: {
+          "Accept": "application/x-ndjson",
+          "X-Requested-With": "XMLHttpRequest",
+        },
+        credentials: "same-origin",
+      }
+    );
+
+    if (!streamResponse.ok || !streamResponse.body) {
+      let message =
+        window.TALENA_PROCESS_I18N.interpretationCouldNotBeRegenerated;
+
+      try {
+        const data = await streamResponse.json();
+        message = data.error || message;
+      } catch (parseError) {
+        // Keep the fallback message.
+      }
+
+      throw new Error(message);
+    }
+
+    const expected = new Set(
+      managerPersonalityThemeKeys.flatMap((theme) => [
+        `${theme}/testbild`,
+        `${theme}/candidate_describes`,
+      ])
+    );
+    const received = new Set();
+    const reader = streamResponse.body.getReader();
+    const decoder = new TextDecoder("utf-8");
+    let buffer = "";
+    let receivedDone = false;
+
+    const handleLine = (rawLine) => {
+      const line = rawLine.trim();
+      if (!line) return;
+
+      const event = JSON.parse(line);
+      if (event.type === "error") {
+        throw new Error(
+          event.message ||
+          window.TALENA_PROCESS_I18N.interpretationCouldNotBeRegenerated
+        );
+      }
+
+      if (event.type === "manager_report_personality_text") {
+        const key = `${event.theme}/${event.part}`;
+        if (!expected.has(key)) return;
+        received.add(key);
+        updateManagerPersonalityText(
+          event.theme,
+          event.part,
+          event.text || ""
+        );
+      } else if (event.type === "done") {
+        receivedDone = true;
+      } else if (
+        event.type === "manager_report_personality_complete" &&
+        event.data
+      ) {
+        Object.entries(event.data).forEach(([theme, parts]) => {
+          Object.entries(parts || {}).forEach(([part, text]) => {
+            const key = `${theme}/${part}`;
+            if (!expected.has(key)) return;
+            received.add(key);
+            updateManagerPersonalityText(theme, part, text || "");
+          });
+        });
+      }
+    };
+
+    while (true) {
+      const chunk = await reader.read();
+      if (chunk.done) break;
+      buffer += decoder.decode(chunk.value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop() || "";
+      lines.forEach(handleLine);
+    }
+
+    buffer += decoder.decode();
+    if (buffer.trim()) handleLine(buffer);
+
+    if (!receivedDone || received.size !== expected.size) {
+      throw new Error(
+        window.TALENA_PROCESS_I18N.interpretationCouldNotBeRegenerated
+      );
+    }
+
+    root.dataset.managerPersonalityStatus = "completed";
+  }
+
+
   regenerateButton.addEventListener(
     "click",
     async () => {
@@ -4712,6 +4839,9 @@ notifyCandidateAiContentUpdated(
           data.stream_url ||
           streamUrl
         );
+        regenerateButton.disabled = true;
+        regenerateButton.setAttribute("aria-busy", "true");
+        await regenerateManagerReportPersonality();
 
       } catch (error) {
         console.error(
@@ -4734,6 +4864,7 @@ notifyCandidateAiContentUpdated(
       } finally {
         regenerateButton.disabled =
           false;
+        regenerateButton.removeAttribute("aria-busy");
 
         refreshIcons();
       }
