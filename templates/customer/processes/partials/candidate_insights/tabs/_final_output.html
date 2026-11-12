@@ -19,6 +19,7 @@
   data-post-interview-stream-url="{{ post_interview_decision_support_stream_url }}"
   data-post-interview-regenerate-url="{{ post_interview_decision_support_regenerate_url }}"
   data-post-interview-status="{{ post_interview_decision_support_status|default:'not_started' }}"
+  data-post-interview-context-changed="{% if post_interview_context_changed %}true{% else %}false{% endif %}"
   data-has-post-interview-result="{% if has_post_interview_decision_support %}true{% else %}false{% endif %}"
   data-manager-report-pdf-prepare-url="{% url 'processes:process_candidate_manager_report_pdf_prepare' process.id candidate.id %}"
   data-manager-report-pdf-generated-url="{% url 'processes:process_candidate_manager_report_pdf_generated' process.id candidate.id %}"
