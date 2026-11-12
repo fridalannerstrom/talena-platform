@@ -9518,6 +9518,35 @@ def build_historical_candidate_detail_context(
     # with the exact same insight generator used by active general-mode profiles.
     # -------------------------------------------------------------------------
 
+    assessment_keys_in_process = set()
+    for result in assessment_results:
+        assessment_type = str(
+            result.assessment_type or ""
+        ).strip().lower()
+
+        if "personality" in assessment_type or "personlig" in assessment_type:
+            assessment_keys_in_process.add("personality")
+        elif "motivation" in assessment_type:
+            assessment_keys_in_process.add("motivation")
+        elif "numerical" in assessment_type or "numeric" in assessment_type or "numerisk" in assessment_type:
+            assessment_keys_in_process.add("numerical")
+        elif "logical" in assessment_type or "logisk" in assessment_type:
+            assessment_keys_in_process.add("logical")
+        elif "verbal" in assessment_type:
+            assessment_keys_in_process.add("verbal")
+
+    assessment_keys_in_process = sorted(assessment_keys_in_process)
+    has_personality_assessment_in_process = (
+        "personality" in assessment_keys_in_process
+    )
+    has_motivation_assessment_in_process = (
+        "motivation" in assessment_keys_in_process
+    )
+    has_cognitive_assessments_in_process = any(
+        key in assessment_keys_in_process
+        for key in ("verbal", "logical", "numerical")
+    )
+
     candidate_insights = {
         "summary": None,
         "key_strengths": [],
@@ -9704,35 +9733,6 @@ def build_historical_candidate_detail_context(
                 .lower()
             ),
         })
-
-    assessment_keys_in_process = set()
-    for result in assessment_results:
-        assessment_type = str(
-            result.assessment_type or ""
-        ).strip().lower()
-
-        if "personality" in assessment_type or "personlig" in assessment_type:
-            assessment_keys_in_process.add("personality")
-        elif "motivation" in assessment_type:
-            assessment_keys_in_process.add("motivation")
-        elif "numerical" in assessment_type or "numeric" in assessment_type or "numerisk" in assessment_type:
-            assessment_keys_in_process.add("numerical")
-        elif "logical" in assessment_type or "logisk" in assessment_type:
-            assessment_keys_in_process.add("logical")
-        elif "verbal" in assessment_type:
-            assessment_keys_in_process.add("verbal")
-
-    assessment_keys_in_process = sorted(assessment_keys_in_process)
-    has_personality_assessment_in_process = (
-        "personality" in assessment_keys_in_process
-    )
-    has_motivation_assessment_in_process = (
-        "motivation" in assessment_keys_in_process
-    )
-    has_cognitive_assessments_in_process = any(
-        key in assessment_keys_in_process
-        for key in ("verbal", "logical", "numerical")
-    )
 
     all_competencies = (
         mq_competencies
