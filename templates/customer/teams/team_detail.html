@@ -1,0 +1,935 @@
+{% extends "../core/layouts/customer_base.html" %}
+{% load static i18n %}
+
+{% trans "Average" as chart_average_label %}
+{% trans "Maximum" as chart_maximum_label %}
+
+{% block extra_css %}
+  <link href="{% static 'css/talena/pages/teams.css' %}" rel="stylesheet" />
+  <link href="{% static 'css/talena/pages/team-polish.css' %}" rel="stylesheet" />
+  <link href="{% static 'css/talena/pages/candidate-insights.css' %}" rel="stylesheet" />
+  <link href="{% static 'css/talena/pages/candidate-decision-support.css' %}" rel="stylesheet" />
+  <link href="{% static 'css/talena/pages/team-styles.css' %}" rel="stylesheet" />
+  <link href="{% static 'css/talena/pages/team-profile-export.css' %}" rel="stylesheet" />
+  <link href="{% static 'css/talena/pages/team-report-export.css' %}" rel="stylesheet" />
+  {# #449: shared PDF/ZIP picker styles, with a team-specific header action. #}
+  <link href="{% static 'css/talena/pages/candidate-report-packages.css' %}?v=20261104-449-1" rel="stylesheet" />
+  <link href="{% static 'css/talena/pages/team-report-packages.css' %}?v=20261104-449-header-2" rel="stylesheet" />
+  <style>
+    .talena-team-page .team-anonymity-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.55rem;
+      min-height: 38px;
+      padding: 0.42rem 0.72rem;
+      border: 1px solid var(--talena-border);
+      border-radius: var(--talena-radius-pill);
+      background: #fff;
+      color: var(--talena-text);
+      font: inherit;
+      font-size: 0.64rem;
+      font-weight: 680;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(52, 39, 34, 0.035);
+      transition:
+        border-color var(--talena-transition-fast),
+        box-shadow var(--talena-transition-fast),
+        color var(--talena-transition-fast);
+    }
+
+    .talena-team-page .team-anonymity-toggle:hover {
+      border-color: rgba(255, 111, 97, 0.32);
+      color: var(--talena-ink);
+    }
+
+    .talena-team-page .team-anonymity-toggle:focus-visible {
+      outline: 0;
+      box-shadow: 0 0 0 3px rgba(255, 111, 97, 0.11);
+    }
+
+    .talena-team-page .team-anonymity-switch {
+      position: relative;
+      width: 32px;
+      height: 18px;
+      flex: 0 0 auto;
+      border-radius: var(--talena-radius-pill);
+      background: #e9e5e2;
+      transition: background-color var(--talena-transition-fast);
+    }
+
+    .talena-team-page .team-anonymity-switch::after {
+      content: "";
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 1px 4px rgba(51, 39, 34, 0.18);
+      transition: transform var(--talena-transition-fast);
+    }
+
+    .talena-team-page .team-anonymity-toggle[aria-checked="true"] {
+      border-color: rgba(255, 111, 97, 0.24);
+      color: var(--talena-coral-strong);
+    }
+
+    .talena-team-page .team-anonymity-toggle[aria-checked="true"] .team-anonymity-switch {
+      background: var(--talena-coral);
+    }
+
+    .talena-team-page .team-anonymity-toggle[aria-checked="true"] .team-anonymity-switch::after {
+      transform: translateX(14px);
+    }
+
+    .talena-team-page .team-back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.34rem;
+      margin-bottom: 0.7rem;
+      color: var(--talena-text-muted);
+      font-size: 0.64rem;
+      font-weight: 650;
+      line-height: 1;
+      text-decoration: none;
+      transition:
+        color var(--talena-transition-fast),
+        transform var(--talena-transition-fast);
+    }
+
+    .talena-team-page .team-back-link:hover {
+      color: var(--talena-coral-strong);
+      transform: translateX(-2px);
+    }
+
+    .talena-team-page .team-back-link:focus-visible {
+      outline: 0;
+      border-radius: 6px;
+      box-shadow: 0 0 0 3px rgba(255, 111, 97, 0.11);
+    }
+
+    @media (max-width: 767.98px) {
+      .talena-team-page .team-anonymity-toggle {
+        flex: 1 1 auto;
+        justify-content: center;
+      }
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+{% get_current_language as LANGUAGE_CODE %}
+
+<div class="container-fluid py-4 talena-team-page"
+  data-team-report-brand-primary="{{ report_branding.palette.primary }}"
+  data-team-report-brand-light="{{ report_branding.palette.light }}"
+  data-team-report-brand-dark="{{ report_branding.palette.dark }}"
+  data-team-report-brand-logo="{{ report_branding.logo_url|default:'' }}"
+  data-team-report-brand-cover="{{ report_branding.cover_url|default:'' }}"
+  data-team-report-brand-focus="{{ report_branding.cover_focus_y }}"
+  data-team-report-name="{{ team.name }}"
+  data-team-report-company="{{ company.name }}">
+
+  <div class="team-page-header">
+    <div class="team-page-identity">
+      <a href="{% url 'teams:team_list' %}" class="team-back-link">
+        <i data-feather="arrow-left" class="icon-14"></i>
+        {% trans "Back to teams" %}
+      </a>
+      <p class="team-page-eyebrow">{% trans "Teams" %}</p>
+      <h1 class="team-page-title">{{ team.name }}</h1>
+
+      {% if team.description %}
+        <p class="team-page-description">{{ team.description }}</p>
+      {% else %}
+        <p class="team-page-description">{% trans "Candidate team overview." %}</p>
+      {% endif %}
+    </div>
+
+    <div class="team-page-actions">
+      <div class="team-page-action-bar">
+        {% if team_style_stats.members_with_scores %}
+          <div class="team-package-actions">
+            <button type="button" class="btn btn-outline-secondary team-package-primary" data-team-package-open hidden>
+              <i data-feather="layers" class="icon-14" aria-hidden="true"></i>
+              {% if LANGUAGE_CODE|slice:":2" == "sv" %}Skapa teamrapportpaket{% else %}Create report package{% endif %}
+            </button>
+          </div>
+        {% endif %}
+
+        <a href="{% url 'teams:team_members_edit' team.pk %}" class="btn btn-outline-secondary team-edit-members">
+          <i data-feather="users" class="icon-14" aria-hidden="true"></i>
+          {% if LANGUAGE_CODE|slice:":2" == "sv" %}Redigera medlemmar{% else %}Edit members{% endif %}
+        </a>
+
+        <button
+          type="button"
+          id="teamAnonymityToggle"
+          class="team-anonymity-toggle"
+          role="switch"
+          aria-checked="false"
+        >
+          <span class="team-anonymity-label">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Anonymisera{% else %}Anonymise{% endif %}</span>
+          <span class="team-anonymity-switch" aria-hidden="true"></span>
+        </button>
+
+        <details class="team-actions-more" data-team-actions-more>
+          <summary class="team-actions-more-trigger">
+            <i data-feather="more-horizontal" class="icon-14" aria-hidden="true"></i>
+            {% if LANGUAGE_CODE|slice:":2" == "sv" %}Fler åtgärder{% else %}More actions{% endif %}
+            <i data-feather="chevron-down" class="icon-14 team-actions-more-chevron" aria-hidden="true"></i>
+          </summary>
+          <div class="team-actions-more-menu" role="group"
+               aria-label="{% if LANGUAGE_CODE|slice:":2" == "sv" %}Teamåtgärder{% else %}Team actions{% endif %}">
+            {% if team_style_stats.members_with_scores %}
+              <p class="team-actions-more-label">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Rapporter{% else %}Reports{% endif %}</p>
+              <div class="team-common-report-export">
+                <button type="button" class="team-actions-more-item" data-team-report-download>
+                  <i data-feather="file-text" class="icon-14" aria-hidden="true"></i>
+                  {% if LANGUAGE_CODE|slice:":2" == "sv" %}Ladda ner sammansatt teamrapport{% else %}Download composite team report{% endif %}
+                </button>
+              </div>
+              <div class="team-profile-bulk-actions">
+                <button type="button" class="team-actions-more-item" data-team-export-all>
+                  <i data-feather="archive" class="icon-14" aria-hidden="true"></i>
+                  {% if LANGUAGE_CODE|slice:":2" == "sv" %}Ladda ner individuella teamprofiler{% else %}Download individual team profiles{% endif %}
+                </button>
+              </div>
+              <div class="team-actions-more-divider" aria-hidden="true"></div>
+            {% endif %}
+            <p class="team-actions-more-label">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Hantera team{% else %}Manage team{% endif %}</p>
+            <a href="{% url 'teams:team_edit' team.pk %}" class="team-actions-more-item">
+              <i data-feather="edit-3" class="icon-14" aria-hidden="true"></i>
+              {% trans "Edit team" %}
+            </a>
+            {% if can_edit_team %}
+              <div class="team-actions-more-divider" aria-hidden="true"></div>
+              <a href="{% url 'teams:team_delete' team.pk %}" class="team-actions-more-item team-actions-more-danger">
+                <i data-feather="trash-2" class="icon-14" aria-hidden="true"></i>
+                {% if LANGUAGE_CODE|slice:":2" == "sv" %}Ta bort team{% else %}{% trans "Delete team" %}{% endif %}
+              </a>
+            {% endif %}
+          </div>
+        </details>
+      </div>
+      {# Export feedback remains visible even after the More menu closes. #}
+      <div class="team-page-action-feedback" aria-live="polite">
+        {% if team_style_stats.members_with_scores %}
+          <span class="small" data-team-package-status role="status" aria-live="polite"></span>
+          <span class="small" data-team-report-download-status role="status" aria-live="polite"></span>
+          <span class="small" data-team-export-status role="status" aria-live="polite"></span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  {% if team.goals or team.context or team.description %}
+    <section class="card mb-4" aria-labelledby="team-goals-heading" data-team-report-context>
+      <div class="card-header"><h2 id="team-goals-heading" class="team-section-title">{% trans "Team goals and context" %}</h2></div>
+      <div class="card-body">
+        {% if team.goals %}
+          <ul class="team-goal-list">
+            {% for goal in team.goals %}
+              <li>{% if goal == "understand_collaboration" %}{% if LANGUAGE_CODE|slice:":2" == "sv" %}Förstå hur vi samarbetar{% else %}Understand how we collaborate{% endif %}
+                {% elif goal == "develop_communication" %}{% if LANGUAGE_CODE|slice:":2" == "sv" %}Utveckla vår kommunikation{% else %}Develop our communication{% endif %}
+                {% elif goal == "discover_strengths" %}{% if LANGUAGE_CODE|slice:":2" == "sv" %}Upptäcka styrkor och utvecklingsområden{% else %}Discover strengths and development areas{% endif %}
+                {% elif goal == "support_team_development" %}{% if LANGUAGE_CODE|slice:":2" == "sv" %}Stödja teamets utveckling{% else %}Support the team’s development{% endif %}
+                {% else %}{{ goal|cut:"_" }}{% endif %}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+        {% if team.description %}<p class="mb-2">{{ team.description }}</p>{% endif %}
+        {% if team.context %}<p class="mb-0 text-muted">{{ team.context }}</p>{% endif %}
+        {% if can_edit_team %}<a href="{% url 'teams:team_edit' team.pk %}" class="btn btn-sm btn-outline-secondary mt-3">{% trans "Edit goals and context" %}</a>{% endif %}
+      </div>
+    </section>
+  {% else %}
+    <section class="card mb-4"><div class="card-body d-flex justify-content-between align-items-center gap-3 flex-wrap">
+      <p class="mb-0 text-muted">{% trans "Add goals or context to tailor team insights." %}</p>
+      {% if can_edit_team %}<a href="{% url 'teams:team_edit' team.pk %}" class="btn btn-sm btn-outline-secondary">{% trans "Add team context" %}</a>{% endif %}
+    </div></section>
+  {% endif %}
+
+  {% if team_style_stats.members_with_scores %}
+    <div class="team-summary-strip" data-team-report-summary>
+      <div class="team-summary-item">
+        <div class="team-summary-label">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Medlemmar med data{% else %}{% trans "Members with data" %}{% endif %}</div>
+        <div class="team-summary-value">{{ team_style_stats.members_with_scores }}</div>
+        <div class="team-summary-meta">
+          {% blocktrans trimmed with total=team_style_stats.members_total %}
+            out of {{ total }} team members
+          {% endblocktrans %}
+        </div>
+      </div>
+
+      <div class="team-summary-item">
+        <div class="team-summary-label">{% trans "Strongest average style" %}</div>
+        {% if team_style_stats.strongest_average %}
+          <div class="team-summary-value">{% trans team_style_stats.strongest_average.style %}</div>
+          <div class="team-summary-meta">
+            {% trans "Average" %} {{ team_style_stats.strongest_average.average }} / 5
+          </div>
+        {% else %}
+          <div class="team-summary-value">—</div>
+        {% endif %}
+      </div>
+
+      <div class="team-summary-item">
+        <div class="team-summary-label">{% trans "Lowest average style" %}</div>
+        {% if team_style_stats.lowest_average %}
+          <div class="team-summary-value">{% trans team_style_stats.lowest_average.style %}</div>
+          <div class="team-summary-meta">
+            {% trans "Average" %} {{ team_style_stats.lowest_average.average }} / 5
+          </div>
+        {% else %}
+          <div class="team-summary-value">—</div>
+        {% endif %}
+      </div>
+    </div>
+  {% endif %}
+
+  <div class="card mb-4" data-team-report-composite>
+    <div class="card-header d-flex justify-content-between align-items-start gap-3 flex-wrap">
+      <div>
+        <p class="team-page-eyebrow mb-1">{% trans "Team styles" %}</p>
+        <h2 class="team-section-title">{% trans "Composite team style profile" %}</h2>
+        <p class="team-section-copy">
+          {% trans "Aggregated team style scores based on imported SOVA personality data." %}
+        </p>
+      </div>
+
+      <span class="team-data-badge">
+        {% blocktrans trimmed with available=team_style_stats.members_with_scores total=team_style_stats.members_total %}
+          {{ available }} / {{ total }} with data
+        {% endblocktrans %}
+      </span>
+    </div>
+
+    <div class="card-body">
+      {% if team_style_stats.members_with_scores %}
+        <div class="team-analytics-grid team-analytics-grid--composite">
+          <div class="team-analytics-panel team-analytics-panel--composite">
+            <div class="team-composite-chart-header">
+              <div>
+                <h3 class="team-composite-chart-title">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Teamets preferenskarta{% else %}Team preference wheel{% endif %}</h3>
+                <p class="team-composite-chart-copy">
+                  {% if LANGUAGE_CODE|slice:":2" == "sv" %}Se vilka teamstilar som tillhör varje persons två högst respektive två lägst rankade resultat. Initialerna syns direkt i cirkeln.{% else %}Each member's two highest and two lowest ranked team styles are shown, with initials directly in the wheel.{% endif %}
+                </p>
+              </div>
+              <div class="team-composite-chart-modes" role="group" aria-label="{% if LANGUAGE_CODE|slice:":2" == "sv" %}Visa preferenser{% else %}Show preferences{% endif %}">
+                <button type="button" class="team-composite-chart-mode is-active" data-team-wheel-mode="both" aria-pressed="true">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Visa båda{% else %}Show both{% endif %}</button>
+                <button type="button" class="team-composite-chart-mode" data-team-wheel-mode="most" aria-pressed="false">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Mest föredragen{% else %}Most preferred{% endif %}</button>
+                <button type="button" class="team-composite-chart-mode" data-team-wheel-mode="least" aria-pressed="false">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Minst föredragen{% else %}Least preferred{% endif %}</button>
+              </div>
+            </div>
+
+            <div class="team-composite-wheel-legend" aria-label="{% if LANGUAGE_CODE|slice:":2" == "sv" %}Förklaring till ringarna{% else %}Ring legend{% endif %}">
+              <span><i class="team-composite-wheel-swatch team-composite-wheel-swatch--most" aria-hidden="true"></i>{% if LANGUAGE_CODE|slice:":2" == "sv" %}Mest föredragna teamstilar{% else %}Most preferred styles{% endif %}</span>
+              <span><i class="team-composite-wheel-swatch team-composite-wheel-swatch--least" aria-hidden="true"></i>{% if LANGUAGE_CODE|slice:":2" == "sv" %}Minst föredragna teamstilar{% else %}Least preferred styles{% endif %}</span>
+            </div>
+
+            <div class="team-style-chart-box team-style-chart-box--composite">
+              <div id="teamStylePreferenceWheel" class="team-composite-wheel"
+                   data-style-connector="{% trans 'Connector' %}"
+                   data-style-catalyst="{% trans 'Catalyst' %}"
+                   data-style-director="{% trans 'Director' %}"
+                   data-style-energiser="{% trans 'Energiser' %}"
+                   data-style-architect="{% trans 'Architect' %}"
+                   data-style-harmoniser="{% trans 'Harmoniser' %}"
+                   data-style-analyst="{% trans 'Analyst' %}"
+                   data-style-auditor="{% trans 'Auditor' %}"
+                   data-members-count="{{ team_style_stats.preference_wheel_member_count }}"
+                   data-wheel-label="{% if LANGUAGE_CODE|slice:":2" == "sv" %}Teamets cirkulära preferenskarta{% else %}Circular team preference wheel{% endif %}"
+                   data-wheel-member-label="{% if LANGUAGE_CODE|slice:":2" == "sv" %}med resultat{% else %}with results{% endif %}"
+                   data-wheel-overflow-label="{% if LANGUAGE_CODE|slice:":2" == "sv" %}Fler personer finns i listan nedanför{% else %}More members are listed below{% endif %}">
+                <p class="text-muted small mb-0">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Teamkartan visas när sidan har laddats färdigt.{% else %}The team wheel appears when the page finishes loading.{% endif %}</p>
+              </div>
+            </div>
+
+            <details class="team-composite-wheel-details" data-team-chart-person-details>
+              <summary>{% if LANGUAGE_CODE|slice:":2" == "sv" %}Visa alla initialer och värden per teamstil{% else %}Show all initials and scores by team style{% endif %}</summary>
+              <p class="team-composite-wheel-details-copy">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Grönt visar varje persons högst rankade teamstilar och rosa visar de lägst rankade, utifrån tillgängliga resultat. Vid lika värden kan fler än två stilar visas per person. Personer med färre än fyra användbara stilar ingår inte i hjulet.{% else %}Green shows each member's highest-ranked styles and pink their lowest-ranked styles, based on available results. Ties can include more than two styles. Members with fewer than four usable styles are excluded from the wheel.{% endif %}</p>
+              <div class="team-composite-chart-people-list team-composite-chart-people-list--both">
+                {% for row in team_style_stats.preference_wheel_rows %}
+                  <div class="team-composite-chart-person-row">
+                    <span class="team-composite-chart-person-style">{% trans row.style %}</span>
+                    <div class="team-composite-chart-person-extremes">
+                      <div><span class="team-composite-chart-person-dot team-composite-chart-person-dot--most" aria-hidden="true"></span>
+                        {% for person in row.most %}<span class="team-score-badge" title="{{ person.name }}">{{ person.initials }}</span><span class="team-composite-chart-person-value">{{ person.score }} / 5</span>{% empty %}<span class="text-muted">—</span>{% endfor %}
+
+                      </div>
+                      <div><span class="team-composite-chart-person-dot team-composite-chart-person-dot--least" aria-hidden="true"></span>
+                        {% for person in row.least %}<span class="team-score-badge" title="{{ person.name }}">{{ person.initials }}</span><span class="team-composite-chart-person-value">{{ person.score }} / 5</span>{% empty %}<span class="text-muted">—</span>{% endfor %}
+
+                      </div>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            </details>
+          </div>
+
+          <div class="team-analytics-panel">
+            <div class="fw-semibold">{% trans "Ranked averages" %}</div>
+            <div class="text-muted small">
+              {% trans "Team styles ordered by average score." %}
+            </div>
+
+            <div class="team-style-rank-list">
+              {% for row in team_style_stats.ranked_averages %}
+                <div class="team-style-rank-row">
+                  <div class="team-style-rank-label">
+                    <div class="fw-semibold">{% trans row.style %}</div>
+                    <div class="text-muted small">{% trans row.quadrant %}</div>
+                  </div>
+
+                  <div class="team-style-bar-wrap">
+                    <div class="team-style-bar">
+                      <div class="team-style-bar-fill" style="width: {{ row.average_percent }}%;"></div>
+                    </div>
+                  </div>
+
+                  <div class="team-style-rank-score">
+                    {% if row.average is not None %}{{ row.average }} / 5{% else %}—{% endif %}
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      {% else %}
+        <div class="team-empty-state">
+          <div class="team-empty-icon" aria-hidden="true">
+            <i data-feather="activity"></i>
+          </div>
+          <div class="fw-semibold text-dark mb-1">
+            {% trans "No team style data yet" %}
+          </div>
+          <div class="text-muted small">
+            {% trans "Team insights will appear here when candidates have compatible personality results." %}
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <section class="card mb-4" aria-labelledby="team-ai-insights-heading" data-team-report-insights>
+    <div class="card-header">
+      <h2 id="team-ai-insights-heading" class="team-section-title">{% trans "Team insights" %}</h2>
+      <p class="team-section-copy mb-0">{% trans "Separate reflections based on the team’s goals and available assessment results." %}</p>
+    </div>
+    <div class="card-body">
+      {% if not memberships %}
+        <div class="team-empty-state">
+          <div class="fw-semibold">{% trans "Add team members to get started" %}</div>
+          <p class="small text-muted mb-2">{% trans "The report will show available data and only generate insights when assessment results are available." %}</p>
+          {% if can_edit_team %}<a class="btn btn-sm btn-outline-secondary" href="{% url 'teams:team_members_edit' team.pk %}">{% trans "Choose team members" %}</a>{% endif %}
+        </div>
+      {% else %}
+        <div class="team-insight-grid">
+          {% for section in insight_sections %}
+            <article class="team-insight-card">
+              <div class="d-flex align-items-start justify-content-between gap-3">
+                <h3>{% if LANGUAGE_CODE|slice:":2" == "sv" %}{{ section.title_sv }}{% else %}{{ section.title_en }}{% endif %}</h3>
+                <div class="team-insight-actions">
+                  {% if section.insight.is_stale %}
+                    <span class="badge rounded-pill bg-warning-subtle text-warning-emphasis">{% trans "Needs update" %}</span>
+                  {% endif %}
+                  {% if can_edit_team and team_style_stats.members_with_scores %}
+                    <form
+                      method="post"
+                      action="{% url 'teams:team_insight_generate' team.pk section.type %}"
+                      data-team-ai-insight-form
+                      data-auto-generate="{% if not section.insight %}true{% else %}false{% endif %}"
+                      data-loading-label="{% trans 'Updating…' %}"
+                      data-error-label="{% trans 'The team insight could not be generated. Please try again later.' %}"
+                      data-generated-label="{% trans 'Generated' %}"
+                      data-regenerate-label="{% trans 'Regenerate' %}"
+                    >
+                      {% csrf_token %}
+                      <button
+                        type="submit"
+                        class="{% if section.insight.is_stale %}btn btn-icon btn-light team-insight-refresh{% else %}btn btn-sm btn-outline-secondary{% endif %}"
+                        {% if section.insight.is_stale %}
+                          title="{% trans 'Regenerate' %}"
+                          aria-label="{% trans 'Regenerate' %}"
+                        {% endif %}
+                      >
+                        {% if section.insight.is_stale %}
+                          <i data-feather="refresh-cw" aria-hidden="true"></i>
+                        {% elif section.insight %}
+                          {% trans "Regenerate" %}
+                        {% else %}
+                          {% trans "Generate insight" %}
+                        {% endif %}
+                      </button>
+                    </form>
+                  {% endif %}
+                </div>
+              </div>
+              {% with insight=section.insight %}
+                {% if insight %}
+                  {% if insight.is_stale %}
+                    <p class="small text-muted mb-2" data-team-insight-status role="status" aria-live="polite">{% trans "This insight is out of date because team context, members or results have changed." %}</p>
+                  {% else %}
+                    <p class="small text-muted mb-2" data-team-insight-status role="status" aria-live="polite" hidden></p>
+                  {% endif %}
+                  <div class="team-insight-copy">{{ insight.record.content|linebreaksbr }}</div>
+                  <p class="small text-muted mt-3 mb-0" data-team-insight-generated>{% trans "Generated" %} {{ insight.record.generated_at|date:"Y-m-d H:i" }}</p>
+                {% else %}
+                  {% if team_style_stats.members_with_scores %}
+                    <p class="small text-muted mb-0" data-team-insight-status role="status" aria-live="polite">{% trans "Updating…" %}</p>
+                  {% else %}
+                    <p class="small text-muted mb-0" data-team-insight-status role="status" aria-live="polite">{% trans "Generate this reflection when usable assessment results are available." %}</p>
+                  {% endif %}
+                {% endif %}
+              {% endwith %}
+            </article>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+  </section>
+
+  {% if team_style_stats.members_with_scores %}
+    <div class="row g-4 mb-4" data-team-report-maximum>
+      <div class="col-lg-6" data-team-report-maximum-numeric>
+        <div class="card h-100">
+          <div class="card-header">
+            <div class="fw-semibold">{% trans "Composite team styles · Maximum" %}</div>
+            <div class="text-muted small">
+              {% trans "Highest score found in the team for each style." %}
+            </div>
+          </div>
+
+          <div class="card-body">
+            <div class="team-style-rank-list mt-0">
+              {% for row in team_style_stats.ranked_maximums %}
+                <div class="team-style-rank-row">
+                  <div class="team-style-rank-label">
+                    <div class="fw-semibold">{% trans row.style %}</div>
+                    <div class="text-muted small">{% trans row.quadrant %}</div>
+                  </div>
+
+                  <div class="team-style-bar-wrap">
+                    <div class="team-style-bar">
+                      <div class="team-style-bar-fill team-style-bar-fill-max" style="width: {{ row.maximum_percent }}%;"></div>
+                    </div>
+                  </div>
+
+                  <div class="team-style-rank-score">
+                    {% if row.maximum is not None %}{{ row.maximum }} / 5{% else %}—{% endif %}
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-6">
+        <div class="card h-100">
+          <div class="card-header">
+            <div class="fw-semibold">{% trans "Most and least preferred styles" %}</div>
+            <div class="text-muted small">
+              {% trans "Team members with the highest and lowest score for each style." %}
+            </div>
+          </div>
+
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-sm align-middle mb-0 team-table">
+                <thead>
+                  <tr>
+                    <th>{% trans "Team style" %}</th>
+                    <th>{% trans "Most preferred" %}</th>
+                    <th>{% trans "Least preferred" %}</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {% for row in team_style_stats.most_least_rows %}
+                    <tr>
+                      <td>
+                        <div class="fw-semibold">{% trans row.style %}</div>
+                        <div class="text-muted small">{% trans row.quadrant %}</div>
+                      </td>
+
+                      <td>
+                        {% if row.most %}
+                          <div class="d-flex flex-wrap gap-1">
+                            {% for person in row.most %}
+                              <span class="team-score-badge" title="{{ person.name }}">{{ person.initials }}</span>
+                            {% endfor %}
+                          </div>
+                          <div class="text-muted small mt-1">{{ row.max }} / 5</div>
+                        {% else %}
+                          <span class="text-muted small">—</span>
+                        {% endif %}
+                      </td>
+
+                      <td>
+                        {% if row.least %}
+                          <div class="d-flex flex-wrap gap-1">
+                            {% for person in row.least %}
+                              <span class="team-score-badge" title="{{ person.name }}">{{ person.initials }}</span>
+                            {% endfor %}
+                          </div>
+                          <div class="text-muted small mt-1">{{ row.min }} / 5</div>
+                        {% else %}
+                          <span class="text-muted small">—</span>
+                        {% endif %}
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card mb-4" data-team-profile-section data-team-name="{{ team.name }}">
+      <div class="card-header d-flex justify-content-between align-items-center gap-3 flex-wrap">
+        <div>
+          <h2 class="team-section-title mb-1">{% trans "Team member profiles" %}</h2>
+          <p class="team-section-copy mb-0">{% trans "Individual team style scores for each team member." %}</p>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="team-member-profile-list">
+          {% for member in team_style_stats.member_profiles %}
+            <details class="team-member-profile-item"
+                     data-team-member-profile
+                     data-member-id="{{ member.candidate.pk }}"
+                     data-report-name="{{ member.candidate.first_name }} {{ member.candidate.last_name }}"
+                     data-has-report="{{ member.profile.complete|yesno:'true,false' }}">
+              <summary>
+                <div class="team-member-profile-person">
+                  <div class="team-member-initials">{{ member.initials }}</div>
+                  <div>
+                    <div class="team-member-profile-name">{{ member.candidate.first_name }} {{ member.candidate.last_name }}</div>
+                    <div class="team-member-profile-email">{{ member.candidate.email }}</div>
+                  </div>
+                </div>
+                <div class="team-member-profile-action">
+                  <span class="team-member-profile-action-label">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Visa profil{% else %}View profile{% endif %}</span>
+                  <span class="team-guide-chevron" aria-hidden="true">⌄</span>
+                </div>
+              </summary>
+              <div class="team-member-profile-body">
+                {% if member.profile.available %}
+                  <div class="team-member-profile-toolbar">
+                    {% if member.profile.complete %}
+                    <button type="button" class="btn btn-outline-primary btn-sm" data-team-export-single>
+                      <i data-feather="download" class="icon-14"></i>
+                      {% if LANGUAGE_CODE|slice:":2" == "sv" %}Ladda ner teamprofil{% else %}Download team profile{% endif %}
+                    </button>
+                    {% else %}
+                    <span class="small text-muted">
+                      {% if LANGUAGE_CODE|slice:":2" == "sv" %}Profilen är ännu inte komplett och kan inte exporteras.{% else %}This profile is not yet complete and cannot be exported.{% endif %}
+                    </span>
+                    {% endif %}
+                    <span class="small" role="status" aria-live="polite" data-team-export-item-status></span>
+                  </div>
+                  <div class="team-member-report-content process-page" data-team-report>
+                    {% include "customer/processes/partials/_team_styles.html" with team_style_profile=member.profile team_style_embedded=True team_style_member_id=member.candidate.pk %}
+                  </div>
+                {% else %}
+                  <p class="team-member-profile-empty mb-0">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Ingen teamprofil är tillgänglig för den här personen.{% else %}No team profile is available for this member.{% endif %}</p>
+                {% endif %}
+              </div>
+            </details>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+  <div class="card" data-team-report-members>
+    <div class="card-header d-flex justify-content-between align-items-center gap-3 flex-wrap">
+      <div>
+        <h2 class="team-section-title">{% trans "Candidates in this team" %}</h2>
+        <p class="team-section-copy">
+          {% trans "Candidates can belong to several teams, across different projects." %}
+        </p>
+      </div>
+
+      <a href="{% url 'teams:team_members_edit' team.pk %}" class="btn btn-primary team-primary-action">
+        <i data-feather="user-plus" class="icon-14"></i>
+        {% trans "Add candidates" %}
+      </a>
+    </div>
+
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table align-middle mb-0 team-table">
+          <thead>
+            <tr>
+              <th>{% trans "Candidate" %}</th>
+              <th>{% trans "Email" %}</th>
+              <th>{% trans "Role in team" %}</th>
+              <th>{% trans "Source" %}</th>
+              <th>{% trans "Added" %}</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {% for membership in memberships %}
+              <tr>
+                <td>
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="team-member-initials">
+                      {{ membership.candidate.first_name|default:"?"|slice:":1"|upper }}{{ membership.candidate.last_name|default:""|slice:":1"|upper }}
+                    </div>
+                    <strong>{{ membership.candidate.first_name }} {{ membership.candidate.last_name }}</strong>
+                  </div>
+                </td>
+
+                <td><span class="text-muted small">{{ membership.candidate.email }}</span></td>
+
+                <td>
+                  {% if membership.role %}{{ membership.role }}{% else %}<span class="text-muted small">—</span>{% endif %}
+                </td>
+
+                <td>
+                  {% if membership.source %}
+                    <span class="team-member-count">{{ membership.source }}</span>
+                  {% else %}
+                    <span class="text-muted small">—</span>
+                  {% endif %}
+                </td>
+
+                <td><span class="small">{{ membership.added_at|date:"Y-m-d" }}</span></td>
+              </tr>
+
+            {% empty %}
+              <tr>
+                <td colspan="5" class="team-empty-state">
+                  <div class="team-empty-icon" aria-hidden="true">
+                    <i data-feather="user-plus"></i>
+                  </div>
+                  <div class="fw-semibold text-dark mb-1">
+                    {% trans "No candidates have been added to this team yet." %}
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  {{ team_style_stats.chart_labels|json_script:"team-style-chart-labels" }}
+  {{ team_style_stats.chart_average_values|json_script:"team-style-chart-averages" }}
+  {{ team_style_stats.preference_wheel_rows|json_script:"team-style-wheel-people" }}
+  {{ team_style_stats.chart_min_values|json_script:"team-style-chart-min" }}
+  {{ team_style_stats.chart_max_values|json_script:"team-style-chart-max" }}
+
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <script src="{% static 'js/talena/team-preference-wheel.js' %}?v=20261108-375-wheel-1"></script>
+  <script src="{% static 'js/talena/team-pages.js' %}"></script>
+  <script src="{% static 'js/talena/team-profile-export.js' %}?v=20261104-449-adapters-2"></script>
+  <script src="{% static 'js/talena/pdf-export-core.js' %}"></script>
+  <script src="{% static 'js/talena/team-report-export.js' %}?v=20261104-449-adapters-2"></script>
+  {# #449: assemble already-rendered team PDFs using the same core as #360. #}
+  <script src="{% static 'js/talena/report-package-core.js' %}?v=20261104-449-1"></script>
+  <script src="{% static 'js/talena/team-report-packages.js' %}?v=20261104-449-picker-3"></script>
+  <script src="{% static 'js/talena/team-header-actions.js' %}?v=20261104-449-header-2"></script>
+  <script>
+    (function () {
+      "use strict";
+
+      function normalize(value) {
+        return String(value || "").trim().replace(/\s+/g, " ").toLowerCase();
+      }
+
+      function storeText(element, anonymousText) {
+        if (!element) {
+          return;
+        }
+        if (!element.dataset.originalText) {
+          element.dataset.originalText = element.textContent.trim();
+        }
+        element.dataset.anonymousText = anonymousText;
+      }
+
+      function storeTitle(element, anonymousTitle) {
+        if (!element || !element.hasAttribute("title")) {
+          return;
+        }
+        if (!element.dataset.originalTitle) {
+          element.dataset.originalTitle = element.getAttribute("title") || "";
+        }
+        element.dataset.anonymousTitle = anonymousTitle;
+      }
+
+      function initTeamAnonymity() {
+        const page = document.querySelector(".talena-team-page");
+        const toggle = document.getElementById("teamAnonymityToggle");
+        if (!page || !toggle) {
+          return;
+        }
+
+        const swedish = (document.documentElement.lang || "")
+          .toLowerCase()
+          .startsWith("sv");
+        const strings = swedish
+          ? {
+              anonymise: "Anonymisera",
+              showNames: "Visa namn",
+              member: "Medlem",
+              hidden: "Dold"
+            }
+          : {
+              anonymise: "Anonymise",
+              showNames: "Show names",
+              member: "Member",
+              hidden: "Hidden"
+            };
+
+        const label = toggle.querySelector(".team-anonymity-label");
+        const addCandidatesAction = page.querySelector(
+          "a.team-primary-action[href*='/members/']"
+        );
+        const candidatesCard = addCandidatesAction && addCandidatesAction.closest(".card");
+        const candidateRows = candidatesCard
+          ? Array.from(candidatesCard.querySelectorAll("tbody tr"))
+          : [];
+
+        const people = [];
+        const byEmail = new Map();
+        const byName = new Map();
+
+        candidateRows.forEach(function (row, index) {
+          const cells = row.querySelectorAll("td");
+          if (cells.length < 2) {
+            return;
+          }
+
+          const initialsElement = cells[0].querySelector(".team-member-initials");
+          const nameElement = cells[0].querySelector("strong");
+          const emailElement = cells[1].querySelector(".text-muted");
+          const name = nameElement ? nameElement.textContent.trim() : "";
+          const email = emailElement ? emailElement.textContent.trim() : "";
+          const number = people.length + 1;
+          const person = {
+            number: number,
+            name: name,
+            email: email,
+            alias: `${strings.member} ${number}`,
+            initials: `M${number}`,
+            hiddenEmail: strings.hidden
+          };
+
+          people.push(person);
+          if (email) {
+            byEmail.set(normalize(email), person);
+          }
+          if (name && !byName.has(normalize(name))) {
+            byName.set(normalize(name), person);
+          }
+
+          storeText(initialsElement, person.initials);
+          storeText(nameElement, person.alias);
+          storeText(emailElement, person.hiddenEmail);
+        });
+
+        page.querySelectorAll(".team-member-profile-item").forEach(function (item) {
+          const nameElement = item.querySelector(".team-member-profile-name");
+          const emailElement = item.querySelector(".team-member-profile-email");
+          const initialsElement = item.querySelector(".team-member-initials");
+          const email = emailElement ? normalize(emailElement.textContent) : "";
+          const name = nameElement ? normalize(nameElement.textContent) : "";
+          const person = byEmail.get(email) || byName.get(name);
+
+          if (!person) {
+            return;
+          }
+
+          storeText(initialsElement, person.initials);
+          storeText(nameElement, person.alias);
+          storeText(emailElement, person.hiddenEmail);
+        });
+
+        page.querySelectorAll(".team-score-badge[title]").forEach(function (badge) {
+          const person = byName.get(normalize(badge.getAttribute("title")));
+          if (!person) {
+            return;
+          }
+          storeText(badge, person.initials);
+          storeTitle(badge, person.alias);
+        });
+
+        // The SVG wheel contains member initials and native title tooltips.
+        // Reuse the existing team anonymity mapping for both. Unmatched
+        // identities are hidden rather than exposing raw initials.
+        page.querySelectorAll("[data-team-wheel-person]").forEach(function (marker) {
+          const person = byName.get(normalize(marker.dataset.personName));
+          const initials = marker.querySelector("[data-team-wheel-initial]");
+          const title = marker.querySelector("title");
+          storeText(initials, person ? person.initials : "");
+          storeText(title, person ? person.alias : strings.hidden);
+        });
+
+        function apply(anonymous) {
+          page.querySelectorAll("[data-original-text][data-anonymous-text]")
+            .forEach(function (element) {
+              element.textContent = anonymous
+                ? element.dataset.anonymousText
+                : element.dataset.originalText;
+            });
+
+          page.querySelectorAll("[data-original-title][data-anonymous-title]")
+            .forEach(function (element) {
+              element.setAttribute(
+                "title",
+                anonymous
+                  ? element.dataset.anonymousTitle
+                  : element.dataset.originalTitle
+              );
+            });
+
+          toggle.setAttribute("aria-checked", anonymous ? "true" : "false");
+          if (label) {
+            label.textContent = anonymous ? strings.showNames : strings.anonymise;
+          }
+
+          try {
+            window.sessionStorage.setItem(
+              "talena-team-anonymous-{{ team.pk }}",
+              anonymous ? "1" : "0"
+            );
+          } catch (error) {
+            // Privacy mode still works if sessionStorage is unavailable.
+          }
+        }
+
+        let initialAnonymous = false;
+        try {
+          initialAnonymous = window.sessionStorage.getItem(
+            "talena-team-anonymous-{{ team.pk }}"
+          ) === "1";
+        } catch (error) {
+          initialAnonymous = false;
+        }
+
+        apply(initialAnonymous);
+
+        toggle.addEventListener("click", function () {
+          apply(toggle.getAttribute("aria-checked") !== "true");
+        });
+      }
+
+      document.addEventListener("DOMContentLoaded", initTeamAnonymity);
+    })();
+  </script>
+{% endblock %}

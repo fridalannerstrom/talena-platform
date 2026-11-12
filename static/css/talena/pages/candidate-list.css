@@ -1,0 +1,337 @@
+/* =========================================================
+   TALENA — ALL CANDIDATES
+   ---------------------------------------------------------
+   Customer candidate directory. Kept page-specific so the
+   global shell stays small and predictable.
+   ========================================================= */
+
+.candidate-directory {
+  max-width: 1480px;
+  margin: 0 auto;
+  padding: 1.55rem 1.5rem 2.5rem;
+  color: var(--talena-text);
+}
+
+.candidate-directory__header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-bottom: 1.35rem;
+}
+
+.candidate-directory__eyebrow {
+  margin: 0 0 0.35rem;
+  color: var(--talena-coral-strong);
+  font-size: 0.63rem;
+  font-weight: 730;
+  letter-spacing: 0.075em;
+  text-transform: uppercase;
+}
+
+.candidate-directory__title {
+  margin: 0;
+  color: var(--talena-ink);
+  font-size: clamp(1.8rem, 3vw, 2.5rem);
+  font-weight: 735;
+  line-height: 1.04;
+  letter-spacing: -0.045em;
+}
+
+.candidate-directory__description {
+  max-width: 720px;
+  margin: 0.55rem 0 0;
+  color: var(--talena-text-muted);
+  font-size: 0.76rem;
+  line-height: 1.55;
+}
+
+.candidate-directory__count {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0.42rem 0.7rem;
+  border: 1px solid var(--talena-border);
+  border-radius: var(--talena-radius-pill);
+  background: rgba(255, 255, 255, 0.78);
+  color: var(--talena-text-muted);
+  font-size: 0.64rem;
+  font-weight: 620;
+  white-space: nowrap;
+}
+
+.candidate-directory__panel {
+  overflow: hidden;
+  border: 1px solid var(--talena-border);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 10px 30px rgba(23, 19, 18, 0.035);
+}
+
+.candidate-directory__toolbar {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) minmax(220px, 320px) auto;
+  gap: 0.55rem;
+  padding: 0.72rem;
+  border-bottom: 1px solid var(--talena-border);
+  background: rgba(250, 249, 247, 0.64);
+}
+
+.candidate-directory__search-wrap {
+  position: relative;
+}
+
+.candidate-directory__search-icon {
+  position: absolute;
+  top: 50%;
+  left: 0.82rem;
+  width: 15px;
+  height: 15px;
+  transform: translateY(-50%);
+  color: var(--talena-text-subtle);
+  pointer-events: none;
+}
+
+.candidate-directory__search,
+.candidate-directory__select {
+  min-height: 42px;
+  border: 1px solid var(--talena-border) !important;
+  border-radius: 12px !important;
+  background: #fff !important;
+  color: var(--talena-text) !important;
+  font-size: 0.7rem !important;
+  box-shadow: none !important;
+}
+
+.candidate-directory__search {
+  padding-left: 2.45rem !important;
+}
+
+.candidate-directory__search::placeholder {
+  color: var(--talena-text-subtle);
+}
+
+.candidate-directory__search:focus,
+.candidate-directory__select:focus {
+  border-color: rgba(255, 111, 97, 0.42) !important;
+  box-shadow: 0 0 0 3px rgba(255, 111, 97, 0.07) !important;
+}
+
+.candidate-directory__clear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 0.55rem 0.8rem;
+  border: 1px solid var(--talena-border);
+  border-radius: var(--talena-radius-pill);
+  background: #fff;
+  color: var(--talena-text-muted);
+  font-size: 0.67rem;
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.candidate-directory__clear:hover {
+  border-color: rgba(255, 111, 97, 0.22);
+  color: var(--talena-coral-strong);
+}
+
+.candidate-directory__table-wrap {
+  overflow-x: auto;
+}
+
+.candidate-directory__table {
+  width: 100%;
+  min-width: 1040px;
+  margin: 0;
+  border-collapse: collapse;
+}
+
+.candidate-directory__table thead th {
+  padding: 0.76rem 0.85rem;
+  border-bottom: 1px solid var(--talena-border);
+  background: rgba(250, 249, 247, 0.6);
+  color: var(--talena-text-subtle);
+  font-size: 0.56rem;
+  font-weight: 700;
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.candidate-directory__table tbody td {
+  padding: 0.82rem 0.85rem;
+  border-bottom: 1px solid var(--talena-border);
+  color: var(--talena-text);
+  font-size: 0.68rem;
+  vertical-align: middle;
+}
+
+.candidate-directory__table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.candidate-directory__table tbody tr {
+  transition: background-color var(--talena-transition-fast);
+}
+
+.candidate-directory__table tbody tr:hover td {
+  background: rgba(255, 111, 97, 0.022);
+}
+
+.candidate-directory__person {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-width: 230px;
+}
+
+.candidate-directory__avatar {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  border: 1px solid rgba(255, 111, 97, 0.17);
+  border-radius: 50%;
+  background: var(--talena-coral-soft);
+  color: var(--talena-coral-strong);
+  font-size: 0.64rem;
+  font-weight: 720;
+}
+
+.candidate-directory__name {
+  color: var(--talena-ink);
+  font-size: 0.72rem;
+  font-weight: 680;
+  line-height: 1.25;
+}
+
+.candidate-directory__email {
+  margin-top: 0.14rem;
+  color: var(--talena-text-muted);
+  font-size: 0.61rem;
+}
+
+.candidate-directory__teams {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.28rem;
+}
+
+.candidate-directory__team {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0.27rem 0.48rem;
+  border: 1px solid var(--talena-border);
+  border-radius: var(--talena-radius-pill);
+  background: var(--talena-surface-soft);
+  color: var(--talena-text-muted);
+  font-size: 0.56rem;
+  font-weight: 620;
+}
+
+.candidate-directory__muted {
+  color: var(--talena-text-subtle);
+  font-size: 0.62rem;
+}
+
+.candidate-test-overview {
+  display: flex;
+  align-items: center;
+  gap: 0.28rem;
+  white-space: nowrap;
+}
+
+.candidate-test-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  min-height: 25px;
+  padding: 0.28rem 0.46rem;
+  border: 1px solid var(--talena-border);
+  border-radius: var(--talena-radius-pill);
+  background: var(--talena-surface-soft);
+  color: var(--talena-text-subtle);
+  font-size: 0.55rem;
+  font-weight: 680;
+  line-height: 1;
+}
+
+.candidate-test-status.is-completed {
+  border-color: rgba(110, 159, 125, 0.2);
+  background: var(--talena-success-soft);
+  color: #567d63;
+}
+
+.candidate-test-status.is-pending {
+  border-color: rgba(201, 149, 78, 0.2);
+  background: var(--talena-warning-soft);
+  color: #946b31;
+}
+
+.candidate-test-status.is-not_sent {
+  border-color: var(--talena-border);
+  background: var(--talena-surface-soft);
+  color: var(--talena-text-subtle);
+}
+
+.candidate-test-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.56rem;
+}
+
+.candidate-directory__view {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 31px;
+  padding: 0.4rem 0.62rem;
+  border: 1px solid var(--talena-border);
+  border-radius: var(--talena-radius-pill);
+  background: #fff;
+  color: var(--talena-text);
+  font-size: 0.6rem;
+  font-weight: 660;
+  text-decoration: none;
+}
+
+.candidate-directory__view:hover {
+  border-color: rgba(255, 111, 97, 0.22);
+  color: var(--talena-coral-strong);
+}
+
+.candidate-directory__view[disabled] {
+  color: var(--talena-text-subtle);
+  cursor: default;
+  opacity: 0.62;
+}
+
+.candidate-directory__empty {
+  padding: 4rem 1rem !important;
+  text-align: center;
+  color: var(--talena-text-muted) !important;
+}
+
+@media (max-width: 900px) {
+  .candidate-directory {
+    padding: 1.2rem 1rem 2rem;
+  }
+
+  .candidate-directory__header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .candidate-directory__toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .candidate-directory__clear {
+    justify-self: start;
+  }
+}

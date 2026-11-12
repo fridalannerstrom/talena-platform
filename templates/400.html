@@ -1,0 +1,8 @@
+{% extends "errors/base.html" %}
+{% load i18n %}
+
+{% block page_title %}{% trans "Bad request" %} | Talena{% endblock %}
+{% block error_code %}400{% endblock %}
+{% block error_title %}{% trans "We couldn't understand that request." %}{% endblock %}
+{% block error_message %}{% trans "Something in the request was incomplete or invalid, so Talena could not continue." %}{% endblock %}
+{% block error_hint %}{% trans "Go back to Talena and try the action again. If it keeps happening, the request may need a closer look." %}{% endblock %}

@@ -1,0 +1,262 @@
+{% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
+{# Talena candidate insights workspace #}
+{% trans "context" as context_fallback %}
+{% trans "Add context" as add_context_fallback %}
+{% if LANGUAGE_CODE|slice:":2" == "sv" %}
+  {% trans "Insikter" as candidate_insights_eyebrow %}
+{% else %}
+  {% trans "Candidate insights" as candidate_insights_eyebrow %}
+{% endif %}
+{% trans "Personality" as personality_panel_title %}
+{% if LANGUAGE_CODE|slice:":2" == "sv" %}
+  {% trans "Utforska insikter kopplat till personens personlighetsresultat." as personality_panel_description %}
+{% else %}
+  {% trans "Explore insights based on the person's personality assessment results." as personality_panel_description %}
+{% endif %}
+{% trans "Motivation" as motivation_panel_title %}
+{% if LANGUAGE_CODE|slice:":2" == "sv" %}
+  {% trans "Utforska insikter kopplat till personens motivationsresultat." as motivation_panel_description %}
+{% else %}
+  {% trans "Explore insights based on the person's motivation assessment results." as motivation_panel_description %}
+{% endif %}
+{% if LANGUAGE_CODE|slice:":2" == "sv" %}
+  {% trans "Färdighet" as cognitive_panel_title %}
+{% else %}
+  {% trans "Skills" as cognitive_panel_title %}
+{% endif %}
+{% if LANGUAGE_CODE|slice:":2" == "sv" %}
+  {% trans "Utforska insikter kopplat till personens färdighetsresultat." as cognitive_panel_description %}
+{% else %}
+  {% trans "Explore insights based on the person's skills assessment results." as cognitive_panel_description %}
+{% endif %}
+{% trans "Reports" as reports_panel_title %}
+{% if LANGUAGE_CODE|slice:":2" == "sv" %}
+  {% trans "Rapporter för team, ledarskap och beteendemönster." as reports_panel_description %}
+{% else %}
+  {% trans "Reports covering team, leadership and derailment." as reports_panel_description %}
+{% endif %}
+
+{% if show_context_prompt %}
+
+  <div class="card mb-4 role-context-prompt-card">
+
+    <div class="card-body">
+
+      <div class="role-context-prompt">
+
+        <div class="role-context-prompt__icon">
+          <i data-feather="zap"></i>
+        </div>
+
+
+        <div class="role-context-prompt__content">
+
+          <div class="text-muted small mb-1">
+            {% trans "Improve candidate insights" %}
+          </div>
+
+          <h2 class="h5 mb-1">
+            {% trans "Add" %} {{ context_config.tab_label|default:context_fallback|lower }}
+          </h2>
+
+          <p class="text-muted mb-0">
+            {% blocktrans %}Add context to make the candidate insights more relevant to this project.{% endblocktrans %}
+          </p>
+
+        </div>
+
+
+        <div class="role-context-prompt__action">
+
+          <a
+            href="{% url 'processes:process_role_context' process.id %}"
+            class="btn btn-primary"
+          >
+            {{ context_config.add_cta|default:add_context_fallback }}
+          </a>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+{% endif %}
+
+
+{% if not has_any_results %}
+
+  <section class="combined-questions-empty-state mb-4">
+
+    <div class="combined-questions-empty-state__icon">
+      <i data-feather="clock"></i>
+    </div>
+
+    <h2 class="personality-questions-section-title mb-2">
+      {% trans "No results yet" %}
+    </h2>
+
+    <p
+      class="text-muted small mb-0 mx-auto"
+      style="max-width: 580px;"
+    >
+      {% blocktrans %}Candidate insights will appear here when assessment data becomes available.{% endblocktrans %}
+    </p>
+
+  </section>
+
+{% else %}
+
+  <!-- ================================================== -->
+  <!-- CANDIDATE INSIGHTS WORKSPACE -->
+  <!-- ================================================== -->
+
+  <section
+    class="card candidate-insights-workspace mb-4"
+    data-candidate-insights-workspace
+  >
+
+    <div class="candidate-insights-workspace__inner">
+
+      {% include "customer/processes/partials/candidate_insights/_navigation.html" %}
+
+
+      <div class="candidate-insights-workspace__panels">
+
+        <!-- OVERVIEW -->
+
+        <div
+          id="candidate-insights-panel-overview"
+          class="candidate-insights-panel is-active"
+          role="tabpanel"
+          data-insights-panel="overview"
+        >
+          {% include "customer/processes/partials/candidate_insights/tabs/_overview.html" %}
+        </div>
+
+
+        <!-- PERSONALITY -->
+
+        <div
+          id="candidate-insights-panel-personality"
+          class="candidate-insights-panel candidate-insight-page"
+          role="tabpanel"
+          data-insights-panel="personality"
+          hidden
+        >
+          {% include "customer/processes/partials/candidate_insights/_panel_header.html" with section_eyebrow=candidate_insights_eyebrow section_title=personality_panel_title section_description=personality_panel_description %}
+          {% include "customer/processes/partials/candidate_insights/tabs/_personality.html" %}
+        </div>
+
+
+        <!-- MOTIVATION -->
+
+        <div
+          id="candidate-insights-panel-motivation"
+          class="candidate-insights-panel candidate-insight-page"
+          role="tabpanel"
+          data-insights-panel="motivation"
+          hidden
+        >
+          {% include "customer/processes/partials/candidate_insights/_panel_header.html" with section_eyebrow=candidate_insights_eyebrow section_title=motivation_panel_title section_description=motivation_panel_description %}
+          {% include "customer/processes/partials/candidate_insights/tabs/_motivation.html" %}
+        </div>
+
+
+        <!-- SKILLS -->
+
+        <div
+          id="candidate-insights-panel-cognitive"
+          class="candidate-insights-panel candidate-insight-page"
+          role="tabpanel"
+          data-insights-panel="cognitive"
+          hidden
+        >
+          {% include "customer/processes/partials/candidate_insights/_panel_header.html" with section_eyebrow=candidate_insights_eyebrow section_title=cognitive_panel_title section_description=cognitive_panel_description %}
+          {% include "customer/processes/partials/candidate_insights/tabs/_cognitive.html" %}
+        </div>
+
+
+        <!-- REPORTS -->
+
+        <div
+          id="candidate-insights-panel-reports"
+          class="candidate-insights-panel candidate-insight-page"
+          role="tabpanel"
+          data-insights-panel="reports"
+          hidden
+        >
+          {% include "customer/processes/partials/candidate_insights/_panel_header.html" with section_eyebrow=candidate_insights_eyebrow section_title=reports_panel_title section_description=reports_panel_description %}
+          <div class="candidate-insight-page-body">
+            {% include "customer/processes/partials/candidate_insights/tabs/_reports.html" %}
+          </div>
+        </div>
+
+
+        <!-- INTERVIEW WORKFLOW -->
+        <!--
+          _final_output.html keeps the shared decision-support root because
+          the existing JS refresh endpoint replaces that root after AI
+          generation and interview-note saves.
+
+          The partial itself now contains two real top-level insight panels:
+          Prepare for interview and After interview.
+        -->
+
+        {% include "customer/processes/partials/candidate_insights/tabs/_final_output.html" %}
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- ================================================== -->
+  <!-- LIVE SOVA ASSESSMENT REPORTS ONLY -->
+  <!-- Historical candidates use structured imported data, not PDFs. -->
+  <!-- ================================================== -->
+  {% if not is_historical and sova_reports_for_ui %}
+    <section class="card mb-4">
+      <button type="button" class="card-header reports-toggle collapsed"
+              data-bs-toggle="collapse" data-bs-target="#candidateAssessmentReports"
+              aria-expanded="false" aria-controls="candidateAssessmentReports">
+        <span class="fw-semibold">
+          {% if LANGUAGE_CODE|slice:":2" == "sv" %}Sovas originalrapporter{% else %}Original Sova reports{% endif %}
+        </span>
+        <span class="reports-toggle__right">
+          <span class="badge rounded-pill text-bg-light border">
+            {{ sova_reports_for_ui|length }} {% trans "available" %}
+          </span>
+          <span class="reports-toggle__chevron" aria-hidden="true"></span>
+        </span>
+      </button>
+      <div id="candidateAssessmentReports" class="collapse">
+        <div class="card-body">
+          <div class="list-group list-group-flush">
+            {% for report in sova_reports_for_ui %}
+              <div class="list-group-item px-0 d-flex justify-content-between align-items-center gap-3">
+                <div class="min-w-0">
+                  <div class="fw-semibold">{{ report.title }}</div>
+                  <div class="small text-muted">{{ report.category }} · {{ report.audience }}</div>
+                </div>
+                <a href="{{ report.url }}" target="_blank" rel="noopener noreferrer"
+                   class="btn btn-sm btn-outline-dark flex-shrink-0">
+                  {% trans "Open report" %}
+                </a>
+              </div>
+            {% empty %}
+              <div class="text-muted small py-3">
+                {% trans "No assessment reports are currently available." %}
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </section>
+  {% endif %}
+
+{% endif %}

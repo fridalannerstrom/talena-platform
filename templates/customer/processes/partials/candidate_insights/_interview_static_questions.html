@@ -1,0 +1,23 @@
+{# #437: Approved static interviewer prompts, independent of AI-generated questions. #}
+{% if interview_meta.intro_questions %}
+  <section class="interview-static-questions mt-4"
+           data-interview-static-questions="{{ interview_meta.key }}">
+    <header class="interview-static-questions__header">
+      <span class="interview-static-questions__icon" aria-hidden="true">
+        <i data-feather="message-square"></i>
+      </span>
+      <h3 class="interview-static-questions__title">
+        {{ interview_meta.intro_questions_label }}
+      </h3>
+    </header>
+
+    <ol class="interview-static-questions__list">
+      {% for question in interview_meta.intro_questions %}
+        <li class="interview-static-questions__item">
+          <span class="interview-static-questions__number" aria-hidden="true">{{ forloop.counter }}</span>
+          <span class="interview-static-questions__text">{{ question }}</span>
+        </li>
+      {% endfor %}
+    </ol>
+  </section>
+{% endif %}

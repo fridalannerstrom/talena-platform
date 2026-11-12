@@ -1,0 +1,24 @@
+{% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
+{# Talena candidate i18n batch 1 #}
+{% trans "No team-style profile available" as no_team_style_title %}
+{% trans "Team-style insights are generated from the Personality assessment. Include it in future projects to explore how the candidate may contribute, communicate, build trust and collaborate within a team." as no_team_style_description %}
+{% trans "Available with Personality assessment" as team_style_unlock_label %}
+{% if team_style_profile.available %}
+
+  <header class="team-report__page-header">
+    <div class="team-report__page-heading">
+      <div class="insight-summary-kicker">Team</div>
+      <h2 class="team-report__page-title">
+        {% if LANGUAGE_CODE|slice:":2" == "sv" %}Teamrapport{% else %}Team report{% endif %}
+      </h2>
+    </div>
+  </header>
+
+  {% include "customer/processes/partials/_team_styles.html" with team_style_hide_footer=True team_style_use_svg=True %}
+
+{% else %}
+
+{% include "customer/processes/partials/candidate_insights/_missing_assessment.html" with missing_icon="users" missing_title=no_team_style_title missing_description=no_team_style_description missing_unlock_label=team_style_unlock_label %}
+
+{% endif %}

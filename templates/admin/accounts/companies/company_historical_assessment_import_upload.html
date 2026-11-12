@@ -1,0 +1,83 @@
+{% extends "admin/accounts/companies/company_base.html" %}
+
+{% block company_content %}
+
+<div class="mb-4">
+  <a
+    href="{% url 'accounts:company_process_detail' company.pk process.pk %}"
+    class="text-muted text-decoration-none"
+  >
+    ← Back to process
+  </a>
+</div>
+
+<div class="card border-0 shadow-sm" style="max-width: 860px;">
+  <div class="card-body">
+
+    <p class="text-uppercase text-muted small fw-semibold mb-1">
+      Historical SOVA data
+    </p>
+
+    <h1 class="h4 mb-2">
+      Upload data extracts
+    </h1>
+
+    <p class="text-muted mb-4">
+      Upload Excel files exported from SOVA. Talena will detect the assessment type,
+      create missing historical candidates, and save structured scores for reporting.
+    </p>
+
+    <div class="alert alert-light border mb-4">
+      <strong>Process:</strong> {{ process.name }}<br>
+      <span class="text-muted">
+        This import is only available for historical SOVA processes.
+      </span>
+    </div>
+
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+        <div class="alert alert-danger">
+          {{ form.non_field_errors }}
+        </div>
+      {% endif %}
+
+      <div class="mb-4">
+        <label class="form-label" for="{{ form.files.id_for_label }}">
+          SOVA Excel files
+        </label>
+
+        {{ form.files }}
+
+        {% if form.files.help_text %}
+          <div class="form-text">
+            {{ form.files.help_text }}
+          </div>
+        {% endif %}
+
+        {% if form.files.errors %}
+          <div class="text-danger small mt-1">
+            {{ form.files.errors }}
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="d-flex justify-content-between">
+        <a
+          href="{% url 'accounts:company_process_detail' company.pk process.pk %}"
+          class="btn btn-outline-secondary"
+        >
+          Cancel
+        </a>
+
+        <button type="submit" class="btn btn-primary">
+          Upload and import
+        </button>
+      </div>
+    </form>
+
+  </div>
+</div>
+
+{% endblock %}

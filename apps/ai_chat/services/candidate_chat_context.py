@@ -1,0 +1,249 @@
+import json
+
+from apps.core.integrations.integrity_guard import without_integrity_guard
+
+from apps.processes.models import (
+    HistoricalProcessCandidate,
+    TestInvitation,
+)
+from apps.processes.services.candidate_profile import (
+    build_historical_candidate_profile,
+)
+
+def build_chat_assessment_activities(activities):
+    """
+    Build a compact, interpretation-neutral representation
+    of live SOVA assessment data for Talena AI.
+
+    Talena supplies available technical score fields.
+    Administrator guidance controls how those scores are interpreted.
+    """
+
+    compact_activities = []
+
+    for activity in activities or []:
+        activity_name = (
+            activity.get("activity")
+            or activity.get("name")
+            or "Assessment"
+        )
+
+        compact_competencies = []
+
+        for competency in (
+            activity.get("competencies", [])
+            or []
+        ):
+            item = {
+                "name": (
+                    competency.get("competency")
+                    or competency.get("name")
+                    or ""
+                ),
+            }
+
+            score_fields = (
+                "sten",
+                "sten_rounded",
+                "stive",
+                "stive_rounded",
+                "percentile",
+                "score",
+            )
+
+            for field_name in score_fields:
+                value = competency.get(
+                    field_name
+                )
+
+                if value is not None:
+                    item[field_name] = value
+
+            compact_competencies.append(
+                item
+            )
+
+        compact_activities.append({
+            "assessment": activity_name,
+            "status": activity.get("status"),
+            "competencies": compact_competencies,
+        })
+
+    return compact_activities
+
+def get_candidate_display_name(candidate):
+    """Return the non-identifying reference used only inside AI prompts."""
+    return "CANDIDATE_A"
+
+
+def build_live_candidate_profile(invitation):
+    """
+    Convert live SOVA assessment data into a compact structure
+    that can be included in the AI chat context.
+    """
+    return {
+        "source": "live_sova_api",
+        "candidate": {"reference": "CANDIDATE_A"},
+        "assessment_activities": (
+            build_chat_assessment_activities(
+                invitation.sova_activities or []
+            )
+        ),
+        # Some Sova score payloads embed Integrity Guard information inside
+        # project_results. Never pass monitoring data into an AI context.
+        "project_results": without_integrity_guard(
+            invitation.project_results or {}
+        ),
+        "overall_score": invitation.overall_score,
+    }
+
+
+def build_historical_chat_profile(historical_candidate):
+    """
+    Convert imported historical assessment data into a compact
+    structure matching the live candidate chat context.
+    """
+    profile = build_historical_candidate_profile(
+        historical_candidate
+    )
+
+    return {
+        "source": "historical_import",
+        "candidate": {"reference": "CANDIDATE_A"},
+        "motivation_competencies": profile.get(
+            "motivation_competencies",
+            [],
+        ),
+        "personality_competencies": profile.get(
+            "personality_competencies",
+            [],
+        ),
+        "team_style_scores": profile.get(
+            "team_style_scores",
+            [],
+        ),
+        "ability_results": profile.get(
+            "ability_results",
+            {},
+        ),
+        "has_motivation_results": profile.get(
+            "has_motivation_results",
+            False,
+        ),
+        "has_personality_results": profile.get(
+            "has_personality_results",
+            False,
+        ),
+        "has_ability_results": profile.get(
+            "has_ability_results",
+            False,
+        ),
+    }
+
+
+def build_process_context(process):
+    """
+    Build the process context used by the AI assistant.
+
+    Uses the ProcessRoleContext helper methods so the chat stays
+    aligned with the fields defined on that model.
+    """
+    purpose_context = getattr(
+        process,
+        "role_context",
+        None,
+    )
+
+    if (
+        not purpose_context
+        or not purpose_context.has_content()
+    ):
+        return None
+
+    return {
+        "purpose": process.purpose or "",
+        **purpose_context.get_current_context_data(),
+    }
+
+
+def build_candidate_chat_context(
+    *,
+    process,
+    candidate_id,
+):
+    """
+    Return AI chat context for either a live or historical candidate.
+    """
+    if process.is_historical:
+        historical_candidate = (
+            HistoricalProcessCandidate.objects
+            .select_related(
+                "candidate",
+                "process",
+            )
+            .prefetch_related(
+                "assessment_results__scores",
+                "assessment_results__import_file",
+            )
+            .get(
+                process=process,
+                candidate_id=candidate_id,
+            )
+        )
+
+        candidate_profile = build_historical_chat_profile(
+            historical_candidate
+        )
+
+        process_context = None
+        mode = "general"
+
+    else:
+        invitation = (
+            TestInvitation.objects
+            .select_related(
+                "candidate",
+                "process",
+            )
+            .get(
+                process=process,
+                candidate_id=candidate_id,
+            )
+        )
+
+        candidate_profile = build_live_candidate_profile(
+            invitation
+        )
+
+        process_context = build_process_context(
+            process
+        )
+
+        mode = (
+            "context"
+            if process_context
+            else "general"
+        )
+
+    return {
+        "mode": mode,
+        "process": {
+            "purpose": process.purpose or "",
+            "is_historical": process.is_historical,
+        },
+        "process_context": process_context,
+        "candidate_profile": candidate_profile,
+    }
+
+
+def serialize_candidate_chat_context(context):
+    """
+    Serialize the candidate context into readable JSON
+    for the OpenAI prompt.
+    """
+    return json.dumps(
+        context,
+        ensure_ascii=False,
+        default=str,
+        indent=2,
+    )

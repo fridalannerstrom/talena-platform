@@ -1,0 +1,118 @@
+/* Shared team PDF layout, rendered in the authorized browser. */
+.talena-team-page .team-common-report-export {
+  display: flex; align-items: flex-end; flex-direction: column; gap: .35rem;
+}
+.talena-team-page .team-common-report-export [data-team-report-download-status] {
+  font-size: .7rem; max-width: 280px; text-align: right;
+}
+.talena-team-page.team-report-pdf-stage {
+  position: absolute !important;
+  left: -10000px !important;
+  top: 0 !important;
+  z-index: -10 !important;
+  width: 900px !important;
+  min-width: 900px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  background: #fff;
+  pointer-events: none;
+  color: #302d2b;
+}
+.talena-team-page.team-report-pdf-stage .team-report-pdf-body {
+  display: block;
+  width: 900px;
+  padding: 12px 0 22px;
+  margin: 0;
+  background: #fff;
+}
+.talena-team-page.team-report-pdf-stage .team-report-pdf-part {
+  display: block;
+  width: 900px;
+  padding: 10px 38px;
+  margin: 0;
+  background: white;
+}
+.talena-team-page.team-report-pdf-stage .team-report-pdf-part > .card,
+.talena-team-page.team-report-pdf-stage .team-report-pdf-part > .row {
+  margin: 0 !important;
+}
+.talena-team-page.team-report-pdf-stage .team-report-pdf-part .team-analytics-grid {
+  display: grid !important; grid-template-columns: 1fr 1fr;
+}
+.talena-team-page.team-report-pdf-stage .team-report-pdf-part .team-style-chart-box {
+  min-height: 315px !important;
+}
+.talena-team-page.team-report-pdf-stage .team-report-pdf-part .team-style-chart-box img {
+  height: 300px !important; width: 100% !important; object-fit: contain;
+}
+.talena-team-page.team-report-pdf-stage .team-report-pdf-part .team-table {
+  font-size: 12px;
+}
+.talena-team-page.team-report-pdf-stage .team-report-pdf-part .team-insight-grid {
+  display: block;
+}
+.talena-team-page.team-report-pdf-stage .team-report-pdf-part .team-insight-card {
+  margin-bottom: 15px;
+}
+.talena-team-pdf-cover {
+  position: relative;
+  width: 900px; height: 1273px;
+  padding: 84px 82px 100px;
+  display: flex; flex-direction: column; justify-content: space-between;
+  background-color: var(--team-pdf-primary, #FF6F61);
+  background-image: linear-gradient(135deg, var(--team-pdf-primary, #FF6F61), #1c2931);
+  background-size: cover; background-position: center;
+  color: white; overflow: hidden;
+}
+.talena-team-pdf-cover-brand {
+  width: max-content;
+  max-width: 650px;
+  min-height: 80px;
+  padding: 0;
+  background: transparent; /* Never place a white rectangle behind PNG logos. */
+  color: #fff;
+  font-size: 29px;
+  font-weight: 800;
+}
+.talena-team-pdf-cover-brand-fallback {
+  padding: 22px 30px;
+  background: rgba(255,255,255,.97);
+  color: #17212b;
+}
+.talena-team-pdf-cover-brand img {
+  display: block; max-height: 100px; max-width: 600px;
+  object-fit: contain;
+}
+.talena-team-pdf-cover-line {
+  width: 96px; height: 9px; border-radius: 5px;
+  background: var(--team-pdf-primary, #FF6F61); margin-bottom: 28px;
+}
+.talena-team-pdf-cover-kicker {
+  color: white; text-transform: uppercase;
+  font-size: 18px; font-weight: 700;
+  letter-spacing: .15em; margin-bottom: 20px;
+}
+.talena-team-pdf-cover-title h1 {
+  color: white; font-size: 58px; line-height: 1.14;
+  margin-bottom: 20px; font-weight: 780;
+}
+.talena-team-pdf-cover-title p:last-child {
+  color: white; font-size: 22px; margin: 0; line-height: 1.45;
+}
+@media (max-width: 767.98px) {
+  .talena-team-page .team-common-report-export { align-items: stretch; }
+  .talena-team-page .team-common-report-export [data-team-report-download-status] { text-align: left; }
+}
+
+/* PDF-only, tenant-defined accents. Existing team page/theme stays untouched. */
+.talena-team-page.team-report-pdf-stage .team-report-pdf-part .team-section-title,
+.talena-team-page.team-report-pdf-stage .team-report-pdf-part .team-page-eyebrow {
+  color: var(--team-report-accent-dark, #C94D41) !important;
+}
+.talena-team-page.team-report-pdf-stage .team-report-pdf-part .team-style-bar-fill,
+.talena-team-page.team-report-pdf-stage .team-report-pdf-part .team-style-bar-fill-max {
+  background: var(--team-report-accent, #FF6F61) !important;
+}
+.talena-team-page.team-report-pdf-stage .team-report-pdf-part > .col-lg-6 {
+  width: 100% !important;
+}

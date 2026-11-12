@@ -1,0 +1,108 @@
+{% load i18n %}
+{% get_current_language as reports_language %}
+
+<section class="derailment-report" aria-label="{{ derailment_report_content.title }}">
+  {% if derailment_report_content.has_results %}
+    <header class="derailment-report__page-header">
+      <div class="derailment-report__page-heading">
+        <div class="insight-summary-kicker">
+          {% if reports_language|slice:":2" == "sv" %}Urspårning{% else %}Derailment{% endif %}
+        </div>
+        <h2 id="derailment-report-title" class="derailment-report__page-title">
+          {% if reports_language|slice:":2" == "sv" %}Urspårningsrapport{% else %}Derailment report{% endif %}
+        </h2>
+      </div>
+    </header>
+
+    <section class="derailment-report__intro" aria-labelledby="derailment-intro-title">
+      <div class="derailment-report__intro-icon" aria-hidden="true"><i data-feather="info"></i></div>
+      <div class="derailment-report__intro-copy">
+        <h3 id="derailment-intro-title">{{ derailment_report_content.introduction_title }}</h3>
+        <div class="derailment-report__intro-text">
+          <p>{{ derailment_report_content.introduction }}</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="derailment-report__overview" aria-label="{{ derailment_report_content.profile_section_title }}">
+      <div class="derailment-report__profile-list">
+        {% for factor in derailment_report_content.factors %}
+          <article class="derailment-report__profile-row">
+            <div class="derailment-report__profile-copy derailment-report__profile-copy--lower">
+              <p>{{ factor.left }}</p>
+            </div>
+            <div class="derailment-report__profile-result">
+              <div class="derailment-report__profile-result-heading">
+                <strong>{{ factor.title }}</strong>
+              </div>
+              <div
+                class="derailment-report__scale"
+                role="meter"
+                aria-label="{{ factor.title }}: {{ factor.score_accessible }}"
+                aria-valuemin="1"
+                aria-valuemax="10"
+                aria-valuenow="{{ factor.score }}"
+              >
+                {# Reuse the exact segmented personality scale design for visual consistency. #}
+                <div class="derailment-report__scale-segments personality-indicator-scale" aria-hidden="true">
+                  <div class="personality-indicator-scale__side personality-indicator-scale__side--left">
+                    {% for segment in factor.scale_segments %}
+                      {% if segment <= 5 %}
+                        <span
+                          class="personality-indicator-scale__segment{% if segment in factor.scale_filled_segments %} personality-indicator-scale__segment--filled{% endif %}{% if segment == factor.score %} personality-indicator-scale__segment--selected{% endif %}"
+                          data-score="{{ segment }}"
+                        ></span>
+                      {% endif %}
+                    {% endfor %}
+                  </div>
+                  <span class="personality-indicator-scale__center-line" aria-hidden="true"></span>
+                  <div class="personality-indicator-scale__side personality-indicator-scale__side--right">
+                    {% for segment in factor.scale_segments %}
+                      {% if segment >= 6 %}
+                        <span
+                          class="personality-indicator-scale__segment{% if segment in factor.scale_filled_segments %} personality-indicator-scale__segment--filled{% endif %}{% if segment == factor.score %} personality-indicator-scale__segment--selected{% endif %}"
+                          data-score="{{ segment }}"
+                        ></span>
+                      {% endif %}
+                    {% endfor %}
+                  </div>
+                </div>
+                <div class="derailment-report__scale-labels personality-indicator-scale__labels" aria-hidden="true">
+                  <span class="personality-indicator-scale__label--left">{% trans "Left" %}</span>
+                  <span class="personality-indicator-scale__label--center">{% trans "Average" %}</span>
+                  <span class="personality-indicator-scale__label--right">{% trans "Right" %}</span>
+                </div>
+              </div>
+            </div>
+            <div class="derailment-report__profile-copy derailment-report__profile-copy--higher">
+              <p>{{ factor.right }}</p>
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    </section>
+
+    {% comment %}Keep the compact interpretation list visible without accordions.{% endcomment %}
+    <section class="derailment-report__interpretations" aria-labelledby="derailment-interpretations-title">
+      <div class="derailment-report__interpretation-list">
+        <header class="derailment-report__interpretation-list-header">
+          <h3 id="derailment-interpretations-title">{{ derailment_report_content.details_section_title }}</h3>
+        </header>
+        <div class="derailment-report__interpretation-items">
+          {% for factor in derailment_report_content.factors %}
+            <article class="derailment-report__interpretation-item">
+              <h4 class="derailment-report__interpretation-title">{{ factor.title }}</h4>
+              {% for interpretation in factor.interpretations %}
+                <p class="derailment-report__interpretation-text">{{ interpretation.text }}</p>
+              {% empty %}
+                <p class="derailment-report__interpretation-text derailment-report__interpretation-text--missing">{{ derailment_report_content.missing_interpretation_label }}</p>
+              {% endfor %}
+            </article>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+  {% else %}
+    {% include "customer/processes/partials/candidate_insights/_missing_assessment.html" with missing_icon="activity" missing_title=derailment_report_content.empty_title missing_description=derailment_report_content.empty_body %}
+  {% endif %}
+</section>

@@ -1,0 +1,553 @@
+/* =========================================================
+   TALENA CANDIDATE SELF-REGISTRATION
+   ---------------------------------------------------------
+   Candidate-facing registration and confirmation screens.
+   This layer intentionally overrides the older auth.css
+   without changing the shared sign-in experience.
+   ========================================================= */
+
+:root {
+  --selfreg-ink: #171312;
+  --selfreg-text: #5f5955;
+  --selfreg-muted: #8f8781;
+  --selfreg-border: #e8e1dc;
+  --selfreg-bg: #fbfaf8;
+  --selfreg-surface: #ffffff;
+  --selfreg-soft: #f7f4f1;
+  --selfreg-coral: #ff6f61;
+  --selfreg-coral-strong: #e95e52;
+  --selfreg-coral-soft: #fff0ed;
+  --selfreg-green-soft: #edf8f1;
+  --selfreg-green: #34704d;
+  --selfreg-shadow: 0 22px 60px rgba(55, 43, 37, 0.08);
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  color: var(--selfreg-ink);
+  background: var(--selfreg-bg);
+}
+
+.auth-shell {
+  position: relative;
+  min-height: 100vh;
+  grid-template-columns: minmax(0, 1.08fr) minmax(380px, 0.92fr);
+  background:
+    radial-gradient(
+      circle at 88% 8%,
+      rgba(255, 111, 97, 0.07),
+      transparent 25rem
+    ),
+    radial-gradient(
+      circle at 8% 92%,
+      rgba(255, 204, 142, 0.06),
+      transparent 24rem
+    ),
+    var(--selfreg-bg);
+}
+
+.auth-left {
+  position: relative;
+  z-index: 2;
+  min-width: 0;
+  padding: 34px clamp(28px, 4vw, 68px) 52px;
+  background: transparent;
+}
+
+.registration-topbar {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.brand-logo {
+  width: 116px;
+  height: auto;
+  display: block;
+}
+
+.auth-card.registration-card {
+  width: min(100%, 620px);
+  max-width: 620px;
+  margin: auto;
+  padding: clamp(30px, 4vw, 46px);
+  border: 1px solid var(--selfreg-border);
+  border-radius: 26px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: var(--selfreg-shadow);
+}
+
+.registration-heading {
+  margin-bottom: 28px;
+}
+
+.auth-title {
+  margin: 0;
+  color: var(--selfreg-ink);
+  font-family: inherit;
+  font-size: clamp(2rem, 4vw, 2.65rem);
+  font-weight: 760;
+  line-height: 1.04;
+  letter-spacing: -0.045em;
+}
+
+.auth-subtitle {
+  max-width: 510px;
+  margin: 12px 0 0;
+  color: var(--selfreg-text);
+  font-size: 0.9rem;
+  line-height: 1.65;
+}
+
+.registration-form {
+  gap: 18px;
+  margin-top: 0;
+}
+
+.registration-name-grid {
+  gap: 14px;
+}
+
+.label {
+  margin-bottom: 7px;
+  color: #49423e;
+  font-size: 0.76rem;
+  font-weight: 650;
+}
+
+.input {
+  min-height: 48px;
+  height: 48px;
+  padding: 11px 13px;
+  border: 1px solid #ded6d0;
+  border-radius: 12px;
+  background: #fff;
+  color: var(--selfreg-ink);
+  font: inherit;
+  font-size: 0.88rem;
+  box-shadow: 0 1px 2px rgba(40, 31, 27, 0.02);
+}
+
+.input:hover {
+  border-color: #cfc5be;
+}
+
+.input:focus {
+  border-color: rgba(255, 111, 97, 0.62);
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(255, 111, 97, 0.09);
+}
+
+.registration-button {
+  min-height: 48px;
+  height: 48px;
+  margin-top: 4px;
+  border-radius: 999px;
+  background: var(--selfreg-ink);
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 700;
+  box-shadow: 0 10px 22px rgba(23, 19, 18, 0.12);
+  transition:
+    transform 150ms ease,
+    box-shadow 150ms ease,
+    background-color 150ms ease;
+}
+
+.registration-button:hover {
+  background: #000;
+  filter: none;
+  box-shadow: 0 13px 26px rgba(23, 19, 18, 0.16);
+  transform: translateY(-1px);
+}
+
+.registration-button:active {
+  transform: translateY(0);
+}
+
+.registration-privacy {
+  max-width: 460px;
+  margin-top: 0;
+  color: var(--selfreg-muted);
+  font-size: 0.71rem;
+  line-height: 1.55;
+}
+
+.alert {
+  margin-bottom: 2px;
+  padding: 11px 13px;
+  border: 1px solid #f3c6c0;
+  border-radius: 12px;
+  background: #fff4f2;
+  color: #9b332b;
+}
+
+.field-error {
+  color: #ae3e34;
+}
+
+.has-error .input {
+  border-color: rgba(174, 62, 52, 0.45);
+  background: #fffafa;
+}
+
+.has-error .input:focus {
+  border-color: #ae3e34;
+  box-shadow: 0 0 0 4px rgba(174, 62, 52, 0.08);
+}
+
+/* ---------------------------------------------------------
+   Language selector
+   --------------------------------------------------------- */
+
+.registration-language-trigger {
+  min-height: 40px;
+  padding: 6px 11px;
+  border-color: var(--selfreg-border);
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--selfreg-ink);
+  box-shadow: 0 2px 8px rgba(44, 35, 30, 0.04);
+}
+
+.registration-language-trigger:hover,
+.registration-language-trigger[aria-expanded="true"] {
+  border-color: rgba(255, 111, 97, 0.34);
+  background: var(--selfreg-coral-soft);
+  box-shadow: 0 6px 18px rgba(44, 35, 30, 0.07);
+}
+
+.registration-language-menu {
+  border-color: var(--selfreg-border);
+  border-radius: 16px;
+  box-shadow: 0 16px 36px rgba(44, 35, 30, 0.1);
+}
+
+.registration-language-menu-label {
+  color: var(--selfreg-muted);
+}
+
+.registration-language-option {
+  color: var(--selfreg-text);
+}
+
+.registration-language-option:hover {
+  background: var(--selfreg-soft);
+}
+
+.registration-language-option.is-active {
+  background: var(--selfreg-coral-soft);
+  color: var(--selfreg-coral-strong);
+}
+
+.registration-language-option-check {
+  color: var(--selfreg-coral-strong);
+}
+
+/* ---------------------------------------------------------
+   Guidance panel
+   --------------------------------------------------------- */
+
+.auth-right.registration-right {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  margin: 24px 24px 24px 0;
+  padding: clamp(40px, 5vw, 72px);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 30px;
+  background:
+    radial-gradient(
+      circle at 75% 20%,
+      rgba(255, 111, 97, 0.26),
+      transparent 31%
+    ),
+    radial-gradient(
+      circle at 15% 85%,
+      rgba(201, 149, 78, 0.10),
+      transparent 34%
+    ),
+    linear-gradient(
+      145deg,
+      #171312 0%,
+      #1d1715 52%,
+      #261916 100%
+    );
+}
+
+.auth-right.registration-right::before {
+  content: "";
+  display: block;
+  position: absolute;
+  top: -120px;
+  right: -140px;
+  width: 500px;
+  height: 500px;
+  border: 1px solid rgba(255, 111, 97, 0.11);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.auth-right.registration-right::after {
+  content: "";
+  display: block;
+  position: absolute;
+  right: -30px;
+  bottom: -250px;
+  width: 560px;
+  height: 560px;
+  border-radius: 50%;
+  background: rgba(255, 111, 97, 0.045);
+  filter: blur(20px);
+  pointer-events: none;
+}
+
+.registration-right-content {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 500px);
+}
+
+.registration-process-card {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.registration-steps {
+  gap: 14px;
+}
+
+.registration-step {
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: 14px;
+  padding: 17px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.055);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.045),
+    0 10px 28px rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.registration-step-number {
+  width: 36px;
+  height: 36px;
+  border: 1px solid rgba(255, 111, 97, 0.20);
+  border-radius: 11px;
+  background: rgba(255, 111, 97, 0.09);
+  color: #ff8176;
+}
+
+.registration-step strong {
+  margin-top: 0;
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.registration-step p {
+  margin-top: 4px;
+  color: rgba(255, 255, 255, 0.48);
+  font-size: 0.77rem;
+  line-height: 1.55;
+}
+
+/* ---------------------------------------------------------
+   Success state
+   --------------------------------------------------------- */
+
+.auth-card.registration-card.success-card {
+  max-width: 620px;
+}
+
+.success-icon {
+  width: 52px;
+  height: 52px;
+  margin-bottom: 22px;
+  border-color: rgba(52, 112, 77, 0.14);
+  border-radius: 15px;
+  background: var(--selfreg-green-soft);
+  color: var(--selfreg-green);
+}
+
+.success-icon svg {
+  width: 25px;
+  height: 25px;
+}
+
+.registration-eyebrow {
+  min-height: 25px;
+  margin-bottom: 13px;
+  padding: 4px 9px;
+  border-color: rgba(255, 111, 97, 0.18);
+  background: var(--selfreg-coral-soft);
+  color: var(--selfreg-coral-strong);
+  font-size: 0.63rem;
+  letter-spacing: 0.08em;
+}
+
+.success-information {
+  margin-top: 24px;
+  padding: 16px 18px;
+  border-color: var(--selfreg-border);
+  border-radius: 14px;
+  background: var(--selfreg-soft);
+  color: var(--selfreg-text);
+  font-size: 0.78rem;
+  line-height: 1.6;
+}
+
+.auth-right.success-right {
+  position: relative;
+  overflow: hidden;
+  margin: 24px 24px 24px 0;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 30px;
+  background:
+    radial-gradient(
+      circle at 75% 20%,
+      rgba(255, 111, 97, 0.26),
+      transparent 31%
+    ),
+    radial-gradient(
+      circle at 15% 85%,
+      rgba(201, 149, 78, 0.10),
+      transparent 34%
+    ),
+    linear-gradient(
+      145deg,
+      #171312 0%,
+      #1d1715 52%,
+      #261916 100%
+    );
+}
+
+.auth-right.success-right::before {
+  content: "";
+  display: block;
+  position: absolute;
+  top: -120px;
+  right: -140px;
+  width: 500px;
+  height: 500px;
+  border: 1px solid rgba(255, 111, 97, 0.11);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.auth-right.success-right::after {
+  content: "";
+  display: block;
+  position: absolute;
+  right: -30px;
+  bottom: -250px;
+  width: 560px;
+  height: 560px;
+  border-radius: 50%;
+  background: rgba(255, 111, 97, 0.045);
+  filter: blur(20px);
+  pointer-events: none;
+}
+
+.success-decoration {
+  position: relative;
+  z-index: 1;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.success-decoration-mark {
+  width: 94px;
+  height: 94px;
+  margin-bottom: 18px;
+  border-color: rgba(255, 255, 255, 0.10);
+  border-radius: 27px;
+  background: rgba(255, 255, 255, 0.055);
+  color: #ff8176;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 20px 50px rgba(0, 0, 0, 0.12);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.success-decoration-mark svg {
+  width: 42px;
+  height: 42px;
+}
+
+.success-decoration p {
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 1rem;
+  font-weight: 650;
+}
+
+/* ---------------------------------------------------------
+   Responsive
+   --------------------------------------------------------- */
+
+@media (max-width: 980px) {
+  .auth-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-left {
+    min-height: 100vh;
+  }
+
+  .auth-right.registration-right,
+  .auth-right.success-right {
+    display: none;
+  }
+
+  .auth-card.registration-card {
+    margin-top: auto;
+    margin-bottom: auto;
+  }
+}
+
+@media (max-width: 640px) {
+  .auth-left {
+    padding: 22px 18px 28px;
+  }
+
+  .registration-topbar {
+    margin-bottom: 34px;
+  }
+
+  .brand-logo {
+    width: 106px;
+  }
+
+  .auth-card.registration-card {
+    padding: 26px 22px;
+    border-radius: 21px;
+  }
+
+  .registration-name-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-title {
+    font-size: 2rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .registration-button,
+  .registration-language-trigger,
+  .input {
+    transition: none;
+  }
+}

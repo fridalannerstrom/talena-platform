@@ -1,0 +1,162 @@
+/* =========================================================
+   TALENA — PROCESS STRUCTURE
+   Structural layout extracted from _process_header.html.
+   Visual styling lives in process-detail.css.
+   ========================================================= */
+
+.process-page {
+  max-width: 1500px;
+  margin: 0 auto;
+}
+
+.process-hero {
+  overflow: hidden;
+}
+
+.process-hero__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 2rem;
+  padding: 1.7rem;
+}
+
+.process-hero__left {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.process-hero__meta {
+  min-width: 0;
+}
+
+.process-hero__labels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.process-hero__right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 0 0 auto;
+  padding-top: 0.15rem;
+}
+
+.process-pill,
+.process-readonly-pill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  line-height: 1;
+}
+
+.process-hero__details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.process-mini-info {
+  min-width: 170px;
+}
+
+.process-mini-info__label,
+.process-mini-info__value {
+  display: block;
+}
+
+.process-nav {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  margin: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.process-nav::-webkit-scrollbar {
+  display: none;
+}
+
+.process-nav__item {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.process-nav__button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.process-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.process-activity-list {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.process-activity-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+}
+
+.process-activity-dot {
+  width: 0.55rem;
+  height: 0.55rem;
+  margin-top: 0.38rem;
+  flex: 0 0 auto;
+  border-radius: 999px;
+}
+
+.icon-16 {
+  width: 16px;
+  height: 16px;
+}
+
+@media (max-width: 992px) {
+  .process-hero__top {
+    flex-direction: column;
+  }
+
+  .process-hero__right {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .process-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 576px) {
+  .process-hero__top {
+    padding: 1.1rem;
+  }
+
+  .process-hero__right {
+    flex-wrap: wrap;
+  }
+
+  .process-hero__details {
+    flex-direction: column;
+  }
+
+  .process-mini-info {
+    width: 100%;
+  }
+
+  .process-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+}

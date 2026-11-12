@@ -1,0 +1,840 @@
+{% load i18n personality_i18n %}
+{# Talena personality UI and response styles language batch 1 #}
+<div
+  class="personality-profile"
+  data-personality-profile-root
+>
+
+
+
+
+
+      <!-- HEADER -->
+      <div class="response-styles-header">
+
+        <div>
+          <h2 class="insight-summary-title mb-1">
+             {% trans "Personality profile" %}
+          </h2>
+
+          <p class="text-muted small mb-0">
+   {% if LANGUAGE_CODE|slice:":2" == "sv" %}Utforska personens övergripande personlighetsdrag och underliggande indikatorer.{% else %}Explore the person's main personality traits and underlying indicators.{% endif %}
+          </p>
+        </div>
+
+      </div>
+
+
+<!-- PERSONALITY VIEW CONTROLS -->
+<div class="personality-view-controls">
+
+  <div
+  class="personality-view-tabs"
+  role="tablist"
+  aria-label="Personality profile view"
+>
+
+  <button
+    type="button"
+    id="personality-detailed-tab"
+    class="personality-view-tab is-active"
+    role="tab"
+    aria-selected="true"
+    aria-controls="personality-detailed-view"
+    data-personality-view-tab="detailed"
+  >
+    <i data-feather="list" aria-hidden="true"></i>
+     <span>{% if LANGUAGE_CODE|slice:":2" == "sv" %}Karaktärsdrags- och indikatorprofilen{% else %}Trait and indicator profile{% endif %}</span>
+  </button>
+
+<button
+    type="button"
+    id="personality-quick-tab"
+    class="personality-view-tab"
+    role="tab"
+    aria-selected="false"
+    aria-controls="personality-quick-view"
+    data-personality-view-tab="quick"
+  >
+    <i data-feather="align-justify" aria-hidden="true"></i>
+     <span>{% if LANGUAGE_CODE|slice:":2" == "sv" %}Karaktärsdragsprofilen{% else %}Trait profile{% endif %}</span>
+  </button>
+
+<button
+  type="button"
+  id="personality-descriptions-tab"
+  class="personality-view-tab"
+  role="tab"
+  aria-selected="false"
+  aria-controls="personality-descriptions-view"
+  data-personality-view-tab="descriptions"
+>
+  <i data-feather="book-open" aria-hidden="true"></i>
+   <span>{% if LANGUAGE_CODE|slice:":2" == "sv" %}Resultatsammanfattning{% else %}Results summary{% endif %}</span>
+</button>
+
+<button type="button" id="personality-response-styles-tab" class="personality-view-tab" role="tab" aria-selected="false" aria-controls="personality-response-styles-view" data-personality-view-tab="response-styles">
+    <i data-feather="activity" aria-hidden="true"></i>
+    <span>{% if LANGUAGE_CODE|slice:":2" == "sv" %}Svarsstilar{% else %}Response styles{% endif %}</span>
+  </button>
+
+</div>
+
+</div>
+<!-- /PERSONALITY VIEW CONTROLS -->
+
+
+
+<div
+  id="personality-detailed-view"
+  class="personality-view-panel"
+  role="tabpanel"
+  aria-labelledby="personality-detailed-tab"
+  data-personality-view-panel="detailed"
+>
+
+    {% for section in personality_profile.sections %}
+
+      <section class="personality-profile-section">
+
+        <div class="personality-profile-section__header">
+          <h4 class="personality-profile-section__title">
+            {{ section|personality_profile_group_label }}
+          </h4>
+        </div>
+
+        <div class="personality-profile-section__traits">
+
+          {% for trait in section.traits %}
+
+            <article class="personality-trait-card">
+
+              <div class="personality-trait-card__header">
+
+                <div>
+                  <h5 class="personality-trait-card__title mb-4">
+                    {{ trait.label }}
+                  </h5>
+                </div>
+
+              </div>
+
+<div class="personality-trait-card__main">
+
+  <div class="personality-trait-card__pole">
+
+    <div class="personality-trait-card__pole-label">
+      {% trans "Left Score" %}
+    </div>
+
+    {% if trait.low_pole %}
+      <p>
+        {{ trait.low_pole }}
+      </p>
+    {% else %}
+      <p class="text-muted">
+                   {% trans "Description is not yet available." %}
+      </p>
+    {% endif %}
+
+  </div>
+
+
+  <div class="personality-graph">
+
+    <div class="personality-graph__bars">
+
+      {% for segment in trait.graph_segments %}
+
+        <div
+          class="
+            personality-graph__segment
+            {% if segment.filled_toward_midpoint %}
+              personality-graph__segment--filled
+            {% endif %}
+            {% if segment.selected %}
+              personality-graph__segment--selected
+            {% endif %}
+          "
+          data-score="{{ segment.score }}"
+          style="height: {{ segment.height }}px;"
+          aria-label="{% if LANGUAGE_CODE|slice:':2' == 'sv' %}Poäng {{ segment.score }} av 10{% else %}Score {{ segment.score }} of 10{% endif %}"
+        >
+
+          {% if segment.selected %}
+            <span class="personality-graph__marker">
+              {{ segment.score }}
+            </span>
+          {% endif %}
+
+        </div>
+
+      {% endfor %}
+      <span class="personality-graph__center-line" aria-hidden="true"></span>
+    </div>
+
+    <div class="personality-graph__axis">
+      <span>Left</span>
+      <span>Average</span>
+      <span>Right</span>
+    </div>
+
+  </div>
+
+
+  <div
+    class="
+      personality-trait-card__pole
+      personality-trait-card__pole--right
+    "
+  >
+
+    <div class="personality-trait-card__pole-label align-right">
+      {% trans "Right Score" %}
+    </div>
+
+    {% if trait.high_pole %}
+      <p class="align-right">
+        {{ trait.high_pole }}
+      </p>
+    {% else %}
+      <p class="text-muted align-right">
+                   {% trans "Description is not yet available." %}
+      </p>
+    {% endif %}
+
+  </div>
+
+</div>
+<!-- /personality-trait-card__main -->
+
+
+{% if trait.summary %}
+  <div class="personality-trait-card__summary">
+
+    <div class="personality-trait-card__summary-label">
+       {% blocktrans with candidate_name=candidate.first_name %}How this trait may show up for {{ candidate_name }}{% endblocktrans %}
+    </div>
+
+    <p class="personality-trait-card__summary-text">
+      {{ trait.summary }}
+    </p>
+
+  </div>
+{% endif %}
+
+{% if trait.indicators %}
+
+<div
+  class="
+    personality-trait-card__indicator-panel
+    personality-trait-card__indicator-panel--always-open
+  "
+>
+
+    <div class="personality-indicator-list">
+
+      {% for indicator in trait.indicators %}
+
+       <div class="personality-indicator-row">
+
+  <div class="personality-indicator-row__header">
+
+    <div class="personality-quick-row__title">
+      {{ indicator.label }}
+    </div>
+
+  </div>
+
+  <div class="personality-indicator-row__profile">
+
+    <div class="personality-indicator-row__pole">
+
+      <span class="personality-indicator-row__pole-label">
+        {% trans "Left Score" %}
+      </span>
+
+      <p>
+        {{ indicator.low_pole }}
+      </p>
+
+    </div>
+
+<div class="personality-indicator-row__scale-wrap">
+
+  <div
+    class="personality-indicator-scale"
+    role="img"
+    aria-label="{{ indicator.label }}: {% if LANGUAGE_CODE|slice:':2' == 'sv' %}poäng {{ indicator.sten }} av 10{% else %}score {{ indicator.sten }} of 10{% endif %}"
+  >
+
+    <!-- LEFT HALF OF THE SCALE -->
+    <div
+      class="
+        personality-indicator-scale__side
+        personality-indicator-scale__side--left
+      "
+    >
+      {% for score in "12345" %}
+        {% with score_value=forloop.counter %}
+
+          <span
+            class="
+              personality-indicator-scale__segment
+
+              {% if indicator.sten <= 5 and indicator.sten <= score_value %}
+                personality-indicator-scale__segment--filled
+              {% endif %}
+
+              {% if score_value == indicator.sten %}
+                personality-indicator-scale__segment--selected
+              {% endif %}
+            "
+          ></span>
+
+        {% endwith %}
+      {% endfor %}
+    </div>
+
+
+    <!-- CENTRE LINE -->
+    <span
+      class="personality-indicator-scale__center-line"
+      aria-hidden="true"
+    ></span>
+
+
+    <!-- RIGHT HALF OF THE SCALE -->
+    <div
+      class="
+        personality-indicator-scale__side
+        personality-indicator-scale__side--right
+      "
+    >
+      {% for score in "12345" %}
+        {% with score_value=forloop.counter|add:"5" %}
+
+          <span
+            class="
+              personality-indicator-scale__segment
+
+              {% if indicator.sten >= 6 and score_value <= indicator.sten %}
+                personality-indicator-scale__segment--filled
+              {% endif %}
+
+              {% if score_value == indicator.sten %}
+                personality-indicator-scale__segment--selected
+              {% endif %}
+            "
+          ></span>
+
+        {% endwith %}
+      {% endfor %}
+    </div>
+
+  </div>
+
+
+  <div class="personality-indicator-scale__labels">
+
+    <span class="personality-indicator-scale__label--left">
+      {% trans "Left" %}
+    </span>
+
+    <span class="personality-indicator-scale__label--center">
+      {% trans "Average" %}
+    </span>
+
+    <span class="personality-indicator-scale__label--right">
+      {% trans "Right" %}
+    </span>
+
+  </div>
+
+</div>
+    <div class="
+      personality-indicator-row__pole
+      personality-indicator-row__pole--right align-right
+    ">
+
+      <span class="personality-indicator-row__pole-label">
+        {% trans "Right score" %}
+      </span>
+
+      <p>
+        {{ indicator.high_pole }}
+      </p>
+
+    </div>
+
+  </div>
+
+</div>
+
+      {% endfor %}
+
+    </div>
+
+  </div>
+{% endif %}
+
+            </article>
+
+          {% endfor %}
+
+        </div>
+
+      </section>
+
+    {% endfor %}
+
+  </div>
+<!-- /DETAILED VIEW -->
+
+<!-- QUICK VIEW -->
+<div
+  id="personality-quick-view"
+  class="personality-view-panel personality-quick-view mt-4"
+  role="tabpanel"
+  aria-labelledby="personality-quick-tab"
+  data-personality-view-panel="quick"
+  hidden
+>
+
+<!-- BALANCED PERSONALITY OVERVIEW -->
+<section class="personality-overview-chart personality-overview-chart--segmented" aria-labelledby="personality-overview-chart-title">
+  <div class="personality-overview-chart__header">
+    <div>
+      <h3 id="personality-overview-chart-title" class="personality-overview-chart__title">
+        {% trans "Personality at a glance" %}
+      </h3>
+      <p class="personality-overview-chart__intro">
+        {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+          Mitten är situationsbaserat, medan pilmarkörerna visar varsitt föredragna beteende.
+        {% else %}
+          The centre indicates situation-dependent behaviour, while the arrow markers show each preferred behaviour.
+        {% endif %}
+      </p>
+    </div>
+  </div>
+
+  <div class="personality-overview-chart__groups">
+    {% for section in personality_profile.sections %}
+      <article class="personality-overview-group">
+        <h4 class="personality-overview-group__title">{{ section|personality_profile_group_label }}</h4>
+        <div class="personality-overview-group__plot">
+          {% for trait in section.traits %}
+            <div class="personality-overview-item">
+              <span class="personality-overview-item__label">{{ trait.label }}</span>
+              <div
+                class="personality-overview-item__scale"
+                role="img"
+                aria-label="{{ trait.label }}: {% for segment in trait.graph_segments %}{% if segment.selected %}{{ segment.score }}{% endif %}{% endfor %} / 10"
+              >
+                <span class="personality-overview-item__arrow" aria-hidden="true">←</span>
+                <span class="personality-overview-item__track" aria-hidden="true">
+                  {% for segment in trait.graph_segments %}
+                    <span
+                      class="personality-overview-item__segment{% if segment.score == 5 or segment.score == 6 %} personality-overview-item__segment--center{% endif %}{% if segment.filled_toward_midpoint %} personality-overview-item__segment--filled{% endif %}{% if segment.selected %} personality-overview-item__segment--selected{% endif %}"
+                      title="{{ trait.label }}: {{ segment.score }}/10"
+                    ></span>
+                  {% endfor %}
+                </span>
+                <span class="personality-overview-item__arrow" aria-hidden="true">→</span>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </article>
+    {% endfor %}
+  </div>
+</section>
+<!-- /BALANCED PERSONALITY OVERVIEW -->
+
+  {% for section in personality_profile.sections %}
+
+    <section class="personality-quick-section">
+
+      <header class="personality-quick-section__header">
+
+        <h4 class="personality-quick-section__title">
+          {{ section|personality_profile_group_label }}
+        </h4>
+
+      </header>
+
+
+      <div class="personality-quick-section__traits">
+
+        {% for trait in section.traits %}
+
+          <article class="personality-quick-row">
+
+            <!-- LEFT POLE -->
+            <div class="personality-quick-row__pole">
+
+              <p>
+                {% if trait.low_pole %}
+                  {{ trait.low_pole }}
+                {% else %}
+                  {% trans "Description is not yet available." %}
+                {% endif %}
+              </p>
+
+            </div>
+
+
+            <!-- TRAIT AND SCALE -->
+            <div class="personality-quick-row__result">
+
+              <div class="personality-quick-row__heading">
+
+                <div>
+                  <h5 class="personality-quick-row__title">
+                    {{ trait.label }}
+                  </h5>
+                </div>
+
+
+              </div>
+
+
+              <div
+                class="personality-quick-scale"
+                data-personality-quick-scale
+                role="img"
+                aria-label="{{ trait.label }} personality result"
+              >
+
+                {% for segment in trait.graph_segments %}
+
+                  <span
+                    class="
+                      personality-quick-scale__segment
+
+                      {% if segment.selected %}
+                        personality-quick-scale__segment--selected
+                      {% endif %}
+                    "
+                    data-score="{{ segment.score }}"
+                  ></span>
+
+                  {% if forloop.counter == 5 %}
+                    <span
+                      class="personality-quick-scale__center-line"
+                      aria-hidden="true"
+                    ></span>
+                  {% endif %}
+
+                {% endfor %}
+
+              </div>
+
+
+              <div class="personality-quick-scale__labels">
+                <span>{% trans "Left" %}</span>
+                <span>{% trans "Middle" %}</span>
+                <span>{% trans "Right" %}</span>
+              </div>
+
+            </div>
+
+
+            <!-- RIGHT POLE -->
+            <div
+              class="
+                personality-quick-row__pole
+                personality-quick-row__pole--right
+              "
+            >
+
+              <p>
+                {% if trait.high_pole %}
+                  {{ trait.high_pole }}
+                {% else %}
+                  {% trans "Description is not yet available." %}
+                {% endif %}
+              </p>
+
+            </div>
+
+          </article>
+
+        {% endfor %}
+
+      </div>
+
+    </section>
+
+  {% endfor %}
+
+</div>
+<!-- /QUICK VIEW -->
+
+
+<!-- TRAIT DESCRIPTIONS VIEW -->
+<div
+  id="personality-descriptions-view"
+  class="personality-view-panel personality-trait-descriptions-view"
+  role="tabpanel"
+  aria-labelledby="personality-descriptions-tab"
+  data-personality-view-panel="descriptions"
+  hidden
+>
+  {% include "customer/processes/partials/candidate_insights/personality/_trait_descriptions.html" %}
+</div>
+<!-- /TRAIT DESCRIPTIONS VIEW -->
+
+<!-- RESPONSE STYLES VIEW -->
+<div
+  id="personality-response-styles-view"
+  class="personality-view-panel"
+  role="tabpanel"
+  aria-labelledby="personality-response-styles-tab"
+  data-personality-view-panel="response-styles"
+  hidden
+>
+<!-- RESPONSE STYLES -->
+{% if has_personality_results and response_styles %}
+  <section class="mb-4 purpose-fit-card">
+
+
+      <!-- HEADER -->
+      <div class="response-styles-header mb-4 mt-4">
+
+        <div>
+          <h2 class="insight-summary-title mb-1">
+             {% trans "Response styles" %}
+          </h2>
+
+          <p class="text-muted small mb-0">
+             {% blocktrans with candidate_name=candidate.first_name %}These indicators describe how {{ candidate_name }} used the questionnaire response scale. They provide context for interpreting the personality profile and are not personality traits themselves.{% endblocktrans %}
+          </p>
+        </div>
+
+      </div>
+
+
+      <!-- RESPONSE STYLE RESULTS -->
+      {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+        {% include "customer/processes/partials/candidate_insights/_static_communication_guidance.html" %}
+      {% else %}
+
+      <div class="response-style-card">
+
+        {% for style in response_styles %}
+          {% if style.key == "social_desirability" %}
+          <article
+            class="
+              response-style-item
+              {% if not style.available %}
+                response-style-item--missing
+              {% endif %}
+            "
+          >
+
+            <!-- TITLE AND VALUE -->
+            <div class="response-style-item__header">
+
+              <div>
+                <h3 class="response-style-item__title">
+                  {{ style.title }}
+                </h3>
+
+              </div>
+
+              {% if not style.available %}
+                <span class="response-style-item__badge response-style-item__badge--missing">
+                  {% trans "Not available" %}
+                </span>
+              {% endif %}
+
+            </div>
+
+
+            {% if style.available %}
+
+              <!-- SCALE WITH POLE DESCRIPTIONS -->
+              <div class="response-style-profile">
+
+                <!-- LOWER SCORE -->
+                <div class="response-style-profile__pole">
+
+                  <div class="personality-trait-card__pole-label">
+                    {% trans "Left score" %}
+                  </div>
+
+                  <p class="response-style-profile__pole-text">
+                    {{ style.low_pole }}
+                  </p>
+
+                </div>
+
+
+<!-- SCALE -->
+<div
+  class="response-style-scale response-style-profile__scale"
+  role="img"
+  aria-label="{{ style.title }}: {% if LANGUAGE_CODE|slice:':2' == 'sv' %}poäng {{ style.value }} av 10{% else %}score {{ style.value }} of 10{% endif %}"
+>
+  <div class="response-style-scale__track">
+
+    <!-- LEFT SIDE -->
+    <div class="response-style-scale__side response-style-scale__side--left">
+      {% for segment in response_style_side_segments %}
+        <span
+          class="
+            response-style-scale__segment
+            {% if style.scale_side == 'left' and segment <= style.scale_strength %}
+              response-style-scale__segment--filled
+            {% endif %}
+          "
+        ></span>
+      {% endfor %}
+    </div>
+
+    <!-- CENTER LINE -->
+    <span class="response-style-scale__center-line" aria-hidden="true"></span>
+
+    <!-- RIGHT SIDE -->
+    <div class="response-style-scale__side response-style-scale__side--right">
+      {% for segment in response_style_side_segments %}
+        <span
+          class="
+            response-style-scale__segment
+            {% if style.scale_side == 'right' and segment <= style.scale_strength %}
+              response-style-scale__segment--filled
+            {% endif %}
+          "
+        ></span>
+      {% endfor %}
+    </div>
+
+  </div>
+
+  <div class="response-style-scale__labels">
+    <span class="response-style-scale__label response-style-scale__label--left">
+      {% trans "Left" %}
+    </span>
+    <span class="response-style-scale__label response-style-scale__label--center">
+      {% trans "Typical" %}
+    </span>
+    <span class="response-style-scale__label response-style-scale__label--right">
+      {% trans "Right" %}
+    </span>
+  </div>
+</div>
+
+
+                <!-- HIGHER SCORE -->
+                <div
+                  class="
+                    response-style-profile__pole
+                    response-style-profile__pole--right
+                  "
+                >
+
+                  <div class="personality-trait-card__pole-label align-right">
+                    {% trans "Right score" %}
+                  </div>
+
+                  <p class="response-style-profile__pole-text align-right">
+                    {{ style.high_pole }}
+                  </p>
+
+                </div>
+
+              </div>
+
+            {% endif %}
+
+          </article>
+          {% endif %}
+        {% endfor %}
+
+      </div>
+      {% endif %}
+
+      <!-- FOOTER -->
+      <div class="small text-muted border-bottom mt-4 pb-4">
+         {% blocktrans %}Response-style indicators should be used as interpretive context rather than as measures of ability, suitability or honesty.{% endblocktrans %}
+      </div>
+
+  </section>
+{% else %}
+  <section class="mb-4 purpose-fit-card" data-response-styles-unavailable>
+    <h2 class="insight-summary-title mb-2">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Svarsstilar{% else %}Response styles{% endif %}</h2>
+    <p class="text-muted mb-0">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Det finns ännu inget personlighetsresultat att visa svarsstilar för.{% else %}Personality results are not yet available, so response styles cannot be shown.{% endif %}</p>
+  </section>
+{% endif %}
+<!-- /RESPONSE STYLES -->
+  <section class="purpose-fit-card mt-4" aria-labelledby="profileContrastsHeading">
+    <h3 id="profileContrastsHeading" class="insight-summary-sub-title">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Möjliga nyanser att utforska{% else %}Possible nuances to explore{% endif %}</h3>
+    {% if profile_contrast_analysis.activated_contrasts %}
+      <p data-profile-contrasts-intro="matched">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Här visas utvalda mönster av indikatorer inom ett och samma karaktärsdrag som kan vara intressanta att utforska. Se dem som möjliga nyanser att förstå bättre, inte som slutsatser.{% else %}This section shows selected patterns of indicators within a single personality trait that may be interesting to explore. Consider them possible nuances to understand better, not conclusions.{% endif %}</p>
+    {% endif %}
+    {% for contrast in profile_contrast_analysis.activated_contrasts %}
+      <article class="profile-contrast-card" data-profile-contrast-id="{{ contrast.id }}">
+        <div class="profile-contrast-card__dimensions">
+          <span class="profile-contrast-card__label">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Egenskaper att utforska tillsammans{% else %}Traits to explore together{% endif %}</span>
+          <div class="profile-contrast-card__scale-list personality-overview-chart--segmented">
+            {% for dimension in contrast.dimensions %}
+              <div class="profile-contrast-card__scale-item">
+                <span class="profile-contrast-card__dimension-name">{{ dimension.label }}</span>
+                <div
+                  class="personality-overview-item__scale profile-contrast-card__scale"
+                  role="img"
+                  aria-label="{{ dimension.label }}: {{ dimension.sten }} / 10"
+                >
+                  <span class="personality-overview-item__arrow" aria-hidden="true">←</span>
+                  <span class="personality-overview-item__track" aria-hidden="true">
+                    {% for segment in dimension.graph_segments %}
+                      <span
+                        class="personality-overview-item__segment{% if segment.score == 5 or segment.score == 6 %} personality-overview-item__segment--center{% endif %}{% if segment.filled_toward_midpoint %} personality-overview-item__segment--filled{% endif %}{% if segment.selected %} personality-overview-item__segment--selected{% endif %}"
+                        title="{{ dimension.label }}: {{ segment.score }}/10"
+                      ></span>
+                    {% endfor %}
+                  </span>
+                  <span class="personality-overview-item__arrow" aria-hidden="true">→</span>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="profile-contrast-card__hypothesis">
+          <span class="profile-contrast-card__label">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Möjlig hypotes att utforska{% else %}Possible hypothesis to explore{% endif %}</span>
+          <p>{{ contrast.hypothesis }}</p>
+        </div>
+      </article>
+    {% empty %}
+      {% if has_personality_results and profile_contrast_analysis.available_dimension_count|default:0 >= 2 %}
+        <div class="profile-contrast-empty" data-contrast-empty-state="no-patterns" role="status">
+          <span class="profile-contrast-empty__icon" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="9"></circle><path d="M12 11v5 M12 8h.01"></path>
+            </svg>
+          </span>
+          <div>
+            <p class="profile-contrast-empty__description" data-profile-contrasts-intro="no-patterns">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Här visas utvalda mönster av indikatorer inom ett och samma karaktärsdrag som kan vara intressanta att utforska. I den här profilen framträder inga av dessa mönster, men det kan fortfarande finnas andra nyanser och samband som är värdefulla att utforska i samtalet.{% else %}This section shows selected patterns of indicators within a single personality trait that may be interesting to explore. None of these patterns stand out in this profile, but there may still be other nuances and connections worth exploring in conversation.{% endif %}</p>
+          </div>
+        </div>
+      {% else %}
+        <div class="profile-contrast-empty profile-contrast-empty--pending" data-contrast-empty-state="unavailable" role="status">
+          <span class="profile-contrast-empty__icon" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="9"></circle><path d="M12 11v5 M12 8h.01"></path>
+            </svg>
+          </span>
+          <div>
+            <h4 class="profile-contrast-empty__title">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Resultat ännu inte tillgängligt{% else %}Results not yet available{% endif %}</h4>
+            <p class="profile-contrast-empty__description">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Det finns ännu inte tillräckligt med personlighetsresultat för att visa möjliga nyanser. När resultaten finns tillgängliga visas de här.{% else %}There are not yet enough personality results to show possible nuances. They will appear here when the results are available.{% endif %}</p>
+          </div>
+        </div>
+      {% endif %}
+    {% endfor %}
+  </section>
+</div>
+<!-- /RESPONSE STYLES VIEW -->
+
+</div>
+<!-- /personality-profile -->

@@ -1,0 +1,51 @@
+{% extends "../core/layouts/customer_base.html" %}
+{% load static i18n %}
+{% get_current_language as LANGUAGE_CODE %}
+
+{% block extra_css %}
+  <link href="{% static 'css/talena/pages/teams.css' %}" rel="stylesheet" />
+  <link href="{% static 'css/talena/pages/team-polish.css' %}" rel="stylesheet" />
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4 talena-team-page">
+  <div class="team-page-header">
+    <div>
+      <p class="team-page-eyebrow">{% trans "Team" %}</p>
+      <h1 class="team-page-title">
+        {% if LANGUAGE_CODE|slice:":2" == "sv" %}Ta bort team{% else %}{% trans "Delete team" %}{% endif %}
+      </h1>
+      <p class="team-page-description">{{ team.name }}</p>
+    </div>
+  </div>
+
+  <section class="card team-form-card" aria-labelledby="team-delete-heading">
+    <div class="card-body">
+      <h2 id="team-delete-heading" class="team-section-title mb-3">
+        {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+          Vill du ta bort teamet {{ team.name }} permanent?
+        {% else %}
+          {% blocktrans with team_name=team.name %}Delete {{ team_name }} permanently?{% endblocktrans %}
+        {% endif %}
+      </h2>
+      <p class="mb-2">
+        {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+          Teamets medlemskopplingar och genererade insikter tas bort. Kandidater och deras resultat påverkas inte.
+        {% else %}
+          {% trans "The team’s member links and generated insights will be removed. Candidate records and assessment results will remain." %}
+        {% endif %}
+      </p>
+
+      <form method="post" class="team-form-actions mt-4">
+        {% csrf_token %}
+        <a href="{% url 'teams:team_detail' team.pk %}" class="btn btn-outline-secondary team-secondary-action">
+          {% if LANGUAGE_CODE|slice:":2" == "sv" %}Avbryt{% else %}{% trans "Cancel" %}{% endif %}
+        </a>
+        <button type="submit" class="btn btn-danger team-delete-confirm-action">
+          {% if LANGUAGE_CODE|slice:":2" == "sv" %}Ta bort team{% else %}{% trans "Delete team" %}{% endif %}
+        </button>
+      </form>
+    </div>
+  </section>
+</div>
+{% endblock %}

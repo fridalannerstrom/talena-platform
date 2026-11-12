@@ -1,0 +1,490 @@
+{% extends "customer/core/layouts/customer_base.html" %}
+{% load dict_extras static i18n %}
+
+{% block extra_css %}
+  <link href="{% static 'css/talena/pages/process-list.css' %}?v=20261110-pinned-order-v1" rel="stylesheet" />
+{% endblock %}
+
+{% block content %}
+{% get_current_language as list_language %}
+<div class="container-fluid px-2 px-md-3 process-list-page">
+
+  <header class="process-list-page-header">
+    <div>
+      <div class="process-list-eyebrow">{% trans "Assessment workflows" %}</div>
+      <h1>{% trans "Projects" %}</h1>
+      <p>{% trans "Overview of your projects and their status." %}</p>
+    </div>
+
+    {% if not show_archived %}
+      <a class="btn btn-primary process-create-button" href="{% url 'processes:process_create' %}">
+        <i data-feather="plus"></i>
+        {% trans "Create project" %}
+      </a>
+    {% endif %}
+  </header>
+
+  <section class="process-toolbar" aria-label="{% trans 'Project tools' %}">
+    <div class="process-search-wrap">
+      <i data-feather="search"></i>
+      <input
+        id="processSearch"
+        type="text"
+        class="form-control"
+        placeholder="{% trans 'Search by title, purpose or assessment...' %}"
+        aria-label="{% trans 'Search projects' %}"
+      >
+    </div>
+
+    <select id="purposeFilter" class="form-select" aria-label="{% trans 'Filter by purpose' %}">
+      <option value="">{% trans "All purposes" %}</option>
+    </select>
+
+    <select id="sortBy" class="form-select" aria-label="{% trans 'Sort projects' %}">
+      <option value="pinned_first">{% trans "Sort: Pinned first" %}</option>
+      <option value="created_desc">{% trans "Sort: Newest first" %}</option>
+      <option value="created_asc">{% trans "Sort: Oldest first" %}</option>
+      <option value="candidates_desc">{% trans "Sort: Most candidates" %}</option>
+      <option value="candidates_asc">{% trans "Sort: Fewest candidates" %}</option>
+      <option value="title_asc">{% trans "Sort: Title A–Z" %}</option>
+      <option value="title_desc">{% trans "Sort: Title Z–A" %}</option>
+    </select>
+  </section>
+
+  <div class="process-list-subnav">
+    <div class="seg-tabs" role="tablist" aria-label="{% trans 'Show projects' %}">
+      <a
+        href="{% url 'processes:process_list' %}"
+        class="seg-tab {% if not show_archived %}is-active{% endif %}"
+        role="tab"
+        aria-selected="{% if not show_archived %}true{% else %}false{% endif %}"
+      >
+        {% trans "Active" %}
+      </a>
+
+      <a
+        href="{% url 'processes:process_list' %}?archived=1"
+        class="seg-tab {% if show_archived %}is-active{% endif %}"
+        role="tab"
+        aria-selected="{% if show_archived %}true{% else %}false{% endif %}"
+      >
+        {% trans "Archived" %}
+      </a>
+    </div>
+
+    {% if show_archived %}
+      <div class="process-list-helper">{% trans "These are the projects you have archived." %}</div>
+    {% endif %}
+  </div>
+
+  {% if processes %}
+    <div id="processGrid" class="process-grid">
+      {% for p in processes %}
+        <article
+          class="process-card"
+          role="button"
+          tabindex="0"
+          data-href="{% url 'processes:process_detail' p.id %}"
+          data-title="{{ p.name|default:''|lower }}"
+          data-purpose="{{ p.purpose|purpose_label }}"
+          data-purpose-lower="{{ p.purpose|purpose_label|lower }}"
+          data-tests-lower="{% for test in p.selected_tests %}{{ test|lower }} {% endfor %}"
+          data-labels-lower="{% if p.is_historical %}historical{% else %}{% for lab in p.labels.all %}{{ lab.name|lower }} {% endfor %}{% endif %}"
+          data-candidates="{{ p.candidates_count }}"
+          data-created="{{ p.created_at|date:'Y-m-d' }}"
+          data-pinned="{% if p.id in pinned_project_ids %}true{% else %}false{% endif %}"
+        >
+          <div class="process-card-topline">
+            <div class="process-purpose">
+              
+
+              <span class="process-purpose-copy">
+                <span class="process-purpose-label">{% trans "Purpose" %}</span>
+                <span class="process-purpose-value">
+                  {% if p.is_historical %}
+                    {% trans "Historical" %}
+                  {% else %}
+                    {{ p.purpose|purpose_label }}
+                  {% endif %}
+                </span>
+              </span>
+            </div>
+
+            {% with can_edit=can_edit_by_process_id|get_item:p.id %}
+              <div class="process-card-actions {% if p.id in pinned_project_ids %}has-pinned{% endif %}">
+                {% if not show_archived %}
+                  <form method="post" action="{% url 'processes:toggle_pinned_project' p.id %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                    {% if p.id in pinned_project_ids %}
+                      <button type="submit" class="icon-btn process-pin is-pinned" aria-label="{% trans 'Unpin project' %}" title="{% trans 'Unpin project' %}" aria-pressed="true">
+                        <i data-feather="bookmark"></i>
+                      </button>
+                    {% elif pinned_project_ids|length >= 5 %}
+                      <span class="process-pin-limit" tabindex="0" role="note" aria-describedby="pin-limit-{{ p.id }}">
+                        <button type="button" class="icon-btn process-pin is-disabled" disabled aria-label="{% trans 'Pin project' %}" aria-pressed="false">
+                          <i data-feather="bookmark"></i>
+                        </button>
+                        <span class="process-pin-tooltip" id="pin-limit-{{ p.id }}" role="tooltip">
+                          {% trans "You can pin up to five projects. Unpin one first." %}
+                        </span>
+                      </span>
+                    {% else %}
+                      <button type="submit" class="icon-btn process-pin" aria-label="{% trans 'Pin project' %}" title="{% trans 'Pin project' %}" aria-pressed="false">
+                        <i data-feather="bookmark"></i>
+                      </button>
+                    {% endif %}
+                  </form>
+                {% endif %}
+                {% if can_edit and not p.is_historical and p.source == "talena" %}
+                  <a
+                    href="{% url 'processes:process_duplicate' p.id %}"
+                    class="icon-btn"
+                    data-duplicate-trigger
+                    data-bs-toggle="modal"
+                    data-bs-target="#duplicateProcessModal"
+                    data-duplicate-url="{% url 'processes:process_duplicate' p.id %}"
+                    data-duplicate-name="{{ p.name }}"
+                    aria-label="{% if list_language|slice:':2' == 'sv' %}Duplicera projekt{% else %}Duplicate project{% endif %}"
+                    title="{% if list_language|slice:':2' == 'sv' %}Duplicera projekt{% else %}Duplicate project{% endif %}"
+                  >
+                    <i data-feather="copy"></i>
+                  </a>
+                {% endif %}
+                {% if can_edit and not p.is_historical %}
+                  {% if not show_archived %}
+                    <a
+                      class="icon-btn"
+                      href="{% url 'processes:process_update' p.id %}"
+                      aria-label="{% trans 'Edit' %}"
+                      title="{% trans 'Edit' %}"
+                    >
+                      <i data-feather="edit-2"></i>
+                    </a>
+
+                    <form
+                      method="post"
+                      action="{% url 'processes:process_archive' p.id %}"
+                      data-project-status-form
+                      data-project-status-action="archive"
+                      data-project-name="{{ p.name }}"
+                    >
+                      {% csrf_token %}
+                      <button type="submit" class="icon-btn" aria-label="{% trans 'Archive' %}" title="{% trans 'Archive' %}">
+                        <i data-feather="archive"></i>
+                      </button>
+                    </form>
+                  {% else %}
+                    <form
+                      method="post"
+                      action="{% url 'processes:process_unarchive' p.id %}"
+                      data-project-status-form
+                      data-project-status-action="restore"
+                      data-project-name="{{ p.name }}"
+                    >
+                      {% csrf_token %}
+                      <button type="submit" class="icon-btn" aria-label="{% trans 'Restore' %}" title="{% trans 'Restore' %}">
+                        <i data-feather="rotate-ccw"></i>
+                      </button>
+                    </form>
+
+                    <button
+                      type="button"
+                      class="icon-btn icon-btn-danger"
+                      data-bs-toggle="modal"
+                      data-bs-target="#removeProjectModal"
+                      data-remove-project
+                      data-project-name="{{ p.name }}"
+                      data-remove-url="{% url 'processes:process_delete' p.id %}"
+                      data-can-delete="{{ p.can_delete_now|yesno:'true,false' }}"
+                      aria-label="{% if list_language|slice:':2' == 'sv' %}Hantera borttagning av projekt{% else %}Manage project removal{% endif %}"
+                      title="{% if list_language|slice:':2' == 'sv' %}Ta bort projekt{% else %}Remove project{% endif %}"
+                    >
+                      <i data-feather="trash-2"></i>
+                    </button>
+                  {% endif %}
+                {% endif %}
+              </div>
+            {% endwith %}
+          </div>
+
+          <div class="process-card-content">
+
+                                 <div class="process-card-labels">
+            {% if p.is_historical %}
+              <span class="process-label process-label-muted">{% trans "Historical" %}</span>
+            {% elif p.labels.exists %}
+              {% for lab in p.labels.all|slice:":3" %}
+                <span class="process-label">{{ lab.name }}</span>
+              {% endfor %}
+              {% if p.labels.all|length > 3 %}
+                <span class="process-label process-label-muted">+{{ p.labels.all|length|add:"-3" }}</span>
+              {% endif %}
+            {% endif %}
+          </div>
+
+            <h2 class="process-title">{{ p.name }}</h2>
+
+            {% if p.is_historical %}
+              <div class="process-tests-block">
+                <span class="process-tests-label">{% trans "Assessments" %}</span>
+                <div class="process-tests-fallback">{% trans "Historical test data" %}</div>
+              </div>
+            {% elif p.selected_tests %}
+              <div class="process-tests-block">
+                <span class="process-tests-label">{% trans "Assessments" %}</span>
+                <div class="process-test-chips">
+                  {% for test in p.selected_tests %}
+                    <span class="process-test-chip">
+                      {% if test == "personality" %}
+                        {% trans "Personality" %}
+                      {% elif test == "motivation" %}
+                        {% trans "Motivation" %}
+                      {% elif test == "verbal" %}
+                        {% trans "Verbal" %}
+                      {% elif test == "logical" %}
+                        {% trans "Logical" %}
+                      {% elif test == "numerical" %}
+                        {% trans "Numerical" %}
+                      {% else %}
+                        {{ test|capfirst }}
+                      {% endif %}
+                    </span>.
+                  {% endfor %}
+                </div>
+              </div>
+            {% elif p.project_name_snapshot %}
+              <div class="process-tests-block">
+                <span class="process-tests-label">{% trans "Assessment setup" %}</span>
+                <div class="process-tests-fallback">{{ p.project_name_snapshot }}</div>
+              </div>
+            {% endif %}
+          </div>
+
+          <footer class="process-card-footer">
+            <div class="process-card-meta">
+              <div class="process-meta-item {% if p.is_complete %}is-completed{% endif %}">
+                <i data-feather="users"></i>
+                <strong>{{ p.completed_candidates_count }} / {{ p.candidates_count }}</strong>
+                <span>{% trans "Completed" %}</span>
+              </div>
+
+              {% if p.is_complete %}
+                <span class="process-progress-status is-completed">{% trans "Completed" %}</span>
+              {% elif p.started_candidates_count %}
+                <span class="process-progress-status is-started">{% trans "Started" %}</span>
+              {% else %}
+                <span class="process-progress-status">{% trans "Not started" %}</span>
+              {% endif %}
+
+              <div class="process-meta-item">
+                <i data-feather="calendar"></i>
+                <span>{{ p.created_at|date:"Y-m-d" }}</span>
+              </div>
+            </div>
+
+            <div class="process-card-open" aria-hidden="true">
+              <i data-feather="arrow-up-right"></i>
+            </div>
+          </footer>
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="process-empty-state">
+      <div class="process-empty-icon"><i data-feather="folder"></i></div>
+
+      {% if show_archived %}
+        <h2>{% trans "No archived projects" %}</h2>
+        <p>{% trans "When you archive a project, it will appear here." %}</p>
+      {% else %}
+        <h2>{% trans "You do not have any projects yet" %}</h2>
+        <p>{% trans "Create a project to start sending assessments to candidates." %}</p>
+        <a class="btn btn-primary" href="{% url 'processes:process_create' %}">{% trans "Create your first project" %}</a>
+      {% endif %}
+    </div>
+  {% endif %}
+
+</div>
+
+{# One shared dialog, outside the clickable project cards. #}
+<div
+  class="modal fade process-duplicate-modal"
+  id="duplicateProcessModal"
+  tabindex="-1"
+  aria-labelledby="duplicateProcessModalTitle"
+  aria-hidden="true"
+  data-copy-suffix="{% if list_language|slice:':2' == 'sv' %} (kopia){% else %} (copy){% endif %}"
+>
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form id="duplicateProcessForm" method="post" action="">
+        {% csrf_token %}
+        <input type="hidden" name="from_modal" value="1">
+        <input type="hidden" name="return_to_archived" value="{% if show_archived %}1{% else %}0{% endif %}">
+
+        <div class="modal-header process-duplicate-modal__header">
+          <div class="d-flex align-items-center gap-3">
+            <div class="process-duplicate-modal__icon" aria-hidden="true">
+              <i data-feather="copy"></i>
+            </div>
+            <div>
+              <h2 class="modal-title process-duplicate-modal__title" id="duplicateProcessModalTitle">
+                {% if list_language|slice:':2' == 'sv' %}Duplicera projekt{% else %}Duplicate project{% endif %}
+              </h2>
+              <p class="process-duplicate-modal__source">
+                {% if list_language|slice:':2' == 'sv' %}Kopiera inställningar från{% else %}Copy settings from{% endif %}
+                <strong id="duplicateProcessSource"></strong>
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="{% if list_language|slice:':2' == 'sv' %}Stäng{% else %}Close{% endif %}"
+          ></button>
+        </div>
+
+        <div class="modal-body process-duplicate-modal__body">
+          <label class="form-label fw-semibold" for="duplicateProcessName">
+            {% if list_language|slice:':2' == 'sv' %}Namn på nya projektet{% else %}New project name{% endif %}
+          </label>
+          <input
+            class="form-control process-duplicate-modal__input"
+            id="duplicateProcessName"
+            type="text"
+            name="name"
+            required
+            maxlength="255"
+            autocomplete="off"
+          >
+          <p class="process-duplicate-modal__hint">
+            <i data-feather="info" aria-hidden="true"></i>
+            {% if list_language|slice:':2' == 'sv' %}
+              Testkombination, rollkontext och inställningar följer med. Kandidater, inbjudningar och resultat kopieras inte.
+            {% else %}
+              Assessment setup, role context and settings are copied. Candidates, invitations and results are not.
+            {% endif %}
+          </p>
+        </div>
+
+        <div class="modal-footer process-duplicate-modal__footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+            {% if list_language|slice:':2' == 'sv' %}Avbryt{% else %}Cancel{% endif %}
+          </button>
+          <button type="submit" class="btn btn-primary" id="duplicateProcessSubmit">
+            <i data-feather="copy" aria-hidden="true"></i>
+            {% if list_language|slice:':2' == 'sv' %}Skapa kopia{% else %}Create copy{% endif %}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{# One shared Bootstrap confirmation for archive and restore. Without JS, the original POST form still works. #}
+<div class="modal fade process-duplicate-modal" id="projectStatusModal" tabindex="-1" aria-hidden="true" aria-labelledby="projectStatusTitle" aria-describedby="projectStatusDescription">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form id="projectStatusForm" method="post">
+        {% csrf_token %}
+        <div class="modal-header process-duplicate-modal__header">
+          <div class="d-flex align-items-center gap-3">
+            <div class="process-duplicate-modal__icon" aria-hidden="true">
+              <i data-feather="archive"></i>
+            </div>
+            <div>
+              <h2 class="modal-title process-duplicate-modal__title" id="projectStatusTitle">
+                <span data-project-status-copy="archive">{% if list_language|slice:':2' == 'sv' %}Arkivera projekt{% else %}Archive project{% endif %}</span>
+                <span data-project-status-copy="restore" hidden>{% if list_language|slice:':2' == 'sv' %}Återställ projekt{% else %}Restore project{% endif %}</span>
+              </h2>
+              <p class="process-duplicate-modal__source" id="projectStatusName"></p>
+            </div>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% if list_language|slice:':2' == 'sv' %}Stäng{% else %}Close{% endif %}"></button>
+        </div>
+        <div class="modal-body process-duplicate-modal__body" id="projectStatusDescription">
+          <p data-project-status-copy="archive" class="mb-0">
+            {% if list_language|slice:':2' == 'sv' %}
+              Vill du arkivera det här projektet? Det flyttas till Arkiverade projekt och kan återställas senare. Kandidater och testresultat raderas inte.
+            {% else %}
+              Archive this project? It will move to Archived projects and can be restored later. Candidates and assessment results will not be deleted.
+            {% endif %}
+          </p>
+          <p data-project-status-copy="restore" class="mb-0" hidden>
+            {% if list_language|slice:':2' == 'sv' %}
+              Vill du återställa projektet? Det flyttas tillbaka till Aktiva projekt. Kandidater och testresultat påverkas inte.
+            {% else %}
+              Restore this project? It will return to Active projects. Candidates and assessment results will not be affected.
+            {% endif %}
+          </p>
+        </div>
+        <div class="modal-footer process-duplicate-modal__footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+            {% if list_language|slice:':2' == 'sv' %}Avbryt{% else %}Cancel{% endif %}
+          </button>
+          <button type="submit" class="btn btn-primary" id="projectStatusSubmit">
+            <i data-feather="check"></i>
+            <span data-project-status-copy="archive">{% if list_language|slice:':2' == 'sv' %}Arkivera projekt{% else %}Archive project{% endif %}</span>
+            <span data-project-status-copy="restore" hidden>{% if list_language|slice:':2' == 'sv' %}Återställ projekt{% else %}Restore project{% endif %}</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{# Project deletion is distinct from archival and from full GDPR erasure. #}
+<div class="modal fade process-duplicate-modal" id="removeProjectModal" tabindex="-1" aria-hidden="true" aria-labelledby="removeProjectTitle">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form id="removeProjectForm" method="post">
+        {% csrf_token %}
+        <div class="modal-header process-duplicate-modal__header">
+          <div class="d-flex align-items-center gap-3">
+            <div class="process-duplicate-modal__icon" aria-hidden="true"><i data-feather="alert-triangle"></i></div>
+            <div>
+              <h2 class="modal-title process-duplicate-modal__title" id="removeProjectTitle">
+                {% if list_language|slice:':2' == 'sv' %}Ta bort projekt{% else %}Remove project{% endif %}
+              </h2>
+              <p class="process-duplicate-modal__source" id="removeProjectName"></p>
+            </div>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% if list_language|slice:':2' == 'sv' %}Stäng{% else %}Close{% endif %}"></button>
+        </div>
+        <div class="modal-body process-duplicate-modal__body">
+          <p id="removeProjectSafe">
+            {% if list_language|slice:':2' == 'sv' %}
+              Projektet är arkiverat och saknar beställda tester. Om du fortsätter raderas projektet och dess projektspecifika uppgifter permanent i Talena. Kandidaternas uppgifter i andra projekt påverkas inte.
+            {% else %}
+              This archived project has no ordered assessments. Continuing permanently deletes the project and its project-specific data from Talena. Candidate data in other projects is not affected.
+            {% endif %}
+          </p>
+          <p id="removeProjectBlocked" class="mb-0" hidden>
+            {% if list_language|slice:':2' == 'sv' %}
+              Det här projektet innehåller beställda tester eller faktureringsunderlag och kan inte raderas permanent ännu. Projektet ligger kvar i arkivet. Fullständig gallring hanteras separat.
+            {% else %}
+              This project contains ordered assessments or billing records and cannot yet be permanently deleted. It remains archived. Full erasure is handled separately.
+            {% endif %}
+          </p>
+        </div>
+        <div class="modal-footer process-duplicate-modal__footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+            {% if list_language|slice:':2' == 'sv' %}Avbryt{% else %}Cancel{% endif %}
+          </button>
+          <button id="removeProjectSubmit" type="submit" class="btn btn-danger">
+            <i data-feather="trash-2"></i>
+            {% if list_language|slice:':2' == 'sv' %}Radera projekt{% else %}Delete project{% endif %}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+  {{ block.super }}
+  <script src="{% static 'js/talena/process-list.js' %}?v=20261110-pinned-order-v1"></script>
+{% endblock %}

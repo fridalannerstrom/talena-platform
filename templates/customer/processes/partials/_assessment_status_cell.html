@@ -1,0 +1,41 @@
+{% comment %}
+Per-assessment project status shared by customer and admin project tables.
+A verified cognitive percentile replaces its completed icon. Completed
+personality/motivation checks are also buttons. All shortcuts open the existing,
+authorized candidate sheet at the matching result area.
+{% endcomment %}
+<span class="talena-assessment-state talena-assessment-state--{{ cell.tone }}{% if cell.has_percentile %} talena-assessment-state--percentile{% endif %}{% if cell.has_shortcut %} talena-assessment-state--shortcut{% endif %}"
+      data-assessment-status
+      data-state="{{ cell.state }}"
+      data-invitation-id="{{ inv.id }}"
+      data-test-key="{{ cell.key }}"
+      data-has-percentile="{% if cell.has_percentile %}true{% else %}false{% endif %}"
+      data-has-shortcut="{% if cell.has_shortcut %}true{% else %}false{% endif %}"
+      title="{{ cell.title }}"
+      role="{% if cell.has_percentile or cell.has_shortcut %}group{% else %}img{% endif %}"
+      aria-label="{{ cell.title }}"
+      tabindex="{% if cell.has_percentile or cell.has_shortcut %}-1{% else %}0{% endif %}">
+  <svg class="talena-assessment-state__symbol"
+       xmlns="http://www.w3.org/2000/svg"
+       width="16" height="16" viewBox="0 0 24 24"
+       fill="none" stroke="currentColor" stroke-width="1.8"
+       stroke-linecap="round" stroke-linejoin="round"
+       aria-hidden="true" focusable="false"
+       {% if cell.has_percentile %}hidden{% endif %}>
+    <path d="{{ cell.icon_path }}"></path>
+  </svg>
+  <button type="button"
+          class="talena-assessment-state__icon-link"
+          data-assessment-result-button
+          data-focus-test-key="{{ cell.key }}"
+          aria-label="{{ cell.shortcut_label }}"
+          {% if not cell.has_shortcut %}hidden{% endif %}></button>
+  <button type="button"
+          class="talena-assessment-state__percentile"
+          data-assessment-percentile-button
+          data-focus-test-key="{{ cell.key }}"
+          title="{{ cell.title }}"
+          aria-label="{{ cell.title }}"
+          {% if not cell.has_percentile %}hidden{% endif %}>{{ cell.percentile|default_if_none:"" }}</button>
+  <span class="visually-hidden talena-assessment-state__label">{{ cell.label }}</span>
+</span>

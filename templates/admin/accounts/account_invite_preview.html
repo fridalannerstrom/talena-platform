@@ -1,0 +1,28 @@
+{% load static %}
+<!doctype html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Talena · Förhandsvisa inbjudningsmejl</title>
+  <style>
+    body { margin:0; background:#f7f6f4; font-family:Arial,Helvetica,sans-serif; color:#231f1d; }
+    .preview-bar { display:flex; flex-wrap:wrap; align-items:center; gap:12px; justify-content:space-between; padding:16px 24px; background:#fff; border-bottom:1px solid #e6e0d9; }
+    .preview-heading { margin:0; font-size:16px; font-weight:700; }
+    .preview-info { font-size:12px; color:#716861; }
+    .preview-subject { padding:14px 24px; font-size:13px; background:#fff; border-bottom:1px solid #e6e0d9; }
+    .preview-body { width:100%; height:calc(100vh - 130px); min-height:690px; border:0; background:#f7f6f4; }
+  </style>
+</head>
+<body>
+  <header class="preview-bar">
+    <div>
+      <p class="preview-heading">Talena · Förhandsgranskning av kontoinbjudan</p>
+      <div class="preview-info">Endast exempeldata. Inga riktiga aktiveringslänkar skapas och inget mejl skickas.</div>
+    </div>
+    <button type="button" onclick="window.close()" style="padding:9px 16px;border:1px solid #ded8d2;border-radius:7px;background:white;cursor:pointer;">Stäng</button>
+  </header>
+  <div class="preview-subject"><strong>Ämne:</strong> {{ subject }}</div>
+  <iframe class="preview-body" sandbox="" title="Förhandsgranskning av mejlets HTML" srcdoc="{{ email_html }}"></iframe>
+</body>
+</html>

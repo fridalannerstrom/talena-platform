@@ -1,0 +1,7 @@
+/* Combined trait dynamics are stored as one backwards-compatible string
+   with a blank line between the two structured AI items. Preserve those
+   line breaks in both server-rendered and live-streamed content. */
+
+.process-page [data-personality-ai-dynamics] {
+  white-space: pre-line;
+}

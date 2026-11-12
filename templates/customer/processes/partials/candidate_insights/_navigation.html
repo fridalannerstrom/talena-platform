@@ -1,0 +1,101 @@
+{% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
+{# Candidate insights top-level navigation #}
+<section class="candidate-insights-navigation">
+
+  <div class="candidate-profile-tabs-wrap">
+
+    <div
+      class="candidate-profile-tabs"
+      role="tablist"
+      aria-label="{% trans 'Candidate insight areas' %}"
+    >
+
+      <button
+        type="button"
+        class="candidate-tab is-active"
+        role="tab"
+        aria-selected="true"
+        aria-controls="candidate-insights-panel-overview"
+        data-insights-tab="overview"
+      >
+        {% if LANGUAGE_CODE|slice:":2" == "sv" %}Överblick{% else %}Overview{% endif %}
+      </button>
+
+
+      <button
+        type="button"
+        class="candidate-tab {% if not has_personality_results %}opacity-50{% endif %}"
+        role="tab"
+        aria-selected="false"
+        aria-controls="candidate-insights-panel-personality"
+        data-insights-tab="personality"
+      >
+        {% trans "Personality" %}
+      </button>
+
+
+      <button
+        type="button"
+        class="candidate-tab {% if not has_motivation_results %}opacity-50{% endif %}"
+        role="tab"
+        aria-selected="false"
+        aria-controls="candidate-insights-panel-motivation"
+        data-insights-tab="motivation"
+      >
+        {% trans "Motivation" %}
+      </button>
+
+
+      <button
+        type="button"
+        class="candidate-tab {% if not has_ability_results %}opacity-50{% endif %}"
+        role="tab"
+        aria-selected="false"
+        aria-controls="candidate-insights-panel-cognitive"
+        data-insights-tab="cognitive"
+      >
+        {% if LANGUAGE_CODE|slice:":2" == "sv" %}Färdighet{% else %}Skills{% endif %}
+      </button>
+
+
+      <button
+        type="button"
+        class="candidate-tab {% if not has_personality_results %}opacity-50{% endif %}"
+        role="tab"
+        aria-selected="false"
+        aria-controls="candidate-insights-panel-reports"
+        data-insights-tab="reports"
+      >
+        {% trans "Reports" %}
+      </button>
+
+
+      <button
+        type="button"
+        class="candidate-tab"
+        role="tab"
+        aria-selected="false"
+        aria-controls="candidate-insights-panel-prepare-interview"
+        data-insights-tab="prepare-interview"
+      >
+        {% if LANGUAGE_CODE|slice:":2" == "sv" %}Inför intervju{% else %}Prepare for interview{% endif %}
+      </button>
+
+
+      <button
+        type="button"
+        class="candidate-tab"
+        role="tab"
+        aria-selected="false"
+        aria-controls="candidate-insights-panel-after-interview"
+        data-insights-tab="after-interview"
+      >
+        {% trans "After interview" %}
+      </button>
+
+    </div>
+
+  </div>
+
+</section>

@@ -1,0 +1,497 @@
+{% load i18n interview_config %}
+{% get_current_language as LANGUAGE_CODE %}
+{% interview_combined_sections as displayed_interview_sections %}
+{% interview_total_minutes displayed_interview_sections as total_interview_minutes %}
+{# Talena candidate i18n batch 1 #}
+
+<style>
+  /* Keep the interview guidance and saved assessment questions visually
+     inside one continuous card while preserving their independent logic. */
+  .process-page #candidate-insights-panel-prepare-interview > .final-output-card {
+    margin-bottom: 0 !important;
+    border-bottom-right-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+  }
+
+  .process-page #candidate-insights-panel-prepare-interview > .combined-questions-card {
+    margin-top: 0 !important;
+    padding: 1.35rem 1.2rem 1.15rem !important;
+    border: 1px solid var(--talena-border) !important;
+    border-top: 0 !important;
+    border-radius: 0 0 18px 18px !important;
+    background: #fff !important;
+    box-shadow: none !important;
+  }
+
+  /* Match the split question-card layout used in the assessment tabs. */
+  #layoutSidenav_content main .process-page [data-combined-questions-root]
+  .personality-question-list {
+    display: grid !important;
+    gap: 0.78rem !important;
+  }
+
+  #layoutSidenav_content main .process-page [data-combined-questions-root]
+  .personality-question-card {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1.14fr) minmax(300px, 0.86fr) !important;
+    gap: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    border: 1px solid var(--talena-border) !important;
+    border-radius: 10px !important;
+    background: #fff !important;
+    box-shadow: 0 8px 24px rgba(23, 19, 18, 0.025) !important;
+    transition:
+      border-color var(--talena-transition-fast),
+      box-shadow var(--talena-transition-fast),
+      transform var(--talena-transition-fast) !important;
+  }
+
+  #layoutSidenav_content main .process-page [data-combined-questions-root]
+  .personality-question-card:hover {
+    border-color: rgba(255, 111, 97, 0.32) !important;
+    box-shadow: 0 10px 28px rgba(23, 19, 18, 0.045) !important;
+    transform: translateY(-1px);
+  }
+
+  #layoutSidenav_content main .process-page [data-combined-questions-root]
+  .personality-question-card__header {
+    display: grid !important;
+    grid-template-columns: 34px minmax(0, 1fr) !important;
+    align-content: start !important;
+    align-items: start !important;
+    gap: 0.8rem !important;
+    min-width: 0 !important;
+    padding: 1.18rem 1.25rem !important;
+  }
+
+  #layoutSidenav_content main .process-page [data-combined-questions-root]
+  .personality-question-card__number {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 34px !important;
+    height: 34px !important;
+    min-width: 34px !important;
+    border: 1px solid rgba(255, 111, 97, 0.2) !important;
+    border-radius: 10px !important;
+    background: var(--talena-coral-soft) !important;
+    color: var(--talena-coral-strong) !important;
+    font-size: 0.66rem !important;
+    font-weight: 750 !important;
+  }
+
+  #layoutSidenav_content main .process-page [data-combined-questions-root]
+  .personality-question-card__heading {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    min-width: 0 !important;
+  }
+
+  #layoutSidenav_content main .process-page [data-combined-questions-root]
+  .personality-question-card__text {
+    max-width: 640px !important;
+    color: var(--talena-ink) !important;
+    font-size: 1.2rem !important;
+    font-weight: 550 !important;
+    line-height: 1.48 !important;
+    letter-spacing: -0.012em !important;
+  }
+
+  #layoutSidenav_content main .process-page [data-combined-questions-root]
+  .personality-question-card__details {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    gap: 0 !important;
+    min-width: 0 !important;
+    border-left: 1px solid var(--talena-border) !important;
+  }
+
+  #layoutSidenav_content main .process-page [data-combined-questions-root]
+  .personality-question-card__detail {
+    display: grid !important;
+    grid-template-columns: 26px minmax(0, 1fr) !important;
+    align-items: start !important;
+    gap: 0.65rem !important;
+    padding: 0.75rem 1.05rem !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  #layoutSidenav_content main .process-page [data-combined-questions-root]
+  .personality-question-card__detail + .personality-question-card__detail {
+    border-top: 1px solid rgba(23, 19, 18, 0.07) !important;
+  }
+
+  #layoutSidenav_content main .process-page [data-combined-questions-root]
+  .personality-question-card__detail-icon {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 26px !important;
+    height: 26px !important;
+    border: 1px solid rgba(255, 111, 97, 0.13) !important;
+    border-radius: 8px !important;
+    background: #fff !important;
+    color: var(--talena-coral-strong) !important;
+  }
+
+  #layoutSidenav_content main .process-page [data-combined-questions-root]
+  .personality-question-card__detail-icon svg {
+    width: 12px !important;
+    height: 12px !important;
+  }
+
+  #layoutSidenav_content main .process-page [data-combined-questions-root]
+  .personality-question-card__detail-title {
+    margin-bottom: 0.2rem !important;
+    color: var(--talena-ink) !important;
+    font-size: 0.75rem !important;
+    font-weight: 720 !important;
+    line-height: 1.35 !important;
+  }
+
+  #layoutSidenav_content main .process-page [data-combined-questions-root]
+  .personality-question-card__detail-text {
+    color: var(--talena-text-muted) !important;
+    font-size: 0.72rem !important;
+    line-height: 1.5 !important;
+  }
+
+  @media (max-width: 900px) {
+    #layoutSidenav_content main .process-page [data-combined-questions-root]
+    .personality-question-card {
+      grid-template-columns: 1fr !important;
+    }
+
+    #layoutSidenav_content main .process-page [data-combined-questions-root]
+    .personality-question-card__details {
+      border-top: 1px solid rgba(255, 111, 97, 0.16) !important;
+      border-left: 0 !important;
+    }
+  }
+
+  @media (max-width: 767px) {
+    .process-page #candidate-insights-panel-prepare-interview > .combined-questions-card {
+      padding: 1rem 0.9rem 0.9rem !important;
+    }
+  }
+
+  @media (max-width: 620px) {
+    #layoutSidenav_content main .process-page [data-combined-questions-root]
+    .personality-question-card__header {
+      padding: 1rem !important;
+    }
+  }
+</style>
+
+<section
+  class="
+    mb-4
+    purpose-fit-card
+    combined-questions-card
+  "
+  data-combined-questions-root
+  data-refresh-url="{{ combined_questions_refresh_url }}"
+>
+
+  <!-- HEADER -->
+  <div class="personality-questions-header">
+
+    <div>
+
+<h2 class="insight-summary-title mb-1">
+  {% trans "All assessment questions" %}
+</h2>
+
+<p class="text-muted small mb-0">
+  {% if LANGUAGE_CODE|slice:":2" == "sv" %}Här samlas inledande frågor och sparade intervjufrågor för Personlighet, Motivation och Färdighet. Frågorna finns också i respektive testområde.{% else %}This page brings together opening questions and saved interview questions for Personality, Motivation and Skills. The questions are also available within each assessment area.{% endif %}
+</p>
+
+    </div>
+
+
+    {% if has_combined_questions or displayed_interview_sections %}
+      <div class="d-flex align-items-center justify-content-end flex-wrap gap-2">
+        {% if has_combined_questions %}
+          <span class="personality-trait-pill text-nowrap">
+            {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+              {% if combined_question_count == 1 %}1 fråga{% else %}{{ combined_question_count }} frågor{% endif %}
+            {% else %}
+              {% blocktrans count question_count=combined_question_count %}
+                {{ question_count }} question
+              {% plural %}
+                {{ question_count }} questions
+              {% endblocktrans %}
+            {% endif %}
+          </span>
+        {% endif %}
+
+        {% if displayed_interview_sections %}
+          <span class="personality-trait-pill text-nowrap">
+            <i data-feather="clock"></i>
+            {% if LANGUAGE_CODE|slice:":2" == "sv" %}Totalt ~{{ total_interview_minutes }} min{% else %}Total ~{{ total_interview_minutes }} min{% endif %}
+          </span>
+        {% endif %}
+      </div>
+    {% endif %}
+
+  </div>
+
+
+  {% if displayed_interview_sections %}
+
+    <!-- QUESTION SECTIONS -->
+    <div class="combined-question-sections mt-4">
+
+      {% for section in displayed_interview_sections %}
+        {% interview_section_meta section.key as section_interview_meta %}
+
+        <section>
+
+          <!-- SECTION HEADER -->
+          <header class="combined-question-section__header mb-1 mt-4 pt-4 border-top">
+
+            <div class="combined-question-section__heading">
+              <div>
+
+                <h3 class="personality-questions-section-title mb-1">
+                  {{ section.title }}
+                </h3>
+
+                <p class="small text-muted mb-0">
+                  {{ section.description }}
+                </p>
+
+              </div>
+            </div>
+
+            <div class="combined-question-section__badges">
+
+              {% if section.question_count %}
+                <span class="personality-trait-pill text-nowrap">
+                  {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+                    {% if section.question_count == 1 %}1 fråga{% else %}{{ section.question_count }} frågor{% endif %}
+                  {% else %}
+                    {% blocktrans count question_count=section.question_count %}
+                      {{ question_count }} question
+                    {% plural %}
+                      {{ question_count }} questions
+                    {% endblocktrans %}
+                  {% endif %}
+                </span>
+              {% endif %}
+
+              <span class="personality-trait-pill text-nowrap">
+                <i data-feather="clock"></i>
+                ~ {{ section.estimated_minutes }} min
+              </span>
+
+            </div>
+
+          </header>
+
+          {% include "customer/processes/partials/candidate_insights/_interview_guidance.html" with interview_meta=section_interview_meta %}
+          {% include "customer/processes/partials/candidate_insights/_interview_static_questions.html" with interview_meta=section_interview_meta %}
+
+          {% if section.questions %}
+            <h4 class="personality-questions-section-title mt-4 mb-3">
+              {{ section_interview_meta.questions_label }}
+            </h4>
+          <!-- AI QUESTIONS -->
+          <div class="personality-question-list mt-3">
+
+            {% for item in section.questions %}
+
+              <article class="personality-question-card">
+
+                <!-- QUESTION HEADER -->
+                <div class="personality-question-card__header">
+
+                  <div class="personality-question-card__number">
+                    {{ forloop.counter }}
+                  </div>
+
+                  <div class="personality-question-card__heading">
+
+                    <div class="personality-question-card__text">
+                      {{ item.question }}
+                    </div>
+
+                  </div>
+
+                </div>
+
+                <!-- WHY + LISTEN FOR -->
+                {% if item.why or item.listen_for %}
+
+                  <div class="personality-question-card__details">
+
+                    {% if item.why %}
+
+                      <div class="personality-question-card__detail personality-question-card__detail--why">
+
+                        <div class="personality-question-card__detail-icon">
+                          <i data-feather="compass"></i>
+                        </div>
+
+                        <div>
+
+                          <div class="personality-question-card__detail-title">
+                            {% trans "Why this matters" %}
+                          </div>
+
+                          <div class="personality-question-card__detail-text">
+                            {{ item.why }}
+                          </div>
+
+                        </div>
+
+                      </div>
+
+                    {% endif %}
+
+                    {% if item.listen_for %}
+
+                      <div class="personality-question-card__detail personality-question-card__detail--listen">
+
+                        <div class="personality-question-card__detail-icon">
+                          <i data-feather="headphones"></i>
+                        </div>
+
+                        <div>
+
+                          <div class="personality-question-card__detail-title">
+                            {% trans "What to listen for" %}
+                          </div>
+
+                          <div class="personality-question-card__detail-text">
+                            {{ item.listen_for }}
+                          </div>
+
+                        </div>
+
+                      </div>
+
+                    {% endif %}
+
+                  </div>
+
+                {% endif %}
+
+              </article>
+
+            {% endfor %}
+
+          </div>
+          {% endif %}
+
+        </section>
+
+      {% endfor %}
+
+    </div>
+
+    <!-- DISCLAIMER -->
+    <div class="purpose-fit-disclaimer border-top pt-3 mt-4">
+
+      <i data-feather="info"></i>
+
+      <div>
+        {% if LANGUAGE_CODE|slice:":2" == "sv" %}Använd frågorna som stöd i intervjun och utforska testresultaten tillsammans med kandidatens egna exempel. Testresultat ska inte användas som ensamt beslutsunderlag.{% else %}Use these questions to support the interview and explore assessment results alongside the candidate's own examples. Assessment results should not be used as standalone decision evidence.{% endif %}
+      </div>
+
+    </div>
+
+  {% else %}
+
+    <!-- EMPTY STATE -->
+    <div class="combined-questions-empty-state mt-4">
+
+      <div class="combined-questions-empty-state__icon">
+        <i
+          data-feather="message-circle"
+          width="28"
+          height="28"
+        ></i>
+      </div>
+
+      <h3 class="personality-questions-section-title mb-2">
+        {% trans "No assessment questions are available yet" %}
+      </h3>
+
+      <p class="text-muted small mb-0">
+        {% blocktrans %}This page brings together the candidate’s currently saved questions from Personality, Motivation and Cognitive abilities. Questions can be changed or regenerated within each assessment category.{% endblocktrans %}
+      </p>
+
+    </div>
+
+  {% endif %}
+
+</section>
+
+{% if LANGUAGE_CODE|slice:":2" == "sv" %}
+<script>
+  (() => {
+    const root = document.getElementById('candidate-insights-panel-prepare-interview');
+    if (!root) return;
+
+    const translations = new Map([
+      ['Prepare for interview', 'Förbered inför intervju'],
+      ['Use the assessment evidence to prepare the conversation and focus the interview on areas that are useful to explore further.', 'Använd testresultaten för att förbereda samtalet och fokusera intervjun på områden som är värdefulla att utforska vidare.'],
+      ['Needs update', 'Behöver uppdateras'],
+      ['Generate updated decision support', 'Generera uppdaterat beslutsstöd'],
+      ['The project information has changed', 'Projektinformationen har ändrats'],
+      ['This interview preparation was created using an earlier purpose or project context. Generate an updated version before relying on it.', 'Den här intervjuförberedelsen skapades med ett tidigare syfte eller en tidigare projektkontext. Generera en uppdaterad version innan du använder den som underlag.'],
+      ['Combining the available evidence and preparing the interview…', 'Sammanställer tillgängligt underlag och förbereder intervjun…'],
+      ['The interview preparation could not be generated.', 'Intervjuförberedelsen kunde inte genereras.'],
+      ['Prepare the interview', 'Förbered intervjun'],
+      ['Generate an overall synthesis and practical guidance before reviewing the candidate-specific interview questions.', 'Generera en övergripande sammanställning och praktisk vägledning innan du går igenom de kandidatspecifika intervjufrågorna.'],
+      ['Generate interview preparation', 'Generera intervjuförberedelse'],
+      ['Overall synthesis', 'Övergripande sammanställning'],
+      ['AI-generated insight', 'AI-genererad insikt'],
+      ['How to approach the conversation', 'Så kan du lägga upp samtalet'],
+      ['Practical interview guidance based on how the candidate used the personality questionnaire response scale.', 'Praktisk intervjuguide baserad på hur kandidaten använde svarsskalan i personlighetstestet.'],
+      ['Recommended approach', 'Rekommenderat upplägg'],
+      ['Questions to explore', 'Frågor att utforska'],
+      ['Response-style interview guidance is not available yet.', 'Intervjuguide baserad på svarsstil är inte tillgänglig ännu.']
+    ]);
+
+    const applySwedishLabels = () => {
+      const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+      let node;
+
+      while ((node = walker.nextNode())) {
+        const value = node.nodeValue;
+        const trimmed = value.trim();
+        const replacement = translations.get(trimmed);
+
+        if (replacement) {
+          node.nodeValue = value.replace(trimmed, replacement);
+        }
+      }
+
+      root.querySelectorAll('[title], [aria-label]').forEach((element) => {
+        ['title', 'aria-label'].forEach((attribute) => {
+          const value = element.getAttribute(attribute);
+          const replacement = translations.get(value);
+          if (replacement) element.setAttribute(attribute, replacement);
+        });
+      });
+    };
+
+    applySwedishLabels();
+
+    const observer = new MutationObserver(applySwedishLabels);
+    observer.observe(root, {
+      childList: true,
+      subtree: true,
+      characterData: true
+    });
+  })();
+</script>
+{% endif %}

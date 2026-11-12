@@ -1,0 +1,265 @@
+{% load static i18n %}
+
+<link href="{% static 'css/talena/pages/process-structure.css' %}" rel="stylesheet" />
+<link href="{% static 'css/talena/pages/process-detail.css' %}" rel="stylesheet" />
+<link href="{% static 'css/talena/pages/process-detail-consistency.css' %}" rel="stylesheet" />
+<link href="{% static 'css/talena/pages/process-modals.css' %}" rel="stylesheet" />
+<link href="{% static 'css/talena/pages/process-notices.css' %}" rel="stylesheet" />
+<link href="{% static 'css/talena/pages/candidate-insights.css' %}?v=20261110-467-v2" rel="stylesheet" />
+<link href="{% static 'css/talena/pages/personality-dynamics.css' %}" rel="stylesheet" />
+<link href="{% static 'css/talena/pages/candidate-assessments.css' %}?v=20261101-364" rel="stylesheet" />
+<link href="{% static 'css/talena/pages/candidate-charts.css' %}" rel="stylesheet" />
+<link href="{% static 'css/talena/pages/personality-trait-scale-experiment.css' %}?v=personality-compact-365-20261101" rel="stylesheet" />
+<link href="{% static 'css/talena/pages/candidate-sheet-utilities.css' %}" rel="stylesheet" />
+<link href="{% static 'css/talena/pages/candidate-ai-update.css' %}" rel="stylesheet" />
+<link href="{% static 'css/talena/pages/candidate-decision-support.css' %}" rel="stylesheet" />
+<link href="{% static 'css/talena/pages/process-candidate-polish.css' %}" rel="stylesheet" />
+<link href="{% static 'css/talena/pages/process-overview-polish.css' %}" rel="stylesheet" />
+<link href="{% static 'css/talena/pages/candidate-eyebrows.css' %}?v=20261107-428-tooltip-v1" rel="stylesheet" />
+<link href="{% static 'css/talena/pages/candidate-insight-tabs.css' %}?v=20261107-after-interview-flush-padding" rel="stylesheet" />
+<script src="{% static 'js/talena/candidate-chart-theme.js' %}" defer></script>
+<script src="{% static 'js/talena/candidate-copy-link.js' %}" defer></script>
+<script src="{% static 'js/talena/candidate-eyebrows.js' %}?v=20261107-rolecontext-v6" defer></script>
+<script src="{% static 'js/talena/candidate-ai-badges.js' %}?v=20261107-ai-generated-only-v4" defer></script>
+<script src="{% static 'js/talena/pre-interview-briefing.js' %}" defer></script>
+<script src="{% static 'js/talena/bulk-candidates.js' %}?v=197-submit-url" defer></script>
+
+<div class="process-hero mb-4">
+
+  <!-- =====================================================
+       HERO TOP
+       ===================================================== -->
+
+  <div class="process-hero__top">
+
+    <!-- LEFT CONTENT -->
+    <div class="process-hero__left">
+
+      <div class="process-hero__meta">
+
+        <!-- Labels -->
+        <div class="process-hero__labels mb-2">
+
+          {% if process.labels.all %}
+            {% for label in process.labels.all %}
+              <span class="process-label">
+                {{ label }}
+              </span>
+            {% endfor %}
+          {% endif %}
+
+          {% if process.is_historical %}
+            <span class="process-label">
+              {% trans "Historical" %}
+            </span>
+          {% endif %}
+
+        </div>
+
+        <!-- Process name -->
+        <h1 class="process-hero__title">
+          {{ process.name }}
+        </h1>
+
+        <!-- Created by -->
+        <div class="text-muted small">
+
+          {% trans "Created by" %}
+
+          <span class="fw-semibold">
+            {% if process.created_by %}
+              {{ process.created_by.get_full_name|default:process.created_by.email }}
+            {% else %}
+              {% trans "Unknown user" %}
+            {% endif %}
+          </span>
+
+          {% if process.created_at %}
+            · {{ process.created_at|date:"Y-m-d H:i" }}
+          {% endif %}
+
+        </div>
+
+        <!-- Process details -->
+        <div class="process-hero__details mt-3">
+
+          <!-- Purpose -->
+          {% if not process.is_historical %}
+            <div class="process-mini-info">
+
+              <div class="text-muted small mb-1">
+                {% trans "Purpose" %}
+              </div>
+
+              <div class="quick-card-title mt-0">
+                {% if process_purpose %}
+                  {{ process_purpose.label }}
+                {% else %}
+                  {% trans "Not selected" %}
+                {% endif %}
+              </div>
+
+            </div>
+          {% endif %}
+
+          <!-- Assessments -->
+          <div class="process-mini-info">
+
+            <div class="text-muted small mb-1">
+              {% trans "Assessments" %}
+            </div>
+
+            {% if process.selected_tests %}
+              <div class="d-flex flex-wrap gap-1 mt-1">
+
+                {% for test in process.selected_tests %}
+                  <span class="process-pill process-pill-dark">
+
+                    {% if test == "personality" %}
+                      {% trans "Personality" %}
+                    {% elif test == "motivation" %}
+                      {% trans "Motivation" %}
+                    {% elif test == "verbal" %}
+                      {% trans "Verbal" %}
+                    {% elif test == "logical" %}
+                      {% trans "Logical" %}
+                    {% elif test == "numerical" %}
+                      {% trans "Numerical" %}
+                    {% else %}
+                      {{ test|capfirst }}
+                    {% endif %}
+
+                  </span>
+                {% endfor %}
+
+              </div>
+            {% else %}
+              <div class="quick-card-title mt-0">
+                {% trans "Not specified" %}
+              </div>
+            {% endif %}
+
+          </div>
+
+          <!-- Candidate language -->
+          {% if not process.is_historical %}
+            <div class="process-mini-info">
+
+              <div class="text-muted small mb-1">
+                {% trans "Candidate language" %}
+              </div>
+
+              <div class="quick-card-title mt-0">
+                {% if process.candidate_language == "en" %}
+                  {% trans "English" %}
+                {% else %}
+                  {% trans "Swedish" %}
+                {% endif %}
+              </div>
+
+            </div>
+          {% endif %}
+
+        </div>
+        <!-- /process-hero__details -->
+
+      </div>
+      <!-- /process-hero__meta -->
+
+    </div>
+    <!-- /process-hero__left -->
+
+    <!-- RIGHT ACTIONS -->
+    <div class="process-hero__right">
+
+      {% if process.is_historical %}
+
+        <span class="process-readonly-pill">
+          <i class="fa-regular fa-eye me-1"></i>
+          {% trans "Read-only archive" %}
+        </span>
+
+      {% elif can_edit %}
+
+        <button
+          type="button"
+          class="btn btn-outline-secondary js-selfreg"
+        >
+          <i class="fa-solid fa-link me-2"></i>
+          {% trans "Self-registration" %}
+        </button>
+
+        <button
+          type="button"
+          class="btn btn-primary js-add-candidate"
+          data-url="{% url 'processes:process_add_candidates' process.id %}"
+        >
+          <i class="fa-solid fa-user-plus me-2"></i>
+          {% trans "Add candidate" %}
+        </button>
+
+      {% else %}
+
+        <span class="process-readonly-pill">
+          <i class="fa-regular fa-eye me-1"></i>
+          {% trans "Read-only" %}
+        </span>
+
+      {% endif %}
+
+    </div>
+    <!-- /process-hero__right -->
+
+  </div>
+  <!-- /process-hero__top -->
+
+  <!-- =====================================================
+       PROCESS NAVIGATION
+       ===================================================== -->
+
+  <nav class="process-nav">
+
+    <!-- Overview -->
+    <a
+      class="process-nav__item {% if active == 'overview' %}is-active{% endif %}"
+      href="{% url 'processes:process_detail' process.id %}"
+    >
+      {% trans "Overview" %}
+    </a>
+
+    {% if not process.is_historical %}
+
+      <!-- Role / Process context -->
+      <a
+        class="process-nav__item {% if active == 'context' %}is-active{% endif %}"
+        href="{% url 'processes:process_role_context' process.id %}"
+      >
+        {% if context_config.tab_label %}
+          {{ context_config.tab_label }}
+        {% else %}
+          {% trans "Project context" %}
+        {% endif %}
+      </a>
+
+      <!-- Email templates -->
+      <a
+        class="process-nav__item {% if active == 'email_templates' %}is-active{% endif %}"
+        href="{% url 'emails:edit_process_invitation_template' process.id %}"
+      >
+        {% trans "Email templates" %}
+      </a>
+
+      <!-- Settings -->
+      <a
+        class="process-nav__item {% if active == 'settings' %}is-active{% endif %}"
+        href="{% url 'processes:process_update' process.id %}"
+      >
+        {% trans "Settings" %}
+      </a>
+
+    {% endif %}
+
+  </nav>
+
+</div>
+<!-- /process-hero -->

@@ -1,0 +1,37 @@
+/* =========================================================
+   TALENA — CANDIDATE SHEET UTILITIES
+   ---------------------------------------------------------
+   Small states used inside the candidate sheet that do not
+   belong to assessment or AI layout files.
+   ========================================================= */
+
+.process-page .candidate-ai-card.is-disabled {
+  opacity: 0.82;
+}
+
+.process-page .candidate-ai-disabled {
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 2rem;
+  text-align: center;
+}
+
+.process-page .candidate-ai-disabled__icon {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border: 1px solid rgba(255, 111, 97, 0.16);
+  border-radius: 50%;
+  background: var(--talena-coral-soft);
+  color: var(--talena-coral-strong);
+}
+
+.process-page .candidate-ai-disabled__icon svg {
+  width: 18px;
+  height: 18px;
+}

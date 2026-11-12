@@ -1,0 +1,50 @@
+"""
+URL configuration for config project.
+
+The `urlpatterns` list routes URLs to views. For more information please see:
+    https://docs.djangoproject.com/en/6.0/topics/http/urls/
+Examples:
+Function views
+    1. Add an import:  from my_app import views
+    2. Add a URL to urlpatterns:  path('', views.home, name='home')
+Class-based views
+    1. Add an import:  from other_app.views import Home
+    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
+Including another URLconf
+    1. Import the include() function: from django.urls import include, path
+    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
+"""
+from django.contrib import admin
+from django.urls import path, include
+from apps.processes import views as process_views
+from django.conf import settings
+from django.conf.urls.static import static
+
+
+urlpatterns = [
+    path("i18n/", include("django.conf.urls.i18n")),
+    # Django admin (om du behöver den)
+    path("django-admin/", admin.site.urls),
+
+    # Core (login/logout, dashboards, health, webhooks etc)
+    path("", include(("apps.core.urls", "core"), namespace="core")),
+
+    # Talena admin (din egen adminyta för kundhantering)
+    path("tq-admin/", include(("apps.accounts.urls", "accounts"), namespace="accounts")),
+
+    # Feature-appar
+    path("", include("apps.projects.urls")),
+    path("processes/", include("apps.processes.urls")),
+    path("r/<uuid:token>/", process_views.self_register, name="self_register"),
+    path("", include("apps.emails.urls")),
+    path("portal/", include(("apps.portal.urls", "portal"), namespace="portal")),
+    path("candidate-results/", include(("apps.candidate_results.urls", "candidate_results"), namespace="candidate_results")),
+    path("integrations/", include("apps.core.integrations.urls")),
+    path("chat/", include("apps.ai_chat.urls")),
+    path("candidates/", include("apps.candidates.urls")),
+    path("teams/", include("apps.teams.urls")),
+] 
+
+
+if settings.DEBUG and not settings.USE_AZURE_STORAGE:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

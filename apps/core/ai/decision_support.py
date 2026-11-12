@@ -1,0 +1,3615 @@
+from __future__ import annotations
+
+from .candidate_name_privacy import redact_candidate_name
+
+import json
+from typing import Any, Iterable
+
+from django.db import transaction
+from django.utils import timezone
+
+# Talena final output pre-interview language batch 1
+from .language import (
+    get_ai_language_instruction,
+    get_ai_language_update_fields,
+    get_ai_system_language_instruction,
+    normalize_ai_language,
+    set_ai_content_language,
+)
+
+from .openai_client import (
+    get_chat_model,
+    get_openai_client,
+)
+from .motivation_interpretation import (
+    extract_motivation_results,
+    get_motivation_factor_display_name,
+)
+from .shared_context import (
+    build_shared_ai_context,
+    get_process_purpose_key,
+)
+
+from .prompt_templates import (
+    get_ai_prompt_instructions,
+    get_ai_feature_prompt_instructions,
+    get_global_ai_guidance,
+)
+
+POST_INTERVIEW_CONTENT_BLOCK_KEYS = (
+    "overall_picture",
+    "interview_summary",  # Legacy: retained for saved history/admin prompts.
+    "explore_further",
+    "wellbeing_tips",
+)
+# #442: only visible sections are required in new compilations. Historic
+# interview_summary text remains in the stored content_blocks contract.
+ACTIVE_POST_INTERVIEW_CONTENT_BLOCK_KEYS = (
+    "overall_picture",
+    "explore_further",
+    "wellbeing_tips",
+)
+
+# ============================================================
+# Shared normalisation helpers
+# ============================================================
+
+
+def _clean_text(value: Any) -> str:
+    return str(value or "").strip()
+
+
+def _clean_string_list(
+    value: Any,
+    *,
+    limit: int | None = None,
+) -> list[str]:
+    if not isinstance(value, list):
+        return []
+
+    items = (
+        value[:limit]
+        if limit is not None
+        else value
+    )
+
+    return [
+        _clean_text(item)
+        for item in items
+        if _clean_text(item)
+    ]
+
+
+def _normalise_question(
+    item: Any,
+) -> dict[str, str] | None:
+    if isinstance(item, str):
+        question = _clean_text(item)
+
+        if not question:
+            return None
+
+        return {
+            "question": question,
+            "why": "",
+            "listen_for": "",
+        }
+
+    if not isinstance(item, dict):
+        return None
+
+    question = _clean_text(
+        item.get("question")
+    )
+
+    if not question:
+        return None
+
+    return {
+        "question": question,
+        "why": _clean_text(
+            item.get("why")
+        ),
+        "listen_for": _clean_text(
+            item.get("listen_for")
+        ),
+    }
+
+
+def _normalise_questions(
+    value: Any,
+    *,
+    limit: int | None = None,
+) -> list[dict[str, str]]:
+    if not isinstance(value, list):
+        return []
+
+    questions = []
+
+    items = (
+        value[:limit]
+        if limit is not None
+        else value
+    )
+
+    for item in items:
+        question = _normalise_question(
+            item
+        )
+
+        if question:
+            questions.append(
+                question
+            )
+
+    return questions
+
+
+def _format_text_field(
+    label: str,
+    value: Any,
+) -> str:
+    text = _clean_text(value)
+
+    if not text:
+        return ""
+
+    return f"{label}:\n{text}"
+
+
+def _format_list_field(
+    label: str,
+    value: Any,
+    *,
+    limit: int = 6,
+) -> str:
+    items = _clean_string_list(
+        value,
+        limit=limit,
+    )
+
+    if not items:
+        return ""
+
+    return (
+        f"{label}:\n"
+        + "\n".join(
+            f"- {item}"
+            for item in items
+        )
+    )
+
+
+# ============================================================
+# Evidence collection
+# ============================================================
+
+
+
+def _build_motivation_assessment_evidence(
+    owner,
+    *,
+    language_code: str | None = None,
+) -> str:
+    """Return only the authoritative, localized Sova top-three scores."""
+    results = extract_motivation_results(owner)
+    if not results:
+        return ""
+
+    ranked_results = sorted(
+        results,
+        key=lambda item: (
+            -item["score"],
+            item["name"].lower(),
+        ),
+    )
+    top_three = ranked_results[:3]
+    lines = [
+        "AUTHORITATIVE TOP THREE MOTIVATION FACTORS",
+        "These factor names and their rank come directly from the Sova "
+        "Motivation Questionnaire STIVE scores.",
+        "Use these exact factor names in this exact order when describing "
+        "the candidate's three leading motivators. Do not substitute factors "
+        "based on personality results, interview notes or role context.",
+        "Do not describe or list any other motivation factor in the overall "
+        "picture, even if another source mentions it.",
+        "Use the exact supplied display names; do not use English source names "
+        "when Swedish names are supplied.",
+    ]
+    lines.extend(
+        f"{rank}. {get_motivation_factor_display_name(item['name'], language_code=language_code)} "
+        f"— STIVE {item['score']} of 5"
+        for rank, item in enumerate(top_three, start=1)
+    )
+    return "\n".join(lines)
+
+
+
+def build_pre_interview_evidence(
+    owner,
+    *,
+    language_code: str | None = None,
+) -> dict[str, Any]:
+    """
+    Collect existing saved Talena interpretations.
+
+    No new interpretation is created here. This prepares the
+    source material used by the final pre-interview synthesis.
+    """
+
+    sections = []
+    source_names = []
+
+    def add_section(
+        *,
+        title: str,
+        status: str,
+        content_parts: list[str],
+    ):
+        content = [
+            part
+            for part in content_parts
+            if part
+        ]
+
+        if not content:
+            return
+
+        sections.append(
+            "\n".join([
+                f"SOURCE: {title}",
+                f"STATUS: {status or 'not_started'}",
+                *content,
+            ])
+        )
+
+        if title not in source_names:
+            source_names.append(title)
+
+    # --------------------------------------------------------
+    # AI Overview
+    # --------------------------------------------------------
+
+    overview = (
+        owner.ai_purpose_fit
+        or {}
+    )
+
+    add_section(
+        title="AI Overview",
+        status=(
+            owner.ai_purpose_fit_status
+            or "not_started"
+        ),
+        content_parts=[
+            _format_text_field(
+                "Overall summary",
+                overview.get("summary"),
+            ),
+            _format_list_field(
+                "Purpose-relevant indications",
+                overview.get("key_alignment"),
+            ),
+            _format_list_field(
+                "Topics to explore",
+                overview.get("areas_to_verify"),
+            ),
+            _format_text_field(
+                "Suggested next step",
+                overview.get(
+                    "suggested_next_step"
+                ),
+            ),
+            _format_text_field(
+                "Context note",
+                overview.get("context_note"),
+            ),
+        ],
+    )
+
+    # --------------------------------------------------------
+    # Personality interpretation
+    # --------------------------------------------------------
+
+    personality = (
+        owner.ai_personality_interpretation
+        or {}
+    )
+
+    add_section(
+        title="Personality interpretation",
+        status=(
+            owner
+            .ai_personality_interpretation_status
+            or "not_started"
+        ),
+        content_parts=[
+            _format_text_field(
+                "Interpretation",
+                personality.get(
+                    "interpretation"
+                ),
+            ),
+            _format_text_field(
+                "Profile dynamics",
+                personality.get(
+                    "profile_dynamics"
+                ),
+            ),
+            _format_list_field(
+                "Supportive patterns",
+                personality.get(
+                    "supportive_patterns"
+                ),
+            ),
+            _format_list_field(
+                "Areas to explore",
+                personality.get(
+                    "areas_to_explore"
+                ),
+            ),
+            _format_text_field(
+                "Context note",
+                personality.get(
+                    "context_note"
+                ),
+            ),
+        ],
+    )
+
+    # --------------------------------------------------------
+    # Authoritative Sova motivation results
+    # --------------------------------------------------------
+
+    motivation_assessment_evidence = (
+        _build_motivation_assessment_evidence(
+            owner,
+            language_code=language_code,
+        )
+    )
+
+    add_section(
+        title="Motivation assessment results",
+        status="available",
+        content_parts=[
+            motivation_assessment_evidence,
+        ],
+    )
+
+    # --------------------------------------------------------
+    # Motivation interpretation
+    # --------------------------------------------------------
+
+    motivation = (
+        owner.ai_motivation_interpretation
+        or {}
+    )
+
+    add_section(
+        title="Motivation interpretation",
+        status=(
+            owner
+            .ai_motivation_interpretation_status
+            or "not_started"
+        ),
+        content_parts=[
+            _format_text_field(
+                "Interpretation",
+                motivation.get(
+                    "interpretation"
+                ),
+            ),
+            _format_list_field(
+                "Engagement conditions",
+                motivation.get(
+                    "engagement_conditions"
+                ),
+            ),
+            _format_list_field(
+                "Areas to clarify",
+                motivation.get(
+                    "areas_to_clarify"
+                ),
+            ),
+            _format_text_field(
+                "Expectation setting",
+                motivation.get(
+                    "expectation_setting"
+                ),
+            ),
+            _format_text_field(
+                "Context note",
+                motivation.get(
+                    "context_note"
+                ),
+            ),
+        ],
+    )
+
+    # --------------------------------------------------------
+    # Cognitive interpretation
+    # --------------------------------------------------------
+
+    cognitive = (
+        owner.ai_cognitive_interpretation
+        or {}
+    )
+
+    add_section(
+        title="Cognitive interpretation",
+        status=(
+            owner
+            .ai_cognitive_interpretation_status
+            or "not_started"
+        ),
+        content_parts=[
+            _format_text_field(
+                "Interpretation",
+                cognitive.get(
+                    "interpretation"
+                ),
+            ),
+            _format_list_field(
+                "Considerations",
+                cognitive.get(
+                    "considerations"
+                ),
+            ),
+            _format_text_field(
+                "Context note",
+                cognitive.get(
+                    "context_note"
+                ),
+            ),
+        ],
+    )
+
+    # --------------------------------------------------------
+    # Response-style guidance
+    # --------------------------------------------------------
+
+    response_styles = (
+        owner.ai_response_style_guidance
+        or {}
+    )
+
+    add_section(
+        title="Response-style guidance",
+        status=(
+            owner
+            .ai_response_style_guidance_status
+            or "not_started"
+        ),
+        content_parts=[
+            _format_text_field(
+                "Summary",
+                response_styles.get(
+                    "summary"
+                ),
+            ),
+            _format_text_field(
+                "How to interpret",
+                response_styles.get(
+                    "how_to_interpret"
+                ),
+            ),
+            _format_text_field(
+                "Recommended discussion approach",
+                response_styles.get(
+                    "recommended_approach"
+                ),
+            ),
+            _format_text_field(
+                "Combination note",
+                response_styles.get(
+                    "combination_note"
+                ),
+            ),
+            _format_text_field(
+                "Context note",
+                response_styles.get(
+                    "context_note"
+                ),
+            ),
+        ],
+    )
+
+    # --------------------------------------------------------
+    # Available question bank
+    # --------------------------------------------------------
+
+    question_sources = [
+        {
+            "title": "Personality questions",
+            "result": (
+                owner.ai_personality_questions
+                or {}
+            ),
+        },
+        {
+            "title": "Motivation questions",
+            "result": (
+                owner.ai_motivation_questions
+                or {}
+            ),
+        },
+        {
+            "title": "Cognitive questions",
+            "result": (
+                owner.ai_cognitive_questions
+                or {}
+            ),
+        },
+        {
+            "title": "Response-style questions",
+            "result": response_styles,
+        },
+    ]
+
+    question_lines = []
+
+    for source in question_sources:
+        questions = _normalise_questions(
+            source["result"].get(
+                "questions"
+            ),
+            limit=None,
+        )
+
+        for question in questions:
+            line_parts = [
+                (
+                    f"[{source['title']}] "
+                    f"{question['question']}"
+                ),
+            ]
+
+            if question["why"]:
+                line_parts.append(
+                    f"Why: {question['why']}"
+                )
+
+            if question["listen_for"]:
+                line_parts.append(
+                    (
+                        "Listen for: "
+                        f"{question['listen_for']}"
+                    )
+                )
+
+            question_lines.append(
+                " | ".join(line_parts)
+            )
+
+    if question_lines:
+        question_text = "\n".join(
+            f"- {line}"
+            for line in question_lines
+        )
+    else:
+        question_text = (
+            "No saved assessment questions "
+            "are available."
+        )
+
+    evidence_text = (
+        "\n\n".join(sections)
+        if sections
+        else (
+            "No completed Talena assessment "
+            "interpretations are available."
+        )
+    )
+
+    return {
+        "evidence_text": evidence_text,
+        "question_text": question_text,
+        "source_names": source_names,
+        "source_count": len(source_names),
+        "has_evidence": bool(sections),
+    }
+
+
+# ============================================================
+# Prompt
+# ============================================================
+
+
+# Talena final output pre-interview language batch 1
+def _get_pre_interview_language_examples(
+    language_code: str | None,
+) -> dict[str, str]:
+    language_code = normalize_ai_language(
+        language_code
+    )
+
+    if language_code == "sv":
+        return {
+            "title": "Beslutsstöd inför intervjun",
+            "label": "AI-stött förberedande beslutsunderlag",
+            "synthesis_1": "Första delen av den övergripande syntesen. ",
+            "synthesis_2": "Nästa del av den övergripande syntesen. ",
+            "indication_title": "Kort tematisk rubrik",
+            "indication_interpretation": (
+                "Försiktig och praktisk tolkning av temat."
+            ),
+            "caution_title": "Område som kräver försiktig tolkning",
+            "caution_interpretation": (
+                "Detta behöver valideras och sättas i rätt sammanhang."
+            ),
+            "caution_reason": (
+                "Ytterligare beteendeexempel eller kontext saknas."
+            ),
+            "feedback_1": "Första konstruktiva återkopplingspunkten",
+            "feedback_2": "Andra konstruktiva återkopplingspunkten",
+            "focus_1": "Första fokusområdet för intervjun",
+            "focus_2": "Andra fokusområdet för intervjun",
+            "question": "Öppen och icke-ledande valideringsfråga",
+            "why": "Varför frågan hjälper till att nyansera underlaget",
+            "listen_for": (
+                "Vilka konkreta exempel och nyanser som är viktiga att lyssna efter"
+            ),
+            "gap_1": (
+                "Kandidatens exempel och intervjuunderlag har ännu inte lagts till."
+            ),
+            "gap_2": "Ytterligare relevant underlag som fortfarande saknas.",
+            "context_note": (
+                "Kort och transparent förklaring av vilket underlag som användes, "
+                "vad som saknas och att det slutliga beslutet fattas av en människa."
+            ),
+        }
+
+    return {
+        "title": "Pre-interview decision support",
+        "label": "AI-supported decision preparation",
+        "synthesis_1": "First part of the synthesis. ",
+        "synthesis_2": "Next part of the synthesis. ",
+        "indication_title": "Theme title",
+        "indication_interpretation": "Cautious practical interpretation",
+        "caution_title": "Area requiring caution",
+        "caution_interpretation": "What should be interpreted cautiously",
+        "caution_reason": "Why caution is required",
+        "feedback_1": "Feedback point one",
+        "feedback_2": "Feedback point two",
+        "focus_1": "Interview focus one",
+        "focus_2": "Interview focus two",
+        "question": "Open question",
+        "why": "Why this helps",
+        "listen_for": "What evidence or nuance to listen for",
+        "gap_1": (
+            "Candidate examples and interview evidence have not yet been added."
+        ),
+        "gap_2": "Another relevant evidence gap.",
+        "context_note": (
+            "Transparent explanation of the evidence used, evidence missing "
+            "and the human user's responsibility for the final decision."
+        ),
+    }
+
+def build_pre_interview_decision_support_prompt(
+    owner,
+    *,
+    language_code: str | None = None,
+) -> str:
+    """
+    Build Talena's pre-interview decision-support prompt.
+
+    Administrator guidance controls all non-technical analysis,
+    synthesis, prioritisation and communication decisions.
+
+    Talena protects only input provenance and the technical
+    streaming/output contract.
+    """
+
+    language_code = normalize_ai_language(
+        language_code
+    )
+
+    language_instruction = (
+        get_ai_language_instruction(
+            language_code
+        )
+    )
+
+    examples = (
+        _get_pre_interview_language_examples(
+            language_code
+        )
+    )
+
+    admin_instructions = (
+        get_ai_prompt_instructions(
+            key=(
+                "pre_interview_"
+                "decision_support"
+            ),
+            language=language_code,
+        )
+    )
+
+    shared_context = build_shared_ai_context(
+        owner
+    )
+
+    candidate = shared_context["candidate"]
+
+    evidence = build_pre_interview_evidence(
+        owner,
+        language_code=language_code,
+    )
+
+    source_names = (
+        ", ".join(
+            evidence["source_names"]
+        )
+        or "No completed interpretation sources"
+    )
+
+    return f"""
+TALENA INPUT DATA
+
+CANDIDATE
+Reference: CANDIDATE_A
+
+SELECTED PROCESS PURPOSE
+Purpose: {shared_context["purpose_label"]}
+
+PROCESS CONTEXT
+{shared_context["context_text"] or "No additional process context supplied."}
+
+AVAILABLE TALENA SOURCE LABELS
+{source_names}
+
+SAVED ASSESSMENT INTERPRETATION EVIDENCE
+{evidence["evidence_text"]}
+
+AVAILABLE SAVED QUESTION BANK
+{evidence["question_text"]}
+
+INTERVIEW EVIDENCE
+No interview notes, candidate examples or interview answers are
+included in this pre-interview input.
+
+
+ADMINISTRATOR AI GUIDANCE
+
+The following guidance is controlled by Talena administrators.
+
+It controls all non-technical decisions about:
+
+- evidence interpretation
+- assessment principles
+- synthesis
+- prioritisation
+- use of process purpose
+- use of process context
+- treatment of missing evidence
+- caution
+- conclusions
+- discussion guidance
+- question selection and creation
+- number of items in each section
+- tone
+- communication style
+
+{admin_instructions}
+
+
+TALENA TECHNICAL OUTPUT CONTRACT
+
+The following requirements exist only so Talena can process,
+stream, save and display the result.
+
+Administrator guidance controls the substantive content and the
+number of items inside the arrays.
+
+Administrator guidance must not change:
+
+- required event names
+- required JSON field names
+- NDJSON structure
+
+
+OUTPUT LANGUAGE
+
+{language_instruction}
+
+All user-facing text must use the configured output language.
+
+
+SOURCE PROVENANCE
+
+Values inside the evidence_sources field must use only source labels
+that are actually supplied in AVAILABLE TALENA SOURCE LABELS.
+
+Do not invent technical source labels.
+
+
+STREAMING FORMAT
+
+Return newline-delimited JSON, also called NDJSON.
+
+Every JSON object must appear on one single line.
+
+Do not use Markdown.
+Do not use code fences.
+Do not add text outside the JSON objects.
+
+
+REQUIRED EVENT STRUCTURE
+
+
+1. META
+
+{{"type":"meta","title":"{examples["title"]}","label":"{examples["label"]}"}}
+
+
+2. OVERALL SYNTHESIS
+
+Return the synthesis using one or more
+overall_synthesis_delta events:
+
+{{"type":"overall_synthesis_delta","text":"{examples["synthesis_1"]}"}}
+
+
+3. PURPOSE-RELEVANT INDICATIONS
+
+Return one purpose_relevant_indications event.
+
+Each item must preserve these fields:
+
+- title
+- interpretation
+- evidence_sources
+
+The administrator guidance determines the number of items.
+
+Example:
+
+{{"type":"purpose_relevant_indications","items":[{{"title":"{examples["indication_title"]}","interpretation":"{examples["indication_interpretation"]}","evidence_sources":["AI Overview"]}}]}}
+
+
+4. CAUTIOUS INTERPRETATIONS
+
+Return one cautious_interpretations event.
+
+Each item must preserve:
+
+- title
+- interpretation
+- reason_for_caution
+
+Example:
+
+{{"type":"cautious_interpretations","items":[{{"title":"{examples["caution_title"]}","interpretation":"{examples["caution_interpretation"]}","reason_for_caution":"{examples["caution_reason"]}"}}]}}
+
+
+5. DISCUSSION GUIDANCE
+
+Return one discussion_guidance event with these exact fields:
+
+- feedback_approach
+- interview_focus
+
+Both fields must be arrays.
+
+The administrator guidance determines the number of items.
+
+Example:
+
+{{"type":"discussion_guidance","feedback_approach":["{examples["feedback_1"]}"],"interview_focus":["{examples["focus_1"]}"]}}
+
+
+6. VALIDATION QUESTIONS
+
+Return one validation_questions event.
+
+Every question item must preserve:
+
+- question
+- why
+- listen_for
+
+The administrator guidance determines the number of questions.
+
+why and listen_for may be empty strings when the administrator
+guidance does not require substantive content.
+
+Example:
+
+{{"type":"validation_questions","items":[{{"question":"{examples["question"]}","why":"{examples["why"]}","listen_for":"{examples["listen_for"]}"}}]}}
+
+
+7. EVIDENCE GAPS
+
+Return one evidence_gaps event.
+
+The administrator guidance determines the number of items.
+
+{{"type":"evidence_gaps","items":["{examples["gap_1"]}"]}}
+
+
+8. CONTEXT NOTE
+
+Return one context_note event:
+
+{{"type":"context_note","text":"{examples["context_note"]}"}}
+
+
+9. DONE
+
+Finish with:
+
+{{"type":"done"}}
+""".strip()
+
+# ============================================================
+# Empty result
+# ============================================================
+
+
+def create_empty_pre_interview_decision_support(
+    owner,
+    *,
+    language_code: str | None = None,
+) -> dict[str, Any]:
+    language_code = normalize_ai_language(
+        language_code
+    )
+    examples = _get_pre_interview_language_examples(
+        language_code
+    )
+
+    return {
+        "_language": language_code,
+        "title": examples["title"],
+        "label": examples["label"],
+        "overall_synthesis": "",
+        "purpose_relevant_indications": [],
+        "cautious_interpretations": [],
+        "discussion_guidance": {
+            "feedback_approach": [],
+            "interview_focus": [],
+        },
+        "validation_questions": [],
+        "evidence_gaps": [],
+        "context_note": "",
+    }
+
+
+# ============================================================
+# Event normalisation
+# ============================================================
+
+
+def _normalise_indication_items(
+    value: Any,
+) -> list[dict[str, Any]]:
+    if not isinstance(value, list):
+        return []
+
+    items = []
+
+    for item in value:
+        if not isinstance(item, dict):
+            continue
+
+        title = _clean_text(
+            item.get("title")
+        )
+        interpretation = _clean_text(
+            item.get("interpretation")
+        )
+
+        if not title or not interpretation:
+            continue
+
+        evidence_sources = (
+            _clean_string_list(
+                item.get(
+                    "evidence_sources"
+                ),
+                limit=5,
+            )
+        )
+
+        items.append({
+            "title": title,
+            "interpretation": interpretation,
+            "evidence_sources": (
+                evidence_sources
+            ),
+        })
+
+    return items
+
+
+def _normalise_caution_items(
+    value: Any,
+) -> list[dict[str, str]]:
+    if not isinstance(value, list):
+        return []
+
+    items = []
+
+    for item in value:
+        if not isinstance(item, dict):
+            continue
+
+        title = _clean_text(
+            item.get("title")
+        )
+        interpretation = _clean_text(
+            item.get("interpretation")
+        )
+        reason = _clean_text(
+            item.get(
+                "reason_for_caution"
+            )
+        )
+
+        if not title or not interpretation:
+            continue
+
+        items.append({
+            "title": title,
+            "interpretation": interpretation,
+            "reason_for_caution": reason,
+        })
+
+    return items
+
+
+# ============================================================
+# Apply streamed events
+# ============================================================
+
+
+def apply_pre_interview_decision_support_event(
+    result: dict[str, Any],
+    event: dict[str, Any],
+) -> dict[str, Any]:
+    event_type = event.get("type")
+
+    if event_type == "meta":
+        title = _clean_text(
+            event.get("title")
+        )
+        label = _clean_text(
+            event.get("label")
+        )
+
+        if title:
+            result["title"] = title
+
+        if label:
+            result["label"] = label
+
+    elif event_type == "overall_synthesis_delta":
+        result["overall_synthesis"] += str(
+            event.get("text")
+            or ""
+        )
+
+    elif event_type == "purpose_relevant_indications":
+        result[
+            "purpose_relevant_indications"
+        ] = _normalise_indication_items(
+            event.get("items")
+        )
+
+    elif event_type == "cautious_interpretations":
+        result[
+            "cautious_interpretations"
+        ] = _normalise_caution_items(
+            event.get("items")
+        )
+
+    elif event_type == "discussion_guidance":
+        result["discussion_guidance"] = {
+            "feedback_approach": (
+                _clean_string_list(
+                    event.get(
+                        "feedback_approach"
+                    ),
+                    limit=None,
+                )
+            ),
+            "interview_focus": (
+                _clean_string_list(
+                    event.get(
+                        "interview_focus"
+                    ),
+                    limit=None,
+                )
+            ),
+        }
+
+    elif event_type == "evidence_gaps":
+        result["evidence_gaps"] = (
+            _clean_string_list(
+                event.get("items"),
+                limit=None,
+            )
+        )
+
+    elif event_type == "evidence_gaps":
+        result["evidence_gaps"] = (
+            _clean_string_list(
+                event.get("items"),
+                limit=4,
+            )
+        )
+
+    elif event_type == "context_note":
+        result["context_note"] = (
+            _clean_text(
+                event.get("text")
+            )
+        )
+
+    return result
+
+
+# ============================================================
+# NDJSON parsing
+# ============================================================
+
+# AI content blocks may contain literal line breaks inside JSON strings
+# when an administrator prompt requests headings or multiple paragraphs.
+# Keep the protected JSON/event contract, but parse those text values
+# tolerantly so valid user-facing content is not discarded.
+_JSON_DECODER = json.JSONDecoder(strict=False)
+
+
+def _normalise_event_type(
+    value: Any,
+) -> str:
+    """
+    Normalise minor formatting differences in AI event names.
+    """
+
+    event_type = (
+        str(value or "")
+        .strip()
+        .lower()
+        .replace("-", "_")
+        .replace(" ", "_")
+    )
+
+    aliases = {
+        "supported_evidence": (
+            "supported_indications"
+        ),
+        "supported_assessment_indications": (
+            "supported_indications"
+        ),
+        "evidence_supporting_indications": (
+            "supported_indications"
+        ),
+        "interview_nuance": (
+            "added_nuance"
+        ),
+        "interview_adds_nuance": (
+            "added_nuance"
+        ),
+        "added_context": (
+            "added_nuance"
+        ),
+        "remaining_uncertainty": (
+            "remaining_uncertainties"
+        ),
+        "suggested_followup": (
+            "suggested_follow_up"
+        ),
+        "follow_up": (
+            "suggested_follow_up"
+        ),
+    }
+
+    return aliases.get(
+        event_type,
+        event_type,
+    )
+
+
+def _extract_json_events_from_buffer(
+    buffer: str,
+) -> tuple[list[dict[str, Any]], str]:
+    """
+    Extract complete JSON objects from a streaming text buffer.
+
+    Unlike line-based NDJSON parsing, this also supports JSON
+    objects formatted across multiple lines.
+    """
+
+    events: list[dict[str, Any]] = []
+    remaining = buffer
+
+    while True:
+        remaining = remaining.lstrip()
+
+        if not remaining:
+            return events, ""
+
+        # Ignore Markdown code-fence openings.
+        if remaining.startswith("```"):
+            newline_index = remaining.find(
+                "\n"
+            )
+
+            if newline_index == -1:
+                return events, remaining
+
+            remaining = remaining[
+                newline_index + 1:
+            ]
+
+            continue
+
+        object_start = remaining.find("{")
+
+        if object_start == -1:
+            # Keep a small trailing fragment in case the next
+            # stream chunk completes an opening JSON object.
+            return events, remaining[-200:]
+
+        if object_start > 0:
+            remaining = remaining[
+                object_start:
+            ]
+
+        try:
+            payload, end_index = (
+                _JSON_DECODER.raw_decode(
+                    remaining
+                )
+            )
+        except json.JSONDecodeError:
+            # The JSON object is probably incomplete. Keep it
+            # until more stream content arrives.
+            return events, remaining
+
+        remaining = remaining[
+            end_index:
+        ]
+
+        if not isinstance(
+            payload,
+            dict,
+        ):
+            continue
+
+        event_type = _normalise_event_type(
+            payload.get("type")
+        )
+
+        if not event_type:
+            continue
+
+        payload["type"] = event_type
+        events.append(payload)
+
+
+
+def _parse_event_line(
+    raw_line: str,
+) -> dict[str, Any] | None:
+    line = raw_line.strip()
+
+    if not line:
+        return None
+
+    if line in {
+        "```",
+        "```json",
+        "```ndjson",
+    }:
+        return None
+
+    try:
+        event = json.loads(line)
+    except json.JSONDecodeError:
+        return None
+
+    if not isinstance(event, dict):
+        return None
+
+    event_type = _normalise_event_type(
+        event.get("type")
+    )
+
+    if not event_type:
+        return None
+
+    event["type"] = event_type
+
+    return event
+
+
+# ============================================================
+# Streaming
+# ============================================================
+
+
+def stream_pre_interview_decision_support(
+    *,
+    owner,
+    language_code: str | None = None,
+) -> Iterable[dict[str, Any]]:
+    language_code = normalize_ai_language(
+        language_code
+    )
+
+    evidence = build_pre_interview_evidence(
+        owner,
+        language_code=language_code,
+    )
+
+    if not evidence["has_evidence"]:
+        raise ValueError(
+            "No completed Talena interpretations "
+            "are available for decision support."
+        )
+
+    client = get_openai_client()
+
+    prompt = (
+        build_pre_interview_decision_support_prompt(
+            owner,
+            language_code=language_code,
+        )
+    )
+
+    prompt = redact_candidate_name(prompt, owner.candidate)
+
+    stream = client.chat.completions.create(
+        model=get_chat_model(),
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "You are an AI component inside Talena. "
+                    "Follow the administrator-provided AI guidance for "
+                    "all non-technical assessment synthesis, reasoning, "
+                    "prioritisation, question selection and communication "
+                    "decisions. "
+                    "Follow Talena's technical output contract exactly, "
+                    "including required JSON field names, event types "
+                    "and streaming format. "
+                    f"{get_ai_system_language_instruction(
+                        language_code,
+                        owner=owner,
+                    )}"
+                ),
+            },
+            {
+                "role": "user",
+                "content": prompt,
+            },
+        ],
+        temperature=0.2,
+        stream=True,
+    )
+
+    buffer = ""
+
+    for response_event in stream:
+        delta = (
+            response_event
+            .choices[0]
+            .delta
+        )
+
+        if (
+            not delta
+            or not delta.content
+        ):
+            continue
+
+        buffer += delta.content
+
+        parsed_events, buffer = (
+            _extract_json_events_from_buffer(
+                buffer
+            )
+        )
+
+        for parsed_event in parsed_events:
+            yield parsed_event
+
+    parsed_events, buffer = (
+        _extract_json_events_from_buffer(
+            buffer
+        )
+    )
+
+    for parsed_event in parsed_events:
+        yield parsed_event
+
+    trailing_content = (
+        buffer
+        .replace("```json", "")
+        .replace("```ndjson", "")
+        .replace("```", "")
+        .strip()
+    )
+
+    if trailing_content:
+        final_event = _parse_event_line(
+            trailing_content
+        )
+
+        if final_event:
+            yield final_event
+
+
+# ============================================================
+# Saving
+# ============================================================
+
+
+def save_pre_interview_decision_support(
+    *,
+    owner,
+    result: dict[str, Any],
+    language_code: str | None = None,
+):
+    language_code = normalize_ai_language(
+        language_code
+    )
+    result["_language"] = language_code
+    set_ai_content_language(
+        owner,
+        "pre_interview_decision_support",
+        language_code,
+    )
+
+    result["overall_synthesis"] = (
+        _clean_text(
+            result.get(
+                "overall_synthesis"
+            )
+        )
+    )
+
+    result["context_note"] = (
+        _clean_text(
+            result.get(
+                "context_note"
+            )
+        )
+    )
+
+    result[
+        "purpose_relevant_indications"
+    ] = _normalise_indication_items(
+        result.get(
+            "purpose_relevant_indications"
+        )
+    )
+
+    result[
+        "cautious_interpretations"
+    ] = _normalise_caution_items(
+        result.get(
+            "cautious_interpretations"
+        )
+    )
+
+    discussion_guidance = (
+        result.get(
+            "discussion_guidance"
+        )
+        or {}
+    )
+
+    result["discussion_guidance"] = {
+        "feedback_approach": (
+            _clean_string_list(
+                discussion_guidance.get(
+                    "feedback_approach"
+                ),
+                limit=None,
+            )
+        ),
+        "interview_focus": (
+            _clean_string_list(
+                discussion_guidance.get(
+                    "interview_focus"
+                ),
+                limit=None,
+            )
+        ),
+    }
+
+    result["validation_questions"] = (
+        _normalise_questions(
+            result.get(
+                "validation_questions"
+            ),
+            limit=None,
+        )
+    )
+
+    result["evidence_gaps"] = (
+        _clean_string_list(
+            result.get(
+                "evidence_gaps"
+            ),
+            limit=None,
+        )
+    )
+
+    owner.ai_pre_interview_decision_support = (
+        result
+    )
+
+    owner.ai_pre_interview_decision_support_status = (
+        "completed"
+    )
+
+    owner.ai_pre_interview_decision_support_generated_at = (
+        timezone.now()
+    )
+
+    owner.ai_pre_interview_decision_support_purpose = (
+        get_process_purpose_key(
+            owner.process
+        )
+    )
+
+    owner.save(
+        update_fields=[
+            (
+                "ai_pre_interview_"
+                "decision_support"
+            ),
+            (
+                "ai_pre_interview_"
+                "decision_support_status"
+            ),
+            (
+                "ai_pre_interview_"
+                "decision_support_generated_at"
+            ),
+            (
+                "ai_pre_interview_"
+                "decision_support_purpose"
+            ),
+            *get_ai_language_update_fields(
+                owner
+            ),
+        ]
+    )
+
+
+# ============================================================
+# Post-interview decision support
+# ============================================================
+
+
+def create_empty_post_interview_decision_support(
+    owner,
+) -> dict[str, Any]:
+    return {
+        "title": (
+            "Post-interview decision support"
+        ),
+        "label": (
+            "Assessment and interview synthesis"
+        ),
+        "overall_synthesis": "",
+        "supported_indications": [],
+        "added_nuance": [],
+        "contradictions": [],
+        "remaining_uncertainties": [],
+        "suggested_follow_up": [],
+        "content_blocks": {
+            key: ""
+            for key in POST_INTERVIEW_CONTENT_BLOCK_KEYS
+        },
+        "context_note": "",
+    }
+
+
+def _normalise_supported_evidence_items(
+    value: Any,
+    *,
+    limit: int | None = None,
+) -> list[dict[str, str]]:
+    if not isinstance(value, list):
+        return []
+
+    items = []
+
+    source_items = (
+        value[:limit]
+        if limit is not None
+        else value
+    )
+
+    for item in source_items:
+        if not isinstance(item, dict):
+            continue
+
+        title = _clean_text(
+            item.get("title")
+        )
+
+        assessment_indication = _clean_text(
+            item.get(
+                "assessment_indication"
+            )
+        )
+
+        interview_evidence = _clean_text(
+            item.get(
+                "interview_evidence"
+            )
+        )
+
+        interpretation = _clean_text(
+            item.get("interpretation")
+        )
+
+        if not title or not interpretation:
+            continue
+
+        items.append({
+            "title": title,
+            "assessment_indication": (
+                assessment_indication
+            ),
+            "interview_evidence": (
+                interview_evidence
+            ),
+            "interpretation": interpretation,
+        })
+
+    return items
+
+def _normalise_nuance_items(
+    value: Any,
+    *,
+    limit: int | None = None,
+) -> list[dict[str, str]]:
+    if not isinstance(value, list):
+        return []
+
+    items = []
+
+    source_items = (
+        value[:limit]
+        if limit is not None
+        else value
+    )
+
+    for item in source_items:
+        if not isinstance(item, dict):
+            continue
+
+        title = _clean_text(
+            item.get("title")
+        )
+
+        assessment_indication = _clean_text(
+            item.get(
+                "assessment_indication"
+            )
+        )
+
+        interview_evidence = _clean_text(
+            item.get(
+                "interview_evidence"
+            )
+        )
+
+        interpretation = _clean_text(
+            item.get("interpretation")
+        )
+
+        if not title or not interpretation:
+            continue
+
+        items.append({
+            "title": title,
+            "assessment_indication": (
+                assessment_indication
+            ),
+            "interview_evidence": (
+                interview_evidence
+            ),
+            "interpretation": interpretation,
+        })
+
+    return items
+
+
+def _normalise_contradiction_items(
+    value: Any,
+    *,
+    limit: int | None = None,
+) -> list[dict[str, str]]:
+    if not isinstance(value, list):
+        return []
+
+    items = []
+
+    source_items = (
+        value[:limit]
+        if limit is not None
+        else value
+    )
+
+    for item in source_items:
+        if not isinstance(item, dict):
+            continue
+
+        title = _clean_text(
+            item.get("title")
+        )
+
+        assessment_evidence = _clean_text(
+            item.get(
+                "assessment_evidence"
+            )
+        )
+
+        interview_evidence = _clean_text(
+            item.get(
+                "interview_evidence"
+            )
+        )
+
+        interpretation = _clean_text(
+            item.get("interpretation")
+        )
+
+        if not title or not interpretation:
+            continue
+
+        items.append({
+            "title": title,
+            "assessment_evidence": (
+                assessment_evidence
+            ),
+            "interview_evidence": (
+                interview_evidence
+            ),
+            "interpretation": interpretation,
+        })
+
+    return items
+
+
+def build_post_interview_decision_support_prompt(
+    owner,
+    *,
+    language_code: str | None = None,
+) -> str:
+    shared_context = build_shared_ai_context(
+        owner
+    )
+
+    candidate = shared_context["candidate"]
+
+    purpose_label = shared_context[
+        "purpose_label"
+    ]
+
+    context_text = shared_context[
+        "context_text"
+    ]
+
+    context_data = shared_context[
+        "context_data"
+    ]
+
+    evidence = build_pre_interview_evidence(
+        owner,
+        language_code=language_code,
+    )
+
+    interview_notes = _clean_text(
+        owner.interview_notes
+    )
+
+    pre_interview_result = (
+        owner.ai_pre_interview_decision_support
+        or {}
+    )
+
+    if not interview_notes:
+        raise ValueError(
+            "Interview notes must be added before "
+            "post-interview decision support can be generated."
+        )
+
+    if context_data:
+        context_instruction = """
+Use the supplied process context when explaining why assessment and
+interview evidence may be relevant.
+
+Do not assume that the context describes every requirement of the role.
+Do not turn contextual relevance into a suitability conclusion.
+""".strip()
+
+    else:
+        context_instruction = """
+No additional process context has been supplied.
+
+Keep the synthesis broad and state clearly that practical relevance
+depends on the real role, situation or development context.
+
+Do not invent role requirements.
+""".strip()
+
+    pre_interview_text = json.dumps(
+        pre_interview_result,
+        ensure_ascii=False,
+        indent=2,
+    )
+
+    return f"""
+You are generating POST-INTERVIEW DECISION SUPPORT for Talena, an
+assessment and talent management platform.
+
+You are an experienced and careful assessment practitioner.
+
+Your role is to compare structured assessment indications with interview
+evidence, candidate examples and interviewer observations.
+
+You organise the available evidence and explain uncertainty.
+
+You do not make the final decision.
+
+CANDIDATE
+Reference: CANDIDATE_A
+
+SELECTED PROCESS PURPOSE
+Purpose: {purpose_label}
+
+PROCESS CONTEXT
+{context_text}
+
+CONTEXT INSTRUCTION
+{context_instruction}
+
+SAVED ASSESSMENT INTERPRETATION EVIDENCE
+{evidence["evidence_text"]}
+
+PRE-INTERVIEW DECISION SUPPORT
+{pre_interview_text}
+
+INTERVIEW NOTES AND CANDIDATE EXAMPLES
+{interview_notes}
+
+YOUR TASK
+
+Create a clear, balanced and practically useful post-interview decision
+support document.
+
+Compare the interview evidence with the assessment indications.
+
+Identify:
+
+1. Assessment indications that receive relevant support from concrete
+   interview examples.
+2. Interview evidence that adds important context or nuance.
+3. Apparent contradictions or tensions that should not be resolved
+   automatically.
+4. Areas where the evidence remains incomplete or uncertain.
+5. Useful follow-up actions or questions.
+
+THIS IS NOT A MATCHING VERDICT
+
+Never:
+- provide a match score, fit score or suitability score
+- state that the candidate is or is not a match
+- state that the candidate is suitable or unsuitable
+- recommend hiring, rejecting, selecting, promoting or excluding
+  the candidate
+- rank the candidate
+- predict future performance
+- present interview statements as independently verified facts
+- treat one example as proof of a stable behaviour
+- treat a low assessment score as an automatic weakness
+- treat a high assessment score as an automatic strength
+- resolve contradictions without sufficient evidence
+- invent experience or examples not present in the notes
+- assume the interviewer interpretation is objectively correct
+
+EVIDENCE RULES
+
+Distinguish clearly between:
+
+- assessment indication
+- candidate-provided example
+- interviewer observation
+- your cautious synthesis
+- evidence that remains missing
+
+Assessment results are indicators and hypotheses, not facts.
+
+Interview notes may contain:
+- direct candidate statements
+- summaries written by the interviewer
+- interviewer interpretations
+- incomplete or subjective observations
+
+Do not treat all interview-note content as equally strong evidence.
+
+Concrete behavioural examples should generally carry more weight than:
+- broad self-descriptions
+- hypothetical answers
+- unsupported interviewer impressions
+- general claims without context
+
+Do not ignore tensions between assessment and interview evidence.
+
+A tension does not necessarily mean that either source is incorrect.
+It may indicate:
+- context-dependent behaviour
+- learned coping strategies
+- differences between preference and capability
+- incomplete evidence
+- differences between test conditions and practical work
+
+NUMERICAL AND COGNITIVE RESULTS
+
+Do not conclude that a comparatively low numerical result means the
+candidate cannot succeed in a development role.
+
+Instead:
+- consider what numerical demands the actual role contains
+- identify practical strategies described by the candidate
+- distinguish rapid abstract reasoning from careful applied work
+- consider checking, testing, documentation and review behaviours
+- state clearly what has and has not been demonstrated
+
+Do not minimise a relevant cognitive result simply because the candidate
+gave a positive interview example.
+
+LANGUAGE AND TONE
+
+- Write in professional, clear English.
+- Refer to the candidate without using any personal name.
+- Use cautious language.
+- Avoid absolute statements.
+- Avoid technical psychometric jargon where plain language works.
+- Do not repeat the same point across sections.
+- Keep each item practical and evidence-based.
+
+OVERALL SYNTHESIS
+
+Write approximately 160 to 240 words.
+
+It should:
+- integrate assessment and interview evidence
+- identify supported indications and important nuance
+- mention relevant uncertainty
+- avoid separate mini-reports for each assessment
+- explain that the final judgement remains with the human user
+
+SUPPORTED INDICATIONS
+
+Return between 2 and 4 items.
+
+Each item must contain:
+
+- title
+- assessment_indication
+- interview_evidence
+- interpretation
+
+Only include an item when the interview notes contain a reasonably
+relevant example or observation.
+
+Do not call these confirmed strengths.
+
+ADDED NUANCE
+
+Return between 2 and 4 items.
+
+Each item must contain:
+
+- title
+- assessment_indication
+- interview_evidence
+- interpretation
+
+Use this section where interview evidence:
+- adds context
+- shows conditions affecting behaviour
+- suggests coping strategies
+- limits an overly broad interpretation
+- shows differences between preference and practical behaviour
+
+CONTRADICTIONS
+
+Return between 0 and 3 items.
+
+Each item must contain:
+
+- title
+- assessment_evidence
+- interview_evidence
+- interpretation
+
+Only include genuine tensions.
+
+Do not manufacture contradictions merely to fill the section.
+
+Explain plausible interpretations without deciding which source is right.
+
+REMAINING UNCERTAINTIES
+
+Return between 0 and 5 concise items.
+
+Include important questions that remain unanswered after considering both
+assessment and interview evidence.
+
+Do not invent uncertainties merely to fill this section.
+If the available evidence does not support a meaningful remaining
+uncertainty, return an empty items list.
+
+SUGGESTED FOLLOW-UP
+
+Return between 2 and 5 concise actions or questions.
+
+These may include:
+- targeted follow-up questions
+- work samples
+- references
+- technical exercises
+- clarification of role demands
+- further examples
+
+Do not recommend a selection decision.
+
+CONTEXT NOTE
+
+Briefly explain:
+- that assessment interpretations and interview notes were used
+- that interview evidence may contain subjective or unverified material
+- that the output does not determine suitability
+- that the final decision remains with the responsible human user
+
+STREAMING OUTPUT FORMAT
+
+Return newline-delimited JSON, also called NDJSON.
+
+Every JSON object must appear on one single line.
+Do not use Markdown.
+Do not use code fences.
+Do not add text outside the JSON objects.
+
+Return events in this exact order:
+
+1. One meta event:
+
+{{"type":"meta","title":"Post-interview decision support","label":"Assessment and interview synthesis"}}
+
+2. Between 4 and 8 overall_synthesis_delta events:
+
+{{"type":"overall_synthesis_delta","text":"First part of the synthesis. "}}
+
+3. One supported_indications event:
+
+{{"type":"supported_indications","items":[{{"title":"Theme title","assessment_indication":"Relevant assessment indication","interview_evidence":"Relevant interview example","interpretation":"Cautious synthesis"}}]}}
+
+4. One added_nuance event:
+
+{{"type":"added_nuance","items":[{{"title":"Theme title","assessment_indication":"Relevant assessment indication","interview_evidence":"Relevant interview evidence","interpretation":"How the interview evidence adds nuance"}}]}}
+
+5. One contradictions event:
+
+{{"type":"contradictions","items":[{{"title":"Tension title","assessment_evidence":"Assessment evidence","interview_evidence":"Interview evidence","interpretation":"Balanced explanation of the tension"}}]}}
+
+The items list may be empty when no genuine contradiction is present.
+
+6. One remaining_uncertainties event:
+
+{{"type":"remaining_uncertainties","items":["Uncertainty one","Uncertainty two"]}}
+
+7. One suggested_follow_up event:
+
+{{"type":"suggested_follow_up","items":["Follow-up action one","Follow-up action two"]}}
+
+8. One context_note event:
+
+{{"type":"context_note","text":"Transparent explanation of the evidence used, limitations and human responsibility for the final decision."}}
+
+9. One final done event:
+
+{{"type":"done"}}
+""".strip()
+
+
+def apply_post_interview_decision_support_event(
+    result: dict[str, Any],
+    event: dict[str, Any],
+) -> dict[str, Any]:
+    event_type = event.get("type")
+
+    if event_type == "meta":
+        title = _clean_text(
+            event.get("title")
+        )
+
+        label = _clean_text(
+            event.get("label")
+        )
+
+        if title:
+            result["title"] = title
+
+        if label:
+            result["label"] = label
+
+    elif event_type == "overall_synthesis_delta":
+        result["overall_synthesis"] += str(
+            event.get("text")
+            or ""
+        )
+
+    elif event_type == "content_blocks":
+        blocks = event.get("blocks")
+        if isinstance(blocks, dict):
+            result["content_blocks"] = {
+                key: _clean_text(blocks.get(key))
+                for key in POST_INTERVIEW_CONTENT_BLOCK_KEYS
+            }
+
+    elif event_type == "supported_indications":
+        result["supported_indications"] = (
+            _normalise_supported_evidence_items(
+                event.get("items"),
+                limit=None,
+            )
+        )
+
+    elif event_type == "added_nuance":
+        result["added_nuance"] = (
+            _normalise_nuance_items(
+                event.get("items"),
+                limit=None,
+            )
+        )
+
+    elif event_type == "contradictions":
+        result["contradictions"] = (
+            _normalise_contradiction_items(
+                event.get("items"),
+                limit=None,
+            )
+        )
+
+    elif event_type == "remaining_uncertainties":
+        result["remaining_uncertainties"] = (
+            _clean_string_list(
+                event.get("items"),
+                limit=None,
+            )
+        )
+
+    elif event_type == "suggested_follow_up":
+        result["suggested_follow_up"] = (
+            _clean_string_list(
+                event.get("items"),
+                limit=None,
+            )
+        )
+
+    elif event_type == "context_note":
+        result["context_note"] = (
+            _clean_text(
+                event.get("text")
+            )
+        )
+
+    return result
+
+
+def stream_post_interview_decision_support(
+    *,
+    owner,
+) -> Iterable[dict[str, Any]]:
+    interview_notes = _clean_text(
+        owner.interview_notes
+    )
+
+    if not interview_notes:
+        raise ValueError(
+            "Interview notes must be added before "
+            "post-interview decision support can be generated."
+        )
+
+    evidence = build_pre_interview_evidence(
+        owner
+    )
+
+    if not evidence["has_evidence"]:
+        raise ValueError(
+            "No completed Talena interpretations "
+            "are available for decision support."
+        )
+
+    client = get_openai_client()
+
+    prompt = (
+        build_post_interview_decision_support_prompt(
+            owner
+        )
+    )
+
+    prompt = redact_candidate_name(prompt, owner.candidate)
+
+    stream = client.chat.completions.create(
+        model=get_chat_model(),
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "You are an AI component inside Talena. "
+                    "Follow the administrator-provided AI guidance for "
+                    "all non-technical assessment analysis, interview "
+                    "evidence interpretation, evidence weighting, synthesis, "
+                    "conclusions and communication decisions. "
+                    "Follow Talena's technical output contract exactly, "
+                    "including required JSON field names, event types "
+                    "and streaming format. "
+                    f"{_post_get_ai_system_language_instruction(language_code)}"
+                ),
+            },
+            {
+                "role": "user",
+                "content": prompt,
+            },
+        ],
+        temperature=0.2,
+        stream=True,
+    )
+
+    buffer = ""
+
+    for response_event in stream:
+        delta = (
+            response_event
+            .choices[0]
+            .delta
+        )
+
+        if (
+            not delta
+            or not delta.content
+        ):
+            continue
+
+        buffer += delta.content
+
+        parsed_events, buffer = (
+            _extract_json_events_from_buffer(
+                buffer
+            )
+        )
+
+        for parsed_event in parsed_events:
+            yield parsed_event
+
+    # Flush any complete JSON objects remaining after
+    # the final streamed chunk.
+    parsed_events, buffer = (
+        _extract_json_events_from_buffer(
+            buffer
+        )
+    )
+
+    for parsed_event in parsed_events:
+        yield parsed_event
+
+    trailing_content = (
+        buffer
+        .replace("```json", "")
+        .replace("```ndjson", "")
+        .replace("```", "")
+        .strip()
+    )
+
+    if trailing_content:
+        final_event = _parse_event_line(
+            trailing_content
+        )
+
+        if final_event:
+            yield final_event
+
+
+def save_post_interview_decision_support(
+    *,
+    owner,
+    result: dict[str, Any],
+):
+    result["overall_synthesis"] = (
+        _clean_text(
+            result.get(
+                "overall_synthesis"
+            )
+        )
+    )
+
+    result["supported_indications"] = (
+        _normalise_supported_evidence_items(
+            result.get(
+                "supported_indications"
+            ),
+            limit=None,
+        )
+    )
+
+    result["added_nuance"] = (
+        _normalise_nuance_items(
+            result.get(
+                "added_nuance"
+            ),
+            limit=None,
+        )
+    )
+
+    result["contradictions"] = (
+        _normalise_contradiction_items(
+            result.get(
+                "contradictions"
+            ),
+            limit=None,
+        )
+    )
+
+    result["remaining_uncertainties"] = (
+        _clean_string_list(
+            result.get(
+                "remaining_uncertainties"
+            ),
+            limit=None,
+        )
+    )
+
+    result["suggested_follow_up"] = (
+        _clean_string_list(
+            result.get(
+                "suggested_follow_up"
+            ),
+            limit=None,
+        )
+    )
+
+    result["context_note"] = (
+        _clean_text(
+            result.get(
+                "context_note"
+            )
+        )
+    )
+
+    # The retired interview_summary is historical data, not a new
+    # generation target. A legacy combined regeneration must not silently
+    # wipe the previous summary when the new model omits this field.
+    previous_blocks = (
+        (owner.ai_post_interview_decision_support or {}).get("content_blocks") or {}
+    )
+    incoming_blocks = result.get("content_blocks") or {}
+    result["content_blocks"] = {
+        key: (
+            _clean_text(previous_blocks.get(key))
+            if key == "interview_summary" and _clean_text(previous_blocks.get(key))
+            else _clean_text(incoming_blocks.get(key))
+        )
+        for key in POST_INTERVIEW_CONTENT_BLOCK_KEYS
+    }
+
+    missing_content_blocks = [
+        key
+        for key in ACTIVE_POST_INTERVIEW_CONTENT_BLOCK_KEYS
+        if not result["content_blocks"].get(key)
+    ]
+
+    if missing_content_blocks:
+        raise ValueError(
+            "The AI response did not contain all required "
+            "After interview content blocks."
+        )
+
+    generated_at = timezone.now()
+
+    owner.ai_post_interview_decision_support = (
+        result
+    )
+
+    owner.ai_post_interview_decision_support_status = (
+        "completed"
+    )
+
+    owner.ai_post_interview_decision_support_generated_at = (
+        generated_at
+    )
+
+    owner.ai_post_interview_decision_support_purpose = (
+        get_process_purpose_key(
+            owner.process
+        )
+    )
+
+    owner.ai_post_interview_decision_support_notes_version = (
+        owner.interview_notes_updated_at
+        or generated_at
+    )
+
+    owner.save(
+        update_fields=[
+            (
+                "ai_post_interview_"
+                "decision_support"
+            ),
+            (
+                "ai_post_interview_"
+                "decision_support_status"
+            ),
+            (
+                "ai_post_interview_"
+                "decision_support_generated_at"
+            ),
+            (
+                "ai_post_interview_"
+                "decision_support_purpose"
+            ),
+            (
+                "ai_post_interview_"
+                "decision_support_notes_version"
+            ),
+        ]
+    )
+
+# ============================================================
+# Talena final output post-interview language batch 1
+# Post-interview language support
+# ============================================================
+
+from .language import (
+    get_ai_language_instruction as _post_get_ai_language_instruction,
+    get_ai_language_update_fields as _post_get_ai_language_update_fields,
+    get_ai_system_language_instruction as _post_get_ai_system_language_instruction,
+    normalize_ai_language as _post_normalize_ai_language,
+    set_ai_content_language as _post_set_ai_content_language,
+)
+
+_original_build_post_interview_decision_support_prompt = (
+    build_post_interview_decision_support_prompt
+)
+_original_save_post_interview_decision_support = (
+    save_post_interview_decision_support
+)
+
+
+def _post_interview_content_block_examples(
+    language_code: str,
+) -> dict[str, str]:
+    if language_code == "sv":
+        return {
+            "overall_picture": "Exempel på en tydlig helhetsbild.",
+            "interview_summary": "Exempel på vad intervjun tillförde.",
+            "explore_further": "Exempel på osäkerheter och möjliga uppföljningar.",
+            "wellbeing_tips": "Exempel på förutsättningar som kan hjälpa kandidaten att trivas.",
+        }
+
+    return {
+        "overall_picture": "Example of a clear overall picture.",
+        "interview_summary": "Example of what the interview added.",
+        "explore_further": "Example of uncertainties and possible follow-ups.",
+        "wellbeing_tips": "Example of conditions that may help the candidate thrive.",
+    }
+
+
+def _get_post_interview_language_examples(
+    language_code: str | None,
+) -> dict[str, Any]:
+    language_code = _post_normalize_ai_language(
+        language_code
+    )
+
+    if language_code == "sv":
+        return {
+            "title": "Beslutsstöd efter intervjun",
+            "label": "Syntes av test- och intervjuunderlag",
+            "synthesis": "Första delen av den sammanvägda syntesen. ",
+            "supported": {
+                "title": "Indikation med stöd i intervjun",
+                "assessment_indication": (
+                    "Relevant indikation från testresultaten"
+                ),
+                "interview_evidence": (
+                    "Relevant exempel eller observation från intervjun"
+                ),
+                "interpretation": "Försiktig sammanvägd tolkning",
+            },
+            "nuance": {
+                "title": "Viktig nyans från intervjun",
+                "assessment_indication": (
+                    "Relevant indikation från testresultaten"
+                ),
+                "interview_evidence": (
+                    "Relevant intervjuunderlag som tillför sammanhang"
+                ),
+                "interpretation": (
+                    "Hur intervjuunderlaget nyanserar tolkningen"
+                ),
+            },
+            "contradiction": {
+                "title": "Spänning som behöver utforskas",
+                "assessment_evidence": "Underlag från testresultaten",
+                "interview_evidence": "Underlag från intervjun",
+                "interpretation": (
+                    "Balanserad förklaring av den möjliga spänningen"
+                ),
+            },
+            "uncertainties": [
+                "Första kvarstående osäkerheten",
+                "Andra kvarstående osäkerheten",
+            ],
+            "follow_up": [
+                "Första föreslagna uppföljningen",
+                "Andra föreslagna uppföljningen",
+            ],
+            "content_blocks": _post_interview_content_block_examples(language_code),
+            "context_note": (
+                "Transparent förklaring av vilket underlag som användes, "
+                "dess begränsningar och människans ansvar för det slutliga beslutet."
+            ),
+        }
+
+    return {
+        "title": "Post-interview decision support",
+        "label": "Assessment and interview synthesis",
+        "synthesis": "First part of the synthesis. ",
+        "supported": {
+            "title": "Theme title",
+            "assessment_indication": "Relevant assessment indication",
+            "interview_evidence": "Relevant interview example",
+            "interpretation": "Cautious synthesis",
+        },
+        "nuance": {
+            "title": "Theme title",
+            "assessment_indication": "Relevant assessment indication",
+            "interview_evidence": "Relevant interview evidence",
+            "interpretation": "How the interview evidence adds nuance",
+        },
+        "contradiction": {
+            "title": "Tension title",
+            "assessment_evidence": "Assessment evidence",
+            "interview_evidence": "Interview evidence",
+            "interpretation": "Balanced explanation of the tension",
+        },
+        "uncertainties": [
+            "Uncertainty one",
+            "Uncertainty two",
+        ],
+        "follow_up": [
+            "Follow-up action one",
+            "Follow-up action two",
+        ],
+        "content_blocks": _post_interview_content_block_examples(language_code),
+        "context_note": (
+            "Transparent explanation of the evidence used, limitations "
+            "and human responsibility for the final decision."
+        ),
+    }
+
+
+def _replace_post_prompt_once(
+    prompt: str,
+    old: str,
+    new: str,
+    *,
+    label: str,
+) -> str:
+    count = prompt.count(old)
+
+    if count != 1:
+        raise RuntimeError(
+            "Could not localise the post-interview prompt "
+            f"example {label!r}. Expected 1 occurrence, found {count}."
+        )
+
+    return prompt.replace(
+        old,
+        new,
+        1,
+    )
+
+def _post_get_content_block_prompt_instructions(
+    *,
+    key: str,
+    language: str,
+) -> str:
+    """
+    Resolve a new After interview content-block prompt.
+
+    The prefixed key is canonical. The unprefixed key and the old combined
+    prompt are read only as compatibility fallbacks for overrides saved before
+    the content-block prompt keys were introduced.
+    """
+
+    prompt_key = f"post_interview_{key}"
+    compatibility_keys = [prompt_key, key]
+
+    if key == "overall_picture":
+        compatibility_keys.append("post_interview_decision_support")
+
+    try:
+        from apps.processes.models import AIPromptTemplate
+
+        for candidate_key in compatibility_keys:
+            override = (
+                AIPromptTemplate.objects
+                .filter(
+                    key=candidate_key,
+                    language=language,
+                    is_active=True,
+                )
+                .order_by("-updated_at", "-id")
+                .first()
+            )
+            prompt_text = str(
+                getattr(override, "prompt_text", "")
+                or ""
+            ).strip()
+
+            if prompt_text:
+                return prompt_text
+    except Exception:
+        # Preserve the protected default if prompt lookup is unavailable.
+        pass
+
+    return get_ai_feature_prompt_instructions(
+        key=prompt_key,
+        language=language,
+    )
+
+
+def _post_get_prompt_debug_info(
+    *,
+    language: str,
+) -> dict[str, Any]:
+    """
+    Return safe diagnostics about which saved prompt sources were selected.
+
+    Never include prompt text itself: this is emitted to the browser console
+    only to diagnose prompt routing in a customer session.
+    """
+
+    debug: dict[str, Any] = {
+        "language": language,
+        "global": {},
+        "content_blocks": {},
+    }
+
+    try:
+        from apps.processes.models import AIPromptTemplate
+
+        def describe_prompt(
+            *,
+            key: str,
+            source: str,
+        ) -> dict[str, Any]:
+            override = (
+                AIPromptTemplate.objects
+                .filter(
+                    key=key,
+                    language=language,
+                    is_active=True,
+                )
+                .order_by("-updated_at", "-id")
+                .first()
+            )
+            prompt_text = str(
+                getattr(override, "prompt_text", "")
+                or ""
+            ).strip()
+
+            return {
+                "source": source if prompt_text else "missing",
+                "key": key,
+                "characters": len(prompt_text),
+            }
+
+        debug["global"] = describe_prompt(
+            key="global_ai_guidance",
+            source="global_override",
+        )
+
+        for block_key in POST_INTERVIEW_CONTENT_BLOCK_KEYS:
+            prompt_key = f"post_interview_{block_key}"
+            candidates = [
+                (prompt_key, "canonical_override"),
+                (block_key, "legacy_key_override"),
+            ]
+
+            if block_key == "overall_picture":
+                candidates.append(
+                    (
+                        "post_interview_decision_support",
+                        "legacy_combined_override",
+                    )
+                )
+
+            selected = None
+            for candidate_key, source in candidates:
+                candidate = describe_prompt(
+                    key=candidate_key,
+                    source=source,
+                )
+                if candidate["source"] != "missing":
+                    selected = candidate
+                    break
+
+            if selected is None:
+                default_text = get_ai_feature_prompt_instructions(
+                    key=prompt_key,
+                    language=language,
+                )
+                selected = {
+                    "source": "protected_default",
+                    "key": prompt_key,
+                    "characters": len(
+                        str(default_text or "").strip()
+                    ),
+                }
+
+            debug["content_blocks"][block_key] = selected
+
+    except Exception as error:
+        debug["error"] = type(error).__name__
+
+    return debug
+
+
+def build_post_interview_decision_support_prompt(
+    owner,
+    *,
+    language_code: str | None = None,
+) -> str:
+    """
+    Build Talena's post-interview decision-support prompt.
+
+    Administrator guidance controls all non-technical analysis,
+    evidence weighting, synthesis, conclusions and communication.
+
+    Talena protects only input provenance and the technical
+    streaming/output contract.
+    """
+
+    language_code = _post_normalize_ai_language(
+        language_code
+    )
+
+    language_instruction = (
+        _post_get_ai_language_instruction(
+            language_code
+        )
+    )
+
+    examples = (
+        _get_post_interview_language_examples(
+            language_code
+        )
+    )
+
+    global_instructions = get_global_ai_guidance(
+        language=language_code,
+    )
+    legacy_decision_support_instructions = (
+        get_ai_feature_prompt_instructions(
+            key="post_interview_decision_support",
+            language=language_code,
+        )
+    )
+    supported_instructions = get_ai_feature_prompt_instructions(
+        key="post_interview_supported_indications",
+        language=language_code,
+    )
+    nuance_instructions = get_ai_feature_prompt_instructions(
+        key="post_interview_added_nuance",
+        language=language_code,
+    )
+    contradictions_instructions = get_ai_feature_prompt_instructions(
+        key="post_interview_contradictions",
+        language=language_code,
+    )
+    uncertainties_instructions = get_ai_feature_prompt_instructions(
+        key="post_interview_remaining_uncertainties",
+        language=language_code,
+    )
+    follow_up_instructions = get_ai_feature_prompt_instructions(
+        key="post_interview_suggested_follow_up",
+        language=language_code,
+    )
+
+    content_block_instructions = {
+        key: _post_get_content_block_prompt_instructions(
+            key=key,
+            language=language_code,
+        )
+        for key in ACTIVE_POST_INTERVIEW_CONTENT_BLOCK_KEYS
+    }
+    content_blocks_guidance = "\n\n".join(
+        f"{key.upper()} GUIDANCE\n{content_block_instructions[key]}"
+        for key in ACTIVE_POST_INTERVIEW_CONTENT_BLOCK_KEYS
+    )
+
+    shared_context = build_shared_ai_context(
+        owner
+    )
+
+    candidate = shared_context["candidate"]
+
+    evidence = build_pre_interview_evidence(
+        owner,
+        language_code=language_code,
+    )
+
+    interview_notes = _clean_text(
+        owner.interview_notes
+    )
+
+    if not interview_notes:
+        raise ValueError(
+            "Interview notes must be added before "
+            "post-interview decision support can be generated."
+        )
+
+    pre_interview_result = (
+        owner.ai_pre_interview_decision_support
+        or {}
+    )
+
+    pre_interview_text = json.dumps(
+        pre_interview_result,
+        ensure_ascii=False,
+        indent=2,
+    )
+
+    return f"""
+TALENA INPUT DATA
+
+CANDIDATE
+Reference: CANDIDATE_A
+
+SELECTED PROCESS PURPOSE
+Purpose: {shared_context["purpose_label"]}
+
+PROCESS CONTEXT
+{shared_context["context_text"] or "No additional process context supplied."}
+
+SAVED ASSESSMENT INTERPRETATION EVIDENCE
+{evidence["evidence_text"]}
+
+PRE-INTERVIEW DECISION SUPPORT
+{pre_interview_text}
+
+INTERVIEW NOTES AND CANDIDATE EXAMPLES
+{interview_notes}
+
+
+ADMINISTRATOR AI GUIDANCE
+
+GLOBAL AI GUIDANCE — PROTECTED BOUNDARIES ONLY
+The global guidance is included only for shared safety, evidence provenance,
+uncertainty, language and decision-support boundaries.
+It is not a content template for content_blocks.
+
+For content_blocks, the matching administrator prompt below is the sole
+authority for the text. That prompt alone decides content, length, detail,
+headings, sections, paragraph/list counts, ordering and tone. If the global
+guidance contains a preference about any of those choices, disregard that
+preference for content_blocks.
+
+{global_instructions}
+
+LEGACY COMPATIBILITY FIELDS
+Legacy decision-support fields and events are optional compatibility data.
+They must never control, shorten, summarize or restructure a content_blocks
+value.
+
+CONTENT BLOCK GUIDANCE
+Each content block is independent and must follow only its own administrator guidance.
+{content_blocks_guidance}
+
+CONTENT BLOCK PRIORITY
+Each content_blocks value is user-facing text for one After interview tab.
+The matching administrator prompt is the sole authority for that value.
+Follow it as written, including any requested content, length, detail,
+headings, sections, ordering, paragraph/list counts and tone.
+
+Do not apply a code-defined, legacy, global or model-default content template.
+Do not shorten, summarize, collapse, replace or restructure a block.
+Do not let an optional legacy event influence any content_blocks value.
+
+SECTION ISOLATION
+Each block follows only the administrator prompt for its own key.
+The prompts for other blocks do not change its content.
+Only the protected safety, evidence-provenance and decision-support boundaries
+apply across blocks.
+
+
+TALENA TECHNICAL OUTPUT CONTRACT
+
+The following requirements exist only so Talena can process,
+stream, save and display the result.
+
+Administrator guidance controls the substantive content and the
+number of items inside the arrays.
+
+Administrator guidance must not change:
+
+- required event names
+- required JSON field names
+- NDJSON structure
+
+
+OUTPUT LANGUAGE
+
+{language_instruction}
+
+All user-facing text must use the configured output language.
+
+
+STREAMING FORMAT
+
+Return newline-delimited JSON, also called NDJSON.
+
+Every JSON object must appear on one single line.
+
+Do not use Markdown outside the JSON objects and do not use code fences.
+Do not add text outside the JSON objects.
+Inside each user-facing content_blocks string, use simple Markdown for readable
+structure: headings, paragraphs, bold labels and bullet or numbered lists.
+Use # / ## / ### heading syntax and blank lines between paragraphs and lists.
+Never include HTML. Keep each complete content_blocks value inside its JSON
+string; escape line breaks as required by JSON.
+
+
+FINAL ADMINISTRATOR CONTENT AUTHORITY
+
+Before creating the content_blocks event, use the administrator prompt that
+matches each key below. It is the only source of instructions for that block's
+content and presentation. Do not apply any additional default about length,
+headings, sections, paragraph/list counts, detail or tone.
+
+{content_blocks_guidance}
+
+
+REQUIRED EVENT STRUCTURE
+
+
+1. META
+
+{{"type":"meta","title":"{examples["title"]}","label":"{examples["label"]}"}}
+
+
+2. LEGACY OVERALL SYNTHESIS (OPTIONAL COMPATIBILITY FIELD)
+
+The new After interview tab content is returned in the required
+content_blocks event below. If an overall_synthesis_delta event is
+returned, it is a legacy compatibility field and must not replace,
+shorten or control any content_blocks value. It may be omitted when
+all required content blocks are present.
+
+When included, return the synthesis using one or more
+overall_synthesis_delta events:
+
+{{"type":"overall_synthesis_delta","text":"{examples["synthesis"]}"}}
+
+
+3. OPTIONAL LEGACY COMPATIBILITY EVENTS
+
+The following event types are retained for compatibility with older
+After interview consumers: supported_indications, added_nuance,
+contradictions, remaining_uncertainties and suggested_follow_up.
+
+They may be omitted when the content_blocks event is complete. If returned,
+preserve their existing event names, JSON field names and item structures.
+These optional legacy events must never shorten, replace or control any
+content_blocks value. The per-block administrator guidance remains the
+authoritative instruction for all user-facing After interview text.
+
+
+CONTENT BLOCK EXECUTION
+
+Use the administrator prompt matching each content-block key as the sole
+instruction for that block's user-facing text.
+
+8. CONTENT BLOCKS
+
+Return one JSON object with type "content_blocks" and a blocks object.
+The blocks object must contain every required key exactly once:
+overall_picture, explore_further and wellbeing_tips.
+The retired interview_summary is not required and must not be generated.
+Each value must be a string generated according to the administrator prompt
+for that key. Do not add, remove, shorten or reshape the generated text
+because of any code-defined content preference.
+
+
+9. CONTEXT NOTE
+
+Return one context_note event:
+
+{json.dumps(
+    {
+        "type": "context_note",
+        "text": examples["context_note"],
+    },
+    ensure_ascii=False,
+    separators=(",", ":"),
+)}
+
+An empty text value is technically valid if administrator guidance
+does not require substantive content.
+
+
+9. DONE
+
+Finish with:
+
+{{"type":"done"}}
+""".strip()
+
+def create_empty_post_interview_decision_support(
+    owner,
+    *,
+    language_code: str | None = None,
+) -> dict[str, Any]:
+    language_code = _post_normalize_ai_language(
+        language_code
+    )
+    examples = _get_post_interview_language_examples(
+        language_code
+    )
+
+    return {
+        "_language": language_code,
+        "title": examples["title"],
+        "label": examples["label"],
+        "overall_synthesis": "",
+        "supported_indications": [],
+        "added_nuance": [],
+        "contradictions": [],
+        "remaining_uncertainties": [],
+        "suggested_follow_up": [],
+        "content_blocks": {
+            key: ""
+            for key in POST_INTERVIEW_CONTENT_BLOCK_KEYS
+        },
+        "context_note": "",
+    }
+
+
+def stream_post_interview_decision_support(
+    *,
+    owner,
+    language_code: str | None = None,
+) -> Iterable[dict[str, Any]]:
+    language_code = _post_normalize_ai_language(
+        language_code
+    )
+
+    interview_notes = _clean_text(
+        owner.interview_notes
+    )
+
+    if not interview_notes:
+        raise ValueError(
+            "Interview notes must be added before "
+            "post-interview decision support can be generated."
+        )
+
+    evidence = build_pre_interview_evidence(
+        owner,
+        language_code=language_code,
+    )
+
+    if not evidence["has_evidence"]:
+        raise ValueError(
+            "No completed Talena interpretations "
+            "are available for decision support."
+        )
+
+    client = get_openai_client()
+
+    prompt = build_post_interview_decision_support_prompt(
+        owner,
+        language_code=language_code,
+    )
+
+    yield {
+        "type": "prompt_debug",
+        "data": _post_get_prompt_debug_info(
+            language=language_code,
+        ),
+    }
+
+    model = get_chat_model()
+    prompt = redact_candidate_name(prompt, owner.candidate)
+
+    stream = client.chat.completions.create(
+        model=model,
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "Return only newline-delimited JSON objects. "
+                    "Use the protected event and field names exactly. "
+                    "Do not add prose outside the JSON objects."
+                ),
+            },
+            {
+                "role": "user",
+                "content": prompt,
+            },
+        ],
+        temperature=0.2,
+        stream=True,
+        max_completion_tokens=12000,
+    )
+
+    buffer = ""
+    finish_reason = None
+
+    for response_event in stream:
+        choices = getattr(response_event, "choices", None) or []
+        if not choices:
+            continue
+
+        choice = choices[0]
+        finish_reason = (
+            getattr(choice, "finish_reason", None)
+            or finish_reason
+        )
+        delta = getattr(choice, "delta", None)
+
+        if not delta or not delta.content:
+            continue
+
+        buffer += delta.content
+
+        parsed_events, buffer = (
+            _extract_json_events_from_buffer(
+                buffer
+            )
+        )
+
+        for parsed_event in parsed_events:
+            yield parsed_event
+
+    if finish_reason == "length":
+        raise ValueError(
+            "The AI response reached the 12,000-token output limit "
+            "before all After interview sections were generated. "
+            "Reduce the input or try again."
+        )
+
+    parsed_events, buffer = (
+        _extract_json_events_from_buffer(
+            buffer
+        )
+    )
+
+    for parsed_event in parsed_events:
+        yield parsed_event
+
+    trailing_content = (
+        buffer
+        .replace("```json", "")
+        .replace("```ndjson", "")
+        .replace("```", "")
+        .strip()
+    )
+
+    if trailing_content:
+        final_event = _parse_event_line(
+            trailing_content
+        )
+
+        if final_event:
+            yield final_event
+
+
+def save_post_interview_decision_support(
+    *,
+    owner,
+    result: dict[str, Any],
+    language_code: str | None = None,
+):
+    language_code = _post_normalize_ai_language(
+        language_code
+    )
+    result["_language"] = language_code
+
+    _post_set_ai_content_language(
+        owner,
+        "post_interview_decision_support",
+        language_code,
+    )
+
+    _original_save_post_interview_decision_support(
+        owner=owner,
+        result=result,
+    )
+
+    language_update_fields = (
+        _post_get_ai_language_update_fields(
+            owner
+        )
+    )
+
+    if language_update_fields:
+        owner.save(
+            update_fields=language_update_fields
+        )
+
+
+def set_post_interview_content_block_status(
+    *,
+    owner,
+    block_key: str,
+    status: str,
+) -> dict[str, Any]:
+    """Update one section's status without overwriting other section data."""
+    if block_key not in POST_INTERVIEW_CONTENT_BLOCK_KEYS:
+        raise ValueError("Unknown After interview content block.")
+    if status not in {"generating", "completed", "outdated", "failed"}:
+        raise ValueError("Unknown After interview content block status.")
+
+    with transaction.atomic():
+        stored_owner = type(owner).objects.select_for_update().get(pk=owner.pk)
+        result = dict(stored_owner.ai_post_interview_decision_support or {})
+        statuses = dict(result.get("content_block_statuses") or {})
+        statuses[block_key] = status
+        result["content_block_statuses"] = statuses
+        stored_owner.ai_post_interview_decision_support = result
+        stored_owner.save(update_fields=["ai_post_interview_decision_support"])
+    return result
+
+
+def _build_wellbeing_tips_reference_evidence(
+    owner,
+    *,
+    language_code: str,
+) -> str:
+    """Authoritative MQ top-three guidance and scored PQ indicator meanings.
+
+    Only used by the existing wellbeing_tips generator. Never embeds the
+    candidate's name, contact details, or a copy of advice for all 20 factors.
+    """
+    from .motivation_interpretation import _owner_motivation_results
+    from .motivation_practical_advice import get_motivation_practical_advice
+    from .personality_ai_evidence import build_owner_personality_ai_evidence
+
+    language = "sv" if language_code == "sv" else "en"
+    guidance = get_motivation_practical_advice()[language]
+    results = sorted(
+        _owner_motivation_results(owner),
+        key=lambda item: (-item["score"], item["key"]),
+    )[:3]
+    lines = [
+        "APPROVED MQ REFERENCE: TOP THREE SOVA MOTIVATORS ONLY",
+        "These are fixed, approved reference tips, NOT AI-created findings. "
+        "Use as context, do not copy the lists as the generated answer.",
+    ]
+    if not results:
+        lines.append("No authoritative MQ top-three results available. "
+                     "Do not infer motivation factors from interviews or PQ.")
+    for rank, item in enumerate(results, start=1):
+        key = item["key"]
+        label = get_motivation_factor_display_name(
+            item["name"], language_code=language,
+        )
+        lines.append(f"{rank}. {label} [MQ factor key: {key}; STIVE {item['score']}/5]")
+        tips = guidance.get(key)
+        if not tips:
+            lines.append("No approved practical advice for this factor. Do not invent tips.")
+            continue
+        for tip in tips["do"]:
+            lines.append(f"   DO: {tip}")
+        for tip in tips["avoid"]:
+            lines.append(f"   AVOID: {tip}")
+
+    lines.append(
+        "\nCANDIDATE-SPECIFIC PQ INDICATORS (APPROVED SCORE-BAND TEXTS)"
+    )
+    rows = build_owner_personality_ai_evidence(owner, language_code=language)
+    if not rows:
+        lines.append("No scored PQ indicator evidence available. Do not guess.")
+    else:
+        for row in rows:
+            indicators = [
+                indicator for indicator in row.get("indicators", [])
+                if indicator.get("text")
+            ]
+            if not indicators:
+                continue
+            lines.append(f"TRAIT: {row.get('label') or row.get('name')}")
+            for indicator in indicators:
+                lines.append(
+                    f"- {indicator.get('label') or indicator.get('name')} "
+                    f"(STEN {indicator.get('sten')}/10): "
+                    f"{indicator['text']}"
+                )
+    lines.append(
+        "Use only PQ indications genuinely relevant to the role/context "
+        "and supported or nuanced by interview evidence. Neutral or middle "
+        "scores are not deficits. Separate test indications, interview "
+        "examples and tentative practical hypotheses."
+    )
+    return "\n".join(lines)
+
+
+def build_post_interview_content_block_prompt(
+    owner,
+    *,
+    block_key: str,
+    language_code: str | None = None,
+) -> str:
+    """Build a focused prompt for one After interview tab."""
+    if block_key not in POST_INTERVIEW_CONTENT_BLOCK_KEYS:
+        raise ValueError("Unknown After interview content block.")
+
+    language_code = _post_normalize_ai_language(language_code)
+    shared_context = build_shared_ai_context(owner)
+    note_evidence_policy = __import__(
+        "apps.core.ai.post_interview_question_evidence_policy",
+        fromlist=["get_post_interview_note_evidence"],
+    )
+    note_evidence = note_evidence_policy.get_post_interview_note_evidence(owner)
+    if not note_evidence["has_evidence"]:
+        raise ValueError(
+            "Interview notes or saved interview question answers must be added."
+        )
+
+    evidence = build_pre_interview_evidence(
+        owner,
+        language_code=language_code,
+    )
+    if block_key != "interview_summary" and not evidence.get("has_evidence"):
+        raise ValueError("No completed assessment interpretations are available.")
+
+    candidate = shared_context["candidate"]
+    general_notes = note_evidence["general_notes"]
+    question_data = note_evidence["question_evidence"]
+    question_text = (
+        str(question_data.get("text") or "").strip()
+        or "No question-specific answers or notes were saved."
+    )
+    evidence_status = (
+        "General interview notes: AVAILABLE"
+        if general_notes
+        else "General interview notes: NOT PROVIDED"
+    ) + "\n" + (
+        "Question-specific interview evidence: AVAILABLE"
+        if note_evidence["has_question_evidence"]
+        else "Question-specific interview evidence: NOT PROVIDED"
+    )
+
+    wellbeing_reference = (
+        "ADDITIONAL REFERENCE EVIDENCE FOR WELLBEING TIPS ONLY\n"
+        + _build_wellbeing_tips_reference_evidence(owner, language_code=language_code)
+        if block_key == "wellbeing_tips"
+        else ""
+    )
+
+    include_assessment_evidence = block_key != "interview_summary"
+    assessment_text = (
+        evidence.get("evidence_text") or "No assessment interpretation evidence."
+        if include_assessment_evidence
+        else "Omitted for this section; focus on what the interview evidence itself adds."
+    )
+
+    admin_guidance = _post_get_content_block_prompt_instructions(
+        key=block_key,
+        language=language_code,
+    )
+    global_guidance = get_global_ai_guidance(language=language_code)
+    language_instruction = _post_get_ai_language_instruction(language_code)
+
+    block_titles = {
+        "overall_picture": "Helhetsbild",
+        "interview_summary": "Intervjusammanfattning",
+        "explore_further": "Undersök vidare",
+        "wellbeing_tips": "Tips för trivsel",
+    }
+    block_title = block_titles[block_key]
+
+    return f"""
+You are writing only the After interview section: {block_title}.
+
+CANDIDATE
+Reference: CANDIDATE_A
+
+PROCESS PURPOSE AND CONTEXT
+Purpose: {shared_context["purpose_label"]}
+{shared_context["context_text"] or "No additional process context supplied."}
+
+ASSESSMENT INDICATIONS
+{assessment_text}
+
+{wellbeing_reference}
+
+INTERVIEW EVIDENCE STATUS
+{evidence_status}
+
+GENERAL INTERVIEW NOTES
+{general_notes or "No additional general interview notes were supplied."}
+
+QUESTION-SPECIFIC INTERVIEW EVIDENCE
+{question_text}
+
+SHARED TALENA GUIDANCE
+{global_guidance}
+
+ADMINISTRATOR GUIDANCE FOR THIS SECTION ONLY
+{admin_guidance}
+
+EVIDENCE RULES
+- Use only the supplied Talena evidence; never invent details.
+- Treat assessment results as indications, not proof or a suitability verdict.
+- Keep each saved answer or note connected to its exact interview question.
+- A saved answer or note may be a candidate response, interviewer summary or observation; do not present it as a verbatim quote unless it clearly is one.
+- Do not say interview evidence is missing when either evidence source is available.
+- Separate concrete evidence from interpretation and mark meaningful uncertainty.
+- Do not make a hiring, rejection, promotion or suitability decision.
+- Do not repeat material that belongs in another After interview section.
+
+OUTPUT
+Write only the requested section in {language_instruction}.
+Return readable Markdown text only. Do not return JSON, code fences, labels for other sections or text outside this section.
+""".strip()
+
+
+def stream_post_interview_content_block(
+    *,
+    owner,
+    block_key: str,
+    language_code: str | None = None,
+) -> Iterable[dict[str, Any]]:
+    """Stream plain Markdown deltas for exactly one After interview tab."""
+    language_code = _post_normalize_ai_language(language_code)
+    prompt = build_post_interview_content_block_prompt(
+        owner,
+        block_key=block_key,
+        language_code=language_code,
+    )
+    yield {
+        "type": "prompt_debug",
+        "data": {
+            "language": language_code,
+            "block": block_key,
+            "prompt_characters": len(prompt),
+        },
+    }
+
+    client = get_openai_client()
+    prompt = redact_candidate_name(prompt, owner.candidate)
+
+    stream = client.chat.completions.create(
+        model=get_chat_model(),
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "You are Talena's careful assessment assistant. "
+                    "Follow the section-specific administrator guidance and "
+                    "the protected evidence rules in the user prompt. "
+                    "Return only the requested section."
+                ),
+            },
+            {"role": "user", "content": prompt},
+        ],
+        temperature=0.2,
+        stream=True,
+        max_completion_tokens=6000,
+    )
+
+    finish_reason = None
+    received_text = False
+    for response_event in stream:
+        choices = getattr(response_event, "choices", None) or []
+        if not choices:
+            continue
+        choice = choices[0]
+        finish_reason = getattr(choice, "finish_reason", None) or finish_reason
+        delta = getattr(choice, "delta", None)
+        content = getattr(delta, "content", None) if delta else None
+        if not content:
+            continue
+        received_text = True
+        yield {
+            "type": "content_block_delta",
+            "block": block_key,
+            "text": content,
+        }
+
+    if finish_reason == "length":
+        raise ValueError(
+            "The AI response reached the section output limit. Try generating this tab again."
+        )
+    if not received_text:
+        raise ValueError("The AI response did not contain any section text.")
+
+    yield {"type": "content_block_done", "block": block_key}
+
+
+def save_post_interview_content_block(
+    *,
+    owner,
+    block_key: str,
+    text: str,
+    language_code: str,
+) -> dict[str, Any]:
+    """Merge one completed section into the existing result without losing peers."""
+    if block_key not in POST_INTERVIEW_CONTENT_BLOCK_KEYS:
+        raise ValueError("Unknown After interview content block.")
+    clean_text = _clean_text(text)
+    if not clean_text:
+        raise ValueError("The generated section is empty.")
+
+    language_code = _post_normalize_ai_language(language_code)
+    with transaction.atomic():
+        stored_owner = type(owner).objects.select_for_update().get(pk=owner.pk)
+        result = dict(
+            stored_owner.ai_post_interview_decision_support or {}
+        )
+        result.setdefault(
+            "content_blocks",
+            {key: "" for key in POST_INTERVIEW_CONTENT_BLOCK_KEYS},
+        )
+        result["content_blocks"] = dict(result["content_blocks"])
+        result["content_blocks"][block_key] = clean_text
+        result.setdefault("content_block_statuses", {})
+        result["content_block_statuses"] = dict(
+            result["content_block_statuses"]
+        )
+        result["content_block_statuses"][block_key] = "completed"
+        result.setdefault("content_block_generated_at", {})
+        result["content_block_generated_at"] = dict(
+            result["content_block_generated_at"]
+        )
+        result["content_block_generated_at"][block_key] = (
+            timezone.now().isoformat()
+        )
+        result["_language"] = language_code
+
+        if all(
+            _clean_text(result["content_blocks"].get(key))
+            for key in ACTIVE_POST_INTERVIEW_CONTENT_BLOCK_KEYS
+        ):
+            result["overall_synthesis"] = result["content_blocks"][
+                "overall_picture"
+            ]
+
+        stored_owner.ai_post_interview_decision_support = result
+        stored_owner.ai_post_interview_decision_support_purpose = (
+            get_process_purpose_key(stored_owner.process)
+        )
+        stored_owner.ai_post_interview_decision_support_notes_version = (
+            stored_owner.interview_notes_updated_at or timezone.now()
+        )
+        _post_set_ai_content_language(
+            stored_owner,
+            "post_interview_decision_support",
+            language_code,
+        )
+        stored_owner.save(update_fields=[
+            "ai_post_interview_decision_support",
+            "ai_post_interview_decision_support_purpose",
+            "ai_post_interview_decision_support_notes_version",
+        ] + _post_get_ai_language_update_fields(stored_owner))
+    return result

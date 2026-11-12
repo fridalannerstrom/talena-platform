@@ -1,0 +1,214 @@
+/* =========================================================
+   TALENA — ERROR PAGES
+   ========================================================= */
+
+:root {
+  --error-coral: #ff6f61;
+  --error-coral-soft: #fff0ed;
+  --error-ink: #171312;
+  --error-text: #5f5955;
+  --error-muted: #938a84;
+  --error-border: #e8e1dc;
+  --error-bg: #fcfaf8;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body.talena-error-page {
+  min-height: 100vh;
+  margin: 0;
+  background:
+    radial-gradient(circle at 10% 85%, rgba(255, 111, 97, 0.08), transparent 23rem),
+    radial-gradient(circle at 88% 8%, rgba(255, 204, 145, 0.08), transparent 24rem),
+    var(--error-bg);
+  color: var(--error-ink);
+  font-family: Inter, Poppins, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.talena-error-shell {
+  width: min(100% - 2rem, 1180px);
+  min-height: 100vh;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  margin-inline: auto;
+  padding: 1.5rem 0;
+}
+
+.talena-error-brand {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  text-decoration: none;
+}
+
+.talena-error-brand img {
+  display: block;
+  width: 112px;
+  height: auto;
+}
+
+.talena-error-main {
+  display: grid;
+  place-items: center;
+  padding-block: 3rem;
+}
+
+.talena-error-card {
+  width: min(100%, 720px);
+  padding: clamp(1.6rem, 4vw, 3.25rem);
+  border: 1px solid var(--error-border);
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 24px 70px rgba(48, 36, 31, 0.08);
+}
+
+.talena-error-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-bottom: 1rem;
+  padding: 0.4rem 0.62rem;
+  border: 1px solid rgba(255, 111, 97, 0.18);
+  border-radius: 999px;
+  background: var(--error-coral-soft);
+  color: #d8564d;
+  font-size: 0.7rem;
+  font-weight: 750;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.talena-error-kicker::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--error-coral);
+}
+
+.talena-error-code {
+  margin: 0 0 0.45rem;
+  color: var(--error-coral);
+  font-size: clamp(3rem, 10vw, 6rem);
+  font-weight: 800;
+  line-height: 0.95;
+  letter-spacing: -0.065em;
+}
+
+.talena-error-title {
+  max-width: 620px;
+  margin: 0;
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  font-weight: 760;
+  line-height: 1.05;
+  letter-spacing: -0.045em;
+}
+
+.talena-error-message {
+  max-width: 600px;
+  margin: 1rem 0 0;
+  color: var(--error-text);
+  font-size: 0.98rem;
+  line-height: 1.7;
+}
+
+.talena-error-hint {
+  max-width: 600px;
+  margin: 0.55rem 0 0;
+  color: var(--error-muted);
+  font-size: 0.82rem;
+  line-height: 1.6;
+}
+
+.talena-error-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-top: 1.65rem;
+}
+
+.talena-error-button {
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.68rem 1rem;
+  border: 1px solid var(--error-ink);
+  border-radius: 999px;
+  background: var(--error-ink);
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: transform 160ms ease, background-color 160ms ease, border-color 160ms ease;
+}
+
+.talena-error-button:hover {
+  transform: translateY(-1px);
+  border-color: #000;
+  background: #000;
+  color: #fff;
+}
+
+.talena-error-button--secondary {
+  border-color: var(--error-border);
+  background: #fff;
+  color: var(--error-ink);
+}
+
+.talena-error-button--secondary:hover {
+  border-color: rgba(255, 111, 97, 0.32);
+  background: var(--error-coral-soft);
+  color: var(--error-ink);
+}
+
+.talena-error-footer {
+  padding-top: 1rem;
+  color: var(--error-muted);
+  font-size: 0.72rem;
+  text-align: center;
+}
+
+.talena-error-button:focus-visible,
+.talena-error-brand:focus-visible {
+  outline: 2px solid rgba(255, 111, 97, 0.65);
+  outline-offset: 3px;
+}
+
+@media (max-width: 640px) {
+  .talena-error-shell {
+    width: min(100% - 1.25rem, 1180px);
+    padding-top: 1rem;
+  }
+
+  .talena-error-main {
+    padding-block: 2rem;
+  }
+
+  .talena-error-card {
+    border-radius: 22px;
+  }
+
+  .talena-error-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .talena-error-button {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .talena-error-button {
+    transition: none;
+  }
+}

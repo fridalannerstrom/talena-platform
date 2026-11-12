@@ -1,0 +1,676 @@
+/* =========================================================
+   TALENA ADMIN PAGES
+   ---------------------------------------------------------
+   Broad branding layer for internal administration screens.
+   The goal is consistency with Talena, not customer-level polish.
+   Scoped to body.talena-admin and loaded last in admin_base.
+   ========================================================= */
+
+/* Page typography and rhythm */
+.talena-admin main h1,
+.talena-admin main .h1,
+.talena-admin main .h2,
+.talena-admin main .h3,
+.talena-admin main .h4 {
+  color: var(--talena-ink);
+  font-weight: 720;
+  letter-spacing: -0.035em;
+}
+
+.talena-admin main h1,
+.talena-admin main .h1 {
+  font-size: clamp(1.65rem, 2.2vw, 2.25rem);
+}
+
+.talena-admin main h2,
+.talena-admin main .h2 {
+  font-size: 1.35rem;
+}
+
+.talena-admin main h3,
+.talena-admin main .h3 {
+  font-size: 1.05rem;
+}
+
+.talena-admin main .text-muted {
+  color: var(--talena-text-muted) !important;
+}
+
+.talena-admin main a:not(.btn):not(.nav-link):not(.dropdown-item) {
+  color: var(--talena-text);
+}
+
+.talena-admin main a:not(.btn):not(.nav-link):not(.dropdown-item):hover {
+  color: var(--talena-coral-strong);
+}
+
+/* Generic cards */
+.talena-admin main .card {
+  border: 1px solid var(--talena-border) !important;
+  border-radius: 18px !important;
+  background: rgba(255,255,255,0.96) !important;
+  box-shadow: 0 8px 24px rgba(23,19,18,0.035) !important;
+}
+
+.talena-admin main .card.border-0 {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.talena-admin main .card-header,
+.talena-admin main .card-footer {
+  border-color: var(--talena-border) !important;
+  background: transparent !important;
+}
+
+.talena-admin main .card-header {
+  padding: 1rem 1.1rem;
+}
+
+.talena-admin main .card-body {
+  padding: 1.1rem;
+}
+
+/* Tables */
+.talena-admin main .table {
+  --bs-table-striped-bg: rgba(247,245,242,0.55);
+  --bs-table-hover-bg: rgba(255,111,97,0.024);
+  margin-bottom: 0;
+}
+
+.talena-admin main .table thead,
+.talena-admin main .table .table-light,
+.talena-admin main .table > :not(caption) > * > .table-light {
+  background: var(--talena-surface-soft) !important;
+}
+
+.talena-admin main .table thead th {
+  padding-top: 0.72rem;
+  padding-bottom: 0.72rem;
+  border-bottom: 1px solid var(--talena-border) !important;
+  background: var(--talena-surface-soft) !important;
+  color: var(--talena-text-subtle) !important;
+  font-size: 0.59rem;
+  font-weight: 700;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+}
+
+.talena-admin main .table tbody td {
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-color: var(--talena-border) !important;
+  font-size: 0.7rem;
+}
+
+.talena-admin main .table-striped > tbody > tr:nth-of-type(odd) > * {
+  --bs-table-accent-bg: rgba(250,248,246,0.52);
+  color: var(--talena-text);
+}
+
+/* Forms */
+.talena-admin main .form-label {
+  color: var(--talena-text);
+  font-size: 0.68rem;
+  font-weight: 650;
+}
+
+.talena-admin main .form-control,
+.talena-admin main .form-select,
+.talena-admin main .input-group-text {
+  min-height: 42px;
+  border-color: var(--talena-border) !important;
+  background: #fff !important;
+  color: var(--talena-text) !important;
+  box-shadow: none !important;
+}
+
+.talena-admin main .form-control,
+.talena-admin main .form-select {
+  border-radius: 12px !important;
+}
+
+.talena-admin main .input-group > .input-group-text:first-child {
+  border-radius: 12px 0 0 12px !important;
+  color: var(--talena-text-subtle) !important;
+}
+
+.talena-admin main .input-group > .input-group-text + .form-control {
+  border-radius: 0 12px 12px 0 !important;
+}
+
+.talena-admin main .form-control:focus,
+.talena-admin main .form-select:focus {
+  border-color: rgba(255,111,97,0.44) !important;
+  box-shadow: 0 0 0 3px rgba(255,111,97,0.08) !important;
+}
+
+.talena-admin main .form-check-input {
+  border-color: var(--talena-border-strong);
+  accent-color: var(--talena-coral);
+}
+
+.talena-admin main .form-check-input:checked {
+  border-color: var(--talena-coral) !important;
+  background-color: var(--talena-coral) !important;
+}
+
+/* Buttons */
+.talena-admin main .btn:not(.btn-close):not(.btn-link) {
+  border-radius: var(--talena-radius-pill) !important;
+  font-weight: 650;
+  box-shadow: none !important;
+}
+
+.talena-admin main .btn-dark {
+  border-color: var(--talena-ink) !important;
+  background: var(--talena-ink) !important;
+  color: #fff !important;
+}
+
+.talena-admin main .btn-outline-dark,
+.talena-admin main .btn-light {
+  border-color: var(--talena-border) !important;
+  background: #fff !important;
+  color: var(--talena-text) !important;
+}
+
+.talena-admin main .btn-outline-dark:hover,
+.talena-admin main .btn-light:hover {
+  border-color: rgba(255,111,97,0.26) !important;
+  background: var(--talena-surface-warm) !important;
+  color: var(--talena-coral-strong) !important;
+}
+
+.talena-admin main .btn-outline-primary {
+  border-color: rgba(255,111,97,0.3) !important;
+  background: #fff !important;
+  color: var(--talena-coral-strong) !important;
+}
+
+.talena-admin main .btn-outline-primary:hover {
+  border-color: var(--talena-coral) !important;
+  background: var(--talena-coral-soft) !important;
+}
+
+.talena-admin main .btn-link {
+  color: var(--talena-text-muted) !important;
+}
+
+.talena-admin main .btn-link:hover {
+  color: var(--talena-coral-strong) !important;
+}
+
+/* Pills and semantic badges */
+.talena-admin main .talena-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.32rem;
+  min-height: 24px;
+  padding: 0.28rem 0.52rem;
+  border: 1px solid var(--talena-border);
+  border-radius: var(--talena-radius-pill);
+  background: #fff;
+  color: var(--talena-text-muted);
+  font-size: 0.58rem;
+  font-weight: 650;
+}
+
+.talena-admin main .talena-pill svg {
+  width: 12px;
+  height: 12px;
+}
+
+.talena-admin main .talena-pill-group {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.talena-admin main .talena-pill-purple,
+.talena-admin main .bg-primary-subtle,
+.talena-admin main .bg-label-primary {
+  border-color: rgba(255,111,97,0.18) !important;
+  background: var(--talena-coral-soft) !important;
+  color: var(--talena-coral-strong) !important;
+}
+
+.talena-admin main .text-primary {
+  color: var(--talena-coral-strong) !important;
+}
+
+.talena-admin main .talena-pill-dark {
+  border-color: rgba(23,19,18,0.14);
+  background: var(--talena-ink);
+  color: #fff;
+}
+
+.talena-admin main .talena-pill-soft,
+.talena-admin main .talena-pill-muted,
+.talena-admin main .bg-label-secondary {
+  border-color: var(--talena-border) !important;
+  background: var(--talena-surface-soft) !important;
+  color: var(--talena-text-muted) !important;
+}
+
+.talena-admin main .talena-pill-success,
+.talena-admin main .badge.bg-success {
+  border-color: rgba(110,159,125,0.18) !important;
+  background: var(--talena-success-soft) !important;
+  color: #567d63 !important;
+}
+
+.talena-admin main .talena-pill-warning,
+.talena-admin main .badge.bg-warning {
+  border-color: rgba(201,149,78,0.18) !important;
+  background: var(--talena-warning-soft) !important;
+  color: #9a6d2e !important;
+}
+
+.talena-admin main .talena-pill-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* Alerts and list groups */
+.talena-admin main .alert-light,
+.talena-admin main .bg-light {
+  border-color: var(--talena-border) !important;
+  background: var(--talena-surface-soft) !important;
+  color: var(--talena-text-muted) !important;
+}
+
+.talena-admin main .list-group-item {
+  border-color: var(--talena-border) !important;
+  background: #fff;
+  color: var(--talena-text);
+}
+
+.talena-admin main .list-group-item-action:hover,
+.talena-admin main .list-group-item-action:focus {
+  background: var(--talena-surface-soft);
+  color: var(--talena-ink);
+}
+
+.talena-admin main .list-group-item.active {
+  border-color: rgba(255,111,97,0.2) !important;
+  background: var(--talena-coral-soft) !important;
+  color: var(--talena-ink) !important;
+}
+
+.talena-admin main .list-group-item.active .text-white-50 {
+  color: var(--talena-text-muted) !important;
+}
+
+/* Avatars */
+.talena-admin main .user-initials,
+.talena-admin main .company-avatar {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  border: 1px solid rgba(255,111,97,0.18) !important;
+  border-radius: 50% !important;
+  background: var(--talena-coral-soft) !important;
+  color: var(--talena-coral-strong) !important;
+  font-size: 0.7rem;
+  font-weight: 720;
+}
+
+.talena-admin main .user-initials-lg {
+  width: 48px;
+  height: 48px;
+  font-size: 0.82rem;
+}
+
+.talena-admin main .user-initials-purple {
+  background: var(--talena-coral-soft) !important;
+  color: var(--talena-coral-strong) !important;
+}
+
+/* Companies list */
+.talena-admin main .company-card {
+  border: 1px solid var(--talena-border) !important;
+  border-radius: 18px !important;
+  background: #fff !important;
+  box-shadow: var(--talena-shadow-xs) !important;
+}
+
+.talena-admin main .company-card:hover {
+  border-color: rgba(255,111,97,0.22) !important;
+  background: #fff !important;
+  box-shadow: var(--talena-shadow-sm) !important;
+  transform: translateY(-1px);
+}
+
+.talena-admin main .company-card__stats {
+  gap: 0 !important;
+  padding: 0 !important;
+  overflow: hidden;
+  border: 1px solid var(--talena-border) !important;
+  border-radius: 12px !important;
+  background: var(--talena-surface-soft) !important;
+}
+
+.talena-admin main .company-card__stats .stat {
+  padding: 0.7rem 0.75rem;
+  border-right: 1px solid var(--talena-border);
+}
+
+.talena-admin main .company-card__stats .stat:last-child {
+  border-right: 0;
+}
+
+.talena-admin main .company-card__stats .label {
+  color: var(--talena-text-subtle) !important;
+  font-size: 0.59rem !important;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.035em;
+}
+
+.talena-admin main .company-card__stats .value {
+  color: var(--talena-ink);
+  font-size: 0.74rem;
+}
+
+/* Company workspace */
+.talena-admin main .company-hero {
+  overflow: hidden;
+  border: 1px solid var(--talena-border);
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at 92% 0%, rgba(255,111,97,0.08), transparent 28%),
+    #fff;
+  box-shadow: var(--talena-shadow-xs);
+}
+
+.talena-admin main .company-hero__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  padding: 1.25rem 1.35rem;
+}
+
+.talena-admin main .company-hero__left {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  min-width: 0;
+}
+
+.talena-admin main .company-hero__title {
+  color: var(--talena-ink);
+  font-size: 1.55rem;
+  font-weight: 720;
+  letter-spacing: -0.04em;
+}
+
+.talena-admin main .company-hero__sub {
+  font-size: 0.66rem;
+}
+
+.talena-admin main .company-nav {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.45rem 0.55rem;
+  overflow-x: auto;
+  border-top: 1px solid var(--talena-border);
+}
+
+.talena-admin main .company-nav__item {
+  flex: 0 0 auto;
+  padding: 0.58rem 0.72rem;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  color: var(--talena-text-muted) !important;
+  font-size: 0.66rem;
+  font-weight: 620;
+  text-decoration: none;
+}
+
+.talena-admin main .company-nav__item:hover {
+  border-color: var(--talena-border);
+  background: var(--talena-surface-soft);
+  color: var(--talena-ink) !important;
+}
+
+.talena-admin main .company-nav__item.is-active {
+  border-color: rgba(255,111,97,0.18);
+  background: var(--talena-coral-soft);
+  color: var(--talena-coral-strong) !important;
+}
+
+.talena-admin main .kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0,1fr));
+  gap: 0.75rem;
+}
+
+.talena-admin main .kpi-grid .card .h3,
+.talena-admin main .stat-chip__value {
+  color: var(--talena-ink);
+  font-size: 1.25rem;
+  font-weight: 720;
+}
+
+.talena-admin main .kpi-subtext,
+.talena-admin main .stat-chip__sub {
+  color: var(--talena-text-muted);
+  font-size: 0.62rem;
+}
+
+.talena-admin main .stat-chip {
+  height: 100%;
+  padding: 0.8rem;
+  border: 1px solid var(--talena-border);
+  border-radius: 12px;
+  background: var(--talena-surface-soft);
+}
+
+.talena-admin main .stat-chip__label {
+  color: var(--talena-text-subtle);
+  font-size: 0.59rem;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.035em;
+}
+
+/* Account structure and access */
+.talena-admin main .org-row,
+.talena-admin main .root-dropzone,
+.talena-admin main #accessTree li > div {
+  border-color: var(--talena-border) !important;
+}
+
+.talena-admin main .org-row:hover,
+.talena-admin main .org-active {
+  background: var(--talena-coral-soft) !important;
+}
+
+.talena-admin main .org-link,
+.talena-admin main .org-link.active {
+  color: var(--talena-text) !important;
+  text-decoration: none;
+}
+
+.talena-admin main .root-dropzone {
+  background: var(--talena-surface-soft) !important;
+}
+
+/* AI prompt pages */
+.talena-admin main code {
+  padding: 0.2rem 0.42rem;
+  border: 1px solid var(--talena-border);
+  border-radius: 6px;
+  background: var(--talena-surface-soft);
+  color: var(--talena-coral-strong);
+  font-size: 0.68rem;
+}
+
+.talena-admin main .list-group.list-group-flush .list-group-item {
+  padding-top: 0.9rem !important;
+  padding-bottom: 0.9rem !important;
+}
+
+/* Usage & Billing */
+.talena-admin main .usage-page-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.talena-admin main .usage-page-title {
+  margin: 0 0 0.3rem;
+  color: var(--talena-ink);
+  font-size: 1.85rem;
+  font-weight: 720;
+  letter-spacing: -0.04em;
+}
+
+.talena-admin main .usage-page-description,
+.talena-admin main .usage-section-description,
+.talena-admin main .usage-summary-meta,
+.talena-admin main .usage-date-basis {
+  color: var(--talena-text-muted) !important;
+}
+
+.talena-admin main .usage-period-badge,
+.talena-admin main .usage-section-total {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0.32rem 0.58rem;
+  border: 1px solid rgba(255,111,97,0.18);
+  border-radius: var(--talena-radius-pill);
+  background: var(--talena-coral-soft);
+  color: var(--talena-coral-strong);
+  font-size: 0.62rem;
+  font-weight: 650;
+}
+
+.talena-admin main .usage-filter-card,
+.talena-admin main .usage-breakdown-card {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--talena-border);
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: var(--talena-shadow-xs);
+}
+
+.talena-admin main .usage-label {
+  color: var(--talena-text);
+  font-size: 0.64rem;
+  font-weight: 650;
+}
+
+.talena-admin main .usage-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0,1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.talena-admin main .usage-summary-card {
+  padding: 0.95rem 1rem;
+  border: 1px solid var(--talena-border);
+  border-radius: 15px;
+  background: #fff;
+  box-shadow: var(--talena-shadow-xs);
+}
+
+.talena-admin main .usage-summary-card--primary {
+  border-color: rgba(255,111,97,0.22);
+  background: linear-gradient(135deg, var(--talena-coral-soft), #fff 72%);
+}
+
+.talena-admin main .usage-summary-label {
+  color: var(--talena-text-subtle);
+  font-size: 0.59rem;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.035em;
+}
+
+.talena-admin main .usage-summary-value {
+  margin-top: 0.22rem;
+  color: var(--talena-ink);
+  font-size: 1.35rem;
+  font-weight: 720;
+}
+
+.talena-admin main .usage-breakdown-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0,1fr));
+  gap: 0.55rem;
+}
+
+.talena-admin main .usage-breakdown-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--talena-border);
+  border-radius: 11px;
+  background: var(--talena-surface-soft);
+  color: var(--talena-text);
+}
+
+/* Modals and dropdowns */
+.talena-admin .modal-content {
+  overflow: hidden;
+  border: 1px solid var(--talena-border) !important;
+  border-radius: 18px !important;
+  box-shadow: var(--talena-shadow-lg) !important;
+}
+
+.talena-admin .modal-header,
+.talena-admin .modal-footer {
+  border-color: var(--talena-border) !important;
+}
+
+.talena-admin .dropdown-menu {
+  border-color: var(--talena-border) !important;
+  border-radius: 12px !important;
+  box-shadow: var(--talena-shadow-md) !important;
+}
+
+/* Responsive */
+@media (max-width: 1100px) {
+  .talena-admin main .kpi-grid {
+    grid-template-columns: repeat(3, minmax(0,1fr));
+  }
+
+  .talena-admin main .usage-summary-grid {
+    grid-template-columns: repeat(2, minmax(0,1fr));
+  }
+}
+
+@media (max-width: 767.98px) {
+  .talena-admin main .company-hero__top,
+  .talena-admin main .usage-page-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .talena-admin main .company-hero__right .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .talena-admin main .kpi-grid,
+  .talena-admin main .usage-summary-grid,
+  .talena-admin main .usage-breakdown-list {
+    grid-template-columns: 1fr;
+  }
+}

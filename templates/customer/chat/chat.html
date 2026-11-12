@@ -1,0 +1,85 @@
+{% extends "customer/core/layouts/customer_base.html" %}
+{% load static i18n %}
+
+{% block extra_css %}
+  {{ block.super }}
+  <link href="{% static 'css/talena/pages/chat.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+
+<div
+  class="talena-chat-page"
+  data-chat-root
+  data-stream-url="{% url 'ai_chat:chat_stream_api' %}"
+  data-error-prefix="{% trans 'Error' %}"
+  data-request-error="{% trans 'Request failed' %}"
+  data-stream-error="{% trans 'Streaming is not supported in this browser.' %}"
+  data-unknown-error="{% trans 'Unknown error' %}"
+>
+  {% csrf_token %}
+
+  <header class="talena-chat-header">
+    <div>
+      <p class="talena-chat-eyebrow">{% trans "Talena AI" %}</p>
+      <h1 class="talena-chat-title">{% trans "AI chat" %}</h1>
+      <p class="talena-chat-description">
+        {% trans "Ask a question and continue the conversation with Talena AI." %}
+      </p>
+    </div>
+  </header>
+
+  <section class="card talena-chat-card" aria-label="{% trans 'AI chat' %}">
+    <div
+      id="chat-messages"
+      class="talena-chat-messages"
+      aria-live="polite"
+      aria-relevant="additions"
+    >
+      <div class="talena-chat-empty" data-chat-empty>
+        <div class="talena-chat-empty-inner">
+          <div class="talena-chat-empty-icon" aria-hidden="true">
+            <i data-feather="message-circle"></i>
+          </div>
+          <div class="talena-chat-empty-title">
+            {% trans "Start a conversation" %}
+          </div>
+          <p class="talena-chat-empty-copy">
+            {% trans "Type a question below to get started." %}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="talena-chat-inputbar">
+      <input
+        type="text"
+        id="chat-input"
+        class="form-control talena-chat-input"
+        placeholder="{% trans 'Type your message...' %}"
+        aria-label="{% trans 'Message to Talena AI' %}"
+        autocomplete="off"
+        aria-describedby="general-chat-pii-notice"
+      >
+
+      <button
+        id="send-btn"
+        class="btn btn-primary talena-chat-send"
+        type="button"
+      >
+        <i data-feather="send" aria-hidden="true"></i>
+        <span>{% trans "Send" %}</span>
+      </button>
+    </div>
+    {% include "shared/ai_pii_notice.html" with kind="general" notice_id="general-chat-pii-notice" %}
+  </section>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+  {{ block.super }}
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
+  <script src="{% static 'js/talena/chat.js' %}"></script>
+{% endblock %}

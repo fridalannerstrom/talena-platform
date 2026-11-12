@@ -1,0 +1,17 @@
+<header class="candidate-insight-page-header">
+  {% if section_eyebrow %}
+    <div class="insight-summary-kicker">
+      {{ section_eyebrow }}
+    </div>
+  {% endif %}
+
+  <h2 class="candidate-insight-page-title">
+    {{ section_title }}
+  </h2>
+
+  {% if section_description %}
+    <p class="candidate-insight-page-description">
+      {{ section_description }}
+    </p>
+  {% endif %}
+</header>

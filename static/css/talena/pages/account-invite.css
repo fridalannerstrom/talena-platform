@@ -1,0 +1,360 @@
+/* =========================================================
+   TALENA ACCOUNT INVITE
+   New-user password setup and invalid invite state.
+   ========================================================= */
+
+.talena-invite {
+  color: var(--talena-text);
+  background: var(--talena-bg);
+}
+
+.talena-invite .auth-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: minmax(520px, 0.96fr) minmax(600px, 1.04fr);
+  background: var(--talena-surface);
+}
+
+.talena-invite .auth-left {
+  position: relative;
+  min-width: 0;
+  padding: 34px 46px 46px;
+  background:
+    radial-gradient(circle at 5% 100%, rgba(255, 111, 97, 0.035), transparent 30%),
+    #fff;
+}
+
+.talena-invite .registration-topbar {
+  width: 100%;
+}
+
+.talena-invite .brand-logo {
+  width: 126px;
+  height: auto;
+}
+
+.talena-invite .invite-card {
+  width: min(470px, 100%);
+  margin: auto;
+}
+
+.talena-invite .invite-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 16px;
+  padding: 7px 11px;
+  border: 1px solid rgba(255, 111, 97, 0.18);
+  border-radius: var(--talena-radius-pill);
+  background: var(--talena-coral-soft);
+  color: var(--talena-coral-strong);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+}
+
+.talena-invite .invite-eyebrow::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--talena-coral);
+}
+
+.talena-invite .auth-title {
+  margin: 0 0 10px;
+  color: var(--talena-ink);
+  font-family: inherit;
+  font-size: clamp(2rem, 3vw, 2.45rem);
+  font-weight: 720;
+  line-height: 1.06;
+  letter-spacing: -0.045em;
+}
+
+.talena-invite .auth-subtitle {
+  margin: 0 0 24px;
+  color: var(--talena-text-muted);
+  font-size: 0.86rem;
+  line-height: 1.65;
+}
+
+.talena-invite .invite-account {
+  margin: 0 0 24px;
+  padding: 13px 15px;
+  border: 1px solid var(--talena-border);
+  border-radius: 13px;
+  background: var(--talena-surface-soft);
+}
+
+.talena-invite .invite-account-label {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--talena-text-subtle);
+  font-size: 0.66rem;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.talena-invite .invite-account-email {
+  color: var(--talena-ink);
+  font-size: 0.82rem;
+  font-weight: 650;
+  word-break: break-word;
+}
+
+.talena-invite .invite-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-top: 0;
+}
+
+.talena-invite .invite-form .field {
+  margin: 0;
+}
+
+.talena-invite .label {
+  margin-bottom: 8px;
+  color: var(--talena-text);
+  font-size: 0.76rem;
+  font-weight: 650;
+}
+
+.talena-invite .input {
+  width: 100%;
+  height: 50px;
+  padding: 0 15px;
+  border: 1px solid var(--talena-border);
+  border-radius: 12px;
+  background: #fbfaf9;
+  color: var(--talena-text);
+  font: inherit;
+  font-size: 0.88rem;
+  box-shadow: none;
+  transition: border-color var(--talena-transition-fast), box-shadow var(--talena-transition-fast), background-color var(--talena-transition-fast);
+}
+
+.talena-invite .input:hover {
+  border-color: var(--talena-border-strong);
+}
+
+.talena-invite .input:focus {
+  outline: none;
+  border-color: rgba(255, 111, 97, 0.62);
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(255, 111, 97, 0.09);
+}
+
+.talena-invite .invite-help {
+  margin-top: 8px;
+  color: var(--talena-text-muted);
+  font-size: 0.68rem;
+  line-height: 1.55;
+}
+
+.talena-invite .invite-help ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.talena-invite .invite-button {
+  width: 100%;
+  min-height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2px;
+  border: 1px solid var(--talena-ink);
+  border-radius: var(--talena-radius-pill);
+  background: var(--talena-ink);
+  color: #fff;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 680;
+  text-decoration: none;
+  box-shadow: 0 10px 26px rgba(23, 19, 18, 0.12);
+}
+
+.talena-invite .invite-button:hover {
+  background: #000;
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.talena-invite .invite-security {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  color: var(--talena-text-muted);
+  font-size: 0.68rem;
+  line-height: 1.55;
+}
+
+.talena-invite .invite-security-icon {
+  flex: 0 0 auto;
+  width: 17px;
+  height: 17px;
+  margin-top: 1px;
+  color: var(--talena-success);
+}
+
+.talena-invite .alert {
+  border: 1px solid rgba(207, 89, 80, 0.20);
+  border-radius: 12px;
+  background: var(--talena-danger-soft);
+  color: #9c413a;
+}
+
+.talena-invite .has-error .input {
+  border-color: rgba(207, 89, 80, 0.45);
+  background: #fffafa;
+}
+
+/* Language switcher */
+.talena-invite .registration-language-trigger {
+  min-height: 42px;
+  padding: 7px 13px;
+  border-color: var(--talena-border);
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--talena-text);
+  box-shadow: 0 5px 18px rgba(23, 19, 18, 0.05);
+}
+
+.talena-invite .registration-language-trigger:hover,
+.talena-invite .registration-language-trigger[aria-expanded="true"] {
+  border-color: rgba(255, 111, 97, 0.34);
+}
+
+.talena-invite .registration-language-menu {
+  border-color: var(--talena-border);
+  border-radius: 16px;
+  box-shadow: var(--talena-shadow-lg);
+}
+
+.talena-invite .registration-language-option.is-active {
+  background: var(--talena-coral-soft);
+  color: var(--talena-coral-strong);
+}
+
+/* Dark onboarding panel */
+.talena-invite .invite-right {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 16px 16px 16px 0;
+  padding: 64px;
+  overflow: hidden;
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at 75% 20%, rgba(255, 111, 97, 0.25), transparent 31%),
+    radial-gradient(circle at 15% 85%, rgba(201, 149, 78, 0.10), transparent 34%),
+    linear-gradient(145deg, #171312 0%, #1d1715 52%, #261916 100%);
+}
+
+.talena-invite .invite-right::before {
+  content: "";
+  position: absolute;
+  top: -120px;
+  right: -140px;
+  width: 500px;
+  height: 500px;
+  border: 1px solid rgba(255, 111, 97, 0.11);
+  border-radius: 50%;
+}
+
+.talena-invite .invite-right-card {
+  position: relative;
+  z-index: 1;
+  width: min(470px, 100%);
+  padding: 26px;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.055);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(12px);
+}
+
+.talena-invite .invite-right-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 22px;
+  border: 1px solid rgba(255, 111, 97, 0.18);
+  border-radius: 14px;
+  background: rgba(255, 111, 97, 0.08);
+  color: #ff8176;
+}
+
+.talena-invite .invite-right-icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.talena-invite .invite-right-title {
+  margin: 0 0 12px;
+  color: #fff;
+  font-size: clamp(1.7rem, 3vw, 2.3rem);
+  font-weight: 690;
+  line-height: 1.08;
+  letter-spacing: -0.04em;
+}
+
+.talena-invite .invite-right-text {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.54);
+  font-size: 0.84rem;
+  line-height: 1.7;
+}
+
+/* Invalid invite */
+.talena-invite-invalid .invite-card {
+  padding: 32px;
+  border: 1px solid var(--talena-border);
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: var(--talena-shadow-md);
+}
+
+.talena-invite-invalid .invite-invalid-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  margin-bottom: 20px;
+  border: 1px solid rgba(207, 89, 80, 0.18);
+  border-radius: 14px;
+  background: var(--talena-danger-soft);
+  color: var(--talena-danger);
+  font-size: 1.15rem;
+}
+
+@media (max-width: 900px) {
+  .talena-invite .auth-shell {
+    display: block;
+  }
+
+  .talena-invite .auth-left {
+    min-height: 100vh;
+    padding: 28px;
+  }
+
+  .talena-invite .invite-right {
+    display: none;
+  }
+}
+
+@media (max-width: 520px) {
+  .talena-invite .auth-left {
+    padding: 22px 20px;
+  }
+
+  .talena-invite .brand-logo {
+    width: 112px;
+  }
+}

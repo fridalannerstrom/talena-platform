@@ -1,0 +1,924 @@
+{% load static %}
+<!doctype html>
+<html lang="{{ locale }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ copy.result_label }} · Talena</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #171312;
+      --text: #5f5955;
+      --muted: #8f8781;
+      --border: #e8e1dc;
+      --bg: #fbfaf8;
+      --surface: #ffffff;
+      --soft: #f7f4f1;
+      --coral: #ff6f61;
+      --coral-strong: #e95e52;
+      --coral-soft: #fff0ed;
+      --green: #34704d;
+      --green-soft: #edf8f1;
+      --shadow: 0 18px 48px rgba(55, 43, 37, .07);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 98% 0%, rgba(255, 207, 185, .28), transparent 28rem),
+        radial-gradient(circle at 0% 55%, rgba(255, 111, 97, .08), transparent 23rem),
+        var(--bg);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .page-shell {
+      width: min(100% - 40px, 1200px);
+      margin: 0 auto;
+      padding: 28px 0 72px;
+    }
+
+    .site-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      margin-bottom: 28px;
+    }
+
+    .brand-logo {
+      display: block;
+      width: 126px;
+      height: auto;
+    }
+
+    .language-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding: 10px 15px;
+      color: var(--ink);
+      background: rgba(255, 255, 255, .78);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      box-shadow: 0 8px 22px rgba(55, 43, 37, .05);
+      font-size: .78rem;
+      font-weight: 700;
+    }
+
+    .language-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--coral);
+      box-shadow: 0 0 0 4px var(--coral-soft);
+    }
+
+    .preview-banner {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      margin-bottom: 18px;
+      padding: 16px 18px;
+      color: var(--text);
+      background: var(--coral-soft);
+      border: 1px solid rgba(255, 111, 97, .24);
+      border-radius: 16px;
+      line-height: 1.55;
+    }
+
+    .preview-mark {
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+      width: 28px;
+      height: 28px;
+      color: var(--coral-strong);
+      background: #fff;
+      border: 1px solid rgba(255, 111, 97, .25);
+      border-radius: 9px;
+      font-size: .85rem;
+      font-weight: 900;
+    }
+
+    .preview-banner strong {
+      display: block;
+      margin-bottom: 2px;
+      color: var(--ink);
+      font-size: .86rem;
+    }
+
+    .preview-banner span { font-size: .86rem; }
+
+    .hero-card,
+    .intro-card,
+    .section-card {
+      background: rgba(255, 255, 255, .94);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-card {
+      overflow: hidden;
+      padding: 0;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(23, 19, 18, .04);
+    }
+
+    .hero-main {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 24px 26px 20px;
+    }
+
+    .hero-avatar {
+      display: grid;
+      place-items: center;
+      width: 52px;
+      height: 52px;
+      flex: 0 0 52px;
+      color: var(--coral-strong);
+      background: var(--coral-soft);
+      border: 1px solid rgba(255, 111, 97, .22);
+      border-radius: 50%;
+      font-size: .95rem;
+      font-weight: 800;
+    }
+
+    .hero-identity {
+      min-width: 0;
+      flex: 1 1 auto;
+    }
+
+    .hero-title-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .eyebrow {
+      margin-bottom: 5px;
+      color: var(--coral-strong);
+      font-size: .65rem;
+      font-weight: 800;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+    }
+
+    .hero-email {
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: .82rem;
+      overflow-wrap: anywhere;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      color: var(--green);
+      background: var(--green-soft);
+      border: 1px solid rgba(52, 112, 77, .16);
+      border-radius: 999px;
+      font-size: .76rem;
+      font-weight: 800;
+    }
+
+    .status-pill::before {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #55a871;
+      content: "";
+    }
+
+    h1 {
+      margin: 0;
+      color: var(--ink);
+      font-size: clamp(1.55rem, 3vw, 2rem);
+      line-height: 1.08;
+      letter-spacing: -.045em;
+    }
+
+    .hero-meta {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0;
+      border-top: 1px solid var(--border);
+      background: rgba(250, 249, 247, .52);
+    }
+
+    .hero-meta > div {
+      min-width: 0;
+      padding: 15px 20px;
+      border-right: 1px solid var(--border);
+    }
+
+    .hero-meta > div:last-child {
+      border-right: 0;
+    }
+
+    .meta-label {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--muted);
+      font-size: .72rem;
+      font-weight: 800;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+
+    .hero-meta strong {
+      display: block;
+      overflow-wrap: anywhere;
+      color: var(--ink);
+      font-size: .92rem;
+      line-height: 1.45;
+    }
+
+    .intro-card {
+      position: relative;
+      margin-top: 14px;
+      padding: clamp(24px, 4vw, 34px);
+      overflow: hidden;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(23, 19, 18, .04);
+    }
+
+    .intro-heading {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      margin: 0 0 15px;
+      color: var(--ink);
+      font-size: clamp(1.25rem, 3vw, 1.55rem);
+      letter-spacing: -.035em;
+    }
+
+    .intro-heading::before {
+      width: 10px;
+      height: 10px;
+      flex: 0 0 auto;
+      background: var(--coral);
+      border-radius: 50%;
+      content: "";
+    }
+
+    p {
+      margin: 0;
+      color: var(--text);
+      font-size: .98rem;
+      line-height: 1.75;
+    }
+
+    .intro-card p + p { margin-top: 12px; }
+
+    .section-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+      margin-top: 14px;
+    }
+
+    .section-card {
+      min-height: 0;
+      padding: clamp(24px, 4vw, 34px);
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(23, 19, 18, .04);
+      scroll-margin-top: 18px;
+    }
+
+    .section-card h2 {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0 0 14px;
+      color: var(--ink);
+      font-size: 1.14rem;
+      line-height: 1.2;
+      letter-spacing: -.03em;
+    }
+
+    .section-card h2::before {
+      width: 8px;
+      height: 8px;
+      flex: 0 0 auto;
+      background: var(--coral);
+      border-radius: 50%;
+      content: "";
+    }
+
+    .section-card > p {
+      max-width: 920px;
+      font-size: 1rem;
+      line-height: 1.78;
+    }
+
+    ul {
+      margin: 16px 0 0;
+      padding-left: 19px;
+      color: var(--text);
+      line-height: 1.7;
+    }
+
+    li + li { margin-top: 8px; }
+
+    .result-group + .result-group { margin-top: 22px; }
+    .result-group h3 {
+      margin: 0 0 8px;
+      color: var(--ink);
+      font-size: .94rem;
+      line-height: 1.35;
+    }
+    .result-group > p {
+      font-size: .98rem;
+      line-height: 1.75;
+    }
+    .result-group-item + .result-group-item { margin-top: 12px; }
+    .result-group-item strong {
+      display: block;
+      margin-bottom: 3px;
+      color: var(--ink);
+      font-size: .84rem;
+    }
+    .result-group-item p {
+      font-size: .9rem;
+      line-height: 1.65;
+    }
+
+    .empty {
+      grid-column: 1 / -1;
+      padding: 28px;
+      color: var(--muted);
+      background: var(--surface);
+      border: 1px dashed var(--border);
+      border-radius: 18px;
+      text-align: center;
+    }
+
+
+    .feedback-notice {
+      margin-bottom: 18px;
+      padding: 13px 16px;
+      color: var(--green);
+      background: var(--green-soft);
+      border: 1px solid rgba(52, 112, 77, .18);
+      border-radius: 13px;
+      font-size: .88rem;
+      font-weight: 700;
+    }
+
+    .feedback-block {
+      margin-top: 24px;
+      padding-top: 22px;
+      border-top: 1px solid var(--border);
+    }
+
+    .feedback-question {
+      margin-bottom: 12px;
+      color: var(--ink);
+      font-size: .86rem;
+      font-weight: 800;
+      line-height: 1.4;
+    }
+
+    .feedback-choices {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .feedback-choice,
+    .comment-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      min-height: 38px;
+      padding: 8px 11px;
+      color: var(--text);
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      cursor: pointer;
+      font: inherit;
+      font-size: .76rem;
+      font-weight: 700;
+      transition: border-color .18s ease, background .18s ease, color .18s ease, transform .18s ease;
+    }
+
+    .feedback-choice:hover,
+    .comment-button:hover {
+      border-color: var(--coral);
+      color: var(--ink);
+      transform: translateY(-1px);
+    }
+
+    .feedback-choice.is-selected {
+      color: var(--coral-strong);
+      background: var(--coral-soft);
+      border-color: rgba(255, 111, 97, .48);
+    }
+
+    .feedback-icon {
+      font-size: .98rem;
+      line-height: 1;
+    }
+
+    .comment-button {
+      margin-top: 10px;
+      color: var(--ink);
+      background: var(--soft);
+      border-radius: 11px;
+    }
+
+    .feedback-state {
+      margin-left: 7px;
+      color: var(--green);
+      font-size: .72rem;
+      font-weight: 800;
+    }
+
+    .candidate-comment {
+      margin-top: 16px;
+    }
+
+    .candidate-comment__label {
+      color: var(--ink);
+      font-size: .82rem;
+      font-weight: 800;
+    }
+
+    .candidate-comment__text {
+      margin: 5px 0 0;
+      color: var(--text);
+      font-size: .88rem;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .experience-intro { margin-bottom: 17px; }
+    .experience-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 10px 0 20px;
+    }
+    .experience-option { cursor: pointer; }
+    .experience-option input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+    .experience-option span {
+      display: inline-flex;
+      align-items: center;
+      min-height: 40px;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      color: var(--text);
+      font-size: .8rem;
+      font-weight: 700;
+    }
+    .experience-option input:checked + span {
+      border-color: var(--coral);
+      color: var(--ink);
+      background: var(--coral-soft);
+    }
+    .experience-option input:focus-visible + span { outline: 2px solid var(--coral); outline-offset: 2px; }
+    .experience-submit { margin-top: 17px; }
+
+    .feedback-dialog {
+      width: min(calc(100% - 32px), 520px);
+      padding: 0;
+      color: var(--ink);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      box-shadow: 0 28px 90px rgba(23, 19, 18, .22);
+    }
+
+    .feedback-dialog::backdrop {
+      background: rgba(23, 19, 18, .34);
+      backdrop-filter: blur(3px);
+    }
+
+    .feedback-form { padding: 28px; }
+
+    .dialog-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+
+    .dialog-header h2 {
+      margin: 0;
+      color: var(--ink);
+      font-size: 1.35rem;
+      letter-spacing: -.04em;
+    }
+
+    .dialog-close {
+      display: grid;
+      place-items: center;
+      width: 32px;
+      height: 32px;
+      padding: 0;
+      color: var(--muted);
+      background: var(--soft);
+      border: 0;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 1.15rem;
+    }
+
+    .dialog-label,
+    .dialog-choices legend {
+      display: block;
+      margin-bottom: 10px;
+      color: var(--ink);
+      font-size: .82rem;
+      font-weight: 800;
+    }
+
+    .dialog-choices {
+      margin: 0 0 22px;
+      padding: 0;
+      border: 0;
+    }
+
+    .dialog-choice {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 8px;
+      padding: 11px 13px;
+      color: var(--text);
+      background: var(--soft);
+      border: 1px solid transparent;
+      border-radius: 11px;
+      cursor: pointer;
+      font-size: .84rem;
+      line-height: 1.35;
+    }
+
+    .dialog-choice:has(input:checked) {
+      color: var(--ink);
+      background: var(--coral-soft);
+      border-color: rgba(255, 111, 97, .34);
+    }
+
+    .dialog-choice input { accent-color: var(--coral); }
+
+    .feedback-textarea {
+      display: block;
+      width: 100%;
+      min-height: 122px;
+      padding: 13px 14px;
+      resize: vertical;
+      color: var(--ink);
+      background: #fff;
+      border: 1px solid #ded6d0;
+      border-radius: 12px;
+      outline: none;
+      font: inherit;
+      font-size: .88rem;
+      line-height: 1.55;
+    }
+
+    .feedback-textarea:focus {
+      border-color: var(--coral);
+      box-shadow: 0 0 0 4px rgba(255, 111, 97, .14);
+    }
+
+    .feedback-textarea::placeholder { color: #b3aaa4; }
+
+    .dialog-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 9px;
+      margin-top: 22px;
+    }
+
+    .dialog-actions button,
+    .experience-submit {
+      min-height: 42px;
+      padding: 10px 17px;
+      border-radius: 999px;
+      cursor: pointer;
+      font: inherit;
+      font-size: .8rem;
+      font-weight: 800;
+    }
+
+    .dialog-cancel {
+      color: var(--ink);
+      background: var(--soft);
+      border: 1px solid var(--border);
+    }
+
+    .dialog-save {
+      color: #fff;
+      background: var(--ink);
+      border: 1px solid var(--ink);
+    }
+
+    @media (max-width: 760px) {
+      .page-shell { width: min(100% - 28px, 680px); padding-top: 20px; }
+      .hero-main { align-items: flex-start; padding: 22px 20px 18px; }
+      .hero-title-row { align-items: flex-start; flex-direction: column; gap: 7px; }
+      .hero-meta { grid-template-columns: 1fr; }
+      .hero-meta > div {
+        padding: 13px 20px;
+        border-right: 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .hero-meta > div:last-child { border-bottom: 0; }
+      .section-card { min-height: 0; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page-shell">
+    <header class="site-header">
+      <img class="brand-logo" src="{% static 'images/talena-logo.svg' %}" alt="Talena">
+      <div class="language-chip" aria-label="{% if locale|slice:':2' == 'sv' %}Svenska{% else %}English{% endif %}">
+        <span class="language-dot" aria-hidden="true"></span>
+        {% if locale|slice:":2" == "sv" %}Svenska{% else %}English{% endif %}
+      </div>
+    </header>
+
+    {% if preview %}
+      <div class="preview-banner" role="status">
+        <div class="preview-mark" aria-hidden="true">↗</div>
+        <div>
+          <strong>{{ copy.preview_label }}</strong>
+          <span>{{ copy.preview_body }}</span>
+        </div>
+      </div>
+    {% endif %}
+
+    {% if feedback_saved and not preview %}
+      <div class="feedback-notice" role="status">{{ copy.feedback_saved }}</div>
+    {% endif %}
+
+    <header class="hero-card" id="summary">
+      <div class="hero-main">
+        <div class="hero-avatar" aria-hidden="true">
+          {% if candidate.first_name or candidate.last_name %}
+            {{ candidate.first_name|slice:":1"|upper }}{{ candidate.last_name|slice:":1"|upper }}
+          {% else %}
+            ?
+          {% endif %}
+        </div>
+        <div class="hero-identity">
+          <div class="eyebrow">{{ copy.result_label }}</div>
+          <div class="hero-title-row">
+            <h1>{{ candidate.first_name }} {{ candidate.last_name }}</h1>
+            <div class="status-pill">{% if locale|slice:":2" == "sv" %}Genomfört{% else %}Completed{% endif %}</div>
+          </div>
+          <div class="hero-email">{{ candidate.email }}</div>
+        </div>
+      </div>
+
+      <div class="hero-meta">
+        <div>
+          <span class="meta-label">{{ copy.completed_label }}</span>
+          <strong>{{ completed_at|date:"Y-m-d" }}</strong>
+        </div>
+        <div>
+          <span class="meta-label">{{ copy.included_label }}</span>
+          <strong>
+            {% for section in sections %}
+              {{ section.title }}{% if not forloop.last %} · {% endif %}
+            {% empty %}
+              —
+            {% endfor %}
+          </strong>
+        </div>
+      </div>
+    </header>
+
+    <section class="intro-card">
+      <h2 class="intro-heading">
+        {% if introduction.title %}{{ introduction.title }}{% else %}{{ copy.discussion_title }}{% endif %}
+      </h2>
+      {% if introduction.body %}
+        <p>{{ introduction.body }}</p>
+      {% else %}
+        <p>{{ copy.discussion_body }}</p>
+      {% endif %}
+    </section>
+
+    <div class="section-grid">
+      {% for section in sections %}
+        <section class="section-card" id="section-{{ section.key }}">
+          <h2>{{ section.title }}</h2>
+          {% if section.body %}<p>{{ section.body }}</p>{% endif %}
+          {% if section.points %}
+            <ul>
+              {% for point in section.points %}<li>{{ point }}</li>{% endfor %}
+            </ul>
+          {% endif %}
+          {% for group in section.groups %}
+            <div class="result-group">
+              {% if group.title %}<h3>{{ group.title }}</h3>{% endif %}
+              {% if group.body %}<p>{{ group.body }}</p>{% endif %}
+              {% for item in group.items %}
+                <div class="result-group-item">
+                  {% if item.label %}<strong>{{ item.label }}</strong>{% endif %}
+                  {% if item.text %}<p>{{ item.text }}</p>{% endif %}
+                </div>
+              {% endfor %}
+            </div>
+          {% endfor %}
+
+          {% if not preview %}
+            <div class="feedback-block">
+              <div class="feedback-question">{{ copy.feedback_question }}</div>
+              <div class="feedback-choices" role="group" aria-label="{{ copy.feedback_question }}">
+                <button
+                  type="button"
+                  class="feedback-choice {% if section.feedback and section.feedback.response == 'recognises' %}is-selected{% endif %}"
+                  data-feedback-choice="recognises"
+                  data-feedback-dialog="feedback-dialog-{{ section.key }}"
+                  aria-pressed="{% if section.feedback and section.feedback.response == 'recognises' %}true{% else %}false{% endif %}">
+                  <span class="feedback-icon" aria-hidden="true">👍</span>
+                  <span>{{ copy.feedback_recognise }}</span>
+                </button>
+                <button
+                  type="button"
+                  class="feedback-choice {% if section.feedback and section.feedback.response == 'partly_recognises' %}is-selected{% endif %}"
+                  data-feedback-choice="partly_recognises"
+                  data-feedback-dialog="feedback-dialog-{{ section.key }}"
+                  aria-pressed="{% if section.feedback and section.feedback.response == 'partly_recognises' %}true{% else %}false{% endif %}">
+                  <span class="feedback-icon" aria-hidden="true">◐</span>
+                  <span>{{ copy.feedback_partial }}</span>
+                </button>
+                <button
+                  type="button"
+                  class="feedback-choice {% if section.feedback and section.feedback.response == 'does_not_recognise' %}is-selected{% endif %}"
+                  data-feedback-choice="does_not_recognise"
+                  data-feedback-dialog="feedback-dialog-{{ section.key }}"
+                  aria-pressed="{% if section.feedback and section.feedback.response == 'does_not_recognise' %}true{% else %}false{% endif %}">
+                  <span class="feedback-icon" aria-hidden="true">👎</span>
+                  <span>{{ copy.feedback_not_recognise }}</span>
+                </button>
+              </div>
+              {% if section.feedback and section.feedback.comment %}
+                <div class="candidate-comment">
+                  <div class="candidate-comment__label">{{ copy.feedback_your_comment }}</div>
+                  <p class="candidate-comment__text">{{ section.feedback.comment }}</p>
+                </div>
+              {% endif %}
+              <div>
+                <button type="button" class="comment-button" data-feedback-open="feedback-dialog-{{ section.key }}">
+                  <span aria-hidden="true">✎</span>
+                  <span>{% if section.feedback and section.feedback.comment %}{{ copy.feedback_edit_comment }}{% else %}{{ copy.feedback_comment_button }}{% endif %}</span>
+                </button>
+                {% if section.feedback and not section.feedback.comment %}
+                  <span class="feedback-state">{{ copy.feedback_saved_short }}</span>
+                {% endif %}
+              </div>
+            </div>
+          {% endif %}
+        </section>
+      {% empty %}
+        <p class="empty">{% if locale|slice:":2" == "sv" %}Resultattexten är inte tillgänglig ännu.{% else %}No candidate-facing result text is available yet.{% endif %}</p>
+      {% endfor %}
+    </div>
+
+    {% if not preview %}
+      <section class="section-card" id="test-experience" style="margin-top: 14px;">
+        <h2>{{ copy.experience_title }}</h2>
+        <p class="experience-intro">{{ copy.experience_intro }}</p>
+        {% if experience_saved %}
+          <div class="feedback-notice" role="status">{{ copy.experience_saved }}</div>
+        {% endif %}
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="save_experience">
+          <div class="dialog-label" id="experience-rating-label">{{ copy.experience_rating }}</div>
+          <div class="experience-options" role="group" aria-labelledby="experience-rating-label">
+            {% for value, label in copy.experience_labels %}
+              <label class="experience-option">
+                <input type="radio" name="rating" value="{{ value }}" {% if experience_feedback.rating == value %}checked{% endif %} required>
+                <span>{{ label }}</span>
+              </label>
+            {% endfor %}
+          </div>
+          <label class="dialog-label" for="experience-comment">{{ copy.experience_comment }}</label>
+          <textarea id="experience-comment" class="feedback-textarea" name="comment" maxlength="2000">{% if experience_feedback %}{{ experience_feedback.comment }}{% endif %}</textarea>
+          <button type="submit" class="dialog-save experience-submit">{% if experience_feedback %}{{ copy.experience_update }}{% else %}{{ copy.experience_save }}{% endif %}</button>
+        </form>
+      </section>
+    {% endif %}
+
+    {% if not preview %}
+      {% for section in sections %}
+        <dialog id="feedback-dialog-{{ section.key }}" class="feedback-dialog">
+          <form method="post" class="feedback-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="save_feedback">
+            <input type="hidden" name="result_area" value="{{ section.key }}">
+
+            <div class="dialog-header">
+              <h2>{{ copy.feedback_modal_title }}</h2>
+              <button type="button" class="dialog-close" data-feedback-close aria-label="{{ copy.feedback_cancel }}">×</button>
+            </div>
+
+            <fieldset class="dialog-choices">
+              <legend>{{ copy.feedback_question }}</legend>
+              <label class="dialog-choice">
+                <input type="radio" name="response" value="recognises" {% if section.feedback and section.feedback.response == 'recognises' %}checked{% endif %} required>
+                <span>👍 {{ copy.feedback_recognise }}</span>
+              </label>
+              <label class="dialog-choice">
+                <input type="radio" name="response" value="partly_recognises" {% if section.feedback and section.feedback.response == 'partly_recognises' %}checked{% endif %}>
+                <span>◐ {{ copy.feedback_partial }}</span>
+              </label>
+              <label class="dialog-choice">
+                <input type="radio" name="response" value="does_not_recognise" {% if section.feedback and section.feedback.response == 'does_not_recognise' %}checked{% endif %}>
+                <span>👎 {{ copy.feedback_not_recognise }}</span>
+              </label>
+            </fieldset>
+
+            <label class="dialog-label" for="feedback-comment-{{ section.key }}">{{ copy.feedback_comment_label }}</label>
+            <textarea
+              id="feedback-comment-{{ section.key }}"
+              class="feedback-textarea"
+              name="comment"
+              maxlength="2000"
+              placeholder="{{ copy.feedback_comment_placeholder }}">{% if section.feedback %}{{ section.feedback.comment }}{% endif %}</textarea>
+
+            <div class="dialog-actions">
+              <button type="button" class="dialog-cancel" data-feedback-close>{{ copy.feedback_cancel }}</button>
+              <button type="submit" class="dialog-save">{{ copy.feedback_save }}</button>
+            </div>
+          </form>
+        </dialog>
+      {% endfor %}
+    {% endif %}
+  </main>
+
+  <script>
+    const feedbackDialogs = document.querySelectorAll(".feedback-dialog");
+
+    function updateFeedbackChoices(dialog) {
+      const selected = dialog.querySelector("input[name=\"response\"]:checked");
+      document.querySelectorAll("[data-feedback-dialog=\"" + dialog.id + "\"]").forEach((button) => {
+        const isSelected = selected && button.dataset.feedbackChoice === selected.value;
+        button.classList.toggle("is-selected", Boolean(isSelected));
+        button.setAttribute("aria-pressed", isSelected ? "true" : "false");
+      });
+    }
+
+    function openFeedbackDialog(dialog) {
+      if (!dialog) return;
+      if (typeof dialog.showModal === "function") {
+        dialog.showModal();
+      } else {
+        dialog.setAttribute("open", "");
+      }
+      const textarea = dialog.querySelector("textarea");
+      if (textarea) textarea.focus();
+    }
+
+    feedbackDialogs.forEach((dialog) => {
+      dialog.querySelectorAll("input[name=\"response\"]").forEach((input) => {
+        input.addEventListener("change", () => updateFeedbackChoices(dialog));
+      });
+      dialog.querySelectorAll("[data-feedback-close]").forEach((button) => {
+        button.addEventListener("click", () => dialog.close());
+      });
+      dialog.addEventListener("click", (event) => {
+        if (event.target === dialog) dialog.close();
+      });
+      updateFeedbackChoices(dialog);
+    });
+
+    document.querySelectorAll("[data-feedback-choice]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const dialog = document.getElementById(button.dataset.feedbackDialog);
+        const input = dialog && dialog.querySelector('input[name="response"][value="' + button.dataset.feedbackChoice + '"]');
+        if (input) input.checked = true;
+        updateFeedbackChoices(dialog);
+        openFeedbackDialog(dialog);
+      });
+    });
+
+    document.querySelectorAll("[data-feedback-open]").forEach((button) => {
+      button.addEventListener("click", () => {
+        openFeedbackDialog(document.getElementById(button.dataset.feedbackOpen));
+      });
+    });
+  </script>
+
+</body>
+</html>

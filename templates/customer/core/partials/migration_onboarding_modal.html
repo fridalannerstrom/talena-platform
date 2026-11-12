@@ -1,0 +1,131 @@
+{% load static i18n %}
+
+{% if show_migration_onboarding %}
+
+<link href="{% static 'css/talena/pages/migration-onboarding.css' %}" rel="stylesheet" />
+<script src="{% static 'js/talena/migration-onboarding.js' %}" defer></script>
+
+<div
+  class="modal fade"
+  id="migrationOnboardingModal"
+  tabindex="-1"
+  aria-labelledby="migrationOnboardingModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-dialog-centered migration-welcome-dialog">
+
+    <div class="modal-content migration-welcome-modal">
+
+      <!-- Close -->
+      <form
+        method="post"
+        action="{% url 'core:complete_migration_onboarding' %}"
+        class="migration-welcome-close"
+      >
+        {% csrf_token %}
+
+        <input
+          type="hidden"
+          name="next"
+          value="{{ request.get_full_path }}"
+        >
+
+        <button
+          type="submit"
+          class="btn-close"
+          aria-label="{% trans 'Close' %}"
+        ></button>
+      </form>
+
+      <div class="migration-welcome-content">
+
+        <div class="migration-welcome-brand" aria-hidden="true">
+          <img
+            src="{% static 'images/talena-logo.svg' %}"
+            alt=""
+          >
+        </div>
+
+        <div class="migration-welcome-eyebrow">
+          {% trans "Your Talena workspace" %}
+        </div>
+
+        <h2
+          class="migration-welcome-title"
+          id="migrationOnboardingModalLabel"
+        >
+          {% if request.user.first_name %}
+            {% blocktrans with first_name=request.user.first_name %}
+              Welcome, {{ first_name }}!
+            {% endblocktrans %}
+          {% else %}
+            {% trans "Welcome to Talena!" %}
+          {% endif %}
+        </h2>
+
+        <p class="migration-welcome-text">
+          {% blocktrans with company_name=migration_company.name %}
+            As a {{ company_name }} user, you have access to your previous candidates and projects from Sova. We've brought them into Talena so you can pick up where you left off.
+          {% endblocktrans %}
+        </p>
+
+        <div class="migration-welcome-stats">
+          <div class="migration-welcome-stat">
+            <strong>{{ migration_historical_process_count }}</strong>
+            {% trans "archived projects" %}
+          </div>
+
+          <div class="migration-welcome-stat">
+            <strong>{{ migration_historical_candidate_count }}</strong>
+            {% trans "candidates" %}
+          </div>
+        </div>
+
+        <form
+          method="post"
+          action="{% url 'core:complete_migration_onboarding' %}"
+          class="w-100"
+        >
+          {% csrf_token %}
+
+          <input
+            type="hidden"
+            name="next"
+            value="{% url 'processes:process_list' %}?archived=1"
+          >
+
+          <button
+            type="submit"
+            class="btn btn-primary migration-welcome-primary"
+          >
+            {% trans "Explore previous candidates" %}
+          </button>
+        </form>
+
+        <form
+          method="post"
+          action="{% url 'core:complete_migration_onboarding' %}"
+          class="w-100 mt-2"
+        >
+          {% csrf_token %}
+
+          <input
+            type="hidden"
+            name="next"
+            value="{% url 'processes:process_create' %}"
+          >
+
+          <button
+            type="submit"
+            class="btn btn-outline-secondary migration-welcome-secondary"
+          >
+            {% trans "Create new project" %}
+          </button>
+        </form>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endif %}
