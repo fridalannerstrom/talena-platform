@@ -1,0 +1,27 @@
+<div class="static-communication-guidance" data-static-communication-guidance>
+  {% if static_communication_guidance.profile_title %}
+    <section class="purpose-fit-section mb-4" data-static-profile-status="{{ static_communication_guidance.profile_status }}">
+      <h3 class="purpose-fit-section-title mb-2">{{ static_communication_guidance.profile_title }}</h3>
+      {% for paragraph in static_communication_guidance.profile_paragraphs %}
+        <p class="purpose-fit-summary">{{ paragraph }}</p>
+      {% endfor %}
+    </section>
+  {% else %}
+    <p class="text-muted small mb-3" role="status" data-static-profile-status="unavailable">
+      Profilbedömning visas inte eftersom underlaget inte räcker.
+    </p>
+  {% endif %}
+
+  {% if static_communication_guidance.social_desirability_available %}
+    <section class="purpose-fit-section" data-static-social-desirability>
+      <h3 class="purpose-fit-section-title mb-2">Social önskvärdhet</h3>
+      {% for paragraph in static_communication_guidance.social_desirability_paragraphs %}
+        <p class="purpose-fit-summary">{{ paragraph }}</p>
+      {% endfor %}
+    </section>
+  {% else %}
+    <p class="text-muted small mb-0" role="status" data-static-social-desirability="unavailable">
+      Resultat för social önskvärdhet saknas.
+    </p>
+  {% endif %}
+</div>
