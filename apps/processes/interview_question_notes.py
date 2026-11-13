@@ -518,6 +518,7 @@ def process_candidate_interview_question_note_update(
             "note": saved_note,
             "has_note": bool(note_text),
             "possible_personal_data": possible_personal_data,
+            "evidence_changed": evidence_changed,
             "post_interview_status": post_interview_status,
         }
     )
