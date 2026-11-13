@@ -2763,6 +2763,7 @@
         });
         compilationButton.addEventListener("click", () => {
           if (compilationButton.disabled || nativeCompileButton.disabled) return;
+          nativeCompileButton.dataset.structured = "true";
           nativeCompileButton.click();
         });
       } else {
