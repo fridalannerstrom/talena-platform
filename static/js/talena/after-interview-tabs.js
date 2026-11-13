@@ -976,7 +976,7 @@
           const controller = workspace._talenaManagerReportEditController;
           const currentState = controller?.state;
           const trigger = event.target.closest?.(
-            "[data-after-interview-regenerate], [data-personality-ai-regenerate], [data-post-interview-generate]"
+            "[data-after-interview-regenerate], [data-personality-ai-regenerate], [data-post-interview-generate], [data-after-interview-manager-report-generate]"
           );
           if (!trigger || !currentState) return;
           if (currentState.confirmedRegenerationTrigger === trigger) {
@@ -995,7 +995,7 @@
             trigger.hasAttribute("data-personality-ai-regenerate")
             && [...currentState.edits.keys()].some((key) => key.startsWith("personality:"));
           const isFullRegeneration =
-            trigger.hasAttribute("data-post-interview-generate")
+            trigger.hasAttribute("data-after-interview-manager-report-generate")
             && currentState.edits.size > 0;
           if (
             hasEditedBlock || isPersonalityRegeneration || isFullRegeneration
@@ -2397,7 +2397,7 @@
     managerReportGenerateButton = document.createElement("button");
     managerReportGenerateButton.type = "button";
     managerReportGenerateButton.className = "btn btn-icon btn-light talena-report-action-button after-interview-manager-report__generate";
-    managerReportGenerateButton.dataset.postInterviewGenerate = "";
+    managerReportGenerateButton.dataset.afterInterviewManagerReportGenerate = "";
     managerReportGenerateIcon = document.createElement("i");
     managerReportGenerateIcon.setAttribute("data-feather", "refresh-cw");
     managerReportGenerateIcon.setAttribute("aria-hidden", "true");
