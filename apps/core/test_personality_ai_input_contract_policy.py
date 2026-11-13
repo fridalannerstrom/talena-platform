@@ -108,6 +108,12 @@ class PersonalityAIInputContractPolicyTests(SimpleTestCase):
             "personality_motivation_interaction": "MOTIVATION BOX GUIDANCE",
             "personality_supportive_patterns": "STRENGTHS BOX GUIDANCE",
             "personality_areas_to_explore": "DEVELOPMENT BOX GUIDANCE",
+            "manager_personality_leading_and_working_with_others_testbild": "MANAGER LEADING TESTBILD",
+            "manager_personality_leading_and_working_with_others_candidate_describes": "MANAGER LEADING INTERVIEW",
+            "manager_personality_organising_and_thinking_patterns_testbild": "MANAGER ORGANISING TESTBILD",
+            "manager_personality_organising_and_thinking_patterns_candidate_describes": "MANAGER ORGANISING INTERVIEW",
+            "manager_personality_interaction_and_emotion_management_testbild": "MANAGER INTERACTION TESTBILD",
+            "manager_personality_interaction_and_emotion_management_candidate_describes": "MANAGER INTERACTION INTERVIEW",
         }
         feature_prompt.side_effect = lambda **kwargs: feature_values[kwargs["key"]]
 
@@ -119,6 +125,8 @@ class PersonalityAIInputContractPolicyTests(SimpleTestCase):
         self.assertIn("MOTIVATION BOX GUIDANCE", text)
         self.assertIn("STRENGTHS BOX GUIDANCE", text)
         self.assertIn("DEVELOPMENT BOX GUIDANCE", text)
+        self.assertIn("MANAGER ORGANISING TESTBILD", text)
+        self.assertIn("MANAGER ORGANISING INTERVIEW", text)
         self.assertIn("Every box uses exactly two administrator layers", text)
 
     @patch(

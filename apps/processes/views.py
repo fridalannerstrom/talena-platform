@@ -1,4 +1,5 @@
 from django.contrib.auth.decorators import login_required
+from django.db.models import Max
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils.http import url_has_allowed_host_and_scheme
 from apps.core.integrations.sova import SovaClient
@@ -13,6 +14,7 @@ from .models import (
     ProcessLabel,
     HistoricalProcessCandidate,
 )
+from .interview_question_models import InterviewQuestionNote
 from .purpose_utils import normalize_purpose_key
 from .ai_insight_updates import build_candidate_ai_update_state
 from apps.reports.services.candidate_insights import (
@@ -2477,6 +2479,36 @@ def build_candidate_final_output(
         "has_content": has_content,
     }
 
+def _post_interview_evidence_changed(owner, process) -> bool:
+    """Return whether interview notes or saved question answers changed."""
+    saved_result = owner.ai_post_interview_decision_support or {}
+    if not saved_result:
+        return False
+
+    if saved_result.get("interview_evidence_changed_since_compilation") is True:
+        return True
+
+    notes_updated_at = owner.interview_notes_updated_at
+    notes_version = owner.ai_post_interview_decision_support_notes_version
+    if notes_updated_at and (
+        not notes_version or notes_updated_at > notes_version
+    ):
+        return True
+
+    latest_question_note = (
+        InterviewQuestionNote.objects
+        .filter(process=process, candidate=owner.candidate)
+        .aggregate(latest=Max("updated_at"))
+        .get("latest")
+    )
+    generated_at = owner.ai_post_interview_decision_support_generated_at
+    return bool(
+        latest_question_note
+        and (not generated_at or latest_question_note > generated_at)
+    )
+
+
+
 def build_candidate_detail_context(
     process,
     invitation,
@@ -3690,6 +3722,10 @@ def build_candidate_detail_context(
             or "not_started"
         ),
 
+        "post_interview_evidence_changed": (
+            _post_interview_evidence_changed(invitation, process)
+        ),
+
         "post_interview_decision_support_generated_at": (
             invitation
             .ai_post_interview_decision_support_generated_at
@@ -4751,7 +4787,6 @@ def process_candidate_post_interview_decision_support_stream(
                             for key in (
                                 "overall_picture",
                                 "interview_summary",
-                                "explore_further",
                                 "wellbeing_tips",
                             )
                         },
@@ -5025,45 +5060,41 @@ def process_candidate_interview_notes_update(
             status=400,
         )
 
-    updated_at = timezone.now()
+    evidence_changed = interview_notes != (invitation.interview_notes or "")
+    updated_at = invitation.interview_notes_updated_at
 
-    invitation.interview_notes = (
-        interview_notes
-    )
+    if evidence_changed:
+        updated_at = timezone.now()
+        invitation.interview_notes = interview_notes
+        invitation.interview_notes_updated_at = updated_at
+        invitation.interview_notes_updated_by = request.user
 
-    invitation.interview_notes_updated_at = (
-        updated_at
-    )
+        # Mark the synthesis stale only when the saved notes actually changed.
+        if invitation.ai_post_interview_decision_support:
+            invitation.ai_post_interview_decision_support_status = "outdated"
+            decision_support = dict(
+                invitation.ai_post_interview_decision_support
+            )
+            decision_support["interview_evidence_changed_since_compilation"] = True
+            invitation.ai_post_interview_decision_support = decision_support
+            post_interview_update_fields = [
+                "ai_post_interview_decision_support_status",
+                "ai_post_interview_decision_support",
+            ]
+        else:
+            invitation.ai_post_interview_decision_support_status = "not_started"
+            post_interview_update_fields = [
+                "ai_post_interview_decision_support_status",
+            ]
 
-    invitation.interview_notes_updated_by = (
-        request.user
-    )
-
-    # An existing post-interview synthesis no longer
-    # reflects the latest interview evidence.
-    if (
-        invitation
-        .ai_post_interview_decision_support
-    ):
-        invitation.ai_post_interview_decision_support_status = (
-            "outdated"
+        invitation.save(
+            update_fields=[
+                "interview_notes",
+                "interview_notes_updated_at",
+                "interview_notes_updated_by",
+                *post_interview_update_fields,
+            ]
         )
-    else:
-        invitation.ai_post_interview_decision_support_status = (
-            "not_started"
-        )
-
-    invitation.save(
-        update_fields=[
-            "interview_notes",
-            "interview_notes_updated_at",
-            "interview_notes_updated_by",
-            (
-                "ai_post_interview_"
-                "decision_support_status"
-            ),
-        ]
-    )
 
     return JsonResponse(
         {
@@ -5073,11 +5104,12 @@ def process_candidate_interview_notes_update(
                 interview_notes
             ),
             "updated_at": (
-                updated_at.isoformat()
+                updated_at.isoformat() if updated_at else None
             ),
             "updated_by": (
-                request.user.get_full_name()
-                or request.user.get_username()
+                (invitation.interview_notes_updated_by.get_full_name()
+                 or invitation.interview_notes_updated_by.get_username())
+                if invitation.interview_notes_updated_by else ""
             ),
             "post_interview_status": (
                 invitation
@@ -5357,6 +5389,10 @@ def process_candidate_final_output(
                 invitation
                 .ai_post_interview_decision_support_status
                 or "not_started"
+            ),
+
+            "post_interview_evidence_changed": (
+                _post_interview_evidence_changed(invitation, process)
             ),
 
             "post_interview_decision_support_generated_at": (
@@ -9947,6 +9983,10 @@ def build_historical_candidate_detail_context(
             or "not_started"
         ),
 
+        "post_interview_evidence_changed": (
+            _post_interview_evidence_changed(historical_candidate, process)
+        ),
+
         "post_interview_decision_support_generated_at": (
             historical_candidate
             .ai_post_interview_decision_support_generated_at
@@ -11895,8 +11935,11 @@ def process_candidate_personality_interpretation_stream(
     # RETURN SAVED RESULT
     # ---------------------------------------------------------
 
+    force_regeneration = request.GET.get("force") == "1"
+
     if (
-        ai_content_language_matches(
+        not force_regeneration
+        and ai_content_language_matches(
             owner,
             "personality_interpretation",
             language_code,

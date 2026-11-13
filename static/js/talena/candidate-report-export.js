@@ -31,7 +31,7 @@
     "team-report": "Individuell teamprofil",
     "leadership-report": "Ledarskapsrapport", "derailment-report": "Urspårningsrapport",
     "prepare-interview": "Inför intervju", "after-overview": "Helhetsbild",
-    "after-interview": "Intervjusammanfattning", "after-explore": "Undersök vidare",
+    "after-interview": "Intervjusammanfattning",
     "manager-report": "Chefsrapport"
   } : {
     overview: "Overview", personality: "Personality", motivation: "Motivation",
@@ -41,7 +41,7 @@
     "team-report": "Individual team profile",
     "leadership-report": "Leadership report", "derailment-report": "Derailment report",
     "prepare-interview": "Prepare for interview", "after-overview": "Overall picture",
-    "after-interview": "Interview summary", "after-explore": "Explore further",
+    "after-interview": "Interview summary",
     "manager-report": "Manager report"
   };
   const registry = [
@@ -70,7 +70,7 @@
     { id: "prepare-interview",
       selector: "#candidate-insights-panel-prepare-interview [data-pre-interview-content]",
       ready: element => !element.classList.contains("d-none") && element.textContent.trim().length > 80 },
-    ...[["overview","after-overview"],["explore","after-explore"]]
+    ...[["overview","after-overview"]]
       .map(([panel, id]) => ({
         id, selector: '[data-after-interview-tab-panel="' + panel + '"] .after-interview-tab-card',
         ready: element => {

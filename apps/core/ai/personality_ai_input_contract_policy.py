@@ -183,6 +183,9 @@ def _personality_interpretation_admin_guidance(
         get_ai_feature_prompt_instructions,
         get_global_ai_guidance,
     )
+    from .personality_interpretation import (
+        PERSONALITY_MANAGER_REPORT_THEMES,
+    )
 
     language_code = _language(language_code)
     global_guidance = get_global_ai_guidance(language=language_code)
@@ -212,6 +215,18 @@ def _personality_interpretation_admin_guidance(
         key="personality_areas_to_explore",
         language=language_code,
     )
+
+    manager_report_sections = []
+    for theme in PERSONALITY_MANAGER_REPORT_THEMES:
+        for part in ("testbild", "candidate_describes"):
+            instruction = get_ai_feature_prompt_instructions(
+                key=f"manager_personality_{theme['prompt_stem']}_{part}",
+                language=language_code,
+            )
+            manager_report_sections.append(
+                f"THEME {theme['label']} · {part}\n{instruction}"
+            )
+    manager_report_guidance = "\n\n".join(manager_report_sections)
 
     return f"""
 ADMINISTRATOR AI GUIDANCE
@@ -262,6 +277,14 @@ Applies only to areas_to_explore / What to explore or validate, together with
 the global guidance above.
 
 {explore}
+
+MANAGER REPORT PERSONALITY TEXTS · BOX-SPECIFIC GUIDANCE
+
+The six current administrator prompts below apply only to their matching
+personality_report_text event. Follow each prompt's content, length, format
+and tone requirements. They apply together with the global guidance above.
+
+{manager_report_guidance}
 
 ADMIN GUIDANCE APPLICATION RULE
 

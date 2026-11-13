@@ -213,6 +213,34 @@ PERSONALITY_MANAGER_REPORT_THEMES = (
 )
 
 
+def _manager_report_personality_admin_system_guidance(language_code: str) -> str:
+    """Build high-priority, current admin guidance for each manager-report text."""
+    sections = []
+    for theme in PERSONALITY_MANAGER_REPORT_THEMES:
+        fields = []
+        for part in ("testbild", "candidate_describes"):
+            instruction = get_ai_feature_prompt_instructions(
+                key=f"manager_personality_{theme['prompt_stem']}_{part}",
+                language=language_code,
+            )
+            fields.append(f"{part}:\n{instruction}")
+        sections.append(f"THEME {theme['label']}\n" + "\n\n".join(fields))
+
+    return (
+        "CURRENT ADMINISTRATOR INSTRUCTIONS FOR MANAGER-REPORT PERSONALITY TEXTS\n"
+        "Follow the exact instruction for each named theme and field. These "
+        "instructions govern the content, length, format and tone of their "
+        "matching personality_report_text events. Treat them as authoritative "
+        "over generic examples or style guidance in the user prompt. Before "
+        "emitting each event, check that its text follows the matching "
+        "administrator instruction and revise it if needed. Preserve the "
+        "required event structure and evidence boundaries.\n\n"
+        + "\n\n".join(sections)
+    )
+
+
+
+
 def build_personality_indicator_interpretations(
     owner,
     *,
@@ -825,6 +853,9 @@ def stream_personality_interpretation(
             owner=owner,
         )
     )
+    manager_report_admin_guidance = (
+        _manager_report_personality_admin_system_guidance(language_code)
+    )
 
     prompt = redact_candidate_name(prompt, owner.candidate)
 
@@ -843,6 +874,10 @@ def stream_personality_interpretation(
                     "event types, evidence boundaries and streaming format. "
                     f"{system_language_instruction}"
                 ),
+            },
+            {
+                "role": "system",
+                "content": manager_report_admin_guidance,
             },
             {
                 "role": "user",

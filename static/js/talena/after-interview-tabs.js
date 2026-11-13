@@ -13,14 +13,12 @@
         reports: "Rapporter",
         overview: "Helhetsbild",
         interview: "Intervjusammanfattning",
-        explore: "Undersök vidare",
         managerReport: "Chefsrapport",
         evidence: "Underlag",
       },
       descriptions: {
         overview: "En samlad bild av testresultat, intervjuunderlag och rollkontext.",
         interview: "Vad intervjun bekräftar, nyanserar eller tillför till testresultaten.",
-        explore: "Frågor och områden där ytterligare underlag kan ge en mer komplett bild.",
         managerReport: "Ett samlat stöd för rekryteraren och ansvarig chef, med fokus på kandidatens resultat och relevanta frågor att följa upp.",
         evidence: "Intervjuanteckningar och svar som Talena använder som underlag.",
       },
@@ -135,33 +133,30 @@
       evidenceHeading: "Börja med det som kom fram i intervjun",
       evidenceHeadingReady: "Komplettera ditt intervjuunderlag",
       evidenceLead: "Testresultat och rollkontext finns redan i Talena. Lägg till exempel, svar och observationer från samtalet här.",
-      evidenceLeadReady: "Du kan komplettera eller ändra anteckningarna här. Sammanställ på nytt för att uppdatera analysen och rapporterna.",
+      evidenceLeadReady: "Komplettera eller ändra anteckningarna här. När du vill uppdatera helhetsbilden och chefsrapporten utifrån underlaget använder du knappen längst ner.",
+      compileAgainTitle: "Skapa en ny sammanställning",
+      compileAgainDescription: "Generera helhetsbild och chefsrapport på nytt utifrån aktuella anteckningar och sparade intervjusvar. Manuella ändringar i rapporttexter behålls.",
+      compileAgainButton: "Generera ny sammanställning",
+      compileAgainBusy: "Genererar ny sammanställning…",
+      compileAgainUnavailable: "Sammanställningen kunde inte startas. Ladda om sidan och försök igen.",
       evidenceTip: "Tips: Beskriv konkreta situationer, vad kandidaten gjorde och vad som hände. Svar som sparats på intervjufrågorna följer med automatiskt.",
       reportsIntro: "Här hittar du de sammanställda resultaten och rapporterna. Underlaget kan alltid kompletteras i fliken Underlag.",
       reportStatusOutdated: "Underlaget har ändrats sedan rapporterna skapades.",
-      reportStatusUnsaved: "Du har osparade intervjuanteckningar. Skapa en ny sammanställning för att uppdatera rapporterna.",
-      reportStatusDetail: "Rapporterna visar fortfarande den tidigare versionen tills du skapar en ny sammanställning.",
-      reportRebuild: "Skapa ny sammanställning",
-      reportRebuildShort: "Uppdatera rapporterna",
-      reportGenerateUnavailable: "Lägg till och spara intervjuunderlag för att skapa rapporter.",
-      reportGenerating: "Sammanställer…",
-      reportError: "Det gick inte att uppdatera rapporterna. Försök igen.",
+      reportStatusUnsaved: "Du har osparade intervjuanteckningar.",
+      reportStatusDetail: "Gå till fliken Underlag och välj Generera ny sammanställning för att uppdatera helhetsbilden och chefsrapporten.",
       reportOverviewTitle: "Dina rapporter",
-      evidenceRebuildHint: "Du kan alltid skapa en ny sammanställning om intervjuunderlaget har förändrats.",
     },
     en: {
       tabs: {
         reports: "Reports",
         overview: "Overall picture",
         interview: "Interview summary",
-        explore: "Explore further",
         managerReport: "Manager report",
         evidence: "Evidence",
       },
       descriptions: {
         overview: "A combined view of assessment results, interview evidence and role context.",
         interview: "What the interview confirms, nuances or adds to the assessment results.",
-        explore: "Questions and areas where additional evidence may create a more complete view.",
         managerReport: "A practical overview for the recruiter and manager, focused on the candidate’s results and relevant topics to follow up.",
         evidence: "Interview notes and answers used by Talena as evidence.",
       },
@@ -276,19 +271,18 @@
       evidenceHeading: "Start with what you learned in the interview",
       evidenceHeadingReady: "Update your interview evidence",
       evidenceLead: "Talena already has the assessment results and role context. Add examples, answers and observations from the conversation here.",
-      evidenceLeadReady: "Add or change notes here, then compile again to update the analysis and reports.",
+      evidenceLeadReady: "Add or change notes here. Use the button at the bottom to update the overall picture and manager report from the evidence.",
+      compileAgainTitle: "Create a new compilation",
+      compileAgainDescription: "Regenerate the overall picture and manager report from the current notes and saved interview answers. Manual report text edits are preserved.",
+      compileAgainButton: "Generate new compilation",
+      compileAgainBusy: "Generating new compilation…",
+      compileAgainUnavailable: "The compilation could not be started. Refresh the page and try again.",
       evidenceTip: "Tip: Describe specific situations, what the candidate did and what happened. Answers saved on interview questions are included automatically.",
       reportsIntro: "Find all compiled results and reports here. You can always update the evidence in the Evidence tab.",
       reportStatusOutdated: "The evidence has changed since these reports were created.",
-      reportStatusUnsaved: "You have unsaved interview notes. Create a new compilation to update the reports.",
-      reportStatusDetail: "The reports still show the previous version until you create a new compilation.",
-      reportRebuild: "Create new compilation",
-      reportRebuildShort: "Update reports",
-      reportGenerateUnavailable: "Add and save interview evidence to generate reports.",
-      reportGenerating: "Compiling…",
-      reportError: "Could not update the reports. Please try again.",
+      reportStatusUnsaved: "You have unsaved interview notes.",
+      reportStatusDetail: "Open the Evidence tab and select Generate new compilation to update the overall picture and manager report.",
       reportOverviewTitle: "Your reports",
-      evidenceRebuildHint: "Create a new compilation whenever the interview evidence changes.",
     },
   };
 
@@ -438,7 +432,6 @@
     const duplicateHeadingLabels = {
       overall_picture: [copy().tabs.overview, "Helhetsbild", "Overall picture"],
       interview_summary: [copy().tabs.interview, "Intervjusammanfattning", "Interview summary"],
-      explore_further: [copy().tabs.explore, "Undersök vidare", "Explore further", "Investigate further"],
       wellbeing_tips: [copy().managerPersonalityAdviceTitle, "Tips för trivsel", "Wellbeing tips", "For the manager"],
     };
     const isDuplicateBlockHeading = (line) => {
@@ -993,7 +986,7 @@
           const controller = workspace._talenaManagerReportEditController;
           const currentState = controller?.state;
           const trigger = event.target.closest?.(
-            "[data-after-interview-regenerate], [data-personality-ai-regenerate], [data-post-interview-generate]"
+            "[data-after-interview-regenerate], [data-personality-ai-regenerate], [data-post-interview-generate], [data-after-interview-manager-report-generate]"
           );
           if (!trigger || !currentState) return;
           if (currentState.confirmedRegenerationTrigger === trigger) {
@@ -1012,7 +1005,7 @@
             trigger.hasAttribute("data-personality-ai-regenerate")
             && [...currentState.edits.keys()].some((key) => key.startsWith("personality:"));
           const isFullRegeneration =
-            trigger.hasAttribute("data-post-interview-generate")
+            trigger.hasAttribute("data-after-interview-manager-report-generate")
             && currentState.edits.size > 0;
           if (
             hasEditedBlock || isPersonalityRegeneration || isFullRegeneration
@@ -1371,20 +1364,6 @@
         margin: 0; color: var(--talena-text-muted, #766e68);
         font-size: .8rem; line-height: 1.6;
       }
-      __PANEL__ .after-interview-reports__refresh {
-        display: inline-flex; align-items: center; justify-content: center;
-        width: 38px; height: 38px; min-width: 38px; border-radius: 10px;
-        border: 1px solid var(--talena-border, #e5dfd8);
-        background: #fff; color: var(--talena-text-muted, #766e68);
-      }
-      __PANEL__ .after-interview-reports__refresh svg { width: 16px; height: 16px; }
-      __PANEL__ .after-interview-reports__refresh.needs-update {
-        border-color: rgba(255,111,97,.55); background: #fff5f2; color: #cb5348;
-      }
-      __PANEL__ .after-interview-reports__refresh:hover {
-        background: #fff5f2; color: #cb5348;
-      }
-      __PANEL__ .after-interview-reports__refresh[disabled] { opacity: .5; cursor: not-allowed; }
       __PANEL__ .after-interview-reports__status {
         margin: 0 0 1rem; padding: .8rem 1rem; border-radius: 10px;
         background: #f8f7f5; color: #625b55; font-size: .78rem;
@@ -1402,20 +1381,22 @@
       __PANEL__ .after-interview-evidence-card [data-post-interview-generate][data-regenerate="true"] {
         display: none !important;
       }
-      __PANEL__ .after-interview-evidence-rebuild {
-        margin: 1rem 0 0; display: flex; gap: .75rem;
-        align-items: center; justify-content: space-between; flex-wrap: wrap;
-        padding: .9rem 1rem; border: 1px solid var(--talena-border, #e5dfd8);
-        border-radius: 11px; background: #faf9f7;
+      __PANEL__ .after-interview-evidence-compilation {
+        display: grid; gap: .55rem; padding: 1.1rem 1.2rem;
+        border: 1px solid var(--talena-border, #e5dfd8); border-radius: 14px;
+        background: #faf8f6;
       }
-      __PANEL__ .after-interview-evidence-rebuild .btn { white-space: normal; }
-      __PANEL__ .after-interview-evidence-rebuild__text {
-        margin: 0; color: var(--talena-text-muted, #766e68);
-        font-size: .76rem; line-height: 1.5;
+      __PANEL__ .after-interview-evidence-compilation__title {
+        margin: 0; font-size: 1rem; font-weight: 700;
+      }
+      __PANEL__ .after-interview-evidence-compilation__description {
+        margin: 0; color: var(--talena-muted, #6f6863);
+      }
+      __PANEL__ .after-interview-evidence-compilation__button {
+        justify-self: start; display: inline-flex; align-items: center; gap: .5rem;
       }
       @media (max-width: 767px) {
         __PANEL__ .after-interview-reports__header { flex-wrap: wrap; }
-        __PANEL__ .after-interview-evidence-rebuild { align-items: flex-start; }
       }
       __PANEL__ .after-interview-tab-panels { min-width: 0; }
       __PANEL__ .after-interview-tab-panel { display: grid; gap: 1rem; min-width: 0; }
@@ -1963,11 +1944,11 @@
     const tabPanels = document.createElement("div");
     tabPanels.className = "candidate-insights-subworkspace__panels";
 
-    // Keep the existing report keys and URL values for bookmarks, PDF actions
-    // and the final-output refresh helper. Only the visual navigation changes.
+    // Keep report keys and URL values for bookmarks, PDF actions and the
+    // final-output refresh helper. Historical explore URLs now fall back safely.
     // Keep historical interview_summary data on the server, but this tab is
     // retired (#442). Old afterTab=interview URLs fall back to Helhetsbild.
-    const keys = ["evidence", "overview", "explore", "managerReport"];
+    const keys = ["evidence", "overview", "managerReport"];
     const reportKeys = keys.filter((key) => key !== "evidence");
     const buttons = new Map();
     const panels = new Map();
@@ -2009,16 +1990,7 @@
     reportsIntro.className = "after-interview-reports__description";
     reportsIntro.textContent = copy().reportsIntro;
     reportsHeading.append(reportsTitle, reportsIntro);
-    const reportsRefresh = document.createElement("button");
-    reportsRefresh.type = "button";
-    reportsRefresh.className = "after-interview-reports__refresh";
-    reportsRefresh.dataset.afterInterviewRebuild = "reports";
-    reportsRefresh.title = copy().reportRebuildShort;
-    reportsRefresh.setAttribute("aria-label", copy().reportRebuildShort);
-    const reportsRefreshIcon = document.createElement("i");
-    reportsRefreshIcon.setAttribute("data-feather", "refresh-cw");
-    reportsRefresh.appendChild(reportsRefreshIcon);
-    reportsHeader.append(reportsHeading, reportsRefresh);
+    reportsHeader.append(reportsHeading);
 
     const reportStatus = document.createElement("div");
     reportStatus.className = "after-interview-reports__status";
@@ -2066,20 +2038,9 @@
 
     const summary = postContent?.querySelector(":scope > .purpose-fit-section:first-child");
     const contentChildren = postContent ? [...postContent.children] : [];
-    const contradictions = contentChildren.find((node) =>
-      ["Contradictions or tensions to consider", "Motsägelser eller spänningar att beakta"]
-        .includes(textOf(node.querySelector?.("h3.insight-summary-title"))),
-    );
-    const remaining = contentChildren.find((node) =>
-      ["What remains to be explored", "Vad som återstår att utforska", "Kvar att utforska"]
-        .includes(textOf(node.querySelector?.("h3.insight-summary-title"))),
-    );
     const contextNote = contentChildren.find((node) =>
       node.classList.contains("purpose-fit-disclaimer"),
     );
-
-    const exploreFallback = document.createElement("div");
-    [contradictions, remaining].filter(Boolean).forEach((node) => exploreFallback.appendChild(node));
 
     const overviewSource = sourceBlock(panel, "overall_picture");
     if (window.TalenaStructuredOverallPicture?.createCard) {
@@ -2094,9 +2055,6 @@
         makeCard(panel, "overall_picture", copy().tabs.overview, copy().descriptions.overview, summary, "overall_picture"),
       );
     }
-    panels.get("explore").appendChild(
-      makeCard(panel, "explore_further", copy().tabs.explore, copy().descriptions.explore, exploreFallback.childNodes.length ? exploreFallback : null, "explore_further"),
-    );
     const managerReportCard = document.createElement("section");
     managerReportCard.className = "after-interview-tab-card after-interview-manager-report";
     managerReportCard.hidden = true;
@@ -2472,7 +2430,7 @@
     managerReportGenerateButton = document.createElement("button");
     managerReportGenerateButton.type = "button";
     managerReportGenerateButton.className = "btn btn-icon btn-light talena-report-action-button after-interview-manager-report__generate";
-    managerReportGenerateButton.dataset.postInterviewGenerate = "";
+    managerReportGenerateButton.dataset.afterInterviewManagerReportGenerate = "";
     managerReportGenerateIcon = document.createElement("i");
     managerReportGenerateIcon.setAttribute("data-feather", "refresh-cw");
     managerReportGenerateIcon.setAttribute("aria-hidden", "true");
@@ -2817,23 +2775,65 @@
     evidenceIntro.append(evidenceKicker, evidenceHeading, evidenceLead, evidenceTip);
     evidenceCard.append(evidenceIntro, notesRoot, postSection);
     if (hasCompiledPostInterviewResult) {
+      const compilationAction = document.createElement("section");
+      compilationAction.className = "after-interview-evidence-compilation";
+      const compilationTitle = document.createElement("h4");
+      compilationTitle.className = "after-interview-evidence-compilation__title";
+      compilationTitle.textContent = copy().compileAgainTitle;
+      const compilationDescription = document.createElement("p");
+      compilationDescription.className = "after-interview-evidence-compilation__description";
+      compilationDescription.textContent = copy().compileAgainDescription;
+      const compilationButton = document.createElement("button");
+      compilationButton.type = "button";
+      compilationButton.className = "btn btn-primary after-interview-evidence-compilation__button";
+      const compilationIcon = document.createElement("i");
+      compilationIcon.setAttribute("data-feather", "refresh-cw");
+      compilationIcon.setAttribute("aria-hidden", "true");
+      const compilationButtonText = document.createElement("span");
+      compilationButtonText.textContent = copy().compileAgainButton;
+      compilationButton.append(compilationIcon, compilationButtonText);
+      compilationAction.append(compilationTitle, compilationDescription, compilationButton);
+
+      const nativeCompileButton = postSection?.querySelector(
+        '[data-post-interview-generate][data-regenerate="true"]'
+      );
+      if (nativeCompileButton) {
+        const setCompilationBusy = (busy) => {
+          compilationButton.disabled = busy;
+          compilationButtonText.textContent = busy
+            ? copy().compileAgainBusy : copy().compileAgainButton;
+          if (busy) compilationIcon.classList.add("d-none");
+          else compilationIcon.classList.remove("d-none");
+          if (window.feather) window.feather.replace();
+        };
+        const waitForCompilation = () => {
+          if (!outputRoot.isConnected) return;
+          if (!nativeCompileButton.disabled) {
+            setCompilationBusy(false);
+            return;
+          }
+          window.setTimeout(waitForCompilation, 250);
+        };
+        nativeCompileButton.addEventListener("click", () => {
+          setCompilationBusy(true);
+          window.setTimeout(waitForCompilation, 250);
+        });
+        compilationButton.addEventListener("click", () => {
+          if (compilationButton.disabled || nativeCompileButton.disabled) return;
+          nativeCompileButton.dataset.structured = "true";
+          nativeCompileButton.click();
+        });
+      } else {
+        compilationButton.disabled = true;
+        compilationButtonText.textContent = copy().compileAgainUnavailable;
+      }
+      evidenceCard.appendChild(compilationAction);
+    }
+    if (hasCompiledPostInterviewResult) {
       // The original section must stay in the DOM for its native regeneration
       // handler, but should not render another heading, status or spinner.
-      // The single visible "new compilation" action is immediately below.
       postSection.classList.add("d-none");
       postSection.setAttribute("aria-hidden", "true");
-      const rebuildRow = document.createElement("div");
-      rebuildRow.className = "after-interview-evidence-rebuild";
-      const rebuildDescription = document.createElement("p");
-      rebuildDescription.className = "after-interview-evidence-rebuild__text";
-      rebuildDescription.textContent = copy().evidenceRebuildHint;
-      const rebuildButton = document.createElement("button");
-      rebuildButton.type = "button";
-      rebuildButton.className = "btn btn-primary";
-      rebuildButton.dataset.afterInterviewRebuild = "evidence";
-      rebuildButton.textContent = copy().reportRebuild;
-      rebuildRow.append(rebuildDescription, rebuildButton);
-      evidenceCard.appendChild(rebuildRow);
     }
     panels.get("evidence").appendChild(evidenceCard);
 
@@ -2848,8 +2848,8 @@
     const updateReportStatus = () => {
       if (!hasCompiledPostInterviewResult) return;
       const hasUnsavedNotes = Boolean(notesInput && notesInput.value !== originalSavedNotes);
-      const isContextChanged = outputRoot?.dataset.postInterviewContextChanged === "true";
-      const needsUpdate = hasUnsavedNotes || isContextChanged;
+      const isOutdated = outputRoot?.dataset.postInterviewEvidenceChanged === "true";
+      const needsUpdate = hasUnsavedNotes || isOutdated;
       const currentJourneyStep = needsUpdate ? 1 : 2;
       journeySteps.querySelectorAll(".after-interview-journey__step").forEach((step, index) => {
         step.classList.toggle("is-current", index === currentJourneyStep);
@@ -2861,7 +2861,6 @@
       // Changed input still displays its existing actionable warning.
       reportStatus.hidden = !needsUpdate;
       reportStatus.classList.toggle("needs-update", needsUpdate);
-      reportsRefresh.classList.toggle("needs-update", needsUpdate);
       reportsButton.classList.toggle("needs-update", needsUpdate);
       reportsButton.title = needsUpdate ? copy().reportStatusOutdated : "";
       reportsButton.setAttribute("aria-label", needsUpdate
@@ -2871,8 +2870,6 @@
         ? copy().reportStatusUnsaved : needsUpdate ? copy().reportStatusOutdated : "";
       reportStatusDetail.textContent = needsUpdate ? copy().reportStatusDetail : "";
       reportStatusDetail.hidden = !needsUpdate;
-      reportsRefresh.title = needsUpdate ? copy().reportRebuildShort : copy().reportRebuild;
-      reportsRefresh.setAttribute("aria-label", reportsRefresh.title);
     };
     updateReportStatus();
     notesInput?.addEventListener("input", updateReportStatus);
@@ -2881,82 +2878,8 @@
       const changedNotesUrl = event.detail?.notesUrl || "";
       const ownNotesUrl = outputRoot.dataset.questionEvidenceNotesUrl || "";
       if (changedNotesUrl && ownNotesUrl && changedNotesUrl !== ownNotesUrl) return;
+      outputRoot.dataset.postInterviewEvidenceChanged = "true";
       updateReportStatus();
-    });
-
-    const runFullCompilation = (trigger) => {
-      const nativeButton = postSection.querySelector(
-        '[data-post-interview-generate][data-regenerate="true"]'
-      );
-      if (!nativeButton || nativeButton.disabled) {
-        if (trigger.dataset.afterInterviewRebuild === "reports") {
-          reportStatus.hidden = false;
-          reportStatusTitle.textContent = copy().reportGenerateUnavailable;
-          reportStatusDetail.textContent = "";
-        } else {
-          const error = postSection.querySelector("[data-post-interview-error]");
-          if (error) {
-            error.textContent = copy().reportGenerateUnavailable;
-            error.classList.remove("d-none");
-          }
-        }
-        return;
-      }
-      trigger.disabled = true;
-      trigger.setAttribute("aria-busy", "true");
-      const previousContents = [...trigger.childNodes];
-      const spinner = document.createElement("span");
-      spinner.className = "spinner-border spinner-border-sm";
-      spinner.setAttribute("role", "status");
-      spinner.setAttribute("aria-label", copy().reportGenerating);
-      trigger.replaceChildren(spinner);
-      const restoreTrigger = () => {
-        trigger.disabled = false;
-        trigger.removeAttribute("aria-busy");
-        trigger.replaceChildren(...previousContents);
-      };
-      // Native generation still saves the interview notes and runs the
-      // manager report manual-edit confirmation before it begins.
-      nativeButton.click();
-      // The native stream swaps this entire fragment on success. On an error,
-      // it restores its thinking state, so restore our action as well.
-      const thinking = postSection.querySelector("[data-post-interview-thinking]");
-      if (!thinking) {
-        restoreTrigger();
-        return;
-      }
-      let started = !thinking.classList.contains("d-none");
-      const watcher = new MutationObserver(() => {
-        if (!outputRoot.isConnected) {
-          watcher.disconnect();
-          return;
-        }
-        if (!thinking.classList.contains("d-none")) {
-          started = true;
-        } else if (started) {
-          restoreTrigger();
-          watcher.disconnect();
-          const error = postSection.querySelector("[data-post-interview-error]");
-          if (error && !error.classList.contains("d-none")) {
-            reportStatus.hidden = false;
-            reportStatus.classList.add("needs-update");
-            reportStatusTitle.textContent = error.textContent.trim() || copy().reportError;
-            reportStatusDetail.textContent = copy().reportStatusDetail;
-          } else {
-            updateReportStatus();
-          }
-        }
-      });
-      watcher.observe(thinking, { attributes: true, attributeFilter: ["class"] });
-      // A confirmation dialog may delay the original click. Do not retain a
-      // disabled proxy while the user is deciding whether to regenerate.
-      if (!started) {
-        restoreTrigger();
-        watcher.disconnect();
-      }
-    };
-    tabs.querySelectorAll("[data-after-interview-rebuild]").forEach((trigger) => {
-      trigger.addEventListener("click", () => runFullCompilation(trigger));
     });
 
     let activeReportKey = "overview";

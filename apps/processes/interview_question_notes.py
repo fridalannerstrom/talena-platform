@@ -464,26 +464,33 @@ def process_candidate_interview_question_note_update(
         contains_interview_note_personal_data(note_text, owner.candidate)
     )
 
-    if note_text:
-        note, _created = InterviewQuestionNote.objects.update_or_create(
-            process=process,
-            candidate=owner.candidate,
-            source=source,
-            question_key=question_key,
-            defaults={
-                "question_text": question,
-                "note": note_text,
-                "updated_by": request.user,
-            },
+    evidence_changed = (
+        (existing_note is None and bool(note_text))
+        or (
+            existing_note is not None
+            and existing_note.note != note_text
         )
-        saved_note = serialize_interview_question_note(note)
+    )
+
+    if note_text:
+        if evidence_changed:
+            note, _created = InterviewQuestionNote.objects.update_or_create(
+                process=process,
+                candidate=owner.candidate,
+                source=source,
+                question_key=question_key,
+                defaults={
+                    "question_text": question,
+                    "note": note_text,
+                    "updated_by": request.user,
+                },
+            )
+            saved_note = serialize_interview_question_note(note)
+        else:
+            saved_note = serialize_interview_question_note(existing_note)
     else:
-        InterviewQuestionNote.objects.filter(
-            process=process,
-            candidate=owner.candidate,
-            source=source,
-            question_key=question_key,
-        ).delete()
+        if evidence_changed:
+            existing_note.delete()
         saved_note = {
             "source": source,
             "question_key": question_key,
@@ -491,19 +498,21 @@ def process_candidate_interview_question_note_update(
             "note": "",
         }
 
-    # Question-level evidence changes the evidence available to any existing
-    # post-interview synthesis, so make that state explicit immediately.
-    if owner.ai_post_interview_decision_support:
+    # Repeated autosaves with the same answer do not change interview evidence.
+    if evidence_changed and owner.ai_post_interview_decision_support:
         post_interview_status = "outdated"
-    else:
-        post_interview_status = "not_started"
-
-    owner.ai_post_interview_decision_support_status = post_interview_status
-    owner.save(
-        update_fields=[
+        decision_support = dict(owner.ai_post_interview_decision_support)
+        decision_support["interview_evidence_changed_since_compilation"] = True
+        owner.ai_post_interview_decision_support = decision_support
+        owner.ai_post_interview_decision_support_status = post_interview_status
+        owner.save(update_fields=[
             "ai_post_interview_decision_support_status",
-        ]
-    )
+            "ai_post_interview_decision_support",
+        ])
+    else:
+        post_interview_status = (
+            owner.ai_post_interview_decision_support_status or "not_started"
+        )
 
     return JsonResponse(
         {
@@ -511,6 +520,7 @@ def process_candidate_interview_question_note_update(
             "note": saved_note,
             "has_note": bool(note_text),
             "possible_personal_data": possible_personal_data,
+            "evidence_changed": evidence_changed,
             "post_interview_status": post_interview_status,
         }
     )

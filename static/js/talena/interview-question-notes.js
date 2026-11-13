@@ -754,13 +754,15 @@
       syncFields(notesUrl, source, question, note, true);
       updateCache(notesUrl, savedNote);
       setPiiSaveInfo(field, payload.possible_personal_data === true);
-      markPostInterviewOutdated(payload.post_interview_status);
+      if (payload.evidence_changed === true) {
+        markPostInterviewOutdated(payload.post_interview_status);
 
-      document.dispatchEvent(
-        new CustomEvent("candidate-interview-question-note-updated", {
-          detail: { source, question, note, notesUrl },
-        }),
-      );
+        document.dispatchEvent(
+          new CustomEvent("candidate-interview-question-note-updated", {
+            detail: { source, question, note, notesUrl },
+          }),
+        );
+      }
       return { ok: true, error: "" };
     } catch (error) {
       console.error("Interview question note update failed:", error);
