@@ -10849,6 +10849,9 @@ if (postGenerateButton) {
         postGenerateButton.dataset
           .regenerate ===
         "true";
+      const useStructuredCompilation =
+        postGenerateButton.dataset.structured === "true";
+      delete postGenerateButton.dataset.structured;
 
 
       setHidden(
@@ -10876,9 +10879,17 @@ if (postGenerateButton) {
           true
         );
 
+        const regenerateUrl = new URL(
+          postRegenerateUrl,
+          window.location.origin,
+        );
+        if (useStructuredCompilation) {
+          regenerateUrl.searchParams.set("structured", "1");
+        }
+
         const response =
           await fetch(
-            postRegenerateUrl,
+            regenerateUrl.toString(),
             {
               method: "POST",
 
