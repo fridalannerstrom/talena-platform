@@ -1012,7 +1012,10 @@
             trigger.hasAttribute("data-personality-ai-regenerate")
             && [...currentState.edits.keys()].some((key) => key.startsWith("personality:"));
           const isFullRegeneration =
-            trigger.hasAttribute("data-post-interview-generate")
+            (
+              trigger.hasAttribute("data-post-interview-generate")
+              || trigger.matches?.('[data-after-interview-rebuild="reports"]')
+            )
             && currentState.edits.size > 0;
           if (
             hasEditedBlock || isPersonalityRegeneration || isFullRegeneration
@@ -2473,6 +2476,7 @@
     managerReportGenerateButton.type = "button";
     managerReportGenerateButton.className = "btn btn-icon btn-light talena-report-action-button after-interview-manager-report__generate";
     managerReportGenerateButton.dataset.postInterviewGenerate = "";
+    managerReportGenerateButton.dataset.managerReportGenerate = "true";
     managerReportGenerateIcon = document.createElement("i");
     managerReportGenerateIcon.setAttribute("data-feather", "refresh-cw");
     managerReportGenerateIcon.setAttribute("aria-hidden", "true");
@@ -2578,51 +2582,60 @@
       });
     }
 
-    managerReportGenerateButton.addEventListener("click", async () => {
+    managerReportGenerateButton.addEventListener("click", () => {
       if (managerReportGenerateButton.disabled) return;
-      managerReportGenerateError.classList.add("d-none");
-      managerReportGenerateButton.disabled = true;
-      managerReportGenerateButton.setAttribute("aria-busy", "true");
-      const spinner = document.createElement("span");
-      spinner.className = "spinner-border spinner-border-sm";
-      spinner.setAttribute("role", "status");
-      spinner.setAttribute("aria-hidden", "true");
-      const generatingLabel = copy().generatingManagerReport;
-      managerReportGenerateLabel.textContent = generatingLabel;
-      managerReportGenerateButton.title = generatingLabel;
-      managerReportGenerateButton.setAttribute("aria-label", generatingLabel);
-      managerReportGenerateButton.replaceChildren(spinner, managerReportGenerateLabel);
 
-      try {
-        const failures = [];
-        managerReportEditController.state.managerReportGenerating = true;
+      const generationPromise = (async () => {
+        managerReportGenerateError.classList.add("d-none");
+        managerReportGenerateButton.disabled = true;
+        managerReportGenerateButton.setAttribute("aria-busy", "true");
+        const spinner = document.createElement("span");
+        spinner.className = "spinner-border spinner-border-sm";
+        spinner.setAttribute("role", "status");
+        spinner.setAttribute("aria-hidden", "true");
+        const generatingLabel = copy().generatingManagerReport;
+        managerReportGenerateLabel.textContent = generatingLabel;
+        managerReportGenerateButton.title = generatingLabel;
+        managerReportGenerateButton.setAttribute("aria-label", generatingLabel);
+        managerReportGenerateButton.replaceChildren(spinner, managerReportGenerateLabel);
+
+        let succeeded = false;
         try {
-          for (const task of managerReportAiTasks) {
-            try {
-              await task();
-            } catch (taskError) {
-              failures.push(taskError.message || copy().sectionGenerationFailed);
+          const failures = [];
+          managerReportEditController.state.managerReportGenerating = true;
+          try {
+            for (const task of managerReportAiTasks) {
+              try {
+                await task();
+              } catch (taskError) {
+                failures.push(taskError.message || copy().sectionGenerationFailed);
+              }
             }
+          } finally {
+            managerReportEditController.state.managerReportGenerating = false;
           }
+          if (failures.length) throw new Error(failures.join(" "));
+          managerAdviceHasGeneratedText = true;
+          succeeded = true;
+        } catch (generationError) {
+          managerReportGenerateError.textContent =
+            generationError.message || copy().sectionGenerationFailed;
+          managerReportGenerateError.classList.remove("d-none");
         } finally {
-          managerReportEditController.state.managerReportGenerating = false;
+          managerReportGenerateButton.disabled = false;
+          managerReportGenerateButton.removeAttribute("aria-busy");
+          managerReportGenerateButton.replaceChildren(
+            managerReportGenerateIcon,
+            managerReportGenerateLabel,
+          );
+          updateManagerReportGenerateLabel();
+          if (window.feather) window.feather.replace();
         }
-        if (failures.length) throw new Error(failures.join(" "));
-        managerAdviceHasGeneratedText = true;
-      } catch (generationError) {
-        managerReportGenerateError.textContent =
-          generationError.message || copy().sectionGenerationFailed;
-        managerReportGenerateError.classList.remove("d-none");
-      } finally {
-        managerReportGenerateButton.disabled = false;
-        managerReportGenerateButton.removeAttribute("aria-busy");
-        managerReportGenerateButton.replaceChildren(
-          managerReportGenerateIcon,
-          managerReportGenerateLabel,
-        );
-        updateManagerReportGenerateLabel();
-        if (window.feather) window.feather.replace();
-      }
+
+        return succeeded;
+      })();
+
+      managerReportGenerateButton._talenaGenerationPromise = generationPromise;
     });
 
     updateManagerReportGenerateLabel();
@@ -2884,7 +2897,7 @@
       updateReportStatus();
     });
 
-    const runFullCompilation = (trigger) => {
+    const runFullCompilation = async (trigger) => {
       // The native action can be either a first-time generation or a
       // regeneration. Both are valid when rebuilding the report package.
       const nativeButton = postSection.querySelector(
@@ -2917,8 +2930,61 @@
         trigger.removeAttribute("aria-busy");
         trigger.replaceChildren(...previousContents);
       };
-      // Native generation still saves the interview notes and runs the
-      // manager report manual-edit confirmation before it begins.
+
+      try {
+        if (typeof window.saveCandidateInterviewNotes === "function") {
+          await window.saveCandidateInterviewNotes(outputRoot);
+        }
+      } catch (saveError) {
+        reportStatus.hidden = false;
+        reportStatus.classList.add("needs-update");
+        reportStatusTitle.textContent =
+          saveError.message || copy().reportError;
+        reportStatusDetail.textContent = "";
+        restoreTrigger();
+        return;
+      }
+
+      const managerReportButton = outputRoot.querySelector(
+        "[data-manager-report-generate]"
+      );
+      if (managerReportButton) {
+        if (managerReportButton.disabled) {
+          restoreTrigger();
+          return;
+        }
+
+        const editController = workspace?._talenaManagerReportEditController;
+        if (editController?.state) {
+          editController.state.confirmedRegenerationTrigger = managerReportButton;
+        }
+
+        managerReportButton.click();
+        const managerGeneration = managerReportButton._talenaGenerationPromise;
+        const managerSucceeded = managerGeneration
+          ? await managerGeneration
+          : false;
+        if (!managerSucceeded) {
+          const managerError = outputRoot.querySelector(
+            ".after-interview-manager-report [role='alert']:not(.d-none)"
+          );
+          reportStatus.hidden = false;
+          reportStatus.classList.add("needs-update");
+          reportStatusTitle.textContent =
+            managerError?.textContent?.trim() || copy().reportError;
+          reportStatusDetail.textContent = "";
+          restoreTrigger();
+          return;
+        }
+      }
+
+      // A full report rebuild also regenerates the manager-report AI text.
+      // Skip a second manual-edit confirmation because the overall action
+      // already confirmed it before reaching this handler.
+      const editController = workspace?._talenaManagerReportEditController;
+      if (editController?.state) {
+        editController.state.confirmedRegenerationTrigger = nativeButton;
+      }
       nativeButton.click();
       // The native stream swaps this entire fragment on success. On an error,
       // it restores its thinking state, so restore our action as well.
