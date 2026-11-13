@@ -78,15 +78,17 @@ def _manager_report_ai_text(owner, block_key: str) -> str:
         )
 
     _prefix, theme, part = block_key.split(":")
-    result = owner.ai_personality_interpretation or {}
-    report = result.get("manager_report_personality") or {}
+    report = owner.ai_manager_report_personality or {}
+    if not report:
+        legacy = owner.ai_personality_interpretation or {}
+        report = legacy.get("manager_report_personality") or {}
     return str(((report.get(theme) or {}).get(part)) or "")
 
 
 def _manager_report_source_generated_at(owner, block_key: str):
     if block_key == "wellbeing_tips":
         return owner.ai_post_interview_decision_support_generated_at
-    return owner.ai_personality_interpretation_generated_at
+    return owner.ai_manager_report_personality_generated_at
 
 
 def _serialize_manager_report_text_edit(edit: ManagerReportTextEdit) -> dict:
@@ -578,16 +580,16 @@ def _post_interview_evidence_state(
 
 
 def _manager_report_personality_events(owner, language_code, *, force=False):
-    """Generate the manager-report personality content as part of compilation."""
-    import time
-
+    """Generate manager-report personality text independently of the profile."""
     from apps.core.ai.language import ai_content_language_matches
-    from apps.core.ai.personality_interpretation import (
+    from apps.core.ai.manager_report_personality import (
         PERSONALITY_MANAGER_REPORT_THEMES,
-        apply_personality_interpretation_event,
-        create_empty_personality_interpretation,
-        save_personality_interpretation,
-        stream_personality_interpretation,
+        PARTS,
+        apply_manager_report_personality_event,
+        build_personality_indicator_interpretations,
+        empty_manager_report_personality,
+        save_manager_report_personality,
+        stream_manager_report_personality,
     )
     from .purpose_utils import normalize_purpose_key
     from .views import build_personality_results_for_ai_owner
@@ -598,104 +600,138 @@ def _manager_report_personality_events(owner, language_code, *, force=False):
         yield {"type": "manager_report_personality_skipped", "reason": "no_results"}
         return
 
-    # Another view may already be generating this same interpretation (for
-    # example, when the Personality tab was opened first). Wait for that
-    # request to finish rather than starting a competing AI call.
-    if owner.ai_personality_interpretation_status == "generating":
-        yield {"type": "manager_report_personality_waiting"}
-        deadline = time.monotonic() + 180
-        while time.monotonic() < deadline:
-            time.sleep(0.5)
-            owner = type(owner).objects.get(pk=owner.pk)
-            if owner.ai_personality_interpretation_status != "generating":
-                break
-        if owner.ai_personality_interpretation_status == "generating":
-            yield {
-                "type": "manager_report_personality_error",
-                "message": "Personality content is still being generated.",
-            }
-            return
-
-    saved = owner.ai_personality_interpretation or {}
-    report_texts = saved.get("manager_report_personality") or {}
     expected = {
         (theme["key"], part)
         for theme in PERSONALITY_MANAGER_REPORT_THEMES
-        for part in ("testbild", "candidate_describes")
+        for part in PARTS
     }
-    has_all_report_texts = all(
-        str((report_texts.get(theme) or {}).get(part) or "").strip()
-        for theme, part in expected
+    indicator_interpretations = build_personality_indicator_interpretations(
+        owner,
+        language_code=language_code,
     )
+    generated_at = owner.ai_manager_report_personality_generated_at
+    context_updated_at = getattr(
+        getattr(owner.process, "role_context", None),
+        "updated_at",
+        None,
+    )
+    notes_updated_at = getattr(owner, "interview_notes_updated_at", None)
+    latest_question_note = None
+    if not getattr(owner.process, "is_historical", False):
+        from .interview_question_models import InterviewQuestionNote
+        latest_question_note = (
+            InterviewQuestionNote.objects
+            .filter(process=owner.process, candidate=owner.candidate)
+            .exclude(note="")
+            .aggregate(latest=Max("updated_at"))
+            .get("latest")
+        )
     if (
         not force
-        and owner.ai_personality_interpretation_status == "completed"
-        and saved.get("manager_report_personality_schema_version") == 1
-        and has_all_report_texts
+        and owner.ai_manager_report_personality_status == "completed"
         and ai_content_language_matches(
-            owner, "personality_interpretation", language_code
+            owner, "manager_report_personality", language_code
         )
-        and normalize_purpose_key(owner.ai_personality_interpretation_purpose)
+        and normalize_purpose_key(owner.ai_manager_report_personality_purpose)
         == normalize_purpose_key(owner.process.purpose)
+        and not (context_updated_at and generated_at and context_updated_at > generated_at)
+        and not (notes_updated_at and generated_at and notes_updated_at > generated_at)
+        and not (latest_question_note and generated_at and latest_question_note > generated_at)
     ):
         yield {"type": "manager_report_personality_skipped", "reason": "up_to_date"}
         return
 
-    owner.ai_personality_interpretation_status = "generating"
-    owner.save(update_fields=["ai_personality_interpretation_status"])
-    interpretation = create_empty_personality_interpretation(
-        owner, language_code=language_code
-    )
+    if owner.ai_manager_report_personality_status == "generating":
+        yield {
+            "type": "manager_report_personality_error",
+            "message": "Manager-report personality content is already being generated.",
+        }
+        return
+
+    owner.ai_manager_report_personality_status = "generating"
+    owner.save(update_fields=["ai_manager_report_personality_status"])
+    result = empty_manager_report_personality()
     received_done_event = False
     received_report_texts = set()
+    report_text_events = []
 
     try:
         yield {"type": "manager_report_personality_started"}
-        for event in stream_personality_interpretation(
+        for event in stream_manager_report_personality(
             owner=owner,
-            personality_results=personality_results,
             language_code=language_code,
         ):
-            interpretation = apply_personality_interpretation_event(
-                interpretation, event
-            )
             if event.get("type") == "done":
                 received_done_event = True
-            elif event.get("type") == "personality_report_text":
-                received_report_texts.add(
-                    (event.get("theme"), event.get("part"))
-                )
-            yield event
+                continue
+            if event.get("type") != "manager_report_personality_text":
+                continue
 
-        if received_report_texts != expected:
-            raise ValueError(
-                "The AI response did not contain all six manager-report personality texts."
+            field = (event.get("theme"), event.get("part"))
+            if field not in expected:
+                continue
+
+            received_report_texts.add(field)
+            result = apply_manager_report_personality_event(result, event)
+            report_text_events.append(event)
+
+        missing_fields = expected - received_report_texts
+        if missing_fields:
+            missing_names = ", ".join(
+                f"{theme}/{part}"
+                for theme, part in sorted(missing_fields)
             )
-        if not str(interpretation.get("interpretation") or "").strip():
             raise ValueError(
-                "The AI response did not contain a personality interpretation."
+                "The AI response was incomplete "
+                f"(missing fields: {missing_names}). Existing report text was kept."
             )
+
         if not received_done_event:
-            yield {"type": "done"}
+            raise ValueError(
+                "The AI response ended before the report was complete. "
+                "Existing report text was kept."
+            )
 
-        save_personality_interpretation(
+        empty_testbild_with_evidence = [
+            theme["key"]
+            for theme in PERSONALITY_MANAGER_REPORT_THEMES
+            if str(indicator_interpretations.get(theme["key"]) or "").strip()
+            and not str(
+                (result.get(theme["key"]) or {}).get("testbild") or ""
+            ).strip()
+        ]
+        if empty_testbild_with_evidence:
+            raise ValueError(
+                "The AI returned empty Testbild text despite available "
+                "personality interpretations for: "
+                + ", ".join(empty_testbild_with_evidence)
+                + ". Existing report text was kept."
+            )
+
+        save_manager_report_personality(
             owner=owner,
-            interpretation=interpretation,
+            result=result,
             language_code=language_code,
         )
+
+        # Only publish the new text after the complete response has passed
+        # validation and has been saved. Failed partial generations must not
+        # clear working text in the page.
+        for event in report_text_events:
+            yield event
+        yield {"type": "done"}
         yield {"type": "manager_report_personality_complete"}
     except Exception as error:
         logger.exception(
             "Manager report personality generation failed (owner_id=%s)",
             owner.pk,
         )
-        owner.ai_personality_interpretation_status = "failed"
-        owner.save(update_fields=["ai_personality_interpretation_status"])
+        owner.ai_manager_report_personality_status = "failed"
+        owner.save(update_fields=["ai_manager_report_personality_status"])
         yield {
             "type": "manager_report_personality_error",
             "message": str(error),
         }
-
 
 @login_required
 @require_GET
@@ -769,52 +805,6 @@ def process_candidate_post_interview_decision_support_stream_with_evidence(
     )
     generated_at = owner.ai_post_interview_decision_support_generated_at
 
-    manager_personality_results = []
-    manager_personality_ready = block_key != ""
-    if not block_key:
-        from apps.core.ai.personality_interpretation import (
-            PERSONALITY_MANAGER_REPORT_THEMES,
-        )
-        from .views import build_personality_results_for_ai_owner
-
-        mark_ai_content_outdated_if_language_changed(
-            owner,
-            content_key="personality_interpretation",
-            result_field="ai_personality_interpretation",
-            status_field="ai_personality_interpretation_status",
-            language_code=language_code,
-        )
-        manager_personality_results = build_personality_results_for_ai_owner(owner)
-        if not manager_personality_results:
-            manager_personality_ready = True
-        else:
-            personality_result = owner.ai_personality_interpretation or {}
-            personality_texts = personality_result.get("manager_report_personality") or {}
-            manager_personality_ready = (
-                owner.ai_personality_interpretation_status == "completed"
-                and personality_result.get("manager_report_personality_schema_version") == 1
-                and all(
-                    str((personality_texts.get(theme["key"]) or {}).get(part) or "").strip()
-                    for theme in PERSONALITY_MANAGER_REPORT_THEMES
-                    for part in ("testbild", "candidate_describes")
-                )
-                and ai_content_language_matches(
-                    owner, "personality_interpretation", language_code
-                )
-                and normalize_purpose_key(owner.ai_personality_interpretation_purpose)
-                == current_purpose
-                and not (
-                    owner.ai_personality_interpretation_generated_at
-                    and current_notes_version
-                    and current_notes_version > owner.ai_personality_interpretation_generated_at
-                )
-                and not (
-                    owner.ai_personality_interpretation_generated_at
-                    and latest_question_note
-                    and latest_question_note > owner.ai_personality_interpretation_generated_at
-                )
-            )
-
     evidence_changed = (
         saved_purpose != current_purpose
         or bool(
@@ -880,7 +870,6 @@ def process_candidate_post_interview_decision_support_stream_with_evidence(
         and ai_content_language_matches(
             owner, "post_interview_decision_support", language_code
         )
-        and manager_personality_ready
     ):
         def existing_generator():
             yield json.dumps(
@@ -1060,7 +1049,7 @@ def process_candidate_post_interview_decision_support_stream_with_evidence(
                     ) + "\n"
 
             manager_personality_status = "skipped"
-            if not block_key and manager_personality_results:
+            if not block_key:
                 for event in _manager_report_personality_events(
                     owner,
                     language_code,
@@ -1070,7 +1059,6 @@ def process_candidate_post_interview_decision_support_stream_with_evidence(
                         manager_personality_status = "completed"
                     elif event.get("type") == "manager_report_personality_error":
                         manager_personality_status = "failed"
-                        errors.append(("manager_report_personality", event.get("message") or ""))
                     yield json.dumps(event, ensure_ascii=False) + "\n"
 
             stored_owner = type(owner).objects.get(pk=owner.pk)

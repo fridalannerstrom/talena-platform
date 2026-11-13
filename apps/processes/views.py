@@ -16,6 +16,7 @@ from .models import (
 )
 from .interview_question_models import InterviewQuestionNote
 from .purpose_utils import normalize_purpose_key
+from .ai_insight_updates import build_candidate_ai_update_state
 from apps.reports.services.candidate_insights import (
     build_general_insight_input,
     generate_general_candidate_insights,
@@ -96,11 +97,17 @@ from .services.process_recommendations import (
 )
 
 from apps.core.ai.personality_interpretation import (
-    PERSONALITY_MANAGER_REPORT_THEMES,
     create_empty_personality_interpretation,
     apply_personality_interpretation_event,
     stream_personality_interpretation,
     save_personality_interpretation,
+)
+from apps.core.ai.manager_report_personality import (
+    PERSONALITY_MANAGER_REPORT_THEMES,
+    apply_manager_report_personality_event,
+    empty_manager_report_personality,
+    save_manager_report_personality,
+    stream_manager_report_personality,
 )
 
 from apps.processes.services.candidate_insights import (
@@ -138,7 +145,7 @@ from apps.core.ai.language import (
 # Talena personality language batch 1
 
 from apps.processes.services.historical_assessment_import import import_historical_assessment_file
-from django.db.models import Count, OuterRef, Subquery, IntegerField
+from django.db.models import Count, Max, OuterRef, Subquery, IntegerField
 from django.db.models.functions import Coalesce
 from apps.processes.models import HistoricalProcessCandidate
 from django.contrib import messages
@@ -210,6 +217,9 @@ from apps.core.ai.candidate_summary import (
 from apps.reports.libraries.personality.resolver import build_personality_reports_for_candidate
 from apps.reports.libraries.personality.profile_contrasts import (
     build_profile_contrast_analysis,
+)
+from apps.reports.libraries.personality.communication_guidance import (
+    build_static_communication_guidance,
 )
 from apps.reports.libraries.personality.builder import (
     build_profile_from_resolved_report,
@@ -2469,349 +2479,6 @@ def build_candidate_final_output(
         "has_content": has_content,
     }
 
-def build_candidate_ai_update_state(
-    *,
-    invitation,
-    process,
-    purpose_context=None,
-):
-    """
-    Build the shared update state for AI-generated candidate insights.
-
-    The global update banner should appear when existing AI content
-    was created using an earlier process purpose or context.
-
-    Sections that have never been generated are not included.
-    Historical candidates are not connected to global regeneration yet.
-    """
-
-    empty_state = {
-        "has_outdated_insights": False,
-        "sections": [],
-        "section_count": 0,
-        "purpose_changed": False,
-        "context_changed": False,
-    }
-
-    if getattr(
-        process,
-        "is_historical",
-        False,
-    ):
-        return empty_state
-
-    current_purpose = normalize_purpose_key(
-        getattr(
-            process,
-            "purpose",
-            "",
-        )
-        or ""
-    )
-
-    context_updated_at = getattr(
-        purpose_context,
-        "updated_at",
-        None,
-    )
-
-    section_config = [
-        {
-            "key": "overview",
-            "label": "AI Summary",
-            "result_field": "ai_purpose_fit",
-            "status_field": "ai_purpose_fit_status",
-            "generated_at_field": (
-                "ai_purpose_fit_generated_at"
-            ),
-            "purpose_field": (
-                "ai_purpose_fit_purpose"
-            ),
-        },
-        {
-            "key": "response_style_guidance",
-            "label": "Response-style guidance",
-            "result_field": (
-                "ai_response_style_guidance"
-            ),
-            "status_field": (
-                "ai_response_style_guidance_status"
-            ),
-            "generated_at_field": (
-                "ai_response_style_guidance_generated_at"
-            ),
-            "purpose_field": (
-                "ai_response_style_guidance_purpose"
-            ),
-        },
-        {
-            "key": "personality_interpretation",
-            "label": "Personality interpretation",
-            "result_field": (
-                "ai_personality_interpretation"
-            ),
-            "status_field": (
-                "ai_personality_interpretation_status"
-            ),
-            "generated_at_field": (
-                "ai_personality_interpretation_generated_at"
-            ),
-            "purpose_field": (
-                "ai_personality_interpretation_purpose"
-            ),
-        },
-        {
-            "key": "personality_questions",
-            "label": "Personality questions",
-            "result_field": (
-                "ai_personality_questions"
-            ),
-            "status_field": (
-                "ai_personality_questions_status"
-            ),
-            "generated_at_field": (
-                "ai_personality_questions_generated_at"
-            ),
-            "purpose_field": (
-                "ai_personality_questions_purpose"
-            ),
-        },
-        {
-            "key": "motivation_interpretation",
-            "label": "Motivation interpretation",
-            "result_field": (
-                "ai_motivation_interpretation"
-            ),
-            "status_field": (
-                "ai_motivation_interpretation_status"
-            ),
-            "generated_at_field": (
-                "ai_motivation_interpretation_generated_at"
-            ),
-            "purpose_field": (
-                "ai_motivation_interpretation_purpose"
-            ),
-        },
-        {
-            "key": "motivation_questions",
-            "label": "Motivation questions",
-            "result_field": (
-                "ai_motivation_questions"
-            ),
-            "status_field": (
-                "ai_motivation_questions_status"
-            ),
-            "generated_at_field": (
-                "ai_motivation_questions_generated_at"
-            ),
-            "purpose_field": (
-                "ai_motivation_questions_purpose"
-            ),
-        },
-        {
-            "key": "cognitive_interpretation",
-            "label": "Cognitive interpretation",
-            "result_field": (
-                "ai_cognitive_interpretation"
-            ),
-            "status_field": (
-                "ai_cognitive_interpretation_status"
-            ),
-            "generated_at_field": (
-                "ai_cognitive_interpretation_generated_at"
-            ),
-            "purpose_field": (
-                "ai_cognitive_interpretation_purpose"
-            ),
-        },
-        {
-            "key": "cognitive_questions",
-            "label": "Cognitive questions",
-            "result_field": (
-                "ai_cognitive_questions"
-            ),
-            "status_field": (
-                "ai_cognitive_questions_status"
-            ),
-            "generated_at_field": (
-                "ai_cognitive_questions_generated_at"
-            ),
-            "purpose_field": (
-                "ai_cognitive_questions_purpose"
-            ),
-        },
-        {
-            "key": "pre_interview_decision_support",
-            "label": "Pre-interview decision support",
-            "result_field": (
-                "ai_pre_interview_decision_support"
-            ),
-            "status_field": (
-                "ai_pre_interview_decision_support_status"
-            ),
-            "generated_at_field": (
-                "ai_pre_interview_decision_support_generated_at"
-            ),
-            "purpose_field": (
-                "ai_pre_interview_decision_support_purpose"
-            ),
-        },
-        {
-            "key": "post_interview_decision_support",
-            "label": "Post-interview decision support",
-            "result_field": (
-                "ai_post_interview_decision_support"
-            ),
-            "status_field": (
-                "ai_post_interview_decision_support_status"
-            ),
-            "generated_at_field": (
-                "ai_post_interview_decision_support_generated_at"
-            ),
-            "purpose_field": (
-                "ai_post_interview_decision_support_purpose"
-            ),
-        },
-    ]
-
-    analysed_sections = []
-
-    has_confirmed_process_change = False
-    has_purpose_change = False
-    has_context_change = False
-
-    for config in section_config:
-        saved_result = getattr(
-            invitation,
-            config["result_field"],
-            None,
-        )
-
-        # Do not include AI sections that have never been generated.
-        if not saved_result:
-            continue
-
-        status = str(
-            getattr(
-                invitation,
-                config["status_field"],
-                "",
-            )
-            or ""
-        ).strip().lower()
-
-        generated_at = getattr(
-            invitation,
-            config["generated_at_field"],
-            None,
-        )
-
-        purpose_field = config.get(
-            "purpose_field"
-        )
-
-        saved_purpose = ""
-
-        if purpose_field:
-            raw_saved_purpose = getattr(
-                invitation,
-                purpose_field,
-                "",
-            )
-
-            if raw_saved_purpose:
-                saved_purpose = (
-                    normalize_purpose_key(
-                        raw_saved_purpose
-                    )
-                )
-
-        purpose_changed = bool(
-            saved_purpose
-            and current_purpose
-            and saved_purpose != current_purpose
-        )
-
-        context_changed = bool(
-            context_updated_at
-            and generated_at
-            and context_updated_at > generated_at
-        )
-
-        if purpose_changed:
-            has_confirmed_process_change = True
-            has_purpose_change = True
-
-        if context_changed:
-            has_confirmed_process_change = True
-            has_context_change = True
-
-        analysed_sections.append({
-            **config,
-            "status": status,
-            "purpose_changed": purpose_changed,
-            "context_changed": context_changed,
-        })
-
-    # Do not show the global process-information banner merely because
-    # a section became outdated for another reason, such as changed
-    # interview notes or changed personality-trait selection.
-    if not has_confirmed_process_change:
-        return empty_state
-
-    outdated_sections = []
-
-    for section in analysed_sections:
-        needs_update = bool(
-            section["status"] == "outdated"
-            or section["purpose_changed"]
-            or section["context_changed"]
-        )
-
-        if not needs_update:
-            continue
-
-        reasons = []
-
-        if section["purpose_changed"]:
-            reasons.append(
-                "purpose"
-            )
-
-        if section["context_changed"]:
-            reasons.append(
-                "context"
-            )
-
-        if (
-            section["status"] == "outdated"
-            and not reasons
-        ):
-            reasons.append(
-                "dependent_content"
-            )
-
-        outdated_sections.append({
-            "key": section["key"],
-            "label": section["label"],
-            "status": section["status"],
-            "reasons": reasons,
-        })
-
-    return {
-        "has_outdated_insights": bool(
-            outdated_sections
-        ),
-        "sections": outdated_sections,
-        "section_count": len(
-            outdated_sections
-        ),
-        "purpose_changed": has_purpose_change,
-        "context_changed": has_context_change,
-    }
-
-
-
 def _post_interview_evidence_changed(owner, process) -> bool:
     """Return whether interview notes or saved question answers changed."""
     saved_result = owner.ai_post_interview_decision_support or {}
@@ -2839,6 +2506,7 @@ def _post_interview_evidence_changed(owner, process) -> bool:
         latest_question_note
         and (not generated_at or latest_question_note > generated_at)
     )
+
 
 
 def build_candidate_detail_context(
@@ -3758,6 +3426,17 @@ def build_candidate_detail_context(
         )
     )
 
+    post_interview_generated_at = (
+        invitation.ai_post_interview_decision_support_generated_at
+    )
+    role_context_updated_at = getattr(purpose_context_obj, "updated_at", None)
+    post_interview_context_changed = bool(
+        has_post_interview_decision_support
+        and post_interview_generated_at
+        and role_context_updated_at
+        and role_context_updated_at > post_interview_generated_at
+    )
+
     from apps.candidate_results.presentation import (
         build_candidate_result_panel_context,
     )
@@ -3821,6 +3500,11 @@ def build_candidate_detail_context(
         "ability_reports_for_ui": ability_reports_for_ui,
         "personality_reports": personality_reports,
         "personality_profile": personality_profile,
+        "static_communication_guidance": build_static_communication_guidance(
+            personality_profile,
+            response_styles,
+            language=language,
+        ),
         "profile_contrast_analysis": build_profile_contrast_analysis(
             personality_profile,
             language=language,
@@ -4050,6 +3734,7 @@ def build_candidate_detail_context(
         "has_post_interview_decision_support": (
             has_post_interview_decision_support
         ),
+        "post_interview_context_changed": post_interview_context_changed,
 
         "post_interview_decision_support_notes_version": (
             invitation
@@ -4250,6 +3935,21 @@ def build_candidate_detail_context(
                 "process_id": process.id,
                 "candidate_id": candidate.id,
             },
+        ),
+
+        "manager_report_personality": (
+            invitation.ai_manager_report_personality or {}
+        ),
+        "manager_report_personality_status": (
+            invitation.ai_manager_report_personality_status or "not_started"
+        ),
+        "manager_report_personality_stream_url": reverse(
+            "processes:process_candidate_manager_report_personality_stream",
+            kwargs={"process_id": process.id, "candidate_id": candidate.id},
+        ),
+        "manager_report_personality_regenerate_url": reverse(
+            "processes:process_candidate_manager_report_personality_regenerate",
+            kwargs={"process_id": process.id, "candidate_id": candidate.id},
         ),
 
         # Personality AI questions
@@ -4456,72 +4156,12 @@ def process_candidate_global_ai_update_plan(
 
     sections = []
 
-    regenerate_route_names = {
-        "overview": (
-            "process_candidate_purpose_fit_regenerate"
-        ),
-
-        "response_style_guidance": (
-            "process_candidate_"
-            "response_style_guidance_regenerate"
-        ),
-
-        "personality_interpretation": (
-            "process_candidate_personality_"
-            "interpretation_regenerate"
-        ),
-
-        "personality_questions": (
-            "process_candidate_personality_"
-            "questions_regenerate"
-        ),
-
-        "motivation_interpretation": (
-            "process_candidate_motivation_"
-            "interpretation_regenerate"
-        ),
-
-        "motivation_questions": (
-            "process_candidate_motivation_"
-            "questions_regenerate"
-        ),
-
-        "cognitive_interpretation": (
-            "process_candidate_cognitive_"
-            "interpretation_regenerate"
-        ),
-
-        "cognitive_questions": (
-            "process_candidate_cognitive_"
-            "questions_regenerate"
-        ),
-
-        "pre_interview_decision_support": (
-            "process_candidate_pre_interview_"
-            "decision_support_regenerate"
-        ),
-
-        "post_interview_decision_support": (
-            "process_candidate_post_interview_"
-            "decision_support_regenerate"
-        ),
-    }
-
-
     sections = []
 
     for section in update_state["sections"]:
         section_key = section["key"]
-
-        route_name = regenerate_route_names.get(
-            section_key
-        )
-
-        if not route_name:
-            continue
-
         regenerate_url = reverse(
-            f"processes:{route_name}",
+            f"processes:{section['route_name']}",
             kwargs={
                 "process_id": process.id,
                 "candidate_id": candidate_id,
@@ -5583,6 +5223,21 @@ def process_candidate_final_output(
         )
     )
 
+    post_interview_generated_at = (
+        invitation.ai_post_interview_decision_support_generated_at
+    )
+    role_context_updated_at = getattr(
+        getattr(process, "role_context", None),
+        "updated_at",
+        None,
+    )
+    post_interview_context_changed = bool(
+        has_post_interview_decision_support
+        and post_interview_generated_at
+        and role_context_updated_at
+        and role_context_updated_at > post_interview_generated_at
+    )
+
     # #187:
     # Prepare for interview embeds the shared assessment-question
     # partial inside _final_output.html. Because this whole root is
@@ -5748,6 +5403,7 @@ def process_candidate_final_output(
             "has_post_interview_decision_support": (
                 has_post_interview_decision_support
             ),
+            "post_interview_context_changed": post_interview_context_changed,
 
             "final_output_refresh_url": (
                 refresh_url
@@ -10339,6 +9995,7 @@ def build_historical_candidate_detail_context(
         "has_post_interview_decision_support": (
             has_post_interview_decision_support
         ),
+        "post_interview_context_changed": False,
 
         "post_interview_decision_support_stream_url": reverse(
             (
@@ -10503,6 +10160,11 @@ def build_historical_candidate_detail_context(
         "ability_reports_for_ui": ability_reports_for_ui,
         "personality_reports": personality_reports,
         "personality_profile": personality_profile,
+        "static_communication_guidance": build_static_communication_guidance(
+            personality_profile,
+            response_styles,
+            language=language,
+        ),
         "profile_contrast_analysis": build_profile_contrast_analysis(
             personality_profile,
             language=language,
@@ -10577,6 +10239,21 @@ def build_historical_candidate_detail_context(
                 "process_id": process.id,
                 "candidate_id": candidate.id,
             },
+        ),
+
+        "manager_report_personality": (
+            historical_candidate.ai_manager_report_personality or {}
+        ),
+        "manager_report_personality_status": (
+            historical_candidate.ai_manager_report_personality_status or "not_started"
+        ),
+        "manager_report_personality_stream_url": reverse(
+            "processes:process_candidate_manager_report_personality_stream",
+            kwargs={"process_id": process.id, "candidate_id": candidate.id},
+        ),
+        "manager_report_personality_regenerate_url": reverse(
+            "processes:process_candidate_manager_report_personality_regenerate",
+            kwargs={"process_id": process.id, "candidate_id": candidate.id},
         ),
 
         # ---------------------------------------------------------
@@ -12229,20 +11906,6 @@ def process_candidate_personality_interpretation_stream(
         or {}
     )
 
-    # Older saved personality interpretations predate the manager-report
-    # personality sections. Regenerate them once so all six report texts
-    # are available, even when the main interpretation was already saved.
-    if (
-        saved_interpretation
-        and current_status == "completed"
-        and saved_interpretation.get(
-            "manager_report_personality_schema_version"
-        ) != 1
-    ):
-        current_status = "outdated"
-        owner.ai_personality_interpretation_status = "outdated"
-        owner.save(update_fields=["ai_personality_interpretation_status"])
-
     current_purpose = normalize_purpose_key(
         process.purpose
     )
@@ -12344,7 +12007,6 @@ def process_candidate_personality_interpretation_stream(
         )
 
         received_done_event = False
-        received_manager_report_texts = set()
 
         try:
             for event in stream_personality_interpretation(
@@ -12361,26 +12023,11 @@ def process_candidate_personality_interpretation_stream(
 
                 if event.get("type") == "done":
                     received_done_event = True
-                elif event.get("type") == "personality_report_text":
-                    received_manager_report_texts.add(
-                        (event.get("theme"), event.get("part"))
-                    )
 
                 yield json.dumps(
                     event,
                     ensure_ascii=False,
                 ) + "\n"
-
-            expected_manager_report_texts = {
-                (theme["key"], part)
-                for theme in PERSONALITY_MANAGER_REPORT_THEMES
-                for part in ("testbild", "candidate_describes")
-            }
-            if received_manager_report_texts != expected_manager_report_texts:
-                raise ValueError(
-                    "The AI response did not contain all six "
-                    "manager-report personality texts."
-                )
 
             if not (
                 interpretation.get(
@@ -12516,6 +12163,183 @@ def process_candidate_personality_interpretation_regenerate(
             ),
         }
     )
+
+
+@login_required
+def process_candidate_manager_report_personality_stream(
+    request,
+    process_id,
+    candidate_id,
+):
+    process = get_object_or_404(TestProcess, pk=process_id)
+    if not user_can_access_process(request.user, process):
+        return HttpResponseForbidden("You do not have access to this project.")
+
+    owner_model = (
+        HistoricalProcessCandidate if process.is_historical else TestInvitation
+    )
+    owner = get_object_or_404(
+        owner_model.objects.select_related("candidate", "process"),
+        process=process,
+        candidate_id=candidate_id,
+    )
+    language_code = get_request_ai_language(request)
+    mark_ai_content_outdated_if_language_changed(
+        owner,
+        content_key="manager_report_personality",
+        result_field="ai_manager_report_personality",
+        status_field="ai_manager_report_personality_status",
+        language_code=language_code,
+    )
+
+    personality_results = build_personality_results_for_ai_owner(owner)
+    if not personality_results:
+        return JsonResponse(
+            {"error": "No personality assessment results are available for this candidate."},
+            status=400,
+        )
+
+    saved = owner.ai_manager_report_personality or {}
+    generated_at = owner.ai_manager_report_personality_generated_at
+    context_updated_at = getattr(getattr(process, "role_context", None), "updated_at", None)
+    notes_updated_at = getattr(owner, "interview_notes_updated_at", None)
+    latest_question_note = None
+    if not process.is_historical:
+        from .interview_question_models import InterviewQuestionNote
+        latest_question_note = (
+            InterviewQuestionNote.objects
+            .filter(process=process, candidate=owner.candidate)
+            .exclude(note="")
+            .aggregate(latest=Max("updated_at"))
+            .get("latest")
+        )
+
+    is_current = (
+        bool(saved)
+        and owner.ai_manager_report_personality_status == "completed"
+        and ai_content_language_matches(owner, "manager_report_personality", language_code)
+        and normalize_purpose_key(owner.ai_manager_report_personality_purpose)
+        == normalize_purpose_key(process.purpose)
+        and not (context_updated_at and generated_at and context_updated_at > generated_at)
+        and not (notes_updated_at and generated_at and notes_updated_at > generated_at)
+        and not (latest_question_note and generated_at and latest_question_note > generated_at)
+    )
+    if is_current:
+        def existing_generator():
+            yield json.dumps(
+                {"type": "saved_result", "data": saved, "status": "completed"},
+                ensure_ascii=False,
+            ) + "\n"
+
+        response = StreamingHttpResponse(
+            existing_generator(),
+            content_type="application/x-ndjson; charset=utf-8",
+        )
+        response["Cache-Control"] = "no-cache"
+        response["X-Accel-Buffering"] = "no"
+        return response
+
+    if owner.ai_manager_report_personality_status == "generating":
+        return JsonResponse(
+            {"error": "Manager-report personality content is already being generated."},
+            status=409,
+        )
+
+    owner.ai_manager_report_personality_status = "generating"
+    owner.save(update_fields=["ai_manager_report_personality_status"])
+
+    def generator():
+        result = empty_manager_report_personality()
+        received = set()
+        received_done = False
+        pending_events = []
+        expected = {
+            (theme["key"], part)
+            for theme in PERSONALITY_MANAGER_REPORT_THEMES
+            for part in ("testbild", "candidate_describes")
+        }
+        try:
+            for event in stream_manager_report_personality(
+                owner=owner,
+                language_code=language_code,
+            ):
+                result = apply_manager_report_personality_event(result, event)
+                if event.get("type") == "done":
+                    received_done = True
+                elif event.get("type") == "manager_report_personality_text":
+                    field = (event.get("theme"), event.get("part"))
+                    if field in expected:
+                        received.add(field)
+                pending_events.append(event)
+
+            if not received_done or received != expected:
+                missing = sorted(expected - received)
+                raise ValueError(
+                    "The AI response was incomplete; the previous manager "
+                    "report was kept. Missing fields: "
+                    + ", ".join(f"{theme}/{part}" for theme, part in missing)
+                )
+
+            save_manager_report_personality(
+                owner=owner,
+                result=result,
+                language_code=language_code,
+            )
+            for event in pending_events:
+                yield json.dumps(event, ensure_ascii=False) + "\n"
+            yield json.dumps({
+                "type": "manager_report_personality_complete",
+                "data": result,
+            }, ensure_ascii=False) + "\n"
+        except Exception as error:
+            owner.ai_manager_report_personality_status = "failed"
+            owner.save(update_fields=["ai_manager_report_personality_status"])
+            yield json.dumps({"type": "error", "message": str(error)}, ensure_ascii=False) + "\n"
+
+
+    response = StreamingHttpResponse(
+        generator(),
+        content_type="application/x-ndjson; charset=utf-8",
+    )
+    response["Cache-Control"] = "no-cache"
+    response["X-Accel-Buffering"] = "no"
+    return response
+
+
+@login_required
+@require_POST
+def process_candidate_manager_report_personality_regenerate(
+    request,
+    process_id,
+    candidate_id,
+):
+    process = get_object_or_404(TestProcess, pk=process_id)
+    if not user_can_access_process(request.user, process):
+        return HttpResponseForbidden("You do not have access to this project.")
+
+    owner_model = (
+        HistoricalProcessCandidate if process.is_historical else TestInvitation
+    )
+    owner = get_object_or_404(
+        owner_model.objects.select_related("candidate", "process"),
+        process=process,
+        candidate_id=candidate_id,
+    )
+    owner.ai_manager_report_personality_status = "not_started"
+    owner.ai_manager_report_personality_generated_at = None
+    owner.ai_manager_report_personality_purpose = ""
+    owner.save(update_fields=[
+        "ai_manager_report_personality_status",
+        "ai_manager_report_personality_generated_at",
+        "ai_manager_report_personality_purpose",
+    ])
+    return JsonResponse({
+        "ok": True,
+        "stream_url": reverse(
+            "processes:process_candidate_manager_report_personality_stream",
+            kwargs={"process_id": process.id, "candidate_id": candidate_id},
+        ),
+    })
 
 @login_required
 def process_candidate_personality_questions_stream(

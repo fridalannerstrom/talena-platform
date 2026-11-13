@@ -466,7 +466,35 @@ class TestInvitation(models.Model):
         default="",
     )
 
-        # ------------------------------------------------------------
+    # Manager-report personality texts are generated and versioned
+    # independently from the candidate personality interpretation.
+    ai_manager_report_personality = models.JSONField(
+        default=dict,
+        blank=True,
+    )
+    ai_manager_report_personality_status = models.CharField(
+        max_length=30,
+        default="not_started",
+        blank=True,
+        choices=[
+            ("not_started", "Not started"),
+            ("generating", "Generating"),
+            ("completed", "Completed"),
+            ("outdated", "Outdated"),
+            ("failed", "Failed"),
+        ],
+    )
+    ai_manager_report_personality_generated_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+    ai_manager_report_personality_purpose = models.CharField(
+        max_length=100,
+        blank=True,
+        default="",
+    )
+
+    # ------------------------------------------------------------
     # AI response-style guidance
     # ------------------------------------------------------------
     ai_response_style_guidance = models.JSONField(
@@ -1461,6 +1489,32 @@ class HistoricalProcessCandidate(models.Model):
     )
 
     ai_personality_interpretation_purpose = models.CharField(
+        max_length=100,
+        blank=True,
+        default="",
+    )
+
+    ai_manager_report_personality = models.JSONField(
+        default=dict,
+        blank=True,
+    )
+    ai_manager_report_personality_status = models.CharField(
+        max_length=30,
+        default="not_started",
+        blank=True,
+        choices=[
+            ("not_started", "Not started"),
+            ("generating", "Generating"),
+            ("completed", "Completed"),
+            ("outdated", "Outdated"),
+            ("failed", "Failed"),
+        ],
+    )
+    ai_manager_report_personality_generated_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+    ai_manager_report_personality_purpose = models.CharField(
         max_length=100,
         blank=True,
         default="",

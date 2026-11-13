@@ -3152,8 +3152,8 @@ msgid "Keep existing insights"
 msgstr "Behåll befintliga insikter"
 
 #: .\templates\customer\processes\partials\candidate_insights\_global_ai_update.html:364
-msgid "Reload candidate insights"
-msgstr "Ladda om kandidatinsikter"
+msgid "View candidate insights"
+msgstr "Se kandidatinsikter"
 
 #: .\templates\customer\processes\partials\candidate_insights\_navigation.html:10
 msgid "Candidate insight areas"
@@ -4349,6 +4349,15 @@ msgstr "AI-sammanfattning"
 msgid "AI Summary"
 msgstr "AI-sammanfattning"
 
+msgid "AI overview"
+msgstr "AI-översikt"
+
+msgid "Response-style guidance"
+msgstr "Vägledning om svarsstil"
+
+msgid "Manager-report personality texts"
+msgstr "Chefsrapport – personlighetstexter"
+
 #: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:41
 #, fuzzy
 #| msgid ""
@@ -4836,31 +4845,13 @@ msgid "This section could not be updated."
 msgstr "Det här avsnittet kunde inte uppdateras."
 
 #: .\templates\customer\processes\process_base.html:48
-msgid "Some AI insights could not be updated"
-msgstr "Vissa AI-insikter kunde inte uppdateras"
+msgid "AI insight update finished"
+msgstr "Uppdateringen är färdig"
 
-# | msgid "Password updated successfully."
 #: .\templates\customer\processes\process_base.html:49
-msgid "COMPLETED of TOTAL sections were updated successfully."
-msgstr "COMPLETED av TOTAL avsnitt uppdaterades utan problem."
+msgid "COMPLETED of TOTAL AI sections are up to date. You can view the candidate insights now and generate any missing sections individually whenever you like."
+msgstr "COMPLETED av TOTAL AI-avsnitt är uppdaterade. Du kan se kandidatinsikterna nu och generera avsnitt som saknas separat när det passar."
 
-#: .\templates\customer\processes\process_base.html:50
-msgid ""
-"One section could not be updated. Reload the candidate and try that section "
-"again individually."
-msgstr ""
-"Ett avsnitt kunde inte uppdateras. Ladda om kandidaten och försök sedan "
-"uppdatera avsnittet separat."
-
-#: .\templates\customer\processes\process_base.html:51
-msgid ""
-"COUNT sections could not be updated. Reload the candidate and try those "
-"sections again individually."
-msgstr ""
-"COUNT avsnitt kunde inte uppdateras. Ladda om kandidaten och försök sedan "
-"uppdatera dessa avsnitt separat."
-
-# | msgid "AI insights are already up to date"
 #: .\templates\customer\processes\process_base.html:52
 msgid "All AI insights have been updated"
 msgstr "Alla AI-insikter har uppdaterats"

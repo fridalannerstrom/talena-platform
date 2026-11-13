@@ -46,10 +46,8 @@
 {% trans "No AI stream URL was returned." as js_no_ai_stream_url %}
 {% trans "The AI insight could not be generated." as js_ai_insight_could_not_be_generated %}
 {% trans "This section could not be updated." as js_section_could_not_be_updated %}
-{% trans "Some AI insights could not be updated" as js_some_ai_insights_could_not_be_updated %}
-{% trans "COMPLETED of TOTAL sections were updated successfully." as js_sections_updated_successfully %}
-{% trans "One section could not be updated. Reload the candidate and try that section again individually." as js_one_section_could_not_be_updated %}
-{% trans "COUNT sections could not be updated. Reload the candidate and try those sections again individually." as js_sections_could_not_be_updated %}
+{% trans "AI insight update finished" as js_ai_insight_update_finished %}
+{% trans "COMPLETED of TOTAL AI sections are up to date. You can view the candidate insights now and generate any missing sections individually whenever you like." as js_sections_updated_with_guidance %}
 {% trans "All AI insights have been updated" as js_all_ai_insights_updated %}
 {% trans "The new insights were generated using the latest project purpose and context. Reloading the candidate now…" as js_new_insights_generated_reloading %}
 {% trans "The AI update could not be started." as js_ai_update_could_not_start %}
@@ -185,10 +183,10 @@
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-
-<script>
-  window.TeamStyleChartJS = window.Chart;
+<script type="module">
+  import { Chart } from "https://cdn.jsdelivr.net/npm/chart.js@4.4.7/auto/+esm";
+  window.TeamStyleChartJS = Chart;
+  window.dispatchEvent(new Event("talena:chartjs-ready"));
 </script>
 
 <!-- Self registration modal -->
@@ -266,10 +264,8 @@ noAiSectionsRequireUpdating:
     noAiStreamUrl: "{{ js_no_ai_stream_url|escapejs }}",
     aiInsightCouldNotBeGenerated: "{{ js_ai_insight_could_not_be_generated|escapejs }}",
     sectionCouldNotBeUpdated: "{{ js_section_could_not_be_updated|escapejs }}",
-    someAiInsightsCouldNotBeUpdated: "{{ js_some_ai_insights_could_not_be_updated|escapejs }}",
-    sectionsUpdatedSuccessfully: "{{ js_sections_updated_successfully|escapejs }}",
-    oneSectionCouldNotBeUpdated: "{{ js_one_section_could_not_be_updated|escapejs }}",
-    sectionsCouldNotBeUpdated: "{{ js_sections_could_not_be_updated|escapejs }}",
+    aiInsightUpdateFinished: "{{ js_ai_insight_update_finished|escapejs }}",
+    sectionsUpdatedWithGuidance: "{{ js_sections_updated_with_guidance|escapejs }}",
     allAiInsightsUpdated: "{{ js_all_ai_insights_updated|escapejs }}",
     newInsightsGeneratedReloading: "{{ js_new_insights_generated_reloading|escapejs }}",
     aiUpdateCouldNotStart: "{{ js_ai_update_could_not_start|escapejs }}",
@@ -546,7 +542,6 @@ if (modal.parentElement !== document.body) {
     "[data-global-ai-update-error]"
   );
 
-
   let isRunning = false;
 
   const queueElements = new Map();
@@ -595,6 +590,8 @@ if (modal.parentElement !== document.body) {
 
 
   async function postJson(url) {
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 30000);
     const response = await fetch(
       url,
       {
@@ -613,8 +610,9 @@ if (modal.parentElement !== document.body) {
 
         credentials:
           "same-origin",
+        signal: controller.signal,
       }
-    );
+    ).finally(() => window.clearTimeout(timeout));
 
 
     if (!response.ok) {
@@ -642,6 +640,8 @@ if (modal.parentElement !== document.body) {
     }
 
 
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 120000);
     const response = await fetch(
       streamUrl,
       {
@@ -657,8 +657,9 @@ if (modal.parentElement !== document.body) {
 
         credentials:
           "same-origin",
+        signal: controller.signal,
       }
-    );
+    ).finally(() => window.clearTimeout(timeout));
 
 
     if (!response.ok) {
@@ -754,12 +755,42 @@ if (modal.parentElement !== document.body) {
           window.TALENA_PROCESS_I18N.aiInsightCouldNotBeGenerated
         );
       }
+
+      if (event.type === "manager_report_personality_text") {
+        document.dispatchEvent(new CustomEvent(
+          "talena:manager-personality-updated",
+          { detail: {
+            theme: event.theme,
+            part: event.part,
+            text: event.text || "",
+          } }
+        ));
+      }
+    }
+
+    async function readWithTimeout() {
+      let timeoutId;
+      try {
+        return await Promise.race([
+          reader.read(),
+          new Promise((_, reject) => {
+            timeoutId = window.setTimeout(
+              () => reject(new Error(window.TALENA_PROCESS_I18N.aiInsightCouldNotBeGenerated)),
+              120000
+            );
+          }),
+        ]);
+      } catch (error) {
+        try { await reader.cancel(); } catch (cancelError) {}
+        throw error;
+      } finally {
+        window.clearTimeout(timeoutId);
+      }
     }
 
 
     while (true) {
-      const result =
-        await reader.read();
+      const result = await readWithTimeout();
 
       if (result.done) {
         break;
@@ -1244,10 +1275,10 @@ completeText.textContent =
 
         if (failures.length) {
           completeTitle.textContent =
-            window.TALENA_PROCESS_I18N.someAiInsightsCouldNotBeUpdated;
+            window.TALENA_PROCESS_I18N.aiInsightUpdateFinished;
 
           completeText.textContent =
-            window.TALENA_PROCESS_I18N.sectionsUpdatedSuccessfully
+            window.TALENA_PROCESS_I18N.sectionsUpdatedWithGuidance
               .replace(
                 "COMPLETED",
                 String(
@@ -1259,20 +1290,6 @@ completeText.textContent =
                 "TOTAL",
                 String(completedCount)
               );
-
-          errorBox.textContent =
-            failures.length === 1
-              ? window.TALENA_PROCESS_I18N.oneSectionCouldNotBeUpdated
-              : window.TALENA_PROCESS_I18N.sectionsCouldNotBeUpdated
-                  .replace(
-                    "COUNT",
-                    String(failures.length)
-                  );
-
-          setHidden(
-            errorBox,
-            false
-          );
 
           setHidden(
             reloadButton,
@@ -4181,20 +4198,6 @@ iconWrapper.className =
 
       context_note: "",
 
-      manager_report_personality: {
-        leading_and_working_with_others: {
-          testbild: "",
-          candidate_describes: "",
-        },
-        organising_and_thinking_patterns: {
-          testbild: "",
-          candidate_describes: "",
-        },
-        interaction_and_emotion_management: {
-          testbild: "",
-          candidate_describes: "",
-        }
-      },
     };
   }
 
@@ -4213,7 +4216,6 @@ iconWrapper.className =
 
   function updateManagerPersonalityText(theme, part, text) {
     const normalisedText = String(text || "").trim();
-    const field = root.dataset[personalityDatasetKey(theme, part)];
     root.dataset[personalityDatasetKey(theme, part)] = normalisedText;
     document.dispatchEvent(new CustomEvent(
       "talena:manager-personality-updated",
@@ -4221,15 +4223,21 @@ iconWrapper.className =
     ));
   }
 
+  managerPersonalityThemeKeys.forEach((theme) => {
+    ["testbild", "candidate_describes"].forEach((part) => {
+      updateManagerPersonalityText(
+        theme,
+        part,
+        root.dataset[personalityDatasetKey(theme, part)] || ""
+      );
+    });
+  });
+
   function applySavedResult(data) {
     const savedResult = {
       ...createEmptyDraft(),
       ...(data || {}),
     };
-
-    root.dataset.managerPersonalitySchemaVersion = String(
-      savedResult.manager_report_personality_schema_version || "0"
-    );
 
     if (titleElement) {
       titleElement.textContent =
@@ -4274,14 +4282,6 @@ iconWrapper.className =
       contextNote.textContent =
         savedResult.context_note || "";
     }
-
-    const managerPersonality =
-      savedResult.manager_report_personality || {};
-    managerPersonalityThemeKeys.forEach((theme) => {
-      const parts = managerPersonality[theme] || {};
-      updateManagerPersonalityText(theme, "testbild", parts.testbild || "");
-      updateManagerPersonalityText(theme, "candidate_describes", parts.candidate_describes || "");
-    });
 
     showContent();
     refreshIcons();
@@ -4403,22 +4403,6 @@ iconWrapper.className =
         break;
 
 
-      case "personality_report_text":
-        if (
-          managerPersonalityThemeKeys.includes(event.theme) &&
-          ["testbild", "candidate_describes"].includes(event.part)
-        ) {
-          draft.manager_report_personality[event.theme][event.part] =
-            event.text || "";
-          updateManagerPersonalityText(
-            event.theme,
-            event.part,
-            event.text || ""
-          );
-        }
-        showContent();
-        break;
-
 
       case "error":
         throw new Error(
@@ -4458,8 +4442,14 @@ iconWrapper.className =
 
     let draft =
       createEmptyDraft();
+    let requestTimeout;
 
     try {
+      const controller = new AbortController();
+      requestTimeout = window.setTimeout(
+        () => controller.abort(),
+        120000
+      );
       const response = await fetch(
         url,
         {
@@ -4475,6 +4465,7 @@ iconWrapper.className =
 
           credentials:
             "same-origin",
+          signal: controller.signal,
         }
       );
 
@@ -4549,10 +4540,29 @@ iconWrapper.className =
         }
       }
 
+      async function readWithTimeout() {
+        let timeoutId;
+        try {
+          return await Promise.race([
+            reader.read(),
+            new Promise((_, reject) => {
+              timeoutId = window.setTimeout(
+                () => reject(new Error(window.TALENA_PROCESS_I18N.aiInsightCouldNotBeGenerated)),
+                120000
+              );
+            }),
+          ]);
+        } catch (error) {
+          try { await reader.cancel(); } catch (cancelError) {}
+          throw error;
+        } finally {
+          window.clearTimeout(timeoutId);
+        }
+      }
+
 
       while (true) {
-        const result =
-          await reader.read();
+        const result = await readWithTimeout();
 
         if (result.done) {
           break;
@@ -4589,7 +4599,6 @@ iconWrapper.className =
           finalLine
         );
       }
-
 
       draft =
         applySavedResult(
@@ -4640,6 +4649,7 @@ notifyCandidateAiContentUpdated(
         "failed";
 
     } finally {
+      window.clearTimeout(requestTimeout);
       isStreaming = false;
 
       regenerateButton.disabled =
@@ -4664,6 +4674,11 @@ notifyCandidateAiContentUpdated(
         true;
 
       try {
+        const controller = new AbortController();
+        const requestTimeout = window.setTimeout(
+          () => controller.abort(),
+          30000
+        );
         const response = await fetch(
           regenerateUrl,
           {
@@ -4679,8 +4694,9 @@ notifyCandidateAiContentUpdated(
 
             credentials:
               "same-origin",
+            signal: controller.signal,
           }
-        );
+        ).finally(() => window.clearTimeout(requestTimeout));
 
         const data =
           await response.json();
@@ -4692,18 +4708,10 @@ notifyCandidateAiContentUpdated(
           );
         }
 
-        const forceAdminPrompt =
-          regenerateButton.dataset.forceAdminPrompt === "true";
-        delete regenerateButton.dataset.forceAdminPrompt;
-        let targetStreamUrl = data.stream_url || streamUrl;
-        if (forceAdminPrompt) {
-          const forcedUrl = new URL(targetStreamUrl, window.location.origin);
-          forcedUrl.searchParams.set("force", "1");
-          targetStreamUrl = forcedUrl.toString();
-        }
-
-        await streamInterpretation(targetStreamUrl);
-
+        await streamInterpretation(
+          data.stream_url ||
+          streamUrl
+        );
       } catch (error) {
         console.error(
           (
@@ -4741,11 +4749,8 @@ notifyCandidateAiContentUpdated(
     "not_started";
 
 
-  const managerPersonalitySchemaVersion =
-    root.dataset.managerPersonalitySchemaVersion || "0";
-
   if (
-    (!hasResult || managerPersonalitySchemaVersion !== "1") &&
+    !hasResult &&
     status !== "generating"
   ) {
     await streamInterpretation(
