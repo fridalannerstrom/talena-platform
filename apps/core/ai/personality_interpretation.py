@@ -212,6 +212,7 @@ PERSONALITY_MANAGER_REPORT_THEMES = (
     },
 )
 
+
 def _manager_report_personality_admin_system_guidance(language_code: str) -> str:
     """Build high-priority, current admin guidance for each manager-report text."""
     sections = []
