@@ -1371,20 +1371,6 @@
         margin: 0; color: var(--talena-text-muted, #766e68);
         font-size: .8rem; line-height: 1.6;
       }
-      __PANEL__ .after-interview-reports__refresh {
-        display: inline-flex; align-items: center; justify-content: center;
-        width: 38px; height: 38px; min-width: 38px; border-radius: 10px;
-        border: 1px solid var(--talena-border, #e5dfd8);
-        background: #fff; color: var(--talena-text-muted, #766e68);
-      }
-      __PANEL__ .after-interview-reports__refresh svg { width: 16px; height: 16px; }
-      __PANEL__ .after-interview-reports__refresh.needs-update {
-        border-color: rgba(255,111,97,.55); background: #fff5f2; color: #cb5348;
-      }
-      __PANEL__ .after-interview-reports__refresh:hover {
-        background: #fff5f2; color: #cb5348;
-      }
-      __PANEL__ .after-interview-reports__refresh[disabled] { opacity: .5; cursor: not-allowed; }
       __PANEL__ .after-interview-reports__status {
         margin: 0 0 1rem; padding: .8rem 1rem; border-radius: 10px;
         background: #f8f7f5; color: #625b55; font-size: .78rem;
