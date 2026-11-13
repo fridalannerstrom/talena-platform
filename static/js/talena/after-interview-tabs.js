@@ -2707,7 +2707,7 @@
     const updateReportStatus = () => {
       if (!hasCompiledPostInterviewResult) return;
       const hasUnsavedNotes = Boolean(notesInput && notesInput.value !== originalSavedNotes);
-      const isOutdated = outputRoot?.dataset.postInterviewStatus === "outdated";
+      const isOutdated = outputRoot?.dataset.postInterviewEvidenceChanged === "true";
       const needsUpdate = hasUnsavedNotes || isOutdated;
       const currentJourneyStep = needsUpdate ? 1 : 2;
       journeySteps.querySelectorAll(".after-interview-journey__step").forEach((step, index) => {
@@ -2737,6 +2737,7 @@
       const changedNotesUrl = event.detail?.notesUrl || "";
       const ownNotesUrl = outputRoot.dataset.questionEvidenceNotesUrl || "";
       if (changedNotesUrl && ownNotesUrl && changedNotesUrl !== ownNotesUrl) return;
+      outputRoot.dataset.postInterviewEvidenceChanged = "true";
       updateReportStatus();
     });
 
