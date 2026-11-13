@@ -5420,54 +5420,41 @@ def process_candidate_interview_notes_update(
             status=400,
         )
 
-    updated_at = timezone.now()
+    evidence_changed = interview_notes != (invitation.interview_notes or "")
+    updated_at = invitation.interview_notes_updated_at
 
-    invitation.interview_notes = (
-        interview_notes
-    )
+    if evidence_changed:
+        updated_at = timezone.now()
+        invitation.interview_notes = interview_notes
+        invitation.interview_notes_updated_at = updated_at
+        invitation.interview_notes_updated_by = request.user
 
-    invitation.interview_notes_updated_at = (
-        updated_at
-    )
+        # Mark the synthesis stale only when the saved notes actually changed.
+        if invitation.ai_post_interview_decision_support:
+            invitation.ai_post_interview_decision_support_status = "outdated"
+            decision_support = dict(
+                invitation.ai_post_interview_decision_support
+            )
+            decision_support["interview_evidence_changed_since_compilation"] = True
+            invitation.ai_post_interview_decision_support = decision_support
+            post_interview_update_fields = [
+                "ai_post_interview_decision_support_status",
+                "ai_post_interview_decision_support",
+            ]
+        else:
+            invitation.ai_post_interview_decision_support_status = "not_started"
+            post_interview_update_fields = [
+                "ai_post_interview_decision_support_status",
+            ]
 
-    invitation.interview_notes_updated_by = (
-        request.user
-    )
-
-    # An existing post-interview synthesis no longer
-    # reflects the latest interview evidence.
-    if (
-        invitation
-        .ai_post_interview_decision_support
-    ):
-        invitation.ai_post_interview_decision_support_status = (
-            "outdated"
+        invitation.save(
+            update_fields=[
+                "interview_notes",
+                "interview_notes_updated_at",
+                "interview_notes_updated_by",
+                *post_interview_update_fields,
+            ]
         )
-        decision_support = dict(
-            invitation.ai_post_interview_decision_support
-        )
-        decision_support["interview_evidence_changed_since_compilation"] = True
-        invitation.ai_post_interview_decision_support = decision_support
-        post_interview_update_fields = [
-            "ai_post_interview_decision_support_status",
-            "ai_post_interview_decision_support",
-        ]
-    else:
-        invitation.ai_post_interview_decision_support_status = (
-            "not_started"
-        )
-        post_interview_update_fields = [
-            "ai_post_interview_decision_support_status",
-        ]
-
-    invitation.save(
-        update_fields=[
-            "interview_notes",
-            "interview_notes_updated_at",
-            "interview_notes_updated_by",
-            *post_interview_update_fields,
-        ]
-    )
 
     return JsonResponse(
         {
@@ -5480,8 +5467,9 @@ def process_candidate_interview_notes_update(
                 updated_at.isoformat()
             ),
             "updated_by": (
-                request.user.get_full_name()
-                or request.user.get_username()
+                (invitation.interview_notes_updated_by.get_full_name()
+                 or invitation.interview_notes_updated_by.get_username())
+                if invitation.interview_notes_updated_by else ""
             ),
             "post_interview_status": (
                 invitation
