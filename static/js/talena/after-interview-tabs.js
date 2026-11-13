@@ -1,3 +1,6 @@
+Warning: truncated output (original token count: 36004)
+Total output lines: 2972
+
 (() => {
   "use strict";
 
@@ -13,14 +16,12 @@
         reports: "Rapporter",
         overview: "Helhetsbild",
         interview: "Intervjusammanfattning",
-        explore: "Undersök vidare",
         managerReport: "Chefsrapport",
         evidence: "Underlag",
       },
       descriptions: {
         overview: "En samlad bild av testresultat, intervjuunderlag och rollkontext.",
         interview: "Vad intervjun bekräftar, nyanserar eller tillför till testresultaten.",
-        explore: "Frågor och områden där ytterligare underlag kan ge en mer komplett bild.",
         managerReport: "Ett samlat stöd för rekryteraren och ansvarig chef, med fokus på kandidatens resultat och relevanta frågor att följa upp.",
         evidence: "Intervjuanteckningar och svar som Talena använder som underlag.",
       },
@@ -154,14 +155,12 @@
         reports: "Reports",
         overview: "Overall picture",
         interview: "Interview summary",
-        explore: "Explore further",
         managerReport: "Manager report",
         evidence: "Evidence",
       },
       descriptions: {
         overview: "A combined view of assessment results, interview evidence and role context.",
         interview: "What the interview confirms, nuances or adds to the assessment results.",
-        explore: "Questions and areas where additional evidence may create a more complete view.",
         managerReport: "A practical overview for the recruiter and manager, focused on the candidate’s results and relevant topics to follow up.",
         evidence: "Interview notes and answers used by Talena as evidence.",
       },
@@ -438,7 +437,6 @@
     const duplicateHeadingLabels = {
       overall_picture: [copy().tabs.overview, "Helhetsbild", "Overall picture"],
       interview_summary: [copy().tabs.interview, "Intervjusammanfattning", "Interview summary"],
-      explore_further: [copy().tabs.explore, "Undersök vidare", "Explore further", "Investigate further"],
       wellbeing_tips: [copy().managerPersonalityAdviceTitle, "Tips för trivsel", "Wellbeing tips", "For the manager"],
     };
     const isDuplicateBlockHeading = (line) => {
@@ -1311,453 +1309,7 @@
       }
       __PANEL__ .after-interview-evidence-card {
         border: none !important; border-radius: 0 !important;
-        background: transparent !important; padding: .25rem 0 0 !important;
-      }
-      __PANEL__ .after-interview-evidence-intro { margin-bottom: 1.25rem; }
-      __PANEL__ .after-interview-evidence-intro__kicker {
-        margin: 0 0 .35rem; font-size: .68rem; font-weight: 700;
-        color: #d95d51; letter-spacing: .06em;
-      }
-      __PANEL__ .after-interview-evidence-intro__title {
-        margin: 0 0 .35rem; color: var(--talena-ink, #191817);
-        font-size: 1.26rem; font-weight: 700; line-height: 1.25;
-      }
-      __PANEL__ .after-interview-evidence-intro__description {
-        max-width: 780px; margin: 0; font-size: .85rem; line-height: 1.65;
-        color: var(--talena-text-muted, #766e68);
-      }
-      __PANEL__ .after-interview-evidence-intro__tip {
-        display: flex; gap: .5rem; align-items: flex-start; margin: .8rem 0 0;
-        font-size: .76rem; line-height: 1.55; color: #615954;
-      }
-      __PANEL__ .after-interview-evidence-intro__tip svg {
-        width: 15px; height: 15px; flex: 0 0 15px; margin-top: 1px;
-      }
-      __PANEL__.after-interview-simplified .after-interview-evidence-card [data-interview-notes-root] {
-        margin-top: 0 !important;
-      }
-      @media (max-width: 767px) {
-        __PANEL__ .after-interview-journey { padding: 1rem; }
-        __PANEL__ .after-interview-journey__steps { grid-template-columns: 1fr; gap: .5rem; }
-        __PANEL__ .after-interview-journey__step { padding: .65rem .75rem; }
-        __PANEL__ .after-interview-evidence-intro__title { font-size: 1.1rem; }
-      }
-      /* Primary navigation inherits the shared candidate-insights styles. */
-      __PANEL__ .after-interview-primary-nav .candidate-insights-view-option.needs-update::after {
-        content: ""; display: inline-block; width: 7px; height: 7px;
-        border-radius: 50%; background: #e17d54; margin-left: .45rem;
-        vertical-align: middle;
-      }
-      __PANEL__ .after-interview-reports { min-width: 0; }
-      __PANEL__ .after-interview-reports[hidden] { display: none !important; }
-      __PANEL__ .after-interview-reports__header {
-        display: flex; align-items: flex-start; justify-content: space-between;
-        gap: 1rem; margin: .15rem 0 1rem;
-      }
-      __PANEL__ .after-interview-reports__title {
-        margin: 0 0 .3rem; color: var(--talena-ink, #191817);
-        font-size: 1.28rem; font-weight: 750;
-      }
-      __PANEL__ .after-interview-reports__description {
-        margin: 0; color: var(--talena-text-muted, #766e68);
-        font-size: .8rem; line-height: 1.6;
-      }
-      __PANEL__ .after-interview-reports__refresh {
-        display: inline-flex; align-items: center; justify-content: center;
-        width: 38px; height: 38px; min-width: 38px; border-radius: 10px;
-        border: 1px solid var(--talena-border, #e5dfd8);
-        background: #fff; color: var(--talena-text-muted, #766e68);
-      }
-      __PANEL__ .after-interview-reports__refresh svg { width: 16px; height: 16px; }
-      __PANEL__ .after-interview-reports__refresh.needs-update {
-        border-color: rgba(255,111,97,.55); background: #fff5f2; color: #cb5348;
-      }
-      __PANEL__ .after-interview-reports__refresh:hover {
-        background: #fff5f2; color: #cb5348;
-      }
-      __PANEL__ .after-interview-reports__refresh[disabled] { opacity: .5; cursor: not-allowed; }
-      __PANEL__ .after-interview-reports__status {
-        margin: 0 0 1rem; padding: .8rem 1rem; border-radius: 10px;
-        background: #f8f7f5; color: #625b55; font-size: .78rem;
-        line-height: 1.55;
-      }
-      __PANEL__ .after-interview-reports__status[hidden] { display: none !important; }
-      __PANEL__ .after-interview-reports__status.needs-update {
-        background: #fff5ed; color: #775438; border: 1px solid #efdacb;
-      }
-      __PANEL__ .after-interview-reports__status-title { font-weight: 650; }
-      __PANEL__ .after-interview-reports__status-detail { display: block; margin-top: .15rem; }
-      /* Nested report navigation inherits personality-view-tabs styles. */
-      __PANEL__ .after-interview-report-panels { min-width: 0; }
-      __PANEL__ .after-interview-report-panels > [hidden] { display: none !important; }
-      __PANEL__ .after-interview-evidence-card [data-post-interview-generate][data-regenerate="true"] {
-        display: none !important;
-      }
-      __PANEL__ .after-interview-evidence-rebuild {
-        margin: 1rem 0 0; display: flex; gap: .75rem;
-        align-items: center; justify-content: space-between; flex-wrap: wrap;
-        padding: .9rem 1rem; border: 1px solid var(--talena-border, #e5dfd8);
-        border-radius: 11px; background: #faf9f7;
-      }
-      __PANEL__ .after-interview-evidence-rebuild .btn { white-space: normal; }
-      __PANEL__ .after-interview-evidence-rebuild__text {
-        margin: 0; color: var(--talena-text-muted, #766e68);
-        font-size: .76rem; line-height: 1.5;
-      }
-      @media (max-width: 767px) {
-        __PANEL__ .after-interview-reports__header { flex-wrap: wrap; }
-        __PANEL__ .after-interview-evidence-rebuild { align-items: flex-start; }
-      }
-      __PANEL__ .after-interview-tab-panels { min-width: 0; }
-      __PANEL__ .after-interview-tab-panel { display: grid; gap: 1rem; min-width: 0; }
-      __PANEL__ .after-interview-tab-panel[hidden] { display: none !important; }
-      __PANEL__ .after-interview-tab-card {
-        min-width: 0; padding: 1.25rem; border: 1px solid var(--talena-border, #e5dfd8);
-        border-radius: 14px; background: #fff;
-      }
-      __PANEL__ .after-interview-tab-card__toolbar {
-        display: flex; align-items: center; justify-content: space-between; gap: .75rem;
-      }
-      __PANEL__ .after-interview-tab-card__regenerate {
-        flex: 0 0 auto; width: 2.25rem; height: 2.25rem; padding: .35rem;
-        color: var(--talena-text-muted, #766e68); border: 1px solid var(--talena-border, #e5dfd8);
-      }
-      __PANEL__ .after-interview-tab-card__regenerate[aria-busy="true"] { opacity: .7; }
-      __PANEL__ .after-interview-tab-card__eyebrow {
-        margin-bottom: .3rem; color: var(--talena-coral, #ed7468);
-        font-size: .68rem; font-weight: 750; letter-spacing: .08em; text-transform: uppercase;
-      }
-      __PANEL__ .after-interview-tab-card__title {
-        margin: 0; color: var(--talena-ink, #191817);
-        font-size: clamp(1.25rem, 2vw, 1.7rem); font-weight: 750;
-        letter-spacing: -.035em; line-height: 1.1;
-      }
-      __PANEL__ .after-interview-tab-card__description {
-        max-width: 760px; margin: .45rem 0 1rem; color: var(--talena-text-muted, #766e68);
-        font-size: .78rem; line-height: 1.55;
-      }
-      __PANEL__ .after-interview-tab-card__body { margin: 0 !important; }
-      __PANEL__ .after-interview-rich-text { color: var(--talena-ink, #191817); font-size: .9rem; line-height: 1.75; }
-      __PANEL__ .after-interview-rich-text__heading { margin: 1.4rem 0 .55rem; color: var(--talena-ink, #191817); font-size: 1.05rem; font-weight: 700; letter-spacing: -.015em; line-height: 1.3; }
-      __PANEL__ .after-interview-rich-text__heading:first-child { margin-top: 0; }
-      __PANEL__ .after-interview-rich-text__paragraph { margin: 0 0 .85rem; }
-      __PANEL__ .after-interview-rich-text__paragraph:last-child { margin-bottom: 0; }
-      __PANEL__ .after-interview-rich-text__list { margin: 0 0 1rem; padding-left: 1.35rem; }
-      __PANEL__ .after-interview-rich-text__list li { margin: .25rem 0; padding-left: .2rem; }
-      __PANEL__ .after-interview-tab-empty {
-        padding: 1rem; border: 1px dashed var(--talena-border, #e5dfd8);
-        border-radius: 11px; color: var(--talena-text-muted, #766e68);
-        font-size: .78rem; line-height: 1.55;
-      }
-      __PANEL__ [data-after-interview-blocks-source],
-      __PANEL__ [data-post-interview-content].after-interview-content-source {
-        display: none !important;
-      }
-      .after-interview-manager-report__pdf-export-shell { display: none; }
-      __PANEL__ .after-interview-manager-report__pdf-export-root { display: none; }
-      __PANEL__ .after-interview-manager-report__header {
-        display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem;
-      }
-      __PANEL__ .after-interview-manager-report__actions {
-        display: flex; align-items: center; gap: .6rem; flex: 0 0 auto; flex-wrap: wrap;
-      }
-      __PANEL__ .after-interview-manager-report__personality-part-header {
-        display: flex; align-items: center; justify-content: flex-start;
-        flex-wrap: wrap; gap: .1rem .35rem;
-      }
-      __PANEL__ .after-interview-manager-report__personality-part-title {
-        flex: 0 1 auto; margin-bottom: .35rem;
-      }
-      __PANEL__ .after-interview-manager-report__edit-controls {
-        position: static; display: inline-flex; align-items: center;
-        justify-content: flex-start; gap: .25rem; flex: 0 0 auto;
-      }
-      __PANEL__ .after-interview-manager-report__edit-controls[hidden],
-      __PANEL__ .after-interview-manager-report__edit-button[hidden] { display: none !important; }
-      __PANEL__ .after-interview-manager-report__edit-button {
-        display: grid; place-items: center; width: 1.5rem !important;
-        height: 1.5rem !important; min-width: 1.5rem !important; padding: 0 !important;
-        border: 0 !important; border-radius: 6px !important;
-        background: transparent !important; color: var(--talena-text-muted, #766e68) !important;
-        box-shadow: none !important;
-      }
-      __PANEL__ .after-interview-manager-report__edit-button svg {
-        width: .82rem; height: .82rem; stroke-width: 1.8;
-      }
-      __PANEL__ .after-interview-manager-report__edit-button:hover,
-      __PANEL__ .after-interview-manager-report__edit-button:focus-visible {
-        background: var(--talena-coral-soft, #fff2ee) !important;
-        color: var(--talena-coral-strong, #ed7468) !important;
-        outline: 2px solid var(--talena-coral, #ff6f61); outline-offset: 2px;
-      }
-      __PANEL__ .after-interview-manager-report__edited-badge {
-        padding: .2rem .48rem; border: 1px solid #ead6c5; border-radius: 999px;
-        background: #fff7ee; color: #735036; font-size: .64rem; font-weight: 700;
-        line-height: 1.4; white-space: nowrap;
-      }
-      __PANEL__ .after-interview-manager-report__edit-dialog {
-        width: min(700px, calc(100vw - 2rem)); max-height: min(90vh, 900px);
-        margin: auto; padding: 1.35rem; border: 1px solid var(--talena-border, #e5dfd8);
-        border-radius: 16px; background: #fff; color: var(--talena-ink, #191817);
-        box-shadow: 0 1.5rem 4rem rgba(25, 24, 23, .2);
-      }
-      __PANEL__ .after-interview-manager-report__edit-dialog::backdrop {
-        background: rgba(25, 24, 23, .48);
-      }
-      __PANEL__ .after-interview-manager-report__confirm-dialog {
-        width: min(480px, calc(100vw - 2rem)); max-height: min(85vh, 720px);
-        margin: auto; padding: 1.5rem; border: 1px solid var(--talena-border, #e5dfd8);
-        border-radius: 20px; background: #fff; color: var(--talena-ink, #191817);
-        box-shadow: 0 1.5rem 4rem rgba(25, 24, 23, .2);
-      }
-      __PANEL__ .after-interview-manager-report__confirm-dialog::backdrop {
-        background: rgba(25, 24, 23, .48); backdrop-filter: blur(3px);
-      }
-      __PANEL__ .after-interview-manager-report__confirm-header {
-        display: flex; align-items: center; gap: .85rem; margin-bottom: 1rem;
-      }
-      __PANEL__ .after-interview-manager-report__confirm-icon {
-        display: grid; place-items: center; width: 2.65rem; height: 2.65rem;
-        flex: 0 0 2.65rem; border-radius: 14px;
-        background: #fff3e5; color: #a36b35;
-      }
-      __PANEL__ .after-interview-manager-report__confirm-icon svg {
-        width: 1.1rem; height: 1.1rem;
-      }
-      __PANEL__ .after-interview-manager-report__confirm-title {
-        margin: 0; font-size: 1.12rem; font-weight: 750; letter-spacing: -.02em;
-      }
-      __PANEL__ .after-interview-manager-report__confirm-description {
-        margin: 0; color: var(--talena-text-muted, #766e68);
-        font-size: .88rem; line-height: 1.65;
-      }
-      __PANEL__ .after-interview-manager-report__confirm-note {
-        margin: 1rem 0 0; padding: .8rem .9rem; border: 1px solid #f0e4d3;
-        border-radius: 11px; background: #fffaf4; color: #735036;
-        font-size: .76rem; line-height: 1.55;
-      }
-      __PANEL__ .after-interview-manager-report__confirm-actions {
-        display: flex; justify-content: flex-end; gap: .55rem; margin-top: 1.3rem;
-      }
-      __PANEL__ .after-interview-manager-report__edit-title {
-        margin: 0 0 .5rem; font-size: 1.15rem; font-weight: 750;
-      }
-      __PANEL__ .after-interview-manager-report__edit-help {
-        margin: 0 0 1rem; color: var(--talena-text-muted, #766e68);
-        font-size: .82rem; line-height: 1.55;
-      }
-      __PANEL__ .after-interview-manager-report__edit-label {
-        display: block; margin-bottom: .4rem; font-size: .8rem; font-weight: 700;
-      }
-      __PANEL__ .after-interview-manager-report__edit-textarea {
-        min-height: 16rem; max-height: 55vh; resize: vertical; line-height: 1.55;
-      }
-      __PANEL__ .after-interview-manager-report__edit-actions {
-        display: flex; align-items: center; justify-content: flex-end; gap: .55rem; margin-top: 1rem;
-      }
-      @media (max-width: 575px) {
-        __PANEL__ .after-interview-manager-report__edit-dialog { padding: 1rem; }
-        __PANEL__ .after-interview-manager-report__confirm-dialog { padding: 1.1rem; }
-        __PANEL__ .after-interview-manager-report__confirm-actions { flex-wrap: wrap; }
-        __PANEL__ .after-interview-manager-report__edit-actions { flex-wrap: wrap; }
-        __PANEL__ .after-interview-manager-report__edit-actions .me-auto { margin-right: 0 !important; }
-      }
-      __PANEL__ .after-interview-manager-report__skills { margin-top: 1.6rem; }
-      __PANEL__ .after-interview-manager-report__skills-title {
-        margin: 0 0 .85rem; color: var(--talena-ink, #191817); font-size: 1.25rem; font-weight: 750;
-      }
-      __PANEL__ .after-interview-manager-report__skill { margin: 0 0 1.5rem; }
-      __PANEL__ .after-interview-manager-report__skill-title {
-        margin: 0 0 .7rem; color: var(--talena-ink, #191817); font-size: 1rem; font-weight: 700;
-      }
-      __PANEL__ .after-interview-manager-report__levels {
-        display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .75rem;
-      }
-      __PANEL__ .after-interview-manager-report__level {
-        position: relative; min-width: 0; min-height: 145px; padding: 1rem;
-        overflow: hidden; border: 1px solid var(--talena-border, #e5dfd8); border-radius: 12px;
-        background: #fff; color: var(--talena-ink, #191817);
-        transition: border-color .16s ease, background-color .16s ease, box-shadow .16s ease;
-      }
-      __PANEL__ .after-interview-manager-report__level::before {
-        display: block; width: 30px; height: 6px; margin-bottom: .8rem;
-        border-radius: 99px; background: #e8e2dd; content: "";
-      }
-      __PANEL__ .after-interview-manager-report__level-title {
-        margin: 0 1.4rem .45rem 0; font-size: .9rem; font-weight: 750; line-height: 1.3;
-      }
-      __PANEL__ .after-interview-manager-report__level-description {
-        margin: 0; color: #777b84; font-size: .76rem; line-height: 1.5;
-      }
-      __PANEL__ .after-interview-manager-report__level--selected {
-        border-color: var(--talena-coral, #ff6f61);
-        background: #fff4f1;
-        box-shadow: 0 0 0 1px var(--talena-coral, #ff6f61);
-      }
-      __PANEL__ .after-interview-manager-report__skill {
-        --skill-accent: var(--talena-coral, #ff6f61);
-      }
-      __PANEL__ .after-interview-manager-report__skill .after-interview-manager-report__level--selected::before {
-        background: var(--talena-coral, #ff6f61);
-      }
-      __PANEL__ .after-interview-manager-report__level-check {
-        position: absolute; top: .72rem; right: .78rem; display: grid; place-items: center;
-        width: 22px; height: 22px; border-radius: 50%; background: var(--skill-accent);
-        color: #fff; font-size: .8rem; font-weight: 800; line-height: 1;
-      }
-      __PANEL__ .after-interview-manager-report__guide {
-        margin-top: 1.6rem; padding: 1.1rem 1.2rem; border: 1px solid var(--talena-border, #e5dfd8);
-        border-radius: 13px; background: #fff;
-        transition: border-color .16s ease, background-color .16s ease;
-      }
-      __PANEL__ .after-interview-manager-report__guide[open] {
-        border-color: var(--talena-border, #e5dfd8); background: #fff;
-      }
-      __PANEL__ .after-interview-manager-report__guide-summary {
-        display: flex; align-items: center; justify-content: space-between; gap: 1rem;
-        list-style: none; cursor: pointer; color: var(--talena-ink, #191817); font-weight: 700;
-      }
-      __PANEL__ .after-interview-manager-report__guide-summary::-webkit-details-marker { display: none; }
-      __PANEL__ .after-interview-manager-report__guide-summary::marker { content: ""; }
-      __PANEL__ .after-interview-manager-report__guide-summary::after {
-        flex: 0 0 auto; width: .62rem; height: .62rem; margin-right: .2rem;
-        border-right: 2px solid var(--talena-coral-strong, #ed7468);
-        border-bottom: 2px solid var(--talena-coral-strong, #ed7468);
-        content: ""; transform: rotate(45deg) translateY(-2px);
-        transition: transform .16s ease;
-      }
-      __PANEL__ .after-interview-manager-report__guide[open] .after-interview-manager-report__guide-summary::after {
-        transform: rotate(225deg) translate(-2px, -1px);
-      }
-      __PANEL__ .after-interview-manager-report__guide-summary:focus-visible {
-        outline: 2px solid var(--talena-coral, #ff6f61); outline-offset: 4px; border-radius: 3px;
-      }
-      __PANEL__ .after-interview-manager-report__guide-intro {
-        max-width: 860px; margin: .8rem 0 0; color: var(--talena-text-muted, #766e68);
-        font-size: .82rem; line-height: 1.6;
-      }
-      __PANEL__ .after-interview-manager-report__guide-levels {
-        display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .8rem; margin-top: 1rem;
-      }
-      __PANEL__ .after-interview-manager-report__guide-level {
-        padding: .9rem; border: 1px solid var(--talena-border, #e5dfd8);
-        border-radius: 12px; background: #fff;
-      }
-      __PANEL__ .after-interview-manager-report__guide-level h5 {
-        margin: 0 0 .4rem; font-size: .82rem; font-weight: 750;
-      }
-      __PANEL__ .after-interview-manager-report__guide-level p {
-        margin: 0; color: var(--talena-text-muted, #766e68); font-size: .75rem; line-height: 1.5;
-      }
-      __PANEL__ .after-interview-manager-report__guide-level ul {
-        margin: .45rem 0 0; padding-left: 1.1rem; color: var(--talena-text-muted, #766e68);
-        font-size: .74rem; line-height: 1.5;
-      }
-      __PANEL__ .after-interview-manager-report__guide-caveat {
-        margin: 1rem 0 0; padding-top: .8rem; border-top: 1px solid var(--talena-border, #e5dfd8);
-        color: var(--talena-text-muted, #766e68); font-size: .74rem; line-height: 1.5;
-      }
-      __PANEL__ .after-interview-manager-report__skills-empty {
-        margin: 0; padding: 1rem; border: 1px dashed var(--talena-border, #e5dfd8);
-        border-radius: 11px; color: var(--talena-text-muted, #766e68); font-size: .8rem;
-      }
-      __PANEL__ .after-interview-manager-report__motivation {
-        margin-top: 1.8rem;
-      }
-      __PANEL__ .after-interview-manager-report__motivation-title {
-        margin: 0 0 .85rem; color: var(--talena-ink, #191817); font-size: 1.15rem; font-weight: 750;
-      }
-      /* Readable report rows: a factor's meaning on the left, guidance on the right. */
-      __PANEL__ .after-interview-manager-report__motivation-grid {
-        display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem;
-      }
-      __PANEL__ .after-interview-manager-report__motivator {
-        display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.8fr);
-        align-items: start; gap: 1.5rem; min-width: 0; padding: 1.3rem;
-        border: 1px solid var(--talena-border, #e5dfd8);
-        border-radius: 14px; background: #fff;
-      }
-      __PANEL__ .after-interview-manager-report__motivator-intro {
-        min-width: 0;
-      }
-      __PANEL__ .after-interview-manager-report__motivator-name {
-        margin: 0 0 .55rem; color: var(--talena-ink, #191817);
-        font-size: 1rem; font-weight: 750; line-height: 1.35;
-      }
-      __PANEL__ .after-interview-manager-report__motivator-definition {
-        margin: 0; color: var(--talena-text-muted, #766e68);
-        font-size: .8rem; line-height: 1.7;
-      }
-      __PANEL__ .after-interview-manager-report__motivator-practical {
-        min-width: 0; border-left: 1px solid var(--talena-border, #e5dfd8);
-        padding-left: 1.5rem;
-      }
-      __PANEL__ .after-interview-manager-report__motivator-practical-title {
-        margin: 0 0 .75rem; color: var(--talena-ink, #191817);
-        font-size: .8rem; font-weight: 750;
-      }
-      __PANEL__ .after-interview-manager-report__motivator-practical-grid {
-        display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem;
-      }
-      __PANEL__ .after-interview-manager-report__motivator-practical-box {
-        min-width: 0; padding: 1rem; border: 1px solid #efebe6;
-        border-radius: 11px; background: #faf9f7;
-      }
-      __PANEL__ .after-interview-manager-report__motivator-practical-box--do {
-        background: #f7f9f7;
-      }
-      __PANEL__ .after-interview-manager-report__motivator-practical-box-title {
-        display: flex; gap: .4rem; align-items: center;
-        margin: 0 0 .6rem; color: var(--talena-ink, #191817);
-        font-size: .79rem; font-weight: 750;
-      }
-      __PANEL__ .after-interview-manager-report__motivator-practical-box-title svg {
-        flex-shrink: 0; width: 15px; height: 15px; stroke-width: 1.9;
-        color: #746c66;
-      }
-      __PANEL__ .after-interview-manager-report__motivator-practical-box--do svg {
-        color: #56816b;
-      }
-      __PANEL__ .after-interview-manager-report__motivator-practical-list {
-        margin: 0; padding-left: 1.1rem; color: #615a54;
-        font-size: .76rem; line-height: 1.65;
-      }
-      __PANEL__ .after-interview-manager-report__motivator-practical-list li {
-        padding-left: .1rem;
-      }
-      __PANEL__ .after-interview-manager-report__motivator-practical-list li + li {
-        margin-top: .55rem;
-      }
-      @media (max-width: 1050px) {
-        __PANEL__ .after-interview-manager-report__motivator {
-          grid-template-columns: minmax(0, 1fr); gap: 1rem;
-        }
-        __PANEL__ .after-interview-manager-report__motivator-practical {
-          border-left: 0; padding-left: 0; border-top: 1px solid var(--talena-border, #e5dfd8);
-          padding-top: 1rem;
-        }
-      }
-      @media (max-width: 720px) {
-        __PANEL__ .after-interview-manager-report__motivator-practical-grid {
-          grid-template-columns: minmax(0, 1fr);
-        }
-        __PANEL__ .after-interview-manager-report__motivator { padding: 1rem; }
-      }
-      __PANEL__ .after-interview-manager-report__motivation-empty {
-        margin: 0; padding: 1rem; border: 1px dashed var(--talena-border, #e5dfd8);
-        border-radius: 11px; color: var(--talena-text-muted, #766e68); font-size: .76rem;
-      }
-      __PANEL__ .after-interview-manager-report__personality {
-        margin-top: 1.8rem;
-      }
-      __PANEL__ .after-interview-manager-report__personality-title {
-        margin: 0 0 .85rem; color: var(--talena-ink, #191817); font-size: 1.15rem; font-weight: 750;
-      }
-      __PANEL__ .after-interview-manager-report__personality-advice {
-        margin-top: 1rem; padding: 1rem; border: 1px solid var(--talena-border, #e5dfd8);
-        border-radius: 12px; background: #fff;
-      }
-      __PANEL__ .after-interview-manager-report__wellbeing {
+        background: transparent !impo…6004 tokens truncated…   __PANEL__ .after-interview-manager-report__wellbeing {
         margin-top: 1.8rem; padding-top: 1.35rem;
         border-top: 1px solid var(--talena-border, #e5dfd8);
       }
@@ -1954,11 +1506,11 @@
     const tabPanels = document.createElement("div");
     tabPanels.className = "candidate-insights-subworkspace__panels";
 
-    // Keep the existing report keys and URL values for bookmarks, PDF actions
-    // and the final-output refresh helper. Only the visual navigation changes.
+    // Keep report keys and URL values for bookmarks, PDF actions and the
+    // final-output refresh helper. Historical explore URLs now fall back safely.
     // Keep historical interview_summary data on the server, but this tab is
     // retired (#442). Old afterTab=interview URLs fall back to Helhetsbild.
-    const keys = ["evidence", "overview", "explore", "managerReport"];
+    const keys = ["evidence", "overview", "managerReport"];
     const reportKeys = keys.filter((key) => key !== "evidence");
     const buttons = new Map();
     const panels = new Map();
@@ -2057,20 +1609,9 @@
 
     const summary = postContent?.querySelector(":scope > .purpose-fit-section:first-child");
     const contentChildren = postContent ? [...postContent.children] : [];
-    const contradictions = contentChildren.find((node) =>
-      ["Contradictions or tensions to consider", "Motsägelser eller spänningar att beakta"]
-        .includes(textOf(node.querySelector?.("h3.insight-summary-title"))),
-    );
-    const remaining = contentChildren.find((node) =>
-      ["What remains to be explored", "Vad som återstår att utforska", "Kvar att utforska"]
-        .includes(textOf(node.querySelector?.("h3.insight-summary-title"))),
-    );
     const contextNote = contentChildren.find((node) =>
       node.classList.contains("purpose-fit-disclaimer"),
     );
-
-    const exploreFallback = document.createElement("div");
-    [contradictions, remaining].filter(Boolean).forEach((node) => exploreFallback.appendChild(node));
 
     const overviewSource = sourceBlock(panel, "overall_picture");
     if (window.TalenaStructuredOverallPicture?.createCard) {
@@ -2085,9 +1626,6 @@
         makeCard(panel, "overall_picture", copy().tabs.overview, copy().descriptions.overview, summary, "overall_picture"),
       );
     }
-    panels.get("explore").appendChild(
-      makeCard(panel, "explore_further", copy().tabs.explore, copy().descriptions.explore, exploreFallback.childNodes.length ? exploreFallback : null, "explore_further"),
-    );
     const managerReportCard = document.createElement("section");
     managerReportCard.className = "after-interview-tab-card after-interview-manager-report";
     managerReportCard.hidden = true;

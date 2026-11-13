@@ -46,7 +46,6 @@ POST_INTERVIEW_CONTENT_BLOCK_KEYS = (
 # interview_summary text remains in the stored content_blocks contract.
 ACTIVE_POST_INTERVIEW_CONTENT_BLOCK_KEYS = (
     "overall_picture",
-    "explore_further",
     "wellbeing_tips",
 )
 
@@ -2159,7 +2158,7 @@ def apply_post_interview_decision_support_event(
         if isinstance(blocks, dict):
             result["content_blocks"] = {
                 key: _clean_text(blocks.get(key))
-                for key in POST_INTERVIEW_CONTENT_BLOCK_KEYS
+                for key in ACTIVE_POST_INTERVIEW_CONTENT_BLOCK_KEYS
             }
 
     elif event_type == "supported_indications":
@@ -3032,7 +3031,7 @@ instruction for that block's user-facing text.
 
 Return one JSON object with type "content_blocks" and a blocks object.
 The blocks object must contain every required key exactly once:
-overall_picture, explore_further and wellbeing_tips.
+overall_picture and wellbeing_tips.
 The retired interview_summary is not required and must not be generated.
 Each value must be a string generated according to the administrator prompt
 for that key. Do not add, remove, shorten or reshape the generated text
@@ -3264,7 +3263,7 @@ def set_post_interview_content_block_status(
     status: str,
 ) -> dict[str, Any]:
     """Update one section's status without overwriting other section data."""
-    if block_key not in POST_INTERVIEW_CONTENT_BLOCK_KEYS:
+    if block_key not in ACTIVE_POST_INTERVIEW_CONTENT_BLOCK_KEYS:
         raise ValueError("Unknown After interview content block.")
     if status not in {"generating", "completed", "outdated", "failed"}:
         raise ValueError("Unknown After interview content block status.")
@@ -3360,7 +3359,7 @@ def build_post_interview_content_block_prompt(
     language_code: str | None = None,
 ) -> str:
     """Build a focused prompt for one After interview tab."""
-    if block_key not in POST_INTERVIEW_CONTENT_BLOCK_KEYS:
+    if block_key not in ACTIVE_POST_INTERVIEW_CONTENT_BLOCK_KEYS:
         raise ValueError("Unknown After interview content block.")
 
     language_code = _post_normalize_ai_language(language_code)
@@ -3555,7 +3554,7 @@ def save_post_interview_content_block(
     language_code: str,
 ) -> dict[str, Any]:
     """Merge one completed section into the existing result without losing peers."""
-    if block_key not in POST_INTERVIEW_CONTENT_BLOCK_KEYS:
+    if block_key not in ACTIVE_POST_INTERVIEW_CONTENT_BLOCK_KEYS:
         raise ValueError("Unknown After interview content block.")
     clean_text = _clean_text(text)
     if not clean_text:
