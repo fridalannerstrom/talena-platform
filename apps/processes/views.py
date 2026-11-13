@@ -1,6 +1,3 @@
-Warning: truncated output (original token count: 94748)
-Total output lines: 12950
-
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils.http import url_has_allowed_host_and_scheme
@@ -1876,7 +1873,8726 @@ def _normalise_combined_question(
     if not isinstance(item, dict):
         return None
 
-    questio…64748 tokens truncated…     "process_id": process.id,
+    question = str(
+        item.get("question")
+        or ""
+    ).strip()
+
+    if not question:
+        return None
+
+    why = str(
+        item.get("why")
+        or ""
+    ).strip()
+
+    listen_for = str(
+        item.get("listen_for")
+        or ""
+    ).strip()
+
+    raw_traits = item.get("traits")
+    traits = []
+
+    if isinstance(raw_traits, list):
+        traits = [
+            str(trait).strip()
+            for trait in raw_traits
+            if str(trait).strip()
+        ]
+
+    return {
+        "question": question,
+        "why": why,
+        "listen_for": listen_for,
+        "traits": traits,
+    }
+
+
+# Talena combined questions i18n batch 1
+def build_combined_candidate_questions(
+    invitation,
+) -> dict:
+    """
+    Collect saved questions from Personality, Motivation and Cognitive.
+
+    No additional AI generation happens here.
+
+    The cognitive source supports both:
+    - the new separate cognitive questions field
+    - the older cognitive interpretation field as a fallback
+    """
+
+    question_sources = [
+        {
+            "key": "personality",
+            "title": _("Personality questions"),
+            "description": _(
+                "Explore how relevant personality preferences "
+                "appear in practical situations."
+            ),
+            "result_sources": [
+                {
+                    "result_field": "ai_personality_questions",
+                    "status_field": (
+                        "ai_personality_questions_status"
+                    ),
+                },
+            ],
+        },
+        {
+            "key": "motivation",
+            "title": _("Motivation questions"),
+            "description": _(
+                "Explore what may create energy, engagement "
+                "and sustainable motivation."
+            ),
+            "result_sources": [
+                {
+                    # New separate Motivation Questions result.
+                    "result_field": (
+                        "ai_motivation_questions"
+                    ),
+                    "status_field": (
+                        "ai_motivation_questions_status"
+                    ),
+                },
+                {
+                    # Backwards-compatible fallback for older results.
+                    "result_field": (
+                        "ai_motivation_interpretation"
+                    ),
+                    "status_field": (
+                        "ai_motivation_interpretation_status"
+                    ),
+                },
+            ],
+        },
+        {
+            "key": "cognitive",
+            "title": _("Cognitive questions"),
+            "description": _(
+                "Explore how the cognitive assessment results "
+                "relate to practical demands and working methods."
+            ),
+            "result_sources": [
+                {
+                    # New separate Cognitive Questions result.
+                    "result_field": (
+                        "ai_cognitive_questions"
+                    ),
+                    "status_field": (
+                        "ai_cognitive_questions_status"
+                    ),
+                },
+                {
+                    # Backwards-compatible fallback for older results.
+                    "result_field": (
+                        "ai_cognitive_interpretation"
+                    ),
+                    "status_field": (
+                        "ai_cognitive_interpretation_status"
+                    ),
+                },
+            ],
+        },
+    ]
+
+    # #191: central interview order, counts and time estimates.
+    for source in question_sources:
+        interview_meta = get_interview_section_config(
+            source["key"]
+        )
+
+        source["interview_order"] = (
+            interview_meta["order"]
+        )
+        source["target_question_count"] = (
+            interview_meta["question_count"]
+        )
+        source["estimated_minutes"] = (
+            interview_meta["estimated_minutes"]
+        )
+
+    question_sources.sort(
+        key=lambda source: source["interview_order"]
+    )
+
+    sections = []
+    total_count = 0
+
+    for source in question_sources:
+        raw_questions = []
+        status = "not_started"
+
+        # Try each configured result source in order.
+        # The first source containing questions wins.
+        for result_source in source["result_sources"]:
+            saved_result = (
+                getattr(
+                    invitation,
+                    result_source["result_field"],
+                    {},
+                )
+                or {}
+            )
+
+            possible_questions = (
+                saved_result.get("questions")
+                or []
+            )
+
+            if not isinstance(possible_questions, list):
+                continue
+
+            if not possible_questions:
+                continue
+
+            raw_questions = possible_questions
+
+            status = (
+                getattr(
+                    invitation,
+                    result_source["status_field"],
+                    "not_started",
+                )
+                or "not_started"
+            )
+
+            break
+
+        questions = []
+
+        for raw_question in raw_questions:
+            question = (
+                _normalise_combined_question(
+                    raw_question
+                )
+            )
+
+            if question:
+                questions.append(question)
+
+        if not questions:
+            continue
+
+        sections.append({
+            "key": source["key"],
+            "title": source["title"],
+            "description": source["description"],
+            "status": status,
+            "is_outdated": status == "outdated",
+            "questions": questions,
+            "question_count": len(questions),
+            "target_question_count": (
+                source["target_question_count"]
+            ),
+            "estimated_minutes": (
+                source["estimated_minutes"]
+            ),
+            "interview_order": (
+                source["interview_order"]
+            ),
+        })
+
+        total_count += len(questions)
+
+    return {
+        "sections": sections,
+        "total_count": total_count,
+        "has_questions": total_count > 0,
+    }
+
+
+def _normalise_final_output_list(
+    value,
+    *,
+    limit=3,
+) -> list[str]:
+    """
+    Return a clean and limited list of displayable strings.
+    """
+
+    if not isinstance(value, list):
+        return []
+
+    items = []
+
+    for item in value:
+        text = str(
+            item
+            or ""
+        ).strip()
+
+        if not text:
+            continue
+
+        items.append(text)
+
+        if len(items) >= limit:
+            break
+
+    return items
+
+
+def build_candidate_final_output(
+    invitation,
+    *,
+    combined_questions=None,
+) -> dict:
+    """
+    Assemble the candidate's existing saved AI content into one
+    purpose-based final output.
+
+    This function does not make any new AI request.
+    """
+
+    process = invitation.process
+
+    overview_result = (
+        invitation.ai_purpose_fit
+        or {}
+    )
+
+    personality_result = (
+        invitation.ai_personality_interpretation
+        or {}
+    )
+
+    motivation_result = (
+        invitation.ai_motivation_interpretation
+        or {}
+    )
+
+    cognitive_result = (
+        invitation.ai_cognitive_interpretation
+        or {}
+    )
+
+    if combined_questions is None:
+        combined_questions = (
+            build_combined_candidate_questions(
+                invitation
+            )
+        )
+
+    # ---------------------------------------------------------
+    # Purpose label
+    # ---------------------------------------------------------
+
+    if hasattr(
+        process,
+        "get_purpose_display",
+    ):
+        purpose_label = (
+            process.get_purpose_display()
+            or ""
+        ).strip()
+    else:
+        purpose_label = ""
+
+    if not purpose_label:
+        purpose_label = (
+            str(
+                process.purpose
+                or ""
+            )
+            .replace("_", " ")
+            .strip()
+            .title()
+        )
+
+    if not purpose_label:
+        purpose_label = "General insights"
+
+    # ---------------------------------------------------------
+    # AI Overview
+    # ---------------------------------------------------------
+
+    overview_summary = str(
+        overview_result.get("summary")
+        or ""
+    ).strip()
+
+    overview_supporting = (
+        _normalise_final_output_list(
+            overview_result.get(
+                "key_alignment"
+            ),
+            limit=3,
+        )
+    )
+
+    overview_explore = (
+        _normalise_final_output_list(
+            overview_result.get(
+                "areas_to_verify"
+            ),
+            limit=3,
+        )
+    )
+
+    suggested_next_step = str(
+        overview_result.get(
+            "suggested_next_step"
+        )
+        or ""
+    ).strip()
+
+    overview_context_note = str(
+        overview_result.get(
+            "context_note"
+        )
+        or ""
+    ).strip()
+
+    has_overview = bool(
+        overview_summary
+        or overview_supporting
+        or overview_explore
+        or suggested_next_step
+    )
+
+    overview_status = (
+        invitation.ai_purpose_fit_status
+        or "not_started"
+    )
+
+    # ---------------------------------------------------------
+    # Assessment-specific interpretations
+    # ---------------------------------------------------------
+
+    assessment_config = [
+        {
+            "key": "personality",
+            "title": "Personality",
+            "description": (
+                "Likely behavioural preferences and "
+                "how they may appear in practice."
+            ),
+            "result": personality_result,
+            "status": (
+                invitation
+                .ai_personality_interpretation_status
+                or "not_started"
+            ),
+            "summary_key": "interpretation",
+            "support_key": (
+                "supportive_patterns"
+            ),
+            "explore_key": (
+                "areas_to_explore"
+            ),
+        },
+        {
+            "key": "motivation",
+            "title": "Motivation",
+            "description": (
+                "Possible sources of engagement, energy "
+                "and expectation setting."
+            ),
+            "result": motivation_result,
+            "status": (
+                invitation
+                .ai_motivation_interpretation_status
+                or "not_started"
+            ),
+            "summary_key": "interpretation",
+            "support_key": (
+                "engagement_conditions"
+            ),
+            "explore_key": (
+                "areas_to_clarify"
+            ),
+        },
+        {
+            "key": "cognitive",
+            "title": "Cognitive",
+            "description": (
+                "Indications from the available "
+                "reasoning assessments."
+            ),
+            "result": cognitive_result,
+            "status": (
+                invitation
+                .ai_cognitive_interpretation_status
+                or "not_started"
+            ),
+            "summary_key": "interpretation",
+            "support_key": None,
+            "explore_key": "considerations",
+        },
+    ]
+
+    assessment_sections = []
+
+    for config in assessment_config:
+        result = config["result"]
+
+        summary = str(
+            result.get(
+                config["summary_key"]
+            )
+            or ""
+        ).strip()
+
+        support_items = []
+
+        if config["support_key"]:
+            support_items = (
+                _normalise_final_output_list(
+                    result.get(
+                        config["support_key"]
+                    ),
+                    limit=3,
+                )
+            )
+
+        explore_items = (
+            _normalise_final_output_list(
+                result.get(
+                    config["explore_key"]
+                ),
+                limit=3,
+            )
+            if config["explore_key"]
+            else []
+        )
+
+        if not (
+            summary
+            or support_items
+            or explore_items
+        ):
+            continue
+
+        status = (
+            config["status"]
+            or "not_started"
+        )
+
+        assessment_sections.append({
+            "key": config["key"],
+            "title": config["title"],
+            "description": (
+                config["description"]
+            ),
+            "summary": summary,
+            "support_items": support_items,
+            "explore_items": explore_items,
+            "status": status,
+            "is_outdated": (
+                status == "outdated"
+            ),
+        })
+
+    # ---------------------------------------------------------
+    # Status and availability
+    # ---------------------------------------------------------
+
+    source_statuses = [
+        section["status"]
+        for section in assessment_sections
+    ]
+
+    if has_overview:
+        source_statuses.append(
+            overview_status
+        )
+
+    has_outdated_content = any(
+        status == "outdated"
+        for status in source_statuses
+    )
+
+    has_questions = bool(
+        combined_questions.get(
+            "has_questions"
+        )
+    )
+
+    question_count = int(
+        combined_questions.get(
+            "total_count"
+        )
+        or 0
+    )
+
+    has_content = bool(
+        has_overview
+        or assessment_sections
+        or has_questions
+    )
+
+    return {
+        "purpose_label": purpose_label,
+
+        "overview": {
+            "summary": overview_summary,
+            "supporting": overview_supporting,
+            "explore": overview_explore,
+            "suggested_next_step": (
+                suggested_next_step
+            ),
+            "context_note": (
+                overview_context_note
+            ),
+            "status": overview_status,
+            "is_outdated": (
+                overview_status == "outdated"
+            ),
+            "has_content": has_overview,
+        },
+
+        "assessment_sections": (
+            assessment_sections
+        ),
+
+        "combined_questions": (
+            combined_questions
+        ),
+
+        "question_count": question_count,
+        "has_questions": has_questions,
+
+        "source_count": (
+            len(assessment_sections)
+            + (1 if has_overview else 0)
+        ),
+
+        "has_outdated_content": (
+            has_outdated_content
+        ),
+
+        "has_content": has_content,
+    }
+
+def build_candidate_ai_update_state(
+    *,
+    invitation,
+    process,
+    purpose_context=None,
+):
+    """
+    Build the shared update state for AI-generated candidate insights.
+
+    The global update banner should appear when existing AI content
+    was created using an earlier process purpose or context.
+
+    Sections that have never been generated are not included.
+    Historical candidates are not connected to global regeneration yet.
+    """
+
+    empty_state = {
+        "has_outdated_insights": False,
+        "sections": [],
+        "section_count": 0,
+        "purpose_changed": False,
+        "context_changed": False,
+    }
+
+    if getattr(
+        process,
+        "is_historical",
+        False,
+    ):
+        return empty_state
+
+    current_purpose = normalize_purpose_key(
+        getattr(
+            process,
+            "purpose",
+            "",
+        )
+        or ""
+    )
+
+    context_updated_at = getattr(
+        purpose_context,
+        "updated_at",
+        None,
+    )
+
+    section_config = [
+        {
+            "key": "overview",
+            "label": "AI Summary",
+            "result_field": "ai_purpose_fit",
+            "status_field": "ai_purpose_fit_status",
+            "generated_at_field": (
+                "ai_purpose_fit_generated_at"
+            ),
+            "purpose_field": (
+                "ai_purpose_fit_purpose"
+            ),
+        },
+        {
+            "key": "response_style_guidance",
+            "label": "Response-style guidance",
+            "result_field": (
+                "ai_response_style_guidance"
+            ),
+            "status_field": (
+                "ai_response_style_guidance_status"
+            ),
+            "generated_at_field": (
+                "ai_response_style_guidance_generated_at"
+            ),
+            "purpose_field": (
+                "ai_response_style_guidance_purpose"
+            ),
+        },
+        {
+            "key": "personality_interpretation",
+            "label": "Personality interpretation",
+            "result_field": (
+                "ai_personality_interpretation"
+            ),
+            "status_field": (
+                "ai_personality_interpretation_status"
+            ),
+            "generated_at_field": (
+                "ai_personality_interpretation_generated_at"
+            ),
+            "purpose_field": (
+                "ai_personality_interpretation_purpose"
+            ),
+        },
+        {
+            "key": "personality_questions",
+            "label": "Personality questions",
+            "result_field": (
+                "ai_personality_questions"
+            ),
+            "status_field": (
+                "ai_personality_questions_status"
+            ),
+            "generated_at_field": (
+                "ai_personality_questions_generated_at"
+            ),
+            "purpose_field": (
+                "ai_personality_questions_purpose"
+            ),
+        },
+        {
+            "key": "motivation_interpretation",
+            "label": "Motivation interpretation",
+            "result_field": (
+                "ai_motivation_interpretation"
+            ),
+            "status_field": (
+                "ai_motivation_interpretation_status"
+            ),
+            "generated_at_field": (
+                "ai_motivation_interpretation_generated_at"
+            ),
+            "purpose_field": (
+                "ai_motivation_interpretation_purpose"
+            ),
+        },
+        {
+            "key": "motivation_questions",
+            "label": "Motivation questions",
+            "result_field": (
+                "ai_motivation_questions"
+            ),
+            "status_field": (
+                "ai_motivation_questions_status"
+            ),
+            "generated_at_field": (
+                "ai_motivation_questions_generated_at"
+            ),
+            "purpose_field": (
+                "ai_motivation_questions_purpose"
+            ),
+        },
+        {
+            "key": "cognitive_interpretation",
+            "label": "Cognitive interpretation",
+            "result_field": (
+                "ai_cognitive_interpretation"
+            ),
+            "status_field": (
+                "ai_cognitive_interpretation_status"
+            ),
+            "generated_at_field": (
+                "ai_cognitive_interpretation_generated_at"
+            ),
+            "purpose_field": (
+                "ai_cognitive_interpretation_purpose"
+            ),
+        },
+        {
+            "key": "cognitive_questions",
+            "label": "Cognitive questions",
+            "result_field": (
+                "ai_cognitive_questions"
+            ),
+            "status_field": (
+                "ai_cognitive_questions_status"
+            ),
+            "generated_at_field": (
+                "ai_cognitive_questions_generated_at"
+            ),
+            "purpose_field": (
+                "ai_cognitive_questions_purpose"
+            ),
+        },
+        {
+            "key": "pre_interview_decision_support",
+            "label": "Pre-interview decision support",
+            "result_field": (
+                "ai_pre_interview_decision_support"
+            ),
+            "status_field": (
+                "ai_pre_interview_decision_support_status"
+            ),
+            "generated_at_field": (
+                "ai_pre_interview_decision_support_generated_at"
+            ),
+            "purpose_field": (
+                "ai_pre_interview_decision_support_purpose"
+            ),
+        },
+        {
+            "key": "post_interview_decision_support",
+            "label": "Post-interview decision support",
+            "result_field": (
+                "ai_post_interview_decision_support"
+            ),
+            "status_field": (
+                "ai_post_interview_decision_support_status"
+            ),
+            "generated_at_field": (
+                "ai_post_interview_decision_support_generated_at"
+            ),
+            "purpose_field": (
+                "ai_post_interview_decision_support_purpose"
+            ),
+        },
+    ]
+
+    analysed_sections = []
+
+    has_confirmed_process_change = False
+    has_purpose_change = False
+    has_context_change = False
+
+    for config in section_config:
+        saved_result = getattr(
+            invitation,
+            config["result_field"],
+            None,
+        )
+
+        # Do not include AI sections that have never been generated.
+        if not saved_result:
+            continue
+
+        status = str(
+            getattr(
+                invitation,
+                config["status_field"],
+                "",
+            )
+            or ""
+        ).strip().lower()
+
+        generated_at = getattr(
+            invitation,
+            config["generated_at_field"],
+            None,
+        )
+
+        purpose_field = config.get(
+            "purpose_field"
+        )
+
+        saved_purpose = ""
+
+        if purpose_field:
+            raw_saved_purpose = getattr(
+                invitation,
+                purpose_field,
+                "",
+            )
+
+            if raw_saved_purpose:
+                saved_purpose = (
+                    normalize_purpose_key(
+                        raw_saved_purpose
+                    )
+                )
+
+        purpose_changed = bool(
+            saved_purpose
+            and current_purpose
+            and saved_purpose != current_purpose
+        )
+
+        context_changed = bool(
+            context_updated_at
+            and generated_at
+            and context_updated_at > generated_at
+        )
+
+        if purpose_changed:
+            has_confirmed_process_change = True
+            has_purpose_change = True
+
+        if context_changed:
+            has_confirmed_process_change = True
+            has_context_change = True
+
+        analysed_sections.append({
+            **config,
+            "status": status,
+            "purpose_changed": purpose_changed,
+            "context_changed": context_changed,
+        })
+
+    # Do not show the global process-information banner merely because
+    # a section became outdated for another reason, such as changed
+    # interview notes or changed personality-trait selection.
+    if not has_confirmed_process_change:
+        return empty_state
+
+    outdated_sections = []
+
+    for section in analysed_sections:
+        needs_update = bool(
+            section["status"] == "outdated"
+            or section["purpose_changed"]
+            or section["context_changed"]
+        )
+
+        if not needs_update:
+            continue
+
+        reasons = []
+
+        if section["purpose_changed"]:
+            reasons.append(
+                "purpose"
+            )
+
+        if section["context_changed"]:
+            reasons.append(
+                "context"
+            )
+
+        if (
+            section["status"] == "outdated"
+            and not reasons
+        ):
+            reasons.append(
+                "dependent_content"
+            )
+
+        outdated_sections.append({
+            "key": section["key"],
+            "label": section["label"],
+            "status": section["status"],
+            "reasons": reasons,
+        })
+
+    return {
+        "has_outdated_insights": bool(
+            outdated_sections
+        ),
+        "sections": outdated_sections,
+        "section_count": len(
+            outdated_sections
+        ),
+        "purpose_changed": has_purpose_change,
+        "context_changed": has_context_change,
+    }
+
+
+
+def build_candidate_detail_context(
+    process,
+    invitation,
+    language="sv",
+):
+    candidate = invitation.candidate
+    candidate_report_language = getattr(
+        process,
+        "candidate_language",
+        "sv",
+    ) or "sv"
+    payload = invitation.sova_payload or {}
+
+    raw_sova_payload_json = json.dumps(
+        payload,
+        indent=2,
+        ensure_ascii=False,
+        default=str,
+    )
+
+    activities = invitation.sova_activities or payload.get("activities") or []
+
+    if not activities:
+        for phase in payload.get("phases") or []:
+            activities.extend(phase.get("activities") or [])
+
+    raw_sova_activities_json = json.dumps(
+        activities,
+        indent=2,
+        ensure_ascii=False,
+        default=str,
+    )        
+
+    def get_assessment_key(name):
+        """
+        Converts both ProjectMeta test names and Sova activity names
+        into the same internal key, so we can avoid duplicates.
+        """
+        text = (name or "").strip().lower()
+
+        if "personality" in text or text in {"pq", "personlighet"}:
+            return "personality"
+
+        if "motivation" in text or text in {"mq", "motivation questionnaire"}:
+            return "motivation"
+
+        if "numerical" in text or "numeric" in text or "numerisk" in text:
+            return "numerical"
+
+        if "logical" in text or "logisk" in text:
+            return "logical"
+
+        if "verbal" in text:
+            return "verbal"
+
+        if "one-question" in text or "one question" in text:
+            return "one_question"
+
+        return text
+
+
+    def get_base_status_for_missing_activity(invitation):
+        """
+        Status for assessments that are part of the Sova project,
+        but do not yet exist in invitation.sova_activities.
+        """
+        status = (invitation.status or "").strip().lower()
+
+        if status == "completed":
+            return "completed"
+
+        if status == "started":
+            return "not_started"
+
+        if status == "sent":
+            return "sent"
+
+        if status == "created":
+            return "created"
+
+        return status or "created"
+
+
+    def get_display_status(raw_status):
+        status = (raw_status or "").strip().lower()
+
+        if status in {
+            "completed",
+            "complete",
+            "finished",
+            "done",
+            "result available",
+            "result_available",
+        }:
+            return "completed"
+
+        if status in {
+            "started",
+            "in progress",
+            "in_progress",
+        }:
+            return "started"
+
+        if status in {
+            "sent",
+            "invited",
+        }:
+            return "sent"
+
+        if status in {
+            "created",
+            "not_sent",
+            "not sent",
+        }:
+            return "created"
+
+        if status in {
+            "added",
+            "not_started",
+            "not started",
+        }:
+            return "not_started"
+
+        # Sova can return pass/fail for small scored assessments.
+        return status or "created"
+
+
+    def build_sent_assessments(process, invitation, activities):
+        """
+        Shows the actual assessments included in the Sova project.
+
+        Base source:
+        - ProjectMeta.tests, based on process.account_code + process.project_code
+
+        Status source:
+        - invitation.sova_activities, when available
+
+        Matching:
+        - Uses internal assessment keys instead of exact display names.
+        """
+
+        meta = ProjectMeta.objects.filter(
+            provider="sova",
+            account_code=process.account_code,
+            project_code=process.project_code,
+        ).first()
+
+        tests_raw = (getattr(meta, "tests", "") or "").strip() if meta else ""
+
+        project_tests = [
+            test_name.strip()
+            for test_name in tests_raw.split(",")
+            if test_name.strip()
+        ]
+
+        activity_by_key = {}
+
+        for item in activities:
+            activity_name = item.get("activity") or ""
+            activity_key = get_assessment_key(activity_name)
+
+            if activity_key:
+                activity_by_key[activity_key] = item
+
+        base_status = get_base_status_for_missing_activity(invitation)
+        sent_assessments = []
+        used_keys = set()
+
+        # 1. Start with the actual tests in ProjectMeta.
+        for test_name in project_tests:
+            test_key = get_assessment_key(test_name)
+            matching_activity = activity_by_key.get(test_key)
+
+            if matching_activity:
+                display_name = matching_activity.get("activity") or test_name
+                status = get_display_status(matching_activity.get("status"))
+                source = "sova_activity"
+            else:
+                display_name = test_name
+                status = base_status
+                source = "project_meta"
+
+            sent_assessments.append({
+                "activity": display_name,
+                "status": status,
+                "source": source,
+                "key": test_key,
+            })
+
+            used_keys.add(test_key)
+
+        # 2. Safety net: add Sova activities only if their key was not already shown.
+        for item in activities:
+            activity_name = item.get("activity") or ""
+            activity_key = get_assessment_key(activity_name)
+
+            if activity_key and activity_key not in used_keys:
+                sent_assessments.append({
+                    "activity": activity_name,
+                    "status": get_display_status(item.get("status")),
+                    "source": "sova_activity_extra",
+                    "key": activity_key,
+                })
+
+                used_keys.add(activity_key)
+
+        return sent_assessments
+
+
+    sent_assessments = build_sent_assessments(
+        process=process,
+        invitation=invitation,
+        activities=activities,
+    )
+
+    assessment_keys_in_process = sorted({
+        assessment.get("key")
+        for assessment in sent_assessments
+        if assessment.get("key")
+    })
+    has_personality_assessment_in_process = (
+        "personality" in assessment_keys_in_process
+    )
+    has_motivation_assessment_in_process = (
+        "motivation" in assessment_keys_in_process
+    )
+    has_cognitive_assessments_in_process = any(
+        key in assessment_keys_in_process
+        for key in ("verbal", "logical", "numerical")
+    )
+
+    activity_events = (
+        ActivityEvent.objects
+        .filter(company=process.company, process=process, candidate=candidate)
+        .select_related("actor", "candidate", "invitation")[:50]
+    )
+
+    from apps.emails.models import EmailLog
+
+    email_log_ids = [
+        (event.meta or {}).get("email_log_id")
+        for event in activity_events
+        if (event.meta or {}).get("email_log_id")
+    ]
+
+    email_logs_by_id = {
+        log.id: log
+        for log in EmailLog.objects.filter(id__in=email_log_ids)
+    }
+
+    for event in activity_events:
+        email_log_id = (event.meta or {}).get("email_log_id")
+        event.email_log = email_logs_by_id.get(email_log_id)
+
+    def has_real_result(competencies):
+        return any(
+            comp.get("score") is not None
+            or comp.get("stive") is not None
+            or comp.get("stive_rounded") is not None
+            or comp.get("sten") is not None
+            or comp.get("sten_rounded") is not None
+            or comp.get("percentile") is not None
+            for comp in competencies
+        )
+
+    activity_count = len(sent_assessments)
+
+    completed_statuses = {
+        "completed",
+        "complete",
+        "finished",
+        "done",
+        "result available",
+        "result_available",
+    }
+
+    tests_completed_count = sum(
+        1
+        for activity in activities
+        if (activity.get("status") or "").strip().lower() in completed_statuses
+    )
+
+    has_any_completed_assessment = tests_completed_count > 0
+
+    all_assessments_completed = (
+        activity_count > 0
+        and tests_completed_count >= activity_count
+    )
+
+    mq_competencies = []
+    personality_competencies = []
+    has_motivation_results = False
+    has_personality_results = False
+
+    for item in activities:
+        activity_name = (item.get("activity") or "").strip().lower()
+        competencies = item.get("competencies", []) or []
+
+        is_motivation_activity = (
+            activity_name == "motivation questionnaire"
+            or activity_name == "sova motivation questionnaire"
+            or "motivation" in activity_name
+        )
+
+        if is_motivation_activity:
+            if has_real_result(competencies):
+                has_motivation_results = True
+
+            for comp in competencies:
+                mq_competencies.append({
+                    "competency": comp.get("competency"),
+                    # Keep the precise STIVE value as the canonical score.
+                    "score": (
+                        comp.get("stive")
+                        if comp.get("stive") is not None
+                        else comp.get("stive_rounded")
+                    ),
+                    "stive_rounded": comp.get("stive_rounded"),
+                    "stive": comp.get("stive"),
+                    "sten_rounded": comp.get("sten_rounded"),
+                    "sten": comp.get("sten"),
+                    "percentile": comp.get("percentile"),
+                })
+
+        is_personality_activity = (
+            activity_name == "personality assessment"
+            or activity_name == "sova personality questionnaire"
+            or "personality" in activity_name
+        )
+
+        if is_personality_activity:
+            if has_real_result(competencies):
+                has_personality_results = True
+
+            for comp in competencies:
+                personality_competencies.append({
+                    "competency": comp.get("competency"),
+
+                    # Team styles use Sova's five-point STIVE scale.
+                    "stive": comp.get("stive"),
+                    "stive_rounded": comp.get("stive_rounded"),
+
+                    # Ordinary personality traits and response styles use STEN.
+                    "sten": comp.get("sten"),
+                    "sten_rounded": comp.get("sten_rounded"),
+
+                    "percentile": comp.get("percentile"),
+                })
+
+    personality_competencies = sorted(
+        personality_competencies,
+        key=lambda x: (x.get("competency") or "").lower()
+    )
+
+    response_styles = build_response_style_results(
+        personality_competencies
+    )   
+
+    team_style_profile = build_team_style_profile(
+        personality_competencies
+    )
+
+    motivation_scores = build_scores_by_competency(mq_competencies)
+
+    motivation_insights = build_motivation_insight_section(
+        mq_competencies,
+        candidate_name=candidate.first_name,
+    )
+
+    practitioner_report = build_practitioner_report(
+        competencies=mq_competencies,
+    )
+
+    manager_report = build_manager_report(
+        competencies=mq_competencies,
+    )
+
+    candidate_report = build_candidate_report(
+        competencies=mq_competencies,
+        language_code=candidate_report_language,
+    )
+
+    coaching_report = build_motivation_coaching_report(
+        competencies=mq_competencies,
+    )
+
+    personality_traits_for_selection = (
+        extract_personality_question_traits(
+            invitation
+        )
+    )
+
+    motivation_reports_for_ui = [
+        practitioner_report,
+        manager_report,
+        coaching_report,
+        candidate_report,
+    ]
+
+    def safe_motivation_score(item):
+        return item.get("score") if item.get("score") is not None else -1
+
+    def safe_personality_score(item):
+        return item.get("sten_rounded") if item.get("sten_rounded") is not None else -1
+
+    valid_mq_competencies = [
+        comp for comp in mq_competencies
+        if comp.get("score") is not None
+    ]
+
+    valid_personality_competencies = [
+        comp for comp in personality_competencies
+        if comp.get("sten_rounded") is not None
+    ]
+
+    sorted_mq_desc = sorted(
+        valid_mq_competencies,
+        key=safe_motivation_score,
+        reverse=True,
+    )
+
+    sorted_personality_desc = sorted(
+        valid_personality_competencies,
+        key=safe_personality_score,
+        reverse=True,
+    )
+
+    top_motivations = sorted_mq_desc[:3]
+    top_personality_traits = sorted_personality_desc[:3]
+
+    sorted_mq_asc = sorted(
+        valid_mq_competencies,
+        key=safe_motivation_score,
+    )
+
+    sorted_personality_asc = sorted(
+        valid_personality_competencies,
+        key=safe_personality_score,
+    )
+
+    motivation_development_areas = sorted_mq_asc[:2]
+    personality_development_areas = sorted_personality_asc[:2]
+
+    numerical_percentile = None
+    logical_percentile = None
+    verbal_percentile = None
+
+    has_verbal_results = False
+    has_logical_results = False
+    has_numerical_results = False
+
+    for item in activities:
+        activity_name = item.get("activity", "")
+        activity_key = get_assessment_key(activity_name)
+
+        competencies = item.get("competencies", []) or []
+        first_comp = competencies[0] if competencies else {}
+
+        percentile = first_comp.get("percentile")
+
+        if activity_key == "numerical":
+            numerical_percentile = percentile
+            has_numerical_results = percentile is not None
+
+        elif activity_key == "logical":
+            logical_percentile = percentile
+            has_logical_results = percentile is not None
+
+        elif activity_key == "verbal":
+            verbal_percentile = percentile
+            has_verbal_results = percentile is not None
+
+    has_ability_results = (
+        has_verbal_results
+        or has_logical_results
+        or has_numerical_results
+    )
+
+    general_insight_input = build_general_insight_input(
+        personality_competencies=personality_competencies,
+        motivation_competencies=mq_competencies,
+        verbal_percentile=verbal_percentile,
+        logical_percentile=logical_percentile,
+        numerical_percentile=numerical_percentile,
+    )
+
+    print("=== GENERAL INSIGHT INPUT ===")
+    print(json.dumps(
+        general_insight_input,
+        indent=2,
+        ensure_ascii=False,
+        default=str,
+    ))
+    print("=== /GENERAL INSIGHT INPUT ===")
+
+    ability_reports_for_ui = {
+        "overview": [],
+        "verbal": build_cognitive_reports_for_test(
+            test_key="verbal",
+            percentile=verbal_percentile,
+            language_code=candidate_report_language,
+        ) if verbal_percentile is not None else None,
+
+        "logical": build_cognitive_reports_for_test(
+            test_key="logical",
+            percentile=logical_percentile,
+            language_code=candidate_report_language,
+        ) if logical_percentile is not None else None,
+
+        "numerical": build_cognitive_reports_for_test(
+            test_key="numerical",
+            percentile=numerical_percentile,
+            language_code=candidate_report_language,
+        ) if numerical_percentile is not None else None,
+    }
+
+    if ability_reports_for_ui["verbal"]:
+        ability_reports_for_ui["overview"].append({
+            "key": "verbal",
+            "label": "Verbal",
+            "percentile": verbal_percentile,
+        })
+
+    if ability_reports_for_ui["logical"]:
+        ability_reports_for_ui["overview"].append({
+            "key": "logical",
+            "label": "Logical",
+            "percentile": logical_percentile,
+        })
+
+    if ability_reports_for_ui["numerical"]:
+        ability_reports_for_ui["overview"].append({
+            "key": "numerical",
+            "label": "Numerical",
+            "percentile": numerical_percentile,
+        })
+
+    project_results = invitation.project_results or {}
+    reports = invitation.sova_reports or payload.get("reports") or []
+
+    sova_reports_for_ui = build_sova_reports_for_ui(
+        reports
+    )
+
+    project_scores = (
+        project_results.get("project_scores", [])
+        if isinstance(project_results, dict)
+        else []
+    )
+
+    competency_scores = (
+        project_results.get("competency_scores", [])
+        if isinstance(project_results, dict)
+        else []
+    )
+
+    overall_score = (
+        project_results.get("overall_score")
+        if isinstance(project_results, dict)
+        and project_results.get("overall_score") is not None
+        else invitation.overall_score
+    )
+
+    combined_questions = (
+        build_combined_candidate_questions(
+            invitation
+        )
+    )
+
+    final_output = (
+        build_candidate_final_output(
+            invitation,
+            combined_questions=combined_questions,
+        )
+    )
+
+    ability_results = []
+    motivation_results = []
+    all_competencies = []
+
+    for item in activities:
+        activity_name = item.get("activity", "") or ""
+        item_status = item.get("status", "") or ""
+        item_score = item.get("score")
+        item_competencies = item.get("competencies", []) or []
+
+        for comp in item_competencies:
+            all_competencies.append({
+                "activity": activity_name,
+                "status": item_status,
+                "competency": comp.get("competency"),
+                "stive": comp.get("stive"),
+                "stive_rounded": comp.get("stive_rounded"),
+                "sten": comp.get("sten"),
+                "sten_rounded": comp.get("sten_rounded"),
+                "percentile": comp.get("percentile"),
+                "assessment_centre": comp.get("assessment_centre"),
+            })
+
+        if activity_name in {
+            "Sova Logical Reasoning Assessment",
+            "Sova Numerical Reasoning Assessment",
+            "Sova Verbal Reasoning Assessment",
+        }:
+            first_comp = item_competencies[0] if item_competencies else {}
+
+            label_map = {
+                "Sova Logical Reasoning Assessment": "Logical",
+                "Sova Numerical Reasoning Assessment": "Numerical",
+                "Sova Verbal Reasoning Assessment": "Verbal",
+            }
+
+            ability_results.append({
+                "activity": activity_name,
+                "label": label_map.get(activity_name, activity_name),
+                "status": item_status,
+                "score": item_score,
+                "competency": first_comp.get("competency"),
+                "stive": first_comp.get("stive"),
+                "stive_rounded": first_comp.get("stive_rounded"),
+                "sten": first_comp.get("sten"),
+                "sten_rounded": first_comp.get("sten_rounded"),
+                "percentile": first_comp.get("percentile"),
+            })
+
+        elif activity_name == "Motivation Questionnaire":
+            for comp in item_competencies:
+                motivation_results.append({
+                    "activity": activity_name,
+                    "competency": comp.get("competency"),
+                    "stive": comp.get("stive"),
+                    "stive_rounded": comp.get("stive_rounded"),
+                    "sten": comp.get("sten"),
+                    "sten_rounded": comp.get("sten_rounded"),
+                    "percentile": comp.get("percentile"),
+                    "assessment_centre": comp.get("assessment_centre"),
+                })
+
+    ability_order = {"Verbal": 1, "Logical": 2, "Numerical": 3}
+    ability_results.sort(key=lambda x: ability_order.get(x["label"], 99))
+
+    motivation_results.sort(
+        key=lambda x: (x.get("competency") or "").lower()
+    )
+
+    library_status_lookup = {
+        "cooperative": "not_started",
+        "sensitivity": "not_started",
+        "teamwork": "not_started",
+        "agreeableness": "not_started",
+        "empathy": "not_started",
+        "tolerance": "not_started",
+        "listening": "not_started",
+        "warmth": "not_started",
+        "supporting": "not_started",
+        "developing_others": "not_started",
+        "helpfulness": "not_started",
+        "considerate": "not_started",
+        "connecting": "not_started",
+        "open_communication": "not_started",
+        "building_networks": "not_started",
+        "initiating_contact": "not_started",
+        "dynamic": "not_started",
+        "energetic": "not_started",
+        "enthusiastic": "not_started",
+        "risk_appetite": "not_started",
+        "influential": "not_started",
+        "persuading": "not_started",
+        "desire_to_lead": "not_started",
+        "assertive": "not_started",
+        "goal_focused": "not_started",
+        "competitive": "not_started",
+        "challenge": "not_started",
+        "self_discipline": "not_started",
+        "structured": "not_started",
+        "planning_and_organising": "not_started",
+        "attention_to_detail": "not_started",
+        "keeping_promises": "not_started",
+        "analytical": "not_started",
+        "data_focus": "not_started",
+        "evaluating": "not_started",
+        "analysing_problems": "not_started",
+        "complex_thinking": "not_started",
+        "strategic_thinking": "not_started",
+        "conceptual": "not_started",
+        "curiosity": "not_started",
+        "creativity": "not_started",
+        "innovating": "not_started",
+        "generating_ideas": "not_started",
+        "experimenting": "not_started",
+        "adaptability": "not_started",
+        "adapting_to_change": "not_started",
+        "flexible": "not_started",
+        "variety": "not_started",
+        "straightforward": "not_started",
+        "adhering_to_rules": "not_started",
+        "candid": "not_started",
+        "earnest": "not_started",
+        "status_avoidance": "not_started",
+        "egalitarian": "not_started",
+        "collective": "not_started",
+        "avoiding_status": "not_started",
+        "modesty": "not_started",
+        "humble": "not_started",
+        "modest": "not_started",
+        "avoiding_attention": "not_started",
+        "resilience": "not_started",
+        "tough_minded": "not_started",
+        "recovering": "not_started",
+        "optimistic": "not_started",
+        "emotional_control": "not_started",
+        "controlling_stress": "not_started",
+        "calm": "not_started",
+        "composed": "not_started",
+        "independence": "not_started",
+        "self_reliant": "not_started",
+        "self_contained": "not_started",
+        "thinking_independently": "not_started",
+    }
+
+    personality_reports = build_personality_reports_for_candidate(
+        sova_activities=activities,
+        library_status_lookup=library_status_lookup,
+    )
+
+    personality_reports = build_personality_reports_for_candidate(
+        sova_activities=activities,
+        library_status_lookup=library_status_lookup,
+    )
+
+    personality_profile_report = next(
+        (
+            report
+            for report in personality_reports
+            if report.get("report_id") == "trait_indicator_profile"
+        ),
+        None,
+    )
+
+    personality_profile = (
+        build_profile_from_resolved_report(
+            resolved_report=personality_profile_report,
+            language=language,
+            include_missing_traits=False,
+        )
+        if personality_profile_report
+        else None
+    )
+
+    available_reports_count = 0
+
+    if has_verbal_results:
+        available_reports_count += 2
+
+    if has_numerical_results:
+        available_reports_count += 2
+
+    if has_logical_results:
+        available_reports_count += 2
+
+    if has_motivation_results:
+        available_reports_count += 4
+
+    if has_personality_results:
+        available_reports_count += 11
+
+    has_any_results = (
+        has_ability_results
+        or has_motivation_results
+        or has_personality_results
+    )
+
+    purpose_report = get_report_mode_content(process.purpose)
+
+    print("=== PURPOSE REPORT DEBUG ===")
+    print("PROCESS PURPOSE:", repr(process.purpose))
+    print("PURPOSE REPORT:", purpose_report)
+    print("=== /PURPOSE REPORT DEBUG ===")
+
+    # ------------------------------------------------------------
+    # Purpose context / report mode
+    # ------------------------------------------------------------
+    # For now we still use the existing ProcessRoleContext model,
+    # but expose it to templates as both role_context and purpose_context.
+    # This lets us move towards a more general "purpose context" setup
+    # without renaming models or breaking old templates.
+    purpose_context_obj = getattr(process, "role_context", None)
+    role_context_obj = purpose_context_obj
+
+    has_purpose_context = (
+        purpose_context_obj.has_content()
+        if purpose_context_obj
+        else False
+    )
+
+    candidate_ai_update_state = (
+        build_candidate_ai_update_state(
+            invitation=invitation,
+            process=process,
+            purpose_context=purpose_context_obj,
+        )
+    )
+
+    context_title = ""
+
+    if has_purpose_context:
+        context_title = (
+            purpose_context_obj.role_title
+            or purpose_context_obj.job_advertisement[:80]
+            or "this process context"
+        )
+
+    # Backwards-compatible name for existing templates
+    has_role_context = has_purpose_context
+
+    context_config = get_purpose_context_config(process.purpose)
+
+    # New report mode:
+    # - "general" = no added context, only test-based insights
+    # - "context" = test data + purpose + added context
+    candidate_insights_mode = (
+        "context"
+        if has_purpose_context
+        else "general"
+    )
+
+    # Keep the old purpose/report key available separately.
+    # Do not use this as the general/context mode.
+    purpose_report_key = purpose_report.get("key")
+
+    show_role_context_prompt = not has_purpose_context
+    show_context_prompt = show_role_context_prompt
+
+    show_context_prompt = show_role_context_prompt
+
+    critical_competencies_active = has_purpose_context
+    competency_overview_active = not has_purpose_context
+
+    report_mode = "context" if has_purpose_context else "general"
+
+    # ------------------------------------------------------------
+    # Temporary dummy data for Candidate Insights
+    # Later this can be replaced by structured AI JSON output.
+    # ------------------------------------------------------------
+
+    candidate_insights = build_candidate_insights(
+        mode=candidate_insights_mode,
+        general_insight_input=general_insight_input,
+        process_purpose=process.purpose,
+    )
+
+    candidate_insights["cognitive_results"] = (
+        build_cognitive_insight_results(
+            verbal_percentile=verbal_percentile,
+            logical_percentile=logical_percentile,
+            numerical_percentile=numerical_percentile,
+        )
+    )
+    has_completed_cognitive_results = any(
+        result.get("completed")
+        and result.get("key") in assessment_keys_in_process
+        for result in candidate_insights["cognitive_results"]
+    )
+
+    print("=== FLEXIBLE AI CONDITION DEBUG ===")
+    print("PROCESS PURPOSE:", repr(process.purpose))
+    print("PURPOSE IS FLEXIBLE:", process.purpose == "flexible")
+    print("HAS ANY RESULTS:", has_any_results)
+    print("HAS PERSONALITY RESULTS:", has_personality_results)
+    print("HAS MOTIVATION RESULTS:", has_motivation_results)
+    print("HAS ABILITY RESULTS:", has_ability_results)
+    print("=== /FLEXIBLE AI CONDITION DEBUG ===")
+
+    # ------------------------------------------------------------
+    # Decision support
+    # ------------------------------------------------------------
+
+    pre_interview_decision_support = (
+        invitation.ai_pre_interview_decision_support
+        or {}
+    )
+
+    post_interview_decision_support = (
+        invitation.ai_post_interview_decision_support
+        or {}
+    )
+
+    interview_notes = (
+        invitation.interview_notes
+        or ""
+    ).strip()
+
+    has_pre_interview_decision_support = bool(
+        (
+            pre_interview_decision_support.get(
+                "overall_synthesis"
+            )
+            or ""
+        ).strip()
+    )
+
+    has_post_interview_decision_support = bool(
+        (
+            post_interview_decision_support.get(
+                "overall_synthesis"
+            )
+            or ""
+        ).strip()
+        or any(
+            str(value or "").strip()
+            for value in (
+                post_interview_decision_support.get("content_blocks")
+                or {}
+            ).values()
+        )
+    )
+
+    from apps.candidate_results.presentation import (
+        build_candidate_result_panel_context,
+    )
+    candidate_result_context = build_candidate_result_panel_context(
+        process, invitation,
+    )
+
+    return {
+        "company": process.company,
+        "report_branding": get_report_branding(process.company),
+        "process": process,
+        "invitation": invitation,
+        "inv": invitation,
+        "candidate": candidate,
+        **candidate_result_context,
+        "activity_events": activity_events,
+
+        "activities": activities,
+        "sent_assessments": sent_assessments,
+        "assessment_keys_in_process": assessment_keys_in_process,
+        "has_personality_assessment_in_process": has_personality_assessment_in_process,
+        "has_motivation_assessment_in_process": has_motivation_assessment_in_process,
+        "has_cognitive_assessments_in_process": has_cognitive_assessments_in_process,
+        "has_completed_cognitive_results": has_completed_cognitive_results,
+        "project_results": project_results,
+        "project_scores": project_scores,
+        "competency_scores": competency_scores,
+        "overall_score": overall_score,
+        "reports": reports,
+
+        "ability_results": ability_results,
+        "motivation_results": motivation_results,
+        "all_competencies": all_competencies,
+
+        "numerical_percentile": numerical_percentile,
+        "logical_percentile": logical_percentile,
+        "verbal_percentile": verbal_percentile,
+        "has_ability_results": has_ability_results,
+
+        "mq_competencies": mq_competencies,
+        "personality_competencies": personality_competencies,
+
+        "tests_sent_count": activity_count,
+        "tests_completed_count": tests_completed_count,
+        "available_reports_count": len(sova_reports_for_ui),
+        "email_logs_by_id": email_logs_by_id,
+        "sova_reports_for_ui": sova_reports_for_ui,
+        "available_reports_count": len(sova_reports_for_ui),
+
+        "has_any_results": has_any_results,
+        "has_any_completed_assessment": has_any_completed_assessment,
+        "all_assessments_completed": all_assessments_completed,
+
+        "top_motivations": top_motivations,
+        "top_personality_traits": top_personality_traits,
+        "motivation_development_areas": motivation_development_areas,
+        "personality_development_areas": personality_development_areas,
+
+        "motivation_scores": motivation_scores,
+        "motivation_reports_for_ui": motivation_reports_for_ui,
+        "ability_reports_for_ui": ability_reports_for_ui,
+        "personality_reports": personality_reports,
+        "personality_profile": personality_profile,
+        "profile_contrast_analysis": build_profile_contrast_analysis(
+            personality_profile,
+            language=language,
+            source="personality_assessment",
+        ),
+        "has_motivation_results": has_motivation_results,
+        "has_personality_results": has_personality_results,
+
+        # Existing report/purpose content
+        "purpose_report": purpose_report,
+        "purpose_report_key": purpose_report_key,
+
+        # Candidate insights
+        "candidate_insights": candidate_insights,
+        "candidate_insights_mode": candidate_insights_mode,
+        "report_mode": report_mode,
+        "general_insight_input": general_insight_input,
+
+        # Purpose context
+        "purpose_context": purpose_context_obj,
+        "has_purpose_context": has_purpose_context,
+        "context_config": context_config,
+        "show_context_prompt": show_context_prompt,
+
+        # Backwards-compatible names
+        "role_context": role_context_obj,
+        "has_role_context": has_role_context,
+        "show_role_context_prompt": show_role_context_prompt,
+
+        "summary_owner": invitation,
+        "raw_sova_payload_json": raw_sova_payload_json,
+        "raw_sova_activities_json": raw_sova_activities_json,
+
+        "response_styles": response_styles,
+        "response_style_segments": range(1, 11),
+
+        "response_style_guidance": (
+            invitation.ai_response_style_guidance
+            or {}
+        ),
+
+        "response_style_guidance_status": (
+            invitation.ai_response_style_guidance_status
+        ),
+        "response_style_side_segments": range(1, 6),
+
+        "response_style_guidance_stream_url": reverse(
+            (
+                "processes:process_candidate_"
+                "response_style_guidance_stream"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
+        "global_ai_update_plan_url": reverse(
+            (
+                "processes:"
+                "process_candidate_global_"
+                "ai_update_plan"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
+        # Global AI update state
+        "candidate_ai_update_state": (
+            candidate_ai_update_state
+        ),
+
+        "has_outdated_ai_insights": (
+            candidate_ai_update_state[
+                "has_outdated_insights"
+            ]
+        ),
+
+        "outdated_ai_sections": (
+            candidate_ai_update_state[
+                "sections"
+            ]
+        ),
+
+        "outdated_ai_section_count": (
+            candidate_ai_update_state[
+                "section_count"
+            ]
+        ),
+
+        "outdated_ai_purpose_changed": (
+            candidate_ai_update_state[
+                "purpose_changed"
+            ]
+        ),
+
+        "outdated_ai_context_changed": (
+            candidate_ai_update_state[
+                "context_changed"
+            ]
+        ),
+
+        # --------------------------------------------------------
+        # Decision support
+        # --------------------------------------------------------
+
+        "pre_interview_decision_support": (
+            pre_interview_decision_support
+        ),
+
+        "pre_interview_decision_support_status": (
+            invitation
+            .ai_pre_interview_decision_support_status
+            or "not_started"
+        ),
+
+        "pre_interview_decision_support_generated_at": (
+            invitation
+            .ai_pre_interview_decision_support_generated_at
+        ),
+
+        "has_pre_interview_decision_support": (
+            has_pre_interview_decision_support
+        ),
+
+        "pre_interview_decision_support_stream_url": reverse(
+            (
+                "processes:"
+                "process_candidate_pre_interview_"
+                "decision_support_stream"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
+        "pre_interview_decision_support_regenerate_url": reverse(
+            (
+                "processes:"
+                "process_candidate_pre_interview_"
+                "decision_support_regenerate"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
+
+        # Interview evidence
+
+        "interview_notes": interview_notes,
+
+        "interview_notes_update_url": reverse(
+            (
+                "processes:"
+                "process_candidate_"
+                "interview_notes_update"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
+        "has_interview_notes": bool(
+            interview_notes
+        ),
+
+        "interview_notes_updated_at": (
+            invitation.interview_notes_updated_at
+        ),
+
+        "interview_notes_updated_by": (
+            invitation.interview_notes_updated_by
+        ),
+
+
+        # Post-interview decision support
+
+        "post_interview_decision_support": (
+            post_interview_decision_support
+        ),
+
+        "post_interview_decision_support_stream_url": reverse(
+            (
+                "processes:"
+                "process_candidate_post_interview_"
+                "decision_support_stream"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
+        "post_interview_decision_support_regenerate_url": reverse(
+            (
+                "processes:"
+                "process_candidate_post_interview_"
+                "decision_support_regenerate"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
+        "post_interview_decision_support_status": (
+            invitation
+            .ai_post_interview_decision_support_status
+            or "not_started"
+        ),
+
+        "post_interview_decision_support_generated_at": (
+            invitation
+            .ai_post_interview_decision_support_generated_at
+        ),
+
+        "has_post_interview_decision_support": (
+            has_post_interview_decision_support
+        ),
+
+        "post_interview_decision_support_notes_version": (
+            invitation
+            .ai_post_interview_decision_support_notes_version
+        ),
+
+        # Purpose-based final output
+        "final_output": final_output,
+
+        "has_final_output": (
+            final_output["has_content"]
+        ),
+
+        "final_output_has_outdated_content": (
+            final_output[
+                "has_outdated_content"
+            ]
+        ),
+
+        "final_output_refresh_url": reverse(
+        (
+            "processes:"
+            "process_candidate_final_output"
+        ),
+        kwargs={
+            "process_id": process.id,
+            "candidate_id": candidate.id,
+        },
+    ),
+
+        "motivation_insights": motivation_insights,
+
+        "team_style_profile": team_style_profile,
+        "leadership_report_content": build_leadership_report_content(language, personality_competencies),
+        "derailment_report_content": build_derailment_report_content(language, personality_competencies),
+        # Cognitive AI interpretation
+        "cognitive_interpretation": (
+            invitation.ai_cognitive_interpretation
+            or {}
+        ),
+
+        "cognitive_interpretation_status": (
+            invitation
+            .ai_cognitive_interpretation_status
+            or "not_started"
+        ),
+
+        "cognitive_interpretation_stream_url": reverse(
+            (
+                "processes:"
+                "process_candidate_cognitive_"
+                "interpretation_stream"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
+        "cognitive_questions": (
+            invitation.ai_cognitive_questions
+            or {}
+        ),
+
+        "cognitive_questions_status": (
+            invitation.ai_cognitive_questions_status
+            or "not_started"
+        ),
+
+        "cognitive_questions_stream_url": reverse(
+            "processes:process_candidate_cognitive_questions_stream",
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
+        "cognitive_questions_regenerate_url": reverse(
+            "processes:process_candidate_cognitive_questions_regenerate",
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
+        "cognitive_interpretation_regenerate_url": reverse(
+            (
+                "processes:"
+                "process_candidate_cognitive_"
+                "interpretation_regenerate"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+        # Motivation AI interpretation
+        "motivation_interpretation": (
+            invitation.ai_motivation_interpretation
+            or {}
+        ),
+
+        "motivation_interpretation_status": (
+            invitation
+            .ai_motivation_interpretation_status
+            or "not_started"
+        ),
+
+        "motivation_interpretation_stream_url": reverse(
+            (
+                "processes:"
+                "process_candidate_motivation_"
+                "interpretation_stream"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
+        "motivation_interpretation_regenerate_url": reverse(
+            (
+                "processes:"
+                "process_candidate_motivation_"
+                "interpretation_regenerate"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
+        # Motivation AI questions
+        "motivation_questions": (
+            invitation.ai_motivation_questions
+            or {}
+        ),
+
+        "motivation_questions_status": (
+            invitation.ai_motivation_questions_status
+            or "not_started"
+        ),
+
+        "motivation_questions_stream_url": reverse(
+            (
+                "processes:"
+                "process_candidate_motivation_"
+                "questions_stream"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
+        "motivation_questions_regenerate_url": reverse(
+            (
+                "processes:"
+                "process_candidate_motivation_"
+                "questions_regenerate"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),       
+
+        # Personality AI interpretation
+        "personality_interpretation": (
+            invitation.ai_personality_interpretation
+            or {}
+        ),
+
+        "personality_interpretation_status": (
+            invitation.ai_personality_interpretation_status
+            or "not_started"
+        ),
+
+        "personality_interpretation_stream_url": reverse(
+            (
+                "processes:"
+                "process_candidate_personality_"
+                "interpretation_stream"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
+        "personality_interpretation_regenerate_url": reverse(
+            (
+                "processes:"
+                "process_candidate_personality_"
+                "interpretation_regenerate"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
+        # Personality AI questions
+        "personality_questions": (
+            invitation.ai_personality_questions
+            or {}
+        ),
+
+        # Combined assessment questions
+        "combined_questions": combined_questions,
+
+        "combined_question_sections": (
+            combined_questions["sections"]
+        ),
+
+        "combined_questions_refresh_url": reverse(
+            (
+                "processes:"
+                "process_candidate_combined_questions"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
+        "combined_question_count": (
+            combined_questions["total_count"]
+        ),
+
+        "has_combined_questions": (
+            combined_questions["has_questions"]
+        ),
+
+        "personality_questions_status": (
+            invitation
+            .ai_personality_questions_status
+            or "not_started"
+        ),
+
+        "selected_personality_traits": (
+            invitation.selected_personality_traits
+            or []
+        ),
+
+        "personality_traits_for_selection": (
+            personality_traits_for_selection
+        ),
+
+        "personality_questions_stream_url": reverse(
+            (
+                "processes:"
+                "process_candidate_personality_"
+                "questions_stream"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
+        "personality_questions_regenerate_url": reverse(
+            (
+                "processes:"
+                "process_candidate_personality_"
+                "questions_regenerate"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
+        "personality_traits_update_url": reverse(
+            (
+                "processes:"
+                "process_candidate_personality_"
+                "traits_update"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+    }
+
+def get_dashboard_activity_for_user(user, limit=10):
+    company = get_company_for_user(user)
+
+    if not company:
+        return ActivityEvent.objects.none()
+
+    perms = get_effective_orgunit_permissions(user, company)
+
+    own_ids = [uid for uid, p in perms.items() if p == "own"]
+    visible_ids = [uid for uid, p in perms.items() if p in ("viewer", "editor")]
+
+    process_q = Q(company=company, is_archived=False) & (
+        Q(org_unit_id__in=visible_ids) |
+        Q(org_unit_id__in=own_ids, created_by=user)
+    )
+
+    accessible_process_ids = (
+        TestProcess.objects
+        .filter(process_q)
+        .values_list("id", flat=True)
+    )
+
+    return (
+        ActivityEvent.objects
+        .filter(
+            company=company,
+            process_id__in=accessible_process_ids,
+        )
+        .select_related(
+            "actor",
+            "candidate",
+            "process",
+            "invitation",
+        )
+        .order_by("-created_at")[:limit]
+    )
+
+def _get_active_company_for_user(user):
+    # om du bara har 1 company per user just nu: ta första
+    m = CompanyMember.objects.select_related("company").filter(user=user).first()
+    return m.company if m else None
+
+
+def user_can_access_process(user, process) -> bool:
+    # Talena admins can access every customer process,
+    # including candidate insights and AI endpoints.
+    if is_admin(user):
+        return True
+    company_id = (
+        CompanyMember.objects
+        .filter(user=user)
+        .values_list("company_id", flat=True)
+        .first()
+    )
+    return bool(company_id and process.company_id == company_id)
+
+@login_required
+@require_POST
+def process_candidate_global_ai_update_plan(
+    request,
+    process_id,
+    candidate_id,
+):
+    """
+    Return a fresh plan for updating outdated AI insights.
+
+    This endpoint does not delete, reset or regenerate anything.
+    Existing AI content remains unchanged until the client starts
+    each individual regeneration.
+    """
+
+    process = get_object_or_404(
+        TestProcess,
+        pk=process_id,
+    )
+
+    if not user_can_access_process(
+        request.user,
+        process,
+    ):
+        return HttpResponseForbidden(
+            "You do not have access to this project."
+        )
+
+    if process.is_historical:
+        return JsonResponse(
+            {
+                "error": (
+                    "Global AI updating is not connected "
+                    "for historical candidates yet."
+                )
+            },
+            status=400,
+        )
+
+    invitation = get_object_or_404(
+        TestInvitation.objects.select_related(
+            "candidate",
+            "process",
+        ),
+        process=process,
+        candidate_id=candidate_id,
+    )
+
+    purpose_context = getattr(
+        process,
+        "role_context",
+        None,
+    )
+
+    update_state = (
+        build_candidate_ai_update_state(
+            invitation=invitation,
+            process=process,
+            purpose_context=purpose_context,
+        )
+    )
+
+    sections = []
+
+    regenerate_route_names = {
+        "overview": (
+            "process_candidate_purpose_fit_regenerate"
+        ),
+
+        "response_style_guidance": (
+            "process_candidate_"
+            "response_style_guidance_regenerate"
+        ),
+
+        "personality_interpretation": (
+            "process_candidate_personality_"
+            "interpretation_regenerate"
+        ),
+
+        "personality_questions": (
+            "process_candidate_personality_"
+            "questions_regenerate"
+        ),
+
+        "motivation_interpretation": (
+            "process_candidate_motivation_"
+            "interpretation_regenerate"
+        ),
+
+        "motivation_questions": (
+            "process_candidate_motivation_"
+            "questions_regenerate"
+        ),
+
+        "cognitive_interpretation": (
+            "process_candidate_cognitive_"
+            "interpretation_regenerate"
+        ),
+
+        "cognitive_questions": (
+            "process_candidate_cognitive_"
+            "questions_regenerate"
+        ),
+
+        "pre_interview_decision_support": (
+            "process_candidate_pre_interview_"
+            "decision_support_regenerate"
+        ),
+
+        "post_interview_decision_support": (
+            "process_candidate_post_interview_"
+            "decision_support_regenerate"
+        ),
+    }
+
+
+    sections = []
+
+    for section in update_state["sections"]:
+        section_key = section["key"]
+
+        route_name = regenerate_route_names.get(
+            section_key
+        )
+
+        if not route_name:
+            continue
+
+        regenerate_url = reverse(
+            f"processes:{route_name}",
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate_id,
+            },
+        )
+
+        sections.append({
+            "key": section_key,
+            "label": section["label"],
+            "reasons": section["reasons"],
+            "regenerate_url": regenerate_url,
+        })
+
+    return JsonResponse(
+        {
+            "ok": True,
+            "has_updates": bool(
+                update_state[
+                    "has_outdated_insights"
+                ]
+            ),
+            "section_count": len(
+                sections
+            ),
+            "sections": sections,
+            "purpose_changed": bool(
+                update_state[
+                    "purpose_changed"
+                ]
+            ),
+            "context_changed": bool(
+                update_state[
+                    "context_changed"
+                ]
+            ),
+        }
+    )
+
+
+@login_required
+def process_candidate_pre_interview_decision_support_stream(
+    request,
+    process_id,
+    candidate_id,
+):
+    """
+    Stream and save Talena's pre-interview decision support.
+
+    The result combines existing saved assessment interpretations,
+    identifies uncertainty and selects priority validation questions.
+
+    It does not provide a match score, suitability verdict or
+    selection recommendation.
+    """
+
+    process = get_object_or_404(
+        TestProcess,
+        pk=process_id,
+    )
+
+    if not user_can_access_process(
+        request.user,
+        process,
+    ):
+        return HttpResponseForbidden(
+            "You do not have access to this project."
+        )
+    
+    invitation = get_candidate_ai_owner(
+        process,
+        candidate_id,
+    )
+
+    if invitation.status != "completed":
+        return JsonResponse(
+            {
+                "error": (
+                    "The candidate has not completed "
+                    "the assessments yet."
+                )
+            },
+            status=400,
+        )
+
+    # Talena final output pre-interview language batch 1
+    language_code = get_request_ai_language(
+        request
+    )
+    mark_ai_content_outdated_if_language_changed(
+        invitation,
+        content_key="pre_interview_decision_support",
+        result_field="ai_pre_interview_decision_support",
+        status_field=(
+            "ai_pre_interview_decision_support_status"
+        ),
+        language_code=language_code,
+    )
+
+    current_status = (
+        invitation
+        .ai_pre_interview_decision_support_status
+        or "not_started"
+    )
+
+    saved_result = (
+        invitation
+        .ai_pre_interview_decision_support
+        or {}
+    )
+
+    current_purpose = normalize_purpose_key(
+        process.purpose
+    )
+
+    saved_purpose = normalize_purpose_key(
+        invitation
+        .ai_pre_interview_decision_support_purpose
+    )
+
+    # Safety net in case the process purpose changed without
+    # the normal outdated-marking flow being triggered.
+    if (
+        saved_result
+        and current_status == "completed"
+        and saved_purpose != current_purpose
+    ):
+        current_status = "outdated"
+
+        invitation.ai_pre_interview_decision_support_status = (
+            "outdated"
+        )
+
+        invitation.save(
+            update_fields=[
+                (
+                    "ai_pre_interview_"
+                    "decision_support_status"
+                ),
+            ]
+        )
+
+    # Return an already completed result without creating
+    # another OpenAI request.
+    if (
+        ai_content_language_matches(
+            invitation,
+            "pre_interview_decision_support",
+            language_code,
+        )
+        and should_return_saved_ai_result(
+            saved_result,
+            current_status,
+        )
+    ):
+        def existing_generator():
+            yield json.dumps(
+                {
+                    "type": "saved_result",
+                    "data": saved_result,
+                    "status": current_status,
+                },
+                ensure_ascii=False,
+            ) + "\n"
+
+        response = StreamingHttpResponse(
+            existing_generator(),
+            content_type=(
+                "application/x-ndjson; charset=utf-8"
+            ),
+        )
+
+        response["Cache-Control"] = "no-cache"
+        response["X-Accel-Buffering"] = "no"
+
+        return response
+
+    if current_status == "generating":
+        return JsonResponse(
+            {
+                "error": (
+                    "Pre-interview decision support "
+                    "is already being generated."
+                )
+            },
+            status=409,
+        )
+
+    invitation.ai_pre_interview_decision_support_status = (
+        "generating"
+    )
+
+    invitation.save(
+        update_fields=[
+            (
+                "ai_pre_interview_"
+                "decision_support_status"
+            ),
+        ]
+    )
+
+    def generator():
+        result = (
+            create_empty_pre_interview_decision_support(
+                invitation,
+                language_code=language_code,
+            )
+        )
+
+        received_done_event = False
+
+        try:
+            for event in (
+                stream_pre_interview_decision_support(
+                    owner=invitation,
+                    language_code=language_code,
+                )
+            ):
+                result = (
+                    apply_pre_interview_decision_support_event(
+                        result,
+                        event,
+                    )
+                )
+
+                if event.get("type") == "done":
+                    received_done_event = True
+
+                if event.get("type") == "profile_contrasts":
+                    event = {
+                        "type": "profile_contrasts",
+                        "items": guidance.get("profile_contrasts") or [],
+                    }
+
+                yield json.dumps(
+                    event,
+                    ensure_ascii=False,
+                ) + "\n"
+
+            if not received_done_event:
+                yield json.dumps(
+                    {
+                        "type": "done",
+                    },
+                    ensure_ascii=False,
+                ) + "\n"
+
+            save_pre_interview_decision_support(
+                owner=invitation,
+                result=result,
+                language_code=language_code,
+            )
+
+        except Exception as error:
+            invitation.ai_pre_interview_decision_support_status = (
+                "failed"
+            )
+
+            invitation.save(
+                update_fields=[
+                    (
+                        "ai_pre_interview_"
+                        "decision_support_status"
+                    ),
+                ]
+            )
+
+            yield json.dumps(
+                {
+                    "type": "error",
+                    "message": str(error),
+                },
+                ensure_ascii=False,
+            ) + "\n"
+
+    response = StreamingHttpResponse(
+        generator(),
+        content_type=(
+            "application/x-ndjson; charset=utf-8"
+        ),
+    )
+
+    response["Cache-Control"] = "no-cache"
+    response["X-Accel-Buffering"] = "no"
+
+    return response
+
+
+@login_required
+@require_POST
+def process_candidate_pre_interview_decision_support_regenerate(
+    request,
+    process_id,
+    candidate_id,
+):
+    """
+    Reset the pre-interview decision support and return
+    the stream URL for a fresh generation.
+    """
+
+    process = get_object_or_404(
+        TestProcess,
+        pk=process_id,
+    )
+
+    if not user_can_access_process(
+        request.user,
+        process,
+    ):
+        return HttpResponseForbidden(
+            "You do not have access to this project."
+        )
+
+        
+    invitation = get_candidate_ai_owner(
+        process,
+        candidate_id,
+    )
+
+    invitation.ai_pre_interview_decision_support_status = (
+        "not_started"
+    )
+
+    invitation.ai_pre_interview_decision_support_generated_at = (
+        None
+    )
+
+    invitation.ai_pre_interview_decision_support_purpose = ""
+
+    invitation.save(
+        update_fields=[
+            (
+                "ai_pre_interview_"
+                "decision_support_status"
+            ),
+            (
+                "ai_pre_interview_"
+                "decision_support_generated_at"
+            ),
+            (
+                "ai_pre_interview_"
+                "decision_support_purpose"
+            ),
+        ]
+    )
+
+    return JsonResponse(
+        {
+            "ok": True,
+            "stream_url": reverse(
+                (
+                    "processes:"
+                    "process_candidate_pre_interview_"
+                    "decision_support_stream"
+                ),
+                kwargs={
+                    "process_id": process.id,
+                    "candidate_id": candidate_id,
+                },
+            ),
+        }
+    )
+
+
+@login_required
+def process_candidate_post_interview_decision_support_stream(
+    request,
+    process_id,
+    candidate_id,
+):
+    """
+    Stream and save post-interview decision support.
+
+    The result compares saved assessment interpretations with
+    interview notes and candidate examples.
+
+    It does not provide a matching verdict, suitability rating
+    or selection recommendation.
+    """
+
+    process = get_object_or_404(
+        TestProcess,
+        pk=process_id,
+    )
+
+    if not user_can_access_process(
+        request.user,
+        process,
+    ):
+        return HttpResponseForbidden(
+            "You do not have access to this project."
+        )
+    
+    invitation = get_candidate_ai_owner(
+        process,
+        candidate_id,
+    )
+
+    if invitation.status != "completed":
+        return JsonResponse(
+            {
+                "error": (
+                    "The candidate has not completed "
+                    "the assessments yet."
+                )
+            },
+            status=400,
+        )
+
+    interview_notes = (
+        invitation.interview_notes
+        or ""
+    ).strip()
+
+    if not interview_notes:
+        return JsonResponse(
+            {
+                "error": (
+                    "Add and save interview notes before "
+                    "generating post-interview decision support."
+                )
+            },
+            status=400,
+        )
+
+    # Talena final output post-interview language batch 1
+    language_code = get_request_ai_language(
+        request
+    )
+    mark_ai_content_outdated_if_language_changed(
+        invitation,
+        content_key="post_interview_decision_support",
+        result_field="ai_post_interview_decision_support",
+        status_field=(
+            "ai_post_interview_decision_support_status"
+        ),
+        language_code=language_code,
+    )
+
+    current_status = (
+        invitation
+        .ai_post_interview_decision_support_status
+        or "not_started"
+    )
+
+    saved_result = (
+        invitation
+        .ai_post_interview_decision_support
+        or {}
+    )
+
+    current_purpose = normalize_purpose_key(
+        process.purpose
+    )
+
+    saved_purpose = normalize_purpose_key(
+        invitation
+        .ai_post_interview_decision_support_purpose
+    )
+
+    current_notes_version = (
+        invitation.interview_notes_updated_at
+    )
+
+    saved_notes_version = (
+        invitation
+        .ai_post_interview_decision_support_notes_version
+    )
+
+    purpose_has_changed = (
+        saved_purpose != current_purpose
+    )
+
+    notes_have_changed = bool(
+        current_notes_version
+        and (
+            not saved_notes_version
+            or (
+                current_notes_version
+                > saved_notes_version
+            )
+        )
+    )
+
+    # Safety net in case purpose or interview notes changed
+    # without the normal outdated flow being triggered.
+    if (
+        saved_result
+        and current_status == "completed"
+        and (
+            purpose_has_changed
+            or notes_have_changed
+        )
+    ):
+        current_status = "outdated"
+
+        invitation.ai_post_interview_decision_support_status = (
+            "outdated"
+        )
+
+        invitation.save(
+            update_fields=[
+                (
+                    "ai_post_interview_"
+                    "decision_support_status"
+                ),
+            ]
+        )
+
+    # Return an existing completed or outdated result.
+    if (
+        ai_content_language_matches(
+            invitation,
+            "post_interview_decision_support",
+            language_code,
+        )
+        and should_return_saved_ai_result(
+            saved_result,
+            current_status,
+        )
+    ):
+        def existing_generator():
+            yield json.dumps(
+                {
+                    "type": "saved_result",
+                    "data": saved_result,
+                    "status": current_status,
+                },
+                ensure_ascii=False,
+            ) + "\n"
+
+        response = StreamingHttpResponse(
+            existing_generator(),
+            content_type=(
+                "application/x-ndjson; charset=utf-8"
+            ),
+        )
+
+        response["Cache-Control"] = "no-cache"
+        response["X-Accel-Buffering"] = "no"
+
+        return response
+
+    if current_status == "generating":
+        return JsonResponse(
+            {
+                "error": (
+                    "Post-interview decision support "
+                    "is already being generated."
+                )
+            },
+            status=409,
+        )
+
+    invitation.ai_post_interview_decision_support_status = (
+        "generating"
+    )
+
+    invitation.save(
+        update_fields=[
+            (
+                "ai_post_interview_"
+                "decision_support_status"
+            ),
+        ]
+    )
+
+    def generator():
+        result = (
+            create_empty_post_interview_decision_support(
+                invitation,
+                language_code=language_code,
+            )
+        )
+
+        received_done_event = False
+
+        try:
+            for event in (
+                stream_post_interview_decision_support(
+                    owner=invitation,
+                    language_code=language_code,
+                )
+            ):
+                result = (
+                    apply_post_interview_decision_support_event(
+                        result,
+                        event,
+                    )
+                )
+
+                if event.get("type") == "done":
+                    received_done_event = True
+
+                yield json.dumps(
+                    event,
+                    ensure_ascii=False,
+                ) + "\n"
+
+            yield json.dumps(
+                {
+                    "type": "result_debug",
+                    "data": {
+                        "overall_synthesis_characters": len(
+                            str(
+                                result.get(
+                                    "overall_synthesis"
+                                )
+                                or ""
+                            ).strip()
+                        ),
+                        "content_block_characters": {
+                            key: len(
+                                str(
+                                    (
+                                        result.get(
+                                            "content_blocks"
+                                        )
+                                        or {}
+                                    ).get(key)
+                                    or ""
+                                ).strip()
+                            )
+                            for key in (
+                                "overall_picture",
+                                "interview_summary",
+                                "wellbeing_tips",
+                            )
+                        },
+                    },
+                },
+                ensure_ascii=False,
+            ) + "\n"
+
+            overall_synthesis = (
+                result.get(
+                    "overall_synthesis"
+                )
+                or ""
+            ).strip()
+
+            if not overall_synthesis:
+                raise ValueError(
+                    "The AI response did not contain "
+                    "an overall synthesis."
+                )
+
+            supported_indications = (
+                result.get(
+                    "supported_indications"
+                )
+                or []
+            )
+
+            added_nuance = (
+                result.get(
+                    "added_nuance"
+                )
+                or []
+            )
+
+            if not (
+                supported_indications
+                or added_nuance
+            ):
+                raise ValueError(
+                    "The AI response did not contain "
+                    "valid assessment and interview comparisons."
+                )
+
+            remaining_uncertainties = (
+                result.get(
+                    "remaining_uncertainties"
+                )
+                or []
+            )
+
+            if not received_done_event:
+                yield json.dumps(
+                    {
+                        "type": "done",
+                    },
+                    ensure_ascii=False,
+                ) + "\n"
+
+            save_post_interview_decision_support(
+                owner=invitation,
+                result=result,
+                language_code=language_code,
+            )
+
+        except Exception as error:
+            invitation.ai_post_interview_decision_support_status = (
+                "failed"
+            )
+
+            invitation.save(
+                update_fields=[
+                    (
+                        "ai_post_interview_"
+                        "decision_support_status"
+                    ),
+                ]
+            )
+
+            yield json.dumps(
+                {
+                    "type": "error",
+                    "message": str(error),
+                },
+                ensure_ascii=False,
+            ) + "\n"
+
+    response = StreamingHttpResponse(
+        generator(),
+        content_type=(
+            "application/x-ndjson; charset=utf-8"
+        ),
+    )
+
+    response["Cache-Control"] = "no-cache"
+    response["X-Accel-Buffering"] = "no"
+
+    return response
+
+@login_required
+@require_POST
+def process_candidate_post_interview_decision_support_regenerate(
+    request,
+    process_id,
+    candidate_id,
+):
+    """
+    Reset post-interview decision support and return
+    the stream URL for fresh generation.
+    """
+
+    process = get_object_or_404(
+        TestProcess,
+        pk=process_id,
+    )
+
+    if not user_can_access_process(
+        request.user,
+        process,
+    ):
+        return HttpResponseForbidden(
+            "You do not have access to this project."
+        )
+    
+    invitation = get_candidate_ai_owner(
+        process,
+        candidate_id,
+    )
+
+    if not (
+        invitation.interview_notes
+        or ""
+    ).strip():
+        return JsonResponse(
+            {
+                "error": (
+                    "Add and save interview notes before "
+                    "generating post-interview decision support."
+                )
+            },
+            status=400,
+        )
+
+    invitation.ai_post_interview_decision_support_status = (
+        "not_started"
+    )
+
+    invitation.ai_post_interview_decision_support_generated_at = (
+        None
+    )
+
+    invitation.ai_post_interview_decision_support_purpose = ""
+
+    invitation.ai_post_interview_decision_support_notes_version = (
+        None
+    )
+
+    invitation.save(
+        update_fields=[
+            (
+                "ai_post_interview_"
+                "decision_support_status"
+            ),
+            (
+                "ai_post_interview_"
+                "decision_support_generated_at"
+            ),
+            (
+                "ai_post_interview_"
+                "decision_support_purpose"
+            ),
+            (
+                "ai_post_interview_"
+                "decision_support_notes_version"
+            ),
+        ]
+    )
+
+    return JsonResponse(
+        {
+            "ok": True,
+            "stream_url": reverse(
+                (
+                    "processes:"
+                    "process_candidate_post_interview_"
+                    "decision_support_stream"
+                ),
+                kwargs={
+                    "process_id": process.id,
+                    "candidate_id": candidate_id,
+                },
+            ),
+        }
+    )
+
+
+@login_required
+@require_POST
+def process_candidate_interview_notes_update(
+    request,
+    process_id,
+    candidate_id,
+):
+    """
+    Save interview notes and candidate examples.
+
+    Updating the notes marks any existing post-interview
+    decision support as outdated.
+    """
+
+    process = get_object_or_404(
+        TestProcess,
+        pk=process_id,
+    )
+
+    if not user_can_access_process(
+        request.user,
+        process,
+    ):
+        return HttpResponseForbidden(
+            "You do not have access to this project."
+        )
+
+    invitation = get_candidate_ai_owner(
+        process,
+        candidate_id,
+    )
+
+    try:
+        payload = json.loads(
+            request.body.decode("utf-8")
+            or "{}"
+        )
+    except json.JSONDecodeError:
+        return JsonResponse(
+            {
+                "error": "Invalid JSON payload."
+            },
+            status=400,
+        )
+
+    raw_notes = payload.get(
+        "interview_notes",
+        "",
+    )
+
+    if raw_notes is None:
+        raw_notes = ""
+
+    if not isinstance(raw_notes, str):
+        return JsonResponse(
+            {
+                "error": (
+                    "Interview notes must be supplied "
+                    "as text."
+                )
+            },
+            status=400,
+        )
+
+    interview_notes = raw_notes.strip()
+
+    if len(interview_notes) > 30000:
+        return JsonResponse(
+            {
+                "error": (
+                    "Interview notes may not exceed "
+                    "30,000 characters."
+                )
+            },
+            status=400,
+        )
+
+    updated_at = timezone.now()
+
+    invitation.interview_notes = (
+        interview_notes
+    )
+
+    invitation.interview_notes_updated_at = (
+        updated_at
+    )
+
+    invitation.interview_notes_updated_by = (
+        request.user
+    )
+
+    # An existing post-interview synthesis no longer
+    # reflects the latest interview evidence.
+    if (
+        invitation
+        .ai_post_interview_decision_support
+    ):
+        invitation.ai_post_interview_decision_support_status = (
+            "outdated"
+        )
+    else:
+        invitation.ai_post_interview_decision_support_status = (
+            "not_started"
+        )
+
+    invitation.save(
+        update_fields=[
+            "interview_notes",
+            "interview_notes_updated_at",
+            "interview_notes_updated_by",
+            (
+                "ai_post_interview_"
+                "decision_support_status"
+            ),
+        ]
+    )
+
+    return JsonResponse(
+        {
+            "ok": True,
+            "interview_notes": interview_notes,
+            "has_interview_notes": bool(
+                interview_notes
+            ),
+            "updated_at": (
+                updated_at.isoformat()
+            ),
+            "updated_by": (
+                request.user.get_full_name()
+                or request.user.get_username()
+            ),
+            "post_interview_status": (
+                invitation
+                .ai_post_interview_decision_support_status
+            ),
+        }
+    )
+
+
+@login_required
+def process_candidate_final_output(
+    request,
+    process_id,
+    candidate_id,
+):
+    """
+    Return the latest saved candidate final output
+    as rendered HTML.
+    """
+
+    process = get_object_or_404(
+        TestProcess,
+        pk=process_id,
+    )
+
+    if not user_can_access_process(
+        request.user,
+        process,
+    ):
+        return HttpResponseForbidden(
+            "You do not have access to this project."
+        )
+    
+    invitation = get_candidate_ai_owner(
+        process,
+        candidate_id,
+    )
+
+    # Talena final output pre-interview language batch 1
+    language_code = get_request_ai_language(
+        request
+    )
+    mark_ai_content_outdated_if_language_changed(
+        invitation,
+        content_key="pre_interview_decision_support",
+        result_field="ai_pre_interview_decision_support",
+        status_field=(
+            "ai_pre_interview_decision_support_status"
+        ),
+        language_code=language_code,
+    )
+
+    pre_interview_decision_support = (
+        invitation.ai_pre_interview_decision_support
+        or {}
+    )
+
+    # #188: Prepare for interview uses the saved response-style
+    # interview approach from the same one-call response-style result.
+    response_style_guidance = (
+        invitation.ai_response_style_guidance
+        or {}
+    )
+
+    # Talena final output post-interview language batch 1
+    language_code = get_request_ai_language(
+        request
+    )
+    mark_ai_content_outdated_if_language_changed(
+        invitation,
+        content_key="post_interview_decision_support",
+        result_field="ai_post_interview_decision_support",
+        status_field=(
+            "ai_post_interview_decision_support_status"
+        ),
+        language_code=language_code,
+    )
+
+    post_interview_decision_support = (
+        invitation.ai_post_interview_decision_support
+        or {}
+    )
+
+    interview_notes = (
+        invitation.interview_notes
+        or ""
+    ).strip()
+
+    has_pre_interview_decision_support = bool(
+        (
+            pre_interview_decision_support.get(
+                "overall_synthesis"
+            )
+            or ""
+        ).strip()
+    )
+
+    has_post_interview_decision_support = bool(
+        (
+            post_interview_decision_support.get(
+                "overall_synthesis"
+            )
+            or ""
+        ).strip()
+        or any(
+            str(value or "").strip()
+            for value in (
+                post_interview_decision_support.get("content_blocks")
+                or {}
+            ).values()
+        )
+    )
+
+    # #187:
+    # Prepare for interview embeds the shared assessment-question
+    # partial inside _final_output.html. Because this whole root is
+    # refreshed after interview AI actions, the refresh view must
+    # rebuild the same combined-question context as the main
+    # candidate-detail view.
+    combined_questions = (
+        build_combined_candidate_questions(
+            invitation
+        )
+    )
+
+    combined_questions_refresh_url = reverse(
+        (
+            "processes:"
+            "process_candidate_combined_questions"
+        ),
+        kwargs={
+            "process_id": process.id,
+            "candidate_id": candidate_id,
+        },
+    )
+
+    refresh_url = reverse(
+        (
+            "processes:"
+            "process_candidate_final_output"
+        ),
+        kwargs={
+            "process_id": process.id,
+            "candidate_id": candidate_id,
+        },
+    )
+
+    return render(
+        request,
+        (
+            "customer/processes/partials/"
+            "candidate_insights/tabs/"
+            "_final_output.html"
+        ),
+        {
+            "process": process,
+            "report_branding": get_report_branding(process.company),
+            "candidate": invitation.candidate,
+            "invitation": invitation,
+            "is_historical": process.is_historical,
+
+            # Combined assessment questions used by the embedded
+            # Prepare for interview question section.
+            "combined_questions": (
+                combined_questions
+            ),
+
+            "combined_question_sections": (
+                combined_questions["sections"]
+            ),
+
+            "combined_question_count": (
+                combined_questions["total_count"]
+            ),
+
+            "has_combined_questions": (
+                combined_questions["has_questions"]
+            ),
+
+            "combined_questions_refresh_url": (
+                combined_questions_refresh_url
+            ),
+
+            "response_style_guidance": (
+                response_style_guidance
+            ),
+
+            "pre_interview_decision_support": (
+                pre_interview_decision_support
+            ),
+
+            "pre_interview_decision_support_status": (
+                invitation
+                .ai_pre_interview_decision_support_status
+                or "not_started"
+            ),
+
+            "pre_interview_decision_support_generated_at": (
+                invitation
+                .ai_pre_interview_decision_support_generated_at
+            ),
+
+            "has_pre_interview_decision_support": (
+                has_pre_interview_decision_support
+            ),
+
+            "pre_interview_decision_support_stream_url": reverse(
+                (
+                    "processes:"
+                    "process_candidate_pre_interview_"
+                    "decision_support_stream"
+                ),
+                kwargs={
+                    "process_id": process.id,
+                    "candidate_id": candidate_id,
+                },
+            ),
+
+            "pre_interview_decision_support_regenerate_url": reverse(
+                (
+                    "processes:"
+                    "process_candidate_pre_interview_"
+                    "decision_support_regenerate"
+                ),
+                kwargs={
+                    "process_id": process.id,
+                    "candidate_id": candidate_id,
+                },
+            ),
+
+            "interview_notes": interview_notes,
+
+            "has_interview_notes": bool(
+                interview_notes
+            ),
+
+            "interview_notes_updated_at": (
+                invitation.interview_notes_updated_at
+            ),
+
+            "interview_notes_updated_by": (
+                invitation.interview_notes_updated_by
+            ),
+
+            "interview_notes_update_url": reverse(
+                (
+                    "processes:"
+                    "process_candidate_"
+                    "interview_notes_update"
+                ),
+                kwargs={
+                    "process_id": process.id,
+                    "candidate_id": candidate_id,
+                },
+            ),
+
+            "post_interview_decision_support": (
+                post_interview_decision_support
+            ),
+
+            "post_interview_decision_support_status": (
+                invitation
+                .ai_post_interview_decision_support_status
+                or "not_started"
+            ),
+
+            "post_interview_decision_support_generated_at": (
+                invitation
+                .ai_post_interview_decision_support_generated_at
+            ),
+
+            "has_post_interview_decision_support": (
+                has_post_interview_decision_support
+            ),
+
+            "final_output_refresh_url": (
+                refresh_url
+            ),
+            "post_interview_decision_support_stream_url": reverse(
+                (
+                    "processes:"
+                    "process_candidate_post_interview_"
+                    "decision_support_stream"
+                ),
+                kwargs={
+                    "process_id": process.id,
+                    "candidate_id": candidate_id,
+                },
+            ),
+
+            "post_interview_decision_support_regenerate_url": reverse(
+                (
+                    "processes:"
+                    "process_candidate_post_interview_"
+                    "decision_support_regenerate"
+                ),
+                kwargs={
+                    "process_id": process.id,
+                    "candidate_id": candidate_id,
+                },
+            ),
+        },
+    )
+
+
+@login_required
+def process_candidate_combined_questions(
+    request,
+    process_id,
+    candidate_id,
+):
+    """
+    Return the latest saved Personality, Motivation and
+    Cognitive questions as rendered HTML.
+    """
+
+    process = get_object_or_404(
+        TestProcess,
+        pk=process_id,
+    )
+
+    if not user_can_access_process(
+        request.user,
+        process,
+    ):
+        return HttpResponseForbidden(
+            "You do not have access to this project."
+        )
+
+    if process.is_historical:
+        invitation = get_object_or_404(
+            HistoricalProcessCandidate.objects
+            .select_related(
+                "candidate",
+                "process",
+            ),
+            process=process,
+            candidate_id=candidate_id,
+        )
+    else:
+        invitation = get_object_or_404(
+            TestInvitation.objects.select_related(
+                "candidate",
+                "process",
+            ),
+            process=process,
+            candidate_id=candidate_id,
+        )
+
+    combined_questions = (
+        build_combined_candidate_questions(
+            invitation
+        )
+    )
+
+    refresh_url = reverse(
+        (
+            "processes:"
+            "process_candidate_combined_questions"
+        ),
+        kwargs={
+            "process_id": process.id,
+            "candidate_id": candidate_id,
+        },
+    )
+
+    return render(
+        request,
+        (
+            "customer/processes/partials/"
+            "candidate_insights/tabs/_questions.html"
+        ),
+        {
+            "invitation": invitation,
+            "combined_questions": (
+                combined_questions
+            ),
+
+            "combined_question_sections": (
+                combined_questions["sections"]
+            ),
+
+            "combined_question_count": (
+                combined_questions["total_count"]
+            ),
+
+            "has_combined_questions": (
+                combined_questions["has_questions"]
+            ),
+
+            "combined_questions_refresh_url": (
+                refresh_url
+            ),
+        },
+    )
+
+
+@login_required
+def process_list(request):
+    company_id = (
+        CompanyMember.objects
+        .filter(user=request.user)
+        .values_list("company_id", flat=True)
+        .first()
+    )
+    company = get_object_or_404(Company, pk=company_id)
+
+    perms = get_effective_orgunit_permissions(request.user, company)
+
+    own_ids = [uid for uid, p in perms.items() if p == "own"]
+    other_ids = [uid for uid, p in perms.items() if p in ("viewer", "editor")]
+
+    process_q = Q(company=company) & (
+        Q(org_unit_id__in=other_ids) |
+        Q(org_unit_id__in=own_ids, created_by=request.user)
+    )
+
+    # Tab: Active / Archived
+    show_archived = request.GET.get("archived") == "1"
+
+    historical_candidate_count_subquery = (
+        HistoricalProcessCandidate.objects
+        .filter(process=OuterRef("pk"))
+        .values("process")
+        .annotate(count=Count("id"))
+        .values("count")
+    )
+
+    historical_completed_count_subquery = (
+        HistoricalProcessCandidate.objects
+        .filter(process=OuterRef("pk"), status="completed")
+        .values("process")
+        .annotate(count=Count("id"))
+        .values("count")
+    )
+    historical_started_count_subquery = (
+        HistoricalProcessCandidate.objects
+        .filter(process=OuterRef("pk"), status__in=["started", "completed"])
+        .values("process")
+        .annotate(count=Count("id"))
+        .values("count")
+    )
+
+    processes = (
+        TestProcess.objects
+        .filter(process_q)
+        .filter(is_archived=show_archived)
+        .annotate(
+            live_candidates_count=Count("invitations", distinct=True),
+            live_completed_count=Count(
+                "invitations",
+                filter=Q(invitations__status="completed"),
+                distinct=True,
+            ),
+            live_started_count=Count(
+                "invitations",
+                filter=Q(invitations__status__in=["started", "completed"]),
+                distinct=True,
+            ),
+            historical_candidates_count=Coalesce(
+                Subquery(
+                    historical_candidate_count_subquery,
+                    output_field=IntegerField(),
+                ),
+                0,
+            ),
+            historical_completed_count=Coalesce(
+                Subquery(historical_completed_count_subquery, output_field=IntegerField()),
+                0,
+            ),
+            historical_started_count=Coalesce(
+                Subquery(historical_started_count_subquery, output_field=IntegerField()),
+                0,
+            ),
+        )
+        .order_by("-created_at")
+        .prefetch_related("labels")
+    )
+
+    # Build edit permissions after processes exists
+    can_edit_by_process_id = {}
+    for p in processes:
+        p.candidates_count = (
+            p.historical_candidates_count if p.is_historical else p.live_candidates_count
+        )
+        p.completed_candidates_count = (
+            p.historical_completed_count if p.is_historical else p.live_completed_count
+        )
+        p.started_candidates_count = (
+            p.historical_started_count if p.is_historical else p.live_started_count
+        )
+        p.is_complete = (
+            p.candidates_count > 0
+            and p.completed_candidates_count == p.candidates_count
+        )
+        perm = perms.get(p.org_unit_id)
+        can_edit = (
+            perm == "editor"
+            or (perm == "own" and p.created_by_id == request.user.id)
+        )
+        can_edit_by_process_id[p.id] = can_edit
+        # Prevent misleading "permanent delete" UI for projects containing
+        # ordered assessments or protected billing records.
+        if show_archived and can_edit and not p.is_historical:
+            p.can_delete_now = (
+                can_delete_process_safely(p)
+                and not p.invitations.filter(status="expired").exists()
+                and not p.assessment_usages.exists()
+            )
+        else:
+            p.can_delete_now = False
+
+    # ProjectMeta lookup
+    keys = {
+        (p.account_code, p.project_code)
+        for p in processes
+        if p.account_code and p.project_code
+    }
+
+    meta_by_key = {}
+    if keys:
+        q = Q()
+        for acc, proj in keys:
+            q |= Q(account_code=acc, project_code=proj)
+
+        metas = ProjectMeta.objects.filter(q)
+        meta_by_key = {
+            f"{m.account_code}::{m.project_code}": m
+            for m in metas
+        }
+
+    return render(
+        request,
+        "customer/processes/process_list.html",
+        {
+            "company": company,
+            "processes": processes,
+            "meta_by_key": meta_by_key,
+            "perms": perms,
+            "show_archived": show_archived,
+            "can_edit_by_process_id": can_edit_by_process_id,
+        }
+    )
+
+def get_template_icon_class(tests, title=""):
+    """
+    Returns a FontAwesome icon class based on the test types/title.
+    """
+    text = " ".join(tests).lower()
+    title = (title or "").lower()
+
+    if "360" in text or "360" in title:
+        return "fa-solid fa-arrows-rotate"
+
+    if (
+        "numerical" in text
+        or "numerisk" in text
+        or "färdighet" in text
+        or "fardighet" in text
+        or "ability" in text
+        or "skills" in text
+    ):
+        return "fa-solid fa-chart-simple"
+
+    if (
+        "personality" in text
+        or "personlighet" in text
+        or "pq" in title
+    ):
+        return "fa-solid fa-user-check"
+
+    if (
+        "motivation" in text
+        or "motivationstest" in text
+    ):
+        return "fa-solid fa-bullseye"
+
+    if "leadership" in text or "ledarskap" in text:
+        return "fa-solid fa-award"
+
+    if "sales" in text or "sälj" in title or "salj" in title:
+        return "fa-solid fa-handshake"
+
+    if "admin" in text or "interim" in text or "interim" in title:
+        return "fa-solid fa-briefcase"
+
+    if "modern" in title:
+        return "fa-solid fa-wand-magic-sparkles"
+
+    if "linear" in title:
+        return "fa-solid fa-wave-square"
+
+    if "ihp" in title:
+        return "fa-solid fa-layer-group"
+
+    return "fa-solid fa-layer-group"
+
+
+@login_required
+def process_create(request):
+    client = SovaClient()
+    error = None
+
+    try:
+        accounts = client.get_template_accounts_with_projects()
+    except Exception as e:
+        accounts = []
+        error = str(e)
+
+    metas = ProjectMeta.objects.filter(provider="sova")
+    meta_map = {(m.account_code, m.project_code): m for m in metas}
+
+    choices = []
+    template_cards = []
+    project_id_map = {}
+
+    for a in accounts:
+        acc = (a.get("code") or "").strip()
+        for p in (a.get("projects") or []):
+            proj_code = (p.get("code") or "").strip()
+            sova_name = (p.get("name") or proj_code).strip()
+
+            value = f"{acc}|{proj_code}"
+            project_id_map[value] = p.get("id")
+
+            meta = meta_map.get((acc, proj_code))
+
+            title = (getattr(meta, "intern_name", None) or sova_name)
+
+            description = ""
+            tests = []
+            languages = []
+
+            if meta:
+                description = (getattr(meta, "notes", None) or "").strip()
+
+                tests_raw = (getattr(meta, "tests", None) or "").strip()
+                if tests_raw:
+                    tests = [t.strip() for t in tests_raw.split(",") if t.strip()]
+
+                languages_raw = (getattr(meta, "languages", None) or "").strip()
+                if languages_raw:
+                    languages = [l.strip() for l in languages_raw.split(",") if l.strip()]
+
+            choices.append((value, title))
+            template_cards.append({
+                "value": value,
+                "title": title,
+                "description": description,
+                "tests": tests,
+                "languages": languages,
+                "icon_class": get_template_icon_class(tests, title),
+                "account_code": acc,
+                "project_code": proj_code,
+                "sova_name": sova_name,
+                "sova_project_id": p.get("id"),
+            })
+
+    template_cards.sort(key=lambda x: (x["title"] or "").lower())
+
+    if request.method == "POST":
+        form = TestProcessCreateForm(request.POST)
+        form.fields["sova_template"].choices = choices
+
+        if form.is_valid():
+            obj = form.save(commit=False)
+
+            value = form.cleaned_data["sova_template"]
+            acc, proj = value.split("|", 1)
+
+            # ✅ sätt company (kundens “konto”)
+            company_id = (
+                CompanyMember.objects
+                .filter(user=request.user)
+                .values_list("company_id", flat=True)
+                .first()
+            )
+            if not company_id:
+                form.add_error(None, "You are not linked to a company.")
+                return render(request, "customer/processes/process_create.html", {
+                    "form": form,
+                    "error": error,
+                    "template_cards": template_cards,
+                    "templates_count": len(template_cards),
+                    "accounts_count": len(accounts),
+                })
+
+            obj.company_id = company_id
+
+            
+            # ✅ sätt org_unit från session (active org unit)
+            active_unit_id = request.session.get("active_org_unit_id")
+
+            company = Company.objects.get(pk=company_id)
+            accessible_ids = get_accessible_orgunit_ids(request.user, company)
+
+            if not active_unit_id or int(active_unit_id) not in accessible_ids:
+                # fallback: välj en direkt/åtkomlig unit automatiskt
+                fallback_id = next(iter(accessible_ids), None)
+                if not fallback_id:
+                    form.add_error(None, "You do not have an assigned account, so a project cannot be created.")
+                    return render(request, "customer/processes/process_create.html", {
+                        "form": form,
+                        "error": error,
+                        "template_cards": template_cards,
+                        "templates_count": len(template_cards),
+                        "accounts_count": len(accounts),
+                    })
+                active_unit_id = fallback_id
+                request.session["active_org_unit_id"] = active_unit_id
+
+            obj.org_unit_id = int(active_unit_id)
+
+            # ✅ endast SOVA-referenser
+            obj.provider = "sova"
+            obj.account_code = acc
+            obj.project_code = proj
+            obj.sova_project_id = project_id_map.get(value)
+
+            meta = meta_map.get((acc, proj))
+            obj.project_name_snapshot = (getattr(meta, "intern_name", None) or "")
+            if not obj.project_name_snapshot:
+                match = next((t for t in template_cards if t["value"] == value), None)
+                obj.project_name_snapshot = (match["sova_name"] if match else proj)
+
+            obj.created_by = request.user
+
+            membership = (
+                CompanyMember.objects
+                .filter(user=request.user, company_id=company_id)
+                .select_related("primary_org_unit")
+                .first()
+            )
+
+            if not membership or not membership.primary_org_unit_id:
+                form.add_error(None, "You do not have a primary org unit. Please contact an administrator.")
+                return render(request, "customer/processes/process_create.html", {
+                    "form": form,
+                    "error": error,
+                    "template_cards": template_cards,
+                    "templates_count": len(template_cards),
+                    "accounts_count": len(accounts),
+                })
+
+            obj.org_unit_id = membership.primary_org_unit_id
+
+            obj.save()
+
+            log_event(
+                company=company, 
+                verb=ActivityEvent.Verb.PROCESS_CREATED,
+                actor=request.user,
+                process=obj,
+                meta={"process_name": obj.name},
+            )
+
+            # ✅ LABELS: skapa/återanvänd labels per company och koppla
+            label_names = form.cleaned_data.get("labels_text", [])
+            if label_names:
+                label_objs = []
+                for name in label_names:
+                    lab, _ = ProcessLabel.objects.get_or_create(
+                        company_id=company_id,
+                        name=name,
+                    )
+                    label_objs.append(lab)
+                obj.labels.set(label_objs)
+            else:
+                obj.labels.clear()
+
+            return redirect("processes:process_detail", pk=obj.pk)
+
+        messages.error(request, "The project could not be created. Please check the fields.")
+    else:
+        form = TestProcessCreateForm()
+        form.fields["sova_template"].choices = choices
+
+    return render(request, "customer/processes/process_create.html", {
+        "form": form,
+        "error": error,
+        "template_cards": template_cards,
+        "templates_count": len(template_cards),
+        "accounts_count": len(accounts),
+    })
+
+
+REUSABLE_AI_STATUSES = {
+    "completed",
+    "outdated",
+    "failed",
+}
+
+
+def should_return_saved_ai_result(
+    saved_result,
+    status,
+) -> bool:
+    """
+    Return existing AI content when usable saved content exists.
+
+    Outdated or previously failed updates should not discard
+    the last successfully generated result.
+    """
+
+    current_status = (
+        status
+        or "not_started"
+    )
+
+    return bool(
+        saved_result
+    ) and current_status in REUSABLE_AI_STATUSES
+
+
+def mark_candidate_ai_content_outdated(process):
+    """
+    Keep existing AI content, but mark it as needing regeneration.
+
+    Existing content remains saved until a replacement has been
+    generated successfully.
+    """
+
+    invitations = TestInvitation.objects.filter(
+        process=process,
+    )
+
+    summary_count = (
+        invitations
+        .exclude(ai_summary="")
+        .update(ai_summary_status="outdated")
+    )
+
+    purpose_fit_count = (
+        invitations
+        .exclude(ai_purpose_fit={})
+        .update(ai_purpose_fit_status="outdated")
+    )
+
+    cognitive_interpretation_count = (
+        invitations
+        .exclude(ai_cognitive_interpretation={})
+        .update(
+            ai_cognitive_interpretation_status="outdated"
+        )
+    )
+
+    cognitive_questions_count = (
+        invitations
+        .exclude(ai_cognitive_questions={})
+        .update(
+            ai_cognitive_questions_status="outdated"
+        )
+    )
+
+    response_style_guidance_count = (
+        invitations
+        .exclude(ai_response_style_guidance={})
+        .update(
+            ai_response_style_guidance_status="outdated"
+        )
+    )
+
+    motivation_interpretation_count = (
+        invitations
+        .exclude(ai_motivation_interpretation={})
+        .update(
+            ai_motivation_interpretation_status="outdated"
+        )
+    )
+
+    personality_interpretation_count = (
+        invitations
+        .exclude(ai_personality_interpretation={})
+        .update(
+            ai_personality_interpretation_status="outdated"
+        )
+    )
+
+    personality_questions_count = (
+        invitations
+        .exclude(ai_personality_questions={})
+        .update(
+            ai_personality_questions_status="outdated"
+        )
+    )
+
+    return {
+        "summaries": summary_count,
+        "purpose_fits": purpose_fit_count,
+        "cognitive_interpretations": (
+            cognitive_interpretation_count
+        ),
+        "motivation_interpretations": (
+            motivation_interpretation_count
+        ),
+        "personality_questions": (
+            personality_questions_count
+        ),
+        "personality_interpretations": (
+            personality_interpretation_count
+        ),
+        "response_style_guidance": (
+            response_style_guidance_count
+        ),
+        "cognitive_questions": (
+            cognitive_questions_count
+        ),
+    }
+
+def process_update(request, pk):
+    obj = get_object_or_404(TestProcess, pk=pk)
+
+    if obj.is_historical:
+        return HttpResponseForbidden("Historical projects are read-only.")
+
+    company = get_company_for_user(request.user)
+    if not company or obj.company_id != company.id:
+        return HttpResponseForbidden("No access.")
+
+    if not user_can_edit_process(request.user, company, obj):
+        return HttpResponseForbidden("You do not have permission to edit this project.")
+
+    if not user_can_access_process(request.user, obj):
+        return HttpResponseForbidden("You do not have access to this project.")
+
+    old_acc = (obj.account_code or "").strip()
+    old_proj = (obj.project_code or "").strip()
+    locked = obj.is_template_locked()
+    old_purpose = obj.purpose
+    old_candidate_results_enabled = obj.candidate_results_enabled
+
+    client = SovaClient()
+    error = None
+
+    # --------------------------------------------------
+    # 1. Hämta Sova-projekt från API
+    # --------------------------------------------------
+    try:
+        accounts = client.get_template_accounts_with_projects()
+    except Exception as e:
+        accounts = []
+        error = str(e)
+
+    # --------------------------------------------------
+    # 2. Hämta ProjectMeta så vi kan hitta namn, tester osv
+    # --------------------------------------------------
+    metas = ProjectMeta.objects.filter(provider="sova")
+    meta_map = {(m.account_code, m.project_code): m for m in metas}
+
+    template_cards = []
+
+    for account in accounts:
+        acc = (account.get("code") or "").strip()
+
+        for project in (account.get("projects") or []):
+            proj_code = (project.get("code") or "").strip()
+            sova_name = (project.get("name") or proj_code).strip()
+
+            value = f"{acc}|{proj_code}"
+
+            meta_item = meta_map.get((acc, proj_code))
+            title = getattr(meta_item, "intern_name", None) or sova_name
+
+            description = ""
+            tests = []
+            languages = []
+
+            if meta_item:
+                description = (getattr(meta_item, "notes", None) or "").strip()
+
+                tests_raw = (getattr(meta_item, "tests", None) or "").strip()
+                if tests_raw:
+                    tests = [t.strip() for t in tests_raw.split(",") if t.strip()]
+
+                languages_raw = (getattr(meta_item, "languages", None) or "").strip()
+                if languages_raw:
+                    languages = [l.strip() for l in languages_raw.split(",") if l.strip()]
+
+            if not tests:
+                tests = extract_tests_from_project_name(sova_name)
+
+            template_cards.append({
+                "value": value,
+                "title": title,
+                "description": description,
+                "tests": tests,
+                "languages": languages,
+                "icon_class": get_template_icon_class(tests, title),
+                "account_code": acc,
+                "project_code": proj_code,
+                "sova_name": sova_name,
+                "sova_project_id": project.get("id"),
+            })
+
+    template_cards.sort(key=lambda x: (x["title"] or "").lower())
+
+    # --------------------------------------------------
+    # 3. Hjälpvariabler till header/tabs
+    # --------------------------------------------------
+    purpose_lookup = {
+        item["key"]: item
+        for item in PROCESS_PURPOSES
+    }
+
+    process_purpose = purpose_lookup.get(obj.purpose)
+
+    meta = ProjectMeta.objects.filter(
+        account_code=obj.account_code,
+        project_code=obj.project_code,
+    ).first()
+
+    can_edit = user_can_edit_process(request.user, company, obj)
+
+    def render_edit(form):
+        return render(request, "customer/processes/process_edit.html", {
+            "form": form,
+            "process": obj,
+            "error": error,
+            "template_locked": locked,
+
+            # Header/base template stuff
+            "active": "settings",
+            "meta": meta,
+            "can_edit": can_edit,
+            "process_purpose": process_purpose,
+            "context_config": get_purpose_context_config(obj.purpose),
+            "self_reg_url": request.build_absolute_uri(obj.get_self_registration_url()),
+
+            # Edit page stuff
+            "process_purposes": PROCESS_PURPOSES,
+            "available_tests": AVAILABLE_TESTS,
+            "purpose_recommended_tests": PURPOSE_RECOMMENDED_TESTS,
+            "template_cards": template_cards,
+            "templates_count": len(template_cards),
+            "accounts_count": len(accounts),
+        })
+
+    # --------------------------------------------------
+    # 4. POST: uppdatera processen
+    # --------------------------------------------------
+    if request.method == "POST":
+        form = TestProcessWizardCreateForm(request.POST)
+
+        if form.is_valid():
+            name = (form.cleaned_data.get("name") or "").strip()
+            purpose = form.cleaned_data.get("purpose")
+            selected_tests = form.cleaned_data.get("selected_tests") or []
+            candidate_language = (
+                form.cleaned_data.get("candidate_language")
+                or "sv"
+            )
+            label_names = form.cleaned_data.get("labels_text") or []
+
+            if isinstance(label_names, str):
+                label_names = [
+                    item.strip()
+                    for item in label_names.split(",")
+                    if item.strip()
+                ]
+
+            # Namn får alltid ändras
+            obj.name = name or obj.name
+
+            # Labels får alltid ändras
+            label_objs = []
+            for label_name in label_names:
+                lab, _ = ProcessLabel.objects.get_or_create(
+                    company=company,
+                    name=label_name,
+                )
+                label_objs.append(lab)
+
+            # Preserve the currently active context under the old purpose
+            # before switching the process to a new purpose.
+            if old_purpose != purpose:
+                existing_context = getattr(obj, "role_context", None)
+
+                if existing_context and existing_context.has_content():
+                    existing_context.save_context_for_purpose(
+                        old_purpose,
+                        existing_context.get_current_context_data(),
+                    )
+
+                    existing_context.save(update_fields=[
+                        "purpose_data",
+                        "updated_at",
+                    ])
+
+            # --------------------------------------------------
+            # Purpose får alltid ändras.
+            # Tester och Sova-projekt låses efter första utskicket.
+            # --------------------------------------------------
+            obj.purpose = purpose
+            obj.candidate_language = candidate_language
+            obj.candidate_results_enabled = (
+                form.cleaned_data.get("candidate_results_enabled")
+                or False
+            )
+
+            if locked:
+                # Behåll befintliga tester och befintlig Sova-koppling.
+                # Ignorera manipulerade testvärden från POST.
+                obj.provider = "sova"
+                obj.account_code = old_acc
+                obj.project_code = old_proj
+                obj.selected_tests = obj.selected_tests or []
+
+            else:
+                # Innan tester har skickats får testpaketet fortfarande ändras.
+                obj.selected_tests = selected_tests
+
+                try:
+                    resolved_template = resolve_sova_template(
+                        selected_tests, template_cards
+                    )
+                except ValueError as exc:
+                    form.add_error("selected_tests", str(exc))
+                    return render_edit(form)
+
+                if not resolved_template:
+                    form.add_error(
+                        "selected_tests",
+                        "Please select at least Personality or Motivation in the current development environment."
+                    )
+                    return render_edit(form)
+
+                acc = (resolved_template["account_code"] or "").strip()
+                proj = (resolved_template["project_code"] or "").strip()
+                value = f"{acc}|{proj}"
+
+                obj.provider = "sova"
+                obj.account_code = acc
+                obj.project_code = proj
+
+                meta_match = meta_map.get((acc, proj))
+
+                if meta_match and getattr(meta_match, "intern_name", None):
+                    obj.project_name_snapshot = meta_match.intern_name
+                else:
+                    match = next(
+                        (t for t in template_cards if t["value"] == value),
+                        None
+                    )
+
+                    obj.project_name_snapshot = (
+                        match["sova_name"] if match else proj
+                    )
+
+            # --------------------------------------------------
+            # Spara ändringarna
+            # --------------------------------------------------
+            with transaction.atomic():
+                obj.save()
+                obj.labels.set(label_objs)
+
+                if old_candidate_results_enabled and not obj.candidate_results_enabled:
+                    from apps.candidate_results.services import (
+                        revoke_candidate_result_access_for_process,
+                    )
+
+                    revoke_candidate_result_access_for_process(
+                        obj,
+                        actor=request.user,
+                    )
+
+            if old_purpose != obj.purpose:
+                result = mark_candidate_ai_content_outdated(obj)
+
+                print(
+                    "AI CONTENT MARKED OUTDATED:",
+                    result,
+                )
+
+            messages.success(
+                request,
+                "The project was updated."
+            )
+
+            return redirect(
+                "processes:process_update",
+                pk=obj.pk,
+            )
+
+    # --------------------------------------------------
+    # 5. GET: fyll edit-formuläret med befintliga värden
+    # --------------------------------------------------
+    else:
+        form = TestProcessWizardCreateForm(initial={
+            "name": obj.name,
+            "labels_text": ", ".join(
+                obj.labels.values_list("name", flat=True)
+            ),
+            "purpose": obj.purpose,
+            "selected_tests": obj.selected_tests or [],
+            "candidate_language": (
+                obj.candidate_language
+                or "sv"
+            ),
+            "candidate_results_enabled": (
+                obj.candidate_results_enabled
+            ),
+        })
+
+    return render_edit(form)
+
+
+@login_required
+@require_POST
+def process_delete(request, pk):
+    obj = get_object_or_404(TestProcess, pk=pk)
+    company = get_company_for_user(request.user)
+
+    if not company or obj.company_id != company.id:
+        return HttpResponseForbidden("Du saknar åtkomst till projektet.")
+
+    if not user_can_edit_process(request.user, company, obj):
+        return HttpResponseForbidden("Du har inte behörighet att ta bort projektet.")
+
+    if not user_can_access_process(request.user, obj):
+        return HttpResponseForbidden("Du saknar åtkomst till projektet.")
+
+    # Imported/historical projects may contain results not represented by
+    # live TestInvitation records. Never purge them using this legacy endpoint.
+    if obj.is_historical:
+        messages.warning(
+            request,
+            "Historiska projekt kan inte raderas via den här funktionen."
+            if (get_language() or "").startswith("sv")
+            else "Historical projects cannot be deleted through this action.",
+        )
+        return redirect(reverse("processes:process_list") + "?archived=1")
+
+    # Never hard-delete an active project through an old/direct delete URL.
+    # Actual permanent deletion is available only for archived projects.
+    if not obj.is_archived:
+        obj.archive()
+        log_event(
+            company=company,
+            verb=ActivityEvent.Verb.PROCESS_ARCHIVED,
+            actor=request.user,
+            process=obj,
+        )
+        messages.info(
+            request,
+            "Projektet arkiverades. Öppna Arkiverade projekt för fler alternativ."
+            if (get_language() or "").startswith("sv")
+            else "The project was archived. Open Archived projects for more options.",
+        )
+        return redirect("processes:process_list")
+
+    archived_url = reverse("processes:process_list") + "?archived=1"
+    # An ordered test or a billing row is a hard stop. Neither the project
+    # nor associated assessment or billing data must be erased here.
+    if (
+        not can_delete_process_safely(obj)
+        or obj.invitations.filter(status="expired").exists()
+        or obj.assessment_usages.exists()
+    ):
+        messages.warning(
+            request,
+            "Projektet kan inte raderas permanent eftersom det innehåller "
+            "beställda tester eller faktureringsunderlag. Det ligger kvar i arkivet."
+            if (get_language() or "").startswith("sv")
+            else "This project cannot be permanently deleted because it contains "
+            "ordered assessments or billing records. It remains archived.",
+        )
+        return redirect(archived_url)
+
+    try:
+        with transaction.atomic():
+            # Re-check under a row lock to avoid a second deletion request
+            # racing against this request. Protected FKs remain the final guard.
+            locked = TestProcess.objects.select_for_update().get(pk=obj.pk)
+            if (
+                not can_delete_process_safely(locked)
+                or locked.invitations.filter(status="expired").exists()
+                or locked.assessment_usages.exists()
+            ):
+                messages.warning(
+                    request,
+                    "Projektet kan inte raderas eftersom tester eller faktureringsunderlag finns."
+                    if (get_language() or "").startswith("sv")
+                    else "The project cannot be deleted because assessments or billing records exist.",
+                )
+                return redirect(archived_url)
+            process_name = locked.name
+            locked.delete()
+            # Do not log against the removed process FK: such events cascade.
+            log_event(
+                company=company,
+                verb=ActivityEvent.Verb.PROCESS_DELETED,
+                actor=request.user,
+                meta={"process_name": process_name},
+            )
+    except (ProtectedError, IntegrityError):
+        messages.warning(
+            request,
+            "Projektet kan inte raderas eftersom uppgifter behöver bevaras. "
+            "Det ligger kvar i arkivet."
+            if (get_language() or "").startswith("sv")
+            else "This project cannot be deleted because protected records must be retained. "
+            "It remains archived.",
+        )
+        return redirect(archived_url)
+
+    messages.success(
+        request,
+        "Projektet har raderats." if (get_language() or "").startswith("sv")
+        else "The project was deleted.",
+    )
+    return redirect(archived_url)
+
+
+@login_required
+def process_role_context(request, pk):
+    from .project_personality_trait_selection import (
+        get_project_personality_trait_options,
+        get_project_personality_trait_overrides,
+        get_project_personality_trait_selection,
+        save_project_personality_trait_overrides,
+    )
+
+    process = get_object_or_404(TestProcess, pk=pk)
+
+    if process.is_historical:
+        return HttpResponseForbidden(
+            "Historical projects are read-only."
+        )
+
+    if not user_can_access_process(request.user, process):
+        return HttpResponseForbidden(
+            "You do not have access to this project."
+        )
+
+    # Company/org-unit scope is also enforced by the URL guard. Viewing
+    # context is allowed for viewers, but modifying it requires Editor or
+    # ownership permission. Check *before* creating a context record.
+    if request.method == "POST" and not user_can_edit_process(
+        request.user, process.company, process
+    ):
+        return HttpResponseForbidden(
+            "You do not have permission to edit this project."
+        )
+
+    next_url = (
+        request.POST.get("next", "")
+        if request.method == "POST"
+        else request.GET.get("next", "")
+    ).strip()
+
+    context_config = get_purpose_context_config(process.purpose)
+    purpose_key = normalize_purpose_key(process.purpose)
+
+    role_context, created = ProcessRoleContext.objects.get_or_create(
+        process=process
+    )
+    language_code = get_request_ai_language(request)
+    personality_trait_options = get_project_personality_trait_options(
+        language_code
+    )
+    personality_trait_choices = [
+        (item["name"], item["label"])
+        for item in personality_trait_options
+    ]
+    previous_project_traits = get_project_personality_trait_overrides(
+        role_context,
+        purpose_key,
+    )
+    project_selection = get_project_personality_trait_selection(
+        process,
+        language_code=language_code,
+        generate=False,
+    ) or []
+    recommendation_error = False
+    if (
+        request.method != "POST"
+        and not previous_project_traits
+        and not project_selection
+    ):
+        try:
+            project_selection = get_project_personality_trait_selection(
+                process,
+                language_code=language_code,
+                generate=True,
+            ) or []
+        except Exception:
+            recommendation_error = True
+            messages.warning(
+                request,
+                (
+                    "Talena kunde inte rekommendera personlighetsdrag just nu."
+                    if str(language_code or "").lower().startswith("sv")
+                    else "Talena could not recommend personality traits right now."
+                ),
+            )
+    recommended_project_traits = [
+        item.get("name")
+        for item in project_selection
+        if isinstance(item, dict) and item.get("name")
+    ]
+    traits_for_form = (
+        previous_project_traits
+        or recommended_project_traits
+    )
+
+    if request.method == "POST":
+        # IMPORTANT:
+        # Capture the saved database values before ModelForm validation,
+        # because form.is_valid() may update the model instance in memory.
+        previous_context_data = (
+            role_context.get_current_context_data()
+        )
+        previous_project_traits = get_project_personality_trait_overrides(
+            role_context,
+            purpose_key,
+        )
+
+        form = ProcessRoleContextForm(
+            request.POST,
+            instance=role_context,
+            context_config=context_config,
+            personality_trait_choices=personality_trait_choices,
+            selected_personality_traits=traits_for_form,
+        )
+
+        if form.is_valid():
+            submitted_data = {
+                field_name: form.cleaned_data.get(field_name, "") or ""
+                for field_name in ProcessRoleContext.CONTEXT_FIELDS
+            }
+
+            context_changed = previous_context_data != submitted_data
+            submitted_project_traits = (
+                form.cleaned_data.get("personality_question_traits") or []
+            )
+            project_traits_submitted = (
+                "save_personality_traits" in request.POST
+            )
+            effective_project_traits = (
+                submitted_project_traits
+                if project_traits_submitted
+                else previous_project_traits
+            )
+            selection_changed = (
+                set(previous_project_traits) != set(effective_project_traits)
+            )
+
+            role_context = form.save(commit=False)
+
+            role_context.save_context_for_purpose(
+                purpose=purpose_key,
+                context_data=submitted_data,
+            )
+
+            role_context.apply_context_data(submitted_data)
+            role_context.save()
+            save_project_personality_trait_overrides(
+                role_context,
+                purpose_key=purpose_key,
+                context_text=submitted_data.get("context_text", ""),
+                selected_traits=effective_project_traits,
+            )
+
+            if context_changed:
+                mark_candidate_ai_content_outdated(process)
+            elif selection_changed:
+                TestInvitation.objects.filter(
+                    process=process,
+                ).exclude(
+                    ai_personality_questions={},
+                ).update(
+                    ai_personality_questions_status="outdated",
+                )
+
+            recommendation_error = False
+            if (
+                not effective_project_traits
+                and submitted_data.get("context_text", "").strip()
+            ):
+                try:
+                    get_project_personality_trait_selection(
+                        process,
+                        language_code=language_code,
+                        generate=True,
+                    )
+                except Exception:
+                    recommendation_error = True
+
+            messages.success(
+                request,
+                "The project context was saved."
+            )
+            if recommendation_error:
+                messages.warning(
+                    request,
+                    (
+                        "Rollkontexten sparades, men Talena kunde inte "
+                        "rekommendera personlighetsdrag just nu. Försök igen "
+                        "när frågorna skapas."
+                        if str(language_code or "").lower().startswith("sv")
+                        else (
+                            "The context was saved, but Talena could not "
+                            "recommend personality traits right now. Try "
+                            "again when generating the questions."
+                        )
+                    ),
+                )
+
+            if url_has_allowed_host_and_scheme(
+                next_url,
+                allowed_hosts={request.get_host()},
+                require_https=request.is_secure(),
+            ):
+                return redirect(next_url)
+
+            return redirect(
+                "processes:process_detail",
+                pk=process.pk,
+            )
+
+    else:
+        saved_purpose_context = role_context.get_context_for_purpose(
+            purpose_key
+        )
+
+        if saved_purpose_context is not None:
+            initial_data = saved_purpose_context
+            using_previous_purpose_as_start = False
+        else:
+            # No saved version for this purpose yet.
+            # Reuse the active context as a helpful starting point.
+            initial_data = role_context.get_current_context_data()
+            using_previous_purpose_as_start = role_context.has_content()
+
+        form = ProcessRoleContextForm(
+            instance=role_context,
+            initial=initial_data,
+            context_config=context_config,
+            personality_trait_choices=personality_trait_choices,
+            selected_personality_traits=traits_for_form,
+        )
+
+    posted_project_traits = (
+        form["personality_question_traits"].value() or []
+    )
+    selected_project_traits = (
+        posted_project_traits
+        if form.is_bound and "save_personality_traits" in request.POST
+        else traits_for_form
+    )
+    selected_trait_names = set(selected_project_traits)
+    selected_project_trait_options = [
+        item
+        for item in personality_trait_options
+        if item["name"] in selected_trait_names
+    ]
+    if form.is_bound and "save_personality_traits" in request.POST:
+        selection_source = (
+            "manual"
+            if posted_project_traits
+            else "recommended"
+            if recommended_project_traits
+            else "pending"
+        )
+    else:
+        selection_source = (
+            "manual"
+            if previous_project_traits
+            else "recommended"
+            if recommended_project_traits
+            else "pending"
+        )
+
+    meta = ProjectMeta.objects.filter(
+        account_code=process.account_code,
+        project_code=process.project_code,
+    ).first()
+
+    purpose_lookup = {
+        item["key"]: item
+        for item in PROCESS_PURPOSES
+    }
+
+    process_purpose = purpose_lookup.get(process.purpose)
+
+    company = process.company
+    can_edit = user_can_edit_process(
+        request.user,
+        company,
+        process,
+    )
+
+    return render(
+        request,
+        "customer/processes/process_role_context.html",
+        {
+            "process": process,
+            "form": form,
+            "next_url": next_url,
+            "role_context": role_context,
+            "purpose_context": role_context,
+            "context_config": context_config,
+            "purpose_key": purpose_key,
+
+            "using_previous_purpose_as_start": (
+                using_previous_purpose_as_start
+                if request.method != "POST"
+                else False
+            ),
+
+            # Header/base template
+            "meta": meta,
+            "process_purpose": process_purpose,
+            "can_edit": can_edit,
+            "personality_trait_options": personality_trait_options,
+            "selected_personality_traits": selected_project_traits,
+            "selected_project_trait_options": selected_project_trait_options,
+            "personality_trait_selection_source": selection_source,
+            "personality_trait_recommendation_error": recommendation_error,
+            "language_code": language_code,
+
+            # Active tab
+            "active": "context",
+        },
+    )
+
+
+@login_required
+def process_detail(request, pk):
+    process = get_object_or_404(TestProcess, pk=pk)
+
+    context_config = get_purpose_context_config(process.purpose)
+
+    company_id = (
+        CompanyMember.objects
+        .filter(user=request.user)
+        .values_list("company_id", flat=True)
+        .first()
+    )
+    company = get_object_or_404(Company, pk=company_id)
+
+    # Must belong to the same company
+    if process.company_id != company.id:
+        return HttpResponseForbidden("No access.")
+
+    # Access rule, including own-only logic
+    if not user_can_view_process(request.user, company, process):
+        return HttpResponseForbidden("You do not have access to this project.")
+
+    meta = ProjectMeta.objects.filter(
+        account_code=process.account_code,
+        project_code=process.project_code,
+    ).first()
+
+    can_edit = user_can_edit_process(request.user, company, process)
+
+    if process.is_historical:
+        invitations = TestInvitation.objects.none()
+
+        historical_candidates = (
+            HistoricalProcessCandidate.objects
+            .filter(process=process)
+            .select_related("candidate", "created_by")
+            .prefetch_related("reports")
+            .order_by("-created_at")
+        )
+
+        status_counts = dict(
+            historical_candidates.values("status")
+            .annotate(c=Count("id"))
+            .values_list("status", "c")
+        )
+
+        total_candidates = historical_candidates.count()
+        invited_count = 0
+
+        started_count = historical_candidates.filter(
+            status__in=["started", "completed"]
+        ).count()
+
+        completed_count = historical_candidates.filter(
+            status="completed"
+        ).count()
+
+        expired_count = 0
+        not_invited_count = 0
+
+        not_started_count = historical_candidates.exclude(
+            status__in=["started", "completed"]
+        ).count()
+
+    else:
+        historical_candidates = HistoricalProcessCandidate.objects.none()
+
+        invitations = (
+            process.invitations
+            .filter(removed_from_process_at__isnull=True)
+            .select_related("candidate")
+            .prefetch_related("assessment_usages")
+            .order_by("-created_at")
+        )
+
+        status_counts = dict(
+            invitations.values("status")
+            .annotate(c=Count("id"))
+            .values_list("status", "c")
+        )
+
+        total_candidates = invitations.count()
+
+        invited_qs = invitations.filter(
+            Q(status__in=["sent", "started", "completed", "expired"]) |
+            Q(source="self_registered")
+        )
+
+        invited_count = invited_qs.count()
+
+        started_count = invitations.filter(
+            status__in=["started", "completed"]
+        ).count()
+
+        completed_count = invitations.filter(
+            status="completed"
+        ).count()
+
+        expired_count = invitations.filter(
+            status="expired"
+        ).count()
+
+        # Candidates added but not yet given access to the assessment
+        not_invited_count = total_candidates - invited_count
+
+        # Candidates who have access but have not started or completed
+        not_started_count = invited_qs.exclude(
+            status__in=["started", "completed", "expired"]
+        ).count()
+
+    project_tests = [] if process.is_historical else project_test_columns(process, meta)
+    if not process.is_historical:
+        from apps.processes.services.candidate_project_removal import has_assessment_history
+        for invitation in invitations:
+            invitation.project_removal_has_history = has_assessment_history(invitation)
+    if project_tests:
+        attach_test_statuses(invitations, project_tests, get_language() or "sv")
+
+    activity_events = (
+        customer_visible_activity(
+            ActivityEvent.objects.filter(company=company, process=process)
+        )
+        .select_related("actor", "candidate", "invitation")[:50]
+    )
+
+    purpose_lookup = {
+        item["key"]: item
+        for item in PROCESS_PURPOSES
+    }
+
+    process_purpose = purpose_lookup.get(process.purpose)
+
+    context = {
+        "process": process,
+        "invitations": invitations,
+        "project_tests": project_tests,
+        "project_table_colspan": max(1, len(project_tests)) + 2 + (2 if can_edit else 0),
+        "historical_candidates": historical_candidates,
+        "is_historical": process.is_historical,
+        "meta": meta,
+        "self_reg_url": request.build_absolute_uri(process.get_self_registration_url()),
+        "status_counts": status_counts,
+        "can_edit": can_edit,
+        "activity_events": activity_events,
+        "process_purpose": process_purpose,
+        "active": "overview",
+        "context_config": context_config,
+        "kpis": {
+            "total_candidates": total_candidates,
+            "invited": invited_count,
+            "started": started_count,
+            "completed": completed_count,
+            "expired": expired_count,
+            "not_started": not_started_count,
+            "not_invited": not_invited_count,
+        },
+    }
+
+    return render(request, "customer/processes/process_detail.html", context)
+
+
+
+@login_required
+def process_add_candidate(request, pk):
+    process = get_object_or_404(TestProcess, pk=pk)
+
+    if process.is_historical:
+        return HttpResponseForbidden("Historical projects are read-only.")
+
+    company = get_company_for_user(request.user)
+    if not company or process.company_id != company.id:
+        return HttpResponseForbidden("No access.")
+
+    if not user_can_edit_process(request.user, company, process):
+        return HttpResponseForbidden("Du har inte behörighet att ändra i detta projekt.")
+
+    # ✅ Säkerhetskontroll
+    if not company or not user_can_edit_process(request.user, company, process):
+        return HttpResponseForbidden("Du har inte behörighet att skicka tester i detta projekt.")
+
+    is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest"
+
+    if request.method == "POST":
+        form = CandidateCreateForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data["email"].strip().lower()
+
+            candidate, created = Candidate.objects.get_or_create(
+                email=email,
+                defaults={
+                    "first_name": form.cleaned_data["first_name"],
+                    "last_name": form.cleaned_data["last_name"],
+                }
+            )
+
+            invitation, inv_created = TestInvitation.objects.get_or_create(
+                process=process,
+                candidate=candidate,
+                defaults={"source": "invited", "status": "created"},
+            )
+
+            if inv_created:
+                log_event(
+                    company=company,  # du har company i funktionen
+                    verb=ActivityEvent.Verb.CANDIDATE_ADDED,
+                    actor=request.user,
+                    process=process,
+                    candidate=candidate,
+                    invitation=invitation,
+                    meta={"source": "invited"},
+                )
+
+            if not inv_created and invitation.removed_from_process_at:
+                msg = (
+                    "Personen har tidigare tagits bort från projektet. "
+                    "Kontakta Talent Qode om en ny inbjudan behövs."
+                )
+                if is_ajax:
+                    return JsonResponse({"ok": False, "message": msg}, status=409)
+                messages.warning(request, msg)
+                return redirect("processes:process_detail", pk=process.pk)
+
+            if inv_created:
+                msg = f"{candidate.email} har lagts till i projektet."
+                messages.success(request, msg)
+            else:
+                msg = f"{candidate.email} är redan i projektet."
+                messages.info(request, msg)
+
+            # ✅ Modal/AJAX: return JSON istället för redirect
+            if is_ajax:
+                return JsonResponse({
+                    "ok": True,
+                    "message": msg,
+                    "redirect_url": reverse("processes:process_detail", kwargs={"pk": process.pk})
+                })
+
+            return redirect("processes:process_detail", pk=process.pk)
+
+        # ❌ Ogiltigt form
+        if is_ajax:
+            # returnera form-HTML med errors så modalen kan visa dem
+            return render(
+                request,
+                "customer/processes/_add_candidate_form.html",
+                {"process": process, "form": form},
+                status=400
+            )
+
+    else:
+        form = CandidateCreateForm()
+
+    # ✅ GET: om AJAX -> partial, annars full page
+    if is_ajax:
+        return render(request, "customer/processes/_add_candidate_form.html", {
+            "process": process,
+            "form": form,
+        })
+
+    return render(request, "customer/processes/process_add_candidate.html", {
+        "process": process,
+        "form": form,
+    })
+
+
+
+@login_required
+def invite_candidate(request, pk, candidate_id):
+    process = get_object_or_404(TestProcess, pk=pk)
+
+    # Säkerhetskontroll
+    if not user_can_access_process(request.user, process):
+        return HttpResponseForbidden("You do not have access to this project.")
+    
+    candidate = get_object_or_404(Candidate, pk=candidate_id)
+    invitation = get_object_or_404(TestInvitation, process=process, candidate=candidate)
+
+    # Här kopplar vi in SOVA i steg 3.
+    # Tills vidare: fejka så att du ser flödet funka i UI:
+    invitation.status = "sent"
+    invitation.invited_at = invitation.invited_at or __import__("django.utils.timezone").utils.timezone.now()
+    invitation.save(update_fields=["status", "invited_at"])
+
+    messages.success(request, f"Invite triggered for {candidate.email} (stub).")
+    return redirect("processes:process_detail", pk=process.pk)
+
+
+@login_required
+def sova_order_assessment_smoke_test(request, pk, candidate_id):
+    process = get_object_or_404(TestProcess, pk=pk)
+
+    # Säkerhetskontroll
+    if not user_can_access_process(request.user, process):
+        return HttpResponseForbidden("You do not have access to this project.")
+    candidate = get_object_or_404(Candidate, pk=candidate_id)
+
+    client = SovaClient()
+
+    # ✅ From SOVA UI: account TQ_SWEDEN_ACCOUNT, project code tqs-simple-test
+    project_code = "tqs-simple-test"
+
+    request_id = f"talena-{process.id}-{candidate.id}-{uuid.uuid4().hex}"
+
+    # ✅ Minimal valid payload (snake_case, matches docs)
+    payload = {
+        "request_id": request_id,
+        "candidate_id": str(candidate.id),
+        "first_name": candidate.first_name,
+        "last_name": candidate.last_name,
+        "email": candidate.email,
+        "language": "sv",  # test "sv" first; if needed change to "sv-SE"
+        "job_title": "Smoke Test",
+        "job_number": f"talena-{process.id}",
+        "meta_data": {
+            "talena_process_id": str(process.id),
+            "talena_candidate_id": str(candidate.id),
+            "talena_user_id": str(request.user.id),
+        },
+    }
+
+    try:
+        print("\n=== SOVA ORDER-ASSESSMENT SMOKE TEST ===")
+        print("ACCOUNT:", "TQ_SWEDEN_ACCOUNT")
+        print("PROJECT CODE:", project_code)
+        print("BASE URL:", client.base_url)
+        print("PAYLOAD:", payload)
+
+        resp = client.order_assessment(project_code, payload)
+
+        print("RESPONSE JSON:", resp)
+        print("=== /SOVA ORDER-ASSESSMENT SMOKE TEST ===\n")
+
+        assessment_url = resp.get("url")
+        if assessment_url:
+            return HttpResponse(
+                f"✅ OK\nProject: {project_code}\nRequest: {request_id}\n\nTest URL:\n{assessment_url}",
+                content_type="text/plain"
+            )
+
+        return HttpResponse(
+            f"✅ OK but no 'url' returned\nProject: {project_code}\nRequest: {request_id}\n\nResponse:\n{resp}",
+            content_type="text/plain"
+        )
+
+    except Exception as e:
+        print("\n=== SOVA ORDER-ASSESSMENT SMOKE TEST FAILED ===")
+        print("ERROR:", str(e))
+        print("BASE URL:", client.base_url)
+        print("PROJECT CODE:", project_code)
+        print("PAYLOAD:", payload)
+        print("=== /FAILED ===\n")
+
+        return HttpResponse(f"❌ FAILED: {e}", content_type="text/plain", status=500)
+
+def _is_safe_external_url(url: str) -> bool:
+    try:
+        p = urlparse(url or "")
+        return p.scheme in ("http", "https") and bool(p.netloc)
+    except Exception:
+        return False
+
+def self_register(request, token):
+    process = get_object_or_404(TestProcess, self_registration_token=token)
+
+    if request.method != "POST":
+        form = SelfRegisterForm()
+        return render(request, "customer/processes/self_register_form.html", {
+            "process": process,
+            "form": form,
+        })
+
+    form = SelfRegisterForm(request.POST)
+    if not form.is_valid():
+        return render(request, "customer/processes/self_register_form.html", {
+            "process": process,
+            "form": form,
+        })
+
+    first_name = form.cleaned_data["first_name"].strip()
+    last_name = form.cleaned_data["last_name"].strip()
+    email = form.cleaned_data["email"].strip().lower()
+
+    current_language = (
+        get_language()
+        or "sv"
+    ).split("-")[0]
+
+    lang = (
+        "en"
+        if current_language == "en"
+        else "sv"
+    )
+
+    client = SovaClient()
+
+    with transaction.atomic():
+        candidate, candidate_created = Candidate.objects.get_or_create(
+            email=email,
+            defaults={
+                "first_name": first_name,
+                "last_name": last_name,
+            },
+        )
+
+        invitation, created = TestInvitation.objects.get_or_create(
+            process=process,
+            candidate=candidate,
+            defaults={
+                "status": "created",
+                "source": "self_registered",
+            },
+        )
+
+        if created:
+            log_event(
+                company=process.company,
+                verb=ActivityEvent.Verb.CANDIDATE_ADDED,
+                actor=None,
+                actor_name="Self-registration",
+                process=process,
+                candidate=candidate,
+                invitation=invitation,
+                meta={"source": "self_registered"},
+            )
+
+        if not created and not invitation.removed_from_process_at and invitation.source != "self_registered":
+            invitation.source = "self_registered"
+            invitation.save(update_fields=["source"])
+
+    if invitation.removed_from_process_at:
+        return render(request, "customer/processes/self_register_success.html", {
+            "process": process,
+            "message": (
+                "Det går inte att starta tester med denna registrering. "
+                "Kontakta den som skickade inbjudan."
+                if lang == "sv" else
+                "Assessments cannot be started with this registration. "
+                "Please contact the person who sent the invitation."
+            ),
+        })
+
+    existing_url = invitation.assessment_url
+    if not existing_url:
+        try:
+            existing_url = (invitation.sova_payload or {}).get("url")
+        except Exception:
+            existing_url = None
+
+    if (
+        invitation.status in ("sent", "started", "completed")
+        and existing_url
+        and _is_safe_external_url(existing_url)
+    ):
+        return HttpResponseRedirect(existing_url)
+
+    request_id = f"talena-selfreg-{process.id}-{candidate.id}-{uuid.uuid4().hex}"
+
+    payload = {
+        "request_id": request_id,
+        "candidate_id": str(candidate.id),
+        "first_name": candidate.first_name,
+        "last_name": candidate.last_name,
+        "email": candidate.email,
+        "language": process.candidate_language or "sv",
+        "job_title": process.job_title or "Assessment",
+        "job_number": f"talena-{process.id}",
+        "meta_data": {
+            "talena_process_id": str(process.id),
+            "talena_candidate_id": str(candidate.id),
+            "talena_request_id": request_id,
+        },
+    }
+
+    try:
+        resp = client.order_assessment(process.project_code, payload)
+        test_url = (resp or {}).get("url")
+
+        invitation.status = "sent"
+        invitation.invited_at = timezone.now()
+        invitation.sova_payload = resp
+        invitation.request_id = request_id
+        invitation.assessment_url = test_url
+        invitation.save(update_fields=[
+            "status",
+            "invited_at",
+            "sova_payload",
+            "request_id",
+            "assessment_url",
+        ])
+
+        # Hämta mall
+        template = (
+            EmailTemplate.objects
+            .filter(
+                process=process,
+                template_type="invitation",
+                language=lang,
+                is_active=True,
+            )
+            .first()
+        )
+
+        subject_tpl = (
+            template.subject
+            if template
+            else _("Your assessment")
+        )
+
+        body_tpl = (
+            template.body
+            if template
+            else _(
+                "Hi {first_name}!\n\n"
+                "Click the link below to start your assessment:\n"
+                "{assessment_url}\n\n"
+                "Best regards,\n"
+                "Talena"
+            )
+        )
+
+        ctx = {
+            "first_name": candidate.first_name,
+            "last_name": candidate.last_name,
+            "email": candidate.email,
+            "process_name": process.name,
+            "job_title": process.job_title,
+            "job_location": process.job_location,
+            "assessment_url": test_url,
+        }
+
+        subject = render_placeholders(subject_tpl, ctx)
+        body = render_placeholders(body_tpl, ctx)
+
+        email_log = EmailLog.objects.create(
+            invitation=invitation,
+            template_type="invitation",
+            to_email=candidate.email,
+            subject=subject,
+            body_snapshot=body,
+            status="queued",
+        )
+
+        try:
+            msg = EmailMultiAlternatives(
+                subject=subject,
+                body=body,
+                from_email=getattr(settings, "DEFAULT_FROM_EMAIL", None) or "no-reply@talena.se",
+                to=[candidate.email],
+            )
+            msg.send()
+            email_log.mark_sent()
+        except Exception as e:
+            email_log.mark_failed(str(e))
+            # fallback-mejlet får faila utan att stoppa redirect till testet
+
+        log_event(
+            company=process.company,
+            verb=ActivityEvent.Verb.INVITE_SENT,
+            actor=None,
+            actor_name="Self-registration",
+            process=process,
+            candidate=candidate,
+            invitation=invitation,
+            meta={
+                "context": "self_register",
+                "email_log_id": email_log.id,
+            },
+        )
+
+        if test_url and _is_safe_external_url(test_url):
+            return HttpResponseRedirect(test_url)
+
+        return render(request, "customer/processes/self_register_success.html", {
+            "process": process,
+            "message": "Registrering klar. Vi skickar ett mejl när testlänken är redo.",
+        })
+
+    except Exception as e:
+        print("❌ SELF REGISTER order_assessment failed:", str(e))
+        return render(request, "customer/processes/self_register_success.html", {
+            "process": process,
+            "message": "Registrering klar, men vi kunde inte starta testet direkt. Du får ett mejl så snart det är redo.",
+        })
+
+
+@login_required
+@require_POST
+def remove_candidate_from_process(request, process_id, candidate_id):
+    # Editor permission is based on the account and org unit, not who created
+    # the project. The URL-level edit guard also enforces Editor/Own/Viewer.
+    process = get_object_or_404(TestProcess, pk=process_id)
+    company = get_company_for_user(request.user)
+    if (
+        not company
+        or process.company_id != company.pk
+        or not user_can_edit_process(request.user, company, process)
+        or not user_can_access_process(request.user, process)
+    ):
+        return HttpResponseForbidden(
+            "Du har inte behörighet att ta bort kandidaten från projektet."
+            if (get_language() or "").startswith("sv")
+            else "You cannot remove this candidate from the project."
+        )
+
+    if process.is_historical:
+        messages.warning(
+            request,
+            "Historiska projekt behöver hanteras separat."
+            if (get_language() or "").startswith("sv")
+            else "Historical projects require a separate removal workflow.",
+        )
+        return redirect("processes:process_detail", pk=process.pk)
+
+    invitation = get_object_or_404(
+        TestInvitation,
+        process=process,
+        candidate_id=candidate_id,
+    )
+    detail_url = reverse("processes:process_detail", kwargs={"pk": process.pk})
+
+    # An ordered invitation must remain for billing, Sova callbacks and audit.
+    # Sova revocation is separate and MUST NOT be reported as completed here.
+    from apps.processes.services.candidate_project_removal import (
+        remove_candidate_from_project,
+    )
+    try:
+        outcome = remove_candidate_from_project(
+            invitation=invitation, actor=request.user,
+        )
+    except (ProtectedError, IntegrityError):
+        messages.error(
+            request,
+            "Kopplade uppgifter hindrade borttagningen. Inga uppgifter ändrades."
+            if (get_language() or "").startswith("sv")
+            else "Related records prevented removal. No data was changed.",
+        )
+        return redirect(detail_url)
+
+    if outcome == "hidden":
+        messages.warning(
+            request,
+            "Personen är borttagen från projektets aktiva lista och resultatlänkar "
+            "i Talena har spärrats. OBS: Sova-testlänken kan fortfarande fungera. "
+            "Kontakta Talent Qode för att spärra den hos Sova."
+            if (get_language() or "").startswith("sv")
+            else "The person is removed from the active list and Talena result links "
+            "have been revoked. IMPORTANT: the Sova test link may still work. "
+            "Contact Talent Qode to revoke it in Sova.",
+        )
+    elif outcome == "removed_unsent":
+        messages.success(
+            request,
+            "Den oskickade inbjudan har tagits bort från den aktiva projektlistan."
+            if (get_language() or "").startswith("sv")
+            else "The unsent invitation was removed from the active project list.",
+        )
+    else:
+        messages.info(
+            request,
+            "Personen är redan borttagen från projektet."
+            if (get_language() or "").startswith("sv")
+            else "This person was already removed from the project.",
+        )
+    return redirect(detail_url)
+
+@login_required
+def process_send_tests(request, pk):
+    process = get_object_or_404(TestProcess, pk=pk)
+
+    if process.is_historical or not process.sova_sync_enabled:
+        messages.error(request, "This is a historical project and cannot send SOVA invitations.")
+        return redirect("processes:process_detail", pk=process.pk)
+
+    company = get_company_for_user(request.user)
+    if not company or process.company_id != company.id:
+        return HttpResponseForbidden("No access.")
+
+    if not user_can_edit_process(request.user, company, process):
+        return HttpResponseForbidden("Du har inte behörighet att skicka tester i detta projekt.")
+
+    if request.method != "POST":
+        return redirect("processes:process_detail", pk=process.pk)
+
+    if not user_can_access_process(request.user, process):
+        return HttpResponseForbidden("You do not have access to this project.")
+
+    if request.method != "POST":
+        return redirect("processes:process_detail", pk=process.pk)
+
+    invitation_ids = request.POST.getlist("invitation_ids")
+    if not invitation_ids:
+        messages.warning(request, "Välj minst en kandidat.")
+        return redirect("processes:process_detail", pk=process.pk)
+
+    invitations = (
+        TestInvitation.objects
+        .filter(process=process, id__in=invitation_ids,
+                removed_from_process_at__isnull=True)
+        .select_related("candidate")
+    )
+
+    result = send_assessments_and_emails(
+        process=process,
+        invitations=invitations,
+        actor_user=request.user,
+        context="customer",
+    )
+
+    if result["sent_count"]:
+        messages.success(request, f"Skickade test till {result['sent_count']} kandidat(er).")
+
+    if result["errors"]:
+        for err in result["errors"]:
+            messages.error(request, f"Kunde inte skicka till {err['email']}: {err['error']}")
+
+    if result["sent_count"] == 0:
+        if result["skipped_count"]:
+            messages.info(request, "Inget skickades (alla markerade var redan skickade/igång/klara).")
+        else:
+            messages.warning(request, "Inget skickades. Kolla felmeddelanden ovan.")
+
+    return redirect("processes:process_detail", pk=process.pk)
+
+@login_required
+def process_candidate_detail(request, process_id, candidate_id):
+    process = get_object_or_404(TestProcess, pk=process_id)
+
+    if not user_can_access_process(request.user, process):
+        return HttpResponseForbidden("You do not have access to this project.")
+
+    is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest"
+    language_code = get_request_ai_language(request)
+
+    if process.is_historical:
+        historical_candidate = get_object_or_404(
+            HistoricalProcessCandidate.objects
+            .select_related(
+                "candidate",
+                "process",
+                "created_by",
+            )
+            .prefetch_related(
+                "reports",
+                "assessment_results__scores",
+                "assessment_results__import_file",
+            ),
+            process=process,
+            candidate_id=candidate_id,
+        )
+
+        mark_ai_content_outdated_if_language_changed(
+            historical_candidate,
+            content_key="personality_interpretation",
+            result_field="ai_personality_interpretation",
+            status_field="ai_personality_interpretation_status",
+            language_code=language_code,
+        )
+
+        mark_ai_content_outdated_if_language_changed(
+            historical_candidate,
+            content_key="personality_questions",
+            result_field="ai_personality_questions",
+            status_field="ai_personality_questions_status",
+            language_code=language_code,
+        )
+
+        ctx = build_historical_candidate_detail_context(
+            process=process,
+            historical_candidate=historical_candidate,
+            language=language_code,
+        )
+
+        return render(
+            request,
+            "customer/processes/_candidate_detail_sheet.html",
+            ctx,
+        )
+
+        ctx = {
+            "company": process.company,
+            "process": process,
+            "candidate": historical_candidate.candidate,
+            "historical_candidate": historical_candidate,
+            "historical_reports": historical_candidate.reports.all(),
+            "is_historical": True,
+            "assessment_results": assessment_results,
+        }
+
+    else:
+        invitation = get_object_or_404(
+            TestInvitation.objects.select_related("candidate"),
+            process=process,
+            candidate_id=candidate_id,
+        )
+
+        mark_ai_content_outdated_if_language_changed(
+            invitation,
+            content_key="purpose_fit",
+            result_field="ai_purpose_fit",
+            status_field="ai_purpose_fit_status",
+            language_code=get_request_ai_language(request),
+        )
+
+        mark_ai_content_outdated_if_language_changed(
+            invitation,
+            content_key="response_style_guidance",
+            result_field="ai_response_style_guidance",
+            status_field="ai_response_style_guidance_status",
+            language_code=language_code,
+        )
+        mark_ai_content_outdated_if_language_changed(
+            invitation,
+            content_key="cognitive_interpretation",
+            result_field="ai_cognitive_interpretation",
+            status_field="ai_cognitive_interpretation_status",
+            language_code=language_code,
+        )
+        mark_ai_content_outdated_if_language_changed(
+            invitation,
+            content_key="cognitive_questions",
+            result_field="ai_cognitive_questions",
+            status_field="ai_cognitive_questions_status",
+            language_code=language_code,
+        )
+        mark_ai_content_outdated_if_language_changed(
+            invitation,
+            content_key="motivation_interpretation",
+            result_field="ai_motivation_interpretation",
+            status_field="ai_motivation_interpretation_status",
+            language_code=language_code,
+        )
+        mark_ai_content_outdated_if_language_changed(
+            invitation,
+            content_key="motivation_questions",
+            result_field="ai_motivation_questions",
+            status_field="ai_motivation_questions_status",
+            language_code=language_code,
+        )
+        mark_ai_content_outdated_if_language_changed(
+            invitation,
+            content_key="personality_interpretation",
+            result_field="ai_personality_interpretation",
+            status_field="ai_personality_interpretation_status",
+            language_code=language_code,
+        )
+        mark_ai_content_outdated_if_language_changed(
+            invitation,
+            content_key="personality_questions",
+            result_field="ai_personality_questions",
+            status_field="ai_personality_questions_status",
+            language_code=language_code,
+        )
+        # Talena final output pre-interview language batch 1
+        mark_ai_content_outdated_if_language_changed(
+            invitation,
+            content_key="pre_interview_decision_support",
+            result_field="ai_pre_interview_decision_support",
+            status_field=(
+                "ai_pre_interview_decision_support_status"
+            ),
+            language_code=language_code,
+        )
+
+        # Talena final output post-interview language batch 1
+        mark_ai_content_outdated_if_language_changed(
+            invitation,
+            content_key="post_interview_decision_support",
+            result_field="ai_post_interview_decision_support",
+            status_field=(
+                "ai_post_interview_decision_support_status"
+            ),
+            language_code=language_code,
+        )
+
+        ctx = build_candidate_detail_context(
+            process=process,
+            invitation=invitation,
+            language=language_code,
+        )
+
+        ctx["is_historical"] = False
+
+    from apps.accounts.utils.org_access import user_can_edit_process
+    ctx["can_manage_candidate_results"] = (
+        not ctx.get("is_historical", False)
+        and user_can_edit_process(request.user, process.company, process)
+    )
+
+    if is_ajax:
+        return render(
+            request,
+            "customer/processes/_candidate_detail_sheet.html",
+            ctx,
+        )
+
+    return render(
+        request,
+        "customer/processes/process_candidate_detail.html",
+        ctx,
+    )
+
+
+@login_required
+def process_invitation_statuses(request, pk):
+    process = get_object_or_404(TestProcess, pk=pk)
+
+    # Säkerhetskontroll
+    if not user_can_access_process(request.user, process):
+        return HttpResponseForbidden("You do not have access to this project.")
+
+    qs = (
+        TestInvitation.objects
+        .filter(process=process, removed_from_process_at__isnull=True)
+        .select_related("candidate")
+        .prefetch_related("assessment_usages")
+        .order_by("created_at")
+    )
+    columns = project_test_columns(
+        process,
+        ProjectMeta.objects.filter(
+            account_code=process.account_code, project_code=process.project_code,
+        ).first(),
+    )
+    lang = get_language() or "sv"
+    return JsonResponse({
+        "invitations": [
+            {
+                "id": inv.id,
+                "status": inv.status,
+                "completed_at": inv.completed_at.isoformat() if inv.completed_at else None,
+                "sova_overall_status": getattr(inv, "sova_overall_status", "") or "",
+                "assessments": invitation_test_statuses(inv, columns, lang),
+            }
+            for inv in qs
+        ]
+    })
+
+
+@login_required
+def process_archive(request, pk):
+    obj = get_object_or_404(TestProcess, pk=pk)
+
+    if request.method != "POST":
+        return HttpResponseForbidden("POST required.")
+
+    company = get_company_for_user(request.user)
+    if not company or obj.company_id != company.id:
+        return HttpResponseForbidden("No access.")
+
+    if not user_can_edit_process(request.user, company, obj):
+        return HttpResponseForbidden(
+            "Du har inte behörighet att arkivera det här projektet."
+            if (get_language() or "").startswith("sv")
+            else "You do not have permission to archive this project."
+        )
+
+    if not user_can_access_process(request.user, obj):
+        return HttpResponseForbidden("You do not have access to this project.")
+
+    obj.archive()
+
+    log_event(
+        company=company,
+        verb=ActivityEvent.Verb.PROCESS_ARCHIVED,
+        actor=request.user,
+        process=obj,
+    )
+
+    messages.success(
+        request,
+        "Projektet arkiverades." if (get_language() or "").startswith("sv")
+        else "The project was archived.",
+    )
+    return redirect("processes:process_list")
+
+
+@login_required
+def process_unarchive(request, pk):
+    obj = get_object_or_404(TestProcess, pk=pk)
+
+    if request.method != "POST":
+        return HttpResponseForbidden("POST required.")
+
+    company = get_company_for_user(request.user)
+    if not company or obj.company_id != company.id:
+        return HttpResponseForbidden("No access.")
+
+    if not user_can_edit_process(request.user, company, obj):
+        return HttpResponseForbidden(
+            "Du har inte behörighet att återställa det här projektet."
+            if (get_language() or "").startswith("sv")
+            else "You do not have permission to restore this project."
+        )
+
+    if not user_can_access_process(request.user, obj):
+        return HttpResponseForbidden("You do not have access to this project.")
+
+    obj.unarchive()
+    messages.success(
+        request,
+        "Projektet återställdes." if (get_language() or "").startswith("sv")
+        else "The project was restored.",
+    )
+    return redirect("processes:process_list")
+
+
+@login_required
+def process_candidate_summary_stream(
+    request,
+    process_id,
+    candidate_id,
+):
+    process = get_object_or_404(
+        TestProcess,
+        pk=process_id,
+    )
+
+    if not user_can_access_process(request.user, process):
+        return HttpResponseForbidden(
+            "You do not have access to this project."
+        )
+
+    # ---------------------------------------------------------
+    # HISTORICAL CANDIDATE
+    # ---------------------------------------------------------
+    if process.is_historical:
+        summary_owner = get_object_or_404(
+            HistoricalProcessCandidate.objects
+            .select_related("candidate", "process")
+            .prefetch_related(
+                "assessment_results__scores",
+                "assessment_results__import_file",
+            ),
+            process=process,
+            candidate_id=candidate_id,
+        )
+
+        is_historical = True
+
+    # ---------------------------------------------------------
+    # ACTIVE CANDIDATE
+    # ---------------------------------------------------------
+    else:
+        summary_owner = get_object_or_404(
+            TestInvitation.objects.select_related(
+                "candidate",
+                "process",
+            ),
+            process=process,
+            candidate_id=candidate_id,
+        )
+
+        is_historical = False
+
+        # Active candidates must have completed all assessments.
+        if summary_owner.status != "completed":
+            return JsonResponse(
+                {
+                    "error": (
+                        "Candidate has not completed "
+                        "the assessments yet."
+                    )
+                },
+                status=400,
+            )
+
+    # ---------------------------------------------------------
+    # RETURN EXISTING SUMMARY
+    # ---------------------------------------------------------
+    if should_return_saved_ai_result(
+        summary_owner.ai_summary,
+        summary_owner.ai_summary_status,
+    ):
+        def existing_generator():
+            yield summary_owner.ai_summary
+
+        response = StreamingHttpResponse(
+            existing_generator(),
+            content_type="text/plain; charset=utf-8",
+        )
+
+        response["Cache-Control"] = "no-cache"
+        response["X-Accel-Buffering"] = "no"
+
+        return response
+
+    # ---------------------------------------------------------
+    # PREVENT DUPLICATE GENERATION
+    # ---------------------------------------------------------
+    if summary_owner.ai_summary_status == "generating":
+        return JsonResponse(
+            {
+                "error": (
+                    "Summary is already being generated."
+                )
+            },
+            status=409,
+        )
+
+    summary_owner.ai_summary_status = "generating"
+    summary_owner.save(
+        update_fields=["ai_summary_status"]
+    )
+
+    language_code = get_request_ai_language(
+        request
+    )
+
+    mark_ai_content_outdated_if_language_changed(
+        summary_owner,
+        content_key="candidate_summary",
+        result_field="ai_summary",
+        status_field="ai_summary_status",
+        language_code=language_code,
+    )
+
+    # ---------------------------------------------------------
+    # STREAM GENERATION
+    # ---------------------------------------------------------
+    def generator():
+        full_text = ""
+
+        try:
+            stream = stream_candidate_summary(
+                summary_owner,
+                language_code=language_code,
+            )
+
+            for chunk in stream:
+                full_text += chunk
+                yield chunk
+
+            save_candidate_summary(
+                summary_owner,
+                full_text,
+                language_code=language_code,
+            )
+
+        except Exception as error:
+            summary_owner.ai_summary_status = "failed"
+
+            summary_owner.save(
+                update_fields=[
+                    "ai_summary_status",
+                ]
+            )
+
+            yield f"\n\n[Error: {str(error)}]"
+
+    response = StreamingHttpResponse(
+        generator(),
+        content_type="text/plain; charset=utf-8",
+    )
+
+    response["Cache-Control"] = "no-cache"
+    response["X-Accel-Buffering"] = "no"
+
+    return response
+
+
+@login_required
+def process_candidate_response_style_guidance_stream(
+    request,
+    process_id,
+    candidate_id,
+):
+    """
+    Stream and save AI-supported response-style guidance.
+
+    Existing completed guidance is returned without making a new
+    OpenAI request.
+
+    Guidance is regenerated when its status is:
+    - not_started
+    - outdated
+    - failed
+    """
+
+    process = get_object_or_404(
+        TestProcess,
+        pk=process_id,
+    )
+
+    if not user_can_access_process(
+        request.user,
+        process,
+    ):
+        return HttpResponseForbidden(
+            "You do not have access to this project."
+        )
+
+    # ---------------------------------------------------------
+    # FIND THE CORRECT GUIDANCE OWNER
+    # ---------------------------------------------------------
+    if process.is_historical:
+        guidance_owner = get_object_or_404(
+            HistoricalProcessCandidate.objects
+            .select_related(
+                "candidate",
+                "process",
+            ),
+            process=process,
+            candidate_id=candidate_id,
+        )
+
+    else:
+        guidance_owner = get_object_or_404(
+            TestInvitation.objects
+            .select_related(
+                "candidate",
+                "process",
+            ),
+            process=process,
+            candidate_id=candidate_id,
+        )
+
+    language_code = get_request_ai_language(request)
+    mark_ai_content_outdated_if_language_changed(
+        guidance_owner,
+        content_key="response_style_guidance",
+        result_field="ai_response_style_guidance",
+        status_field="ai_response_style_guidance_status",
+        language_code=language_code,
+    )
+
+    # ---------------------------------------------------------
+    # BUILD RESPONSE-STYLE RESULTS
+    # ---------------------------------------------------------
+    response_styles = (
+        build_response_styles_for_guidance_owner(
+            guidance_owner
+        )
+    )
+
+    available_response_styles = [
+        style
+        for style in response_styles
+        if style.get("available")
+        and style.get("key") == "social_desirability"
+    ]
+    profile_contrast_analysis = build_profile_contrast_analysis_for_guidance_owner(
+        guidance_owner,
+        language_code=language_code,
+    )
+    active_profile_contrasts = (
+        profile_contrast_analysis.get("activated_contrasts") or []
+    )
+
+    if not available_response_styles:
+        return JsonResponse(
+            {
+                "error": (
+                    "No response-style results are "
+                    "available for this candidate."
+                )
+            },
+            status=400,
+        )
+
+    current_status = (
+        guidance_owner
+        .ai_response_style_guidance_status
+        or "not_started"
+    )
+
+    saved_guidance = (
+        guidance_owner.ai_response_style_guidance
+        or {}
+    )
+
+    if (
+        saved_guidance
+        and current_status == "completed"
+        and saved_guidance.get("_schema_version")
+        != RESPONSE_STYLE_GUIDANCE_SCHEMA_VERSION
+    ):
+        current_status = "outdated"
+        guidance_owner.ai_response_style_guidance_status = "outdated"
+        guidance_owner.save(update_fields=[
+            "ai_response_style_guidance_status",
+        ])
+
+    current_purpose = (
+        process.purpose
+        or ""
+    ).strip().lower()
+
+    saved_purpose = (
+        guidance_owner
+        .ai_response_style_guidance_purpose
+        or ""
+    ).strip().lower()
+
+    # ---------------------------------------------------------
+    # SAFETY CHECK FOR CHANGED PURPOSE
+    # ---------------------------------------------------------
+    if (
+        saved_guidance
+        and current_status == "completed"
+        and saved_purpose != current_purpose
+    ):
+        current_status = "outdated"
+
+        guidance_owner.ai_response_style_guidance_status = (
+            "outdated"
+        )
+
+        guidance_owner.save(update_fields=[
+            "ai_response_style_guidance_status",
+        ])
+
+    # ---------------------------------------------------------
+    # RETURN SAVED GUIDANCE
+    # ---------------------------------------------------------
+    if (
+        saved_guidance
+        and current_status == "completed"
+        and ai_content_language_matches(
+            guidance_owner,
+            "response_style_guidance",
+            language_code,
+        )
+    ):
+        def existing_generator():
+            yield json.dumps(
+                {
+                    "type": "saved_result",
+                    "data": saved_guidance,
+                    "status": current_status,
+                },
+                ensure_ascii=False,
+            ) + "\n"
+
+        response = StreamingHttpResponse(
+            existing_generator(),
+            content_type=(
+                "application/x-ndjson; charset=utf-8"
+            ),
+        )
+
+        response["Cache-Control"] = "no-cache"
+        response["X-Accel-Buffering"] = "no"
+
+        return response
+
+    # ---------------------------------------------------------
+    # PREVENT DUPLICATE GENERATION
+    # ---------------------------------------------------------
+    if current_status == "generating":
+        return JsonResponse(
+            {
+                "error": (
+                    "Response-style guidance is already "
+                    "being generated."
+                )
+            },
+            status=409,
+        )
+
+    guidance_owner.ai_response_style_guidance_status = (
+        "generating"
+    )
+
+    guidance_owner.save(update_fields=[
+        "ai_response_style_guidance_status",
+    ])
+
+    # ---------------------------------------------------------
+    # STREAM GENERATION
+    # ---------------------------------------------------------
+    def generator():
+        guidance = (
+            create_empty_response_style_guidance(
+                guidance_owner,
+                language_code=language_code,
+            )
+        )
+
+        received_done_event = False
+
+        try:
+            for event in stream_response_style_guidance(
+                guidance_owner=guidance_owner,
+                response_styles=available_response_styles,
+                language_code=language_code,
+                profile_contrast_analysis=profile_contrast_analysis,
+            ):
+                guidance = (
+                    apply_response_style_guidance_event(
+                        guidance,
+                        event,
+                        allowed_profile_contrasts=active_profile_contrasts,
+                    )
+                )
+
+                if event.get("type") == "done":
+                    received_done_event = True
+
+                yield json.dumps(
+                    event,
+                    ensure_ascii=False,
+                ) + "\n"
+
+            # Do not save an empty or malformed AI result.
+            if not (
+                guidance.get("summary")
+                or ""
+            ).strip():
+                raise ValueError(
+                    "The AI response did not contain "
+                    "a guidance summary."
+                )
+
+            if not received_done_event:
+                yield json.dumps({
+                    "type": "done",
+                }) + "\n"
+
+            save_response_style_guidance(
+                guidance_owner=guidance_owner,
+                guidance=guidance,
+                language_code=language_code,
+            )
+
+        except Exception as error:
+            guidance_owner.ai_response_style_guidance_status = (
+                "failed"
+            )
+
+            guidance_owner.save(update_fields=[
+                "ai_response_style_guidance_status",
+            ])
+
+            yield json.dumps(
+                {
+                    "type": "error",
+                    "message": str(error),
+                },
+                ensure_ascii=False,
+            ) + "\n"
+
+    response = StreamingHttpResponse(
+        generator(),
+        content_type=(
+            "application/x-ndjson; charset=utf-8"
+        ),
+    )
+
+    response["Cache-Control"] = "no-cache"
+    response["X-Accel-Buffering"] = "no"
+
+    return response
+
+
+@login_required
+@require_POST
+def process_candidate_response_style_guidance_regenerate(
+    request,
+    process_id,
+    candidate_id,
+):
+    """
+    Prepare response-style guidance for regeneration.
+
+    The existing saved result is retained until the new
+    generation has completed successfully.
+    """
+
+    process = get_object_or_404(
+        TestProcess,
+        pk=process_id,
+    )
+
+    if not user_can_access_process(
+        request.user,
+        process,
+    ):
+        return HttpResponseForbidden(
+            "You do not have access to this project."
+        )
+
+    if process.is_historical:
+        return JsonResponse(
+            {
+                "error": (
+                    "Global response-style regeneration "
+                    "is not connected for historical "
+                    "candidates yet."
+                )
+            },
+            status=400,
+        )
+
+    invitation = get_object_or_404(
+        TestInvitation,
+        process=process,
+        candidate_id=candidate_id,
+    )
+
+    if invitation.status != "completed":
+        return JsonResponse(
+            {
+                "error": (
+                    "The candidate has not completed "
+                    "the assessments yet."
+                )
+            },
+            status=400,
+        )
+
+    invitation.ai_response_style_guidance_status = (
+        "not_started"
+    )
+
+    invitation.ai_response_style_guidance_generated_at = (
+        None
+    )
+
+    invitation.ai_response_style_guidance_purpose = ""
+
+    invitation.save(
+        update_fields=[
+            "ai_response_style_guidance_status",
+            "ai_response_style_guidance_generated_at",
+            "ai_response_style_guidance_purpose",
+        ]
+    )
+
+    return JsonResponse(
+        {
+            "ok": True,
+            "stream_url": reverse(
+                (
+                    "processes:"
+                    "process_candidate_"
+                    "response_style_guidance_stream"
+                ),
+                kwargs={
+                    "process_id": process.id,
+                    "candidate_id": candidate_id,
+                },
+            ),
+        }
+    )
+
+
+@login_required
+def process_candidate_purpose_fit_stream(
+    request,
+    process_id,
+    candidate_id,
+):
+    print(
+        f"[PURPOSE FIT] Stream requested "
+        f"process={process_id}, candidate={candidate_id}",
+        flush=True,
+    )
+
+    process = get_object_or_404(
+        TestProcess,
+        pk=process_id,
+    )
+
+    print(
+        f"[PURPOSE FIT] Process found: "
+        f"{process.id}, purpose={process.purpose}",
+        flush=True,
+    )
+
+    if not user_can_access_process(
+        request.user,
+        process,
+    ):
+        print(
+            "[PURPOSE FIT] Access denied",
+            flush=True,
+        )
+
+        return HttpResponseForbidden(
+            "You do not have access to this project."
+        )
+
+    if not purpose_supports_fit(process):
+        print(
+            "[PURPOSE FIT] Purpose does not support fit",
+            flush=True,
+        )
+
+        return JsonResponse(
+            {
+                "error": (
+                    "This project does not support "
+                    "AI Overview."
+                )
+            },
+            status=400,
+        )
+
+    # ---------------------------------------------------------
+    # FIND THE CORRECT AI OWNER
+    # ---------------------------------------------------------
+
+    if process.is_historical:
+        owner = get_object_or_404(
+            HistoricalProcessCandidate.objects
+            .select_related(
+                "candidate",
+                "process",
+            )
+            .prefetch_related(
+                "assessment_results__scores",
+                "assessment_results__import_file",
+            ),
+            process=process,
+            candidate_id=candidate_id,
+        )
+
+        is_historical = True
+
+    else:
+        owner = get_object_or_404(
+            TestInvitation.objects.select_related(
+                "candidate",
+                "process",
+            ),
+            process=process,
+            candidate_id=candidate_id,
+        )
+
+        is_historical = False
+
+    language_code = get_request_ai_language(
+        request
+    )
+
+    mark_ai_content_outdated_if_language_changed(
+        owner,
+        content_key="purpose_fit",
+        result_field="ai_purpose_fit",
+        status_field="ai_purpose_fit_status",
+        language_code=language_code,
+    )
+
+    print(
+        f"[PURPOSE FIT] Owner found: "
+        f"id={owner.id}, "
+        f"historical={is_historical}, "
+        f"fit_status={owner.ai_purpose_fit_status}, "
+        f"has_saved_fit={bool(owner.ai_purpose_fit)}",
+        flush=True,
+    )
+
+    # ---------------------------------------------------------
+    # REQUIRE AT LEAST ONE REAL ASSESSMENT RESULT
+    # ---------------------------------------------------------
+    #
+    # AI Overview may be generated progressively as assessment
+    # results become available. The candidate does not need to
+    # have completed the entire assessment process.
+    #
+    assessment_evidence, assessment_type_count = (
+        build_assessment_evidence(
+            owner
+        )
+    )
+
+    if assessment_type_count < 1:
+        print(
+            "[PURPOSE FIT] No assessment results available",
+            flush=True,
+        )
+
+        return JsonResponse(
+            {
+                "error": (
+                    "No assessment results are "
+                    "available for this candidate yet."
+                )
+            },
+            status=400,
+        )
+
+    # ---------------------------------------------------------
+    # RETURN SAVED RESULT
+    # ---------------------------------------------------------
+
+    if (
+        ai_content_language_matches(
+            owner,
+            "purpose_fit",
+            language_code,
+        )
+        and should_return_saved_ai_result(
+            owner.ai_purpose_fit,
+            owner.ai_purpose_fit_status,
+        )
+    ):
+        print(
+            "[PURPOSE FIT] Returning saved result",
+            flush=True,
+        )
+
+        return JsonResponse(
+            {
+                "data": owner.ai_purpose_fit,
+                "status": owner.ai_purpose_fit_status,
+                "generated": False,
+            }
+        )
+
+    # ---------------------------------------------------------
+    # PREVENT DUPLICATE GENERATION
+    # ---------------------------------------------------------
+
+    if owner.ai_purpose_fit_status == "generating":
+        print(
+            "[PURPOSE FIT] Already marked as generating",
+            flush=True,
+        )
+
+        return JsonResponse(
+            {
+                "error": (
+                    "AI Overview is already "
+                    "being generated."
+                )
+            },
+            status=409,
+        )
+
+    owner.ai_purpose_fit_status = "generating"
+
+    owner.save(
+        update_fields=[
+            "ai_purpose_fit_status",
+        ]
+    )
+
+    print(
+        "[PURPOSE FIT] Status changed to generating",
+        flush=True,
+    )
+
+    # ---------------------------------------------------------
+    # GENERATE THE COMPLETE RESULT
+    # ---------------------------------------------------------
+
+    purpose_fit = create_empty_purpose_fit(
+        owner
+    )
+
+    try:
+        print(
+            "[PURPOSE FIT] Starting complete OpenAI response",
+            flush=True,
+        )
+
+        for event in generate_candidate_purpose_fit_events(
+            owner,
+            language_code=language_code,
+        ):
+            if event.get("type") == "error":
+                raise ValueError(
+                    event.get("message")
+                    or "AI Overview generation failed."
+                )
+
+            purpose_fit = apply_purpose_fit_event(
+                purpose_fit,
+                event,
+            )
+
+        save_candidate_purpose_fit(
+            owner,
+            purpose_fit,
+            language_code=language_code,
+        )
+
+        print(
+            "[PURPOSE FIT] Result saved successfully",
+            flush=True,
+        )
+
+        return JsonResponse(
+            {
+                "data": purpose_fit,
+                "status": "completed",
+                "generated": True,
+            }
+        )
+
+    except Exception as exc:
+        print(
+            "[PURPOSE FIT] ERROR:",
+            repr(exc),
+            flush=True,
+        )
+
+        owner.ai_purpose_fit_status = "failed"
+
+        owner.save(
+            update_fields=[
+                "ai_purpose_fit_status",
+            ]
+        )
+
+        return JsonResponse(
+            {
+                "error": str(exc)
+                or "AI Overview generation failed."
+            },
+            status=500,
+        )
+
+@login_required
+@require_POST
+def process_candidate_purpose_fit_regenerate(
+    request,
+    process_id,
+    candidate_id,
+):
+    process = get_object_or_404(
+        TestProcess,
+        pk=process_id,
+    )
+
+    if not user_can_access_process(request.user, process):
+        return HttpResponseForbidden(
+            "You do not have access to this project."
+        )
+
+    if not purpose_supports_fit(process):
+        return JsonResponse(
+            {
+                "error": (
+                    "Flexible projects do not support "
+                    "purpose-fit analysis."
+                )
+            },
+            status=400,
+        )
+    
+    if process.is_historical:
+        invitation = get_object_or_404(
+            HistoricalProcessCandidate.objects.select_related(
+                "candidate",
+                "process",
+            ),
+            process=process,
+            candidate_id=candidate_id,
+        )
+    else:
+        invitation = get_object_or_404(
+            TestInvitation.objects.select_related(
+                "candidate",
+                "process",
+            ),
+            process=process,
+            candidate_id=candidate_id,
+        )
+
+    invitation.ai_purpose_fit_status = "not_started"
+    invitation.ai_purpose_fit_generated_at = None
+    invitation.ai_purpose_fit_purpose = ""
+
+    invitation.save(
+        update_fields=[
+            "ai_purpose_fit_status",
+            "ai_purpose_fit_generated_at",
+            "ai_purpose_fit_purpose",
+        ]
+    )
+
+    return JsonResponse(
+        {
+            "ok": True,
+            "generation_url": reverse(
+                "processes:process_candidate_purpose_fit_stream",
+                kwargs={
+                    "process_id": process.id,
+                    "candidate_id": candidate_id,
+                },
+            ),
+        }
+    )
+
+@login_required
+def process_create_v2(request):
+    client = SovaClient()
+    error = None
+
+    # --------------------------------------------------
+    # 1. Hämta Sova-projekt från API
+    # --------------------------------------------------
+    try:
+        accounts = client.get_template_accounts_with_projects()
+    except Exception as e:
+        accounts = []
+        error = str(e)
+
+    # --------------------------------------------------
+    # 2. Hämta ProjectMeta så vi kan hitta namn, tester osv
+    # --------------------------------------------------
+    metas = ProjectMeta.objects.filter(provider="sova")
+    meta_map = {(m.account_code, m.project_code): m for m in metas}
+
+    project_id_map = {}
+    template_cards = []
+
+    for account in accounts:
+        acc = (account.get("code") or "").strip()
+
+        for project in (account.get("projects") or []):
+            proj_code = (project.get("code") or "").strip()
+            sova_name = (project.get("name") or proj_code).strip()
+
+            value = f"{acc}|{proj_code}"
+            project_id_map[value] = project.get("id")
+
+            meta = meta_map.get((acc, proj_code))
+            title = getattr(meta, "intern_name", None) or sova_name
+
+            description = ""
+            tests = []
+            languages = []
+
+            if meta:
+                description = (getattr(meta, "notes", None) or "").strip()
+
+                tests_raw = (getattr(meta, "tests", None) or "").strip()
+
+                if tests_raw:
+                    tests = [
+                        test.strip().lower()
+                        for test in tests_raw.split(",")
+                        if test.strip()
+                    ]
+
+                languages_raw = (getattr(meta, "languages", None) or "").strip()
+
+                if languages_raw:
+                    languages = [
+                        language.strip()
+                        for language in languages_raw.split(",")
+                        if language.strip()
+                    ]
+
+            # Fallback:
+            # Om ProjectMeta saknar tester läser Talena kombinationen
+            # direkt från Sova-projektets namn.
+            if not tests:
+                tests = extract_tests_from_project_name(sova_name)
+
+            template_cards.append({
+                "value": value,
+                "title": title,
+                "description": description,
+                "tests": tests,
+                "languages": languages,
+                "icon_class": get_template_icon_class(tests, title),
+                "account_code": acc,
+                "project_code": proj_code,
+                "sova_name": sova_name,
+                "sova_project_id": project.get("id"),
+            })
+
+    template_cards.sort(key=lambda x: (x["title"] or "").lower())
+
+    # Only accounts in companies where this user is a member can be selected.
+    memberships = list(
+        CompanyMember.objects
+        .filter(user=request.user)
+        .select_related("company")
+    )
+    if not memberships:
+        messages.error(request, "You are not linked to a company.")
+        return redirect("processes:process_list")
+
+    accessible_ids = set()
+    for membership in memberships:
+        accessible_ids.update(
+            get_accessible_orgunit_ids(request.user, membership.company)
+        )
+    org_units = list(
+        OrgUnit.objects
+        .filter(
+            pk__in=accessible_ids,
+            company_id__in=[membership.company_id for membership in memberships],
+        )
+        .select_related("company")
+        .order_by("company__name", "name", "pk")
+    )
+    if not org_units:
+        messages.error(request, "You do not have an assigned account.")
+        return redirect("processes:process_list")
+
+    # --------------------------------------------------
+    # 4. POST: skapa processen
+    # --------------------------------------------------
+    if request.method == "POST":
+        form = TestProcessWizardCreateForm(request.POST, org_units=org_units)
+
+        if form.is_valid():
+            selected_unit = (
+                form.cleaned_data["org_unit"]
+                if len(org_units) > 1
+                else org_units[0]
+            )
+            company = selected_unit.company
+            purpose = form.cleaned_data.get("purpose")
+            selected_tests = form.cleaned_data.get("selected_tests") or []
+
+            candidate_language = (
+                form.cleaned_data.get("candidate_language")
+                or "sv"
+            )
+
+            name = (form.cleaned_data.get("name") or "").strip()
+
+            # Om användaren inte skrev namn, skapa ett automatiskt
+            if not name:
+                name = build_default_process_name(
+                    purpose=purpose,
+                    selected_tests=selected_tests,
+                )
+
+            # --------------------------------------------------
+            # 5. Matcha valda tester mot rätt Sova-projekt
+            # --------------------------------------------------
+            try:
+                resolved_template = resolve_sova_template(
+                    selected_tests=selected_tests,
+                    template_cards=template_cards,
+                )
+            except ValueError as exc:
+                form.add_error("selected_tests", str(exc))
+
+                return render(request, "customer/processes/process_create_v2.html", {
+                    "form": form,
+                    "error": error,
+                    "process_purposes": PROCESS_PURPOSES,
+                    "available_tests": AVAILABLE_TESTS,
+                    "purpose_recommended_tests": PURPOSE_RECOMMENDED_TESTS,
+                    "template_cards": template_cards,
+                    "templates_count": len(template_cards),
+                    "accounts_count": len(accounts),
+                    "org_units": org_units,
+                })
+
+            if not resolved_template:
+                selected_labels = [
+                    str(test["label"])
+                    for test in AVAILABLE_TESTS
+                    if test["key"] in selected_tests
+                ]
+
+                selected_label = (
+                    " + ".join(selected_labels)
+                    or _("the selected tests")
+                )
+
+                form.add_error(
+                    "selected_tests",
+                    (
+                        f"No matching Sova project was found for {selected_label}. "
+                        "Please check that the project exists and that its ProjectMeta "
+                        "record contains the correct tests."
+                    ),
+                )
+
+                return render(request, "customer/processes/process_create_v2.html", {
+                    "form": form,
+                    "error": error,
+                    "process_purposes": PROCESS_PURPOSES,
+                    "available_tests": AVAILABLE_TESTS,
+                    "purpose_recommended_tests": PURPOSE_RECOMMENDED_TESTS,
+                    "template_cards": template_cards,
+                    "templates_count": len(template_cards),
+                    "accounts_count": len(accounts),
+                    "org_units": org_units,
+                })
+            
+            
+
+
+            acc = resolved_template["account_code"]
+            proj = resolved_template["project_code"]
+            value = resolved_template["value"]
+
+            # --------------------------------------------------
+            # 7. Skapa TestProcess
+            # --------------------------------------------------
+            obj = TestProcess(
+                name=name,
+                company=company,
+                org_unit=selected_unit,
+                provider="sova",
+                account_code=acc,
+                project_code=proj,
+                created_by=request.user,
+                purpose=purpose,
+                selected_tests=selected_tests,
+                candidate_language=candidate_language,
+                candidate_results_enabled=(
+                    form.cleaned_data.get("candidate_results_enabled")
+                    or False
+                ),
+            )
+
+            # --------------------------------------------------
+            # 8. Sätt project_name_snapshot
+            # --------------------------------------------------
+            meta = meta_map.get((acc, proj))
+
+            if meta and getattr(meta, "intern_name", None):
+                obj.project_name_snapshot = meta.intern_name
+            else:
+                obj.project_name_snapshot = (
+                    resolved_template.get("sova_name")
+                    or resolved_template.get("title")
+                    or proj
+                )
+
+            obj.save()
+            request.session["active_org_unit_id"] = selected_unit.pk
+
+            # --------------------------------------------------
+            # 9. Spara labels
+            # --------------------------------------------------
+            label_names = form.cleaned_data.get("labels_text") or []
+
+            # Om labels_text råkar komma in som string istället för lista
+            if isinstance(label_names, str):
+                label_names = [
+                    item.strip()
+                    for item in label_names.split(",")
+                    if item.strip()
+                ]
+
+            if label_names:
+                label_objs = []
+
+                for label_name in label_names:
+                    lab, _ = ProcessLabel.objects.get_or_create(
+                        company=company,
+                        name=label_name,
+                    )
+                    label_objs.append(lab)
+
+                obj.labels.set(label_objs)
+            else:
+                obj.labels.clear()
+
+            # --------------------------------------------------
+            # 10. Logga activity
+            # --------------------------------------------------
+            log_event(
+                company=company,
+                verb=ActivityEvent.Verb.PROCESS_CREATED,
+                actor=request.user,
+                process=obj,
+                meta={
+                    "process_name": obj.name,
+                    "purpose": obj.purpose,
+                    "selected_tests": obj.selected_tests,
+                    "resolved_sova_template": value,
+                    "sova_project_id": project_id_map.get(value),
+                },
+            )
+
+            messages.success(request, "Projektet skapades.")
+            return redirect("processes:process_detail", pk=obj.pk)
+        
+        else:
+            print("PROCESS CREATE FORM ERRORS:", form.errors.as_json())
+            print("POST DATA:", request.POST)
+
+        messages.error(request, "The project could not be created. Please check the fields.")
+
+    # --------------------------------------------------
+    # 11. GET: visa tom form
+    # --------------------------------------------------
+    else:
+        form = TestProcessWizardCreateForm(org_units=org_units)
+
+    return render(request, "customer/processes/process_create_v2.html", {
+        "form": form,
+        "error": error,
+        "process_purposes": PROCESS_PURPOSES,
+        "available_tests": AVAILABLE_TESTS,
+        "purpose_recommended_tests": PURPOSE_RECOMMENDED_TESTS,
+        "template_cards": template_cards,
+        "templates_count": len(template_cards),
+        "accounts_count": len(accounts),
+                    "org_units": org_units,
+    })
+
+def normalise_five_point_score(
+    value,
+) -> int | float | None:
+    """
+    Normalise an existing STIVE score while preserving decimals.
+    """
+
+    if value is None:
+        return None
+
+    try:
+        score = float(value)
+    except (TypeError, ValueError):
+        return None
+
+    score = max(1.0, min(5.0, score))
+
+    return int(score) if score.is_integer() else score
+
+
+def convert_sten_to_five_point(
+    value,
+) -> int | None:
+    """
+    Convert a rounded STEN result from 1–10 into
+    Talena's five-point display scale.
+
+    1–2  -> 1
+    3–4  -> 2
+    5–6  -> 3
+    7–8  -> 4
+    9–10 -> 5
+    """
+
+    if value is None:
+        return None
+
+    try:
+        sten = int(
+            round(float(value))
+        )
+    except (TypeError, ValueError):
+        return None
+
+    sten = max(
+        1,
+        min(10, sten),
+    )
+
+    return (
+        sten + 1
+    ) // 2
+
+
+def get_historical_five_point_score(
+    item,
+) -> int | None:
+    """
+    Return a five-point STIVE score for historical
+    Motivation and Team style results.
+
+    New historical imports preserve the original scale.
+
+    - one_to_five results are already STIVE and must
+      NOT be converted from STEN.
+    - older legacy data without STIVE information may
+      fall back to conversion from STEN.
+    """
+
+    scale = str(
+        item.get("scale")
+        or ""
+    ).strip().lower()
+
+    if scale in {
+        "1-to-5",
+        "1_to_5",
+        "1 to 5",
+        "one-to-five",
+        "one_to_five",
+    }:
+        scale = "one_to_five"
+
+    # ---------------------------------------------------------
+    # NATIVE FIVE-POINT / STIVE RESULT
+    # ---------------------------------------------------------
+
+    if (
+        scale == "one_to_five"
+        or item.get("stive") is not None
+        or item.get("stive_rounded") is not None
+    ):
+        for key in (
+            "stive",
+            "stive_rounded",
+            "score",
+        ):
+            value = item.get(key)
+
+            if value is None:
+                continue
+
+            return normalise_five_point_score(
+                value
+            )
+
+        return None
+
+    # ---------------------------------------------------------
+    # LEGACY FALLBACK
+    # ---------------------------------------------------------
+    #
+    # Older historical data may only contain STEN.
+    # Convert that data to the five-point display scale.
+    #
+    for key in (
+        "sten",
+        "sten_rounded",
+        "score",
+    ):
+        value = item.get(key)
+
+        if value is None:
+            continue
+
+        return convert_sten_to_five_point(
+            value
+        )
+
+    return None
+
+def build_historical_candidate_detail_context(
+    process,
+    historical_candidate,
+    language="sv",
+):
+    """
+    Build candidate sheet context for a historical candidate.
+
+    Historical assessment data is normalised through
+    build_historical_candidate_profile() and then exposed using the same
+    context keys as the regular candidate sheet.
+
+    Historical candidates always use general insight mode because no
+    original process purpose or context is available.
+    """
+    candidate = historical_candidate.candidate
+    candidate_report_language = getattr(
+        process,
+        "candidate_language",
+        "sv",
+    ) or "sv"
+
+    profile = build_historical_candidate_profile(
+        historical_candidate
+    )
+
+    assessment_results = profile["assessment_results"]
+
+    motivation_competencies = profile["motivation_competencies"]
+    personality_competencies = profile["personality_competencies"]
+    team_style_scores = profile["team_style_scores"]
+    ability_results = profile["ability_results"]
+
+    has_motivation_results = profile["has_motivation_results"]
+    has_personality_results = profile["has_personality_results"]
+    has_ability_results = profile["has_ability_results"]
+    has_any_results = profile["has_any_results"]
+
+    # Historical extracts contain completed result data.
+    all_assessments_completed = has_any_results
+
+    verbal_result = ability_results.get("verbal")
+    logical_result = ability_results.get("logical")
+    numerical_result = ability_results.get("numerical")
+
+    verbal_percentile = (
+        verbal_result.get("value")
+        if verbal_result
+        else None
+    )
+
+    logical_percentile = (
+        logical_result.get("value")
+        if logical_result
+        else None
+    )
+
+    numerical_percentile = (
+        numerical_result.get("value")
+        if numerical_result
+        else None
+    )
+
+    has_verbal_results = verbal_result is not None
+    has_logical_results = logical_result is not None
+    has_numerical_results = numerical_result is not None
+
+    # -------------------------------------------------------------------------
+    # Convert the common profile into structures already used by the template
+    # -------------------------------------------------------------------------
+
+    motivation_results = []
+    mq_competencies = []
+
+    for item in motivation_competencies:
+        raw_score = item.get(
+            "score"
+        )
+
+        five_point_score = (
+            get_historical_five_point_score(
+                item
+            )
+        )
+
+        raw_sten = item.get(
+            "sten"
+        )
+
+        # A native one-to-five motivation result is STIVE, not STEN.
+        # Do not duplicate it into the personality scale fields.
+        if (
+            raw_sten is None
+            and str(item.get("scale") or "").strip().lower()
+            not in {
+                "one_to_five",
+                "one-to-five",
+                "1_to_5",
+                "1-to-5",
+                "1 to 5",
+            }
+        ):
+            raw_sten = raw_score
+
+        raw_sten_rounded = item.get(
+            "sten_rounded"
+        )
+
+        if (
+            raw_sten_rounded is None
+            and raw_sten is not None
+        ):
+            raw_sten_rounded = int(
+                round(float(raw_sten))
+            )
+
+        normalised_item = {
+            "activity": (
+                "Motivation Questionnaire"
+            ),
+
+            "competency": (
+                item.get("competency")
+                or item.get("name")
+            ),
+
+            # Five-point result used by Motivation UI.
+            "score": five_point_score,
+            "stive": five_point_score,
+            "stive_rounded": (
+                int(round(float(five_point_score)))
+                if five_point_score is not None
+                else None
+            ),
+            "scale": item.get("scale"),
+
+            # Preserve the original imported STEN evidence.
+            "sten": raw_sten,
+            "sten_rounded": raw_sten_rounded,
+
+            "percentile": item.get(
+                "percentile"
+            ),
+
+            "assessment_centre": None,
+            "source": "historical_import",
+        }
+
+        motivation_results.append(
+            normalised_item.copy()
+        )
+
+        mq_competencies.append(
+            normalised_item.copy()
+        )
+
+    normalised_personality_competencies = []
+
+    for item in personality_competencies:
+        normalised_personality_competencies.append({
+            "competency": item.get("competency") or item.get("name"),
+            "score": item.get("score"),
+            "sten": item.get("sten"),
+            "sten_rounded": item.get("sten_rounded"),
+            "percentile": item.get("percentile"),
+            "category": item.get("category"),
+            "source": "historical_import",
+        })
+
+    normalised_team_style_scores = []
+
+    for item in team_style_scores:
+        raw_score = item.get(
+            "score"
+        )
+
+        five_point_score = (
+            get_historical_five_point_score(
+                item
+            )
+        )
+
+        raw_sten = item.get(
+            "sten"
+        )
+
+        if raw_sten is None:
+            raw_sten = raw_score
+
+        raw_sten_rounded = item.get(
+            "sten_rounded"
+        )
+
+        if (
+            raw_sten_rounded is None
+            and raw_sten is not None
+        ):
+            raw_sten_rounded = int(
+                round(float(raw_sten))
+            )
+
+        normalised_team_style_scores.append({
+            "competency": (
+                item.get("competency")
+                or item.get("name")
+            ),
+
+            # Five-point result used by Team styles.
+            "score": five_point_score,
+            "stive": five_point_score,
+            "stive_rounded": five_point_score,
+            "scale": item.get("scale"),
+
+            # Preserve original imported STEN.
+            "sten": raw_sten,
+            "sten_rounded": raw_sten_rounded,
+
+            "percentile": item.get(
+                "percentile"
+            ),
+
+            "category": "team_style",
+            "source": "historical_import",
+        })
+
+    motivation_results = sorted(
+        motivation_results,
+        key=lambda item: (
+            item.get("competency") or ""
+        ).lower(),
+    )
+
+    mq_competencies = sorted(
+        mq_competencies,
+        key=lambda item: (
+            item.get("competency") or ""
+        ).lower(),
+    )
+
+    normalised_personality_competencies = sorted(
+        normalised_personality_competencies,
+        key=lambda item: (
+            item.get("competency") or ""
+        ).lower(),
+    )
+
+    response_styles = build_response_style_results(
+        normalised_personality_competencies
+    )
+
+    normalised_team_style_scores = sorted(
+        normalised_team_style_scores,
+        key=lambda item: (
+            item.get("competency") or ""
+        ).lower(),
+    )
+
+    team_style_profile = (
+        build_team_style_profile(
+            normalised_team_style_scores
+        )
+    )
+
+    # -------------------------------------------------------------------------
+    # Shared score helpers
+    # -------------------------------------------------------------------------
+
+    def safe_score(item):
+        """
+        Return the first available numeric value.
+
+        Explicit None checks are used so a legitimate value of 0 is not lost.
+        """
+        for key in (
+            "score",
+            "sten_rounded",
+            "stive_rounded",
+            "percentile",
+        ):
+            value = item.get(key)
+
+            if value is not None:
+                return value
+
+        return -1
+
+    top_motivations = sorted(
+        mq_competencies,
+        key=safe_score,
+        reverse=True,
+    )[:3]
+
+    combined_personality_scores = (
+        normalised_personality_competencies
+        + normalised_team_style_scores
+    )
+
+    top_personality_traits = sorted(
+        combined_personality_scores,
+        key=safe_score,
+        reverse=True,
+    )[:3]
+
+    motivation_development_areas = sorted(
+        mq_competencies,
+        key=safe_score,
+    )[:2]
+
+    personality_development_areas = sorted(
+        combined_personality_scores,
+        key=safe_score,
+    )[:2]
+
+    # -------------------------------------------------------------------------
+    # Data supplied to the general insight engine
+    # -------------------------------------------------------------------------
+
+    general_insight_input = build_general_insight_input(
+        personality_competencies=normalised_personality_competencies,
+        motivation_competencies=mq_competencies,
+        verbal_percentile=verbal_percentile,
+        logical_percentile=logical_percentile,
+        numerical_percentile=numerical_percentile,
+    )
+
+    # Temporary development logging.
+    # Remove these prints once imported profiles have been verified.
+    print("=== HISTORICAL GENERAL INSIGHT INPUT ===")
+    print(json.dumps(
+        general_insight_input,
+        indent=2,
+        ensure_ascii=False,
+        default=str,
+    ))
+    print("=== /HISTORICAL GENERAL INSIGHT INPUT ===")
+
+    # -------------------------------------------------------------------------
+    # Ability reports
+    # -------------------------------------------------------------------------
+
+    ability_reports_for_ui = {
+        "overview": [],
+        "verbal": (
+            build_cognitive_reports_for_test(
+                test_key="verbal",
+                percentile=verbal_percentile,
+                language_code=candidate_report_language,
+            )
+            if verbal_percentile is not None
+            else None
+        ),
+        "logical": (
+            build_cognitive_reports_for_test(
+                test_key="logical",
+                percentile=logical_percentile,
+                language_code=candidate_report_language,
+            )
+            if logical_percentile is not None
+            else None
+        ),
+        "numerical": (
+            build_cognitive_reports_for_test(
+                test_key="numerical",
+                percentile=numerical_percentile,
+                language_code=candidate_report_language,
+            )
+            if numerical_percentile is not None
+            else None
+        ),
+    }
+
+    if ability_reports_for_ui["verbal"]:
+        ability_reports_for_ui["overview"].append({
+            "key": "verbal",
+            "label": "Verbal",
+            "percentile": verbal_percentile,
+        })
+
+    if ability_reports_for_ui["logical"]:
+        ability_reports_for_ui["overview"].append({
+            "key": "logical",
+            "label": "Logical",
+            "percentile": logical_percentile,
+        })
+
+    if ability_reports_for_ui["numerical"]:
+        ability_reports_for_ui["overview"].append({
+            "key": "numerical",
+            "label": "Numerical",
+            "percentile": numerical_percentile,
+        })
+
+    # -------------------------------------------------------------------------
+    # Motivation reports
+    # -------------------------------------------------------------------------
+
+    motivation_scores = build_scores_by_competency(
+        mq_competencies
+    )
+
+    motivation_insights = build_motivation_insight_section(
+        mq_competencies,
+        candidate_name=candidate.first_name,
+    )
+
+    motivation_reports_for_ui = []
+
+    if has_motivation_results:
+        motivation_reports_for_ui = [
+            build_practitioner_report(
+                competencies=mq_competencies,
+            ),
+            build_manager_report(
+                competencies=mq_competencies,
+            ),
+            build_motivation_coaching_report(
+                competencies=mq_competencies,
+            ),
+            build_candidate_report(
+                competencies=mq_competencies,
+                language_code=candidate_report_language,
+            ),
+        ]
+
+
+    # -------------------------------------------------------------------------
+    # Personality reports and profile
+    # -------------------------------------------------------------------------
+
+    personality_reports = []
+    personality_profile = None
+
+    if has_personality_results:
+        historical_personality_competencies = (
+            normalised_personality_competencies
+            + normalised_team_style_scores
+        )
+
+        historical_personality_activities = [
+            {
+                "activity": "Personality Assessment",
+                "status": "completed",
+                "competencies": (
+                    historical_personality_competencies
+                ),
+            }
+        ]
+
+        personality_reports = (
+            build_personality_reports_for_candidate(
+                sova_activities=(
+                    historical_personality_activities
+                ),
+            )
+        )
+
+        personality_profile_report = next(
+            (
+                report
+                for report in personality_reports
+                if report.get("report_id")
+                == "trait_indicator_profile"
+            ),
+            None,
+        )
+
+        if personality_profile_report:
+            personality_profile = (
+                build_profile_from_resolved_report(
+                    resolved_report=(
+                        personality_profile_report
+                    ),
+                    language=language,
+                    include_missing_traits=False,
+                )
+            )
+
+    available_reports_count = 0
+
+    if has_verbal_results:
+        available_reports_count += 2
+
+    if has_logical_results:
+        available_reports_count += 2
+
+    if has_numerical_results:
+        available_reports_count += 2
+
+    if has_motivation_results:
+        available_reports_count += len(
+            motivation_reports_for_ui
+        )
+
+    if has_personality_results:
+        available_reports_count += len(
+            personality_reports
+        )
+
+    # -------------------------------------------------------------------------
+    # General candidate insights
+    #
+    # This is the temporary deterministic fallback. Later, replace this block
+    # with the exact same insight generator used by active general-mode profiles.
+    # -------------------------------------------------------------------------
+
+    candidate_insights = {
+        "summary": None,
+        "key_strengths": [],
+        "areas_to_explore": [],
+        "questions": [],
+        "fit": None,
+        "cognitive_results": build_cognitive_insight_results(
+            verbal_percentile=verbal_percentile,
+            logical_percentile=logical_percentile,
+            numerical_percentile=numerical_percentile,
+        ),
+    }
+    has_completed_cognitive_results = any(
+        result.get("completed")
+        and result.get("key") in assessment_keys_in_process
+        for result in candidate_insights["cognitive_results"]
+    )
+
+    if has_any_results:
+        candidate_insights["summary"] = {
+            "body": (
+                "This candidate profile is based on structured historical "
+                "SOVA assessment data. The insights are presented in general "
+                "mode because no original process purpose or role context is "
+                "available."
+            )
+        }
+
+    for item in top_personality_traits[:2]:
+        competency = item.get("competency")
+        value = safe_score(item)
+
+        candidate_insights["key_strengths"].append({
+            "title": competency,
+            "body": (
+                "This is one of the candidate's higher imported personality "
+                "or team style scores."
+            ),
+            "how_it_may_show": (
+                "This may appear as a recurring behavioural preference in "
+                "relevant work situations."
+            ),
+            "why_it_matters": (
+                "This theme may be useful when considering the candidate's "
+                "general work style and contribution."
+            ),
+            "evidence": [
+                f"{competency}: {value}"
+            ],
+        })
+
+    for item in top_motivations[:2]:
+        competency = item.get("competency")
+        value = safe_score(item)
+
+        candidate_insights["key_strengths"].append({
+            "title": competency,
+            "body": (
+                "This is one of the candidate's higher imported motivation "
+                "scores."
+            ),
+            "how_it_may_show": (
+                "This may indicate the conditions or activities that tend "
+                "to energise and engage the candidate."
+            ),
+            "why_it_matters": (
+                "Motivational drivers can affect engagement, satisfaction "
+                "and longer-term retention."
+            ),
+            "evidence": [
+                f"{competency}: {value}"
+            ],
+        })
+
+    for item in personality_development_areas[:2]:
+        competency = item.get("competency")
+        value = safe_score(item)
+
+        candidate_insights["areas_to_explore"].append({
+            "title": competency,
+            "body": (
+                "This is one of the candidate's lower imported personality "
+                "or team style scores."
+            ),
+            "explore_through": (
+                "Ask for examples of situations where this behaviour is more "
+                "or less natural for the candidate."
+            ),
+            "what_to_listen_for": (
+                "Listen for context, self-awareness and strategies the "
+                "candidate uses to adapt."
+            ),
+            "evidence": [
+                f"{competency}: {value}"
+            ],
+        })
+
+    for item in motivation_development_areas[:2]:
+        competency = item.get("competency")
+        value = safe_score(item)
+
+        candidate_insights["areas_to_explore"].append({
+            "title": competency,
+            "body": (
+                "This is one of the candidate's lower imported motivation "
+                "scores."
+            ),
+            "explore_through": (
+                "Ask which types of work situations tend to reduce energy, "
+                "interest or engagement."
+            ),
+            "what_to_listen_for": (
+                "Listen for what the candidate needs from the role, manager "
+                "and working environment."
+            ),
+            "evidence": [
+                f"{competency}: {value}"
+            ],
+        })
+
+    if has_any_results:
+        candidate_insights["questions"] = [
+            {
+                "category": "strengths",
+                "category_label": "Strength",
+                "question": (
+                    "Which parts of your work tend to bring out your "
+                    "strongest qualities?"
+                ),
+                "why": (
+                    "This helps validate whether the imported assessment "
+                    "profile matches the candidate's own experience."
+                ),
+                "listen_for": (
+                    "Concrete examples and consistency with the strongest "
+                    "assessment themes."
+                ),
+            },
+            {
+                "category": "explore",
+                "category_label": "Explore",
+                "question": (
+                    "Are there situations where your usual working style "
+                    "becomes less effective?"
+                ),
+                "why": (
+                    "This helps add context to lower or less preferred scores "
+                    "without treating them automatically as weaknesses."
+                ),
+                "listen_for": (
+                    "Self-awareness, nuance and practical adaptation "
+                    "strategies."
+                ),
+            },
+            {
+                "category": "motivation",
+                "category_label": "Motivation",
+                "question": (
+                    "What type of working environment gives you the most "
+                    "energy over time?"
+                ),
+                "why": (
+                    "This helps connect imported motivation scores to actual "
+                    "working conditions."
+                ),
+                "listen_for": (
+                    "Drivers, demotivators and environmental preferences."
+                ),
+            },
+        ]
+
+    # -------------------------------------------------------------------------
+    # Header assessment/activity information
+    # -------------------------------------------------------------------------
+
+    sent_assessments = []
+
+    for result in assessment_results:
+        sent_assessments.append({
+            "activity": result.assessment_type.title(),
+            "status": (
+                (result.status or "completed")
+                .strip()
+                .lower()
+            ),
+        })
+
+    assessment_keys_in_process = set()
+    for result in assessment_results:
+        assessment_type = str(
+            result.assessment_type or ""
+        ).strip().lower()
+
+        if "personality" in assessment_type or "personlig" in assessment_type:
+            assessment_keys_in_process.add("personality")
+        elif "motivation" in assessment_type:
+            assessment_keys_in_process.add("motivation")
+        elif "numerical" in assessment_type or "numeric" in assessment_type or "numerisk" in assessment_type:
+            assessment_keys_in_process.add("numerical")
+        elif "logical" in assessment_type or "logisk" in assessment_type:
+            assessment_keys_in_process.add("logical")
+        elif "verbal" in assessment_type:
+            assessment_keys_in_process.add("verbal")
+
+    assessment_keys_in_process = sorted(assessment_keys_in_process)
+    has_personality_assessment_in_process = (
+        "personality" in assessment_keys_in_process
+    )
+    has_motivation_assessment_in_process = (
+        "motivation" in assessment_keys_in_process
+    )
+    has_cognitive_assessments_in_process = any(
+        key in assessment_keys_in_process
+        for key in ("verbal", "logical", "numerical")
+    )
+
+    all_competencies = (
+        mq_competencies
+        + normalised_personality_competencies
+        + normalised_team_style_scores
+    )
+
+    combined_questions = (
+        build_combined_candidate_questions(
+            historical_candidate
+        )
+    )
+
+    pre_interview_decision_support = (
+        historical_candidate
+        .ai_pre_interview_decision_support
+        or {}
+    )
+
+    post_interview_decision_support = (
+        historical_candidate
+        .ai_post_interview_decision_support
+        or {}
+    )
+
+    interview_notes = (
+        historical_candidate.interview_notes
+        or ""
+    ).strip()
+
+    has_pre_interview_decision_support = bool(
+        (
+            pre_interview_decision_support.get(
+                "overall_synthesis"
+            )
+            or ""
+        ).strip()
+    )
+
+    has_post_interview_decision_support = bool(
+        (
+            post_interview_decision_support.get(
+                "overall_synthesis"
+            )
+            or ""
+        ).strip()
+        or any(
+            str(value or "").strip()
+            for value in (
+                post_interview_decision_support.get("content_blocks")
+                or {}
+            ).values()
+        )
+    )
+
+    return {
+        "company": process.company,
+        "process": process,
+        "candidate": candidate,
+
+        "historical_candidate": historical_candidate,
+        "historical_reports": historical_candidate.reports.all(),
+        "assessment_results": assessment_results,
+
+        "is_historical": True,
+
+        # Historical candidates have no live invitation.
+        "invitation": None,
+        "inv": None,
+        "assessment_url": None,
+        "activity_events": [],
+        "email_logs_by_id": {},
+
+        # Header information.
+        "sent_assessments": sent_assessments,
+        "assessment_keys_in_process": assessment_keys_in_process,
+        "has_personality_assessment_in_process": has_personality_assessment_in_process,
+        "has_motivation_assessment_in_process": has_motivation_assessment_in_process,
+        "has_cognitive_assessments_in_process": has_cognitive_assessments_in_process,
+        "has_completed_cognitive_results": has_completed_cognitive_results,
+        "tests_sent_count": assessment_results.count(),
+        "tests_completed_count": assessment_results.count(),
+
+        # Shared result flags.
+        "has_motivation_results": has_motivation_results,
+        "has_personality_results": has_personality_results,
+        "has_ability_results": has_ability_results,
+        "has_verbal_results": has_verbal_results,
+        "has_logical_results": has_logical_results,
+        "has_numerical_results": has_numerical_results,
+        "has_any_results": has_any_results,
+        "all_assessments_completed": all_assessments_completed,
+
+        # ---------------------------------------------------------
+        # Final output / decision support
+        # ---------------------------------------------------------
+
+        "pre_interview_decision_support": (
+            pre_interview_decision_support
+        ),
+
+        "pre_interview_decision_support_status": (
+            historical_candidate
+            .ai_pre_interview_decision_support_status
+            or "not_started"
+        ),
+
+        "pre_interview_decision_support_generated_at": (
+            historical_candidate
+            .ai_pre_interview_decision_support_generated_at
+        ),
+
+        "has_pre_interview_decision_support": (
+            has_pre_interview_decision_support
+        ),
+
+        "pre_interview_decision_support_stream_url": reverse(
+            (
+                "processes:"
+                "process_candidate_pre_interview_"
+                "decision_support_stream"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
+        "pre_interview_decision_support_regenerate_url": reverse(
+            (
+                "processes:"
+                "process_candidate_pre_interview_"
+                "decision_support_regenerate"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
+        "interview_notes": interview_notes,
+
+        "has_interview_notes": bool(
+            interview_notes
+        ),
+
+        "interview_notes_updated_at": (
+            historical_candidate
+            .interview_notes_updated_at
+        ),
+
+        "interview_notes_updated_by": (
+            historical_candidate
+            .interview_notes_updated_by
+        ),
+
+        "interview_notes_update_url": reverse(
+            (
+                "processes:"
+                "process_candidate_"
+                "interview_notes_update"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
+        "post_interview_decision_support": (
+            post_interview_decision_support
+        ),
+
+        "post_interview_decision_support_status": (
+            historical_candidate
+            .ai_post_interview_decision_support_status
+            or "not_started"
+        ),
+
+        "post_interview_decision_support_generated_at": (
+            historical_candidate
+            .ai_post_interview_decision_support_generated_at
+        ),
+
+        "has_post_interview_decision_support": (
+            has_post_interview_decision_support
+        ),
+
+        "post_interview_decision_support_stream_url": reverse(
+            (
+                "processes:"
+                "process_candidate_post_interview_"
+                "decision_support_stream"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
+        "post_interview_decision_support_regenerate_url": reverse(
+            (
+                "processes:"
+                "process_candidate_post_interview_"
+                "decision_support_regenerate"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
+        "final_output_refresh_url": reverse(
+            (
+                "processes:"
+                "process_candidate_final_output"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
+        # ---------------------------------------------------------
+        # Historical cognitive AI
+        # ---------------------------------------------------------
+
+        "cognitive_interpretation": (
+            historical_candidate
+            .ai_cognitive_interpretation
+            or {}
+        ),
+
+        "cognitive_interpretation_status": (
+            historical_candidate
+            .ai_cognitive_interpretation_status
+            or "not_started"
+        ),
+
+        "cognitive_interpretation_stream_url": reverse(
+            (
+                "processes:"
+                "process_candidate_cognitive_"
+                "interpretation_stream"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
+        "cognitive_interpretation_regenerate_url": reverse(
+            (
+                "processes:"
+                "process_candidate_cognitive_"
+                "interpretation_regenerate"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
+        "cognitive_questions": (
+            historical_candidate
+            .ai_cognitive_questions
+            or {}
+        ),
+
+        "cognitive_questions_status": (
+            historical_candidate
+            .ai_cognitive_questions_status
+            or "not_started"
+        ),
+
+        "cognitive_questions_stream_url": reverse(
+            (
+                "processes:"
+                "process_candidate_cognitive_"
+                "questions_stream"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
+        "cognitive_questions_regenerate_url": reverse(
+            (
+                "processes:"
+                "process_candidate_cognitive_"
+                "questions_regenerate"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
+        # ---------------------------------------------------------
+        # Combined assessment questions
+        # ---------------------------------------------------------
+
+        "combined_questions": (
+            combined_questions
+        ),
+
+        "combined_question_sections": (
+            combined_questions["sections"]
+        ),
+
+        "combined_question_count": (
+            combined_questions["total_count"]
+        ),
+
+        "has_combined_questions": (
+            combined_questions["has_questions"]
+        ),
+
+        "combined_questions_refresh_url": reverse(
+            (
+                "processes:"
+                "process_candidate_combined_questions"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
+        # Normalised assessment data.
+        "motivation_results": motivation_results,
+        "mq_competencies": mq_competencies,
+        "personality_competencies": (
+            normalised_personality_competencies
+        ),
+        "team_style_scores": normalised_team_style_scores,
+        "all_competencies": all_competencies,
+        "ability_results": ability_results,
+
+        "verbal_percentile": verbal_percentile,
+        "logical_percentile": logical_percentile,
+        "numerical_percentile": numerical_percentile,
+
+        # Existing report builders.
+        "motivation_scores": motivation_scores,
+        "motivation_insights": motivation_insights,
+        "motivation_reports_for_ui": motivation_reports_for_ui,
+        "ability_reports_for_ui": ability_reports_for_ui,
+        "personality_reports": personality_reports,
+        "personality_profile": personality_profile,
+        "profile_contrast_analysis": build_profile_contrast_analysis(
+            personality_profile,
+            language=language,
+            source="personality_assessment",
+        ),
+        "available_reports_count": available_reports_count,
+
+        # General insight data.
+        "candidate_insights": candidate_insights,
+        "general_insight_input": general_insight_input,
+
+        "top_motivations": top_motivations,
+        "top_personality_traits": top_personality_traits,
+        "motivation_development_areas": (
+            motivation_development_areas
+        ),
+        "personality_development_areas": (
+            personality_development_areas
+        ),
+
+        # Historical candidates always use general mode.
+        "purpose_report": None,
+        "report_mode": "general",
+        "context_config": {},
+        "show_context_prompt": False,
+        "summary_owner": historical_candidate,
+
+        # Compatibility keys expected elsewhere in the template.
+        "activities": [],
+        "project_results": {},
+        "project_scores": [],
+        "competency_scores": [],
+        "overall_score": None,
+        "reports": [],
+
+        # Historical personality AI interpretation
+        "personality_interpretation": (
+            historical_candidate
+            .ai_personality_interpretation
+            or {}
+        ),
+
+        "team_style_profile": team_style_profile,
+        "leadership_report_content": build_leadership_report_content(language, normalised_personality_competencies + normalised_team_style_scores),
+        "derailment_report_content": build_derailment_report_content(language, normalised_personality_competencies),
+
+        "personality_interpretation_status": (
+            historical_candidate
+            .ai_personality_interpretation_status
+            or "not_started"
+        ),
+
+        "personality_interpretation_stream_url": reverse(
+            (
+                "processes:"
+                "process_candidate_personality_"
+                "interpretation_stream"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
+        "personality_interpretation_regenerate_url": reverse(
+            (
+                "processes:"
+                "process_candidate_personality_"
+                "interpretation_regenerate"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
+        # ---------------------------------------------------------
+        # Historical personality questions
+        # ---------------------------------------------------------
+
+        "personality_questions": (
+            historical_candidate
+            .ai_personality_questions
+            or {}
+        ),
+
+        "personality_questions_status": (
+            historical_candidate
+            .ai_personality_questions_status
+            or "not_started"
+        ),
+
+        "selected_personality_traits": (
+            historical_candidate
+            .selected_personality_traits
+            or []
+        ),
+
+        "personality_questions_stream_url": reverse(
+            (
+                "processes:"
+                "process_candidate_personality_"
+                "questions_stream"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
+        "personality_questions_regenerate_url": reverse(
+            (
+                "processes:"
+                "process_candidate_personality_"
+                "questions_regenerate"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
+        "personality_traits_update_url": reverse(
+            (
+                "processes:"
+                "process_candidate_personality_"
+                "traits_update"
+            ),
+            kwargs={
+                "process_id": process.id,
                 "candidate_id": candidate.id,
             },
         ),
