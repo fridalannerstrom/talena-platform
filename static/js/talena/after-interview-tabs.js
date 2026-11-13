@@ -138,9 +138,9 @@
       evidenceLeadReady: "Du kan komplettera eller ändra anteckningarna här. Sammanställ på nytt för att uppdatera analysen och rapporterna.",
       evidenceTip: "Tips: Beskriv konkreta situationer, vad kandidaten gjorde och vad som hände. Svar som sparats på intervjufrågorna följer med automatiskt.",
       reportsIntro: "Här hittar du de sammanställda resultaten och rapporterna. Underlaget kan alltid kompletteras i fliken Underlag.",
-      reportStatusOutdated: "Underlaget har ändrats sedan rapporterna skapades.",
-      reportStatusUnsaved: "Du har osparade intervjuanteckningar. Skapa en ny sammanställning för att uppdatera rapporterna.",
-      reportStatusDetail: "Rapporterna visar fortfarande den tidigare versionen tills du skapar en ny sammanställning.",
+      reportStatusOutdated: "Intervjuunderlaget har ändrats sedan senaste sammanställningen.",
+      reportStatusUnsaved: "Intervjuunderlaget har ändrats sedan senaste sammanställningen.",
+      reportStatusDetail: "Klicka på Sammanställ igen för att uppdatera rapporterna.",
       reportRebuild: "Skapa ny sammanställning",
       reportRebuildShort: "Uppdatera rapporterna",
       reportGenerateUnavailable: "Lägg till och spara intervjuunderlag för att skapa rapporter.",
@@ -279,9 +279,9 @@
       evidenceLeadReady: "Add or change notes here, then compile again to update the analysis and reports.",
       evidenceTip: "Tip: Describe specific situations, what the candidate did and what happened. Answers saved on interview questions are included automatically.",
       reportsIntro: "Find all compiled results and reports here. You can always update the evidence in the Evidence tab.",
-      reportStatusOutdated: "The evidence has changed since these reports were created.",
-      reportStatusUnsaved: "You have unsaved interview notes. Create a new compilation to update the reports.",
-      reportStatusDetail: "The reports still show the previous version until you create a new compilation.",
+      reportStatusOutdated: "The interview evidence has changed since the last compilation.",
+      reportStatusUnsaved: "The interview evidence has changed since the last compilation.",
+      reportStatusDetail: "Click Compile again to update the reports.",
       reportRebuild: "Create new compilation",
       reportRebuildShort: "Update reports",
       reportGenerateUnavailable: "Add and save interview evidence to generate reports.",
@@ -1967,7 +1967,7 @@
     // and the final-output refresh helper. Only the visual navigation changes.
     // Keep historical interview_summary data on the server, but this tab is
     // retired (#442). Old afterTab=interview URLs fall back to Helhetsbild.
-    const keys = ["evidence", "overview", "explore", "managerReport"];
+    const keys = ["evidence", "overview", "managerReport"];
     const reportKeys = keys.filter((key) => key !== "evidence");
     const buttons = new Map();
     const panels = new Map();
@@ -2009,16 +2009,7 @@
     reportsIntro.className = "after-interview-reports__description";
     reportsIntro.textContent = copy().reportsIntro;
     reportsHeading.append(reportsTitle, reportsIntro);
-    const reportsRefresh = document.createElement("button");
-    reportsRefresh.type = "button";
-    reportsRefresh.className = "after-interview-reports__refresh";
-    reportsRefresh.dataset.afterInterviewRebuild = "reports";
-    reportsRefresh.title = copy().reportRebuildShort;
-    reportsRefresh.setAttribute("aria-label", copy().reportRebuildShort);
-    const reportsRefreshIcon = document.createElement("i");
-    reportsRefreshIcon.setAttribute("data-feather", "refresh-cw");
-    reportsRefresh.appendChild(reportsRefreshIcon);
-    reportsHeader.append(reportsHeading, reportsRefresh);
+    reportsHeader.appendChild(reportsHeading);
 
     const reportStatus = document.createElement("div");
     reportStatus.className = "after-interview-reports__status";
@@ -2050,7 +2041,7 @@
       reportPanels.appendChild(tabPanel);
     });
     reportNavWrapper.appendChild(reportNav);
-    reportsArea.append(reportsHeader, reportStatus, reportNavWrapper, reportPanels);
+    reportsArea.append(reportsHeader, reportNavWrapper, reportPanels);
     tabPanels.appendChild(reportsArea);
 
     navLayout.appendChild(primaryNav);
@@ -2815,7 +2806,7 @@
     tipText.textContent = copy().evidenceTip;
     evidenceTip.append(tipIcon, tipText);
     evidenceIntro.append(evidenceKicker, evidenceHeading, evidenceLead, evidenceTip);
-    evidenceCard.append(evidenceIntro, notesRoot, postSection);
+    evidenceCard.append(evidenceIntro, reportStatus, notesRoot, postSection);
     if (hasCompiledPostInterviewResult) {
       // The original section must stay in the DOM for its native regeneration
       // handler, but should not render another heading, status or spinner.
@@ -2845,11 +2836,13 @@
 
     const notesInput = notesRoot.querySelector("[data-interview-notes-input]");
     const originalSavedNotes = notesInput?.value || "";
+    let hasChangedQuestionEvidence =
+      outputRoot?.dataset.postInterviewStatus === "outdated";
     const updateReportStatus = () => {
       if (!hasCompiledPostInterviewResult) return;
       const hasUnsavedNotes = Boolean(notesInput && notesInput.value !== originalSavedNotes);
       const isContextChanged = outputRoot?.dataset.postInterviewContextChanged === "true";
-      const needsUpdate = hasUnsavedNotes || isContextChanged;
+      const needsUpdate = hasUnsavedNotes || hasChangedQuestionEvidence || isContextChanged;
       const currentJourneyStep = needsUpdate ? 1 : 2;
       journeySteps.querySelectorAll(".after-interview-journey__step").forEach((step, index) => {
         step.classList.toggle("is-current", index === currentJourneyStep);
@@ -2861,18 +2854,9 @@
       // Changed input still displays its existing actionable warning.
       reportStatus.hidden = !needsUpdate;
       reportStatus.classList.toggle("needs-update", needsUpdate);
-      reportsRefresh.classList.toggle("needs-update", needsUpdate);
-      reportsButton.classList.toggle("needs-update", needsUpdate);
-      reportsButton.title = needsUpdate ? copy().reportStatusOutdated : "";
-      reportsButton.setAttribute("aria-label", needsUpdate
-        ? copy().tabs.reports + ". " + copy().reportStatusOutdated
-        : copy().tabs.reports);
-      reportStatusTitle.textContent = hasUnsavedNotes
-        ? copy().reportStatusUnsaved : needsUpdate ? copy().reportStatusOutdated : "";
+      reportStatusTitle.textContent = needsUpdate ? copy().reportStatusOutdated : "";
       reportStatusDetail.textContent = needsUpdate ? copy().reportStatusDetail : "";
       reportStatusDetail.hidden = !needsUpdate;
-      reportsRefresh.title = needsUpdate ? copy().reportRebuildShort : copy().reportRebuild;
-      reportsRefresh.setAttribute("aria-label", reportsRefresh.title);
     };
     updateReportStatus();
     notesInput?.addEventListener("input", updateReportStatus);
@@ -2881,6 +2865,7 @@
       const changedNotesUrl = event.detail?.notesUrl || "";
       const ownNotesUrl = outputRoot.dataset.questionEvidenceNotesUrl || "";
       if (changedNotesUrl && ownNotesUrl && changedNotesUrl !== ownNotesUrl) return;
+      hasChangedQuestionEvidence = true;
       updateReportStatus();
     });
 
