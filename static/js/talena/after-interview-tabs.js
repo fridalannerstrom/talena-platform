@@ -2426,7 +2426,12 @@
         const existingError = personalityRoot.querySelector("[data-personality-ai-error]");
         existingError?.classList.add("d-none");
 
-        if (!regenerateButton.disabled) regenerateButton.click();
+        if (!regenerateButton.disabled) {
+          // Explicit manager-report regeneration must ask for fresh personality
+          // output so the latest administrator prompt is applied.
+          regenerateButton.dataset.forceAdminPrompt = "true";
+          regenerateButton.click();
+        }
 
         let sawGeneration = regenerateButton.disabled;
         const deadline = Date.now() + 180000;
