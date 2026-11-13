@@ -2419,6 +2419,7 @@ def save_post_interview_decision_support(
             "After interview content blocks."
         )
 
+    result["interview_evidence_changed_since_compilation"] = False
     generated_at = timezone.now()
 
     owner.ai_post_interview_decision_support = (
