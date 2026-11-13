@@ -143,7 +143,7 @@
       reportsIntro: "Här hittar du de sammanställda resultaten och rapporterna. Underlaget kan alltid kompletteras i fliken Underlag.",
       reportStatusOutdated: "Underlaget har ändrats sedan rapporterna skapades.",
       reportStatusUnsaved: "Du har osparade intervjuanteckningar.",
-      reportStatusDetail: "Generera varje rapport separat med knappen i respektive rapport.",
+      reportStatusDetail: "Gå till fliken Underlag och välj Generera ny sammanställning för att uppdatera helhetsbilden och chefsrapporten.",
       reportOverviewTitle: "Dina rapporter",
     },
     en: {
@@ -281,7 +281,7 @@
       reportsIntro: "Find all compiled results and reports here. You can always update the evidence in the Evidence tab.",
       reportStatusOutdated: "The evidence has changed since these reports were created.",
       reportStatusUnsaved: "You have unsaved interview notes.",
-      reportStatusDetail: "Generate each report separately using its own report button.",
+      reportStatusDetail: "Open the Evidence tab and select Generate new compilation to update the overall picture and manager report.",
       reportOverviewTitle: "Your reports",
     },
   };
