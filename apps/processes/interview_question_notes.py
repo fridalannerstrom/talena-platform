@@ -493,15 +493,21 @@ def process_candidate_interview_question_note_update(
     # post-interview synthesis, so make that state explicit immediately.
     if owner.ai_post_interview_decision_support:
         post_interview_status = "outdated"
+        decision_support = dict(owner.ai_post_interview_decision_support)
+        decision_support["interview_evidence_changed_since_compilation"] = True
+        owner.ai_post_interview_decision_support = decision_support
+        update_fields = [
+            "ai_post_interview_decision_support_status",
+            "ai_post_interview_decision_support",
+        ]
     else:
         post_interview_status = "not_started"
-
-    owner.ai_post_interview_decision_support_status = post_interview_status
-    owner.save(
-        update_fields=[
+        update_fields = [
             "ai_post_interview_decision_support_status",
         ]
-    )
+
+    owner.ai_post_interview_decision_support_status = post_interview_status
+    owner.save(update_fields=update_fields)
 
     return JsonResponse(
         {
