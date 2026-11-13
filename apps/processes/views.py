@@ -5464,7 +5464,7 @@ def process_candidate_interview_notes_update(
                 interview_notes
             ),
             "updated_at": (
-                updated_at.isoformat()
+                updated_at.isoformat() if updated_at else None
             ),
             "updated_by": (
                 (invitation.interview_notes_updated_by.get_full_name()
