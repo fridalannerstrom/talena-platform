@@ -2737,7 +2737,7 @@
       compilationButton.append(compilationIcon, compilationButtonText);
       compilationAction.append(compilationTitle, compilationDescription, compilationButton);
 
-      const nativeCompileButton = outputRoot?.querySelector(
+      const nativeCompileButton = postSection?.querySelector(
         '[data-post-interview-generate][data-regenerate="true"]'
       );
       if (nativeCompileButton) {
