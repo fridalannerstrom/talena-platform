@@ -2885,8 +2885,10 @@
     });
 
     const runFullCompilation = (trigger) => {
+      // The native action can be either a first-time generation or a
+      // regeneration. Both are valid when rebuilding the report package.
       const nativeButton = postSection.querySelector(
-        '[data-post-interview-generate][data-regenerate="true"]'
+        "[data-post-interview-generate]"
       );
       if (!nativeButton || nativeButton.disabled) {
         if (trigger.dataset.afterInterviewRebuild === "reports") {
