@@ -133,7 +133,12 @@
       evidenceHeading: "Börja med det som kom fram i intervjun",
       evidenceHeadingReady: "Komplettera ditt intervjuunderlag",
       evidenceLead: "Testresultat och rollkontext finns redan i Talena. Lägg till exempel, svar och observationer från samtalet här.",
-      evidenceLeadReady: "Du kan komplettera eller ändra anteckningarna här. Generera rapporterna var för sig från respektive rapportflik.",
+      evidenceLeadReady: "Komplettera eller ändra anteckningarna här. När du vill uppdatera helhetsbilden och chefsrapporten utifrån underlaget använder du knappen längst ner.",
+      compileAgainTitle: "Skapa en ny sammanställning",
+      compileAgainDescription: "Generera helhetsbild och chefsrapport på nytt utifrån aktuella anteckningar och sparade intervjusvar. Manuella ändringar i rapporttexter behålls.",
+      compileAgainButton: "Generera ny sammanställning",
+      compileAgainBusy: "Genererar ny sammanställning…",
+      compileAgainUnavailable: "Sammanställningen kunde inte startas. Ladda om sidan och försök igen.",
       evidenceTip: "Tips: Beskriv konkreta situationer, vad kandidaten gjorde och vad som hände. Svar som sparats på intervjufrågorna följer med automatiskt.",
       reportsIntro: "Här hittar du de sammanställda resultaten och rapporterna. Underlaget kan alltid kompletteras i fliken Underlag.",
       reportStatusOutdated: "Underlaget har ändrats sedan rapporterna skapades.",
@@ -266,7 +271,12 @@
       evidenceHeading: "Start with what you learned in the interview",
       evidenceHeadingReady: "Update your interview evidence",
       evidenceLead: "Talena already has the assessment results and role context. Add examples, answers and observations from the conversation here.",
-      evidenceLeadReady: "Add or change notes here. Generate each report separately from its report tab.",
+      evidenceLeadReady: "Add or change notes here. Use the button at the bottom to update the overall picture and manager report from the evidence.",
+      compileAgainTitle: "Create a new compilation",
+      compileAgainDescription: "Regenerate the overall picture and manager report from the current notes and saved interview answers. Manual report text edits are preserved.",
+      compileAgainButton: "Generate new compilation",
+      compileAgainBusy: "Generating new compilation…",
+      compileAgainUnavailable: "The compilation could not be started. Refresh the page and try again.",
       evidenceTip: "Tip: Describe specific situations, what the candidate did and what happened. Answers saved on interview questions are included automatically.",
       reportsIntro: "Find all compiled results and reports here. You can always update the evidence in the Evidence tab.",
       reportStatusOutdated: "The evidence has changed since these reports were created.",
@@ -1361,6 +1371,20 @@
       __PANEL__ .after-interview-report-panels > [hidden] { display: none !important; }
       __PANEL__ .after-interview-evidence-card [data-post-interview-generate][data-regenerate="true"] {
         display: none !important;
+      }
+      __PANEL__ .after-interview-evidence-compilation {
+        display: grid; gap: .55rem; padding: 1.1rem 1.2rem;
+        border: 1px solid var(--talena-border, #e5dfd8); border-radius: 14px;
+        background: #faf8f6;
+      }
+      __PANEL__ .after-interview-evidence-compilation__title {
+        margin: 0; font-size: 1rem; font-weight: 700;
+      }
+      __PANEL__ .after-interview-evidence-compilation__description {
+        margin: 0; color: var(--talena-muted, #6f6863);
+      }
+      __PANEL__ .after-interview-evidence-compilation__button {
+        justify-self: start; display: inline-flex; align-items: center; gap: .5rem;
       }
       @media (max-width: 767px) {
         __PANEL__ .after-interview-reports__header { flex-wrap: wrap; }
@@ -2693,6 +2717,60 @@
     evidenceTip.append(tipIcon, tipText);
     evidenceIntro.append(evidenceKicker, evidenceHeading, evidenceLead, evidenceTip);
     evidenceCard.append(evidenceIntro, notesRoot, postSection);
+    if (hasCompiledPostInterviewResult) {
+      const compilationAction = document.createElement("section");
+      compilationAction.className = "after-interview-evidence-compilation";
+      const compilationTitle = document.createElement("h4");
+      compilationTitle.className = "after-interview-evidence-compilation__title";
+      compilationTitle.textContent = copy().compileAgainTitle;
+      const compilationDescription = document.createElement("p");
+      compilationDescription.className = "after-interview-evidence-compilation__description";
+      compilationDescription.textContent = copy().compileAgainDescription;
+      const compilationButton = document.createElement("button");
+      compilationButton.type = "button";
+      compilationButton.className = "btn btn-primary after-interview-evidence-compilation__button";
+      const compilationIcon = document.createElement("i");
+      compilationIcon.setAttribute("data-feather", "refresh-cw");
+      compilationIcon.setAttribute("aria-hidden", "true");
+      const compilationButtonText = document.createElement("span");
+      compilationButtonText.textContent = copy().compileAgainButton;
+      compilationButton.append(compilationIcon, compilationButtonText);
+      compilationAction.append(compilationTitle, compilationDescription, compilationButton);
+
+      const nativeCompileButton = outputRoot?.querySelector(
+        '[data-post-interview-generate][data-regenerate="true"]'
+      );
+      if (nativeCompileButton) {
+        const setCompilationBusy = (busy) => {
+          compilationButton.disabled = busy;
+          compilationButtonText.textContent = busy
+            ? copy().compileAgainBusy : copy().compileAgainButton;
+          if (busy) compilationIcon.classList.add("d-none");
+          else compilationIcon.classList.remove("d-none");
+          if (window.feather) window.feather.replace();
+        };
+        const waitForCompilation = () => {
+          if (!outputRoot.isConnected) return;
+          if (!nativeCompileButton.disabled) {
+            setCompilationBusy(false);
+            return;
+          }
+          window.setTimeout(waitForCompilation, 250);
+        };
+        nativeCompileButton.addEventListener("click", () => {
+          setCompilationBusy(true);
+          window.setTimeout(waitForCompilation, 250);
+        });
+        compilationButton.addEventListener("click", () => {
+          if (compilationButton.disabled || nativeCompileButton.disabled) return;
+          nativeCompileButton.click();
+        });
+      } else {
+        compilationButton.disabled = true;
+        compilationButtonText.textContent = copy().compileAgainUnavailable;
+      }
+      evidenceCard.appendChild(compilationAction);
+    }
     if (hasCompiledPostInterviewResult) {
       // The original section must stay in the DOM for its native regeneration
       // handler, but should not render another heading, status or spinner.
