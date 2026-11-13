@@ -2582,8 +2582,10 @@
       });
     }
 
-    managerReportGenerateButton.addEventListener("click", () => {
-      if (managerReportGenerateButton.disabled) return;
+    const regenerateManagerReport = () => {
+      if (managerReportGenerateButton.disabled) {
+        return Promise.resolve(false);
+      }
 
       const generationPromise = (async () => {
         managerReportGenerateError.classList.add("d-none");
@@ -2636,7 +2638,10 @@
       })();
 
       managerReportGenerateButton._talenaGenerationPromise = generationPromise;
-    });
+      return generationPromise;
+    };
+    managerReportGenerateButton._talenaRegenerate = regenerateManagerReport;
+    managerReportGenerateButton.addEventListener("click", regenerateManagerReport);
 
     updateManagerReportGenerateLabel();
     managerPersonality.appendChild(managerPersonalityTitle);
@@ -2948,34 +2953,31 @@
       const managerReportButton = outputRoot.querySelector(
         "[data-manager-report-generate]"
       );
-      if (managerReportButton) {
-        if (managerReportButton.disabled) {
-          restoreTrigger();
-          return;
-        }
+      if (
+        !managerReportButton ||
+        typeof managerReportButton._talenaRegenerate !== "function"
+      ) {
+        reportStatus.hidden = false;
+        reportStatus.classList.add("needs-update");
+        reportStatusTitle.textContent = copy().sectionGenerationFailed;
+        reportStatusDetail.textContent = "";
+        restoreTrigger();
+        return;
+      }
 
-        const editController = workspace?._talenaManagerReportEditController;
-        if (editController?.state) {
-          editController.state.confirmedRegenerationTrigger = managerReportButton;
-        }
-
-        managerReportButton.click();
-        const managerGeneration = managerReportButton._talenaGenerationPromise;
-        const managerSucceeded = managerGeneration
-          ? await managerGeneration
-          : false;
-        if (!managerSucceeded) {
-          const managerError = outputRoot.querySelector(
-            ".after-interview-manager-report [role='alert']:not(.d-none)"
-          );
-          reportStatus.hidden = false;
-          reportStatus.classList.add("needs-update");
-          reportStatusTitle.textContent =
-            managerError?.textContent?.trim() || copy().reportError;
-          reportStatusDetail.textContent = "";
-          restoreTrigger();
-          return;
-        }
+      const managerSucceeded =
+        await managerReportButton._talenaRegenerate();
+      if (!managerSucceeded) {
+        const managerError = outputRoot.querySelector(
+          ".after-interview-manager-report [role='alert']:not(.d-none)"
+        );
+        reportStatus.hidden = false;
+        reportStatus.classList.add("needs-update");
+        reportStatusTitle.textContent =
+          managerError?.textContent?.trim() || copy().reportError;
+        reportStatusDetail.textContent = "";
+        restoreTrigger();
+        return;
       }
 
       // A full report rebuild also regenerates the manager-report AI text.
