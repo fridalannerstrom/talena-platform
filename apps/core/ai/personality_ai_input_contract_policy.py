@@ -224,9 +224,9 @@ def _personality_interpretation_admin_guidance(
                 language=language_code,
             )
             manager_report_sections.append(
-                f"THEME {theme['label']} · {part}\\n{instruction}"
+                f"THEME {theme['label']} · {part}\n{instruction}"
             )
-    manager_report_guidance = "\\n\\n".join(manager_report_sections)
+    manager_report_guidance = "\n\n".join(manager_report_sections)
 
     return f"""
 ADMINISTRATOR AI GUIDANCE
