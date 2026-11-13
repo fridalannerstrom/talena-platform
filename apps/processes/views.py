@@ -12272,8 +12272,11 @@ def process_candidate_personality_interpretation_stream(
     # RETURN SAVED RESULT
     # ---------------------------------------------------------
 
+    force_regeneration = request.GET.get("force") == "1"
+
     if (
-        ai_content_language_matches(
+        not force_regeneration
+        and ai_content_language_matches(
             owner,
             "personality_interpretation",
             language_code,
