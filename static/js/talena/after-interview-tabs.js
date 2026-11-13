@@ -142,6 +142,7 @@
       reportStatusUnsaved: "Intervjuunderlaget har ändrats sedan senaste sammanställningen.",
       reportStatusDetail: "Klicka på Sammanställ igen för att uppdatera rapporterna.",
       reportRebuild: "Skapa ny sammanställning",
+      reportCompile: "Sammanställ",
       reportRebuildShort: "Uppdatera rapporterna",
       reportGenerateUnavailable: "Lägg till och spara intervjuunderlag för att skapa rapporter.",
       reportGenerating: "Sammanställer…",
@@ -283,6 +284,7 @@
       reportStatusUnsaved: "The interview evidence has changed since the last compilation.",
       reportStatusDetail: "Click Compile again to update the reports.",
       reportRebuild: "Create new compilation",
+      reportCompile: "Compile reports",
       reportRebuildShort: "Update reports",
       reportGenerateUnavailable: "Add and save interview evidence to generate reports.",
       reportGenerating: "Compiling…",
@@ -2792,26 +2794,27 @@
     tipText.textContent = copy().evidenceTip;
     evidenceTip.append(tipIcon, tipText);
     evidenceIntro.append(evidenceKicker, evidenceHeading, evidenceLead, evidenceTip);
-    evidenceCard.append(evidenceIntro, reportStatus, notesRoot, postSection);
-    if (hasCompiledPostInterviewResult) {
-      // The original section must stay in the DOM for its native regeneration
-      // handler, but should not render another heading, status or spinner.
-      // The single visible "new compilation" action is immediately below.
-      postSection.classList.add("d-none");
-      postSection.setAttribute("aria-hidden", "true");
-      const rebuildRow = document.createElement("div");
-      rebuildRow.className = "after-interview-evidence-rebuild";
-      const rebuildDescription = document.createElement("p");
-      rebuildDescription.className = "after-interview-evidence-rebuild__text";
-      rebuildDescription.textContent = copy().evidenceRebuildHint;
-      const rebuildButton = document.createElement("button");
-      rebuildButton.type = "button";
-      rebuildButton.className = "btn btn-primary";
-      rebuildButton.dataset.afterInterviewRebuild = "evidence";
-      rebuildButton.textContent = copy().reportRebuild;
-      rebuildRow.append(rebuildDescription, rebuildButton);
-      evidenceCard.appendChild(rebuildRow);
-    }
+    evidenceCard.append(evidenceIntro, reportStatus, notesRoot);
+
+    // Keep the original generation controls and result markup mounted for
+    // their existing streaming handlers, but never show the generic synthesis
+    // panel. The visible workspace is Underlag plus the two report tabs.
+    postSection.classList.add("d-none");
+    postSection.setAttribute("aria-hidden", "true");
+
+    const compilationRow = document.createElement("div");
+    compilationRow.className = "after-interview-evidence-rebuild";
+    const compilationButton = document.createElement("button");
+    compilationButton.type = "button";
+    compilationButton.className = "btn btn-primary";
+    compilationButton.dataset.afterInterviewRebuild = "evidence";
+    compilationButton.textContent = hasCompiledPostInterviewResult
+      ? copy().reportRebuild : copy().reportCompile;
+    compilationRow.appendChild(compilationButton);
+    const compilationError = document.createElement("div");
+    compilationError.className = "alert alert-danger d-none mt-3 mb-0";
+    compilationError.setAttribute("role", "alert");
+    evidenceCard.append(compilationRow, compilationError, postSection);
     panels.get("evidence").appendChild(evidenceCard);
 
     if (contextNote?.isConnected) panels.get("overview").appendChild(contextNote);
@@ -2856,23 +2859,13 @@
     });
 
     const runFullCompilation = (trigger) => {
-      const nativeButton = postSection.querySelector(
-        '[data-post-interview-generate][data-regenerate="true"]'
-      );
-      if (!nativeButton || nativeButton.disabled) {
-        if (trigger.dataset.afterInterviewRebuild === "reports") {
-          reportStatus.hidden = false;
-          reportStatusTitle.textContent = copy().reportGenerateUnavailable;
-          reportStatusDetail.textContent = "";
-        } else {
-          const error = postSection.querySelector("[data-post-interview-error]");
-          if (error) {
-            error.textContent = copy().reportGenerateUnavailable;
-            error.classList.remove("d-none");
-          }
-        }
+      const nativeButton = postSection.querySelector("[data-post-interview-generate]");
+      if (!nativeButton || nativeButton.disabled || nativeButton.classList.contains("d-none")) {
+        compilationError.textContent = copy().reportGenerateUnavailable;
+        compilationError.classList.remove("d-none");
         return;
       }
+      compilationError.classList.add("d-none");
       trigger.disabled = true;
       trigger.setAttribute("aria-busy", "true");
       const previousContents = [...trigger.childNodes];
@@ -2909,11 +2902,16 @@
           watcher.disconnect();
           const error = postSection.querySelector("[data-post-interview-error]");
           if (error && !error.classList.contains("d-none")) {
-            reportStatus.hidden = false;
-            reportStatus.classList.add("needs-update");
-            reportStatusTitle.textContent = error.textContent.trim() || copy().reportError;
-            reportStatusDetail.textContent = copy().reportStatusDetail;
+            compilationError.textContent = error.textContent.trim() || copy().reportError;
+            compilationError.classList.remove("d-none");
+            if (hasCompiledPostInterviewResult) {
+              reportStatus.hidden = false;
+              reportStatus.classList.add("needs-update");
+              reportStatusTitle.textContent = copy().reportStatusOutdated;
+              reportStatusDetail.textContent = copy().reportStatusDetail;
+            }
           } else {
+            compilationError.classList.add("d-none");
             updateReportStatus();
           }
         }
