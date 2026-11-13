@@ -4692,10 +4692,17 @@ notifyCandidateAiContentUpdated(
           );
         }
 
-        await streamInterpretation(
-          data.stream_url ||
-          streamUrl
-        );
+        const forceAdminPrompt =
+          regenerateButton.dataset.forceAdminPrompt === "true";
+        delete regenerateButton.dataset.forceAdminPrompt;
+        let targetStreamUrl = data.stream_url || streamUrl;
+        if (forceAdminPrompt) {
+          const forcedUrl = new URL(targetStreamUrl, window.location.origin);
+          forcedUrl.searchParams.set("force", "1");
+          targetStreamUrl = forcedUrl.toString();
+        }
+
+        await streamInterpretation(targetStreamUrl);
 
       } catch (error) {
         console.error(
