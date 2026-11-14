@@ -491,7 +491,7 @@ def _validate_synthesis_provenance(value):
         r"\b(?:behöver|bör|kan behöva|need(?:s)? to|should)\b.{0,70}\b(?:utforskas vidare|utforska vidare|explore further|be explored further)\b",
         r"\b(?:potential(?:en)? att bidra|potential to contribute|kan bidra positivt|could contribute positively|god grund att bidra)\b",
         r"\b(?:mer|ytterligare|extra)\s+(?:tid|ansträngning|energi|time|effort)\b",
-        r"\b(?:kan|could|may)\s+(?:påverka|affect)\b.{0,100}\b(?:arbetsprestation|beslutsfattande|ledarskap|hur personen agerar|job performance|decision making|leadership)\b",
+        r"\b(?:kan|could|may)\s+(?:påverka|affect)\b.{0,120}\b(?:arbetsprestation|beslutsfattande|ledarskap|hur (?:personen|hen|hon|han|kandidaten) agerar|job performance|decision making|leadership)\b",
         r"\b(?:tillgång i|asset to)\b.{0,50}\b(?:team|arbete|roll|teamwork|role)\b",
         r"\b(?:öka sin trygghet|öka tryggheten|arbeta mer aktivt med att|increase (?:their|the candidate's) confidence)\b",
         r"\b(?:vilja att stödja|willingness to support)\b",
