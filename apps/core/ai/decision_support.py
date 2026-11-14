@@ -3709,14 +3709,14 @@ def _remove_unsupported_wellbeing_claims(draft: str, claims: list[dict[str, Any]
         result = result.replace(claim, "")
     blocks = [
         block.strip()
-        for block in re.split(r"\\n\\s*\\n", result)
+        for block in re.split(r"\n\s*\n", result)
         if block.strip()
     ]
     blocks = [
         block for block in blocks
         if not all(line.strip().startswith("#") for line in block.splitlines() if line.strip())
     ]
-    return "\\n\\n".join(blocks).strip()
+    return "\n\n".join(blocks).strip()
 
 
 def stream_post_interview_content_block(
