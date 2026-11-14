@@ -275,11 +275,11 @@ def extract_motivation_results(
                 competency_name
             )
 
-            # Only a clearly identified motivation activity may
-            # contribute motivation evidence. A personality trait such as
-            # "Creativity" must never be accepted merely because the name
-            # also exists in the motivation factor dictionary.
-            if not looks_like_motivation:
+            # Require both a clearly identified motivation activity and
+            # a factor in Talena's approved motivation dictionary. Sova may
+            # return other competency names in the same activity; those must
+            # not become motivation factors or displace a valid top-three row.
+            if not looks_like_motivation or competency_key not in MOTIVATION_DEFINITIONS:
                 continue
 
             # Prefer the precise STIVE value. The rounded
