@@ -3650,7 +3650,7 @@ def _wellbeing_audit_response(client, draft: str, source_text: str) -> list[dict
         interview_claim = any(marker in folded for marker in interview_attribution_markers)
         if not preference_claim and not interview_claim:
             continue
-        if any(marker in folded for marker in test_markers):
+        if any(marker in folded for marker in test_markers) and not interview_claim:
             continue
         if not any(sentence.strip() in claim or claim in sentence for claim in known_claims):
             checked.append({
