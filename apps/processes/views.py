@@ -2490,21 +2490,22 @@ def _post_interview_evidence_changed(owner, process) -> bool:
 
     notes_updated_at = owner.interview_notes_updated_at
     notes_version = owner.ai_post_interview_decision_support_notes_version
-    if notes_updated_at and (
-        not notes_version or notes_updated_at > notes_version
-    ):
+    generated_at = owner.ai_post_interview_decision_support_generated_at
+    notes_baseline = notes_version or generated_at
+    if notes_updated_at and notes_baseline and notes_updated_at > notes_baseline:
         return True
 
     latest_question_note = (
         InterviewQuestionNote.objects
         .filter(process=process, candidate=owner.candidate)
+        .exclude(note="")
         .aggregate(latest=Max("updated_at"))
         .get("latest")
     )
-    generated_at = owner.ai_post_interview_decision_support_generated_at
     return bool(
         latest_question_note
-        and (not generated_at or latest_question_note > generated_at)
+        and generated_at
+        and latest_question_note > generated_at
     )
 
 
