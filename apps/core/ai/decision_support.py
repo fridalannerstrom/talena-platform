@@ -3627,6 +3627,14 @@ def _wellbeing_audit_response(client, draft: str, source_text: str) -> list[dict
         "personen", "kandidaten", "candidate", "the person",
         "she ", "he ", "hon ", "hen ",
     )
+    interview_attribution_markers = (
+        "i intervjun", "intervjun", "intervjuunderlaget",
+        "kandidaten beskrev", "personen beskrev", "hon beskrev",
+        "kandidaten nämnde", "personen nämnde", "hon nämnde",
+        "kandidaten berättade", "personen berättade", "hon berättade",
+        "in the interview", "interview notes", "the candidate described",
+        "the candidate mentioned", "the candidate said",
+    )
     test_markers = (
         "testresultat", "testresultaten", "testet", "mq ", "motivationsfaktor",
         "resultaten", "assessment result", "motivation factor",
@@ -3635,9 +3643,12 @@ def _wellbeing_audit_response(client, draft: str, source_text: str) -> list[dict
     known_claims = [item["claim"] for item in checked]
     for sentence in sentences:
         folded = sentence.casefold()
-        if not any(marker in folded for marker in _WELLBEING_PREFERENCE_MARKERS):
-            continue
-        if not any(marker in folded for marker in candidate_markers):
+        preference_claim = (
+            any(marker in folded for marker in _WELLBEING_PREFERENCE_MARKERS)
+            and any(marker in folded for marker in candidate_markers)
+        )
+        interview_claim = any(marker in folded for marker in interview_attribution_markers)
+        if not preference_claim and not interview_claim:
             continue
         if any(marker in folded for marker in test_markers):
             continue
