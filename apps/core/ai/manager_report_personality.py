@@ -23,6 +23,65 @@ from .shared_context import build_shared_ai_context, get_process_purpose_key
 
 PARTS = ("testbild", "candidate_describes")
 
+MANAGER_INTERVIEW_THEME_CUES = {
+    "leading_and_working_with_others": (
+        "leda", "ledde", "ledarskap", "driva arbetet", "driva en fråga",
+        "ta initiativ", "samordna", "koordinera", "användartest",
+        "användartester", "samarbeta", "samarbete", "stötta", "stödja",
+        "hjälpa kolleg", "påverka", "nätverk",
+    ),
+    "organising_and_thinking_patterns": (
+        "planera", "planering", "prioritera", "prioritering", "struktur",
+        "organisera", "organisering", "mål", "målsättning", "lösa problem",
+        "problemlösning", "analysera", "analys", "kreativ", "idé",
+        "förändring", "anpassa arbetssätt",
+    ),
+    "interaction_and_emotion_management": (
+        "regel", "överenskommelse", "uppriktig", "ärlig", "rak",
+        "uttrycka sin åsikt", "uttrycka sina åsikter", "kommunikation",
+        "misstag", "fel", "kritik", "press", "stress", "motgång",
+        "självständigt", "självständighet", "vägledning", "avstämning",
+        "stöd från andra",
+    ),
+}
+
+
+def _route_manager_interview_evidence(
+    general_notes: str,
+    question_items: list[dict[str, Any]],
+) -> dict[str, list[dict[str, str]]]:
+    """Route interview evidence to one clearly relevant manager-report theme."""
+    routed = {theme["key"]: [] for theme in PERSONALITY_MANAGER_REPORT_THEMES}
+
+    def best_theme(text: str) -> str | None:
+        normalized = " ".join(str(text or "").lower().split())
+        scores = {
+            theme: sum(cue in normalized for cue in cues)
+            for theme, cues in MANAGER_INTERVIEW_THEME_CUES.items()
+        }
+        top = max(scores.values(), default=0)
+        winners = [theme for theme, score in scores.items() if score == top and score > 0]
+        return winners[0] if len(winners) == 1 else None
+
+    for paragraph in (part.strip() for part in str(general_notes or "").splitlines() if part.strip()):
+        theme = best_theme(paragraph)
+        if theme:
+            routed[theme].append({"source": "general_interview_note", "evidence": paragraph})
+
+    for item in question_items:
+        question = str(item.get("question") or "")
+        answer = str(item.get("saved_answer_or_note") or "")
+        theme = best_theme(question)
+        if theme:
+            routed[theme].append({
+                "source": str(item.get("source_label") or item.get("source") or "interview"),
+                "question": question,
+                "evidence": answer,
+            })
+
+    return routed
+
+
 
 def empty_manager_report_personality() -> dict[str, dict[str, str]]:
     return {
@@ -45,7 +104,10 @@ def build_manager_report_personality_prompt(owner, *, language_code: str = "en")
 
     question_evidence = build_interview_question_evidence(owner)
     notes = str(getattr(owner, "interview_notes", "") or "").strip()
-    question_notes = str(question_evidence.get("text") or "").strip()
+    interview_evidence_by_theme = _route_manager_interview_evidence(
+        notes,
+        question_evidence.get("items") or [],
+    )
 
     guidance = {}
     for theme in PERSONALITY_MANAGER_REPORT_THEMES:
@@ -94,17 +156,19 @@ Process context: {shared_context["context_text"] or "No additional process conte
 PERSONALITY INDICATOR INTERPRETATIONS BY THEME
 {json.dumps(indicator_interpretations, ensure_ascii=False, indent=2)}
 
-GENERAL INTERVIEW NOTES
-{notes or "No general interview notes were provided."}
-
-QUESTION-SPECIFIC INTERVIEW EVIDENCE
-{question_notes or "No question-specific answers or notes were saved."}
+INTERVIEW EVIDENCE ROUTED BY THEME
+Each interview item below is assigned to at most one theme because its question or note clearly concerns that theme. An empty list means there is no clearly relevant interview evidence for that theme.
+{json.dumps(interview_evidence_by_theme, ensure_ascii=False, indent=2)}
 
 EVIDENCE RULES
 - For each testbild field, use only the personality indicator interpretations for its theme. Do not use interview evidence.
-- For each candidate_describes field, use only relevant interview evidence. Do not use personality test results.
+- For each candidate_describes field, use only interview evidence listed under that exact theme. Do not use evidence listed under another theme or personality test results.
+- Treat the interview evidence as the candidate's account, not as proof of skill, competence, behaviour, or performance.
+- Do not infer feelings, reactions, support needs, motivation, experience, or ability from an event unless the interview notes explicitly describe them.
+- A factual example of an error (such as giving incorrect change) does not by itself show how the person handles pressure, takes responsibility, or needs support.
+- Do not turn theoretical knowledge or preparation into practical experience, leadership ability, or an expressed willingness unless stated.
 - Context may clarify relevance but is not evidence about the candidate.
-- If the required evidence for a field is absent, return an empty string for that field.
+- If the routed evidence does not directly address the field, return an empty string for that field.
 - Do not invent candidate facts, behaviours, experience, or role requirements.
 
 FIELD GUIDANCE
