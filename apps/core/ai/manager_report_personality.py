@@ -200,19 +200,57 @@ def _recover_manager_report_events(raw_text: str) -> list[dict[str, Any]]:
     if not text:
         return []
 
-    # Remove common Markdown code fences, preserving the enclosed JSON lines.
     unfenced = "\n".join(
         line for line in text.splitlines()
         if not line.strip().startswith("```")
     )
     events: list[dict[str, Any]] = []
 
-    for line in unfenced.splitlines():
-        event = _parse_event(line)
-        if event:
-            events.append(event)
+    def collect(value: Any) -> None:
+        if isinstance(value, list):
+            for item in value:
+                collect(item)
+            return
+        if not isinstance(value, dict):
+            return
+        if value.get("type") == "manager_report_personality_text":
+            events.append(value)
+            return
+        if value.get("type") == "done":
+            events.append(value)
+            return
+        if value.get("theme") and value.get("part") and "text" in value:
+            events.append({
+                "type": "manager_report_personality_text",
+                "theme": value["theme"],
+                "part": value["part"],
+                "text": value["text"],
+            })
+            return
 
-    # Also accept JSON arrays, one event object, or JSON embedded in prose.
+        # Recover the common nested shape {theme: {part: text}} too.
+        for theme in PERSONALITY_MANAGER_REPORT_THEMES:
+            theme_key = theme["key"]
+            parts = value.get(theme_key)
+            if isinstance(parts, dict):
+                for part in PARTS:
+                    if part in parts:
+                        collect({
+                            "theme": theme_key,
+                            "part": part,
+                            "text": parts[part],
+                        })
+        for key, nested in value.items():
+            if key not in {theme["key"] for theme in PERSONALITY_MANAGER_REPORT_THEMES}:
+                collect(nested)
+
+    # Parse individual NDJSON lines and complete JSON containers.
+    for line in unfenced.splitlines():
+        try:
+            collect(json.loads(line.strip()))
+        except (json.JSONDecodeError, TypeError):
+            pass
+
     decoder = json.JSONDecoder()
     index = 0
     while index < len(unfenced):
@@ -224,13 +262,7 @@ def _recover_manager_report_events(raw_text: str) -> list[dict[str, Any]]:
         except json.JSONDecodeError:
             index = start + 1
             continue
-        if isinstance(value, dict) and value.get("type"):
-            events.append(value)
-        elif isinstance(value, list):
-            events.extend(
-                item for item in value
-                if isinstance(item, dict) and item.get("type")
-            )
+        collect(value)
         index = max(end, start + 1)
 
     unique: list[dict[str, Any]] = []
