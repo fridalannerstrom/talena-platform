@@ -3439,7 +3439,8 @@ WELLBEING TIP SOURCE BOUNDARIES (apply in addition to the administrator prompt)
 - If the interview does not explicitly discuss a motivation factor, do not claim the candidate expressed that preference. You may still offer a tentative, practical suggestion based on the test results, clearly framed as something the manager could try or explore with the candidate.
 - Never transfer a personality or motivation test indication into the candidate's interview account. Keep the source clear in the wording.
 - One example of doing a task supports only the actions and outcomes actually stated; it does not establish that the candidate prefers that work, thrives in it, or wants more responsibility. It may still inform a tentative suggestion, as long as the suggestion is not presented as the candidate's stated preference or need.
-- Aim for 2–3 useful, distinct tips under descriptive Markdown headings. Draw on available MQ/PQ indications and relevant role context to make practical suggestions even when interview evidence is limited. When an interview example is relevant, summarize it accurately and connect it to an option the manager can explore.
+- Follow the administrator's requested structure: write 3–5 useful, distinct tips, each under a descriptive Markdown heading and in a developed paragraph. Draw on available MQ/PQ indications and relevant role context even when interview evidence is limited. When an interview example is relevant, summarize it accurately and connect it to an option the manager can explore.
+- If interview evidence is sparse, use the candidate's three highest-ranked MQ factors as the basis for the tips. Briefly say that the interview does not clarify what a factor means to the candidate, then suggest a concrete question or work arrangement the manager could explore. Do not replace the section with one generic sentence.
 - A note about a specific task, mistake, or experience supports only the details it states; do not extrapolate it into a factual claim about broad preferences, behaviours, or support needs.
 - A test result can indicate a possible tendency or area that may take more effort. Do not describe it as confirmed ability, use “high/low ability” language, or infer a need for training, mentoring, or support from a result alone.
 - Do not invent candidate statements, preferences, role tasks, or personal needs just to fill the section.
@@ -3712,15 +3713,38 @@ def _rewrite_wellbeing_draft(client, prompt: str, system_instruction: str, rejec
         ensure_ascii=False,
     )
     repair_prompt = prompt + (
-        "\n\nEVIDENCE REVIEW REPAIR\n"
-        "The following interview-based sentences were rejected because their cited text "
-        "did not support them. Remove them or rewrite them as a clearly test-based possibility "
-        "or a practical option for the manager to try or explore. Do not attribute a preference, "
-        "motivation, personal need, or thriving condition to the candidate unless the interview explicitly states it. "
-        "A task example alone is not evidence of preference. Keep only claims directly supported "
-        "by the interview record. Rejected sentences: " + claims
+        "\n\nEVIDENCE AND LENGTH REPAIR\n"
+        "Rewrite the whole section to satisfy the requested format and length: include 3–5 "
+        "distinct tips under descriptive Markdown headings, with a developed paragraph for each. "
+        "Each paragraph should explain the relevant interview evidence when available, connect it "
+        "to an MQ/PQ indication when useful, and finish with a practical role-specific suggestion. "
+        "If interview evidence does not cover enough themes, base additional tips on the supplied "
+        "top MQ factors and frame them as hypotheses to explore with the candidate. Do not invent "
+        "candidate statements, preferences, or needs. "
+        "The following interview-based sentences were rejected because their cited text did not "
+        "support them. Remove them or rewrite them as tentative test-based possibilities or practical "
+        "options for the manager to try. Rejected sentences: " + claims
     )
     return _complete_wellbeing_draft(client, repair_prompt, system_instruction)
+
+
+def _wellbeing_tip_structure_issue(draft: str) -> str:
+    """Require the configured multi-tip format without judging the advice itself."""
+    headings = list(re.finditer(r"(?m)^#{1,6}\s+.+?\s*$", draft))
+    if not 3 <= len(headings) <= 5:
+        return "Write 3–5 clearly labeled tips under descriptive Markdown headings."
+
+    for index, heading in enumerate(headings):
+        body_start = heading.end()
+        body_end = headings[index + 1].start() if index + 1 < len(headings) else len(draft)
+        body = draft[body_start:body_end]
+        word_count = len(re.findall(r"\b[\wÅÄÖåäö'-]+\b", body))
+        if word_count < 50:
+            return (
+                "Each of the 3–5 tips needs a developed paragraph of at least 50 words, "
+                "with evidence, interpretation, and a practical suggestion."
+            )
+    return ""
 
 
 def _remove_unsupported_wellbeing_claims(draft: str, claims: list[dict[str, Any]]) -> str:
@@ -3782,8 +3806,10 @@ def stream_post_interview_content_block(
             "preferences or needs. Never attribute a test tendency to the "
             "candidate's interview account. Notes may exist without addressing "
             "a particular tip. Format each tip under a descriptive Markdown "
-            "heading. Aim for 2–3 distinct practical tips when MQ/PQ evidence "
-            "and role context allow, even if the interview covers only one topic. "
+            "heading. Follow the administrator's requested 3–5 tips. If interview "
+            "evidence is limited, use the actual top MQ factors as hypotheses and "
+            "suggest what the manager could explore with the candidate. Develop each "
+            "tip in a paragraph rather than returning a single generic sentence. "
             "Keep suggestions tentative and do not present them as the candidate's "
             "stated preferences or needs."
         )
@@ -3791,27 +3817,35 @@ def stream_post_interview_content_block(
     if block_key == "wellbeing_tips":
         _, source_json = _wellbeing_interview_sources(owner)
         draft = _complete_wellbeing_draft(client, prompt, system_instruction)
-        claims = _wellbeing_audit_response(client, draft, source_json)
-        rejected = [item for item in claims if not item["supported"]]
-        if rejected:
-            draft = _rewrite_wellbeing_draft(
-                client, prompt, system_instruction, rejected,
-            )
+        for attempt in range(2):
             claims = _wellbeing_audit_response(client, draft, source_json)
             rejected = [item for item in claims if not item["supported"]]
-        if rejected:
-            draft = _remove_unsupported_wellbeing_claims(draft, rejected)
+            safe_draft = (
+                _remove_unsupported_wellbeing_claims(draft, rejected)
+                if rejected else draft
+            )
+            structure_issue = _wellbeing_tip_structure_issue(safe_draft)
+            if not rejected and not structure_issue:
+                draft = safe_draft
+                break
+            if attempt == 1:
+                if structure_issue:
+                    raise ValueError(
+                        "The AI could not produce a complete wellbeing tips section. "
+                        "Try generating it again."
+                    )
+                draft = safe_draft
+                break
+            draft = _rewrite_wellbeing_draft(
+                client,
+                prompt,
+                system_instruction,
+                rejected,
+            )
         if not draft:
-            draft = (
-                "Intervjuunderlaget ger inte tillräckligt stöd för att beskriva "
-                "kandidatens egna trivselpreferenser. Använd motivationsresultaten "
-                "som hypoteser och stäm av med kandidaten vilka förutsättningar "
-                "som faktiskt ger engagemang."
-                if language_code == "sv"
-                else "The interview evidence does not provide enough information "
-                "to describe the candidate's own work preferences. Treat the "
-                "motivation results as hypotheses and discuss which conditions "
-                "actually support the candidate's engagement."
+            raise ValueError(
+                "The AI did not produce a complete wellbeing tips section. "
+                "Try generating it again."
             )
         for offset in range(0, len(draft), 500):
             yield {
