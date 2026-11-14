@@ -195,6 +195,54 @@ def _parse_event(raw_line: str) -> dict[str, Any] | None:
     return event
 
 
+def _recover_manager_report_events(raw_text: str) -> list[dict[str, Any]]:
+    text = str(raw_text or "").strip()
+    if not text:
+        return []
+
+    # Remove common Markdown code fences, preserving the enclosed JSON lines.
+    unfenced = "\n".join(
+        line for line in text.splitlines()
+        if not line.strip().startswith("```")
+    )
+    events: list[dict[str, Any]] = []
+
+    for line in unfenced.splitlines():
+        event = _parse_event(line)
+        if event:
+            events.append(event)
+
+    # Also accept JSON arrays, one event object, or JSON embedded in prose.
+    decoder = json.JSONDecoder()
+    index = 0
+    while index < len(unfenced):
+        start = unfenced.find("{", index)
+        if start < 0:
+            break
+        try:
+            value, end = decoder.raw_decode(unfenced, start)
+        except json.JSONDecodeError:
+            index = start + 1
+            continue
+        if isinstance(value, dict) and value.get("type"):
+            events.append(value)
+        elif isinstance(value, list):
+            events.extend(
+                item for item in value
+                if isinstance(item, dict) and item.get("type")
+            )
+        index = max(end, start + 1)
+
+    unique: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for event in events:
+        key = json.dumps(event, ensure_ascii=False, sort_keys=True)
+        if key not in seen:
+            seen.add(key)
+            unique.append(event)
+    return unique
+
+
 def stream_manager_report_personality(
     *, owner, language_code: str = "en"
 ) -> Iterable[dict[str, Any]]:
@@ -239,19 +287,31 @@ def stream_manager_report_personality(
     )
 
     buffer = ""
+    complete_response = ""
+    emitted_fields: set[tuple[str, str]] = set()
     for response_event in stream:
         delta = response_event.choices[0].delta
         if not delta or not delta.content:
             continue
         buffer += delta.content
+        complete_response += delta.content
         while "\n" in buffer:
             raw_line, buffer = buffer.split("\n", 1)
             parsed = _parse_event(raw_line)
             if parsed:
+                field = (str(parsed.get("theme") or ""), str(parsed.get("part") or ""))
+                if parsed.get("type") == "manager_report_personality_text":
+                    emitted_fields.add(field)
                 yield parsed
-    parsed = _parse_event(buffer)
-    if parsed:
-        yield parsed
+
+    # Recover valid events if the model wraps NDJSON in JSON or Markdown.
+    for parsed in _recover_manager_report_events(complete_response):
+        field = (str(parsed.get("theme") or ""), str(parsed.get("part") or ""))
+        if parsed.get("type") == "manager_report_personality_text" and field not in emitted_fields:
+            emitted_fields.add(field)
+            yield parsed
+        elif parsed.get("type") == "done":
+            yield parsed
 
 
 def apply_manager_report_personality_event(
