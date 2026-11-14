@@ -3622,7 +3622,7 @@ def _wellbeing_audit_response(client, draft: str, source_text: str) -> list[dict
     # sentence from its claim list. Test-only descriptions and manager advice
     # are left alone; preference claims tied to the candidate must be reviewed.
     candidate_markers = (
-        "personen", "kandidaten", "kandidaten", "candidate", "the person",
+        "personen", "kandidaten", "candidate", "the person",
         "she ", "he ", "hon ", "hen ",
     )
     test_markers = (
@@ -3754,7 +3754,7 @@ def stream_post_interview_content_block(
         )
 
     if block_key == "wellbeing_tips":
-        source_texts, source_json = _wellbeing_interview_sources(owner)
+        _, source_json = _wellbeing_interview_sources(owner)
         draft = _complete_wellbeing_draft(client, prompt, system_instruction)
         claims = _wellbeing_audit_response(client, draft, source_json)
         rejected = [item for item in claims if not item["supported"]]
