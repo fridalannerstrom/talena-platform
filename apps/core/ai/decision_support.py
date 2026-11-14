@@ -3417,6 +3417,19 @@ def build_post_interview_content_block_prompt(
         key=block_key,
         language=language_code,
     )
+    wellbeing_grounding_guidance = (
+        """
+WELLBEING TIP SOURCE BOUNDARIES (apply in addition to the administrator prompt)
+- The mere presence of interview notes does not make them relevant to every tip. Use an interview detail only for a claim it directly supports.
+- You may say the candidate mentioned, described, prefers, wants, or finds something challenging only when that information is explicitly present in the current general interview notes or a saved answer.
+- Never transfer a personality or motivation test indication into the candidate's interview account. Keep the source clear in the wording.
+- In this case, a note about difficulty with numerical data and an example of incorrect change, plus theoretical knowledge and software used to track a user test, do not support claims about preferred work environment, goals, creativity, feedback, empathy, or support needs.
+- A test result can indicate a possible tendency or area that may take more effort. Do not describe it as confirmed ability, use “high/low ability” language, or infer a need for training, mentoring, or support from a result alone.
+- If the evidence cannot support three distinct useful tips, provide fewer. Do not invent candidate statements, preferences, role tasks, or advice just to meet a target count.
+""".strip()
+        if block_key == "wellbeing_tips"
+        else ""
+    )
     global_guidance = get_global_ai_guidance(language=language_code)
     language_instruction = _post_get_ai_language_instruction(language_code)
 
@@ -3457,6 +3470,8 @@ SHARED TALENA GUIDANCE
 
 ADMINISTRATOR GUIDANCE FOR THIS SECTION ONLY
 {admin_guidance}
+
+{wellbeing_grounding_guidance}
 
 EVIDENCE RULES
 - Use only the supplied Talena evidence; never invent details.
@@ -3499,17 +3514,27 @@ def stream_post_interview_content_block(
     client = get_openai_client()
     prompt = redact_candidate_name(prompt, owner.candidate)
 
+    system_instruction = (
+        "You are Talena's careful assessment assistant. "
+        "Follow the section-specific administrator guidance and "
+        "the protected evidence rules in the user prompt. "
+        "Return only the requested section."
+    )
+    if block_key == "wellbeing_tips":
+        system_instruction += (
+            " For wellbeing tips, distinguish current interview notes, "
+            "personality indications, motivation factors, and role context. "
+            "An interview note is usable only for the specific fact it states; "
+            "do not treat unrelated interview notes as evidence about "
+            "preferences or needs. If evidence is sparse, write less."
+        )
+
     stream = client.chat.completions.create(
         model=get_chat_model(),
         messages=[
             {
                 "role": "system",
-                "content": (
-                    "You are Talena's careful assessment assistant. "
-                    "Follow the section-specific administrator guidance and "
-                    "the protected evidence rules in the user prompt. "
-                    "Return only the requested section."
-                ),
+                "content": system_instruction,
             },
             {"role": "user", "content": prompt},
         ],
