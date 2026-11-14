@@ -83,6 +83,20 @@ def _route_manager_interview_evidence(
 
 
 
+def _get_manager_report_interview_evidence(owner) -> dict[str, list[dict[str, str]]]:
+    from apps.processes.interview_question_evidence import (
+        build_interview_question_evidence,
+    )
+
+    question_evidence = build_interview_question_evidence(owner)
+    notes = str(getattr(owner, "interview_notes", "") or "").strip()
+    return _route_manager_interview_evidence(
+        notes,
+        question_evidence.get("items") or [],
+    )
+
+
+
 def empty_manager_report_personality() -> dict[str, dict[str, str]]:
     return {
         theme["key"]: {part: "" for part in PARTS}
@@ -98,16 +112,7 @@ def build_manager_report_personality_prompt(owner, *, language_code: str = "en")
         language_code=language_code,
     )
 
-    from apps.processes.interview_question_evidence import (
-        build_interview_question_evidence,
-    )
-
-    question_evidence = build_interview_question_evidence(owner)
-    notes = str(getattr(owner, "interview_notes", "") or "").strip()
-    interview_evidence_by_theme = _route_manager_interview_evidence(
-        notes,
-        question_evidence.get("items") or [],
-    )
+    interview_evidence_by_theme = _get_manager_report_interview_evidence(owner)
 
     guidance = {}
     for theme in PERSONALITY_MANAGER_REPORT_THEMES:
@@ -169,6 +174,8 @@ EVIDENCE RULES
 - A factual example of an error (such as giving incorrect change) does not by itself show how the person handles pressure, takes responsibility, or needs support.
 - Do not turn theoretical knowledge or preparation into practical experience, leadership ability, or an expressed willingness unless stated.
 - Context may clarify relevance but is not evidence about the candidate.
+- Do not recommend that the recruiter explore a trait, and do not describe a trait as valuable, suitable, or beneficial for the role.
+- Describe role relevance only as a cautious possible expression of the stated tendency, not as a claim about contribution or fit.
 - If the routed evidence does not directly address the field, return an empty string for that field.
 - Do not invent candidate facts, behaviours, experience, or role requirements.
 
@@ -279,6 +286,7 @@ def stream_manager_report_personality(
     *, owner, language_code: str = "en"
 ) -> Iterable[dict[str, Any]]:
     language_code = normalize_ai_language(language_code)
+    interview_evidence_by_theme = _get_manager_report_interview_evidence(owner)
     prompt = redact_candidate_name(
         build_manager_report_personality_prompt(
             owner,
@@ -286,6 +294,15 @@ def stream_manager_report_personality(
         ),
         owner.candidate,
     )
+
+    def enforce_interview_evidence_boundary(event: dict[str, Any]) -> dict[str, Any]:
+        if (
+            event.get("type") == "manager_report_personality_text"
+            and event.get("part") == "candidate_describes"
+            and not interview_evidence_by_theme.get(str(event.get("theme") or ""))
+        ):
+            return {**event, "text": ""}
+        return event
     system_language_instruction = get_ai_system_language_instruction(
         language_code,
         owner=owner,
@@ -331,6 +348,7 @@ def stream_manager_report_personality(
             raw_line, buffer = buffer.split("\n", 1)
             parsed = _parse_event(raw_line)
             if parsed:
+                parsed = enforce_interview_evidence_boundary(parsed)
                 field = (str(parsed.get("theme") or ""), str(parsed.get("part") or ""))
                 if parsed.get("type") == "manager_report_personality_text":
                     emitted_fields.add(field)
@@ -338,6 +356,7 @@ def stream_manager_report_personality(
 
     # Recover valid events if the model wraps NDJSON in JSON or Markdown.
     for parsed in _recover_manager_report_events(complete_response):
+        parsed = enforce_interview_evidence_boundary(parsed)
         field = (str(parsed.get("theme") or ""), str(parsed.get("part") or ""))
         if parsed.get("type") == "manager_report_personality_text" and field not in emitted_fields:
             emitted_fields.add(field)
