@@ -59,7 +59,7 @@ categorical personality claims, diagnoses, suitability and hiring verdicts.
 Preserve detail where supported. Do not reproduce headings inside the fields:
 Talena displays Testbild and Intervjun itself."""
 PERSONALITY_THEME_VERSION = 2
-GENERATION_RULES_VERSION = 2
+GENERATION_RULES_VERSION = 3
 PERSONALITY_THEMES = (
     {"sv": "Samarbete och relationer", "en": "Collaboration and relationships",
      "traits": ("Cooperative", "Connecting"),
@@ -190,6 +190,29 @@ def _guidance(category, language):
         get_global_ai_guidance(language=language),
         get_ai_feature_prompt_instructions(key=PROMPT_KEYS[category], language=language),
     )
+
+
+def _personality_theme_guidance(guidance, title):
+    """Pass only the selected theme's editable guidance to its generation call."""
+    text = str(guidance or "")
+    feature_marker = "FEATURE-SPECIFIC ADMINISTRATOR AI GUIDANCE"
+    marker_index = text.find(feature_marker)
+    if marker_index >= 0:
+        text = text[marker_index + len(feature_marker):]
+    headings = list(re.finditer(r"(?m)^(#{1,5})[ \t]+(.+?)\s*$", text))
+    target = str(title or "").strip().casefold()
+    for index, match in enumerate(headings):
+        if len(match.group(1)) != 4 or match.group(2).strip().casefold() != target:
+            continue
+        end = len(text)
+        for following in headings[index + 1:]:
+            if len(following.group(1)) <= 4:
+                end = following.start()
+                break
+        return text[match.start():end].strip()
+    # Fail closed: never expose another theme's examples when a custom heading
+    # cannot be matched. The fixed theme scope and protected rules still apply.
+    return ""
 
 
 def _hash(value):
@@ -440,7 +463,7 @@ def _assign_personality_interview_evidence(owner, themes, notes, language):
     prompt = "\n\n".join([
         "Classify interview records for the ten fixed personality themes.",
         "Return JSON only: {\"assignments\":[{\"source\":\"general|question\",\"index\":integer,\"theme\":theme_key}]}",
-        "Assign a record only when its exact text directly supports that theme's scope. Be conservative; leave unrelated records unassigned. For personality, general notes must explicitly describe work behaviour, choices, preferences, collaboration or reactions. Exclude self-reported skill levels, test performance, qualifications and task errors from personality evidence, including numerical-data difficulties. Do not infer relevance from the role or assessment. Assign each record to at most one theme. Do not create, rewrite, or summarize evidence.",
+        "Assign a record to the single best-matching theme when the exact question asks about that theme, even if the answer says the person has no practical experience. Use the answer only for facts it explicitly states; never treat the question or its examples as the person's actions. Be conservative; leave unrelated records unassigned. For personality, general notes must explicitly describe work behaviour, choices, preferences, collaboration or reactions. Exclude self-reported skill levels, test performance, qualifications and task errors from personality evidence, including numerical-data difficulties. Do not infer relevance from the role or assessment. Assign each record to at most one theme. Do not create, rewrite, or summarize evidence.",
         "Language: " + language,
         "Themes: " + json.dumps(theme_scope, ensure_ascii=False),
         "Interview records: " + json.dumps(records, ensure_ascii=False),
@@ -476,6 +499,8 @@ def _assign_personality_interview_evidence(owner, themes, notes, language):
 
 def _item_prompt(owner, category, item, shared, notes, language):
     global_rules, guidance = _guidance(category, language)
+    if category == "personality":
+        guidance = _personality_theme_guidance(guidance, item["title"])
     final_boundary = (
         "FINAL EVIDENCE FIREWALL: The assessment and interview blocks are the only facts about this person. "
         "Exact question text and examples in any guidance are prompts about possible topics, never evidence "
@@ -541,16 +566,16 @@ def _synthesis_prompt(owner, sections, shared, language):
         "Write ONLY the final cross-section synthesis in language " + language,
         "Respond as JSON object with a single key text (one or two substantial paragraphs).",
         "CANDIDATE: CANDIDATE_A",
-        "ROLE CONTEXT: " + str(shared.get("context_text") or ""),
         "PREVIOUSLY GENERATED, SOURCE-BOUNDED SECTIONS: " + json.dumps(available, ensure_ascii=False),
         "Protected: do not introduce new information, interview anecdotes, suitability "
         "judgments or hiring verdicts; keep test indications and candidate accounts distinct.",
         "GLOBAL GUIDANCE: " + global_rules,
         "SCOPED ADMIN GUIDANCE: " + guidance,
-        "FINAL SYNTHESIS EVIDENCE FIREWALL: Previous generated text is evidence only for facts explicitly "
-        "grounded in the source fields. Do not add personal interest, motivation, skill, behavior or "
-        "experience from the role description or application. Do not turn a test indication into a claim "
-        "about work performance or role suitability. Do not suggest support, management actions, next steps "
+        "FINAL SYNTHESIS EVIDENCE FIREWALL: Treat each Testbild and Intervjun field as a separate source; "
+        "a field saying no interview evidence is available must never be transformed into an interview claim. "
+        "Compress only facts explicitly present in these fields. Do not add personal interest, motivation, skill, "
+        "behavior or experience from the role description or application. Do not turn a test indication into a "
+        "claim about work performance or role suitability. Do not suggest support, management actions, next steps "
         "or recommendations. Preserve uncertainty and distinguish assessment indications from interview accounts.",
     ])
 
