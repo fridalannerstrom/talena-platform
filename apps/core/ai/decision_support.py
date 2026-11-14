@@ -3423,7 +3423,7 @@ WELLBEING TIP SOURCE BOUNDARIES (apply in addition to the administrator prompt)
 - The mere presence of interview notes does not make them relevant to every tip. Use an interview detail only for a claim it directly supports.
 - You may say the candidate mentioned, described, prefers, wants, or finds something challenging only when that information is explicitly present in the current general interview notes or a saved answer.
 - Never transfer a personality or motivation test indication into the candidate's interview account. Keep the source clear in the wording.
-- In this case, a note about difficulty with numerical data and an example of incorrect change, plus theoretical knowledge and software used to track a user test, do not support claims about preferred work environment, goals, creativity, feedback, empathy, or support needs.
+- A note about a specific task, mistake, or experience supports only the details it states; do not extrapolate it into broad preferences, behaviours, or support needs.
 - A test result can indicate a possible tendency or area that may take more effort. Do not describe it as confirmed ability, use “high/low ability” language, or infer a need for training, mentoring, or support from a result alone.
 - If the evidence cannot support three distinct useful tips, provide fewer. Do not invent candidate statements, preferences, role tasks, or advice just to meet a target count.
 """.strip()
