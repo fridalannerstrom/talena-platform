@@ -3629,7 +3629,7 @@ def _wellbeing_audit_response(client, draft: str, source_text: str) -> list[dict
         "testresultat", "testresultaten", "testet", "mq ", "motivationsfaktor",
         "resultaten", "assessment result", "motivation factor",
     )
-    sentences = re.split(r"(?<=[.!?])\\s+", draft)
+    sentences = re.split(r"(?<=[.!?])\s+", draft)
     known_claims = [item["claim"] for item in checked]
     for sentence in sentences:
         folded = sentence.casefold()
