@@ -436,9 +436,9 @@ def _assign_personality_interview_evidence(owner, themes, notes, language):
         {"key": theme["key"], "title": theme["title"], "scope": theme["scope"]}
         for theme in themes
     ]
-    prompt = "\\n\\n".join([
+    prompt = "\n\n".join([
         "Classify interview records for the ten fixed personality themes.",
-        "Return JSON only: {\\"assignments\\":[{\\"source\\":\\"general|question\\",\\"index\\":integer,\\"theme\\":theme_key}]}",
+        "Return JSON only: {\"assignments\":[{\"source\":\"general|question\",\"index\":integer,\"theme\":theme_key}]}",
         "Assign a record only when its exact text directly supports that theme's scope. Be conservative; leave unrelated records unassigned. Do not infer relevance from the role or assessment. Assign each record to at most one theme. Do not create, rewrite, or summarize evidence.",
         "Language: " + language,
         "Themes: " + json.dumps(theme_scope, ensure_ascii=False),
