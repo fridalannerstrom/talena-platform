@@ -59,6 +59,7 @@ categorical personality claims, diagnoses, suitability and hiring verdicts.
 Preserve detail where supported. Do not reproduce headings inside the fields:
 Talena displays Testbild and Intervjun itself."""
 PERSONALITY_THEME_VERSION = 2
+GENERATION_RULES_VERSION = 2
 PERSONALITY_THEMES = (
     {"sv": "Samarbete och relationer", "en": "Collaboration and relationships",
      "traits": ("Cooperative", "Connecting"),
@@ -611,6 +612,7 @@ def generate_structured_overall_picture(owner, *, language_code="sv", category=N
                 yield {"type": "structured_section_error", "section": part, "message": "Regenerate outdated/failed source sections before final synthesis."}
                 continue
             fingerprint = _hash({
+                "generation_rules_version": GENERATION_RULES_VERSION,
                 "sources": sources, "language": language, "guidance": _guidance(part, language),
             })
             if not force and old.get("status") == "completed" and old.get("fingerprint") == fingerprint:
@@ -671,6 +673,7 @@ def generate_structured_overall_picture(owner, *, language_code="sv", category=N
                 ) if part == "personality" else scoped_notes
             )
             fingerprint = _hash({
+                "generation_rules_version": GENERATION_RULES_VERSION,
                 "subject": item, "notes": item_notes,
                 "guidance": _guidance(part, language), "language": language,
             })
