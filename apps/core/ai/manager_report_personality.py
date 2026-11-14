@@ -28,7 +28,10 @@ MANAGER_INTERVIEW_THEME_CUES = {
         "leda", "ledde", "ledarskap", "driva arbetet", "driva en fråga",
         "ta initiativ", "samordna", "koordinera", "användartest",
         "användartester", "samarbeta", "samarbete", "stötta", "stödja",
-        "hjälpa kolleg", "påverka", "nätverk",
+        "hjälpa kolleg", "påverka", "nätverk", "involver", "kolleg",
+        "team", "arbetsgrupp", "annons", "inspel", "synpunkt",
+        "gemensam", "tillsammans", "sammanställ", "förankra",
+        "rekryterande chef",
     ),
     "organising_and_thinking_patterns": (
         "planera", "planering", "prioritera", "prioritering", "struktur",
@@ -326,11 +329,15 @@ def stream_manager_report_personality(
                     "sentences. Do not list indicator names, repeat "
                     "indicator labels, use bullet points or dash-separated "
                     "entries, or copy the source interpretations one by one. "
-                    "Describe possible preferences and tendencies, not "
-                    "ability or proven performance. These testbild format "
-                    "rules apply even if field guidance requests another "
-                    "format. Leave candidate_describes fields unchanged in "
-                    "style and follow their field guidance. "
+                    "Describe only possible preferences and tendencies, "
+                    "not ability, capacity, competence, or proven performance. "
+                    "Avoid formulations such as 'has the ability to', 'shows "
+                    "a strong ability', 'is good at', or equivalent claims. "
+                    "Prefer cautious wording such as 'may prefer', 'may find "
+                    "it more natural to', or 'the result may indicate'. These "
+                    "testbild format rules apply even if field guidance "
+                    "requests another format. Leave candidate_describes fields "
+                    "unchanged in style and follow their field guidance. "
                     f"{system_language_instruction}"
                 ),
             },
