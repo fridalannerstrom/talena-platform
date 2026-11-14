@@ -3406,12 +3406,23 @@ def build_post_interview_content_block_prompt(
         else ""
     )
 
-    include_assessment_evidence = block_key != "interview_summary"
-    assessment_text = (
-        evidence.get("evidence_text") or "No assessment interpretation evidence."
-        if include_assessment_evidence
-        else "Omitted for this section; focus on what the interview evidence itself adds."
-    )
+    if block_key == "wellbeing_tips":
+        # Avoid sending broad AI-generated interpretations into wellbeing tips.
+        # The separately labeled reference below contains the approved MQ and PQ
+        # source material intended for this section.
+        assessment_text = (
+            "No synthesized assessment interpretations are supplied for this section. "
+            "Use only the separately labeled approved MQ and PQ reference below for "
+            "assessment indications."
+        )
+    elif block_key == "interview_summary":
+        assessment_text = (
+            "Omitted for this section; focus on what the interview evidence itself adds."
+        )
+    else:
+        assessment_text = (
+            evidence.get("evidence_text") or "No assessment interpretation evidence."
+        )
 
     admin_guidance = _post_get_content_block_prompt_instructions(
         key=block_key,
@@ -3423,7 +3434,10 @@ WELLBEING TIP SOURCE BOUNDARIES (apply in addition to the administrator prompt)
 - The mere presence of interview notes does not make them relevant to every tip. Use an interview detail only for a claim it directly supports.
 - The shared guidance not to say interview evidence is missing when notes exist means only that you must not claim there are no notes. You may say the interview does not address a particular topic when that is accurate.
 - You may say the candidate mentioned, described, prefers, wants, or finds something challenging only when that information is explicitly present in the current general interview notes or a saved answer. Do not turn a test indication into a claim about what the candidate said.
+- For every interview claim, identify a specific supporting phrase or event in the supplied interview record. A motivation factor in MQ is not evidence that the candidate personally said they prefer or enjoy that condition.
+- If the interview does not explicitly discuss a motivation factor, omit any claim that the candidate expressed that preference. You may state briefly that the interview does not clarify what the factor means to them, or leave interview evidence out of that tip.
 - Never transfer a personality or motivation test indication into the candidate's interview account. Keep the source clear in the wording.
+- One example of doing a task supports only the actions and outcomes actually stated; it does not establish that the candidate prefers that work, thrives in it, or wants more responsibility.
 - Format every tip under its own descriptive Markdown heading. If there is no directly relevant interview evidence, do not invent an interview opening to fill the section.
 - A note about a specific task, mistake, or experience supports only the details it states; do not extrapolate it into broad preferences, behaviours, or support needs.
 - A test result can indicate a possible tendency or area that may take more effort. Do not describe it as confirmed ability, use “high/low ability” language, or infer a need for training, mentoring, or support from a result alone.
