@@ -39,7 +39,7 @@ MANAGER_INTERVIEW_THEME_CUES = {
     "interaction_and_emotion_management": (
         "regel", "överenskommelse", "uppriktig", "ärlig", "rak",
         "uttrycka sin åsikt", "uttrycka sina åsikter", "kommunikation",
-        "misstag", "fel", "kritik", "press", "stress", "motgång",
+        "misstag", "kritik", "press", "stress", "motgång",
         "självständigt", "självständighet", "vägledning", "avstämning",
         "stöd från andra",
     ),
@@ -164,6 +164,7 @@ EVIDENCE RULES
 - For each testbild field, use only the personality indicator interpretations for its theme. Do not use interview evidence.
 - For each candidate_describes field, use only interview evidence listed under that exact theme. Do not use evidence listed under another theme or personality test results.
 - Treat the interview evidence as the candidate's account, not as proof of skill, competence, behaviour, or performance.
+- For testbild text, describe possible preferences or tendencies; never call them natural ability, competence, or proven performance.
 - Do not infer feelings, reactions, support needs, motivation, experience, or ability from an event unless the interview notes explicitly describe them.
 - A factual example of an error (such as giving incorrect change) does not by itself show how the person handles pressure, takes responsibility, or needs support.
 - Do not turn theoretical knowledge or preparation into practical experience, leadership ability, or an expressed willingness unless stated.
