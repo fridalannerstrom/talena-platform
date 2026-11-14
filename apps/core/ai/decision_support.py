@@ -3508,11 +3508,11 @@ Return readable Markdown text only. Do not return JSON, code fences, labels for 
 
 _WELLBEING_PREFERENCE_MARKERS = (
     "föredrar", "uppskattar", "tycker om", "gillar", "trivs", "vill ",
-    "önskar", "gärna", "motiveras", "motiverad", "ger energi",
-    "väcker engagemang", "drivs av", "behov av",
-    "prefer", "appreciat", "enjoy", "like ", "likes ", "thrive",
-    "want ", "desire", "motivated", "energize", "energise",
-    "engagement", "need for",
+    "vilja", "önskar", "gärna", "motiveras", "motiverad", "motivation",
+    "ger energi", "väcker engagemang", "drivs av", "behov av", "behöver",
+    "intresse", "willing", "enjoy", "like ", "likes ", "prefer", "prefers",
+    "thrive", "want ", "desire", "motivated", "motivation", "energize",
+    "energise", "engag", "engagement", "need for", "needs ",
 )
 
 
@@ -3555,9 +3555,13 @@ def _wellbeing_audit_response(client, draft: str, source_text: str) -> list[dict
                     "need, or that the candidate thrives in similar work. For each interview-based "
                     "claim, return the exact full sentence from the draft and an exact contiguous "
                     "supporting quote from the interview source. Mark it supported only when that "
-                    "quote directly supports the full claim. A claim that the interview does not "
-                    "address a topic may have an empty quote only when that absence is accurate. "
-                    "Ignore claims based only on tests, process context, or advice to the manager."
+                    "quote directly supports the full claim. A task example does not support a "
+                    "claim about willingness, preference, motivation, thriving, or need unless the "
+                    "interview states that explicitly. Review manager recommendations too when they "
+                    "present an interview-derived preference or need as established; advice explicitly "
+                    "framed as something to ask or try is not such a claim. A claim that the interview "
+                    "does not address a topic may have an empty quote only when that absence is accurate. "
+                    "Ignore claims based only on tests or process context."
                 ),
             },
             {
@@ -3566,7 +3570,9 @@ def _wellbeing_audit_response(client, draft: str, source_text: str) -> list[dict
                     "Return JSON only with shape "
                     '{"claims":[{"claim":"exact sentence from draft","quote":"exact source excerpt or empty string","supported":true}]}\n'
                     "List every interview-based factual, preference, motivation, or support-need claim. "
-                    "Do not include test-only statements or manager advice.\n\n"
+                    "Also list any manager recommendation that assumes the candidate prefers, needs, or "
+                    "would thrive in a condition based on an interview event. Do not include test-only "
+                    "statements or advice clearly framed as a question to explore.\n\n"
                     "INTERVIEW SOURCES (questions excluded):\n" + source_text +
                     "\n\nDRAFT:\n" + draft
                 ),
