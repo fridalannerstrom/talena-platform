@@ -3440,6 +3440,7 @@ WELLBEING TIP SOURCE BOUNDARIES (apply in addition to the administrator prompt)
 - Never transfer a personality or motivation test indication into the candidate's interview account. Keep the source clear in the wording.
 - One example of doing a task supports only the actions and outcomes actually stated; it does not establish that the candidate prefers that work, thrives in it, or wants more responsibility. It may still inform a tentative suggestion, as long as the suggestion is not presented as the candidate's stated preference or need.
 - Follow the administrator's requested structure: write 3–5 useful, distinct tips, each under a descriptive Markdown heading and in a developed paragraph. Draw on available MQ/PQ indications and relevant role context even when interview evidence is limited. When an interview example is relevant, summarize it accurately and connect it to an option the manager can explore.
+- When interview notes contain a relevant example or stated preference, make that the main substance of the corresponding tip and begin with it. Use MQ/PQ as supporting context, not as a replacement for the interview. Do not organize every tip around an MQ factor when the interview supports a more natural grouping.
 - If interview evidence is sparse, use the candidate's three highest-ranked MQ factors as the basis for the tips. Briefly say that the interview does not clarify what a factor means to the candidate, then suggest a concrete question or work arrangement the manager could explore. Do not replace the section with one generic sentence.
 - A note about a specific task, mistake, or experience supports only the details it states; do not extrapolate it into a factual claim about broad preferences, behaviours, or support needs.
 - A test result can indicate a possible tendency or area that may take more effort. Do not describe it as confirmed ability, use “high/low ability” language, or infer a need for training, mentoring, or support from a result alone.
@@ -3707,7 +3708,14 @@ def _complete_wellbeing_draft(client, prompt: str, system_instruction: str) -> s
     return text
 
 
-def _rewrite_wellbeing_draft(client, prompt: str, system_instruction: str, rejected_claims: list[dict[str, Any]]) -> str:
+def _rewrite_wellbeing_draft(
+    client,
+    prompt: str,
+    system_instruction: str,
+    rejected_claims: list[dict[str, Any]],
+    *,
+    previous_draft: str = "",
+) -> str:
     claims = json.dumps(
         [item["claim"] for item in rejected_claims],
         ensure_ascii=False,
@@ -3716,14 +3724,19 @@ def _rewrite_wellbeing_draft(client, prompt: str, system_instruction: str, rejec
         "\n\nEVIDENCE AND LENGTH REPAIR\n"
         "Rewrite the whole section to satisfy the requested format and length: include 3–5 "
         "distinct tips under descriptive Markdown headings, with a developed paragraph for each. "
-        "Each paragraph should explain the relevant interview evidence when available, connect it "
-        "to an MQ/PQ indication when useful, and finish with a practical role-specific suggestion. "
-        "If interview evidence does not cover enough themes, base additional tips on the supplied "
-        "top MQ factors and frame them as hypotheses to explore with the candidate. Do not invent "
-        "candidate statements, preferences, or needs. "
+        "Prioritize interview material: where it contains a relevant example or stated preference, "
+        "start with that evidence and give it the most space. Use MQ/PQ only to add context. Do not "
+        "replace interview evidence with one MQ-based tip per factor. Each paragraph should connect "
+        "the available interview and test evidence, then finish with a practical role-specific suggestion. "
+        "If interview evidence does not cover enough themes, use the supplied top MQ factors for "
+        "additional tips and frame them as hypotheses to explore with the candidate. Do not invent "
+        "candidate statements, preferences, or needs. Preserve useful, supported detail from the prior "
+        "draft while correcting its format or unsupported claims. "
         "The following interview-based sentences were rejected because their cited text did not "
         "support them. Remove them or rewrite them as tentative test-based possibilities or practical "
         "options for the manager to try. Rejected sentences: " + claims
+        + "\n\nPRIOR DRAFT TO IMPROVE (preserve supported interview detail):\n"
+        + (previous_draft or "No prior draft.")
     )
     return _complete_wellbeing_draft(client, repair_prompt, system_instruction)
 
@@ -3856,37 +3869,61 @@ def stream_post_interview_content_block(
             "a particular tip. Format each tip under a descriptive Markdown "
             "heading. Follow the administrator's requested 3–5 tips. If interview "
             "evidence is limited, use the actual top MQ factors as hypotheses and "
-            "suggest what the manager could explore with the candidate. Develop each "
-            "tip in a paragraph rather than returning a single generic sentence. "
+            "suggest what the manager could explore with the candidate. When relevant "
+            "interview examples exist, put them first and give them most of the space; "
+            "do not replace them with factor-only tips. Develop each tip in a paragraph "
+            "rather than returning a single generic sentence. "
             "Keep suggestions tentative and do not present them as the candidate's "
             "stated preferences or needs."
         )
 
     if block_key == "wellbeing_tips":
-        _, source_json = _wellbeing_interview_sources(owner)
+        interview_sources, source_json = _wellbeing_interview_sources(owner)
         draft = _complete_wellbeing_draft(client, prompt, system_instruction)
-        for attempt in range(2):
+        latest_draft = draft
+        for attempt in range(3):
+            latest_draft = draft or latest_draft
             try:
                 claims = _wellbeing_audit_response(client, draft, source_json)
             except ValueError:
-                draft = _build_wellbeing_tips_mq_fallback(
-                    owner, language_code=language_code,
-                )
+                if attempt < 2:
+                    draft = _rewrite_wellbeing_draft(
+                        client,
+                        prompt,
+                        system_instruction,
+                        [],
+                        previous_draft=latest_draft,
+                    )
+                    continue
+                # Preserve interview-based output if review formatting fails;
+                # it was generated under the source rules but could not be checked.
+                draft = latest_draft if interview_sources else ""
+                if not draft:
+                    draft = _build_wellbeing_tips_mq_fallback(
+                        owner, language_code=language_code,
+                    )
                 break
             rejected = [item for item in claims if not item["supported"]]
             safe_draft = (
                 _remove_unsupported_wellbeing_claims(draft, rejected)
                 if rejected else draft
             )
+            if safe_draft.strip():
+                latest_draft = safe_draft
             structure_issue = _wellbeing_tip_structure_issue(safe_draft)
             if not rejected and not structure_issue:
                 draft = safe_draft
                 break
-            if attempt == 1:
+            if attempt == 2:
                 if structure_issue:
-                    draft = _build_wellbeing_tips_mq_fallback(
-                        owner, language_code=language_code,
-                    )
+                    # Keep a screened draft with interview evidence instead of
+                    # replacing it with MQ-only fallback text because formatting
+                    # was imperfect. Use MQ fallback only when no draft survived.
+                    draft = latest_draft if interview_sources else ""
+                    if not draft:
+                        draft = _build_wellbeing_tips_mq_fallback(
+                            owner, language_code=language_code,
+                        )
                 else:
                     draft = safe_draft
                 break
@@ -3895,6 +3932,7 @@ def stream_post_interview_content_block(
                 prompt,
                 system_instruction,
                 rejected,
+                previous_draft=safe_draft,
             )
         if not draft:
             draft = _build_wellbeing_tips_mq_fallback(
