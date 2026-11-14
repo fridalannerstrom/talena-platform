@@ -55,6 +55,11 @@ def _route_manager_interview_evidence(
 
     def best_theme(text: str) -> str | None:
         normalized = " ".join(str(text or "").lower().split())
+        # In this report, user-test coordination examples belong to the
+        # leadership/collaboration theme even when the question also mentions
+        # planning or organization.
+        if "användartest" in normalized or "användartester" in normalized:
+            return "leading_and_working_with_others"
         scores = {
             theme: sum(cue in normalized for cue in cues)
             for theme, cues in MANAGER_INTERVIEW_THEME_CUES.items()
