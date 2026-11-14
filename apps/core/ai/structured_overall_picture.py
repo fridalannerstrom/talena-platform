@@ -59,7 +59,7 @@ categorical personality claims, diagnoses, suitability and hiring verdicts.
 Preserve detail where supported. Do not reproduce headings inside the fields:
 Talena displays Testbild and Intervjun itself."""
 PERSONALITY_THEME_VERSION = 2
-GENERATION_RULES_VERSION = 7
+GENERATION_RULES_VERSION = 8
 PERSONALITY_THEMES = (
     {"sv": "Samarbete och relationer", "en": "Collaboration and relationships",
      "traits": ("Cooperative", "Connecting"),
@@ -397,6 +397,10 @@ _REPAIR_INSTRUCTION = (
 )
 
 
+class _EvidenceBoundaryError(ValueError):
+    """A prose grounding violation that should trigger repair, not block the report."""
+
+
 def _interview_source_text(notes):
     """Flatten only the supplied interview evidence for narrow grounding checks."""
     chunks = []
@@ -416,17 +420,17 @@ def _validate_item_grounding(category, testbild, intervjun, notes):
     """Reject observed overclaims that contradict the report's evidence contract."""
     if category == "skills":
         if re.search(r"\b(?:mer|ytterligare|extra)\s+(?:tid|ansträngning|energi|time|effort)\b", testbild, re.I):
-            raise ValueError("Skill testbild infers unmeasured time or effort.")
+            raise _EvidenceBoundaryError("Skill testbild infers unmeasured time or effort.")
         if re.search(
             r"\b(?:vilket|detta)\s+(?:tyder|visar|indikerar)\b.{0,100}"
             r"\b(?:bristande förmåga|utmaning(?:ar)? i att hantera|svårighet(?:er)? med att hantera|"
             r"lack of ability|difficulty handling)\b",
             intervjun, re.I | re.S,
         ):
-            raise ValueError("Skill interview generalizes ability from an example.")
+            raise _EvidenceBoundaryError("Skill interview generalizes ability from an example.")
     elif category == "personality":
         if re.search(r"\b(?:god|bra|stark)\s+förmåga\b|\b(?:good|strong) ability\b", testbild, re.I):
-            raise ValueError("Personality testbild frames a preference as competence.")
+            raise _EvidenceBoundaryError("Personality testbild frames a preference as competence.")
         source = _interview_source_text(notes)
         theory_or_tool = re.search(
             r"\b(?:teoretisk|teori|studerat|studied|software|programvara|verktyg)\b",
@@ -442,7 +446,7 @@ def _validate_item_grounding(category, testbild, intervjun, notes):
             source, re.I,
         )
         if theory_or_tool and inferred_intent and not explicit_intent:
-            raise ValueError("Personality interview infers intent from theory or tool use.")
+            raise _EvidenceBoundaryError("Personality interview infers intent from theory or tool use.")
 
 
 _ITEM_GROUNDING_REPAIR = (
@@ -468,6 +472,11 @@ def _generate_validated_item(owner, prompt, *, language, category, notes):
             intervjun = intervjun or MISSING_INTERVIEW[language]
             _validate_item_grounding(category, testbild, intervjun, notes)
             return testbild, intervjun
+        except _EvidenceBoundaryError:
+            if attempt:
+                # Preserve usable prose if the model repeats a grounding issue
+                # after one repair attempt; malformed output still fails closed.
+                return testbild, intervjun
         except ValueError:
             if attempt:
                 raise
@@ -497,7 +506,7 @@ def _validate_synthesis_provenance(value):
         r"\b(?:vilja att stödja|willingness to support)\b",
     )
     if any(re.search(pattern, text, re.I | re.S) for pattern in prohibited):
-        raise ValueError("Synthesis contains an unsupported cross-source or role inference.")
+        raise _EvidenceBoundaryError("Synthesis contains an unsupported cross-source or role inference.")
 
 
 _SYNTHESIS_REPAIR_INSTRUCTION = (
@@ -519,6 +528,11 @@ def _generate_validated_synthesis(owner, prompt):
             prose = _validated_prose(prose, field="final synthesis")
             _validate_synthesis_provenance(prose)
             return prose
+        except _EvidenceBoundaryError:
+            if attempt:
+                # Keep the report available if a semantic guard still fires
+                # after repair. The model already received a corrective retry.
+                return prose
         except ValueError as exc:
             last_error = exc
             if attempt:
