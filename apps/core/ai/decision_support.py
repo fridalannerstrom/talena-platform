@@ -3505,6 +3505,182 @@ Return readable Markdown text only. Do not return JSON, code fences, labels for 
 """.strip()
 
 
+_WELLBEING_PREFERENCE_MARKERS = (
+    "föredrar", "uppskattar", "tycker om", "gillar", "trivs", "vill ",
+    "motiveras", "motiverad", "ger energi", "väcker engagemang",
+    "prefer", "appreciat", "enjoy", "like ", "likes ", "thrive",
+    "want ", "motivated", "energize", "energise", "engagement",
+)
+
+
+def _wellbeing_interview_sources(owner) -> tuple[list[str], str]:
+    """Return only current interview note/answer text for claim verification."""
+    from .post_interview_question_evidence_policy import get_post_interview_note_evidence
+
+    evidence = get_post_interview_note_evidence(owner)
+    general = str(evidence.get("general_notes") or "").strip()
+    question_data = evidence.get("question_evidence") or {}
+    answers = [
+        str(item.get("saved_answer_or_note") or "").strip()
+        for item in (question_data.get("items") or [])
+        if str(item.get("saved_answer_or_note") or "").strip()
+    ]
+    # The question is context, not something the candidate said. Exclude it
+    # from the auditor's source text so it cannot support an interview claim.
+    sources = ([general] if general else []) + answers
+    redacted_sources = [
+        redact_candidate_name(source, owner.candidate)
+        for source in sources
+    ]
+    return redacted_sources, json.dumps(
+        {"general_notes_and_saved_answers": redacted_sources},
+        ensure_ascii=False,
+    )
+
+
+def _wellbeing_audit_response(client, draft: str, source_text: str) -> list[dict[str, Any]]:
+    """Ask for claim-level review, then independently check every cited quote."""
+    response = client.chat.completions.create(
+        model=get_chat_model(),
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "You are a strict evidence auditor. Do not rewrite the report. "
+                    "Review only statements attributed to, or inferred from, interview evidence. "
+                    "A single example of doing a task does not establish a preference, motivation, "
+                    "need, or that the candidate thrives in similar work. For each interview-based "
+                    "claim, return the exact full sentence from the draft and an exact contiguous "
+                    "supporting quote from the interview source. Mark it supported only when that "
+                    "quote directly supports the full claim. A claim that the interview does not "
+                    "address a topic may have an empty quote only when that absence is accurate. "
+                    "Ignore claims based only on tests, process context, or advice to the manager."
+                ),
+            },
+            {
+                "role": "user",
+                "content": (
+                    "Return JSON only with shape "
+                    '{"claims":[{"claim":"exact sentence from draft","quote":"exact source excerpt or empty string","supported":true}]}\n'
+                    "List every interview-based factual, preference, motivation, or support-need claim. "
+                    "Do not include test-only statements or manager advice.\n\n"
+                    "INTERVIEW SOURCES (questions excluded):\n" + source_text +
+                    "\n\nDRAFT:\n" + draft
+                ),
+            },
+        ],
+        temperature=0,
+        max_completion_tokens=3000,
+    )
+    choices = getattr(response, "choices", None) or []
+    if not choices:
+        raise ValueError("The wellbeing evidence review returned no response.")
+    raw = str(getattr(getattr(choices[0], "message", None), "content", "") or "").strip()
+    start, end = raw.find("{"), raw.rfind("}")
+    if start < 0 or end < start:
+        raise ValueError("The wellbeing evidence review returned invalid JSON.")
+    try:
+        parsed = json.loads(raw[start:end + 1])
+    except (TypeError, json.JSONDecodeError) as exc:
+        raise ValueError("The wellbeing evidence review returned invalid JSON.") from exc
+    claims = parsed.get("claims")
+    if not isinstance(claims, list):
+        raise ValueError("The wellbeing evidence review returned no claim list.")
+
+    source_flat = " ".join(source_texts for source_texts in _json_source_values(source_text))
+    checked = []
+    for item in claims:
+        if not isinstance(item, dict):
+            continue
+        claim = str(item.get("claim") or "").strip()
+        quote = str(item.get("quote") or "")
+        supported = item.get("supported") is True
+        if not claim or claim not in draft:
+            raise ValueError("The wellbeing evidence review did not identify an exact draft sentence.")
+        if quote:
+            supported = supported and quote in source_flat
+            folded_claim, folded_quote = claim.casefold(), quote.casefold()
+            if any(marker in folded_claim for marker in _WELLBEING_PREFERENCE_MARKERS):
+                supported = supported and any(
+                    marker in folded_quote for marker in _WELLBEING_PREFERENCE_MARKERS
+                )
+        else:
+            folded_claim = claim.casefold()
+            describes_absence = any(
+                marker in folded_claim
+                for marker in (
+                    "intervjuunderlaget inte", "intervjun inte", "inte nämnde",
+                    "inte framkom", "not discussed in the interview",
+                    "interview does not", "did not mention",
+                )
+            )
+            supported = supported and describes_absence
+        checked.append({"claim": claim, "quote": quote, "supported": supported})
+    return checked
+
+
+def _json_source_values(source_json: str) -> list[str]:
+    try:
+        parsed = json.loads(source_json)
+    except (TypeError, json.JSONDecodeError):
+        return []
+    values = parsed.get("general_notes_and_saved_answers") if isinstance(parsed, dict) else []
+    return [str(value) for value in values or [] if value]
+
+
+def _complete_wellbeing_draft(client, prompt: str, system_instruction: str) -> str:
+    response = client.chat.completions.create(
+        model=get_chat_model(),
+        messages=[
+            {"role": "system", "content": system_instruction},
+            {"role": "user", "content": prompt},
+        ],
+        temperature=0.2,
+        max_completion_tokens=6000,
+    )
+    choices = getattr(response, "choices", None) or []
+    if not choices:
+        raise ValueError("The AI response did not contain any section text.")
+    choice = choices[0]
+    if getattr(choice, "finish_reason", None) == "length":
+        raise ValueError(
+            "The AI response reached the section output limit. Try generating this tab again."
+        )
+    text = str(getattr(getattr(choice, "message", None), "content", "") or "").strip()
+    if not text:
+        raise ValueError("The AI response did not contain any section text.")
+    return text
+
+
+def _rewrite_wellbeing_draft(client, prompt: str, system_instruction: str, rejected_claims: list[dict[str, Any]]) -> str:
+    claims = json.dumps(
+        [item["claim"] for item in rejected_claims],
+        ensure_ascii=False,
+    )
+    repair_prompt = prompt + (
+        "\n\nEVIDENCE REVIEW REPAIR\n"
+        "The following interview-based sentences were rejected because their cited text "
+        "did not support them. Remove them or rewrite them as a clearly test-based possibility "
+        "or a question for the manager to explore. Do not attribute a preference, motivation, "
+        "need, or thriving condition to the candidate unless the interview explicitly states it. "
+        "A task example alone is not evidence of preference. Keep only claims directly supported "
+        "by the interview record. Rejected sentences: " + claims
+    )
+    return _complete_wellbeing_draft(client, repair_prompt, system_instruction)
+
+
+def _remove_unsupported_wellbeing_claims(draft: str, claims: list[dict[str, Any]]) -> str:
+    result = draft
+    for item in claims:
+        claim = item["claim"]
+        if claim not in result:
+            raise ValueError("Could not safely remove an unsupported wellbeing claim.")
+        result = result.replace(claim, "")
+    paragraphs = [" ".join(part.split()) for part in result.splitlines()]
+    paragraphs = [part for part in paragraphs if part]
+    return "\n\n".join(paragraphs).strip()
+
+
 def stream_post_interview_content_block(
     *,
     owner,
@@ -3547,6 +3723,40 @@ def stream_post_interview_content_block(
             "a particular tip. Format each tip under a descriptive Markdown "
             "heading. If evidence is sparse, write less."
         )
+
+    if block_key == "wellbeing_tips":
+        source_texts, source_json = _wellbeing_interview_sources(owner)
+        draft = _complete_wellbeing_draft(client, prompt, system_instruction)
+        claims = _wellbeing_audit_response(client, draft, source_json)
+        rejected = [item for item in claims if not item["supported"]]
+        if rejected:
+            draft = _rewrite_wellbeing_draft(
+                client, prompt, system_instruction, rejected,
+            )
+            claims = _wellbeing_audit_response(client, draft, source_json)
+            rejected = [item for item in claims if not item["supported"]]
+        if rejected:
+            draft = _remove_unsupported_wellbeing_claims(draft, rejected)
+        if not draft:
+            draft = (
+                "Intervjuunderlaget ger inte tillräckligt stöd för att beskriva "
+                "kandidatens egna trivselpreferenser. Använd motivationsresultaten "
+                "som hypoteser och stäm av med kandidaten vilka förutsättningar "
+                "som faktiskt ger engagemang."
+                if language_code == "sv"
+                else "The interview evidence does not provide enough information "
+                "to describe the candidate's own work preferences. Treat the "
+                "motivation results as hypotheses and discuss which conditions "
+                "actually support the candidate's engagement."
+            )
+        for offset in range(0, len(draft), 500):
+            yield {
+                "type": "content_block_delta",
+                "block": block_key,
+                "text": draft[offset:offset + 500],
+            }
+        yield {"type": "content_block_done", "block": block_key}
+        return
 
     stream = client.chat.completions.create(
         model=get_chat_model(),
