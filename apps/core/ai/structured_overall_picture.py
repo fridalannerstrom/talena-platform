@@ -417,25 +417,25 @@ def _strip_synthesis_headings(value):
     lines = str(value or "").splitlines()
     kept = [
         line for line in lines
-        if not re.match(r"^\\s*#{1,6}\\s*(?:Helhetsbild|Overall picture)\\s*#*\\s*$", line, re.I)
+        if not re.match(r"^\s*#{1,6}\s*(?:Helhetsbild|Overall picture)\s*#*\s*$", line, re.I)
     ]
-    return "\\n".join(kept).strip()
+    return "\n".join(kept).strip()
 
 
 def _validate_synthesis_provenance(value):
     """Reject a few explicit synthesis overreaches seen in generated reports."""
     text = str(value or "")
     prohibited = (
-        r"\\b(?:bekräftar|bekräftade|confirms?|corroborates?)\\b.{0,100}\\b(?:testresultat(?:et)?|testresultaten|test result|assessment result)\\b",
-        r"\\b(?:behöver|bör|kan behöva|need(?:s)? to|should)\\b.{0,70}\\b(?:utforskas vidare|utforska vidare|explore further|be explored further)\\b",
-        r"\\b(?:potential(?:en)? att bidra|potential to contribute|kan bidra positivt|could contribute positively|god grund att bidra)\\b",
+        r"\b(?:bekräftar|bekräftade|confirms?|corroborates?)\b.{0,100}\b(?:testresultat(?:et)?|testresultaten|test result|assessment result)\b",
+        r"\b(?:behöver|bör|kan behöva|need(?:s)? to|should)\b.{0,70}\b(?:utforskas vidare|utforska vidare|explore further|be explored further)\b",
+        r"\b(?:potential(?:en)? att bidra|potential to contribute|kan bidra positivt|could contribute positively|god grund att bidra)\b",
     )
     if any(re.search(pattern, text, re.I | re.S) for pattern in prohibited):
         raise ValueError("Synthesis contains an unsupported cross-source or role inference.")
 
 
 _SYNTHESIS_REPAIR_INSTRUCTION = (
-    "\\n\\nREPAIR THE SYNTHESIS: The previous text added an unsupported conclusion. "
+    "\n\nREPAIR THE SYNTHESIS: The previous text added an unsupported conclusion. "
     "Use only statements already present in the supplied sections. Never say the interview "
     "confirms a test result, recommend exploring an area further, or describe the candidate's "
     "potential contribution or value to a role. Do not add a Markdown heading; the interface "
