@@ -3730,7 +3730,10 @@ def _rewrite_wellbeing_draft(client, prompt: str, system_instruction: str, rejec
 
 def _wellbeing_tip_structure_issue(draft: str) -> str:
     """Require the configured multi-tip format without judging the advice itself."""
-    headings = list(re.finditer(r"(?m)^#{1,6}\s+.+?\s*$", draft))
+    heading_pattern = re.compile(
+        r"(?m)^(?:#{1,6}\s+.+?|\*\*[^\n*].*?\*\*|__[^\n_].*?__)\s*$"
+    )
+    headings = list(heading_pattern.finditer(draft))
     if not 3 <= len(headings) <= 5:
         return "Write 3–5 clearly labeled tips under descriptive Markdown headings."
 
@@ -3745,6 +3748,51 @@ def _wellbeing_tip_structure_issue(draft: str) -> str:
                 "with evidence, interpretation, and a practical suggestion."
             )
     return ""
+
+
+def _build_wellbeing_tips_mq_fallback(owner, *, language_code: str) -> str:
+    """Build safe, useful tips from approved MQ evidence if generation stays malformed."""
+    from .motivation_interpretation import _owner_motivation_results
+    from .motivation_practical_advice import get_motivation_practical_advice
+
+    language = "sv" if language_code == "sv" else "en"
+    advice = get_motivation_practical_advice()[language]
+    results = sorted(
+        _owner_motivation_results(owner),
+        key=lambda item: (-item["score"], item["key"]),
+    )[:3]
+    sections = []
+    for item in results:
+        key = item["key"]
+        label = get_motivation_factor_display_name(
+            item["name"], language_code=language,
+        )
+        factor_advice = advice.get(key, {}).get("do") or []
+        if not factor_advice:
+            continue
+        suggestion = factor_advice[0].strip()
+        if suggestion:
+            suggestion = suggestion[0].lower() + suggestion[1:]
+        if language == "sv":
+            body = (
+                f"Motivationstestet pekar ut {label} som en möjlig drivkraft. "
+                "Det är en hypotes att utforska med kandidaten, inte ett fastslaget "
+                "önskemål. Chefen kan fråga vad faktorn betyder i den här rollen "
+                f"och pröva rådet att {suggestion.rstrip('.')} i ett konkret uppdrag "
+                "eller samarbete. Följ upp med kandidaten vad som gav energi och "
+                "om upplägget bör justeras."
+            )
+        else:
+            body = (
+                f"The motivation results point to {label} as a possible driver. "
+                "Treat this as a hypothesis to explore with the candidate, not a "
+                "stated preference. The manager can ask what this factor means in "
+                f"the role and try {suggestion.rstrip('.')} in a concrete assignment "
+                "or collaboration. Follow up on what felt engaging and whether the "
+                "approach should be adjusted."
+            )
+        sections.append(f"## {label}\n\n{body}")
+    return "\n\n".join(sections)
 
 
 def _remove_unsupported_wellbeing_claims(draft: str, claims: list[dict[str, Any]]) -> str:
@@ -3818,7 +3866,13 @@ def stream_post_interview_content_block(
         _, source_json = _wellbeing_interview_sources(owner)
         draft = _complete_wellbeing_draft(client, prompt, system_instruction)
         for attempt in range(2):
-            claims = _wellbeing_audit_response(client, draft, source_json)
+            try:
+                claims = _wellbeing_audit_response(client, draft, source_json)
+            except ValueError:
+                draft = _build_wellbeing_tips_mq_fallback(
+                    owner, language_code=language_code,
+                )
+                break
             rejected = [item for item in claims if not item["supported"]]
             safe_draft = (
                 _remove_unsupported_wellbeing_claims(draft, rejected)
@@ -3830,11 +3884,11 @@ def stream_post_interview_content_block(
                 break
             if attempt == 1:
                 if structure_issue:
-                    raise ValueError(
-                        "The AI could not produce a complete wellbeing tips section. "
-                        "Try generating it again."
+                    draft = _build_wellbeing_tips_mq_fallback(
+                        owner, language_code=language_code,
                     )
-                draft = safe_draft
+                else:
+                    draft = safe_draft
                 break
             draft = _rewrite_wellbeing_draft(
                 client,
@@ -3843,9 +3897,8 @@ def stream_post_interview_content_block(
                 rejected,
             )
         if not draft:
-            raise ValueError(
-                "The AI did not produce a complete wellbeing tips section. "
-                "Try generating it again."
+            draft = _build_wellbeing_tips_mq_fallback(
+                owner, language_code=language_code,
             )
         for offset in range(0, len(draft), 500):
             yield {
