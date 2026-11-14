@@ -59,7 +59,7 @@ categorical personality claims, diagnoses, suitability and hiring verdicts.
 Preserve detail where supported. Do not reproduce headings inside the fields:
 Talena displays Testbild and Intervjun itself."""
 PERSONALITY_THEME_VERSION = 2
-GENERATION_RULES_VERSION = 5
+GENERATION_RULES_VERSION = 6
 PERSONALITY_THEMES = (
     {"sv": "Samarbete och relationer", "en": "Collaboration and relationships",
      "traits": ("Cooperative", "Connecting"),
@@ -412,14 +412,53 @@ def _generate_validated_item(owner, prompt, *, language):
                 raise
 
 
+def _strip_synthesis_headings(value):
+    """Remove report headings already rendered by the Talena interface."""
+    lines = str(value or "").splitlines()
+    kept = [
+        line for line in lines
+        if not re.match(r"^\\s*#{1,6}\\s*(?:Helhetsbild|Overall picture)\\s*#*\\s*$", line, re.I)
+    ]
+    return "\\n".join(kept).strip()
+
+
+def _validate_synthesis_provenance(value):
+    """Reject a few explicit synthesis overreaches seen in generated reports."""
+    text = str(value or "")
+    prohibited = (
+        r"\\b(?:bekräftar|bekräftade|confirms?|corroborates?)\\b.{0,100}\\b(?:testresultat(?:et)?|testresultaten|test result|assessment result)\\b",
+        r"\\b(?:behöver|bör|kan behöva|need(?:s)? to|should)\\b.{0,70}\\b(?:utforskas vidare|utforska vidare|explore further|be explored further)\\b",
+        r"\\b(?:potential(?:en)? att bidra|potential to contribute|kan bidra positivt|could contribute positively|god grund att bidra)\\b",
+    )
+    if any(re.search(pattern, text, re.I | re.S) for pattern in prohibited):
+        raise ValueError("Synthesis contains an unsupported cross-source or role inference.")
+
+
+_SYNTHESIS_REPAIR_INSTRUCTION = (
+    "\\n\\nREPAIR THE SYNTHESIS: The previous text added an unsupported conclusion. "
+    "Use only statements already present in the supplied sections. Never say the interview "
+    "confirms a test result, recommend exploring an area further, or describe the candidate's "
+    "potential contribution or value to a role. Do not add a Markdown heading; the interface "
+    "renders the heading. Return only the requested JSON text field."
+)
+
+
 def _generate_validated_synthesis(owner, prompt):
+    last_error = None
     for attempt in range(2):
-        output = _completion(prompt + (_REPAIR_INSTRUCTION if attempt else ""), owner, output_tokens=1600)
+        repair = _SYNTHESIS_REPAIR_INSTRUCTION if attempt else ""
+        output = _completion(prompt + repair, owner, output_tokens=1600)
         try:
-            return _validated_prose(output.get("text"), field="final synthesis")
-        except ValueError:
+            prose = _strip_synthesis_headings(output.get("text"))
+            prose = _validated_prose(prose, field="final synthesis")
+            _validate_synthesis_provenance(prose)
+            return prose
+        except ValueError as exc:
+            last_error = exc
             if attempt:
                 raise
+    if last_error:
+        raise last_error
 
 
 def _theme_selection(owner, shared, rows, notes, language):
@@ -595,11 +634,14 @@ def _synthesis_prompt(owner, sections, shared, language):
         "SCOPED ADMIN GUIDANCE: " + guidance,
         "FINAL SYNTHESIS EVIDENCE FIREWALL: Treat each Testbild and Intervjun field as a separate source; "
         "a field saying no interview evidence is available must never be transformed into an interview claim. "
-        "Compress only facts explicitly present in these fields. Do not label traits as strengths or development "
-        "areas unless a supplied source explicitly does so. Do not add personal interest, motivation, skill, "
-        "behavior or experience from the role description or application. Do not turn a test indication into a "
-        "claim about work performance or role suitability. Do not suggest support, management actions, next steps "
-        "or recommendations. Preserve uncertainty and distinguish assessment indications from interview accounts.",
+        "Compress only facts explicitly present in these fields. Do not state that interview evidence confirms "
+        "or proves a test result; describe each source separately, even when they point in a similar direction. "
+        "Do not label traits as strengths or development areas unless a supplied source explicitly does so. "
+        "Do not add personal interest, motivation, skill, behavior or experience from the role description or "
+        "application. Do not describe potential contribution, value or suitability for a role. Do not turn a test "
+        "indication into a claim about work performance. Do not suggest support, management actions, further "
+        "exploration, next steps or recommendations. Preserve uncertainty and distinguish assessment indications "
+        "from interview accounts. Output prose only, without a Markdown heading; the interface renders the heading.",
     ])
 
 
