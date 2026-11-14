@@ -475,6 +475,32 @@ def _assign_personality_interview_evidence(owner, themes, notes, language):
 
 def _item_prompt(owner, category, item, shared, notes, language):
     global_rules, guidance = _guidance(category, language)
+    final_boundary = (
+        "FINAL EVIDENCE FIREWALL: The assessment and interview blocks are the only facts about this person. "
+        "Exact question text and examples in any guidance are prompts about possible topics, never evidence "
+        "that the person did or said those things. Never convert them into candidate facts. Do not invent or "
+        "infer actions, frequency, outcomes, intentions, abilities, competence, motivation or interests. "
+        "If the saved answer says the person has not done an activity, state that directly; do not replace it "
+        "with hypothetical positive behaviour. Use 'personen' rather than gendered pronouns."
+    )
+    if category == "skills":
+        final_boundary += (
+            " Testbild: maximum three sentences, based only on the result for this test and what that result "
+            "may indicate about handling this type of task in the test situation. Do not say the person "
+            "'has difficulty' or make a general ability or job-performance claim based only on a score. "
+            "Intervjun: attribute self-reported difficulty to the interview; do not infer lack of ability from one event."
+        )
+    elif category == "personality":
+        final_boundary += (
+            " Testbild: maximum three sentences, based only on this theme's supplied trait evidence. "
+            "Do not describe a test result as competence or predict work performance; situational results "
+            "must remain situational. Intervjun: use only the interview records selected for this theme."
+        )
+    elif category == "motivation":
+        final_boundary += (
+            " Testbild: maximum three sentences and only the current factor. Intervjun: describe only "
+            "explicitly stated motives, values or sources of energy, not inferred behavior."
+        )
     return "\n\n".join([
         "OUTPUT: JSON object with EXACTLY two string fields, testbild and intervjun. "
         "Each field must contain natural, newly written Swedish or English report prose, "
@@ -500,8 +526,8 @@ def _item_prompt(owner, category, item, shared, notes, language):
         "Do not emit personal identifiers.",
         "GLOBAL AI GUIDANCE:\n" + global_rules,
         "SCOPED ADMIN PROMPT:\n" + guidance,
+        final_boundary,
     ])
-
 
 def _synthesis_prompt(owner, sections, shared, language):
     global_rules, guidance = _guidance("synthesis", language)
@@ -520,6 +546,11 @@ def _synthesis_prompt(owner, sections, shared, language):
         "judgments or hiring verdicts; keep test indications and candidate accounts distinct.",
         "GLOBAL GUIDANCE: " + global_rules,
         "SCOPED ADMIN GUIDANCE: " + guidance,
+        "FINAL SYNTHESIS EVIDENCE FIREWALL: Previous generated text is evidence only for facts explicitly "
+        "grounded in the source fields. Do not add personal interest, motivation, skill, behavior or "
+        "experience from the role description or application. Do not turn a test indication into a claim "
+        "about work performance or role suitability. Do not suggest support, management actions, next steps "
+        "or recommendations. Preserve uncertainty and distinguish assessment indications from interview accounts.",
     ])
 
 
