@@ -35,6 +35,10 @@ MISSING_INTERVIEW = {
     "sv": "Området har inte utvecklats i det tillgängliga intervjuunderlaget.",
     "en": "This area was not addressed in the available interview evidence.",
 }
+PERSONALITY_TEST_FALLBACK = {
+    "sv": "Testresultatet ger en möjlig indikation om personens preferenser inom området, men fastställer inte faktisk förmåga eller beteende.",
+    "en": "The result offers a possible indication of preferences in this area; it does not establish actual ability or behaviour.",
+}
 COMMON_SV = """Skriv naturlig, varm, saklig och utförlig rapportprosa i sammanhängande
 stycken, inte punktlistor. Utgå enbart från faktiska, angivna källor.
 Testbild ska ENBART förklara testindikationer. Intervjun ska ENBART återge
@@ -481,7 +485,7 @@ def _validate_item_grounding(category, testbild, intervjun, notes):
         ):
             raise _EvidenceBoundaryError("Skill interview generalizes ability from an example.")
     elif category == "personality":
-        if re.search(r"\b(?:god|bra|stark)\s+förmåga\b|\b(?:good|strong) ability\b", testbild, re.I):
+        if re.search(r"\b(?:förmåga|kompetens|ability|competence)\b", testbild, re.I):
             raise _EvidenceBoundaryError("Personality testbild frames a preference as competence.")
         source = _interview_source_text(notes)
         theory_or_tool = re.search(
@@ -524,10 +528,13 @@ def _generate_validated_item(owner, prompt, *, language, category, notes):
             intervjun = intervjun or MISSING_INTERVIEW[language]
             _validate_item_grounding(category, testbild, intervjun, notes)
             return testbild, intervjun
-        except _EvidenceBoundaryError:
+        except _EvidenceBoundaryError as error:
             if attempt:
-                # Preserve usable prose if the model repeats a grounding issue
-                # after one repair attempt; malformed output still fails closed.
+                # If the model repeats a personality competence claim after
+                # repair, replace only Testbild with a neutral, accurate note.
+                # Keep the interview field because it has its own evidence check.
+                if category == "personality" and "testbild" in str(error).casefold():
+                    return PERSONALITY_TEST_FALLBACK[language], intervjun
                 return testbild, intervjun
         except ValueError:
             if attempt:
@@ -710,10 +717,11 @@ def _item_prompt(owner, category, item, shared, notes, language):
             " Testbild: maximum three sentences, based only on this theme's supplied trait evidence. "
             "This theme contains these available traits: " + ", ".join(trait_names) + ". "
             "When two traits are available, include a distinct supported nuance from each; do not let "
-            "one trait replace the other. Do not describe a test result as competence or predict work "
-            "performance; situational results must remain situational. Intervjun: use only the interview "
-            "records selected for this theme, and do not infer willingness or leadership from theoretical "
-            "knowledge or use of software."
+            "one trait replace the other. Describe preferences and possible tendencies only. Do not use "
+            "ability or competence language (including 'förmåga', 'kompetens', 'ability' or 'competence'), "
+            "claim that a test establishes what the person can do, or predict work performance; situational "
+            "results must remain situational. Intervjun: use only the interview records selected for this "
+            "theme, and do not infer willingness or leadership from theoretical knowledge or use of software."
         )
     elif category == "motivation":
         final_boundary += (
