@@ -3421,8 +3421,10 @@ def build_post_interview_content_block_prompt(
         """
 WELLBEING TIP SOURCE BOUNDARIES (apply in addition to the administrator prompt)
 - The mere presence of interview notes does not make them relevant to every tip. Use an interview detail only for a claim it directly supports.
-- You may say the candidate mentioned, described, prefers, wants, or finds something challenging only when that information is explicitly present in the current general interview notes or a saved answer.
+- The shared guidance not to say interview evidence is missing when notes exist means only that you must not claim there are no notes. You may say the interview does not address a particular topic when that is accurate.
+- You may say the candidate mentioned, described, prefers, wants, or finds something challenging only when that information is explicitly present in the current general interview notes or a saved answer. Do not turn a test indication into a claim about what the candidate said.
 - Never transfer a personality or motivation test indication into the candidate's interview account. Keep the source clear in the wording.
+- Format every tip under its own descriptive Markdown heading. If there is no directly relevant interview evidence, do not invent an interview opening to fill the section.
 - A note about a specific task, mistake, or experience supports only the details it states; do not extrapolate it into broad preferences, behaviours, or support needs.
 - A test result can indicate a possible tendency or area that may take more effort. Do not describe it as confirmed ability, use “high/low ability” language, or infer a need for training, mentoring, or support from a result alone.
 - If the evidence cannot support three distinct useful tips, provide fewer. Do not invent candidate statements, preferences, role tasks, or advice just to meet a target count.
@@ -3526,7 +3528,10 @@ def stream_post_interview_content_block(
             "personality indications, motivation factors, and role context. "
             "An interview note is usable only for the specific fact it states; "
             "do not treat unrelated interview notes as evidence about "
-            "preferences or needs. If evidence is sparse, write less."
+            "preferences or needs. Never attribute a test tendency to the "
+            "candidate's interview account. Notes may exist without addressing "
+            "a particular tip. Format each tip under a descriptive Markdown "
+            "heading. If evidence is sparse, write less."
         )
 
     stream = client.chat.completions.create(
