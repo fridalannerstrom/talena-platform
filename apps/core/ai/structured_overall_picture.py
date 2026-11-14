@@ -59,7 +59,7 @@ categorical personality claims, diagnoses, suitability and hiring verdicts.
 Preserve detail where supported. Do not reproduce headings inside the fields:
 Talena displays Testbild and Intervjun itself."""
 PERSONALITY_THEME_VERSION = 2
-GENERATION_RULES_VERSION = 3
+GENERATION_RULES_VERSION = 4
 PERSONALITY_THEMES = (
     {"sv": "Samarbete och relationer", "en": "Collaboration and relationships",
      "traits": ("Cooperative", "Connecting"),
@@ -69,7 +69,7 @@ PERSONALITY_THEMES = (
      "scope": "hur personen uppmärksammar andras behov och väljer om och hur stöd ges"},
     {"sv": "Påverka andra och komma framåt", "en": "Influencing others and moving work forward",
      "traits": ("Dynamic", "Influential"),
-     "scope": "initiativ, att driva en fråga vidare och få med sig andra"},
+     "scope": "initiativ, ta ledning, leda eller koordinera arbete, driva en fråga vidare, skapa samsyn kring nästa steg och få med sig andra"},
     {"sv": "Planering och målfokus", "en": "Planning and goal focus",
      "traits": ("Goal-focused", "Structured"),
      "scope": "prioritering, planering, uppföljning och omplanering av arbete"},
@@ -463,7 +463,7 @@ def _assign_personality_interview_evidence(owner, themes, notes, language):
     prompt = "\n\n".join([
         "Classify interview records for the ten fixed personality themes.",
         "Return JSON only: {\"assignments\":[{\"source\":\"general|question\",\"index\":integer,\"theme\":theme_key}]}",
-        "Assign a record to the single best-matching theme when the exact question asks about that theme, even if the answer says the person has no practical experience. Use the answer only for facts it explicitly states; never treat the question or its examples as the person's actions. Be conservative; leave unrelated records unassigned. For personality, general notes must explicitly describe work behaviour, choices, preferences, collaboration or reactions. Exclude self-reported skill levels, test performance, qualifications and task errors from personality evidence, including numerical-data difficulties. Do not infer relevance from the role or assessment. Assign each record to at most one theme. Do not create, rewrite, or summarize evidence.",
+        "Assign a record to the single best-matching theme based first on the exact interview question, even if the answer says the person has no practical experience. A question about leading, coordinating, or ensuring all parts of a task are completed is relevant to the matching theme even when the answer describes only theoretical knowledge or tracking software. Use the answer only for facts it explicitly states; never treat the question or its examples as the person's actions. Be conservative; leave unrelated records unassigned. For personality, general notes must explicitly describe work behaviour, choices, preferences, collaboration or reactions. Exclude self-reported skill levels, test performance, qualifications and task errors from personality evidence, including numerical-data difficulties. Do not infer relevance from the role or assessment. Assign each record to at most one theme. Do not create, rewrite, or summarize evidence.",
         "Language: " + language,
         "Themes: " + json.dumps(theme_scope, ensure_ascii=False),
         "Interview records: " + json.dumps(records, ensure_ascii=False),
@@ -472,11 +472,22 @@ def _assign_personality_interview_evidence(owner, themes, notes, language):
         parsed = _completion(prompt, owner, output_tokens=900)
     except Exception:
         return assigned
+    theme_aliases = {}
+    for theme in themes:
+        theme_aliases[theme["key"]] = theme["key"]
+        theme_aliases[str(theme["title"]).casefold()] = theme["key"]
     used = set()
     for item in parsed.get("assignments") or []:
         if not isinstance(item, dict):
             continue
-        source, index, theme_key = item.get("source"), item.get("index"), item.get("theme")
+        source = item.get("source")
+        if source in ("question-specific", "question_evidence"):
+            source = "question"
+        index = item.get("index")
+        if isinstance(index, str) and index.isdigit():
+            index = int(index)
+        theme_value = item.get("theme") or item.get("theme_key") or item.get("theme_title")
+        theme_key = theme_aliases.get(str(theme_value).strip().casefold())
         if source not in ("general", "question") or not isinstance(index, int):
             continue
         identity = (source, index)
