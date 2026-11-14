@@ -460,7 +460,7 @@ _ITEM_GROUNDING_REPAIR = (
 
 
 def _generate_validated_item(owner, prompt, *, language, category, notes):
-    """Repair malformed or overreaching prose once, then fail closed."""
+    """Repair malformed prose; semantic overreach triggers one rewrite attempt."""
     for attempt in range(2):
         repair = (_REPAIR_INSTRUCTION + _ITEM_GROUNDING_REPAIR) if attempt else ""
         output = _completion(prompt + repair, owner)
