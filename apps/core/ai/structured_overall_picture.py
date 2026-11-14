@@ -58,6 +58,40 @@ briefly; never invent stories. Avoid raw scores, high/low labels, predictions,
 categorical personality claims, diagnoses, suitability and hiring verdicts.
 Preserve detail where supported. Do not reproduce headings inside the fields:
 Talena displays Testbild and Intervjun itself."""
+PERSONALITY_THEME_VERSION = 2
+PERSONALITY_THEMES = (
+    {"sv": "Samarbete och relationer", "en": "Collaboration and relationships",
+     "traits": ("Cooperative", "Connecting"),
+     "scope": "samarbete kring en gemensam uppgift, arbetsrelationer och nya kontakter"},
+    {"sv": "Hjälpsamhet och finnas där för andra", "en": "Helping and supporting others",
+     "traits": ("Empathy", "Supporting"),
+     "scope": "hur personen uppmärksammar andras behov och väljer om och hur stöd ges"},
+    {"sv": "Påverka andra och komma framåt", "en": "Influencing others and moving work forward",
+     "traits": ("Dynamic", "Influential"),
+     "scope": "initiativ, att driva en fråga vidare och få med sig andra"},
+    {"sv": "Planering och målfokus", "en": "Planning and goal focus",
+     "traits": ("Goal-focused", "Structured"),
+     "scope": "prioritering, planering, uppföljning och omplanering av arbete"},
+    {"sv": "Analys och strategi", "en": "Analysis and strategy",
+     "traits": ("Analytical", "Complex Thinking"),
+     "scope": "hur personen sätter sig in i en komplex fråga och väger information eller alternativ"},
+    {"sv": "Förändring och nytänkande", "en": "Change and new ideas",
+     "traits": ("Creativity", "Adaptability"),
+     "scope": "att pröva nya lösningar och ställa om när förutsättningar ändras"},
+    {"sv": "Kommunikationsstil och principfasthet", "en": "Communication style and principles",
+     "traits": ("Straightforward",),
+     "scope": "att uttrycka en ståndpunkt, hantera olika förväntningar eller resonera om regler"},
+    {"sv": "Att synas eller smälta in", "en": "Taking the spotlight or blending in",
+     "traits": ("Status Avoidance", "Modesty"),
+     "scope": "att ta plats, synliggöra egen insats och ge andra erkännande"},
+    {"sv": "Stress och press", "en": "Stress and pressure",
+     "traits": ("Resilience", "Emotional Control"),
+     "scope": "reaktioner vid hög belastning, motgångar eller oväntade problem"},
+    {"sv": "Självständigt arbete och förankring", "en": "Independent work and alignment",
+     "traits": ("Independence",),
+     "scope": "vad personen driver eller beslutar själv och när hen stämmer av eller söker stöd"},
+)
+
 PROMPT_DEFAULTS = {
     "skills": {
         "sv": """För det angivna ENDA färdighetsområdet, skriv ett utvecklat
@@ -365,38 +399,78 @@ def _generate_validated_synthesis(owner, prompt):
 
 
 def _theme_selection(owner, shared, rows, notes, language):
-    if not rows:
-        return []
-    identity = [r["key"] for r in rows]
-    global_rules, _narrative_guidance = _guidance("personality", language)
-    prompt = (
-        "Select up to seven (usually five to seven when supported) genuinely distinct "
-        "ROLE-RELEVANT work themes from the supplied candidate personality evidence "
-        "and existing process context. Theme headings must describe meaningful work "
-        "domains rather than trait names. Never invent role requirements or new traits. "
-        "Return JSON object with key themes: a list of objects {title: string, traits: "
-        "list of exact trait keys from the evidence}. Use at most three relevant traits "
-        "per theme; each selected trait must exist in the supplied list. "
-        "If evidence or role context is sparse, return fewer distinct themes.\n"
-        "Language: " + language + "\nRole context: " + str(shared.get("context_text") or "") +
-        "\nPersonality results: " + json.dumps(
-            [{"key": x["key"], "title": x["title"], "summary": x["evidence"]["summary"]} for x in rows],
-            ensure_ascii=False
-        ) + "\nProtected constraints: " + global_rules
-        # The editable personality-writing instructions are used in the
-        # per-theme text calls, not this typed theme-selection step.
-    )
-    parsed = _completion(prompt, owner, output_tokens=1200)
-    results = []
-    for item in (parsed.get("themes") or [])[:7]:
+    """Use the ten approved themes; never ask a model to redefine report structure."""
+    return [
+        {
+            "key": "theme_" + str(index),
+            "title": definition.get(language, definition["sv"]),
+            "traits": list(definition["traits"]),
+            "scope": definition["scope"],
+        }
+        for index, definition in enumerate(PERSONALITY_THEMES, start=1)
+    ]
+
+
+def _assign_personality_interview_evidence(owner, themes, notes, language):
+    """Assign each interview record only to a clearly relevant personality theme."""
+    question_items = list(notes.get("question_evidence", {}).get("items") or [])
+    records = []
+    if notes.get("general_notes"):
+        records.append({"source": "general", "index": 0, "text": str(notes["general_notes"])})
+    for index, item in enumerate(question_items):
+        if item.get("source") == "personality":
+            records.append({
+                "source": "question",
+                "index": index,
+                "question": str(item.get("question") or ""),
+                "text": str(item.get("saved_answer_or_note") or ""),
+            })
+    assigned = {
+        theme["key"]: {"general_notes": "", "question_evidence": []}
+        for theme in themes
+    }
+    if not records or not themes:
+        return assigned
+
+    theme_scope = [
+        {"key": theme["key"], "title": theme["title"], "scope": theme["scope"]}
+        for theme in themes
+    ]
+    prompt = "\\n\\n".join([
+        "Classify interview records for the ten fixed personality themes.",
+        "Return JSON only: {\\"assignments\\":[{\\"source\\":\\"general|question\\",\\"index\\":integer,\\"theme\\":theme_key}]}",
+        "Assign a record only when its exact text directly supports that theme's scope. Be conservative; leave unrelated records unassigned. Do not infer relevance from the role or assessment. Assign each record to at most one theme. Do not create, rewrite, or summarize evidence.",
+        "Language: " + language,
+        "Themes: " + json.dumps(theme_scope, ensure_ascii=False),
+        "Interview records: " + json.dumps(records, ensure_ascii=False),
+    ])
+    try:
+        parsed = _completion(prompt, owner, output_tokens=900)
+    except Exception:
+        return assigned
+    used = set()
+    for item in parsed.get("assignments") or []:
         if not isinstance(item, dict):
             continue
-        title = str(item.get("title") or "").strip()[:150]
-        traits = [key for key in (item.get("traits") or []) if isinstance(key, str) and key in identity][:3]
-        if not title or not traits or title.casefold() in [x["title"].casefold() for x in results]:
+        source, index, theme_key = item.get("source"), item.get("index"), item.get("theme")
+        if source not in ("general", "question") or not isinstance(index, int):
             continue
-        results.append({"key": "theme_" + str(len(results) + 1), "title": title, "traits": traits})
-    return results
+        identity = (source, index)
+        if identity in used or theme_key not in assigned:
+            continue
+        record = next((row for row in records if row["source"] == source and row["index"] == index), None)
+        if not record:
+            continue
+        used.add(identity)
+        if source == "general":
+            assigned[theme_key]["general_notes"] = record["text"]
+        else:
+            original = question_items[index]
+            assigned[theme_key]["question_evidence"].append({
+                "question": original.get("question") or "",
+                "saved_answer_or_note": original.get("saved_answer_or_note") or "",
+            })
+    return assigned
 
 
 def _item_prompt(owner, category, item, shared, notes, language):
@@ -411,14 +485,17 @@ def _item_prompt(owner, category, item, shared, notes, language):
         "CANDIDATE: CANDIDATE_A",
         "AREA: " + str(item["title"]),
         "PURPOSE: " + str(shared.get("purpose_label") or ""),
-        "ROLE CONTEXT (for relevance, not proof): " + str(shared.get("context_text") or ""),
         "ASSESSMENT FOR THIS AREA ONLY:\n" + json.dumps(item["evidence"], ensure_ascii=False),
         "INTERVIEW NOTES (only cite material explicitly relevant to this area):\n" +
         json.dumps(notes, ensure_ascii=False),
-        "PROTECTED EVIDENCE RULES: Testbild must use ONLY assessment data; "
-        "Intervjun must use ONLY actual interview evidence, and missing topic-specific "
-        "evidence must be acknowledged briefly. Never infer interview stories from scores. "
-        "No other assessment sources, raw scores in prose, or suitability decisions. "
+        "THEME SCOPE: " + str(item.get("scope") or ""),
+        "PROTECTED EVIDENCE RULES: Testbild must use ONLY the assessment evidence for this item; "
+        "Intervjun must use ONLY the interview records supplied for this exact theme. "
+        "Do not use one field's evidence in the other field. Never turn a question into an answer, "
+        "add actions, intentions, frequency, outcomes, skills or examples absent from the saved text, "
+        "or infer a stable pattern from one account. If selected interview evidence is empty or "
+        "does not address this theme, say so briefly. If test evidence is empty, say so briefly. "
+        "No other assessment sources, raw scores in prose, predictions, or suitability decisions. "
         "Keep exact question/answer provenance; an interviewer note is not a verbatim quote. "
         "Do not emit personal identifiers.",
         "GLOBAL AI GUIDANCE:\n" + global_rules,
@@ -528,23 +605,21 @@ def generate_structured_overall_picture(owner, *, language_code="sv", category=N
             _save(owner, state)
             yield {"type": "structured_section_skipped", "section": part}
             continue
+        personality_notes_by_theme = {}
         if part == "personality":
-            # Persist the controlled selection so retries do not silently
-            # change theme identities or discard a previous successful item.
+            # The ten approved themes are fixed. Older model-selected headings
+            # are replaced so a forced or ordinary regeneration uses this schema.
             previous_themes = old.get("themes") or []
-            if previous_themes and not force:
+            if previous_themes and old.get("theme_version") == PERSONALITY_THEME_VERSION and not force:
                 themes = previous_themes
             else:
-                try:
-                    themes = _theme_selection(owner, shared, rows, notes, language)
-                except Exception:
-                    sections[part] = {**old, "status": "failed"}
-                    _save(owner, state)
-                    yield {"type": "structured_section_error", "section": part, "message": "Could not select grounded personality themes."}
-                    continue
+                themes = _theme_selection(owner, shared, rows, notes, language)
+            personality_notes_by_theme = _assign_personality_interview_evidence(
+                owner, themes, notes, language,
+            )
             by_trait = {row["key"]: row for row in rows}
             units = [{
-                "key": theme["key"], "title": theme["title"],
+                "key": theme["key"], "title": theme["title"], "scope": theme["scope"],
                 "evidence": {
                     "traits": [by_trait[t]["evidence"] | {"name": by_trait[t]["title"]}
                                for t in theme["traits"] if t in by_trait]
@@ -559,10 +634,14 @@ def generate_structured_overall_picture(owner, *, language_code="sv", category=N
         scoped_notes = _notes_for_category(notes, part)
         for item in units:
             existing = old_items.get(item["key"]) or {}
+            item_notes = (
+                personality_notes_by_theme.get(
+                    item["key"], {"general_notes": "", "question_evidence": []},
+                ) if part == "personality" else scoped_notes
+            )
             fingerprint = _hash({
-                "subject": item, "notes": scoped_notes,
-                "guidance": _guidance(part, language), "context": shared.get("context_text"),
-                "language": language,
+                "subject": item, "notes": item_notes,
+                "guidance": _guidance(part, language), "language": language,
             })
             if not force and existing.get("status") == "completed" and existing.get("fingerprint") == fingerprint:
                 saved_items.append(existing)
@@ -571,7 +650,7 @@ def generate_structured_overall_picture(owner, *, language_code="sv", category=N
             try:
                 testbild, intervjun = _generate_validated_item(
                     owner,
-                    _item_prompt(owner, part, item, shared, scoped_notes, language),
+                    _item_prompt(owner, part, item, shared, item_notes, language),
                     language=language,
                 )
                 saved_items.append({
@@ -590,11 +669,13 @@ def generate_structured_overall_picture(owner, *, language_code="sv", category=N
                 "items": saved_items + [old_items[x["key"]] for x in units[len(saved_items):]
                                          if x["key"] in old_items],
                 "themes": themes,
+                **({"theme_version": PERSONALITY_THEME_VERSION} if part == "personality" else {}),
             }
             _save(owner, state)
         sections[part] = {
             "status": "failed" if section_error else "completed",
             "items": saved_items, "themes": themes,
+            **({"theme_version": PERSONALITY_THEME_VERSION} if part == "personality" else {}),
             "generated_at": timezone.now().isoformat(),
         }
         if part != "synthesis":
