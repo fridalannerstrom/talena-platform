@@ -3508,9 +3508,11 @@ Return readable Markdown text only. Do not return JSON, code fences, labels for 
 
 _WELLBEING_PREFERENCE_MARKERS = (
     "föredrar", "uppskattar", "tycker om", "gillar", "trivs", "vill ",
-    "motiveras", "motiverad", "ger energi", "väcker engagemang",
+    "önskar", "gärna", "motiveras", "motiverad", "ger energi",
+    "väcker engagemang", "drivs av", "behov av",
     "prefer", "appreciat", "enjoy", "like ", "likes ", "thrive",
-    "want ", "motivated", "energize", "energise", "engagement",
+    "want ", "desire", "motivated", "energize", "energise",
+    "engagement", "need for",
 )
 
 
@@ -3705,9 +3707,16 @@ def _remove_unsupported_wellbeing_claims(draft: str, claims: list[dict[str, Any]
         if claim not in result:
             raise ValueError("Could not safely remove an unsupported wellbeing claim.")
         result = result.replace(claim, "")
-    paragraphs = [" ".join(part.split()) for part in result.splitlines()]
-    paragraphs = [part for part in paragraphs if part]
-    return "\n\n".join(paragraphs).strip()
+    blocks = [
+        block.strip()
+        for block in re.split(r"\\n\\s*\\n", result)
+        if block.strip()
+    ]
+    blocks = [
+        block for block in blocks
+        if not all(line.strip().startswith("#") for line in block.splitlines() if line.strip())
+    ]
+    return "\\n\\n".join(blocks).strip()
 
 
 def stream_post_interview_content_block(
