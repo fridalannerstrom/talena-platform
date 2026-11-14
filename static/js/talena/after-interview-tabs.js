@@ -49,7 +49,7 @@
       managerPersonalityCandidateDescribes: "Kandidaten beskriver",
       managerPersonalityAdviceTitle: "Tips för trivsel",
       managerPersonalityTestMissing: "Ingen testtolkning är tillgänglig ännu.",
-      managerPersonalityInterviewMissing: "Inga intervjuanteckningar är tillgängliga ännu.",
+      managerPersonalityInterviewMissing: "Intervjuanteckningarna innehåller inget tillräckligt underlag om det här temat.",
       managerSkillNames: { numerical: "Numeriskt", logical: "Logiskt", verbal: "Verbalt" },
       managerSkillsUnavailable: "Färdighetsresultat visas här när de är tillgängliga.",
       managerSkillsGuideTitle: "Så tolkar du färdighetsresultaten",
@@ -187,7 +187,7 @@
       managerPersonalityCandidateDescribes: "The candidate describes",
       managerPersonalityAdviceTitle: "Wellbeing tips",
       managerPersonalityTestMissing: "No test interpretation is available yet.",
-      managerPersonalityInterviewMissing: "No interview notes are available yet.",
+      managerPersonalityInterviewMissing: "The interview notes do not contain enough information about this theme.",
       managerSkillNames: { numerical: "Numerical", logical: "Logical", verbal: "Verbal" },
       managerSkillsUnavailable: "Skills results will appear here when they are available.",
       managerSkillsGuideTitle: "How to interpret the skills results",
@@ -2774,7 +2774,9 @@
     evidenceTip.append(tipIcon, tipText);
     evidenceIntro.append(evidenceKicker, evidenceHeading, evidenceLead, evidenceTip);
     evidenceCard.append(evidenceIntro, notesRoot, postSection);
-    if (hasCompiledPostInterviewResult) {
+    // Keep the retry action available whenever a result exists, including
+    // failed states where hasCompiledPostInterviewResult is false.
+    if (hasPostInterviewResult) {
       const compilationAction = document.createElement("section");
       compilationAction.className = "after-interview-evidence-compilation";
       const compilationTitle = document.createElement("h4");

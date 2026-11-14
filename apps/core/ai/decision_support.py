@@ -3417,6 +3417,21 @@ def build_post_interview_content_block_prompt(
         key=block_key,
         language=language_code,
     )
+    wellbeing_grounding_guidance = (
+        """
+WELLBEING TIP SOURCE BOUNDARIES (apply in addition to the administrator prompt)
+- The mere presence of interview notes does not make them relevant to every tip. Use an interview detail only for a claim it directly supports.
+- The shared guidance not to say interview evidence is missing when notes exist means only that you must not claim there are no notes. You may say the interview does not address a particular topic when that is accurate.
+- You may say the candidate mentioned, described, prefers, wants, or finds something challenging only when that information is explicitly present in the current general interview notes or a saved answer. Do not turn a test indication into a claim about what the candidate said.
+- Never transfer a personality or motivation test indication into the candidate's interview account. Keep the source clear in the wording.
+- Format every tip under its own descriptive Markdown heading. If there is no directly relevant interview evidence, do not invent an interview opening to fill the section.
+- A note about a specific task, mistake, or experience supports only the details it states; do not extrapolate it into broad preferences, behaviours, or support needs.
+- A test result can indicate a possible tendency or area that may take more effort. Do not describe it as confirmed ability, use “high/low ability” language, or infer a need for training, mentoring, or support from a result alone.
+- If the evidence cannot support three distinct useful tips, provide fewer. Do not invent candidate statements, preferences, role tasks, or advice just to meet a target count.
+""".strip()
+        if block_key == "wellbeing_tips"
+        else ""
+    )
     global_guidance = get_global_ai_guidance(language=language_code)
     language_instruction = _post_get_ai_language_instruction(language_code)
 
@@ -3457,6 +3472,8 @@ SHARED TALENA GUIDANCE
 
 ADMINISTRATOR GUIDANCE FOR THIS SECTION ONLY
 {admin_guidance}
+
+{wellbeing_grounding_guidance}
 
 EVIDENCE RULES
 - Use only the supplied Talena evidence; never invent details.
@@ -3499,17 +3516,30 @@ def stream_post_interview_content_block(
     client = get_openai_client()
     prompt = redact_candidate_name(prompt, owner.candidate)
 
+    system_instruction = (
+        "You are Talena's careful assessment assistant. "
+        "Follow the section-specific administrator guidance and "
+        "the protected evidence rules in the user prompt. "
+        "Return only the requested section."
+    )
+    if block_key == "wellbeing_tips":
+        system_instruction += (
+            " For wellbeing tips, distinguish current interview notes, "
+            "personality indications, motivation factors, and role context. "
+            "An interview note is usable only for the specific fact it states; "
+            "do not treat unrelated interview notes as evidence about "
+            "preferences or needs. Never attribute a test tendency to the "
+            "candidate's interview account. Notes may exist without addressing "
+            "a particular tip. Format each tip under a descriptive Markdown "
+            "heading. If evidence is sparse, write less."
+        )
+
     stream = client.chat.completions.create(
         model=get_chat_model(),
         messages=[
             {
                 "role": "system",
-                "content": (
-                    "You are Talena's careful assessment assistant. "
-                    "Follow the section-specific administrator guidance and "
-                    "the protected evidence rules in the user prompt. "
-                    "Return only the requested section."
-                ),
+                "content": system_instruction,
             },
             {"role": "user", "content": prompt},
         ],

@@ -23,6 +23,84 @@ from .shared_context import build_shared_ai_context, get_process_purpose_key
 
 PARTS = ("testbild", "candidate_describes")
 
+MANAGER_INTERVIEW_THEME_CUES = {
+    "leading_and_working_with_others": (
+        "leda", "ledde", "ledarskap", "driva arbetet", "driva en fråga",
+        "ta initiativ", "samordna", "koordinera", "användartest",
+        "användartester", "samarbeta", "samarbete", "stötta", "stödja",
+        "hjälpa kolleg", "påverka", "nätverk",
+    ),
+    "organising_and_thinking_patterns": (
+        "planera", "planering", "prioritera", "prioritering", "struktur",
+        "organisera", "organisering", "mål", "målsättning", "lösa problem",
+        "problemlösning", "analysera", "analys", "kreativ", "idé",
+        "förändring", "anpassa arbetssätt",
+    ),
+    "interaction_and_emotion_management": (
+        "regel", "överenskommelse", "uppriktig", "ärlig", "rak",
+        "uttrycka sin åsikt", "uttrycka sina åsikter", "kommunikation",
+        "misstag", "kritik", "press", "stress", "motgång",
+        "självständigt", "självständighet", "vägledning", "avstämning",
+        "stöd från andra",
+    ),
+}
+
+
+def _route_manager_interview_evidence(
+    general_notes: str,
+    question_items: list[dict[str, Any]],
+) -> dict[str, list[dict[str, str]]]:
+    """Route interview evidence to one clearly relevant manager-report theme."""
+    routed = {theme["key"]: [] for theme in PERSONALITY_MANAGER_REPORT_THEMES}
+
+    def best_theme(text: str) -> str | None:
+        normalized = " ".join(str(text or "").lower().split())
+        # In this report, user-test coordination examples belong to the
+        # leadership/collaboration theme even when the question also mentions
+        # planning or organization.
+        if "användartest" in normalized or "användartester" in normalized:
+            return "leading_and_working_with_others"
+        scores = {
+            theme: sum(cue in normalized for cue in cues)
+            for theme, cues in MANAGER_INTERVIEW_THEME_CUES.items()
+        }
+        top = max(scores.values(), default=0)
+        winners = [theme for theme, score in scores.items() if score == top and score > 0]
+        return winners[0] if len(winners) == 1 else None
+
+    for paragraph in (part.strip() for part in str(general_notes or "").splitlines() if part.strip()):
+        theme = best_theme(paragraph)
+        if theme:
+            routed[theme].append({"source": "general_interview_note", "evidence": paragraph})
+
+    for item in question_items:
+        question = str(item.get("question") or "")
+        answer = str(item.get("saved_answer_or_note") or "")
+        theme = best_theme(question)
+        if theme:
+            routed[theme].append({
+                "source": str(item.get("source_label") or item.get("source") or "interview"),
+                "question": question,
+                "evidence": answer,
+            })
+
+    return routed
+
+
+
+def _get_manager_report_interview_evidence(owner) -> dict[str, list[dict[str, str]]]:
+    from apps.processes.interview_question_evidence import (
+        build_interview_question_evidence,
+    )
+
+    question_evidence = build_interview_question_evidence(owner)
+    notes = str(getattr(owner, "interview_notes", "") or "").strip()
+    return _route_manager_interview_evidence(
+        notes,
+        question_evidence.get("items") or [],
+    )
+
+
 
 def empty_manager_report_personality() -> dict[str, dict[str, str]]:
     return {
@@ -39,13 +117,7 @@ def build_manager_report_personality_prompt(owner, *, language_code: str = "en")
         language_code=language_code,
     )
 
-    from apps.processes.interview_question_evidence import (
-        build_interview_question_evidence,
-    )
-
-    question_evidence = build_interview_question_evidence(owner)
-    notes = str(getattr(owner, "interview_notes", "") or "").strip()
-    question_notes = str(question_evidence.get("text") or "").strip()
+    interview_evidence_by_theme = _get_manager_report_interview_evidence(owner)
 
     guidance = {}
     for theme in PERSONALITY_MANAGER_REPORT_THEMES:
@@ -94,17 +166,22 @@ Process context: {shared_context["context_text"] or "No additional process conte
 PERSONALITY INDICATOR INTERPRETATIONS BY THEME
 {json.dumps(indicator_interpretations, ensure_ascii=False, indent=2)}
 
-GENERAL INTERVIEW NOTES
-{notes or "No general interview notes were provided."}
-
-QUESTION-SPECIFIC INTERVIEW EVIDENCE
-{question_notes or "No question-specific answers or notes were saved."}
+INTERVIEW EVIDENCE ROUTED BY THEME
+Each interview item below is assigned to at most one theme because its question or note clearly concerns that theme. An empty list means there is no clearly relevant interview evidence for that theme.
+{json.dumps(interview_evidence_by_theme, ensure_ascii=False, indent=2)}
 
 EVIDENCE RULES
 - For each testbild field, use only the personality indicator interpretations for its theme. Do not use interview evidence.
-- For each candidate_describes field, use only relevant interview evidence. Do not use personality test results.
+- For each candidate_describes field, use only interview evidence listed under that exact theme. Do not use evidence listed under another theme or personality test results.
+- Treat the interview evidence as the candidate's account, not as proof of skill, competence, behaviour, or performance.
+- For testbild text, describe possible preferences or tendencies; never call them natural ability, competence, or proven performance.
+- Do not infer feelings, reactions, support needs, motivation, experience, or ability from an event unless the interview notes explicitly describe them.
+- A factual example of an error (such as giving incorrect change) does not by itself show how the person handles pressure, takes responsibility, or needs support.
+- Do not turn theoretical knowledge or preparation into practical experience, leadership ability, or an expressed willingness unless stated.
 - Context may clarify relevance but is not evidence about the candidate.
-- If the required evidence for a field is absent, return an empty string for that field.
+- Do not recommend that the recruiter explore a trait, and do not describe a trait as valuable, suitable, or beneficial for the role.
+- Describe role relevance only as a cautious possible expression of the stated tendency, not as a claim about contribution or fit.
+- If the routed evidence does not directly address the field, return an empty string for that field.
 - Do not invent candidate facts, behaviours, experience, or role requirements.
 
 FIELD GUIDANCE
@@ -130,10 +207,91 @@ def _parse_event(raw_line: str) -> dict[str, Any] | None:
     return event
 
 
+def _recover_manager_report_events(raw_text: str) -> list[dict[str, Any]]:
+    text = str(raw_text or "").strip()
+    if not text:
+        return []
+
+    unfenced = "\n".join(
+        line for line in text.splitlines()
+        if not line.strip().startswith("```")
+    )
+    events: list[dict[str, Any]] = []
+
+    def collect(value: Any) -> None:
+        if isinstance(value, list):
+            for item in value:
+                collect(item)
+            return
+        if not isinstance(value, dict):
+            return
+        if value.get("type") == "manager_report_personality_text":
+            events.append(value)
+            return
+        if value.get("type") == "done":
+            events.append(value)
+            return
+        if value.get("theme") and value.get("part") and "text" in value:
+            events.append({
+                "type": "manager_report_personality_text",
+                "theme": value["theme"],
+                "part": value["part"],
+                "text": value["text"],
+            })
+            return
+
+        # Recover the common nested shape {theme: {part: text}} too.
+        for theme in PERSONALITY_MANAGER_REPORT_THEMES:
+            theme_key = theme["key"]
+            parts = value.get(theme_key)
+            if isinstance(parts, dict):
+                for part in PARTS:
+                    if part in parts:
+                        collect({
+                            "theme": theme_key,
+                            "part": part,
+                            "text": parts[part],
+                        })
+        for key, nested in value.items():
+            if key not in {theme["key"] for theme in PERSONALITY_MANAGER_REPORT_THEMES}:
+                collect(nested)
+
+    # Parse individual NDJSON lines and complete JSON containers.
+    for line in unfenced.splitlines():
+        try:
+            collect(json.loads(line.strip()))
+        except (json.JSONDecodeError, TypeError):
+            pass
+
+    decoder = json.JSONDecoder()
+    index = 0
+    while index < len(unfenced):
+        start = unfenced.find("{", index)
+        if start < 0:
+            break
+        try:
+            value, end = decoder.raw_decode(unfenced, start)
+        except json.JSONDecodeError:
+            index = start + 1
+            continue
+        collect(value)
+        index = max(end, start + 1)
+
+    unique: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for event in events:
+        key = json.dumps(event, ensure_ascii=False, sort_keys=True)
+        if key not in seen:
+            seen.add(key)
+            unique.append(event)
+    return unique
+
+
 def stream_manager_report_personality(
     *, owner, language_code: str = "en"
 ) -> Iterable[dict[str, Any]]:
     language_code = normalize_ai_language(language_code)
+    interview_evidence_by_theme = _get_manager_report_interview_evidence(owner)
     prompt = redact_candidate_name(
         build_manager_report_personality_prompt(
             owner,
@@ -141,6 +299,15 @@ def stream_manager_report_personality(
         ),
         owner.candidate,
     )
+
+    def enforce_interview_evidence_boundary(event: dict[str, Any]) -> dict[str, Any]:
+        if (
+            event.get("type") == "manager_report_personality_text"
+            and event.get("part") == "candidate_describes"
+            and not interview_evidence_by_theme.get(str(event.get("theme") or ""))
+        ):
+            return {**event, "text": ""}
+        return event
     system_language_instruction = get_ai_system_language_instruction(
         language_code,
         owner=owner,
@@ -174,19 +341,33 @@ def stream_manager_report_personality(
     )
 
     buffer = ""
+    complete_response = ""
+    emitted_fields: set[tuple[str, str]] = set()
     for response_event in stream:
         delta = response_event.choices[0].delta
         if not delta or not delta.content:
             continue
         buffer += delta.content
+        complete_response += delta.content
         while "\n" in buffer:
             raw_line, buffer = buffer.split("\n", 1)
             parsed = _parse_event(raw_line)
             if parsed:
+                parsed = enforce_interview_evidence_boundary(parsed)
+                field = (str(parsed.get("theme") or ""), str(parsed.get("part") or ""))
+                if parsed.get("type") == "manager_report_personality_text":
+                    emitted_fields.add(field)
                 yield parsed
-    parsed = _parse_event(buffer)
-    if parsed:
-        yield parsed
+
+    # Recover valid events if the model wraps NDJSON in JSON or Markdown.
+    for parsed in _recover_manager_report_events(complete_response):
+        parsed = enforce_interview_evidence_boundary(parsed)
+        field = (str(parsed.get("theme") or ""), str(parsed.get("part") or ""))
+        if parsed.get("type") == "manager_report_personality_text" and field not in emitted_fields:
+            emitted_fields.add(field)
+            yield parsed
+        elif parsed.get("type") == "done":
+            yield parsed
 
 
 def apply_manager_report_personality_event(
