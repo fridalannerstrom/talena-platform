@@ -59,7 +59,7 @@ categorical personality claims, diagnoses, suitability and hiring verdicts.
 Preserve detail where supported. Do not reproduce headings inside the fields:
 Talena displays Testbild and Intervjun itself."""
 PERSONALITY_THEME_VERSION = 2
-GENERATION_RULES_VERSION = 6
+GENERATION_RULES_VERSION = 7
 PERSONALITY_THEMES = (
     {"sv": "Samarbete och relationer", "en": "Collaboration and relationships",
      "traits": ("Cooperative", "Connecting"),
@@ -397,16 +397,77 @@ _REPAIR_INSTRUCTION = (
 )
 
 
-def _generate_validated_item(owner, prompt, *, language):
-    """Repair a malformed answer once, then report failure without storing it."""
+def _interview_source_text(notes):
+    """Flatten only the supplied interview evidence for narrow grounding checks."""
+    chunks = []
+    if isinstance(notes, dict):
+        general = notes.get("general_notes")
+        if isinstance(general, str):
+            chunks.append(general)
+        for item in notes.get("question_evidence") or []:
+            if isinstance(item, dict):
+                answer = item.get("saved_answer_or_note")
+                if isinstance(answer, str):
+                    chunks.append(answer)
+    return " ".join(chunks)
+
+
+def _validate_item_grounding(category, testbild, intervjun, notes):
+    """Reject observed overclaims that contradict the report's evidence contract."""
+    if category == "skills":
+        if re.search(r"\b(?:mer|ytterligare|extra)\s+(?:tid|ansträngning|energi|time|effort)\b", testbild, re.I):
+            raise ValueError("Skill testbild infers unmeasured time or effort.")
+        if re.search(
+            r"\b(?:vilket|detta)\s+(?:tyder|visar|indikerar)\b.{0,100}"
+            r"\b(?:bristande förmåga|utmaning(?:ar)? i att hantera|svårighet(?:er)? med att hantera|"
+            r"lack of ability|difficulty handling)\b",
+            intervjun, re.I | re.S,
+        ):
+            raise ValueError("Skill interview generalizes ability from an example.")
+    elif category == "personality":
+        if re.search(r"\b(?:god|bra|stark)\s+förmåga\b|\b(?:good|strong) ability\b", testbild, re.I):
+            raise ValueError("Personality testbild frames a preference as competence.")
+        source = _interview_source_text(notes)
+        theory_or_tool = re.search(
+            r"\b(?:teoretisk|teori|studerat|studied|software|programvara|verktyg)\b",
+            source, re.I,
+        )
+        inferred_intent = re.search(
+            r"\b(?:vilja(?:n)? att|beredskap att|visar vilja|willingness to|willing to|readiness to)\b",
+            intervjun, re.I,
+        )
+        explicit_intent = re.search(
+            r"\b(?:jag|personen|kandidaten)\s+(?:vill|ville|önskar|hoppas|strävar)\b|"
+            r"\b(?:I want|I would like|I aim|I hope)\b",
+            source, re.I,
+        )
+        if theory_or_tool and inferred_intent and not explicit_intent:
+            raise ValueError("Personality interview infers intent from theory or tool use.")
+
+
+_ITEM_GROUNDING_REPAIR = (
+    "\n\nGROUNDING REPAIR: The previous prose inferred more than the sources support. "
+    "For skill Testbild, do not infer extra time, effort, strategy, general ability or job performance "
+    "from the test result. For a skill interview example, report what happened without turning one event "
+    "into a general ability claim. For personality Testbild, describe preferences, not competence. In a "
+    "personality interview, theoretical study or software use does not establish willingness, readiness, "
+    "leadership or coordination; state only what the candidate actually said or did."
+)
+
+
+def _generate_validated_item(owner, prompt, *, language, category, notes):
+    """Repair malformed or overreaching prose once, then fail closed."""
     for attempt in range(2):
-        output = _completion(prompt + (_REPAIR_INSTRUCTION if attempt else ""), owner)
+        repair = (_REPAIR_INSTRUCTION + _ITEM_GROUNDING_REPAIR) if attempt else ""
+        output = _completion(prompt + repair, owner)
         try:
             testbild = _validated_prose(output.get("testbild"), field="Testbild")
             intervjun = _validated_prose(
                 output.get("intervjun"), field="Intervjun", allow_empty=True,
             )
-            return testbild, intervjun or MISSING_INTERVIEW[language]
+            intervjun = intervjun or MISSING_INTERVIEW[language]
+            _validate_item_grounding(category, testbild, intervjun, notes)
+            return testbild, intervjun
         except ValueError:
             if attempt:
                 raise
@@ -429,6 +490,11 @@ def _validate_synthesis_provenance(value):
         r"\b(?:bekräftar|bekräftade|confirms?|corroborates?)\b.{0,100}\b(?:testresultat(?:et)?|testresultaten|test result|assessment result)\b",
         r"\b(?:behöver|bör|kan behöva|need(?:s)? to|should)\b.{0,70}\b(?:utforskas vidare|utforska vidare|explore further|be explored further)\b",
         r"\b(?:potential(?:en)? att bidra|potential to contribute|kan bidra positivt|could contribute positively|god grund att bidra)\b",
+        r"\b(?:mer|ytterligare|extra)\s+(?:tid|ansträngning|energi|time|effort)\b",
+        r"\b(?:kan|could|may)\s+(?:påverka|affect)\b.{0,100}\b(?:arbetsprestation|beslutsfattande|ledarskap|hur personen agerar|job performance|decision making|leadership)\b",
+        r"\b(?:tillgång i|asset to)\b.{0,50}\b(?:team|arbete|roll|teamwork|role)\b",
+        r"\b(?:öka sin trygghet|öka tryggheten|arbeta mer aktivt med att|increase (?:their|the candidate's) confidence)\b",
+        r"\b(?:vilja att stödja|willingness to support)\b",
     )
     if any(re.search(pattern, text, re.I | re.S) for pattern in prohibited):
         raise ValueError("Synthesis contains an unsupported cross-source or role inference.")
@@ -638,10 +704,13 @@ def _synthesis_prompt(owner, sections, shared, language):
         "or proves a test result; describe each source separately, even when they point in a similar direction. "
         "Do not label traits as strengths or development areas unless a supplied source explicitly does so. "
         "Do not add personal interest, motivation, skill, behavior or experience from the role description or "
-        "application. Do not describe potential contribution, value or suitability for a role. Do not turn a test "
-        "indication into a claim about work performance. Do not suggest support, management actions, further "
-        "exploration, next steps or recommendations. Preserve uncertainty and distinguish assessment indications "
-        "from interview accounts. Output prose only, without a Markdown heading; the interface renders the heading.",
+        "application. Do not describe potential contribution, value or suitability for a role. Do not infer "
+        "how the candidate may act in leadership, decision-making or other work situations from test preferences "
+        "or missing practical experience. Do not carry a Testbild interpretation into an interview claim. Do not "
+        "turn a test indication into a claim about work performance or extra time/effort. Do not suggest support, "
+        "management actions, increased confidence, further exploration, next steps or recommendations. Preserve "
+        "uncertainty and distinguish assessment indications from interview accounts. Output prose only, without "
+        "a Markdown heading; the interface renders the heading.",
     ])
 
 
@@ -775,7 +844,7 @@ def generate_structured_overall_picture(owner, *, language_code="sv", category=N
                 testbild, intervjun = _generate_validated_item(
                     owner,
                     _item_prompt(owner, part, item, shared, item_notes, language),
-                    language=language,
+                    language=language, category=part, notes=item_notes,
                 )
                 saved_items.append({
                     "key": item["key"], "title": item["title"], "testbild": testbild,
