@@ -59,7 +59,7 @@ categorical personality claims, diagnoses, suitability and hiring verdicts.
 Preserve detail where supported. Do not reproduce headings inside the fields:
 Talena displays Testbild and Intervjun itself."""
 PERSONALITY_THEME_VERSION = 2
-GENERATION_RULES_VERSION = 4
+GENERATION_RULES_VERSION = 5
 PERSONALITY_THEMES = (
     {"sv": "Samarbete och relationer", "en": "Collaboration and relationships",
      "traits": ("Cooperative", "Connecting"),
@@ -518,20 +518,31 @@ def _item_prompt(owner, category, item, shared, notes, language):
         "that the person did or said those things. Never convert them into candidate facts. Do not invent or "
         "infer actions, frequency, outcomes, intentions, abilities, competence, motivation or interests. "
         "If the saved answer says the person has not done an activity, state that directly; do not replace it "
-        "with hypothetical positive behaviour. Use 'personen' rather than gendered pronouns."
+        "with hypothetical positive behaviour. Do not infer willingness, leadership or motivation from "
+        "theoretical knowledge or software use. Use 'personen' rather than gendered pronouns."
     )
     if category == "skills":
         final_boundary += (
             " Testbild: maximum three sentences, based only on the result for this test and what that result "
             "may indicate about handling this type of task in the test situation. Do not say the person "
-            "'has difficulty' or make a general ability or job-performance claim based only on a score. "
-            "Intervjun: attribute self-reported difficulty to the interview; do not infer lack of ability from one event."
+            "'has difficulty', infer time, effort or strategy, or make a general ability or job-performance "
+            "claim based only on a score. Intervjun: attribute self-reported difficulty to the interview; "
+            "do not infer lack of ability from one event."
         )
     elif category == "personality":
+        trait_names = [
+            str(trait.get("name") or trait.get("title") or "").strip()
+            for trait in (item.get("evidence") or {}).get("traits") or []
+            if isinstance(trait, dict)
+        ]
         final_boundary += (
             " Testbild: maximum three sentences, based only on this theme's supplied trait evidence. "
-            "Do not describe a test result as competence or predict work performance; situational results "
-            "must remain situational. Intervjun: use only the interview records selected for this theme."
+            "This theme contains these available traits: " + ", ".join(trait_names) + ". "
+            "When two traits are available, include a distinct supported nuance from each; do not let "
+            "one trait replace the other. Do not describe a test result as competence or predict work "
+            "performance; situational results must remain situational. Intervjun: use only the interview "
+            "records selected for this theme, and do not infer willingness or leadership from theoretical "
+            "knowledge or use of software."
         )
     elif category == "motivation":
         final_boundary += (
@@ -584,7 +595,8 @@ def _synthesis_prompt(owner, sections, shared, language):
         "SCOPED ADMIN GUIDANCE: " + guidance,
         "FINAL SYNTHESIS EVIDENCE FIREWALL: Treat each Testbild and Intervjun field as a separate source; "
         "a field saying no interview evidence is available must never be transformed into an interview claim. "
-        "Compress only facts explicitly present in these fields. Do not add personal interest, motivation, skill, "
+        "Compress only facts explicitly present in these fields. Do not label traits as strengths or development "
+        "areas unless a supplied source explicitly does so. Do not add personal interest, motivation, skill, "
         "behavior or experience from the role description or application. Do not turn a test indication into a "
         "claim about work performance or role suitability. Do not suggest support, management actions, next steps "
         "or recommendations. Preserve uncertainty and distinguish assessment indications from interview accounts.",
