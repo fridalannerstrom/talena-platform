@@ -3434,15 +3434,15 @@ def build_post_interview_content_block_prompt(
 WELLBEING TIP SOURCE BOUNDARIES (apply in addition to the administrator prompt)
 - The mere presence of interview notes does not make them relevant to every tip. Use an interview detail only for a claim it directly supports.
 - The shared guidance not to say interview evidence is missing when notes exist means only that you must not claim there are no notes. You may say the interview does not address a particular topic when that is accurate.
-- You may say the candidate mentioned, described, prefers, wants, or finds something challenging only when that information is explicitly present in the current general interview notes or a saved answer. Do not turn a test indication into a claim about what the candidate said.
-- For every interview claim, identify a specific supporting phrase or event in the supplied interview record. A motivation factor in MQ is not evidence that the candidate personally said they prefer or enjoy that condition.
-- If the interview does not explicitly discuss a motivation factor, omit any claim that the candidate expressed that preference. You may state briefly that the interview does not clarify what the factor means to them, or leave interview evidence out of that tip.
+- State that the candidate mentioned, described, prefers, wants, or finds something challenging only when that information is explicitly present in the current general interview notes or a saved answer. Do not turn a test indication into a claim about what the candidate said.
+- For factual descriptions of the interview, use only the specific supporting phrase or event in the supplied interview record. A motivation factor in MQ is not evidence that the candidate personally said they prefer or enjoy that condition.
+- If the interview does not explicitly discuss a motivation factor, do not claim the candidate expressed that preference. You may still offer a tentative, practical suggestion based on the test results, clearly framed as something the manager could try or explore with the candidate.
 - Never transfer a personality or motivation test indication into the candidate's interview account. Keep the source clear in the wording.
-- One example of doing a task supports only the actions and outcomes actually stated; it does not establish that the candidate prefers that work, thrives in it, or wants more responsibility.
-- Format every tip under its own descriptive Markdown heading. If there is no directly relevant interview evidence, do not invent an interview opening to fill the section.
-- A note about a specific task, mistake, or experience supports only the details it states; do not extrapolate it into broad preferences, behaviours, or support needs.
+- One example of doing a task supports only the actions and outcomes actually stated; it does not establish that the candidate prefers that work, thrives in it, or wants more responsibility. It may still inform a tentative suggestion, as long as the suggestion is not presented as the candidate's stated preference or need.
+- Aim for 2–3 useful, distinct tips under descriptive Markdown headings. Draw on available MQ/PQ indications and relevant role context to make practical suggestions even when interview evidence is limited. When an interview example is relevant, summarize it accurately and connect it to an option the manager can explore.
+- A note about a specific task, mistake, or experience supports only the details it states; do not extrapolate it into a factual claim about broad preferences, behaviours, or support needs.
 - A test result can indicate a possible tendency or area that may take more effort. Do not describe it as confirmed ability, use “high/low ability” language, or infer a need for training, mentoring, or support from a result alone.
-- If the evidence cannot support three distinct useful tips, provide fewer. Do not invent candidate statements, preferences, role tasks, or advice just to meet a target count.
+- Do not invent candidate statements, preferences, role tasks, or personal needs just to fill the section.
 """.strip()
         if block_key == "wellbeing_tips"
         else ""
@@ -3509,9 +3509,10 @@ Return readable Markdown text only. Do not return JSON, code fences, labels for 
 _WELLBEING_PREFERENCE_MARKERS = (
     "föredrar", "uppskattar", "tycker om", "gillar", "trivs", "vill ",
     "vilja", "önskar", "gärna", "motiveras", "motiverad", "motivation",
-    "ger energi", "väcker engagemang", "drivs av", "behov av", "behöver",
+    "ger energi", "väcker engagemang", "drivs av", "behov av", "detta behov",
+    "kandidatens behov", "behovet", "behöver",
     "intresse", "willing", "enjoy", "like ", "likes ", "prefer", "prefers",
-    "thrive", "want ", "desire", "motivated", "motivation", "energize",
+    "thrive", "want ", "desire", "motivated", "motivation", "need ", "needs ", "energize",
     "energise", "engag", "engagement", "need for", "needs ",
 )
 
@@ -3549,17 +3550,20 @@ def _wellbeing_audit_response(client, draft: str, source_text: str) -> list[dict
             {
                 "role": "system",
                 "content": (
-                    "You are a strict evidence auditor. Do not rewrite the report. "
-                    "Review only statements attributed to, or inferred from, interview evidence. "
+                    "You are an evidence auditor. Do not rewrite the report. "
+                    "Review factual statements attributed to interview evidence and claims that "
+                    "the candidate explicitly stated a preference, motivation, or support need. "
                     "A single example of doing a task does not establish a preference, motivation, "
                     "need, or that the candidate thrives in similar work. For each interview-based "
                     "claim, return the exact full sentence from the draft and an exact contiguous "
                     "supporting quote from the interview source. Mark it supported only when that "
                     "quote directly supports the full claim. A task example does not support a "
                     "claim about willingness, preference, motivation, thriving, or need unless the "
-                    "interview states that explicitly. Review manager recommendations too when they "
-                    "present an interview-derived preference or need as established; advice explicitly "
-                    "framed as something to ask or try is not such a claim. A claim that the interview "
+                    "interview states that explicitly. Do not reject a tentative manager suggestion "
+                    "merely because it draws on a test indication, role context, or a concrete example. "
+                    "Reject it only if it presents an unstated candidate preference or personal need "
+                    "as a fact. Advice framed as an option to try or explore is not such a claim. "
+                    "A claim that the interview "
                     "does not address a topic may have an empty quote only when that absence is accurate. "
                     "Ignore claims based only on tests or process context."
                 ),
@@ -3569,10 +3573,11 @@ def _wellbeing_audit_response(client, draft: str, source_text: str) -> list[dict
                 "content": (
                     "Return JSON only with shape "
                     '{"claims":[{"claim":"exact sentence from draft","quote":"exact source excerpt or empty string","supported":true}]}\n'
-                    "List every interview-based factual, preference, motivation, or support-need claim. "
-                    "Also list any manager recommendation that assumes the candidate prefers, needs, or "
-                    "would thrive in a condition based on an interview event. Do not include test-only "
-                    "statements or advice clearly framed as a question to explore.\n\n"
+                    "List every factual claim about what happened in the interview and every claim that "
+                    "the candidate explicitly stated a preference, motivation, or personal support need. "
+                    "Also list a recommendation only when it states or relies on an unstated candidate "
+                    "preference or personal need as fact. Do not list tentative advice framed as an "
+                    "option to try or explore, test-based suggestions, or role-context suggestions.\n\n"
                     "INTERVIEW SOURCES (questions excluded):\n" + source_text +
                     "\n\nDRAFT:\n" + draft
                 ),
@@ -3631,7 +3636,8 @@ def _wellbeing_audit_response(client, draft: str, source_text: str) -> list[dict
     # are left alone; preference claims tied to the candidate must be reviewed.
     candidate_markers = (
         "personen", "kandidaten", "candidate", "the person",
-        "she ", "he ", "hon ", "hen ",
+        "she ", "he ", "her ", "their ", "them ",
+        "hon ", "hen ", "henne ",
     )
     interview_attribution_markers = (
         "i intervjun", "intervjun", "intervjuunderlaget",
@@ -3709,8 +3715,8 @@ def _rewrite_wellbeing_draft(client, prompt: str, system_instruction: str, rejec
         "\n\nEVIDENCE REVIEW REPAIR\n"
         "The following interview-based sentences were rejected because their cited text "
         "did not support them. Remove them or rewrite them as a clearly test-based possibility "
-        "or a question for the manager to explore. Do not attribute a preference, motivation, "
-        "need, or thriving condition to the candidate unless the interview explicitly states it. "
+        "or a practical option for the manager to try or explore. Do not attribute a preference, "
+        "motivation, personal need, or thriving condition to the candidate unless the interview explicitly states it. "
         "A task example alone is not evidence of preference. Keep only claims directly supported "
         "by the interview record. Rejected sentences: " + claims
     )
@@ -3776,7 +3782,10 @@ def stream_post_interview_content_block(
             "preferences or needs. Never attribute a test tendency to the "
             "candidate's interview account. Notes may exist without addressing "
             "a particular tip. Format each tip under a descriptive Markdown "
-            "heading. If evidence is sparse, write less."
+            "heading. Aim for 2–3 distinct practical tips when MQ/PQ evidence "
+            "and role context allow, even if the interview covers only one topic. "
+            "Keep suggestions tentative and do not present them as the candidate's "
+            "stated preferences or needs."
         )
 
     if block_key == "wellbeing_tips":
