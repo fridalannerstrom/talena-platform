@@ -298,16 +298,68 @@ def _subject_evidence(owner, category, language, shared, notes):
     return []
 
 
-def _notes_for_category(notes, category):
-    source = {"skills": "cognitive", "motivation": "motivation", "personality": "personality"}[category]
-    items = [
-        {"question": item.get("question") or "", "saved_answer_or_note": item.get("saved_answer_or_note") or ""}
-        for item in notes["question_evidence"].get("items") or []
-        if item.get("source") == source
+_SKILL_INTERVIEW_CUES = {
+    "numerical": (
+        "numerisk", "siffer", "siffror", "räkna", "beräkning", "växel",
+        "kassasystem", "kassasystemet", "tal", "numeric", "numbers",
+        "arithmetic", "calculation", "cash register",
+    ),
+    "logical": (
+        "logisk", "mönster", "slutsats", "resonera", "logiskt",
+        "logical", "pattern", "reasoning", "deduction",
+    ),
+    "verbal": (
+        "verbal", "text", "läsa", "läsförståelse", "skriftlig",
+        "skriftligt", "ordförståelse", "reading", "written", "textual",
+    ),
+}
+
+
+def _skill_evidence_key(text):
+    normalized = " ".join(str(text or "").casefold().split())
+    matches = [
+        key for key, cues in _SKILL_INTERVIEW_CUES.items()
+        if any(cue in normalized for cue in cues)
     ]
-    # General interview notes can be relevant to multiple areas; preserve them
-    # with explicit relevance filtering in the protected prompt.
-    return {"general_notes": notes["general_notes"], "question_evidence": items}
+    # Ambiguous notes are deliberately not assigned to any skill.
+    return matches[0] if len(matches) == 1 else None
+
+
+def _notes_for_category(notes, category, item_key=None):
+    source = {"skills": "cognitive", "motivation": "motivation", "personality": "personality"}[category]
+    question_items = notes["question_evidence"].get("items") or []
+    items = []
+    if category in ("skills", "motivation"):
+        for item in question_items:
+            if item.get("source") != source:
+                continue
+            if category == "skills":
+                if item_key not in _SKILL_INTERVIEW_CUES:
+                    continue
+                # A saved cognitive answer must also match this particular skill.
+                topic = _skill_evidence_key(
+                    str(item.get("question") or "") + " " +
+                    str(item.get("saved_answer_or_note") or "")
+                )
+                if topic != item_key:
+                    continue
+            items.append({
+                "question": item.get("question") or "",
+                "saved_answer_or_note": item.get("saved_answer_or_note") or "",
+            })
+
+    general_notes = ""
+    if category == "skills" and item_key in _SKILL_INTERVIEW_CUES:
+        relevant = [
+            paragraph.strip()
+            for paragraph in str(notes.get("general_notes") or "").splitlines()
+            if paragraph.strip() and _skill_evidence_key(paragraph) == item_key
+        ]
+        general_notes = "\\n".join(relevant)
+
+    # General notes are not evidence of a motivation factor or personality
+    # theme by themselves. Personality has its own conservative theme router.
+    return {"general_notes": general_notes, "question_evidence": items}
 
 
 def _completion(prompt, owner, *, output_tokens=1800):
@@ -837,13 +889,13 @@ def generate_structured_overall_picture(owner, *, language_code="sv", category=N
         old_items = {x.get("key"): x for x in old.get("items") or []}
         saved_items = []
         section_error = False
-        scoped_notes = _notes_for_category(notes, part)
         for item in units:
             existing = old_items.get(item["key"]) or {}
             item_notes = (
                 personality_notes_by_theme.get(
                     item["key"], {"general_notes": "", "question_evidence": []},
-                ) if part == "personality" else scoped_notes
+                ) if part == "personality" else
+                _notes_for_category(notes, part, item_key=item.get("key"))
             )
             fingerprint = _hash({
                 "generation_rules_version": GENERATION_RULES_VERSION,
