@@ -2774,7 +2774,9 @@
     evidenceTip.append(tipIcon, tipText);
     evidenceIntro.append(evidenceKicker, evidenceHeading, evidenceLead, evidenceTip);
     evidenceCard.append(evidenceIntro, notesRoot, postSection);
-    if (hasCompiledPostInterviewResult) {
+    // Keep the retry action available whenever a result exists, including
+    // failed states where hasCompiledPostInterviewResult is false.
+    if (hasPostInterviewResult) {
       const compilationAction = document.createElement("section");
       compilationAction.className = "after-interview-evidence-compilation";
       const compilationTitle = document.createElement("h4");
