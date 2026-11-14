@@ -3,6 +3,7 @@ from __future__ import annotations
 from .candidate_name_privacy import redact_candidate_name
 
 import json
+import re
 from typing import Any, Iterable
 
 from django.db import transaction
@@ -3587,7 +3588,7 @@ def _wellbeing_audit_response(client, draft: str, source_text: str) -> list[dict
     if not isinstance(claims, list):
         raise ValueError("The wellbeing evidence review returned no claim list.")
 
-    source_flat = " ".join(source_texts for source_texts in _json_source_values(source_text))
+    source_flat = " ".join(_json_source_values(source_text))
     checked = []
     for item in claims:
         if not isinstance(item, dict):
@@ -3616,6 +3617,34 @@ def _wellbeing_audit_response(client, draft: str, source_text: str) -> list[dict
             )
             supported = supported and describes_absence
         checked.append({"claim": claim, "quote": quote, "supported": supported})
+
+    # Guard against an auditor that accidentally omits a candidate preference
+    # sentence from its claim list. Test-only descriptions and manager advice
+    # are left alone; preference claims tied to the candidate must be reviewed.
+    candidate_markers = (
+        "personen", "kandidaten", "kandidaten", "candidate", "the person",
+        "she ", "he ", "hon ", "hen ",
+    )
+    test_markers = (
+        "testresultat", "testresultaten", "testet", "mq ", "motivationsfaktor",
+        "resultaten", "assessment result", "motivation factor",
+    )
+    sentences = re.split(r"(?<=[.!?])\\s+", draft)
+    known_claims = [item["claim"] for item in checked]
+    for sentence in sentences:
+        folded = sentence.casefold()
+        if not any(marker in folded for marker in _WELLBEING_PREFERENCE_MARKERS):
+            continue
+        if not any(marker in folded for marker in candidate_markers):
+            continue
+        if any(marker in folded for marker in test_markers):
+            continue
+        if not any(sentence.strip() in claim or claim in sentence for claim in known_claims):
+            checked.append({
+                "claim": sentence.strip(),
+                "quote": "",
+                "supported": False,
+            })
     return checked
 
 
