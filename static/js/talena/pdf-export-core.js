@@ -312,6 +312,45 @@
     return ranges;
   }
 
+  function getPersonalityQuickPageGuides(node, source, maxHeight) {
+    // The trait-only profile is shorter than the detailed indicator report.
+    // Keep its three six-trait sections together when a complete section
+    // fits on the sheet, avoiding orphan category headers on the prior page.
+    const container = node.getBoundingClientRect();
+    if (!container.width) return [];
+    const scale = source.width / container.width;
+    const ranges = [];
+    const root = node.querySelector(".personality-quick-view");
+    if (!root) return ranges;
+
+    function protect(element, endElement = element, maxFraction = 1) {
+      if (!element || !endElement) return;
+      const from = element.getBoundingClientRect();
+      const to = endElement.getBoundingClientRect();
+      if (!from.height || !to.height) return;
+      const start = Math.max(0, Math.round((from.top - container.top) * scale));
+      const end = Math.min(source.height,
+        Math.round((to.bottom - container.top) * scale));
+      // Longer sections fall back to whole rows rather than forcing
+      // impossible one-page blocks or leaving huge blank page areas.
+      if (end > start && end - start <= maxHeight * maxFraction) {
+        ranges.push({ start, end });
+      }
+    }
+
+    const overview = root.querySelector(".personality-overview-chart");
+    protect(overview, overview, 0.95);
+    root.querySelectorAll(".personality-quick-section").forEach(section => {
+      protect(section, section, 0.9);
+      const title = section.querySelector(".personality-quick-section__header");
+      const firstRow = section.querySelector(".personality-quick-row");
+      protect(title, firstRow, 0.78);
+      section.querySelectorAll(".personality-quick-row")
+        .forEach(row => protect(row));
+    });
+    return ranges;
+  }
+
   function addCanvasPages(pdf, source, opts) {
     if (!source.width || !source.height) throw new Error("PDF page is empty.");
     const pageW = pdf.internal.pageSize.getWidth();
@@ -332,6 +371,8 @@
       opts.node?.closest?.('[data-candidate-pdf-report="cognitive-results"]');
     const personalityResultsPdf = opts.continuous &&
       opts.node?.closest?.('[data-candidate-pdf-report="personality-results"]');
+    const personalityQuickPdf = personalityResultsPdf &&
+      opts.node?.querySelector?.(".personality-quick-view");
     const protectedRanges = motivationPdf
       ? getMotivationPageGuides(opts.node, source)
       : (motivationQuestionsPdf || cognitiveQuestionsPdf)
@@ -339,7 +380,9 @@
         : cognitiveResultsPdf
           ? getCognitiveResultsPageGuides(opts.node, source)
           : personalityResultsPdf
-            ? getPersonalityResultsPageGuides(opts.node, source, maxHeight)
+            ? personalityQuickPdf
+              ? getPersonalityQuickPageGuides(opts.node, source, maxHeight)
+              : getPersonalityResultsPageGuides(opts.node, source, maxHeight)
             : [];
     const slices = calculatePageSlices(
       source.height, maxHeight, breakpoints, protectedRanges

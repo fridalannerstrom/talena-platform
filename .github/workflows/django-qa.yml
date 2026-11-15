@@ -27,6 +27,7 @@ jobs:
           node scripts/test_cognitive_questions_pdf_20261115.js
           node scripts/test_cognitive_questions_pagebreaks_20261115.js
           node scripts/test_personality_results_pdf_pagebreaks_20261115.js
+          node scripts/test_personality_quick_pdf_pagebreaks_20261115.js
           node scripts/test_cognitive_results_pdf_pagebreaks_20261115.js
 
   migrate-and-test:

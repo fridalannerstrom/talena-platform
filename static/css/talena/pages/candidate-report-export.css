@@ -861,3 +861,44 @@
 .talena-candidate-pdf-stage[data-candidate-pdf-report="personality-results"] .personality-indicator-row {
   break-inside:avoid;
 }
+
+
+/* Personlighet · Karaktärsdragsprofil: clean, readable printable layout.
+   Only the short trait-only PDF (not the detailed indicator profile) uses
+   these rules. The 18 STEN scores and their original polar descriptions
+   are retained verbatim, as is the branded cover and on-screen design. */
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-results"] .personality-quick-view {
+  margin-top:14px !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-results"] .personality-quick-view .personality-quick-section {
+  border:0 !important;
+  border-radius:0 !important;
+  box-shadow:none !important;
+  overflow:visible !important;
+  margin-bottom:19px !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-results"] .personality-quick-view .personality-quick-section__header {
+  border:0 !important;
+  border-radius:9px !important;
+  padding:11px 14px !important;
+  margin-bottom:5px !important;
+  background:#f7f5f3 !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-results"] .personality-quick-view .personality-quick-section__title {
+  font-size:12px !important;
+  line-height:1.4 !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-results"] .personality-quick-view .personality-quick-row {
+  padding:12px 14px !important;
+  gap:13px !important;
+  border-color:#ece7e3 !important;
+  break-inside:avoid;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-results"] .personality-quick-view .personality-quick-row__pole p {
+  font-size:11px !important;
+  line-height:1.45 !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-results"] .personality-quick-view .personality-quick-row__title {
+  font-size:12px !important;
+  line-height:1.4 !important;
+}
