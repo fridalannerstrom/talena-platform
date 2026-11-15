@@ -21,6 +21,7 @@ jobs:
           node scripts/test_candidate_pdf_overview_export_20261115.js
           node scripts/test_motivation_pdf_pagebreaks_20261115.js
           node scripts/test_motivation_ai_interpretation_pdf_20261115.js
+          node scripts/test_cognitive_ai_interpretation_pdf_20261115.js
           node scripts/test_motivation_questions_pdf_20261115.js
           node scripts/test_motivation_questions_pagebreaks_20261115.js
           node scripts/test_cognitive_results_pdf_pagebreaks_20261115.js

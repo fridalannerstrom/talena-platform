@@ -206,6 +206,20 @@
       });
     }
 
+    if (reportId === "cognitive-interpretation") {
+      // Keep all interpretation sections and the reviewer-responsibility
+      // explanation. Only hide AI provenance tags in this exported PDF clone.
+      clone.querySelectorAll(
+        ".talena-ai-generated-badge, .talena-ai-field-badge, " +
+        ".talena-ai-personality-help"
+      ).forEach(badge => badge.remove());
+      clone.querySelectorAll(".insight-summary-kicker").forEach(kicker => {
+        if (/^(?:AI-generated insight|AI-genererad insikt|AI-generated|AI-genererat)$/i.test(
+          (kicker.textContent || "").trim()
+        )) kicker.remove();
+      });
+    }
+
     if (reportId === "motivation-interpretation") {
       // PDF-only presentation: the report still contains the full
       // interpretation and the "About the AI interpretation" evidence note.

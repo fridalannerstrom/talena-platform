@@ -661,3 +661,17 @@
 .talena-candidate-pdf-stage[data-candidate-pdf-report="cognitive-results"] .cognitive-result-card {
   break-inside:avoid;
 }
+
+
+/* Färdighet · AI-tolkning PDF only: remove the screen's surrounding page
+   frame and extra inset, but preserve the interpretation cards and note. */
+.talena-candidate-pdf-stage[data-candidate-pdf-report="cognitive-interpretation"] .talena-candidate-pdf-body.candidate-insight-page {
+  border:0 !important;
+  border-radius:0 !important;
+  box-shadow:none !important;
+  padding:0 !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="cognitive-interpretation"] .talena-ai-generated-badge,
+.talena-candidate-pdf-stage[data-candidate-pdf-report="cognitive-interpretation"] .talena-ai-field-badge {
+  display:none !important;
+}
