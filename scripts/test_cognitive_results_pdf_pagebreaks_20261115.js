@@ -7,7 +7,7 @@ const vm=require("node:vm");
 const js=fs.readFileSync("static/js/talena/pdf-export-core.js","utf8");
 const css=fs.readFileSync("static/css/talena/pages/candidate-report-export.css","utf8");
 const layout=fs.readFileSync("templates/customer/core/layouts/customer_base.html","utf8");
-const key='20261115-cognitive-interpretation-clean-1';
+const key='20261115-cognitive-questions-matched-1';
 assert.ok(layout.includes(key),"The PDF export files must have fresh asset versions");
 const scope='[data-candidate-pdf-report="cognitive-results"]';
 assert.ok(css.includes(scope+' .talena-candidate-pdf-body.candidate-insight-page {'));

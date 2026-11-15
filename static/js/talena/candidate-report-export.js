@@ -186,8 +186,9 @@
     clone.classList.remove("d-none");
     clone.style.display = "block";
 
-    if (reportId === "motivation-questions") {
-      // The interview note editor is interactive UI, not part of a printable
+    if (reportId === "motivation-questions" || reportId === "cognitive-questions") {
+      // Both question guides share the same print-only layout. The interview
+      // note editor is interactive UI, not part of a printable
       // interview guide. Do not export its hints, privacy-field warnings or
       // empty textareas. Never change the live form or its saved answers.
       clone.querySelectorAll(

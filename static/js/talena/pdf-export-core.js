@@ -270,11 +270,13 @@
       opts.node?.closest?.('[data-candidate-pdf-report="motivation-results"]');
     const motivationQuestionsPdf = opts.continuous &&
       opts.node?.closest?.('[data-candidate-pdf-report="motivation-questions"]');
+    const cognitiveQuestionsPdf = opts.continuous &&
+      opts.node?.closest?.('[data-candidate-pdf-report="cognitive-questions"]');
     const cognitiveResultsPdf = opts.continuous &&
       opts.node?.closest?.('[data-candidate-pdf-report="cognitive-results"]');
     const protectedRanges = motivationPdf
       ? getMotivationPageGuides(opts.node, source)
-      : motivationQuestionsPdf
+      : (motivationQuestionsPdf || cognitiveQuestionsPdf)
         ? getMotivationQuestionsPageGuides(opts.node, source)
         : cognitiveResultsPdf
           ? getCognitiveResultsPageGuides(opts.node, source)
