@@ -30,6 +30,12 @@ jobs:
           DJANGO_SECRET_KEY: local-qa-only
           USE_AZURE_STORAGE: '0'
         run: python manage.py makemigrations processes candidate_results emails accounts activity --check --dry-run
+      - name: Verify project completion email notifications (#466)
+        env:
+          DJANGO_DEBUG: 'True'
+          DJANGO_SECRET_KEY: local-qa-only
+          USE_AZURE_STORAGE: '0'
+        run: python manage.py test apps.processes.test_project_completion_email --noinput
       - name: Verify privacy warning for blocked interview note saves
         run: node scripts/test_interview_note_pii_save.js
       - name: Verify After interview final output refresh state
