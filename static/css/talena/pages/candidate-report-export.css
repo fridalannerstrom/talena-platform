@@ -452,3 +452,101 @@
 .talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-interpretation"] .talena-ai-field-badge {
   display:none !important;
 }
+
+
+/* Motivation interview questions PDF: remove the screen's full-page frame
+   and its extra inset. jsPDF supplies the physical A4 page margins. */
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-questions"] .talena-candidate-pdf-body.candidate-insight-page {
+  border:0 !important;
+  border-radius:0 !important;
+  box-shadow:none !important;
+  padding:0 !important;
+}
+/* The web opening-questions design is scoped to #layoutSidenav_content main,
+   which is absent from the off-screen PDF stage. Recreate it here only. */
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-questions"] .interview-static-questions {
+  margin:18px 0 22px !important;
+  border:1px solid #e8e2de !important;
+  border-radius:14px !important;
+  overflow:hidden;
+  background:#fff !important;
+  box-shadow:none !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-questions"] .interview-static-questions__header {
+  display:flex !important;
+  align-items:center;
+  gap:12px;
+  padding:14px 18px !important;
+  margin:0 !important;
+  background:#faf8f7 !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-questions"] .interview-static-questions__icon {
+  display:inline-flex !important;
+  align-items:center;
+  justify-content:center;
+  flex:0 0 31px;
+  width:31px;
+  height:31px;
+  border:1px solid rgba(255,111,97,.16) !important;
+  border-radius:10px !important;
+  background:rgba(255,111,97,.09) !important;
+  color:#e95f53 !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-questions"] .interview-static-questions__icon svg {
+  width:16px;
+  height:16px;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-questions"] .interview-static-questions__title {
+  margin:0 !important;
+  font-size:16px !important;
+  font-weight:720 !important;
+  line-height:1.35 !important;
+  color:#171312 !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-questions"] .interview-static-questions__list {
+  display:block !important;
+  margin:0 !important;
+  padding:0 !important;
+  list-style:none !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-questions"] .interview-static-questions__item {
+  display:flex !important;
+  align-items:flex-start;
+  gap:14px;
+  margin:0 !important;
+  padding:13px 18px !important;
+  border-top:1px solid #e8e2de !important;
+  list-style:none !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-questions"] .interview-static-questions__item::marker {
+  content:"";
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-questions"] .interview-static-questions__number {
+  display:inline-flex !important;
+  align-items:center;
+  justify-content:center;
+  flex:0 0 29px;
+  width:29px;
+  height:29px;
+  border:1px solid rgba(255,111,97,.18) !important;
+  border-radius:9px !important;
+  background:rgba(255,111,97,.075) !important;
+  color:#e95f53 !important;
+  font-size:13px !important;
+  font-weight:730 !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-questions"] .interview-static-questions__text {
+  min-width:0;
+  padding-top:4px;
+  font-size:14px !important;
+  font-weight:550 !important;
+  line-height:1.5 !important;
+  color:#171312 !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-questions"] [data-interview-question-note-field],
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-questions"] .interview-question-note {
+  display:none !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-questions"] .talena-ai-generated-badge {
+  display:none !important;
+}
