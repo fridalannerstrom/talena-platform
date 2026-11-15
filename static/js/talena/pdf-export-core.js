@@ -131,6 +131,7 @@
       ".personality-profile-section__header, .personality-trait-card__header, " +
       ".personality-trait-card__main, .personality-trait-card__summary, " +
       ".personality-indicator-row, .personality-trait-card, .personality-quick-row, " +
+      ".personality-description-quick-row, " +
       ".personality-overview-group, .personality-overview-item, " +
       ".candidate-result-overview__area, .candidate-result-overview__personality, " +
       ".candidate-result-overview__motivation-card, .candidate-result-overview__skill-card"
@@ -351,6 +352,44 @@
     return ranges;
   }
 
+  function getPersonalityDescriptionPageGuides(node, source, maxHeight) {
+    // The 18 text-only personality results are neither the detailed
+    // indicator view nor the segmented quick view. Protect complete
+    // heading+description rows so their copy is never cut in half.
+    const container = node.getBoundingClientRect();
+    if (!container.width) return [];
+    const scale = source.width / container.width;
+    const ranges = [];
+    const descriptions = node.querySelector(".personality-trait-descriptions-view");
+    if (!descriptions) return ranges;
+
+    function protect(startNode, endNode = startNode) {
+      if (!startNode || !endNode) return;
+      const startBox = startNode.getBoundingClientRect();
+      const endBox = endNode.getBoundingClientRect();
+      if (!startBox.height || !endBox.height) return;
+      const start = Math.max(0, Math.round((startBox.top - container.top) * scale));
+      const end = Math.min(source.height,
+        Math.round((endBox.bottom - container.top) * scale));
+      // A particularly long translated description might exceed one page.
+      // In that case keep pagination moving rather than looping.
+      if (end > start && end - start <= maxHeight) ranges.push({ start, end });
+    }
+
+    descriptions.querySelectorAll(".personality-description-section").forEach(section => {
+      const heading = section.querySelector(".personality-quick-section__header");
+      const firstRow = section.querySelector(".personality-description-quick-row");
+      // Section headings must appear with at least the first trait.
+      protect(heading, firstRow);
+      // Do not keep whole six-trait sections together: they can easily
+      // exceed one page and would leave needlessly empty pages.
+      section.querySelectorAll(".personality-description-quick-row").forEach(row => {
+        protect(row);
+      });
+    });
+    return ranges;
+  }
+
   function addCanvasPages(pdf, source, opts) {
     if (!source.width || !source.height) throw new Error("PDF page is empty.");
     const pageW = pdf.internal.pageSize.getWidth();
@@ -373,6 +412,8 @@
       opts.node?.closest?.('[data-candidate-pdf-report="personality-results"]');
     const personalityQuickPdf = personalityResultsPdf &&
       opts.node?.querySelector?.(".personality-quick-view");
+    const personalityDescriptionsPdf = personalityResultsPdf &&
+      opts.node?.querySelector?.(".personality-trait-descriptions-view");
     const protectedRanges = motivationPdf
       ? getMotivationPageGuides(opts.node, source)
       : (motivationQuestionsPdf || cognitiveQuestionsPdf)
@@ -380,9 +421,11 @@
         : cognitiveResultsPdf
           ? getCognitiveResultsPageGuides(opts.node, source)
           : personalityResultsPdf
-            ? personalityQuickPdf
-              ? getPersonalityQuickPageGuides(opts.node, source, maxHeight)
-              : getPersonalityResultsPageGuides(opts.node, source, maxHeight)
+            ? personalityDescriptionsPdf
+              ? getPersonalityDescriptionPageGuides(opts.node, source, maxHeight)
+              : personalityQuickPdf
+                ? getPersonalityQuickPageGuides(opts.node, source, maxHeight)
+                : getPersonalityResultsPageGuides(opts.node, source, maxHeight)
             : [];
     const slices = calculatePageSlices(
       source.height, maxHeight, breakpoints, protectedRanges
