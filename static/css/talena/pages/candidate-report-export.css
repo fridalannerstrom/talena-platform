@@ -306,10 +306,10 @@
 .talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .candidate-result-overview__personality {
   width:100%;
   max-width:100%;
-  padding:20px 21px !important;
-  border:1px solid #e5ded9 !important;
-  border-radius:12px !important;
-  background:#fff !important;
+  padding:8px 0 12px !important;
+  border:0 !important;
+  border-radius:0 !important;
+  background:transparent !important;
   box-shadow:none !important;
   break-inside:avoid;
 }
@@ -336,9 +336,10 @@
 .talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .candidate-result-overview__motivation-card {
   padding:13px 13px 15px !important;
   min-width:0;
-  border:1px solid #e7e1dd;
-  border-radius:10px;
-  background:#faf8f6;
+  border:0 !important;
+  border-radius:9px;
+  background:#f8f6f4;
+  box-shadow:none !important;
 }
 .talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .candidate-result-overview__motivation-card-name,
 .talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .candidate-result-overview__skill-name {
@@ -358,9 +359,10 @@
   min-height:0;
   padding:15px 13px !important;
   gap:11px !important;
-  border:1px solid #e7e1dd;
-  border-radius:10px;
-  background:#faf8f6;
+  border:0 !important;
+  border-radius:9px;
+  background:#f8f6f4;
+  box-shadow:none !important;
   align-content:start;
 }
 .talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .candidate-result-overview__skill-ring {
@@ -388,4 +390,40 @@
 .talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .candidate-result-overview__open,
 .talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .ai-overview-header__actions {
   display:none !important;
+}
+
+/* Overview PDF only: remove the nested screen-style card outlines.
+   Keep the coloured page heading, results, percentile tracks and subtle
+   tinted card backgrounds. Leave web UI and every other PDF untouched. */
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .candidate-insights-panel,
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] #candidate-insights-panel-overview,
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .purpose-fit-card.ai-overview-card,
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .candidate-result-overview {
+  border:0 !important;
+  border-radius:0 !important;
+  box-shadow:none !important;
+  background:#fff !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .candidate-insights-panel,
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] #candidate-insights-panel-overview {
+  padding:0 !important;
+  margin:0 !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .personality-overview-chart,
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .candidate-result-overview__area,
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .candidate-result-overview__personality {
+  border:0 !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .candidate-result-overview__motivation-card,
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .candidate-result-overview__skill-card {
+  border:0 !important;
+  box-shadow:none !important;
+}
+/* The headings and white space, not an extra border, separate sections. */
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .candidate-result-overview__grid,
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .candidate-result-overview__side {
+  gap:24px !important;
 }
