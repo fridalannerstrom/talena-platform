@@ -2919,6 +2919,49 @@ return item?.domain
   );
 }
 
+// Candidate PDF exports can originate on Overview without ever opening the
+// Motivation tab. Chart.js deliberately skips hidden tabs, leaving a zero-size
+// source canvas. Render the SAME chart with the SAME data/plugin in an offscreen
+// clone instead of mutating the visible tab or guessing the chart's appearance.
+window.TalenaPdfMotivationRose = Object.freeze({
+  async render(source) {
+    const chartRoot = source?.querySelector?.(
+      "[data-motivation-rose-chart-root]"
+    );
+    if (!chartRoot) throw Error("Chart not ready");
+
+    // No network or candidate lookup: clone only the chart data already
+    // rendered inside the authorised candidate's current results panel.
+    const stage = document.createElement("div");
+    stage.className =
+      "process-page candidate-insights-workspace talena-candidate-pdf-stage";
+    stage.setAttribute("aria-hidden", "true");
+    stage.append(chartRoot.cloneNode(true));
+    document.body.append(stage);
+    let chart = null;
+    try {
+      await initMotivationRoseChart(stage);
+      const canvas = stage.querySelector("[data-motivation-rose-chart]");
+      chart = canvas?._motivationRoseChartInstance;
+      if (!chart || !canvas.width || !canvas.height) {
+        throw Error("Chart not ready");
+      }
+      // The interactive chart animates for 700ms. Export must capture a
+      // complete frame, not a half-painted animation.
+      chart.stop();
+      chart.update("none");
+      const png = canvas.toDataURL("image/png");
+      if (!png.startsWith("data:image/png;base64,") || png.length < 100) {
+        throw Error("Chart not ready");
+      }
+      return png;
+    } finally {
+      chart?.destroy?.();
+      stage.remove();
+    }
+  }
+});
+
 
 function initCandidateSheetInteractions(container) {
   if (!container) {

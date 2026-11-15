@@ -65,26 +65,48 @@
     });
   }
 
-  function calculatePageSlices(totalHeight, maxHeight, boundaries) {
-    // Pure layout helper: only break at a card/section boundary when it uses
-    // most of the available page. A forced new page for every DOM section was
-    // the cause of very large blank areas in the previous team PDF.
+  function calculatePageSlices(totalHeight, maxHeight, boundaries, protectedRanges = []) {
+    // Existing report types retain their original 72%-filled natural breaks.
+    // The optional protected ranges are used by Motivation only. A card's
+    // heading, description and complete five-point scale must stay together.
     const slices = [];
     const safeHeight = Math.max(1, Math.floor(maxHeight));
-    const points = Array.from(new Set((boundaries || [])
-      .filter(y => Number.isFinite(y) && y > 0 && y < totalHeight)
+    const ranges = (protectedRanges || [])
+      .filter(range => Number.isFinite(range.start) && Number.isFinite(range.end))
+      .map(range => ({
+        start: Math.max(0, Math.round(range.start)),
+        end: Math.min(totalHeight, Math.round(range.end))
+      }))
+      .filter(range => range.end > range.start);
+    const points = Array.from(new Set([
+      ...(boundaries || []),
+      ...ranges.flatMap(range => [range.start, range.end])
+    ].filter(y => Number.isFinite(y) && y > 0 && y < totalHeight)
       .map(Math.round))).sort((a, b) => a - b);
+    const protectedInside = y =>
+      ranges.some(range => y > range.start && y < range.end);
     let offset = 0;
     while (offset < totalHeight) {
       const limit = Math.min(offset + safeHeight, totalHeight);
       let next = limit;
       if (limit < totalHeight) {
-        const minimumFill = offset + safeHeight * 0.72;
-        // Prefer a natural visual boundary close to the bottom of the page.
-        const candidates = points.filter(y => y >= minimumFill && y <= limit);
-        if (candidates.length) next = candidates[candidates.length - 1];
+        const crossesCard = protectedInside(limit);
+        const candidates = points.filter(y =>
+          y > offset && y <= limit && !protectedInside(y)
+        );
+        if (crossesCard) {
+          // Never end inside a protected Motivation card when it can fit on
+          // the next page. Prefer its start, even below the usual 72% fill.
+          // A card taller than one page still uses the fallback below.
+          const safe = candidates.filter(y => y >= offset + safeHeight * 0.18);
+          if (safe.length) next = safe[safe.length - 1];
+        } else {
+          const minimumFill = offset + safeHeight * 0.72;
+          const nearBottom = candidates.filter(y => y >= minimumFill);
+          if (nearBottom.length) next = nearBottom[nearBottom.length - 1];
+        }
       }
-      if (next <= offset) next = limit; // Ensure progress, even with bad DOM.
+      if (next <= offset) next = limit; // Oversized content must make progress.
       slices.push({ start: offset, height: next - offset });
       offset = next;
     }
@@ -109,7 +131,10 @@
       ".personality-profile-section__header, .personality-trait-card__header, " +
       ".personality-trait-card__main, .personality-trait-card__summary, " +
       ".personality-indicator-row, .personality-trait-card, .personality-quick-row, " +
-      ".personality-overview-group, .personality-overview-item"
+      ".personality-description-quick-row, " +
+      ".personality-overview-group, .personality-overview-item, " +
+      ".candidate-result-overview__area, .candidate-result-overview__personality, " +
+      ".candidate-result-overview__motivation-card, .candidate-result-overview__skill-card"
     );
     const points = [];
     candidates.forEach(element => {
@@ -126,6 +151,246 @@
     return points;
   }
 
+  function getMotivationPageGuides(node, source) {
+    // Work in raster pixels, matching html2canvas. In the normal DOM the
+    // same content remains fully interactive; this runs on the PDF clone.
+    const box = node.getBoundingClientRect();
+    if (!box.width) return [];
+    const pixelsPerCssPx = source.width / box.width;
+    const guides = [];
+    function protect(startElement, endElement = startElement) {
+      if (!startElement || !endElement) return;
+      const startBox = startElement.getBoundingClientRect();
+      const endBox = endElement.getBoundingClientRect();
+      if (!startBox.height || !endBox.height) return;
+      const start = Math.round((startBox.top - box.top) * pixelsPerCssPx);
+      const end = Math.round((endBox.bottom - box.top) * pixelsPerCssPx);
+      if (end > start && end > 0 && start < source.height) {
+        guides.push({ start: Math.max(0, start), end: Math.min(source.height, end) });
+      }
+    }
+
+    node.querySelectorAll(
+      ".motivation-visual-overview, .motivation-summary-item, " +
+      ".motivation-factor-result, .motivation-profile-footer"
+    ).forEach(item => protect(item));
+
+    // A heading followed by its first card is one logical unit. This stops
+    // 'All motivation factors' and the prominent/least-prominent headings
+    // from being orphaned at the bottom of a PDF page.
+    node.querySelectorAll(".motivation-summary-list").forEach(list => {
+      const first = list.querySelector(".motivation-summary-item");
+      const header = list.closest("article")?.querySelector(
+        ".response-style-item__header"
+      );
+      protect(header, first);
+    });
+    protect(
+      node.querySelector(".motivation-full-profile-heading"),
+      node.querySelector(".motivation-factor-list .motivation-factor-result")
+    );
+    return guides;
+  }
+
+  function getMotivationQuestionsPageGuides(node, source) {
+    const container = node.getBoundingClientRect();
+    if (!container.width) return [];
+    const scale = source.width / container.width;
+    const ranges = [];
+    function protect(first, last = first) {
+      if (!first || !last) return;
+      const startBox = first.getBoundingClientRect();
+      const endBox = last.getBoundingClientRect();
+      if (!startBox.height || !endBox.height) return;
+      const start = Math.max(0, Math.round((startBox.top - container.top) * scale));
+      const end = Math.min(source.height,
+        Math.round((endBox.bottom - container.top) * scale));
+      if (end > start) ranges.push({ start, end });
+    }
+    // Each full question includes its header, Why this matters and
+    // What to look for. Never cut it between PDF pages if it fits on one.
+    node.querySelectorAll(
+      ".interview-section-guidance, .interview-static-questions, " +
+      ".personality-question-card, .purpose-fit-disclaimer, " +
+      ".personality-questions-traits, .personality-questions-context-note"
+    ).forEach(section => protect(section));
+
+    // A subsection title must travel with at least its first question.
+    protect(
+      node.querySelector(".personality-questions-header"),
+      node.querySelector(".personality-question-card")
+    );
+    return ranges;
+  }
+
+  function getCognitiveResultsPageGuides(node, source) {
+    // In the percentile guide every level's label, meaning and bullet
+    // list is a single printable unit. The guide as a whole spans pages.
+    const container = node.getBoundingClientRect();
+    if (!container.width) return [];
+    const scale = source.width / container.width;
+    const ranges = [];
+    function protect(first, last = first) {
+      if (!first || !last) return;
+      const from = first.getBoundingClientRect();
+      const to = last.getBoundingClientRect();
+      if (!from.height || !to.height) return;
+      const start = Math.max(0, Math.round(
+        (from.top - container.top) * scale
+      ));
+      const end = Math.min(source.height, Math.round(
+        (to.bottom - container.top) * scale
+      ));
+      if (end > start) ranges.push({ start, end });
+    }
+    node.querySelectorAll(".cognitive-result-card")
+      .forEach(card => protect(card));
+    node.querySelectorAll(".cognitive-percentile-guide__level")
+      .forEach(level => protect(level));
+    // Prevent an orphaned "How to interpret percentiles" heading.
+    protect(
+      node.querySelector(".cognitive-percentile-guide > summary"),
+      node.querySelector(".cognitive-percentile-guide__level")
+    );
+    node.querySelectorAll(
+      ".cognitive-percentile-guide__intro, .cognitive-percentile-guide + .small"
+    ).forEach(section => protect(section));
+    return ranges;
+  }
+
+  function getPersonalityResultsPageGuides(node, source, maxHeight) {
+    // Character traits form long continuous reports. Keep the opening
+    // (name, main score graph, interpretation and first indicator) together
+    // whenever it fits on A4; do not try to put the *entire* trait on a
+    // single page, which would waste space or force arbitrary cuts.
+    const container = node.getBoundingClientRect();
+    if (!container.width) return [];
+    const scale = source.width / container.width;
+    const ranges = [];
+
+    function protect(first, last = first, maxFraction = 1) {
+      if (!first || !last) return;
+      const from = first.getBoundingClientRect();
+      const to = last.getBoundingClientRect();
+      if (!from.height || !to.height) return;
+      const start = Math.max(0, Math.round((from.top - container.top) * scale));
+      const end = Math.min(source.height,
+        Math.round((to.bottom - container.top) * scale));
+      // A group that is taller than a printable page must be allowed to
+      // break at its internal indicator boundaries.
+      if (end > start && end - start <= maxHeight * maxFraction) {
+        ranges.push({ start, end });
+      }
+    }
+
+    node.querySelectorAll(".personality-profile-section").forEach(section => {
+      const title = section.querySelector(".personality-profile-section__header");
+      const firstTrait = section.querySelector(".personality-trait-card");
+      const introEnd = firstTrait?.querySelector(
+        ".personality-trait-card__summary, .personality-trait-card__main"
+      );
+      // A category heading should never be left alone at the foot of a
+      // page without the first personality trait and its graph.
+      protect(title, introEnd, 0.78);
+    });
+
+    node.querySelectorAll(".personality-trait-card").forEach(trait => {
+      const heading = trait.querySelector(".personality-trait-card__header");
+      const main = trait.querySelector(".personality-trait-card__main");
+      const summary = trait.querySelector(".personality-trait-card__summary");
+      const firstIndicator = trait.querySelector(".personality-indicator-row");
+      // First try to include the first indicator; if the opening is too
+      // tall, still keep the title, score graph and summary together.
+      const introEnd = summary || main || heading;
+      const startCount = ranges.length;
+      protect(heading, firstIndicator || introEnd, 0.75);
+      if (ranges.length === startCount) protect(heading, introEnd, 0.75);
+      // Indicator names, two pole descriptions and the complete STEN
+      // scale must never be separated by a PDF page edge.
+      trait.querySelectorAll(".personality-indicator-row").forEach(row => {
+        protect(row);
+      });
+    });
+    return ranges;
+  }
+
+  function getPersonalityQuickPageGuides(node, source, maxHeight) {
+    // The trait-only profile is shorter than the detailed indicator report.
+    // Keep its three six-trait sections together when a complete section
+    // fits on the sheet, avoiding orphan category headers on the prior page.
+    const container = node.getBoundingClientRect();
+    if (!container.width) return [];
+    const scale = source.width / container.width;
+    const ranges = [];
+    const root = node.querySelector(".personality-quick-view");
+    if (!root) return ranges;
+
+    function protect(element, endElement = element, maxFraction = 1) {
+      if (!element || !endElement) return;
+      const from = element.getBoundingClientRect();
+      const to = endElement.getBoundingClientRect();
+      if (!from.height || !to.height) return;
+      const start = Math.max(0, Math.round((from.top - container.top) * scale));
+      const end = Math.min(source.height,
+        Math.round((to.bottom - container.top) * scale));
+      // Longer sections fall back to whole rows rather than forcing
+      // impossible one-page blocks or leaving huge blank page areas.
+      if (end > start && end - start <= maxHeight * maxFraction) {
+        ranges.push({ start, end });
+      }
+    }
+
+    const overview = root.querySelector(".personality-overview-chart");
+    protect(overview, overview, 0.95);
+    root.querySelectorAll(".personality-quick-section").forEach(section => {
+      protect(section, section, 0.9);
+      const title = section.querySelector(".personality-quick-section__header");
+      const firstRow = section.querySelector(".personality-quick-row");
+      protect(title, firstRow, 0.78);
+      section.querySelectorAll(".personality-quick-row")
+        .forEach(row => protect(row));
+    });
+    return ranges;
+  }
+
+  function getPersonalityDescriptionPageGuides(node, source, maxHeight) {
+    // The 18 text-only personality results are neither the detailed
+    // indicator view nor the segmented quick view. Protect complete
+    // heading+description rows so their copy is never cut in half.
+    const container = node.getBoundingClientRect();
+    if (!container.width) return [];
+    const scale = source.width / container.width;
+    const ranges = [];
+    const descriptions = node.querySelector(".personality-trait-descriptions-view");
+    if (!descriptions) return ranges;
+
+    function protect(startNode, endNode = startNode) {
+      if (!startNode || !endNode) return;
+      const startBox = startNode.getBoundingClientRect();
+      const endBox = endNode.getBoundingClientRect();
+      if (!startBox.height || !endBox.height) return;
+      const start = Math.max(0, Math.round((startBox.top - container.top) * scale));
+      const end = Math.min(source.height,
+        Math.round((endBox.bottom - container.top) * scale));
+      // A particularly long translated description might exceed one page.
+      // In that case keep pagination moving rather than looping.
+      if (end > start && end - start <= maxHeight) ranges.push({ start, end });
+    }
+
+    descriptions.querySelectorAll(".personality-description-section").forEach(section => {
+      const heading = section.querySelector(".personality-quick-section__header");
+      const firstRow = section.querySelector(".personality-description-quick-row");
+      // Section headings must appear with at least the first trait.
+      protect(heading, firstRow);
+      // Do not keep whole six-trait sections together: they can easily
+      // exceed one page and would leave needlessly empty pages.
+      section.querySelectorAll(".personality-description-quick-row").forEach(row => {
+        protect(row);
+      });
+    });
+    return ranges;
+  }
+
   function addCanvasPages(pdf, source, opts) {
     if (!source.width || !source.height) throw new Error("PDF page is empty.");
     const pageW = pdf.internal.pageSize.getWidth();
@@ -136,7 +401,38 @@
     const pixelsPerMm = source.width / width;
     const maxHeight = Math.max(1, Math.floor(height * pixelsPerMm));
     const breakpoints = opts.continuous ? getNaturalBreaks(opts.node, source) : [];
-    const slices = calculatePageSlices(source.height, maxHeight, breakpoints);
+    const motivationPdf = opts.continuous &&
+      opts.node?.closest?.('[data-candidate-pdf-report="motivation-results"]');
+    const motivationQuestionsPdf = opts.continuous &&
+      opts.node?.closest?.('[data-candidate-pdf-report="motivation-questions"]');
+    const cognitiveQuestionsPdf = opts.continuous &&
+      opts.node?.closest?.('[data-candidate-pdf-report="cognitive-questions"]');
+    const personalityQuestionsPdf = opts.continuous &&
+      opts.node?.closest?.('[data-candidate-pdf-report="personality-questions"]');
+    const cognitiveResultsPdf = opts.continuous &&
+      opts.node?.closest?.('[data-candidate-pdf-report="cognitive-results"]');
+    const personalityResultsPdf = opts.continuous &&
+      opts.node?.closest?.('[data-candidate-pdf-report="personality-results"]');
+    const personalityQuickPdf = personalityResultsPdf &&
+      opts.node?.querySelector?.(".personality-quick-view");
+    const personalityDescriptionsPdf = personalityResultsPdf &&
+      opts.node?.querySelector?.(".personality-trait-descriptions-view");
+    const protectedRanges = motivationPdf
+      ? getMotivationPageGuides(opts.node, source)
+      : (motivationQuestionsPdf || cognitiveQuestionsPdf || personalityQuestionsPdf)
+        ? getMotivationQuestionsPageGuides(opts.node, source)
+        : cognitiveResultsPdf
+          ? getCognitiveResultsPageGuides(opts.node, source)
+          : personalityResultsPdf
+            ? personalityDescriptionsPdf
+              ? getPersonalityDescriptionPageGuides(opts.node, source, maxHeight)
+              : personalityQuickPdf
+                ? getPersonalityQuickPageGuides(opts.node, source, maxHeight)
+                : getPersonalityResultsPageGuides(opts.node, source, maxHeight)
+            : [];
+    const slices = calculatePageSlices(
+      source.height, maxHeight, breakpoints, protectedRanges
+    );
 
     slices.forEach(slice => {
       if (opts.pageCount.value > 0) pdf.addPage();

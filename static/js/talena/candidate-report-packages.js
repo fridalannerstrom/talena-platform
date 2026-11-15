@@ -10,7 +10,11 @@
     generate:"Ladda ner",close:"Stäng",count:"Valda rapporter",empty:"Inga färdiga rapporter.",
     toc:"Innehåll",cover:"Rapportpaket",progress:"Skapar rapport",preparing:"Sammanställer filer...",
     error:"Rapportpaketet kunde inte skapas.",stale:"Rapporterna har ändrats. Öppna väljaren igen.",
-    large:"Rapportpaketet är för stort. Välj färre rapporter.",done:"Nedladdningen har startat."
+    large:"Rapportpaketet är för stort. Välj färre rapporter.",done:"Nedladdningen har startat.",
+    reportError:"Det gick inte att skapa PDF för",reportHint:"Prova att ladda ner rapporten separat eller avmarkera den.",
+    chartHint:"Ett diagram är inte färdigrenderat. Öppna rapporten och försök igen.",
+    managerHint:"Chefsrapportens PDF-underlag kunde inte förberedas. Prova rapportens egen PDF-knapp.",
+    combineError:"De enskilda rapporterna skapades, men paketet kunde inte sättas ihop."
   } : {
     open:"Create report package",title:"Select reports",description:"Select completed reports and drag to reorder, or use the arrow buttons.",
     incomplete:"Reports that have not been generated cannot be selected.",all:"Select all",none:"Deselect all",
@@ -18,10 +22,14 @@
     generate:"Download",close:"Close",count:"Selected reports",empty:"No completed reports.",
     toc:"Contents",cover:"Report package",progress:"Creating report",preparing:"Combining files...",
     error:"Could not create the report package.",stale:"Reports changed. Reopen the picker.",
-    large:"The package is too large. Select fewer reports.",done:"Download started."
+    large:"The package is too large. Select fewer reports.",done:"Download started.",
+    reportError:"Could not create the PDF for",reportHint:"Try downloading that report separately or deselect it.",
+    chartHint:"A chart is not ready. Open the report and try again.",
+    managerHint:"Could not prepare the manager report PDF. Try its own PDF button.",
+    combineError:"The individual PDFs were created, but the package could not be assembled."
   };
   const MAX_REPORTS = 20, MAX_BYTES = 100 * 1024 * 1024, MAX_PAGES = 450, ROWS = 17;
-  let workspace=null, trigger=null, dialog=null, list=null, order=[], chosen=new Set(), busy=false;
+  let workspace=null, trigger=null, dialog=null, list=null, order=[], chosen=new Set(), busy=false, failedReportId=null;
   const element=(tag,cls,text)=>{
     const e=document.createElement(tag); if(cls)e.className=cls;
     if(text!==undefined)e.textContent=text; return e;
@@ -56,6 +64,7 @@
     order.forEach((id,index)=>{
       const report=reports.get(id),li=element("li","talena-package-row");
       li.dataset.id=id;li.draggable=true;
+      li.classList.toggle("is-failed",failedReportId===id);
       const handle=element("span","talena-package-handle","⋮⋮");
       handle.setAttribute("aria-hidden","true");
       const checkbox=element("input","form-check-input");checkbox.type="checkbox";checkbox.checked=chosen.has(id);
@@ -93,7 +102,7 @@
   function discard(){
     if(!dialog)return;
     if(dialog.open)dialog.close();
-    dialog.remove();dialog=null;list=null;order=[];chosen.clear();
+    dialog.remove();dialog=null;list=null;order=[];chosen.clear();failedReportId=null;
   }
   function open(){
     if(!current()||busy)return;
@@ -145,6 +154,15 @@
       ?.dataset.managerReportBrandPrimary||"#FF6F61";
     return /^#[0-9a-f]{6}$/i.test(hex)?hex:"#FF6F61";
   }
+  function safeFailureHint(error) {
+    // Only show allowlisted error categories, never raw server/renderer messages.
+    // Those may include URLs or candidate-related data.
+    const message=String(error?.message||"");
+    if(message==="Chart not ready")return t.chartHint;
+    if(message.startsWith("Manager report attribution")||
+       message==="Missing verified PDF attribution")return t.managerHint;
+    return t.reportHint;
+  }
   async function exportPackage(){
     if(busy||!current())return;
     const ids=order.filter(id=>chosen.has(id)),registry=new Map(available().map(r=>[r.id,r]));
@@ -154,8 +172,10 @@
     // Resolve a safe filename from this candidate before asynchronous exports.
     // ZIP entries already get their names from getAvailableReports().
     const packageFilename=api().getPackageFilename(format);
-    busy=true;refresh();
+    busy=true;failedReportId=null;refresh();
+    list?.querySelectorAll(".talena-package-row").forEach(row=>row.classList.remove("is-failed"));
     dialog.querySelectorAll("button,input").forEach(e=>{e.disabled=true;});
+    let failingReport=null,assembling=false;
     try{
       status(t.preparing);
       await window.TalenaReportPackageCore.ensure(format);
@@ -165,13 +185,20 @@
         const report=registry.get(ids[i]);
         if(!current()||workspace!==original||!available().some(r=>r.id===report.id))
           throw Error(t.stale);
+        failingReport=report;
         status(t.progress+" "+(i+1)+"/"+ids.length+": "+report.title);
+        // Let the browser paint the actual report number before html2canvas
+        // starts its potentially long synchronous capture.
+        await new Promise(resolve=>requestAnimationFrame(resolve));
         const blob=await api().exportReport(report.id,{returnBlob:true});
-        if(blob?.type!=="application/pdf")throw Error(t.error);
+        if(blob?.type!=="application/pdf"||!blob.size)throw Error("Empty report PDF");
         total+=blob.size;if(total>MAX_BYTES)throw Error(t.large);
         entries.push({...report,blob});
+        failingReport=null;
       }
+      assembling=true;
       status(t.preparing);
+      await new Promise(resolve=>requestAnimationFrame(resolve));
       const core=window.TalenaReportPackageCore;
       const output=format==="zip"?await core.zipFiles(entries):
         await core.merge(entries,await api().exportCover(t.cover),
@@ -181,8 +208,20 @@
       window.TalenaReportPackageCore.download(output,packageFilename);
       status(t.done);
     }catch(err){
-      status(err?.code==="REPORT_PACKAGE_TOO_LARGE"?t.large:
-        [t.stale,t.large].includes(err?.message)?err.message:t.error,true);
+      if(err?.code==="REPORT_PACKAGE_TOO_LARGE"||err?.message===t.large) {
+        status(t.large,true);
+      } else if(err?.message===t.stale) {
+        status(t.stale,true);
+      } else if(failingReport) {
+        failedReportId=failingReport.id;
+        // Titles come from the authorised report picker; never print error
+        // payloads or raw responses that might include candidate data.
+        status(t.reportError+" “"+failingReport.title+"”. "+safeFailureHint(err),true);
+        console.warn("Talena report package: individual PDF export failed",{reportId:failingReport.id});
+      } else {
+        status(assembling?t.combineError:t.error,true);
+        console.warn("Talena report package: assembly failed",{format});
+      }
     }finally{
       busy=false;
       dialog?.querySelectorAll("button,input").forEach(e=>{e.disabled=false;});

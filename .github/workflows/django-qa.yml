@@ -6,6 +6,34 @@ on:
       - main
 
 jobs:
+  report-package-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify candidate report package PDF and ZIP handling
+        run: |
+          node --check static/js/talena/candidate-report-export.js
+          node --check static/js/talena/candidate-report-packages.js
+          node scripts/test_candidate_report_packages_contract.js
+          node scripts/test_candidate_report_package_runtime_20261115.js
+          node scripts/test_candidate_pdf_hidden_motivation_chart_20261115.js
+          node scripts/test_candidate_report_chart_coverage_20261115.js
+          node scripts/test_candidate_pdf_overview_export_20261115.js
+          node scripts/test_motivation_pdf_pagebreaks_20261115.js
+          node scripts/test_motivation_ai_interpretation_pdf_20261115.js
+          node scripts/test_cognitive_ai_interpretation_pdf_20261115.js
+          node scripts/test_motivation_questions_pdf_20261115.js
+          node scripts/test_motivation_questions_pagebreaks_20261115.js
+          node scripts/test_cognitive_questions_pdf_20261115.js
+          node scripts/test_cognitive_questions_pagebreaks_20261115.js
+          node scripts/test_personality_questions_pdf_20261115.js
+          node scripts/test_personality_questions_pagebreaks_20261115.js
+          node scripts/test_personality_results_pdf_pagebreaks_20261115.js
+          node scripts/test_personality_quick_pdf_pagebreaks_20261115.js
+          node scripts/test_personality_quick_pdf_scale_path_20261115.js
+          node scripts/test_personality_description_pdf_pagebreaks_20261115.js
+          node scripts/test_cognitive_results_pdf_pagebreaks_20261115.js
+
   migrate-and-test:
     runs-on: ubuntu-latest
     steps:

@@ -180,22 +180,141 @@
     cover.append(brand, caption);
     return cover;
   }
-  function copyContent(source) {
+  async function copyContent(source, reportId) {
     const clone = source.cloneNode(true);
     clone.removeAttribute("hidden");
     clone.classList.remove("d-none");
     clone.style.display = "block";
+
+    if (reportId === "personality-results") {
+      // The web quick-profile colours its middle-to-score path with CSS
+      // :has([data-score]). The PDF clone later strips data-* attributes,
+      // so those web selectors cannot work on the exported copy. Resolve
+      // the path first and mark its segments with export-only classes.
+      clone.querySelectorAll(".personality-quick-scale").forEach(scale => {
+        const segments = [...scale.querySelectorAll(".personality-quick-scale__segment")];
+        const selectedSegment = segments.find(segment =>
+          segment.classList.contains("personality-quick-scale__segment--selected")
+        );
+        const selected = Number(selectedSegment?.getAttribute("data-score"));
+        if (!selectedSegment || !Number.isInteger(selected) || selected < 1 || selected > 10) return;
+        segments.forEach(segment => {
+          const score = Number(segment.getAttribute("data-score"));
+          if (!Number.isInteger(score) || score < 1 || score > 10) return;
+          const betweenMiddleAndScore = selected <= 5
+            ? score >= selected && score <= 5
+            : score >= 6 && score <= selected;
+          if (betweenMiddleAndScore) segment.classList.add("talena-personality-pdf-path");
+          if (segment === selectedSegment) segment.classList.add("talena-personality-pdf-selected");
+        });
+      });
+    }
+
+    if (["motivation-questions", "cognitive-questions", "personality-questions"].includes(reportId)) {
+      // Both question guides share the same print-only layout. The interview
+      // note editor is interactive UI, not part of a printable
+      // interview guide. Do not export its hints, privacy-field warnings or
+      // empty textareas. Never change the live form or its saved answers.
+      clone.querySelectorAll(
+        "[data-interview-question-note-field], .interview-question-note"
+      ).forEach(editor => editor.remove());
+
+      // Compact report headings: keep the interview instructions explaining
+      // the origin of the questions, but drop decorative AI status labels.
+      clone.querySelectorAll(
+        ".talena-ai-generated-badge, .talena-ai-field-badge"
+      ).forEach(badge => badge.remove());
+      clone.querySelectorAll(".insight-summary-kicker").forEach(kicker => {
+        if (/^(?:AI-generated insight|AI-genererad insikt|AI-generated|AI-genererat)$/i.test(
+          (kicker.textContent || "").trim()
+        )) kicker.remove();
+      });
+    }
+
+    if (reportId === "cognitive-interpretation") {
+      // Keep all interpretation sections and the reviewer-responsibility
+      // explanation. Only hide AI provenance tags in this exported PDF clone.
+      clone.querySelectorAll(
+        ".talena-ai-generated-badge, .talena-ai-field-badge, " +
+        ".talena-ai-personality-help"
+      ).forEach(badge => badge.remove());
+      clone.querySelectorAll(".insight-summary-kicker").forEach(kicker => {
+        if (/^(?:AI-generated insight|AI-genererad insikt|AI-generated|AI-genererat)$/i.test(
+          (kicker.textContent || "").trim()
+        )) kicker.remove();
+      });
+    }
+
+    if (reportId === "motivation-interpretation") {
+      // PDF-only presentation: the report still contains the full
+      // interpretation and the "About the AI interpretation" evidence note.
+      // Remove just the small provenance UI badges injected on screen.
+      clone.querySelectorAll(
+        ".talena-ai-generated-badge, .talena-ai-field-badge, " +
+        ".talena-ai-personality-help"
+      ).forEach(badge => badge.remove());
+      // The old template eyebrow may still be visible if the on-screen
+      // badge initializer has not run. Never remove a section title or text.
+      clone.querySelectorAll(".insight-summary-kicker").forEach(kicker => {
+        if (/^(?:AI-generated insight|AI-genererad insikt|AI-generated|AI-genererat)$/i.test(
+          (kicker.textContent || "").trim()
+        )) kicker.remove();
+      });
+    }
+
+    if (reportId === "overview") {
+      // Screen-only AI interpretations are not part of the result-led PDF.
+      // Keep the source sheet unchanged so users can still view those notes.
+      clone.querySelector(".talena-overview-interpretations")?.remove();
+
+      // On screen the entire Motivation/Skills card is a navigation BUTTON.
+      // Generic PDF cleanup removes buttons and, previously, their complete
+      // result content. Turn them into noninteractive report sections first.
+      clone.querySelectorAll(".candidate-result-overview__area").forEach(button => {
+        const reportCard = create("div", button.className);
+        while (button.firstChild) reportCard.append(button.firstChild);
+        button.replaceWith(reportCard);
+      });
+      // "View profile" buttons/links are navigation, not report content.
+      clone.querySelectorAll(".candidate-result-overview__open").forEach(link => link.remove());
+      const description = clone.querySelector(".ai-overview-header__content p");
+      if (description) {
+        description.textContent = sv
+          ? "Sammanställning av tillgängliga testresultat inom personlighet, motivation och färdighet."
+          : "Summary of available personality, motivation and ability assessment results.";
+      }
+    }
+
     const liveCanvases = source.querySelectorAll("canvas");
-    clone.querySelectorAll("canvas").forEach((canvas, index) => {
+    const clonedCanvases = clone.querySelectorAll("canvas");
+    for (const [index, canvas] of [...clonedCanvases].entries()) {
       // Inactive optional panels are removed below. They must not block
       // export just because their hidden canvases were never rendered.
-      if (canvas.closest('[hidden], .d-none')) return;
+      if (canvas.closest('[hidden], .d-none')) continue;
       const live = liveCanvases[index];
-      if (!live || !live.width || !live.height) throw Error("Chart not ready");
+      const motivationRose =
+        reportId === "motivation-results" &&
+        canvas.matches("[data-motivation-rose-chart]");
+      let imageData;
+      if (motivationRose &&
+          (!live?._motivationRoseChartInstance || !live.width || !live.height)) {
+        // The Motivation tab may never have been opened. Use the same Chart.js
+        // renderer on an offscreen clone of the current authorised report,
+        // preserving every factor, score and domain in the existing DOM.
+        if (!window.TalenaPdfMotivationRose?.render) {
+          throw Error("Chart not ready");
+        }
+        imageData = await window.TalenaPdfMotivationRose.render(source);
+        // Do not print the original "Preparing motivation overview" loader.
+        clone.querySelector("[data-motivation-rose-chart-empty]")?.remove();
+      } else {
+        if (!live || !live.width || !live.height) throw Error("Chart not ready");
+        imageData = live.toDataURL("image/png");
+      }
       const image = create("img", "talena-candidate-pdf-chart");
-      image.src = live.toDataURL("image/png");
+      image.src = imageData;
       canvas.replaceWith(image);
-    });
+    }
     clone.querySelectorAll("details").forEach(details => { details.open = true; });
     // aria-hidden is an accessibility attribute, NOT a CSS visibility rule.
     // The personality indicator's decorative centre-line has aria-hidden=true
@@ -234,7 +353,7 @@
     let stage;
     try {
       let managerReportMetadata = null;
-      const reportContent = copyContent(getSource(item));
+      const reportContent = await copyContent(getSource(item), id);
       if (id === "manager-report") {
         if (!window.TalenaManagerReportPdf) throw Error(copy.error);
         managerReportMetadata = await window.TalenaManagerReportPdf.prepare(workspace);

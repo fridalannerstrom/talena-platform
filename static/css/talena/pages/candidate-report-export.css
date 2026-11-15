@@ -252,3 +252,838 @@
 .talena-candidate-pdf-stage .personality-quick-row {
   grid-template-columns:minmax(0,1fr) minmax(0,1.8fr) minmax(0,1fr) !important;
 }
+
+/* #483 / overview PDF: clean, result-led A4 layout. No changes to the
+   customer-facing Overview screen or to other PDF report types. */
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .talena-candidate-pdf-body {
+  padding:36px 44px 44px !important;
+  color:#282522;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .talena-candidate-pdf-heading {
+  margin:0 0 22px;
+  padding-bottom:14px;
+  border-bottom:2px solid #f0776e;
+  color:#24201f;
+  font-size:27px;
+  font-weight:750;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .ai-overview-card {
+  margin:0 !important;
+  padding:0 !important;
+  border:0 !important;
+  border-radius:0 !important;
+  background:#fff !important;
+  box-shadow:none !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .ai-overview-header {
+  padding:0 0 17px !important;
+  margin:0 0 20px !important;
+  border:0 !important;
+  background:transparent !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .ai-overview-header .insight-summary-title {
+  margin:0 0 6px !important;
+  color:#24201f;
+  font-size:23px !important;
+  line-height:1.25 !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .ai-overview-header p {
+  max-width:680px;
+  color:#69625e !important;
+  font-size:13px !important;
+  line-height:1.55 !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .talena-overview-content {
+  padding:0 !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .candidate-result-overview__grid,
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .candidate-result-overview__side {
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) !important;
+  gap:20px !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .candidate-result-overview__area,
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .candidate-result-overview__personality {
+  width:100%;
+  max-width:100%;
+  padding:8px 0 12px !important;
+  border:0 !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+  break-inside:avoid;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .candidate-result-overview__area-title,
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .personality-overview-chart__title {
+  color:#28221f;
+  font-size:18px !important;
+  line-height:1.3 !important;
+  font-weight:730 !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .candidate-result-overview__motivation-list-label {
+  color:#77706b;
+  font-size:12px !important;
+  font-weight:700;
+  line-height:1.4;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .candidate-result-overview__motivation-cards,
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .candidate-result-overview__skills-list {
+  display:grid !important;
+  grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+  gap:11px !important;
+  width:100%;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .candidate-result-overview__motivation-card {
+  padding:13px 13px 15px !important;
+  min-width:0;
+  border:0 !important;
+  border-radius:9px;
+  background:#f8f6f4;
+  box-shadow:none !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .candidate-result-overview__motivation-card-name,
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .candidate-result-overview__skill-name {
+  font-size:14px !important;
+  line-height:1.35 !important;
+  font-weight:700 !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .candidate-result-overview__motivation-card-description,
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .candidate-result-overview__skill-interpretation {
+  font-size:13px !important;
+  line-height:1.55 !important;
+  color:#554d48 !important;
+  overflow-wrap:anywhere;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .candidate-result-overview__skill-card {
+  min-width:0;
+  min-height:0;
+  padding:15px 13px !important;
+  gap:11px !important;
+  border:0 !important;
+  border-radius:9px;
+  background:#f8f6f4;
+  box-shadow:none !important;
+  align-content:start;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .candidate-result-overview__skill-ring {
+  width:71px !important;
+  height:71px !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .candidate-result-overview__skill-comparison-label,
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .candidate-result-overview__skill-comparison-labels {
+  font-size:10px !important;
+  line-height:1.45 !important;
+  white-space:normal;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .candidate-result-overview__skill-interpretation {
+  margin-top:2px;
+  padding-top:10px;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .personality-overview-chart__intro {
+  font-size:13px !important;
+  line-height:1.55 !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .personality-overview-item__label {
+  font-size:12px !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .talena-overview-interpretations,
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .candidate-result-overview__open,
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .ai-overview-header__actions {
+  display:none !important;
+}
+
+/* Overview PDF only: remove the nested screen-style card outlines.
+   Keep the coloured page heading, results, percentile tracks and subtle
+   tinted card backgrounds. Leave web UI and every other PDF untouched. */
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .candidate-insights-panel,
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] #candidate-insights-panel-overview,
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .purpose-fit-card.ai-overview-card,
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .candidate-result-overview {
+  border:0 !important;
+  border-radius:0 !important;
+  box-shadow:none !important;
+  background:#fff !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .candidate-insights-panel,
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] #candidate-insights-panel-overview {
+  padding:0 !important;
+  margin:0 !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .personality-overview-chart,
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .candidate-result-overview__area,
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .candidate-result-overview__personality {
+  border:0 !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .candidate-result-overview__motivation-card,
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .candidate-result-overview__skill-card {
+  border:0 !important;
+  box-shadow:none !important;
+}
+/* The headings and white space, not an extra border, separate sections. */
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .candidate-result-overview__grid,
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .candidate-result-overview__side {
+  gap:24px !important;
+}
+
+
+/* Motivation · Resultat PDF only: the .candidate-insight-page class is
+   reused by the PDF body and otherwise brings the screen's full-page frame.
+   Remove only that outer border; keep the rose chart and factor card styling. */
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-results"] .talena-candidate-pdf-body.candidate-insight-page {
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+
+/* Motivation · AI-tolkning PDF only: remove the surrounding screen card,
+   not the smaller content panels or the AI methodology/explanation box. */
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-interpretation"] .talena-candidate-pdf-body.candidate-insight-page {
+  border:0 !important;
+  border-radius:0 !important;
+  box-shadow:none !important;
+}
+/* Backup for late/legacy labels. The normal export clone removes badges
+   before rasterization, keeping the live candidate screen unchanged. */
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-interpretation"] .talena-ai-generated-badge,
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-interpretation"] .talena-ai-field-badge {
+  display:none !important;
+}
+
+
+/* Motivation interview questions PDF: remove the screen's full-page frame
+   and its extra inset. jsPDF supplies the physical A4 page margins. */
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-questions"] .talena-candidate-pdf-body.candidate-insight-page {
+  border:0 !important;
+  border-radius:0 !important;
+  box-shadow:none !important;
+  padding:0 !important;
+}
+/* The web opening-questions design is scoped to #layoutSidenav_content main,
+   which is absent from the off-screen PDF stage. Recreate it here only. */
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-questions"] .interview-static-questions {
+  margin:18px 0 22px !important;
+  border:1px solid #e8e2de !important;
+  border-radius:14px !important;
+  overflow:hidden;
+  background:#fff !important;
+  box-shadow:none !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-questions"] .interview-static-questions__header {
+  display:flex !important;
+  align-items:center;
+  gap:12px;
+  padding:14px 18px !important;
+  margin:0 !important;
+  background:#faf8f7 !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-questions"] .interview-static-questions__icon {
+  display:inline-flex !important;
+  align-items:center;
+  justify-content:center;
+  flex:0 0 31px;
+  width:31px;
+  height:31px;
+  border:1px solid rgba(255,111,97,.16) !important;
+  border-radius:10px !important;
+  background:rgba(255,111,97,.09) !important;
+  color:#e95f53 !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-questions"] .interview-static-questions__icon svg {
+  width:16px;
+  height:16px;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-questions"] .interview-static-questions__title {
+  margin:0 !important;
+  font-size:16px !important;
+  font-weight:720 !important;
+  line-height:1.35 !important;
+  color:#171312 !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-questions"] .interview-static-questions__list {
+  display:block !important;
+  margin:0 !important;
+  padding:0 !important;
+  list-style:none !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-questions"] .interview-static-questions__item {
+  display:flex !important;
+  align-items:flex-start;
+  gap:14px;
+  margin:0 !important;
+  padding:13px 18px !important;
+  border-top:1px solid #e8e2de !important;
+  list-style:none !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-questions"] .interview-static-questions__item::marker {
+  content:"";
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-questions"] .interview-static-questions__number {
+  display:inline-flex !important;
+  align-items:center;
+  justify-content:center;
+  flex:0 0 29px;
+  width:29px;
+  height:29px;
+  border:1px solid rgba(255,111,97,.18) !important;
+  border-radius:9px !important;
+  background:rgba(255,111,97,.075) !important;
+  color:#e95f53 !important;
+  font-size:13px !important;
+  font-weight:730 !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-questions"] .interview-static-questions__text {
+  min-width:0;
+  padding-top:4px;
+  font-size:14px !important;
+  font-weight:550 !important;
+  line-height:1.5 !important;
+  color:#171312 !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-questions"] [data-interview-question-note-field],
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-questions"] .interview-question-note {
+  display:none !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-questions"] .talena-ai-generated-badge {
+  display:none !important;
+}
+
+
+/* Motivation interview guide: generous PDF-only spacing and readable question
+   hierarchy. Keep the live candidate UI and all other PDF reports unchanged. */
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-questions"] .interview-section-guidance {
+  margin-bottom:26px !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-questions"] .interview-static-questions {
+  margin-top:22px !important;
+  margin-bottom:30px !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-questions"] .interview-static-questions__item {
+  padding:17px 20px !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-questions"] .interview-static-questions__text {
+  font-size:16px !important;
+  line-height:1.55 !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-questions"] .personality-questions-header {
+  margin:26px 0 18px !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-questions"] .personality-questions-section {
+  margin-top:20px !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-questions"] .personality-question-list {
+  gap:18px !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-questions"] .personality-question-card {
+  padding:19px 20px !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-questions"] .personality-question-card__header {
+  gap:13px !important;
+  margin-bottom:16px !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-questions"] .personality-question-card__number {
+  width:34px !important;
+  height:34px !important;
+  flex:0 0 34px !important;
+  font-size:13px !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-questions"] .personality-question-card__text {
+  font-size:17px !important;
+  font-weight:680 !important;
+  line-height:1.48 !important;
+  letter-spacing:-0.008em;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-questions"] .personality-question-card__details {
+  gap:13px !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-questions"] .personality-question-card__detail {
+  padding:14px 15px !important;
+  gap:10px !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-questions"] .personality-question-card__detail-title {
+  font-size:13px !important;
+  line-height:1.4 !important;
+  margin-bottom:4px !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-questions"] .personality-question-card__detail-text {
+  font-size:12.5px !important;
+  line-height:1.56 !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-questions"] .purpose-fit-disclaimer {
+  margin-top:28px !important;
+  padding-top:18px !important;
+}
+
+
+/* Färdighet · Resultat: A4 layout without the full-page screen frame.
+   Retain the three score cards, their visual percentiles and approved copy. */
+.talena-candidate-pdf-stage[data-candidate-pdf-report="cognitive-results"] .talena-candidate-pdf-body.candidate-insight-page {
+  border:0 !important;
+  border-radius:0 !important;
+  box-shadow:none !important;
+  padding:0 !important;
+}
+/* The nested content wrapper also has an all-enclosing screen border.
+   Keep the borders on each actual skill result card instead. */
+.talena-candidate-pdf-stage[data-candidate-pdf-report="cognitive-results"] .candidate-insights-subpanel .purpose-fit-card {
+  border:0 !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+  padding:0 !important;
+  margin:0 !important;
+}
+/* The four percentile levels run over page boundaries. No screen-size
+   outline around the entire guide that would be visually cut in half. */
+.talena-candidate-pdf-stage[data-candidate-pdf-report="cognitive-results"] .cognitive-percentile-guide {
+  overflow:visible !important;
+  border:0 !important;
+  border-radius:0 !important;
+  box-shadow:none !important;
+  padding:0 !important;
+  margin-top:24px !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="cognitive-results"] .cognitive-percentile-guide > summary {
+  padding:0 0 12px !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="cognitive-results"] .cognitive-percentile-guide__chevron,
+.talena-candidate-pdf-stage[data-candidate-pdf-report="cognitive-results"] .cognitive-percentile-guide__summary-hint {
+  display:none !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="cognitive-results"] .cognitive-percentile-guide__content {
+  margin-top:0 !important;
+  padding-top:16px !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="cognitive-results"] .cognitive-percentile-guide__level,
+.talena-candidate-pdf-stage[data-candidate-pdf-report="cognitive-results"] .cognitive-result-card {
+  break-inside:avoid;
+}
+
+
+/* Färdighet · AI-tolkning PDF only: remove the screen's surrounding page
+   frame and extra inset, but preserve the interpretation cards and note. */
+.talena-candidate-pdf-stage[data-candidate-pdf-report="cognitive-interpretation"] .talena-candidate-pdf-body.candidate-insight-page {
+  border:0 !important;
+  border-radius:0 !important;
+  box-shadow:none !important;
+  padding:0 !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="cognitive-interpretation"] .talena-ai-generated-badge,
+.talena-candidate-pdf-stage[data-candidate-pdf-report="cognitive-interpretation"] .talena-ai-field-badge {
+  display:none !important;
+}
+
+
+/* Cognitive interview questions PDF: remove the screen's full-page frame
+   and its extra inset. jsPDF supplies the physical A4 page margins. */
+.talena-candidate-pdf-stage[data-candidate-pdf-report="cognitive-questions"] .talena-candidate-pdf-body.candidate-insight-page {
+  border:0 !important;
+  border-radius:0 !important;
+  box-shadow:none !important;
+  padding:0 !important;
+}
+/* The web opening-questions design is scoped to #layoutSidenav_content main,
+   which is absent from the off-screen PDF stage. Recreate it here only. */
+.talena-candidate-pdf-stage[data-candidate-pdf-report="cognitive-questions"] .interview-static-questions {
+  margin:18px 0 22px !important;
+  border:1px solid #e8e2de !important;
+  border-radius:14px !important;
+  overflow:hidden;
+  background:#fff !important;
+  box-shadow:none !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="cognitive-questions"] .interview-static-questions__header {
+  display:flex !important;
+  align-items:center;
+  gap:12px;
+  padding:14px 18px !important;
+  margin:0 !important;
+  background:#faf8f7 !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="cognitive-questions"] .interview-static-questions__icon {
+  display:inline-flex !important;
+  align-items:center;
+  justify-content:center;
+  flex:0 0 31px;
+  width:31px;
+  height:31px;
+  border:1px solid rgba(255,111,97,.16) !important;
+  border-radius:10px !important;
+  background:rgba(255,111,97,.09) !important;
+  color:#e95f53 !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="cognitive-questions"] .interview-static-questions__icon svg {
+  width:16px;
+  height:16px;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="cognitive-questions"] .interview-static-questions__title {
+  margin:0 !important;
+  font-size:16px !important;
+  font-weight:720 !important;
+  line-height:1.35 !important;
+  color:#171312 !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="cognitive-questions"] .interview-static-questions__list {
+  display:block !important;
+  margin:0 !important;
+  padding:0 !important;
+  list-style:none !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="cognitive-questions"] .interview-static-questions__item {
+  display:flex !important;
+  align-items:flex-start;
+  gap:14px;
+  margin:0 !important;
+  padding:13px 18px !important;
+  border-top:1px solid #e8e2de !important;
+  list-style:none !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="cognitive-questions"] .interview-static-questions__item::marker {
+  content:"";
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="cognitive-questions"] .interview-static-questions__number {
+  display:inline-flex !important;
+  align-items:center;
+  justify-content:center;
+  flex:0 0 29px;
+  width:29px;
+  height:29px;
+  border:1px solid rgba(255,111,97,.18) !important;
+  border-radius:9px !important;
+  background:rgba(255,111,97,.075) !important;
+  color:#e95f53 !important;
+  font-size:13px !important;
+  font-weight:730 !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="cognitive-questions"] .interview-static-questions__text {
+  min-width:0;
+  padding-top:4px;
+  font-size:14px !important;
+  font-weight:550 !important;
+  line-height:1.5 !important;
+  color:#171312 !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="cognitive-questions"] [data-interview-question-note-field],
+.talena-candidate-pdf-stage[data-candidate-pdf-report="cognitive-questions"] .interview-question-note {
+  display:none !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="cognitive-questions"] .talena-ai-generated-badge {
+  display:none !important;
+}
+
+
+/* Cognitive interview guide: generous PDF-only spacing and readable question
+   hierarchy. Keep the live candidate UI and all other PDF reports unchanged. */
+.talena-candidate-pdf-stage[data-candidate-pdf-report="cognitive-questions"] .interview-section-guidance {
+  margin-bottom:26px !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="cognitive-questions"] .interview-static-questions {
+  margin-top:22px !important;
+  margin-bottom:30px !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="cognitive-questions"] .interview-static-questions__item {
+  padding:17px 20px !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="cognitive-questions"] .interview-static-questions__text {
+  font-size:16px !important;
+  line-height:1.55 !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="cognitive-questions"] .personality-questions-header {
+  margin:26px 0 18px !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="cognitive-questions"] .personality-questions-section {
+  margin-top:20px !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="cognitive-questions"] .personality-question-list {
+  gap:18px !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="cognitive-questions"] .personality-question-card {
+  padding:19px 20px !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="cognitive-questions"] .personality-question-card__header {
+  gap:13px !important;
+  margin-bottom:16px !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="cognitive-questions"] .personality-question-card__number {
+  width:34px !important;
+  height:34px !important;
+  flex:0 0 34px !important;
+  font-size:13px !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="cognitive-questions"] .personality-question-card__text {
+  font-size:17px !important;
+  font-weight:680 !important;
+  line-height:1.48 !important;
+  letter-spacing:-0.008em;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="cognitive-questions"] .personality-question-card__details {
+  gap:13px !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="cognitive-questions"] .personality-question-card__detail {
+  padding:14px 15px !important;
+  gap:10px !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="cognitive-questions"] .personality-question-card__detail-title {
+  font-size:13px !important;
+  line-height:1.4 !important;
+  margin-bottom:4px !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="cognitive-questions"] .personality-question-card__detail-text {
+  font-size:12.5px !important;
+  line-height:1.56 !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="cognitive-questions"] .purpose-fit-disclaimer {
+  margin-top:28px !important;
+  padding-top:18px !important;
+}
+
+
+
+
+/* Personlighet · Resultat PDF: the exported sheet is already placed within
+   A4 margins. Remove only its redundant screen-sized outer frame/inset.
+   Keep the three section headers, character trait graphs, summaries and
+   indicator scales styled as in Talena. Does not affect the live page. */
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-results"] .talena-candidate-pdf-body.candidate-insight-page {
+  border:0 !important;
+  border-radius:0 !important;
+  box-shadow:none !important;
+  padding:0 !important;
+}
+/* The raster paginator uses real on-page coordinates below. These CSS
+   hints also keep the trait opening and individual indicators coherent
+   if a later export path uses print layout. */
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-results"] .personality-trait-card__main,
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-results"] .personality-trait-card__summary,
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-results"] .personality-indicator-row {
+  break-inside:avoid;
+}
+
+
+/* Personlighet · Karaktärsdragsprofil: clean, readable printable layout.
+   Only the short trait-only PDF (not the detailed indicator profile) uses
+   these rules. The 18 STEN scores and their original polar descriptions
+   are retained verbatim, as is the branded cover and on-screen design. */
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-results"] .personality-quick-view {
+  margin-top:14px !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-results"] .personality-quick-view .personality-quick-section {
+  border:0 !important;
+  border-radius:0 !important;
+  box-shadow:none !important;
+  overflow:visible !important;
+  margin-bottom:19px !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-results"] .personality-quick-view .personality-quick-section__header {
+  border:0 !important;
+  border-radius:9px !important;
+  padding:11px 14px !important;
+  margin-bottom:5px !important;
+  background:#f7f5f3 !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-results"] .personality-quick-view .personality-quick-section__title {
+  font-size:12px !important;
+  line-height:1.4 !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-results"] .personality-quick-view .personality-quick-row {
+  padding:12px 14px !important;
+  gap:13px !important;
+  border-color:#ece7e3 !important;
+  break-inside:avoid;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-results"] .personality-quick-view .personality-quick-row__pole p {
+  font-size:11px !important;
+  line-height:1.45 !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-results"] .personality-quick-view .personality-quick-row__title {
+  font-size:12px !important;
+  line-height:1.4 !important;
+}
+
+
+/* Character trait quick-profile: print the same midpoint-to-score path that
+   is displayed in Talena. The export clone intentionally removes data-score
+   attributes after resolving the segments, so PDF-only classes are needed.
+   No changes to the live candidate UI or detailed indicator scales. */
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-results"]
+  .personality-quick-view .personality-quick-scale__segment.talena-personality-pdf-path {
+  background:#ff8a7d !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-results"]
+  .personality-quick-view .personality-quick-scale__segment.talena-personality-pdf-selected {
+  position:relative;
+  height:12px !important;
+  background:#f25549 !important;
+  box-shadow:0 0 0 2px #fff,0 0 0 3px rgba(242,85,73,.38) !important;
+}
+
+
+/* Personality interview PDF deliberately mirrors the approved Motivation and
+   Cognitive designs. Preserve personality-specific selected-trait context. */
+/* Personality interview questions PDF: remove the screen's full-page frame
+   and its extra inset. jsPDF supplies the physical A4 page margins. */
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-questions"] .talena-candidate-pdf-body.candidate-insight-page {
+  border:0 !important;
+  border-radius:0 !important;
+  box-shadow:none !important;
+  padding:0 !important;
+}
+/* The web opening-questions design is scoped to #layoutSidenav_content main,
+   which is absent from the off-screen PDF stage. Recreate it here only. */
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-questions"] .interview-static-questions {
+  margin:18px 0 22px !important;
+  border:1px solid #e8e2de !important;
+  border-radius:14px !important;
+  overflow:hidden;
+  background:#fff !important;
+  box-shadow:none !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-questions"] .interview-static-questions__header {
+  display:flex !important;
+  align-items:center;
+  gap:12px;
+  padding:14px 18px !important;
+  margin:0 !important;
+  background:#faf8f7 !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-questions"] .interview-static-questions__icon {
+  display:inline-flex !important;
+  align-items:center;
+  justify-content:center;
+  flex:0 0 31px;
+  width:31px;
+  height:31px;
+  border:1px solid rgba(255,111,97,.16) !important;
+  border-radius:10px !important;
+  background:rgba(255,111,97,.09) !important;
+  color:#e95f53 !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-questions"] .interview-static-questions__icon svg {
+  width:16px;
+  height:16px;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-questions"] .interview-static-questions__title {
+  margin:0 !important;
+  font-size:16px !important;
+  font-weight:720 !important;
+  line-height:1.35 !important;
+  color:#171312 !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-questions"] .interview-static-questions__list {
+  display:block !important;
+  margin:0 !important;
+  padding:0 !important;
+  list-style:none !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-questions"] .interview-static-questions__item {
+  display:flex !important;
+  align-items:flex-start;
+  gap:14px;
+  margin:0 !important;
+  padding:13px 18px !important;
+  border-top:1px solid #e8e2de !important;
+  list-style:none !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-questions"] .interview-static-questions__item::marker {
+  content:"";
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-questions"] .interview-static-questions__number {
+  display:inline-flex !important;
+  align-items:center;
+  justify-content:center;
+  flex:0 0 29px;
+  width:29px;
+  height:29px;
+  border:1px solid rgba(255,111,97,.18) !important;
+  border-radius:9px !important;
+  background:rgba(255,111,97,.075) !important;
+  color:#e95f53 !important;
+  font-size:13px !important;
+  font-weight:730 !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-questions"] .interview-static-questions__text {
+  min-width:0;
+  padding-top:4px;
+  font-size:14px !important;
+  font-weight:550 !important;
+  line-height:1.5 !important;
+  color:#171312 !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-questions"] [data-interview-question-note-field],
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-questions"] .interview-question-note {
+  display:none !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-questions"] .talena-ai-generated-badge {
+  display:none !important;
+}
+
+
+/* Personality interview guide: generous PDF-only spacing and readable question
+   hierarchy. Keep the live candidate UI and all other PDF reports unchanged. */
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-questions"] .interview-section-guidance {
+  margin-bottom:26px !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-questions"] .interview-static-questions {
+  margin-top:22px !important;
+  margin-bottom:30px !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-questions"] .interview-static-questions__item {
+  padding:17px 20px !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-questions"] .interview-static-questions__text {
+  font-size:16px !important;
+  line-height:1.55 !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-questions"] .personality-questions-header {
+  margin:26px 0 18px !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-questions"] .personality-questions-section {
+  margin-top:20px !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-questions"] .personality-question-list {
+  gap:18px !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-questions"] .personality-question-card {
+  padding:19px 20px !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-questions"] .personality-question-card__header {
+  gap:13px !important;
+  margin-bottom:16px !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-questions"] .personality-question-card__number {
+  width:34px !important;
+  height:34px !important;
+  flex:0 0 34px !important;
+  font-size:13px !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-questions"] .personality-question-card__text {
+  font-size:17px !important;
+  font-weight:680 !important;
+  line-height:1.48 !important;
+  letter-spacing:-0.008em;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-questions"] .personality-question-card__details {
+  gap:13px !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-questions"] .personality-question-card__detail {
+  padding:14px 15px !important;
+  gap:10px !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-questions"] .personality-question-card__detail-title {
+  font-size:13px !important;
+  line-height:1.4 !important;
+  margin-bottom:4px !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-questions"] .personality-question-card__detail-text {
+  font-size:12.5px !important;
+  line-height:1.56 !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-questions"] .purpose-fit-disclaimer {
+  margin-top:28px !important;
+  padding-top:18px !important;
+}
+
+
