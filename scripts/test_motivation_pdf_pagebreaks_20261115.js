@@ -11,7 +11,7 @@ const layout = fs.readFileSync("templates/customer/core/layouts/customer_base.ht
 // Only the full-page Motivation PDF frame disappears. Individual chart and
 // factor cards remain styled in the assessment CSS, and screen UI is untouched.
 assert.match(pdfStyles, /\[data-candidate-pdf-report="motivation-results"\] \.talena-candidate-pdf-body\.candidate-insight-page \{\s*border: 0 !important;\s*border-radius: 0 !important;\s*box-shadow: none !important;/);
-assert.ok(layout.includes("20261115-motivation-outer-border-1"), "Bust old CSS cache for new PDF visuals");
+assert.ok(layout.includes("20261115-motivation-interpretation-clean-1"), "Bust old CSS cache for new PDF visuals");
 
 function block(top, bottom) {
   return { getBoundingClientRect: () => ({
