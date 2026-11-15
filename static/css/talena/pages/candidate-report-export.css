@@ -841,3 +841,23 @@
 }
 
 
+
+
+/* Personlighet · Resultat PDF: the exported sheet is already placed within
+   A4 margins. Remove only its redundant screen-sized outer frame/inset.
+   Keep the three section headers, character trait graphs, summaries and
+   indicator scales styled as in Talena. Does not affect the live page. */
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-results"] .talena-candidate-pdf-body.candidate-insight-page {
+  border:0 !important;
+  border-radius:0 !important;
+  box-shadow:none !important;
+  padding:0 !important;
+}
+/* The raster paginator uses real on-page coordinates below. These CSS
+   hints also keep the trait opening and individual indicators coherent
+   if a later export path uses print layout. */
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-results"] .personality-trait-card__main,
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-results"] .personality-trait-card__summary,
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-results"] .personality-indicator-row {
+  break-inside:avoid;
+}

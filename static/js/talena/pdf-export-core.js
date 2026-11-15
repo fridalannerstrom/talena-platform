@@ -256,6 +256,62 @@
     return ranges;
   }
 
+  function getPersonalityResultsPageGuides(node, source, maxHeight) {
+    // Character traits form long continuous reports. Keep the opening
+    // (name, main score graph, interpretation and first indicator) together
+    // whenever it fits on A4; do not try to put the *entire* trait on a
+    // single page, which would waste space or force arbitrary cuts.
+    const container = node.getBoundingClientRect();
+    if (!container.width) return [];
+    const scale = source.width / container.width;
+    const ranges = [];
+
+    function protect(first, last = first, maxFraction = 1) {
+      if (!first || !last) return;
+      const from = first.getBoundingClientRect();
+      const to = last.getBoundingClientRect();
+      if (!from.height || !to.height) return;
+      const start = Math.max(0, Math.round((from.top - container.top) * scale));
+      const end = Math.min(source.height,
+        Math.round((to.bottom - container.top) * scale));
+      // A group that is taller than a printable page must be allowed to
+      // break at its internal indicator boundaries.
+      if (end > start && end - start <= maxHeight * maxFraction) {
+        ranges.push({ start, end });
+      }
+    }
+
+    node.querySelectorAll(".personality-profile-section").forEach(section => {
+      const title = section.querySelector(".personality-profile-section__header");
+      const firstTrait = section.querySelector(".personality-trait-card");
+      const introEnd = firstTrait?.querySelector(
+        ".personality-trait-card__summary, .personality-trait-card__main"
+      );
+      // A category heading should never be left alone at the foot of a
+      // page without the first personality trait and its graph.
+      protect(title, introEnd, 0.78);
+    });
+
+    node.querySelectorAll(".personality-trait-card").forEach(trait => {
+      const heading = trait.querySelector(".personality-trait-card__header");
+      const main = trait.querySelector(".personality-trait-card__main");
+      const summary = trait.querySelector(".personality-trait-card__summary");
+      const firstIndicator = trait.querySelector(".personality-indicator-row");
+      // First try to include the first indicator; if the opening is too
+      // tall, still keep the title, score graph and summary together.
+      const introEnd = summary || main || heading;
+      const startCount = ranges.length;
+      protect(heading, firstIndicator || introEnd, 0.75);
+      if (ranges.length === startCount) protect(heading, introEnd, 0.75);
+      // Indicator names, two pole descriptions and the complete STEN
+      // scale must never be separated by a PDF page edge.
+      trait.querySelectorAll(".personality-indicator-row").forEach(row => {
+        protect(row);
+      });
+    });
+    return ranges;
+  }
+
   function addCanvasPages(pdf, source, opts) {
     if (!source.width || !source.height) throw new Error("PDF page is empty.");
     const pageW = pdf.internal.pageSize.getWidth();
@@ -274,13 +330,17 @@
       opts.node?.closest?.('[data-candidate-pdf-report="cognitive-questions"]');
     const cognitiveResultsPdf = opts.continuous &&
       opts.node?.closest?.('[data-candidate-pdf-report="cognitive-results"]');
+    const personalityResultsPdf = opts.continuous &&
+      opts.node?.closest?.('[data-candidate-pdf-report="personality-results"]');
     const protectedRanges = motivationPdf
       ? getMotivationPageGuides(opts.node, source)
       : (motivationQuestionsPdf || cognitiveQuestionsPdf)
         ? getMotivationQuestionsPageGuides(opts.node, source)
         : cognitiveResultsPdf
           ? getCognitiveResultsPageGuides(opts.node, source)
-          : [];
+          : personalityResultsPdf
+            ? getPersonalityResultsPageGuides(opts.node, source, maxHeight)
+            : [];
     const slices = calculatePageSlices(
       source.height, maxHeight, breakpoints, protectedRanges
     );
