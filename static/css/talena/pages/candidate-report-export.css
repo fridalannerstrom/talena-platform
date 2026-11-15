@@ -437,3 +437,18 @@
   border-radius: 0 !important;
   box-shadow: none !important;
 }
+
+
+/* Motivation · AI-tolkning PDF only: remove the surrounding screen card,
+   not the smaller content panels or the AI methodology/explanation box. */
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-interpretation"] .talena-candidate-pdf-body.candidate-insight-page {
+  border:0 !important;
+  border-radius:0 !important;
+  box-shadow:none !important;
+}
+/* Backup for late/legacy labels. The normal export clone removes badges
+   before rasterization, keeping the live candidate screen unchanged. */
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-interpretation"] .talena-ai-generated-badge,
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-interpretation"] .talena-ai-field-badge {
+  display:none !important;
+}
