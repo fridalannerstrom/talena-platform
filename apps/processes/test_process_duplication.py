@@ -114,6 +114,7 @@ class ProcessDuplicationTests(TestCase):
         self.assertEqual(duplicate.selected_tests, ["personality", "motivation"])
         self.assertEqual(duplicate.candidate_language, "en")
         self.assertTrue(duplicate.candidate_results_enabled)
+        self.assertTrue(duplicate.project_completion_notifications_enabled)
         self.assertEqual(duplicate.job_title, self.source.job_title)
         self.assertEqual(duplicate.job_location, self.source.job_location)
         self.assertEqual(duplicate.notes, self.source.notes)
