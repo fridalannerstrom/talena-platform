@@ -224,10 +224,14 @@
 
               <!-- Candidate language -->
               <div class="mb-4">
-                <label class="form-label">{% trans "Candidate language" %}</label>
+                <label class="form-label">
+                  <span data-project-language="sv" {% if form.candidate_language.value == "en" %}hidden{% endif %}>Kandidatspråk</span>
+                  <span data-project-language="en" {% if form.candidate_language.value != "en" %}hidden{% endif %}>Candidate language</span>
+                </label>
 
                 <div class="text-muted small mb-3">
-                  {% trans "Choose the language used for candidate invitations and assessments. Changing the language only affects future invitations; assessments already sent are not changed." %}
+                  <span data-project-language="sv" {% if form.candidate_language.value == "en" %}hidden{% endif %}>Välj språk för kandidatens inbjudningar och tester. Om du ändrar språket påverkas bara framtida inbjudningar. Tester som redan har skickats ändras inte.</span>
+                  <span data-project-language="en" {% if form.candidate_language.value != "en" %}hidden{% endif %}>Choose the language used for candidate invitations and assessments. Changing the language only affects future invitations; assessments already sent are not changed.</span>
                 </div>
 
                 <div class="template-select" role="radiogroup">
@@ -244,9 +248,13 @@
                       <span class="template-card-main">
                         <span class="template-icon"><strong>SV</strong></span>
                         <span class="template-text">
-                          <span class="template-title">{% trans "Swedish" %}</span>
+                          <span class="template-title">
+                            <span data-project-language="sv" {% if form.candidate_language.value == "en" %}hidden{% endif %}>Svenska</span>
+                  <span data-project-language="en" {% if form.candidate_language.value != "en" %}hidden{% endif %}>Swedish</span>
+                          </span>
                           <span class="template-description">
-                            {% trans "Invitation and assessments in Swedish" %}
+                            <span data-project-language="sv" {% if form.candidate_language.value == "en" %}hidden{% endif %}>Inbjudan och tester på svenska</span>
+                  <span data-project-language="en" {% if form.candidate_language.value != "en" %}hidden{% endif %}>Invitation and assessments in Swedish</span>
                           </span>
                         </span>
                       </span>
@@ -267,9 +275,13 @@
                       <span class="template-card-main">
                         <span class="template-icon"><strong>EN</strong></span>
                         <span class="template-text">
-                          <span class="template-title">{% trans "English" %}</span>
+                          <span class="template-title">
+                            <span data-project-language="sv" {% if form.candidate_language.value == "en" %}hidden{% endif %}>Engelska</span>
+                  <span data-project-language="en" {% if form.candidate_language.value != "en" %}hidden{% endif %}>English</span>
+                          </span>
                           <span class="template-description">
-                            {% trans "Invitation and assessments in English" %}
+                            <span data-project-language="sv" {% if form.candidate_language.value == "en" %}hidden{% endif %}>Inbjudan och tester på engelska</span>
+                  <span data-project-language="en" {% if form.candidate_language.value != "en" %}hidden{% endif %}>Invitation and assessments in English</span>
                           </span>
                         </span>
                       </span>
@@ -309,21 +321,13 @@
               <div class="form-check">
                 {{ form.project_completion_notifications_enabled }}
                 <label class="form-check-label" for="{{ form.project_completion_notifications_enabled.id_for_label }}">
-                  {% if LANGUAGE_CODE|slice:":2" == "sv" %}
-                    Mejla projektägaren när en kandidat slutfört alla tester
-                  {% else %}
-                    Email the project creator when a candidate completes all tests
-                  {% endif %}
+                  <span data-project-language="sv" {% if form.candidate_language.value == "en" %}hidden{% endif %}>Mejla projektägaren när en kandidat slutfört alla tester</span>
+                  <span data-project-language="en" {% if form.candidate_language.value != "en" %}hidden{% endif %}>Email the project creator when a candidate completes all tests</span>
                 </label>
               </div>
               <div class="form-text mt-1">
-                {% if LANGUAGE_CODE|slice:":2" == "sv" %}
-                  Ett mejl skickas till den som skapade projektet när kandidaten är klar.
-                  Du kan stänga av detta när som helst.
-                {% else %}
-                  The project creator receives an email when a candidate has completed all assessments.
-                  You can turn this off at any time.
-                {% endif %}
+                <span data-project-language="sv" {% if form.candidate_language.value == "en" %}hidden{% endif %}>Den som skapade projektet får ett mejl när kandidaten har slutfört alla tester. Du kan stänga av aviseringen när som helst.</span>
+                  <span data-project-language="en" {% if form.candidate_language.value != "en" %}hidden{% endif %}>The project creator receives an email when a candidate has completed all assessments. You can turn this off at any time.</span>
               </div>
             </div>
 
