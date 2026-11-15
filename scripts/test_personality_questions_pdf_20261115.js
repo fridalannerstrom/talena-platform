@@ -185,7 +185,7 @@ vm.runInNewContext(code,{document,window,Blob,
     "Keep information about how the questions were generated");
   assert.equal(clone.querySelectorAll(".personality-questions-traits").length,1);
   assert.equal(clone.querySelectorAll(".personality-questions-context-note").length,1);
-  assert.ok(clone.textContent.includes("Färdighetstester är ett kompletterande underlag"));
+  assert.ok(clone.textContent.includes("Personlighetsresultat visar sannolika beteendepreferenser"));
   assert.equal(clone.querySelectorAll(".insight-summary-kicker").length,0,
     "Decorative AI-status eyebrows are screen-only");
   assert.equal(source.querySelectorAll(".interview-question-note").length,3,
@@ -202,7 +202,7 @@ vm.runInNewContext(code,{document,window,Blob,
   assert.ok(core.includes("getMotivationQuestionsPageGuides"),
     "PDF pagination must protect complete question cards");
   assert.ok(core.includes('(motivationQuestionsPdf || cognitiveQuestionsPdf || personalityQuestionsPdf)'),
-    "Färdighet and Motivation must share exactly the same protected page-break rules");
+    "All three question PDFs share the same protected page-break rules");
   // Compare the entire approved Motivation stylesheet, not just the
   // headline font. Personality must not drift from the other question PDFs.
   const stylesStart='/* Motivation interview questions PDF:';
