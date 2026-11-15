@@ -197,7 +197,7 @@ vm.runInNewContext(code,{document,window,Blob,
   const stylesEnd='/* Färdighet · Resultat: A4 layout';
   const cognitiveStart='/* Cognitive interview questions PDF:';
   const motivationBlock=css.slice(css.indexOf(stylesStart),css.indexOf(stylesEnd));
-  const cognitiveBlock=css.slice(css.indexOf(cognitiveStart));
+  const cognitiveBlock=css.slice(css.indexOf(cognitiveStart),css.indexOf("/* Personlighet · Resultat PDF:"));
   const normalizedMotivation=motivationBlock
     .replaceAll('motivation-questions','cognitive-questions')
     .replace('Motivation interview questions PDF','Cognitive interview questions PDF')
