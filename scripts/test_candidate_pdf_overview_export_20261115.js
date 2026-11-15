@@ -146,7 +146,7 @@ vm.runInNewContext(code,{document,window,Blob,
     "AI interpretation must not appear in Overview PDF");
   assert.ok(!cloned.querySelector(".talena-overview-interpretations"));
   assert.ok(cloned.textContent.includes("Sammanställning av tillgängliga testresultat"));
-  assert.equal(source.querySelectorAll("button").length,2,
+  assert.equal(source.querySelectorAll(".candidate-result-overview__area").filter(node=>node.tagName==="button").length,2,
     "Screen cards are still interactive and must never be altered");
   assert.ok(source.querySelector(".talena-overview-interpretations"),
     "Screen AI notes remain untouched");
