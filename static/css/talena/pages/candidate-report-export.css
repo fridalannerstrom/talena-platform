@@ -616,3 +616,48 @@
   margin-top:28px !important;
   padding-top:18px !important;
 }
+
+
+/* Färdighet · Resultat: A4 layout without the full-page screen frame.
+   Retain the three score cards, their visual percentiles and approved copy. */
+.talena-candidate-pdf-stage[data-candidate-pdf-report="cognitive-results"] .talena-candidate-pdf-body.candidate-insight-page {
+  border:0 !important;
+  border-radius:0 !important;
+  box-shadow:none !important;
+  padding:0 !important;
+}
+/* The nested content wrapper also has an all-enclosing screen border.
+   Keep the borders on each actual skill result card instead. */
+.talena-candidate-pdf-stage[data-candidate-pdf-report="cognitive-results"] .candidate-insights-subpanel .purpose-fit-card {
+  border:0 !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+  padding:0 !important;
+  margin:0 !important;
+}
+/* The four percentile levels run over page boundaries. No screen-size
+   outline around the entire guide that would be visually cut in half. */
+.talena-candidate-pdf-stage[data-candidate-pdf-report="cognitive-results"] .cognitive-percentile-guide {
+  overflow:visible !important;
+  border:0 !important;
+  border-radius:0 !important;
+  box-shadow:none !important;
+  padding:0 !important;
+  margin-top:24px !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="cognitive-results"] .cognitive-percentile-guide > summary {
+  padding:0 0 12px !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="cognitive-results"] .cognitive-percentile-guide__chevron,
+.talena-candidate-pdf-stage[data-candidate-pdf-report="cognitive-results"] .cognitive-percentile-guide__summary-hint {
+  display:none !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="cognitive-results"] .cognitive-percentile-guide__content {
+  margin-top:0 !important;
+  padding-top:16px !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="cognitive-results"] .cognitive-percentile-guide__level,
+.talena-candidate-pdf-stage[data-candidate-pdf-report="cognitive-results"] .cognitive-result-card {
+  break-inside:avoid;
+}

@@ -221,6 +221,41 @@
     return ranges;
   }
 
+  function getCognitiveResultsPageGuides(node, source) {
+    // In the percentile guide every level's label, meaning and bullet
+    // list is a single printable unit. The guide as a whole spans pages.
+    const container = node.getBoundingClientRect();
+    if (!container.width) return [];
+    const scale = source.width / container.width;
+    const ranges = [];
+    function protect(first, last = first) {
+      if (!first || !last) return;
+      const from = first.getBoundingClientRect();
+      const to = last.getBoundingClientRect();
+      if (!from.height || !to.height) return;
+      const start = Math.max(0, Math.round(
+        (from.top - container.top) * scale
+      ));
+      const end = Math.min(source.height, Math.round(
+        (to.bottom - container.top) * scale
+      ));
+      if (end > start) ranges.push({ start, end });
+    }
+    node.querySelectorAll(".cognitive-result-card")
+      .forEach(card => protect(card));
+    node.querySelectorAll(".cognitive-percentile-guide__level")
+      .forEach(level => protect(level));
+    // Prevent an orphaned "How to interpret percentiles" heading.
+    protect(
+      node.querySelector(".cognitive-percentile-guide > summary"),
+      node.querySelector(".cognitive-percentile-guide__level")
+    );
+    node.querySelectorAll(
+      ".cognitive-percentile-guide__intro, .cognitive-percentile-guide + .small"
+    ).forEach(section => protect(section));
+    return ranges;
+  }
+
   function addCanvasPages(pdf, source, opts) {
     if (!source.width || !source.height) throw new Error("PDF page is empty.");
     const pageW = pdf.internal.pageSize.getWidth();
@@ -235,11 +270,15 @@
       opts.node?.closest?.('[data-candidate-pdf-report="motivation-results"]');
     const motivationQuestionsPdf = opts.continuous &&
       opts.node?.closest?.('[data-candidate-pdf-report="motivation-questions"]');
+    const cognitiveResultsPdf = opts.continuous &&
+      opts.node?.closest?.('[data-candidate-pdf-report="cognitive-results"]');
     const protectedRanges = motivationPdf
       ? getMotivationPageGuides(opts.node, source)
       : motivationQuestionsPdf
         ? getMotivationQuestionsPageGuides(opts.node, source)
-        : [];
+        : cognitiveResultsPdf
+          ? getCognitiveResultsPageGuides(opts.node, source)
+          : [];
     const slices = calculatePageSlices(
       source.height, maxHeight, breakpoints, protectedRanges
     );
