@@ -1,0 +1,17 @@
+{% if language == "sv" %}Hej{% if recipient_name %} {{ recipient_name }}{% endif %}!
+
+{{ candidate_name }} har slutfört sina tester i projektet {{ project_name }}.
+
+Visa kandidaten i Talena: {{ candidate_url }}
+
+Det här mejlet skickas automatiskt när alla tester är klara. Du kan stänga av aviseringen i projektinställningarna.
+
+Talena · Utvecklad av Talent Qode{% else %}Hello{% if recipient_name %} {{ recipient_name }}{% endif %}!
+
+{{ candidate_name }} has completed their tests in the project {{ project_name }}.
+
+View candidate in Talena: {{ candidate_url }}
+
+This email is sent automatically when all assessments are completed. You can disable notifications in the project settings.
+
+Talena · Developed by Talent Qode{% endif %}

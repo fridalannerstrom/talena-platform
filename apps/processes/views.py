@@ -6228,6 +6228,9 @@ def process_update(request, pk):
                 form.cleaned_data.get("candidate_results_enabled")
                 or False
             )
+            obj.project_completion_notifications_enabled = bool(
+                form.cleaned_data.get("project_completion_notifications_enabled")
+            )
 
             if locked:
                 # Behåll befintliga tester och befintlig Sova-koppling.
@@ -6330,6 +6333,9 @@ def process_update(request, pk):
             ),
             "candidate_results_enabled": (
                 obj.candidate_results_enabled
+            ),
+            "project_completion_notifications_enabled": (
+                obj.project_completion_notifications_enabled
             ),
         })
 

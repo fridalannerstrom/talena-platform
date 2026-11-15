@@ -52,6 +52,11 @@ class TestProcess(models.Model):
         ),
     )
 
+    # #466: notify the project creator when the candidate finishes all tests.
+    project_completion_notifications_enabled = models.BooleanField(
+        default=True,
+    )
+
     self_registration_token = models.UUIDField(
         default=uuid.uuid4,
         unique=True,
@@ -286,6 +291,9 @@ class TestInvitation(models.Model):
     invited_at = models.DateTimeField(blank=True, null=True)
     started_at = models.DateTimeField(blank=True, null=True)
     completed_at = models.DateTimeField(blank=True, null=True)
+    project_completion_email_sent_at = models.DateTimeField(
+        blank=True, null=True,
+    )
     result_payload = models.JSONField(null=True, blank=True)   # hela resultatet (om du vill)
     score = models.IntegerField(null=True, blank=True)         # demo-score 0–100 (eller vad du vill)
 

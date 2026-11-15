@@ -487,4 +487,23 @@ def sova_ingest(request):
                 invitation.id,
             )
 
+    # #466: independent of candidate result sharing. SOVA may repeat a
+    # completion callback; the notification service guarantees one send.
+    if normalized == "completed":
+        try:
+            from apps.processes.project_completion_email import (
+                send_project_completion_email,
+            )
+
+            send_project_completion_email(
+                invitation,
+                base_url=request.build_absolute_uri("/"),
+            )
+        except Exception:
+            # A mail failure must not cause SOVA to repeat its whole callback.
+            logger.exception(
+                "Project completion email processing failed for invitation %s",
+                invitation.pk,
+            )
+
     return JsonResponse({"status": "ok"})
