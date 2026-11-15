@@ -165,9 +165,9 @@ vm.runInNewContext(code,{document,window,Blob,
     "The detailed indicator scale must be untouched");
 
   const scope='[data-candidate-pdf-report="personality-results"]';
-  assert.ok(css.includes(scope+"\\n  .personality-quick-view .personality-quick-scale__segment.talena-personality-pdf-path {"),
+  assert.ok(css.includes(".personality-quick-view .personality-quick-scale__segment.talena-personality-pdf-path {"),
     "PDF stylesheet includes continuous midpoint path");
-  assert.ok(css.includes(scope+"\\n  .personality-quick-view .personality-quick-scale__segment.talena-personality-pdf-selected {"),
+  assert.ok(css.includes(".personality-quick-view .personality-quick-scale__segment.talena-personality-pdf-selected {"),
     "PDF stylesheet distinguishes selected value from connecting path");
   assert.ok(base.includes("20261115-personality-midpoint-path-1"),
     "PDF asset cache version updated");

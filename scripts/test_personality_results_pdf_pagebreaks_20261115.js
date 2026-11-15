@@ -9,7 +9,7 @@ const css=fs.readFileSync("static/css/talena/pages/candidate-report-export.css",
 const layout=fs.readFileSync("templates/customer/core/layouts/customer_base.html","utf8");
 const selector='[data-candidate-pdf-report="personality-results"]';
 const rule=selector+' .talena-candidate-pdf-body.candidate-insight-page {';
-assert.ok(css.includes(rule)&&layout.includes("20261115-personality-quick-pages-1"));
+assert.ok(css.includes(rule)&&layout.includes("20261115-personality-midpoint-path-1"));
 const frame=css.slice(css.indexOf(rule),css.indexOf("}",css.indexOf(rule)));
 for (const value of ["border:0 !important;","box-shadow:none !important;","padding:0 !important;"])
   assert.ok(frame.includes(value),"Personality PDF must omit the extra outer frame/padding");
