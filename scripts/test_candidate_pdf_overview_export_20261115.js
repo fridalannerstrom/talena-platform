@@ -152,7 +152,13 @@ vm.runInNewContext(code,{document,window,Blob,
     "Screen AI notes remain untouched");
   assert.ok(css.includes('[data-candidate-pdf-report="overview"] .candidate-result-overview__area'));
   assert.ok(css.includes('[data-candidate-pdf-report="overview"] .candidate-result-overview__skills-list'));
-  assert.ok(base.includes("20261115-overview-pdf-1"));
+  assert.ok(base.includes("20261115-overview-borderless-2"));
+  assert.ok(css.includes('Overview PDF only: remove the nested screen-style card outlines'));
+  assert.ok(css.includes('border:0 !important;'));
+  assert.ok(css.includes('[data-candidate-pdf-report="overview"] .candidate-result-overview__motivation-card,'));
+  assert.ok(css.includes('[data-candidate-pdf-report="overview"] .candidate-result-overview__skill-card {'));
+  assert.ok(!css.includes('border:1px solid #e5ded9 !important;'),
+    "Do not frame Overview's main result sections");
   assert.ok(core.includes(".candidate-result-overview__motivation-card"));
   console.log("Overview PDF: full Motivation and Skills results, no AI, source untouched, A4 styles OK");
 })().catch(error=>{console.error(error);process.exitCode=1;});
