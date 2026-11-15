@@ -186,6 +186,26 @@
     clone.classList.remove("d-none");
     clone.style.display = "block";
 
+    if (reportId === "motivation-questions") {
+      // The interview note editor is interactive UI, not part of a printable
+      // interview guide. Do not export its hints, privacy-field warnings or
+      // empty textareas. Never change the live form or its saved answers.
+      clone.querySelectorAll(
+        "[data-interview-question-note-field], .interview-question-note"
+      ).forEach(editor => editor.remove());
+
+      // Compact report headings: keep the interview instructions explaining
+      // the origin of the questions, but drop decorative AI status labels.
+      clone.querySelectorAll(
+        ".talena-ai-generated-badge, .talena-ai-field-badge"
+      ).forEach(badge => badge.remove());
+      clone.querySelectorAll(".insight-summary-kicker").forEach(kicker => {
+        if (/^(?:AI-generated insight|AI-genererad insikt|AI-generated|AI-genererat)$/i.test(
+          (kicker.textContent || "").trim()
+        )) kicker.remove();
+      });
+    }
+
     if (reportId === "motivation-interpretation") {
       // PDF-only presentation: the report still contains the full
       // interpretation and the "About the AI interpretation" evidence note.
