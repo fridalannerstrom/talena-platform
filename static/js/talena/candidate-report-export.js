@@ -210,7 +210,7 @@
       });
     }
 
-    if (reportId === "motivation-questions" || reportId === "cognitive-questions") {
+    if (["motivation-questions", "cognitive-questions", "personality-questions"].includes(reportId)) {
       // Both question guides share the same print-only layout. The interview
       // note editor is interactive UI, not part of a printable
       // interview guide. Do not export its hints, privacy-field warnings or

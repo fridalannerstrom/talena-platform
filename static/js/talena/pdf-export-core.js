@@ -211,7 +211,8 @@
     // What to look for. Never cut it between PDF pages if it fits on one.
     node.querySelectorAll(
       ".interview-section-guidance, .interview-static-questions, " +
-      ".personality-question-card, .purpose-fit-disclaimer"
+      ".personality-question-card, .purpose-fit-disclaimer, " +
+      ".personality-questions-traits, .personality-questions-context-note"
     ).forEach(section => protect(section));
 
     // A subsection title must travel with at least its first question.
@@ -406,6 +407,8 @@
       opts.node?.closest?.('[data-candidate-pdf-report="motivation-questions"]');
     const cognitiveQuestionsPdf = opts.continuous &&
       opts.node?.closest?.('[data-candidate-pdf-report="cognitive-questions"]');
+    const personalityQuestionsPdf = opts.continuous &&
+      opts.node?.closest?.('[data-candidate-pdf-report="personality-questions"]');
     const cognitiveResultsPdf = opts.continuous &&
       opts.node?.closest?.('[data-candidate-pdf-report="cognitive-results"]');
     const personalityResultsPdf = opts.continuous &&
@@ -416,7 +419,7 @@
       opts.node?.querySelector?.(".personality-trait-descriptions-view");
     const protectedRanges = motivationPdf
       ? getMotivationPageGuides(opts.node, source)
-      : (motivationQuestionsPdf || cognitiveQuestionsPdf)
+      : (motivationQuestionsPdf || cognitiveQuestionsPdf || personalityQuestionsPdf)
         ? getMotivationQuestionsPageGuides(opts.node, source)
         : cognitiveResultsPdf
           ? getCognitiveResultsPageGuides(opts.node, source)
