@@ -109,7 +109,9 @@
       ".personality-profile-section__header, .personality-trait-card__header, " +
       ".personality-trait-card__main, .personality-trait-card__summary, " +
       ".personality-indicator-row, .personality-trait-card, .personality-quick-row, " +
-      ".personality-overview-group, .personality-overview-item"
+      ".personality-overview-group, .personality-overview-item, " +
+      ".candidate-result-overview__area, .candidate-result-overview__personality, " +
+      ".candidate-result-overview__motivation-card, .candidate-result-overview__skill-card"
     );
     const points = [];
     candidates.forEach(element => {

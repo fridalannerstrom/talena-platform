@@ -185,6 +185,30 @@
     clone.removeAttribute("hidden");
     clone.classList.remove("d-none");
     clone.style.display = "block";
+
+    if (reportId === "overview") {
+      // Screen-only AI interpretations are not part of the result-led PDF.
+      // Keep the source sheet unchanged so users can still view those notes.
+      clone.querySelector(".talena-overview-interpretations")?.remove();
+
+      // On screen the entire Motivation/Skills card is a navigation BUTTON.
+      // Generic PDF cleanup removes buttons and, previously, their complete
+      // result content. Turn them into noninteractive report sections first.
+      clone.querySelectorAll(".candidate-result-overview__area").forEach(button => {
+        const reportCard = create("div", button.className);
+        while (button.firstChild) reportCard.append(button.firstChild);
+        button.replaceWith(reportCard);
+      });
+      // "View profile" buttons/links are navigation, not report content.
+      clone.querySelectorAll(".candidate-result-overview__open").forEach(link => link.remove());
+      const description = clone.querySelector(".ai-overview-header__content p");
+      if (description) {
+        description.textContent = sv
+          ? "Sammanställning av tillgängliga testresultat inom personlighet, motivation och färdighet."
+          : "Summary of available personality, motivation and ability assessment results.";
+      }
+    }
+
     const liveCanvases = source.querySelectorAll("canvas");
     const clonedCanvases = clone.querySelectorAll("canvas");
     for (const [index, canvas] of [...clonedCanvases].entries()) {

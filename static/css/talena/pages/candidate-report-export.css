@@ -252,3 +252,140 @@
 .talena-candidate-pdf-stage .personality-quick-row {
   grid-template-columns:minmax(0,1fr) minmax(0,1.8fr) minmax(0,1fr) !important;
 }
+
+/* #483 / overview PDF: clean, result-led A4 layout. No changes to the
+   customer-facing Overview screen or to other PDF report types. */
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .talena-candidate-pdf-body {
+  padding:36px 44px 44px !important;
+  color:#282522;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .talena-candidate-pdf-heading {
+  margin:0 0 22px;
+  padding-bottom:14px;
+  border-bottom:2px solid #f0776e;
+  color:#24201f;
+  font-size:27px;
+  font-weight:750;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .ai-overview-card {
+  margin:0 !important;
+  padding:0 !important;
+  border:0 !important;
+  border-radius:0 !important;
+  background:#fff !important;
+  box-shadow:none !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .ai-overview-header {
+  padding:0 0 17px !important;
+  margin:0 0 20px !important;
+  border:0 !important;
+  background:transparent !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .ai-overview-header .insight-summary-title {
+  margin:0 0 6px !important;
+  color:#24201f;
+  font-size:23px !important;
+  line-height:1.25 !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .ai-overview-header p {
+  max-width:680px;
+  color:#69625e !important;
+  font-size:13px !important;
+  line-height:1.55 !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .talena-overview-content {
+  padding:0 !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .candidate-result-overview__grid,
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .candidate-result-overview__side {
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) !important;
+  gap:20px !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .candidate-result-overview__area,
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .candidate-result-overview__personality {
+  width:100%;
+  max-width:100%;
+  padding:20px 21px !important;
+  border:1px solid #e5ded9 !important;
+  border-radius:12px !important;
+  background:#fff !important;
+  box-shadow:none !important;
+  break-inside:avoid;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .candidate-result-overview__area-title,
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .personality-overview-chart__title {
+  color:#28221f;
+  font-size:18px !important;
+  line-height:1.3 !important;
+  font-weight:730 !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .candidate-result-overview__motivation-list-label {
+  color:#77706b;
+  font-size:12px !important;
+  font-weight:700;
+  line-height:1.4;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .candidate-result-overview__motivation-cards,
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .candidate-result-overview__skills-list {
+  display:grid !important;
+  grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+  gap:11px !important;
+  width:100%;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .candidate-result-overview__motivation-card {
+  padding:13px 13px 15px !important;
+  min-width:0;
+  border:1px solid #e7e1dd;
+  border-radius:10px;
+  background:#faf8f6;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .candidate-result-overview__motivation-card-name,
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .candidate-result-overview__skill-name {
+  font-size:14px !important;
+  line-height:1.35 !important;
+  font-weight:700 !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .candidate-result-overview__motivation-card-description,
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .candidate-result-overview__skill-interpretation {
+  font-size:13px !important;
+  line-height:1.55 !important;
+  color:#554d48 !important;
+  overflow-wrap:anywhere;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .candidate-result-overview__skill-card {
+  min-width:0;
+  min-height:0;
+  padding:15px 13px !important;
+  gap:11px !important;
+  border:1px solid #e7e1dd;
+  border-radius:10px;
+  background:#faf8f6;
+  align-content:start;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .candidate-result-overview__skill-ring {
+  width:71px !important;
+  height:71px !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .candidate-result-overview__skill-comparison-label,
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .candidate-result-overview__skill-comparison-labels {
+  font-size:10px !important;
+  line-height:1.45 !important;
+  white-space:normal;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .candidate-result-overview__skill-interpretation {
+  margin-top:2px;
+  padding-top:10px;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .personality-overview-chart__intro {
+  font-size:13px !important;
+  line-height:1.55 !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .personality-overview-item__label {
+  font-size:12px !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .talena-overview-interpretations,
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .candidate-result-overview__open,
+.talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .ai-overview-header__actions {
+  display:none !important;
+}
