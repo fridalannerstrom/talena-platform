@@ -305,6 +305,28 @@
               {% endif %}
             </div>
 
+            <div class="candidate-results-setting mt-3 p-3 border rounded-3">
+              <div class="form-check">
+                {{ form.project_completion_notifications_enabled }}
+                <label class="form-check-label" for="{{ form.project_completion_notifications_enabled.id_for_label }}">
+                  {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+                    Mejla projektägaren när en kandidat slutfört alla tester
+                  {% else %}
+                    Email the project creator when a candidate completes all tests
+                  {% endif %}
+                </label>
+              </div>
+              <div class="form-text mt-1">
+                {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+                  Ett mejl skickas till den som skapade projektet när kandidaten är klar.
+                  Du kan stänga av detta när som helst.
+                {% else %}
+                  The project creator receives an email when a candidate has completed all assessments.
+                  You can turn this off at any time.
+                {% endif %}
+              </div>
+            </div>
+
             <div class="d-flex align-items-center gap-2 mt-4">
               <button class="btn btn-primary" type="submit">
                 {% trans "Save changes" %}

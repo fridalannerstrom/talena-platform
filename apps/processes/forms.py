@@ -219,6 +219,13 @@ class TestProcessWizardCreateForm(forms.Form):
         ),
     )
 
+    project_completion_notifications_enabled = forms.BooleanField(
+        required=False,
+        initial=True,
+        label=_("Email project creator when a candidate completes all tests"),
+        widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
+    )
+
     name = forms.CharField(
         max_length=255,
         required=False,

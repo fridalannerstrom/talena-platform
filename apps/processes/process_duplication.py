@@ -73,6 +73,9 @@ def copy_process_settings(source, *, name, created_by):
             selected_tests=deepcopy(source.selected_tests),
             candidate_language=source.candidate_language,
             candidate_results_enabled=source.candidate_results_enabled,
+            project_completion_notifications_enabled=(
+                source.project_completion_notifications_enabled
+            ),
             created_by=created_by,
             source="talena",
             sova_sync_enabled=source.sova_sync_enabled,
