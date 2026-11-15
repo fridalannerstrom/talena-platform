@@ -550,3 +550,69 @@
 .talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-questions"] .talena-ai-generated-badge {
   display:none !important;
 }
+
+
+/* Motivation interview guide: generous PDF-only spacing and readable question
+   hierarchy. Keep the live candidate UI and all other PDF reports unchanged. */
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-questions"] .interview-section-guidance {
+  margin-bottom:26px !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-questions"] .interview-static-questions {
+  margin-top:22px !important;
+  margin-bottom:30px !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-questions"] .interview-static-questions__item {
+  padding:17px 20px !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-questions"] .interview-static-questions__text {
+  font-size:16px !important;
+  line-height:1.55 !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-questions"] .personality-questions-header {
+  margin:26px 0 18px !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-questions"] .personality-questions-section {
+  margin-top:20px !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-questions"] .personality-question-list {
+  gap:18px !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-questions"] .personality-question-card {
+  padding:19px 20px !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-questions"] .personality-question-card__header {
+  gap:13px !important;
+  margin-bottom:16px !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-questions"] .personality-question-card__number {
+  width:34px !important;
+  height:34px !important;
+  flex:0 0 34px !important;
+  font-size:13px !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-questions"] .personality-question-card__text {
+  font-size:17px !important;
+  font-weight:680 !important;
+  line-height:1.48 !important;
+  letter-spacing:-0.008em;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-questions"] .personality-question-card__details {
+  gap:13px !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-questions"] .personality-question-card__detail {
+  padding:14px 15px !important;
+  gap:10px !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-questions"] .personality-question-card__detail-title {
+  font-size:13px !important;
+  line-height:1.4 !important;
+  margin-bottom:4px !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-questions"] .personality-question-card__detail-text {
+  font-size:12.5px !important;
+  line-height:1.56 !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-questions"] .purpose-fit-disclaimer {
+  margin-top:28px !important;
+  padding-top:18px !important;
+}

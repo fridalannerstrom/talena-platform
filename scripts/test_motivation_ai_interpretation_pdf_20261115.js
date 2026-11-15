@@ -162,7 +162,7 @@ vm.runInNewContext(code,{document,window,Blob,
   ),"Only the Motivation interpretation PDF frame is targeted");
   assert.ok(css.includes("border:0 !important;") && css.includes("box-shadow:none !important;"),
     "Frame border and shadow must be removed");
-  assert.ok(base.includes("20261115-motivation-questions-pdf-1"),
+  assert.ok(base.includes("20261115-motivation-questions-spacing-2"),
     "CSS and JS assets need a new version to bypass cached files");
   console.log("Motivation interpretation PDF: tags gone, outer border gone, full AI content and on-screen badges unchanged");
 })().catch(error=>{console.error(error);process.exitCode=1;});

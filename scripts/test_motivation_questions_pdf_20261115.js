@@ -185,9 +185,23 @@ vm.runInNewContext(code,{document,window,Blob,
   assert.ok(css.includes(scope+" .interview-static-questions__item {"));
   assert.ok(css.includes(scope+" .interview-static-questions__number {"));
   assert.ok(css.includes('list-style:none !important;'),"Do not print duplicate ordered-list numbers");
-  assert.ok(base.includes("20261115-motivation-questions-pdf-1"),
+  assert.ok(base.includes("20261115-motivation-questions-spacing-2"),
     "PDF scripts and styles need fresh cache versions");
   assert.ok(core.includes("getMotivationQuestionsPageGuides"),
     "PDF pagination must protect complete question cards");
+  // Typography and whitespace must be scoped to the PDF export clone.
+  const pdfRule = (selector) => {
+    const start=css.indexOf(scope+" "+selector+" {");
+    assert.ok(start >= 0,"Missing Motivation PDF style for "+selector);
+    return css.slice(start,css.indexOf("}",start));
+  };
+  assert.ok(pdfRule(".personality-question-card__text").includes("font-size:17px !important;"),
+    "Interview question font needs to be noticeably larger");
+  assert.ok(pdfRule(".personality-question-list").includes("gap:18px !important;"),
+    "Add breathing room between question cards");
+  assert.ok(pdfRule(".personality-question-card__header").includes("margin-bottom:16px !important;"),
+    "Separate the question from its guidance panels");
+  assert.ok(pdfRule(".personality-question-card__detail").includes("padding:14px 15px !important;"),
+    "Give explanatory panels more interior whitespace");
   console.log("Motivation interview PDF: all questions and intro preserved, UI notes removed, opening card styled, on-screen unchanged");
 })().catch(error=>{console.error(error);process.exitCode=1;});
