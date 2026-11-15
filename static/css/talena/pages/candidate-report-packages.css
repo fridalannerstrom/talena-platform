@@ -128,6 +128,12 @@
 .talena-package-row:last-child {
   border-bottom:0;
 }
+/* Indicate which selected report could not be rendered; the user can
+   deselect it without losing the rest of their report order. */
+.talena-package-row.is-failed {
+  background:#fff8f6;
+  box-shadow:inset 3px 0 #c77c72;
+}
 .talena-package-row:focus-within,
 .talena-package-row:hover {
   background:#fcfaf9;

@@ -47,6 +47,16 @@ assert.ok(assembler.includes('window.JSZip')&&assembler.includes('zip.file('));
 assert.ok(assembler.includes('window.PDFLib')&&assembler.includes('pdf.copyPages(source,source.getPageIndices())'));
 assert.ok(assembler.includes('PDFName.of("Annots")')&&assembler.includes('PDFName.of("Fit")'));
 assert.ok(js.includes("MAX_BYTES")&&js.includes("MAX_PAGES")&&js.includes("MAX_REPORTS"));
+assert.ok(js.includes("failingReport=report")&&js.includes("failedReportId=failingReport.id"),
+  "The picker must identify and mark the individual report that failed");
+assert.ok(js.includes("safeFailureHint(err)")&&js.includes("t.combineError"),
+  "Report failures must be distinguished from PDF/ZIP assembly failures");
+assert.ok(js.includes("await new Promise(resolve=>requestAnimationFrame(resolve))"),
+  "Show updated progress before each expensive PDF rendering pass");
+assert.ok(css.includes(".talena-package-row.is-failed"),
+  "Highlight the failed report so it can be excluded");
+assert.ok(base.includes("20261115-package-diagnostics-1"),
+  "Version asset URLs to avoid cached report picker code");
 assert.ok(js.includes('dialog.showModal()')&&js.includes('dialog.addEventListener("cancel"'));
 assert.ok(js.includes('role","status"')&&js.includes('aria-live","polite"'));
 assert.ok(js.includes('workspace.closest(".candidate-sheet-layout")') &&
