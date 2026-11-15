@@ -86,7 +86,7 @@ const report=el("section","cognitive-questions-report");
 report.dataset.hasResult="true";
 report.dataset.status="completed";
 const guidance=el("section","interview-section-guidance",
-  "Så använder du frågorna. De AI-genererade frågorna är tänkta som inspiration och stöd inför intervjun.");
+  "Så använder du frågorna. Frågorna hjälper till att utforska problemlösning och informationshantering.");
 const opening=el("section","interview-static-questions");
 const header=el("header","interview-static-questions__header");
 header.append(el("span","interview-static-questions__icon","□"),
@@ -101,10 +101,10 @@ opening.append(header,introList);
 report.append(guidance,opening);
 const tipsHeader=el("div","personality-questions-header");
 tipsHeader.append(el("div","insight-summary-kicker","AI-genererat"),
-  el("h2","insight-summary-title","Tips på motivationsfrågor"));
+  el("h2","insight-summary-title","Tips på färdighetsfrågor"));
 report.append(tipsHeader);
 const questions=[
-  "Kan du ge exempel på situationer där du har behövt fatta beslut utan all information?",
+  "Berätta om när du har löst ett problem med begränsad information.",
   "Berätta hur du brukar strukturera uppgifter som kräver numeriska resonemang.",
   "Hur arbetar du när du ska förstå en komplex text?"
 ];
@@ -124,7 +124,7 @@ questions.forEach((question,index)=>{
   list.append(card);
 });
 report.append(list,el("div","purpose-fit-disclaimer",
-  "Färdighetstester är ett kompletterande underlag källor till energi och preferenser."));
+  "Färdighetstester är ett kompletterande underlag och ersätter inte andra bedömningsmetoder."));
 source.append(report);
 
 const document={
@@ -185,10 +185,25 @@ vm.runInNewContext(code,{document,window,Blob,
   assert.ok(css.includes(scope+" .interview-static-questions__item {"));
   assert.ok(css.includes(scope+" .interview-static-questions__number {"));
   assert.ok(css.includes('list-style:none !important;'),"Do not print duplicate ordered-list numbers");
-  assert.ok(base.includes("20261115-cognitive-interpretation-clean-1"),
+  assert.ok(base.includes("20261115-cognitive-questions-matched-1"),
     "PDF scripts and styles need fresh cache versions");
-  assert.ok(core.includes("getCognitiveQuestionsPageGuides"),
+  assert.ok(core.includes("getMotivationQuestionsPageGuides"),
     "PDF pagination must protect complete question cards");
+  assert.ok(core.includes('(motivationQuestionsPdf || cognitiveQuestionsPdf)'),
+    "Färdighet and Motivation must share exactly the same protected page-break rules");
+  // The full PDF-only design block is a direct copy of the approved Motivation
+  // guide. Guard against visual drift between these two report types.
+  const stylesStart='/* Motivation interview questions PDF:';
+  const stylesEnd='/* Färdighet · Resultat: A4 layout';
+  const cognitiveStart='/* Cognitive interview questions PDF:';
+  const motivationBlock=css.slice(css.indexOf(stylesStart),css.indexOf(stylesEnd));
+  const cognitiveBlock=css.slice(css.indexOf(cognitiveStart));
+  const normalizedMotivation=motivationBlock
+    .replaceAll('motivation-questions','cognitive-questions')
+    .replace('Motivation interview questions PDF','Cognitive interview questions PDF')
+    .replace('Motivation interview guide:','Cognitive interview guide:').trim();
+  assert.equal(cognitiveBlock.trim(),normalizedMotivation,
+    "Skills and Motivation PDF question guides must keep identical presentation rules");
   // Typography and whitespace must be scoped to the PDF export clone.
   const pdfRule = (selector) => {
     const start=css.indexOf(scope+" "+selector+" {");
