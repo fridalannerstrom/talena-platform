@@ -26,7 +26,7 @@ class Element {
   set textContent(value){this._textContent=String(value);}
   get textContent(){return this._textContent;}
   setAttribute(key,value){this.attrs[key]=value;}
-  getAttribute(key){return this.attrs[key]||null;}
+  getAttribute(key){return Object.hasOwn(this.attrs,key)?this.attrs[key]:null;}
   addEventListener(type,callback){(this.events[type]||=[]).push(callback);}
   async trigger(type) {
     const results=(this.events[type]||[]).map(fn=>fn({preventDefault(){},dataTransfer:{}}));
