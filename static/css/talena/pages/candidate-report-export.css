@@ -427,3 +427,13 @@
 .talena-candidate-pdf-stage[data-candidate-pdf-report="overview"] .candidate-result-overview__side {
   gap:24px !important;
 }
+
+
+/* Motivation · Resultat PDF only: the .candidate-insight-page class is
+   reused by the PDF body and otherwise brings the screen's full-page frame.
+   Remove only that outer border; keep the rose chart and factor card styling. */
+.talena-candidate-pdf-stage[data-candidate-pdf-report="motivation-results"] .talena-candidate-pdf-body.candidate-insight-page {
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
