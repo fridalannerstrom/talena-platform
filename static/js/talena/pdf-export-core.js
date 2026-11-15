@@ -191,6 +191,36 @@
     return guides;
   }
 
+  function getMotivationQuestionsPageGuides(node, source) {
+    const container = node.getBoundingClientRect();
+    if (!container.width) return [];
+    const scale = source.width / container.width;
+    const ranges = [];
+    function protect(first, last = first) {
+      if (!first || !last) return;
+      const startBox = first.getBoundingClientRect();
+      const endBox = last.getBoundingClientRect();
+      if (!startBox.height || !endBox.height) return;
+      const start = Math.max(0, Math.round((startBox.top - container.top) * scale));
+      const end = Math.min(source.height,
+        Math.round((endBox.bottom - container.top) * scale));
+      if (end > start) ranges.push({ start, end });
+    }
+    // Each full question includes its header, Why this matters and
+    // What to look for. Never cut it between PDF pages if it fits on one.
+    node.querySelectorAll(
+      ".interview-section-guidance, .interview-static-questions, " +
+      ".personality-question-card, .purpose-fit-disclaimer"
+    ).forEach(section => protect(section));
+
+    // A subsection title must travel with at least its first question.
+    protect(
+      node.querySelector(".personality-questions-header"),
+      node.querySelector(".personality-question-card")
+    );
+    return ranges;
+  }
+
   function addCanvasPages(pdf, source, opts) {
     if (!source.width || !source.height) throw new Error("PDF page is empty.");
     const pageW = pdf.internal.pageSize.getWidth();
@@ -203,8 +233,13 @@
     const breakpoints = opts.continuous ? getNaturalBreaks(opts.node, source) : [];
     const motivationPdf = opts.continuous &&
       opts.node?.closest?.('[data-candidate-pdf-report="motivation-results"]');
+    const motivationQuestionsPdf = opts.continuous &&
+      opts.node?.closest?.('[data-candidate-pdf-report="motivation-questions"]');
     const protectedRanges = motivationPdf
-      ? getMotivationPageGuides(opts.node, source) : [];
+      ? getMotivationPageGuides(opts.node, source)
+      : motivationQuestionsPdf
+        ? getMotivationQuestionsPageGuides(opts.node, source)
+        : [];
     const slices = calculatePageSlices(
       source.height, maxHeight, breakpoints, protectedRanges
     );
