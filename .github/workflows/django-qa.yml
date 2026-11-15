@@ -12,9 +12,12 @@ jobs:
       - uses: actions/checkout@v4
       - name: Verify candidate report package PDF and ZIP handling
         run: |
+          node --check static/js/talena/candidate-report-export.js
           node --check static/js/talena/candidate-report-packages.js
+          node scripts/test_candidate_pdf_registry_contract.js
           node scripts/test_candidate_report_packages_contract.js
           node scripts/test_candidate_report_package_runtime_20261115.js
+          node scripts/test_candidate_pdf_hidden_motivation_chart_20261115.js
 
   migrate-and-test:
     runs-on: ubuntu-latest
