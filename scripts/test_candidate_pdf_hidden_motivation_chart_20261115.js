@@ -113,7 +113,7 @@ async function run(ready) {
 
   const api=window.TalenaCandidateReports;
   api.initialize(document);
-  assert.deepEqual(api.getAvailableReports().map(r=>r.id),["motivation-results"]);
+  assert.deepEqual(Array.from(api.getAvailableReports(),r=>r.id),["motivation-results"]);
   const blob=await api.exportReport("motivation-results",{returnBlob:true});
   assert.equal(blob.type,"application/pdf");
   assert.equal(invoked,ready?0:1,"Hidden charts must render offscreen; ready charts must not rerender");
