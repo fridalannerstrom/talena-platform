@@ -6,7 +6,7 @@ const fs=require("node:fs");
 const vm=require("node:vm");
 const code=fs.readFileSync("static/js/talena/pdf-export-core.js","utf8");
 const layout=fs.readFileSync("templates/customer/core/layouts/customer_base.html","utf8");
-assert.ok(layout.includes("20261115-personality-description-pages-1"));
+assert.ok(layout.includes("20261115-personality-questions-parity-1"));
 assert.ok(code.includes("getPersonalityDescriptionPageGuides"));
 assert.ok(code.includes(".personality-description-quick-row,"),
   "Rows also need their own natural breakpoints");

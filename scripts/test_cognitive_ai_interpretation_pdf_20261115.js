@@ -168,7 +168,7 @@ vm.runInNewContext(code,{document,window,Blob,
     block.includes("padding:0 !important;") &&
     block.includes("box-shadow:none !important;"),
     "Outer border, inset and shadow must be removed");
-  assert.ok(base.includes("20261115-personality-description-pages-1"),
+  assert.ok(base.includes("20261115-personality-questions-parity-1"),
     "CSS and JS assets need a new version to bypass cached files");
   console.log("Cognitive interpretation PDF: tags gone, outer border gone, full AI content and on-screen badges unchanged");
 })().catch(error=>{console.error(error);process.exitCode=1;});

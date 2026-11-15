@@ -26,6 +26,8 @@ jobs:
           node scripts/test_motivation_questions_pagebreaks_20261115.js
           node scripts/test_cognitive_questions_pdf_20261115.js
           node scripts/test_cognitive_questions_pagebreaks_20261115.js
+          node scripts/test_personality_questions_pdf_20261115.js
+          node scripts/test_personality_questions_pagebreaks_20261115.js
           node scripts/test_personality_results_pdf_pagebreaks_20261115.js
           node scripts/test_personality_quick_pdf_pagebreaks_20261115.js
           node scripts/test_personality_quick_pdf_scale_path_20261115.js

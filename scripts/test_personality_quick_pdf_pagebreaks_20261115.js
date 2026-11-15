@@ -7,7 +7,7 @@ const vm=require("node:vm");
 const src=fs.readFileSync("static/js/talena/pdf-export-core.js","utf8");
 const css=fs.readFileSync("static/css/talena/pages/candidate-report-export.css","utf8");
 const layout=fs.readFileSync("templates/customer/core/layouts/customer_base.html","utf8");
-assert.ok(layout.includes("20261115-personality-description-pages-1"));
+assert.ok(layout.includes("20261115-personality-questions-parity-1"));
 const scope='[data-candidate-pdf-report="personality-results"] .personality-quick-view';
 assert.ok(css.includes(scope+" .personality-quick-section {"));
 assert.ok(css.includes(scope+" .personality-quick-row__pole p {"));
