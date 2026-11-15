@@ -186,6 +186,23 @@
     clone.classList.remove("d-none");
     clone.style.display = "block";
 
+    if (reportId === "motivation-interpretation") {
+      // PDF-only presentation: the report still contains the full
+      // interpretation and the "About the AI interpretation" evidence note.
+      // Remove just the small provenance UI badges injected on screen.
+      clone.querySelectorAll(
+        ".talena-ai-generated-badge, .talena-ai-field-badge, " +
+        ".talena-ai-personality-help"
+      ).forEach(badge => badge.remove());
+      // The old template eyebrow may still be visible if the on-screen
+      // badge initializer has not run. Never remove a section title or text.
+      clone.querySelectorAll(".insight-summary-kicker").forEach(kicker => {
+        if (/^(?:AI-generated insight|AI-genererad insikt|AI-generated|AI-genererat)$/i.test(
+          (kicker.textContent || "").trim()
+        )) kicker.remove();
+      });
+    }
+
     if (reportId === "overview") {
       // Screen-only AI interpretations are not part of the result-led PDF.
       // Keep the source sheet unchanged so users can still view those notes.
