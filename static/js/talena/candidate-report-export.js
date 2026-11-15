@@ -186,6 +186,30 @@
     clone.classList.remove("d-none");
     clone.style.display = "block";
 
+    if (reportId === "personality-results") {
+      // The web quick-profile colours its middle-to-score path with CSS
+      // :has([data-score]). The PDF clone later strips data-* attributes,
+      // so those web selectors cannot work on the exported copy. Resolve
+      // the path first and mark its segments with export-only classes.
+      clone.querySelectorAll(".personality-quick-scale").forEach(scale => {
+        const segments = [...scale.querySelectorAll(".personality-quick-scale__segment")];
+        const selectedSegment = segments.find(segment =>
+          segment.classList.contains("personality-quick-scale__segment--selected")
+        );
+        const selected = Number(selectedSegment?.getAttribute("data-score"));
+        if (!selectedSegment || !Number.isInteger(selected) || selected < 1 || selected > 10) return;
+        segments.forEach(segment => {
+          const score = Number(segment.getAttribute("data-score"));
+          if (!Number.isInteger(score) || score < 1 || score > 10) return;
+          const betweenMiddleAndScore = selected <= 5
+            ? score >= selected && score <= 5
+            : score >= 6 && score <= selected;
+          if (betweenMiddleAndScore) segment.classList.add("talena-personality-pdf-path");
+          if (segment === selectedSegment) segment.classList.add("talena-personality-pdf-selected");
+        });
+      });
+    }
+
     if (reportId === "motivation-questions" || reportId === "cognitive-questions") {
       // Both question guides share the same print-only layout. The interview
       // note editor is interactive UI, not part of a printable

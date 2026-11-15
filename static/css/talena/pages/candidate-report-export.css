@@ -902,3 +902,20 @@
   font-size:12px !important;
   line-height:1.4 !important;
 }
+
+
+/* Character trait quick-profile: print the same midpoint-to-score path that
+   is displayed in Talena. The export clone intentionally removes data-score
+   attributes after resolving the segments, so PDF-only classes are needed.
+   No changes to the live candidate UI or detailed indicator scales. */
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-results"]
+  .personality-quick-view .personality-quick-scale__segment.talena-personality-pdf-path {
+  background:#ff8a7d !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-results"]
+  .personality-quick-view .personality-quick-scale__segment.talena-personality-pdf-selected {
+  position:relative;
+  height:12px !important;
+  background:#f25549 !important;
+  box-shadow:0 0 0 2px #fff,0 0 0 3px rgba(242,85,73,.38) !important;
+}
