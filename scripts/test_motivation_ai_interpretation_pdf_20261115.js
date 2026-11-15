@@ -15,6 +15,7 @@ function matches(node,selector) {
   if(!s)return false;
   if(s==="*")return true;
   if(s.startsWith("."))return hasClass(node,s.slice(1));
+  if(s==='[data-has-result="true"]')return node.dataset.hasResult==="true";
   if(s.startsWith("["))return false;
   return s===node.tagName;
 }
@@ -82,6 +83,8 @@ class FakeNode {
 function el(tag,cls="",text=""){return new FakeNode(tag,cls,text);}
 const source=el("section","candidate-insights-subpanel");
 const report=el("div","motivation-ai-report");
+report.dataset.hasResult="true";
+report.dataset.status="completed";
 const kicker=el("div","insight-summary-kicker","AI-genererad insikt");
 const header=el("h2","insight-summary-title","Motivationstolkning");
 const context=el("div","personality-questions-context-note",
@@ -154,7 +157,11 @@ vm.runInNewContext(code,{document,window,Blob,
     "All original on-screen AI provenance badges must remain");
   assert.equal(source.querySelectorAll(".insight-summary-kicker").length,2,
     "The original on-screen eyebrow labels remain untouched");
-  assert.match(css,/\\[data-candidate-pdf-report="motivation-interpretation"\\] \\.talena-candidate-pdf-body\\.candidate-insight-page \\{\\s*border:0 !important;\\s*border-radius:0 !important;\\s*box-shadow:none !important;/);
+  assert.ok(css.includes(
+    '[data-candidate-pdf-report="motivation-interpretation"] .talena-candidate-pdf-body.candidate-insight-page {'
+  ),"Only the Motivation interpretation PDF frame is targeted");
+  assert.ok(css.includes("border:0 !important;") && css.includes("box-shadow:none !important;"),
+    "Frame border and shadow must be removed");
   assert.ok(base.includes("20261115-motivation-interpretation-clean-1"),
     "CSS and JS assets need a new version to bypass cached files");
   console.log("Motivation interpretation PDF: tags gone, outer border gone, full AI content and on-screen badges unchanged");
