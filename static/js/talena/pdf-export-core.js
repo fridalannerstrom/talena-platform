@@ -65,26 +65,48 @@
     });
   }
 
-  function calculatePageSlices(totalHeight, maxHeight, boundaries) {
-    // Pure layout helper: only break at a card/section boundary when it uses
-    // most of the available page. A forced new page for every DOM section was
-    // the cause of very large blank areas in the previous team PDF.
+  function calculatePageSlices(totalHeight, maxHeight, boundaries, protectedRanges = []) {
+    // Existing report types retain their original 72%-filled natural breaks.
+    // The optional protected ranges are used by Motivation only. A card's
+    // heading, description and complete five-point scale must stay together.
     const slices = [];
     const safeHeight = Math.max(1, Math.floor(maxHeight));
-    const points = Array.from(new Set((boundaries || [])
-      .filter(y => Number.isFinite(y) && y > 0 && y < totalHeight)
+    const ranges = (protectedRanges || [])
+      .filter(range => Number.isFinite(range.start) && Number.isFinite(range.end))
+      .map(range => ({
+        start: Math.max(0, Math.round(range.start)),
+        end: Math.min(totalHeight, Math.round(range.end))
+      }))
+      .filter(range => range.end > range.start);
+    const points = Array.from(new Set([
+      ...(boundaries || []),
+      ...ranges.flatMap(range => [range.start, range.end])
+    ].filter(y => Number.isFinite(y) && y > 0 && y < totalHeight)
       .map(Math.round))).sort((a, b) => a - b);
+    const protectedInside = y =>
+      ranges.some(range => y > range.start && y < range.end);
     let offset = 0;
     while (offset < totalHeight) {
       const limit = Math.min(offset + safeHeight, totalHeight);
       let next = limit;
       if (limit < totalHeight) {
-        const minimumFill = offset + safeHeight * 0.72;
-        // Prefer a natural visual boundary close to the bottom of the page.
-        const candidates = points.filter(y => y >= minimumFill && y <= limit);
-        if (candidates.length) next = candidates[candidates.length - 1];
+        const crossesCard = protectedInside(limit);
+        const candidates = points.filter(y =>
+          y > offset && y <= limit && !protectedInside(y)
+        );
+        if (crossesCard) {
+          // Never end inside a protected Motivation card when it can fit on
+          // the next page. Prefer its start, even below the usual 72% fill.
+          // A card taller than one page still uses the fallback below.
+          const safe = candidates.filter(y => y >= offset + safeHeight * 0.18);
+          if (safe.length) next = safe[safe.length - 1];
+        } else {
+          const minimumFill = offset + safeHeight * 0.72;
+          const nearBottom = candidates.filter(y => y >= minimumFill);
+          if (nearBottom.length) next = nearBottom[nearBottom.length - 1];
+        }
       }
-      if (next <= offset) next = limit; // Ensure progress, even with bad DOM.
+      if (next <= offset) next = limit; // Oversized content must make progress.
       slices.push({ start: offset, height: next - offset });
       offset = next;
     }
@@ -128,6 +150,47 @@
     return points;
   }
 
+  function getMotivationPageGuides(node, source) {
+    // Work in raster pixels, matching html2canvas. In the normal DOM the
+    // same content remains fully interactive; this runs on the PDF clone.
+    const box = node.getBoundingClientRect();
+    if (!box.width) return [];
+    const pixelsPerCssPx = source.width / box.width;
+    const guides = [];
+    function protect(startElement, endElement = startElement) {
+      if (!startElement || !endElement) return;
+      const startBox = startElement.getBoundingClientRect();
+      const endBox = endElement.getBoundingClientRect();
+      if (!startBox.height || !endBox.height) return;
+      const start = Math.round((startBox.top - box.top) * pixelsPerCssPx);
+      const end = Math.round((endBox.bottom - box.top) * pixelsPerCssPx);
+      if (end > start && end > 0 && start < source.height) {
+        guides.push({ start: Math.max(0, start), end: Math.min(source.height, end) });
+      }
+    }
+
+    node.querySelectorAll(
+      ".motivation-visual-overview, .motivation-summary-item, " +
+      ".motivation-factor-result, .motivation-profile-footer"
+    ).forEach(item => protect(item));
+
+    // A heading followed by its first card is one logical unit. This stops
+    // 'All motivation factors' and the prominent/least-prominent headings
+    // from being orphaned at the bottom of a PDF page.
+    node.querySelectorAll(".motivation-summary-list").forEach(list => {
+      const first = list.querySelector(".motivation-summary-item");
+      const header = list.closest("article")?.querySelector(
+        ".response-style-item__header"
+      );
+      protect(header, first);
+    });
+    protect(
+      node.querySelector(".motivation-full-profile-heading"),
+      node.querySelector(".motivation-factor-list .motivation-factor-result")
+    );
+    return guides;
+  }
+
   function addCanvasPages(pdf, source, opts) {
     if (!source.width || !source.height) throw new Error("PDF page is empty.");
     const pageW = pdf.internal.pageSize.getWidth();
@@ -138,7 +201,13 @@
     const pixelsPerMm = source.width / width;
     const maxHeight = Math.max(1, Math.floor(height * pixelsPerMm));
     const breakpoints = opts.continuous ? getNaturalBreaks(opts.node, source) : [];
-    const slices = calculatePageSlices(source.height, maxHeight, breakpoints);
+    const motivationPdf = opts.continuous &&
+      opts.node?.closest?.('[data-candidate-pdf-report="motivation-results"]');
+    const protectedRanges = motivationPdf
+      ? getMotivationPageGuides(opts.node, source) : [];
+    const slices = calculatePageSlices(
+      source.height, maxHeight, breakpoints, protectedRanges
+    );
 
     slices.forEach(slice => {
       if (opts.pageCount.value > 0) pdf.addPage();
