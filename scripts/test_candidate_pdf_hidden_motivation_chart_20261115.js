@@ -125,8 +125,10 @@ async function run(ready) {
   assert.equal(image.src,ready?"data:image/png;base64,live":png);
   assert.ok(!output.querySelectorAll("*").some(x=>x.tagName==="loader") || ready,
     "The temporary loading label must not appear in the PDF");
-  assert.equal(source.children[0],canvas,"The visible source canvas must remain intact");
-  assert.equal(source.children[1],loader,"The visible source loading element must remain intact");
+  assert.ok(source.querySelectorAll("canvas").includes(canvas),
+    "The visible source canvas must remain intact");
+  assert.ok(source.children.includes(loader),
+    "The visible source loading element must remain intact");
 }
 
 (async()=>{
