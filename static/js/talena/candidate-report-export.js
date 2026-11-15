@@ -180,22 +180,41 @@
     cover.append(brand, caption);
     return cover;
   }
-  function copyContent(source) {
+  async function copyContent(source, reportId) {
     const clone = source.cloneNode(true);
     clone.removeAttribute("hidden");
     clone.classList.remove("d-none");
     clone.style.display = "block";
     const liveCanvases = source.querySelectorAll("canvas");
-    clone.querySelectorAll("canvas").forEach((canvas, index) => {
+    const clonedCanvases = clone.querySelectorAll("canvas");
+    for (const [index, canvas] of [...clonedCanvases].entries()) {
       // Inactive optional panels are removed below. They must not block
       // export just because their hidden canvases were never rendered.
-      if (canvas.closest('[hidden], .d-none')) return;
+      if (canvas.closest('[hidden], .d-none')) continue;
       const live = liveCanvases[index];
-      if (!live || !live.width || !live.height) throw Error("Chart not ready");
+      const motivationRose =
+        reportId === "motivation-results" &&
+        canvas.matches("[data-motivation-rose-chart]");
+      let imageData;
+      if (motivationRose &&
+          (!live?._motivationRoseChartInstance || !live.width || !live.height)) {
+        // The Motivation tab may never have been opened. Use the same Chart.js
+        // renderer on an offscreen clone of the current authorised report,
+        // preserving every factor, score and domain in the existing DOM.
+        if (!window.TalenaPdfMotivationRose?.render) {
+          throw Error("Chart not ready");
+        }
+        imageData = await window.TalenaPdfMotivationRose.render(source);
+        // Do not print the original "Preparing motivation overview" loader.
+        clone.querySelector("[data-motivation-rose-chart-empty]")?.remove();
+      } else {
+        if (!live || !live.width || !live.height) throw Error("Chart not ready");
+        imageData = live.toDataURL("image/png");
+      }
       const image = create("img", "talena-candidate-pdf-chart");
-      image.src = live.toDataURL("image/png");
+      image.src = imageData;
       canvas.replaceWith(image);
-    });
+    }
     clone.querySelectorAll("details").forEach(details => { details.open = true; });
     // aria-hidden is an accessibility attribute, NOT a CSS visibility rule.
     // The personality indicator's decorative centre-line has aria-hidden=true
@@ -234,7 +253,7 @@
     let stage;
     try {
       let managerReportMetadata = null;
-      const reportContent = copyContent(getSource(item));
+      const reportContent = await copyContent(getSource(item), id);
       if (id === "manager-report") {
         if (!window.TalenaManagerReportPdf) throw Error(copy.error);
         managerReportMetadata = await window.TalenaManagerReportPdf.prepare(workspace);
