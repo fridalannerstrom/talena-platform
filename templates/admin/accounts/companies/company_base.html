@@ -1,8 +1,8 @@
 {% extends "admin/core/layouts/admin_base.html" %}
 {% load static %}
 
-{# #353: On all company admin pages candidates can be opened in the
-   shared customer sheet. Load its source styles after generic admin CSS. #}
+{% comment %} #353: On all company admin pages candidates can be opened in the
+   shared customer sheet. Load its source styles after generic admin CSS. {% endcomment %}
 {% block admin_candidate_mirror_css %}
   {{ block.super }}
   {% include "admin/accounts/partials/_candidate_customer_styles.html" %}
