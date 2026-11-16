@@ -44,14 +44,20 @@
     hidden
   >
 
-    <!-- Exact same static response styles and profile nuances as in Personality. -->
-    <div class="personality-profile candidate-pre-interview-response-styles mb-4" data-pre-interview-response-styles>
-      {% include "customer/processes/partials/candidate_insights/personality/_response_styles_content.html" with response_styles_contrasts_heading_id="preInterviewProfileContrastsHeading" %}
+    <!-- Shared card: response styles and interview questions belong together. -->
+    <div class="pre-interview-content-card" data-pre-interview-content-card>
+
+      <!-- Exact same static response styles and profile nuances as in Personality. -->
+      <div class="personality-profile candidate-pre-interview-response-styles" data-pre-interview-response-styles>
+        {% include "customer/processes/partials/candidate_insights/personality/_response_styles_content.html" with response_styles_contrasts_heading_id="preInterviewProfileContrastsHeading" %}
+      </div>
+
+      <hr class="pre-interview-content-card__divider" aria-hidden="true">
+
+      <!-- SAVED ASSESSMENT QUESTION SETS -->
+      {% include "customer/processes/partials/candidate_insights/tabs/_questions.html" %}
+
     </div>
-
-    <!-- SAVED ASSESSMENT QUESTION SETS -->
-
-    {% include "customer/processes/partials/candidate_insights/tabs/_questions.html" %}
 
   </div>
 
