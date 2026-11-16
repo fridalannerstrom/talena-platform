@@ -6,6 +6,11 @@
   {% include "admin/accounts/partials/_candidate_customer_styles.html" %}
 {% endblock %}
 
+{% block extra_js %}
+  {{ block.super }}
+  {% include "admin/accounts/partials/_candidate_customer_presentation_js.html" %}
+{% endblock %}
+
 {% block content %}
 {% load static i18n %}
 {% get_current_language as admin_project_language %}
