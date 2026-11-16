@@ -177,7 +177,7 @@ jobs:
           DJANGO_DEBUG: 'True'
           DJANGO_SECRET_KEY: local-qa-only
           USE_AZURE_STORAGE: '0'
-        run: python manage.py test apps.reports.test_report_ui_441 --noinput
+        run: python manage.py test apps.reports.test_report_ui_441 apps.reports.test_leadership_intro_374 --noinput
       - name: Verify personality question role-context quality gate
         env:
           DJANGO_DEBUG: 'True'
