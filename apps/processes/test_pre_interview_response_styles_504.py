@@ -85,3 +85,57 @@ class PreInterviewResponseStylesRefreshTests(SimpleTestCase):
         self.assertIn('pre-interview-content-card > .combined-questions-card', questions)
         self.assertIn('border: 0 !important;', questions)
         self.assertIn('border-top: 1px solid var(--talena-border);', questions)
+
+    def test_pre_interview_shares_page_shell_with_personality(self):
+        base = Path(settings.BASE_DIR) / (
+            "templates/customer/processes/partials/candidate_insights"
+        )
+        interview = (base / "tabs/_final_output.html").read_text(
+            encoding="utf-8"
+        )
+        questions = (base / "tabs/_questions.html").read_text(
+            encoding="utf-8"
+        )
+        header = (base / "_panel_header.html").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertIn('class="candidate-insights-panel candidate-insight-page"', interview)
+        self.assertIn('section_title=pre_interview_title', interview)
+        self.assertIn('section_eyebrow=pre_interview_eyebrow', interview)
+        self.assertIn('section_description=pre_interview_description', interview)
+        self.assertIn("_panel_header.html", interview)
+        self.assertIn('candidate-insight-page-header', header)
+        self.assertIn('candidate-insight-page-title', header)
+        self.assertIn('padding: 1.25rem 1.5rem 1.5rem;', questions)
+        self.assertIn('border-radius: 0;', questions)
+        self.assertIn('response_styles_interview_mode=True', interview)
+
+    def test_communication_strategy_heading_is_only_used_pre_interview(self):
+        owner = SimpleNamespace(
+            sova_payload={},
+            sova_activities=[{
+                "activity": "Sova Personality Questionnaire",
+                "competencies": [{
+                    "competency": "Social Desirability",
+                    "sten_rounded": 2,
+                }],
+            }],
+        )
+        with override("sv"):
+            context = build_pre_interview_response_styles_context(
+                SimpleNamespace(is_historical=False), owner, language="sv",
+            )
+            context["candidate"] = SimpleNamespace(first_name="Alex")
+            original = render_to_string(RESPONSE_STYLES_TEMPLATE, context)
+            interview = render_to_string(
+                RESPONSE_STYLES_TEMPLATE,
+                {**context, "response_styles_interview_mode": True},
+            )
+
+        self.assertIn("Svarsstilar", original)
+        self.assertNotIn("Kommunikationsstrategi", original)
+        self.assertIn('<h2 class="insight-summary-title mb-1">', original)
+        self.assertIn("Kommunikationsstrategi", interview)
+        self.assertIn('<h3 class="insight-summary-sub-title mb-1">', interview)
+        self.assertNotIn("<h2 class=\"insight-summary-title mb-1\">", interview)
