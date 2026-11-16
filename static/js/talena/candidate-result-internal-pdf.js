@@ -38,6 +38,10 @@
     stage.removeAttribute("data-candidate-result-internal-preview");
     stage.querySelectorAll(".preview-banner, .candidate-result-pdf-toolbar, .feedback-block, .feedback-dialog, #test-experience")
       .forEach(node => node.remove());
+    // The shared PDF engine knows where to break .card sections. Add that
+    // marker to the export clone only, keeping headings and content together.
+    stage.querySelectorAll(".hero-card, .intro-card, .section-card")
+      .forEach(node => node.classList.add("card"));
     // html2canvas captures a real, styled DOM clone without altering the
     // report on screen. Do not capture the preview badge or download controls.
     stage.style.cssText = "position:fixed;top:0;left:-10000px;width:794px;max-width:none;padding:20px;background:#fff;z-index:-1;pointer-events:none;";
