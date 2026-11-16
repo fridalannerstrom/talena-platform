@@ -658,12 +658,15 @@
       aiLabel || interviewLabel
     );
 
-    addEyebrowBefore(
-      root.querySelector(
-        ".combined-questions-card .personality-questions-header h2.insight-summary-title"
-      ),
-      interviewLabel
+    // #504: the interview questions section has its own server-rendered,
+    // language-aware eyebrow. Do not overwrite "Intervjufrågor" with the
+    // generic parent-tab label during client-side initialization.
+    const questionsHeading = root.querySelector(
+      ".combined-questions-card .personality-questions-header h2.insight-summary-title"
     );
+    if (!questionsHeading?.previousElementSibling?.hasAttribute("data-pre-interview-questions-eyebrow")) {
+      addEyebrowBefore(questionsHeading, interviewLabel);
+    }
 
     root.dataset.eyebrowsReady = "true";
   }
