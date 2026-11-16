@@ -81,6 +81,12 @@ jobs:
           DJANGO_SECRET_KEY: local-qa-only
           USE_AZURE_STORAGE: '0'
         run: python manage.py test apps.processes.test_post_interview_evidence_digests apps.processes.test_interview_question_notes --noinput
+      - name: Verify manager personality notes use complete interview evidence
+        env:
+          DJANGO_DEBUG: 'True'
+          DJANGO_SECRET_KEY: local-qa-only
+          USE_AZURE_STORAGE: '0'
+        run: python manage.py test apps.core.test_manager_personality_interview_routing --noinput
       - name: Verify internal candidate reports without candidate sharing (#475)
         env:
           DJANGO_DEBUG: 'True'
