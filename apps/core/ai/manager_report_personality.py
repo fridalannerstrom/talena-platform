@@ -241,6 +241,99 @@ OUTPUT LANGUAGE
 """.strip()
 
 
+def build_manager_report_personality_part_prompt(
+    owner, *, part: str, language_code: str = "en"
+) -> str:
+    """Isolate assessment and interview sources in separate model requests.
+
+    Testbild is generated without receiving *any* interview notes or
+    question-specific answers. Kandidaten beskriver is generated without
+    receiving assessment interpretations. This prevents cross-source leakage
+    even if a model or edited admin prompt disregards prose-only boundaries.
+    """
+    if part not in PARTS:
+        raise ValueError("Unknown manager-report personality part.")
+    language_code = normalize_ai_language(language_code)
+    shared_context = build_shared_ai_context(owner)
+    guidance = {
+        theme["key"]: get_ai_feature_prompt_instructions(
+            key=f"manager_personality_{theme['prompt_stem']}_{part}",
+            language=language_code,
+        )
+        for theme in PERSONALITY_MANAGER_REPORT_THEMES
+    }
+    examples = [
+        json.dumps({
+            "type": "manager_report_personality_text",
+            "theme": theme["key"], "part": part, "text": "",
+        }, ensure_ascii=False)
+        for theme in PERSONALITY_MANAGER_REPORT_THEMES
+    ]
+
+    if part == "testbild":
+        source = json.dumps(
+            build_personality_indicator_interpretations(
+                owner, language_code=language_code,
+            ), ensure_ascii=False, indent=2,
+        )
+        source_label = "PERSONALITY INDICATOR INTERPRETATIONS ONLY"
+        rules = (
+            "Use ONLY the supplied personality-test indicator interpretations "
+            "for each named theme. No interview notes, saved answers or "
+            "candidate interview material are present in this request. "
+            "Do not describe or infer what the candidate said in an interview. "
+            "Describe cautious tendencies and preferences, not proven "
+            "abilities, experience, competence or performance. "
+            "Write a coherent 2–4 sentence synthesis for each theme, "
+            "without lists or individual indicator labels."
+        )
+    else:
+        suggested, general_notes, question_items = (
+            _get_manager_report_interview_material(owner)
+        )
+        source = json.dumps({
+            "general_interview_notes": general_notes,
+            "saved_interview_question_answers": question_items,
+            "suggested_theme_routes_only": suggested,
+        }, ensure_ascii=False, indent=2)
+        source_label = "COMPLETE INTERVIEW MATERIAL ONLY"
+        rules = (
+            "Only use actual interview notes, saved answers and observations. "
+            "The suggested theme routes are optional keyword hints, not gates. "
+            "Read the FULL source when choosing facts for each theme: one "
+            "example may be relevant to multiple themes, but do not repeat it "
+            "unnecessarily. Interpret each answer with its exact question. "
+            "Do not treat interviewer notes as verbatim candidate quotations. "
+            "Never invent actions, intentions, outcomes, experience or "
+            "competence. Do not infer a demonstrated skill from theoretical "
+            "knowledge or use of software. No personality-test results are "
+            "present or permitted in this request. "
+            "Prefer a concise, grounded account to a generic claim that notes "
+            "are missing. Return an empty string ONLY when the complete "
+            "interview material contains no relevant factual information "
+            "for that theme. When there is no interview material whatsoever, "
+            "return empty strings for all three themes."
+        )
+
+    return "\n\n".join([
+        "TASK: Generate three independent manager-report personality texts. "
+        "Generate ONLY part " + part + ".",
+        "PURPOSE: " + str(shared_context["purpose_label"]),
+        "PROCESS CONTEXT (not candidate evidence): " +
+        str(shared_context["context_text"] or "No further context."),
+        source_label + ":\n" + source,
+        "EVIDENCE RULES: " + rules,
+        "SCOPED ADMIN INSTRUCTIONS:\n" +
+        json.dumps(guidance, ensure_ascii=False, indent=2),
+        "OUTPUT: Exactly one JSON text event for EACH of the three theme keys, "
+        "with the same part name. Use NDJSON, one object per line, and a final "
+        'JSON object {"type":"done"}. No Markdown.',
+        "\n".join(examples),
+        '{"type":"done"}',
+        "OUTPUT LANGUAGE: " + get_ai_language_instruction(language_code),
+    ])
+
+
 def _parse_event(raw_line: str) -> dict[str, Any] | None:
     try:
         event = json.loads(raw_line.strip())
@@ -334,87 +427,96 @@ def _recover_manager_report_events(raw_text: str) -> list[dict[str, Any]]:
 def stream_manager_report_personality(
     *, owner, language_code: str = "en"
 ) -> Iterable[dict[str, Any]]:
+    """Stream two source-isolated requests, publishing a single done event."""
     language_code = normalize_ai_language(language_code)
-    _suggested_themes, general_notes, question_items = (
+    _suggested, general_notes, question_items = (
         _get_manager_report_interview_material(owner)
     )
     has_interview_evidence = bool(general_notes or question_items)
-    prompt = redact_candidate_name(
-        build_manager_report_personality_prompt(
-            owner,
-            language_code=language_code,
-        ),
-        owner.candidate,
-    )
-
-    def enforce_interview_evidence_boundary(event: dict[str, Any]) -> dict[str, Any]:
-        return _enforce_manager_interview_availability(
-            event, has_interview_evidence=has_interview_evidence
-        )
     system_language_instruction = get_ai_system_language_instruction(
-        language_code,
-        owner=owner,
+        language_code, owner=owner,
     )
-    stream = get_openai_client().chat.completions.create(
-        model=get_chat_model(),
-        messages=[
-            {
-                "role": "system",
-                "content": (
-                    "You generate only the independent manager-report "
-                    "personality fields requested by Talena. Follow the "
-                    "evidence boundaries and NDJSON contract exactly. For "
-                    "every testbild field, write a concise, coherent "
-                    "synthesis in natural prose, usually two to four "
-                    "sentences. Do not list indicator names, repeat "
-                    "indicator labels, use bullet points or dash-separated "
-                    "entries, or copy the source interpretations one by one. "
-                    "Describe only possible preferences and tendencies, "
-                    "not ability, capacity, competence, or proven performance. "
-                    "Avoid formulations such as 'has the ability to', 'shows "
-                    "a strong ability', 'is good at', or equivalent claims. "
-                    "Prefer cautious wording such as 'may prefer', 'may find "
-                    "it more natural to', or 'the result may indicate'. These "
-                    "testbild format rules apply even if field guidance "
-                    "requests another format. Leave candidate_describes fields "
-                    "unchanged in style and follow their field guidance. "
-                    f"{system_language_instruction}"
-                ),
-            },
-            {"role": "user", "content": prompt},
-        ],
-        temperature=0.2,
-        stream=True,
-    )
+    client = get_openai_client()
 
-    buffer = ""
-    complete_response = ""
-    emitted_fields: set[tuple[str, str]] = set()
-    for response_event in stream:
-        delta = response_event.choices[0].delta
-        if not delta or not delta.content:
-            continue
-        buffer += delta.content
-        complete_response += delta.content
-        while "\n" in buffer:
-            raw_line, buffer = buffer.split("\n", 1)
-            parsed = _parse_event(raw_line)
-            if parsed:
-                parsed = enforce_interview_evidence_boundary(parsed)
-                field = (str(parsed.get("theme") or ""), str(parsed.get("part") or ""))
-                if parsed.get("type") == "manager_report_personality_text":
+    for part in PARTS:
+        prompt = redact_candidate_name(
+            build_manager_report_personality_part_prompt(
+                owner, part=part, language_code=language_code,
+            ),
+            owner.candidate,
+        )
+        source_boundary = (
+            "This request contains assessment evidence ONLY. No interview "
+            "notes or answers may be used or inferred."
+            if part == "testbild"
+            else "This request contains interview evidence ONLY. No "
+            "personality-test results may be used or inferred."
+        )
+        stream = client.chat.completions.create(
+            model=get_chat_model(),
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "You generate only the requested independent manager-"
+                        "report personality fields for Talena. Follow the "
+                        "evidence rules and NDJSON output contract exactly. "
+                        "Never treat process context or examples in admin "
+                        "guidance as facts about the candidate. "
+                        + source_boundary + " " + system_language_instruction
+                    ),
+                },
+                {"role": "user", "content": prompt},
+            ],
+            temperature=0.2,
+            stream=True,
+        )
+
+        buffer = ""
+        complete_response = ""
+        emitted_fields: set[tuple[str, str]] = set()
+
+        def validated(event: dict[str, Any]) -> dict[str, Any] | None:
+            if (
+                event.get("type") != "manager_report_personality_text"
+                or event.get("part") != part
+                or event.get("theme")
+                not in {item["key"] for item in PERSONALITY_MANAGER_REPORT_THEMES}
+            ):
+                return None
+            if part == "candidate_describes":
+                return _enforce_manager_interview_availability(
+                    event, has_interview_evidence=has_interview_evidence
+                )
+            return event
+
+        for response_event in stream:
+            delta = response_event.choices[0].delta
+            if not delta or not delta.content:
+                continue
+            buffer += delta.content
+            complete_response += delta.content
+            while "\n" in buffer:
+                raw_line, buffer = buffer.split("\n", 1)
+                parsed = _parse_event(raw_line)
+                if parsed:
+                    checked = validated(parsed)
+                    if checked:
+                        field = (str(checked["theme"]), part)
+                        if field not in emitted_fields:
+                            emitted_fields.add(field)
+                            yield checked
+
+        # Recover complete JSON containers and NDJSON trailing fragments.
+        for parsed in _recover_manager_report_events(complete_response):
+            checked = validated(parsed)
+            if checked:
+                field = (str(checked["theme"]), part)
+                if field not in emitted_fields:
                     emitted_fields.add(field)
-                yield parsed
+                    yield checked
 
-    # Recover valid events if the model wraps NDJSON in JSON or Markdown.
-    for parsed in _recover_manager_report_events(complete_response):
-        parsed = enforce_interview_evidence_boundary(parsed)
-        field = (str(parsed.get("theme") or ""), str(parsed.get("part") or ""))
-        if parsed.get("type") == "manager_report_personality_text" and field not in emitted_fields:
-            emitted_fields.add(field)
-            yield parsed
-        elif parsed.get("type") == "done":
-            yield parsed
+    yield {"type": "done"}
 
 
 def apply_manager_report_personality_event(
