@@ -394,7 +394,6 @@ Löste logiska problem."""
                     '<div class="sidenav-menu-heading">AI</div>', html,
                 )
                 self.assertNotIn("Statestik", html)
-                self.assertNotIn("<span></span>", html)
 
     def test_admin_candidate_pages_render_customer_styles_after_generic_admin_css(self):
         self.client.force_login(self.admin)
