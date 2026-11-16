@@ -429,16 +429,20 @@ def stream_manager_report_personality(
 ) -> Iterable[dict[str, Any]]:
     """Stream two source-isolated requests, publishing a single done event."""
     language_code = normalize_ai_language(language_code)
-    _suggested, general_notes, question_items = (
-        _get_manager_report_interview_material(owner)
-    )
-    has_interview_evidence = bool(general_notes or question_items)
+    # Do not even consult interview notes while preparing Testbild.
+    # We check their availability only when generating Kandidaten beskriver.
+    has_interview_evidence = False
     system_language_instruction = get_ai_system_language_instruction(
         language_code, owner=owner,
     )
     client = get_openai_client()
 
     for part in PARTS:
+        if part == "candidate_describes":
+            _suggested, general_notes, question_items = (
+                _get_manager_report_interview_material(owner)
+            )
+            has_interview_evidence = bool(general_notes or question_items)
         prompt = redact_candidate_name(
             build_manager_report_personality_part_prompt(
                 owner, part=part, language_code=language_code,
