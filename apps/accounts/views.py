@@ -3846,17 +3846,22 @@ def company_process_create(request, company_pk):
     company = get_object_or_404(Company, pk=company_pk)
     org_units = OrgUnit.objects.filter(company=company).order_by("name")
 
-    client = SovaClient()
     error = None
 
     # --------------------------------------------------
-    # 1. Hämta SOVA-projekt från API
+    # 1. Hämta mallar från det konfigurerade Sova-kontot.
     # --------------------------------------------------
     try:
+        client = SovaClient()
         accounts = client.get_template_accounts_with_projects()
-    except Exception as e:
+    except Exception as exc:
+        # Do not reveal provider errors, credential details or request bodies.
         accounts = []
-        error = str(e)
+        error = (
+            "Could not load Sova Modern Projects. Check the integration "
+            "configuration and try again. ("
+            + type(exc).__name__ + ")"
+        )
 
     # --------------------------------------------------
     # 2. Hämta ProjectMeta så vi kan hitta namn, tester osv
@@ -4020,6 +4025,9 @@ def company_process_create(request, company_pk):
                 created_by_admin=request.user,
                 purpose=purpose,
                 selected_tests=selected_tests,
+                candidate_language=form.cleaned_data["candidate_language"],
+                candidate_results_enabled=form.cleaned_data.get("candidate_results_enabled", False),
+                project_completion_notifications_enabled=form.cleaned_data.get("project_completion_notifications_enabled", True),
                 source="talena",
                 is_historical=False,
                 sova_sync_enabled=True,
