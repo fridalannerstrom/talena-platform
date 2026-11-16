@@ -1343,6 +1343,10 @@ def admin_candidate_detail(request, process_pk, candidate_pk):
         "company": process.company,
         "process": process,
     })
+    if request.headers.get("x-requested-with") == "XMLHttpRequest":
+        return render(
+            request, "admin/accounts/companies/company_candidate_sheet.html", ctx,
+        )
     return render(request, "admin/accounts/customer/candidate_detail.html", ctx)
 
 from django.db.models import Count, Q
