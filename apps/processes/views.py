@@ -5119,6 +5119,98 @@ def process_candidate_interview_notes_update(
     )
 
 
+def build_pre_interview_response_styles_context(process, owner, *, language="sv"):
+    """
+    Supply the same Personality > Response styles data when the final-output
+    fragment is refreshed independently of the full candidate detail page.
+
+    The fragment is replaced by JavaScript after interview-note and report
+    actions, so it cannot depend on the parent workspace's template context.
+    """
+    keys = (
+        "has_personality_results",
+        "response_styles",
+        "static_communication_guidance",
+        "profile_contrast_analysis",
+    )
+
+    if process.is_historical:
+        # Keep historical imports' scale-normalisation rules identical to
+        # the full candidate sheet rather than interpreting raw scores again.
+        detail = build_historical_candidate_detail_context(
+            process=process,
+            historical_candidate=owner,
+            language=language,
+        )
+        return {key: detail.get(key) for key in keys}
+
+    payload = owner.sova_payload or {}
+    activities = list(owner.sova_activities or payload.get("activities") or [])
+    if not activities:
+        for phase in payload.get("phases") or []:
+            activities.extend(phase.get("activities") or [])
+
+    personality_competencies = sorted(
+        [
+            {
+                "competency": comp.get("competency"),
+                "stive": comp.get("stive"),
+                "stive_rounded": comp.get("stive_rounded"),
+                "sten": comp.get("sten"),
+                "sten_rounded": comp.get("sten_rounded"),
+                "percentile": comp.get("percentile"),
+            }
+            for activity in activities
+            if "personality" in (activity.get("activity") or "").lower()
+            for comp in (activity.get("competencies") or [])
+        ],
+        key=lambda comp: (comp.get("competency") or "").lower(),
+    )
+    has_personality_results = any(
+        any(
+            comp.get(field) is not None
+            for field in (
+                "stive", "stive_rounded", "sten",
+                "sten_rounded", "percentile",
+            )
+        )
+        for comp in personality_competencies
+    )
+
+    response_styles = build_response_style_results(personality_competencies)
+    reports = build_personality_reports_for_candidate(
+        sova_activities=activities,
+    )
+    profile_report = next(
+        (
+            report for report in reports
+            if report.get("report_id") == "trait_indicator_profile"
+        ),
+        None,
+    )
+    personality_profile = (
+        build_profile_from_resolved_report(
+            resolved_report=profile_report,
+            language=language,
+            include_missing_traits=False,
+        )
+        if profile_report else None
+    )
+
+    return {
+        "has_personality_results": has_personality_results,
+        "response_styles": response_styles,
+        "static_communication_guidance": build_static_communication_guidance(
+            personality_profile, response_styles, language=language,
+        ),
+        "profile_contrast_analysis": build_profile_contrast_analysis(
+            personality_profile,
+            language=language,
+            source="personality_assessment",
+        ),
+    }
+
+
 @login_required
 def process_candidate_final_output(
     request,
@@ -5272,6 +5364,12 @@ def process_candidate_final_output(
         },
     )
 
+    response_style_context = build_pre_interview_response_styles_context(
+        process,
+        invitation,
+        language=language_code,
+    )
+
     return render(
         request,
         (
@@ -5280,6 +5378,7 @@ def process_candidate_final_output(
             "_final_output.html"
         ),
         {
+            **response_style_context,
             "process": process,
             "report_branding": get_report_branding(process.company),
             "candidate": invitation.candidate,
