@@ -28,12 +28,17 @@
     // Only treat our exact generated headings as structured storage. Do not
     // guess the topics of older unstructured notes, which may mix all areas.
     const headings = Array.from(text.matchAll(HEADER_PATTERN));
-    if (!headings.length || text.slice(0, headings[0].index).trim()) {
+    if (!headings.length) {
       return {
         sections: { ...sections, personality: text },
         legacy: true,
       };
     }
+
+    // Older, uncategorised notes may precede newly saved section headers.
+    // Show them without assigning a new meaning or changing their source.
+    const prefix = text.slice(0, headings[0].index).trim();
+    if (prefix) sections.personality = prefix;
 
     // If a heading is repeated, preserve both fragments rather than dropping
     // one. This is also safe if pasted notes contain a matching heading.
@@ -45,7 +50,7 @@
       if (!fragment) return;
       sections[key] = [sections[key], fragment].filter(Boolean).join("\n\n");
     });
-    return { sections, legacy: false };
+    return { sections, legacy: Boolean(prefix) };
   }
 
   function serialize(sections) {
@@ -74,14 +79,28 @@
     });
     const legacyHelp = sectionRoot.querySelector("[data-interview-notes-legacy-help]");
     if (legacyHelp) legacyHelp.hidden = !parsed.legacy;
+    const originalPersonality = fields.personality.value;
+    const firstHeading = Array.from(combined.value.matchAll(HEADER_PATTERN))[0];
+    const originalLegacyText = parsed.legacy
+      ? (firstHeading ? combined.value.slice(0, firstHeading.index).trim() : combined.value)
+      : "";
 
     // One native input event keeps all pre-existing save handlers, evidence
     // availability checks and stale-report warnings in sync. No second API,
     // no separate shadow storage, and no alterations to the AI input path.
     function sync() {
-      const updated = serialize(Object.fromEntries(
+      const values = Object.fromEntries(
         ORDER.map(key => [key, fields[key].value])
-      ));
+      );
+      // Editing Motivation or Färdighet must not silently relabel older,
+      // unsorted candidate notes as Personality. Preserve the legacy source
+      // verbatim until the user actually edits the first field.
+      const preserveLegacy = parsed.legacy
+        && fields.personality.value === originalPersonality;
+      const updated = preserveLegacy
+        ? [originalLegacyText, serialize({ ...values, personality: "" })]
+            .filter(Boolean).join("\n\n")
+        : serialize(values);
       if (combined.value === updated) return;
       combined.value = updated;
       combined.dispatchEvent(new Event("input", { bubbles: true }));
