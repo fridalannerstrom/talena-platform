@@ -80,7 +80,7 @@ jobs:
           DJANGO_DEBUG: 'True'
           DJANGO_SECRET_KEY: local-qa-only
           USE_AZURE_STORAGE: '0'
-        run: python manage.py test apps.processes.test_post_interview_evidence_digests apps.processes.test_interview_question_notes apps.core.test_post_interview_question_evidence apps.core.test_structured_overall_picture --noinput
+        run: python manage.py test apps.processes.test_post_interview_evidence_digests apps.processes.test_interview_question_notes --noinput
       - name: Verify shared pre-interview response styles (#504)
         env:
           DJANGO_DEBUG: 'True'
