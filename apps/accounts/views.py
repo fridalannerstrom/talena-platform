@@ -1302,31 +1302,48 @@ def admin_process_detail(request, pk):
 
 
 @login_required
+@admin_required
 def admin_candidate_detail(request, process_pk, candidate_pk):
-    if not is_admin(request.user):
-        return HttpResponseForbidden("No access.")
-
-    process = get_object_or_404(TestProcess, pk=process_pk)
-
-    invitation = get_object_or_404(
-        TestInvitation.objects.select_related("candidate"),
-        process=process,
-        candidate_id=candidate_pk,
+    """Read-only customer candidate mirror within the internal admin context."""
+    process = get_object_or_404(
+        TestProcess.objects.select_related("company", "org_unit"),
+        pk=process_pk, company__isnull=False,
     )
+    language_code = get_request_ai_language(request)
 
-    ctx = build_candidate_detail_context(
-        process=process,
-        invitation=invitation,
-    )
+    if process.is_historical:
+        historical_candidate = get_object_or_404(
+            HistoricalProcessCandidate.objects
+            .select_related("candidate", "process", "created_by")
+            .prefetch_related(
+                "reports", "assessment_results__scores",
+                "assessment_results__import_file",
+            ),
+            process=process, candidate_id=candidate_pk,
+        )
+        ctx = build_shared_historical_candidate_detail_context(
+            process=process, historical_candidate=historical_candidate,
+            language=language_code,
+        )
+    else:
+        invitation = get_object_or_404(
+            TestInvitation.objects.select_related("candidate"),
+            process=process, candidate_id=candidate_pk,
+            removed_from_process_at__isnull=True,
+        )
+        ctx = build_candidate_detail_context(
+            process=process, invitation=invitation, language=language_code,
+        )
+        ctx["is_historical"] = False
 
-    ctx["is_admin_view"] = True
-
-    return render(
-        request,
-        "admin/accounts/customer/candidate_detail.html",
-        ctx,
-    )
-
+    ctx.update({
+        "is_admin_view": True,
+        "is_admin_candidate_mirror": True,
+        "can_manage_candidate_results": False,
+        "company": process.company,
+        "process": process,
+    })
+    return render(request, "admin/accounts/customer/candidate_detail.html", ctx)
 
 from django.db.models import Count, Q
 
@@ -2931,93 +2948,57 @@ def company_process_detail(request, company_pk, process_pk):
 @login_required
 @admin_required
 def company_process_candidate_detail(request, company_pk, process_pk, candidate_pk):
+    """Render the exact customer candidate sheet without admin-only AI writes."""
     company = get_object_or_404(Company, pk=company_pk)
-
     process = get_object_or_404(
         TestProcess.objects.select_related("company", "created_by", "org_unit"),
-        pk=process_pk,
-        company=company,
+        pk=process_pk, company=company,
     )
-
-    candidate = get_object_or_404(Candidate, pk=candidate_pk)
-
-    candidate_teams = (
-        candidate.team_memberships
-        .filter(team__company=company, team__is_archived=False)
-        .select_related("team")
-        .order_by("team__name")
-    )
+    language_code = get_request_ai_language(request)
 
     if process.is_historical:
         historical_candidate = get_object_or_404(
             HistoricalProcessCandidate.objects
             .select_related("candidate", "process", "created_by")
             .prefetch_related(
-                "assessment_results__scores",
+                "reports", "assessment_results__scores",
                 "assessment_results__import_file",
             ),
-            process=process,
-            candidate=candidate,
+            process=process, candidate_id=candidate_pk,
         )
-
-        assessment_results = (
-            historical_candidate.assessment_results
-            .all()
-            .order_by("assessment_type", "scale", "-created_at")
+        ctx = build_shared_historical_candidate_detail_context(
+            process=process, historical_candidate=historical_candidate,
+            language=language_code,
         )
-
-        ctx = {
-            "company": company,
-            "process": process,
-            "candidate": candidate,
-            "historical_candidate": historical_candidate,
-            "is_historical": True,
-            "active": "processes",
-            "show_invite_button": True,
-            "invite_form": CompanyInviteMemberForm(),
-            "is_admin_view": True,
-            "is_company_view": True,
-            "candidate_teams": candidate_teams,
-            "assessment_results": assessment_results,
-        }
-
     else:
         invitation = get_object_or_404(
             TestInvitation.objects.select_related("candidate", "process"),
-            process=process,
-            candidate_id=candidate_pk,
+            process=process, candidate_id=candidate_pk,
+            removed_from_process_at__isnull=True,
         )
-
         ctx = build_candidate_detail_context(
-            process=process,
-            invitation=invitation,
+            process=process, invitation=invitation, language=language_code,
         )
+        ctx["is_historical"] = False
 
-        ctx.update({
-            "company": company,
-            "process": process,
-            "active": "processes",
-            "show_invite_button": True,
-            "invite_form": CompanyInviteMemberForm(),
-            "is_admin_view": True,
-            "is_company_view": True,
-            "is_historical": False,
-            "candidate_teams": candidate_teams,
-        })
-
+    ctx.update({
+        "company": company,
+        "process": process,
+        "is_admin_view": True,
+        "is_company_view": True,
+        "is_admin_candidate_mirror": True,
+        "can_manage_candidate_results": False,
+        "active": "processes",
+        "show_invite_button": True,
+    })
     if request.headers.get("x-requested-with") == "XMLHttpRequest":
         return render(
-            request,
-            "admin/accounts/companies/company_candidate_sheet.html",
-            ctx,
+            request, "admin/accounts/companies/company_candidate_sheet.html", ctx,
         )
-
+    ctx["invite_form"] = CompanyInviteMemberForm()
     return render(
-        request,
-        "admin/accounts/companies/company_candidate_detail.html",
-        ctx,
+        request, "admin/accounts/companies/company_candidate_detail.html", ctx,
     )
-
 @login_required
 @admin_required
 def company_historical_process_create(request, pk):
