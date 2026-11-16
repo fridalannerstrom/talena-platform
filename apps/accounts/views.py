@@ -1006,6 +1006,83 @@ def admin_usage_billing(request):
 # saved language differs from the current interface language. In admin we
 # calculate exactly the same visible state on a shallow copy: no database
 # writes should happen merely because someone opened the mirror.
+def _admin_saved_interview_notes(raw_text):
+    """Split only Talena's exact saved category headings; preserve legacy text."""
+    import re
+
+    source = str(raw_text or "").strip()
+    labels = {
+        "Personlighet": "Personlighet",
+        "Motivation": "Motivation",
+        "Färdighet": "Färdighet",
+    }
+    pattern = re.compile(
+        r"^### Intervjuunderlag: (Personlighet|Motivation|Färdighet)[ \\t]*$",
+        re.MULTILINE,
+    )
+    matches = list(pattern.finditer(source))
+    if not matches:
+        return [{"title": "Tidigare intervjuanteckningar", "text": source}] if source else []
+
+    sections = []
+    prefix = source[:matches[0].start()].strip()
+    if prefix:
+        sections.append({"title": "Tidigare intervjuanteckningar", "text": prefix})
+    for index, match in enumerate(matches):
+        start = match.end()
+        end = matches[index + 1].start() if index + 1 < len(matches) else len(source)
+        chunk = source[start:end].strip()
+        if chunk:
+            sections.append({"title": labels[match.group(1)], "text": chunk})
+    return sections
+
+
+def _admin_saved_after_interview_context(process, candidate, owner, language_code):
+    """Expose only stored customer evidence/report edits, scoped to this process."""
+    from apps.processes.interview_question_models import (
+        InterviewQuestionNote,
+        ManagerReportTextEdit,
+    )
+
+    question_notes = (
+        InterviewQuestionNote.objects
+        .filter(process=process, candidate=candidate)
+        .exclude(note="")
+        .select_related("updated_by")
+        .order_by("source", "created_at", "pk")
+    )
+    edits = list(
+        ManagerReportTextEdit.objects
+        .filter(process=process, candidate=candidate, language_code=language_code)
+        .order_by("block_key")
+        .values("block_key", "text", "version")
+    )
+    saved = getattr(owner, "ai_post_interview_decision_support", None) or {}
+    blocks = saved.get("content_blocks") or {}
+    personality = getattr(owner, "ai_manager_report_personality", None) or {}
+    has_manager_text = any(
+        str(part or "").strip()
+        for value in personality.values() if isinstance(value, dict)
+        for part in value.values()
+    )
+    return {
+        "admin_interview_note_sections": _admin_saved_interview_notes(
+            getattr(owner, "interview_notes", "") or ""
+        ),
+        "admin_interview_question_notes": list(question_notes),
+        "admin_manager_report_edits_payload": {
+            "ok": True,
+            "language": language_code,
+            "edits": edits,
+        },
+        "admin_has_manager_report": bool(
+            has_manager_text
+            or str(blocks.get("wellbeing_tips") or "").strip()
+            or edits
+        ),
+    }
+
+
 def _admin_readonly_ai_state(owner, language):
     from copy import copy
     from apps.core.ai.language import ai_content_language_matches
@@ -1366,6 +1443,12 @@ def admin_candidate_detail(request, process_pk, candidate_pk):
         )
         ctx["is_historical"] = False
 
+    ctx.update(_admin_saved_after_interview_context(
+        process=process,
+        candidate=ctx["candidate"],
+        owner=historical_candidate if process.is_historical else invitation,
+        language_code=language_code,
+    ))
     ctx.update({
         "is_admin_view": True,
         "is_admin_candidate_mirror": True,
@@ -3016,6 +3099,12 @@ def company_process_candidate_detail(request, company_pk, process_pk, candidate_
         )
         ctx["is_historical"] = False
 
+    ctx.update(_admin_saved_after_interview_context(
+        process=process,
+        candidate=ctx["candidate"],
+        owner=historical_candidate if process.is_historical else invitation,
+        language_code=language_code,
+    ))
     ctx.update({
         "company": company,
         "process": process,
