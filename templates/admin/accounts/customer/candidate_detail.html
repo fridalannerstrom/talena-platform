@@ -35,5 +35,6 @@
 
 {% block extra_js %}
   {{ block.super }}
+  {% include "admin/accounts/partials/_candidate_customer_presentation_js.html" %}
   <script src="{% static 'js/talena/admin-candidate-mirror-353.js' %}"></script>
 {% endblock %}
