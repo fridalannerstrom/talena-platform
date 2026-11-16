@@ -77,7 +77,7 @@ assert.ok(backend.includes("client_reported_generated"));
 assert.ok(historyApi.includes("can_view_platform_audit(request.user)"));
 assert.ok(historyApi.includes("process_view_access_required"));
 assert.ok(!historyApi.includes('"text":'));
-assert.ok(adminOne.includes("process_candidate_manager_report_activity_admin"));
+assert.ok(adminOne.includes("admin/accounts/companies/company_candidate_sheet.html"));
 assert.ok(adminTwo.includes("process_candidate_manager_report_activity_admin"));
 assert.ok(adminExplorer.includes('"reports": {"manager_report_pdf_prepared", "manager_report_pdf_generated"}'));
 
