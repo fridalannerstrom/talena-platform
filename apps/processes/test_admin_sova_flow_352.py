@@ -265,6 +265,7 @@ class AdminSovaFlow352Tests(TestCase):
             "name": "Created via admin",
             "purpose": "hiring",
             "org_unit": str(self.unit.pk),
+            "project_owner": str(self.customer.pk),
             "selected_tests": ["personality"],
             "candidate_language": "en",
             "project_completion_notifications_enabled": "on",
@@ -277,6 +278,19 @@ class AdminSovaFlow352Tests(TestCase):
         self.assertEqual(created.project_code, "PQ")
         self.assertEqual(created.candidate_language, "en")
         self.assertEqual(created.selected_tests, ["personality"])
+        self.assertEqual(created.created_by, self.customer)
+        self.assertEqual(created.created_by_admin, self.admin)
+
+        # Own-only users must still be able to see projects explicitly
+        # created for them by a Talena administrator.
+        UserOrgUnitAccess.objects.filter(
+            user=self.customer, org_unit=self.unit,
+        ).update(permission="own")
+        self.client.force_login(self.customer)
+        customer_list = self.client.get(reverse("processes:process_list"))
+        self.assertEqual(customer_list.status_code, 200)
+        self.assertContains(customer_list, "Created via admin")
+        self.client.force_login(self.admin)
 
     @patch("apps.accounts.views.SovaClient")
     def test_admin_creation_rejects_unit_of_another_company(self, sova_cls):
