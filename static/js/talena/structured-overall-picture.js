@@ -72,6 +72,11 @@
     );
     generateButton.type = "button";
     generateButton.dataset.overallPictureGenerate = "true";
+    const adminReadOnly = root?.dataset.adminReadOnly === "true";
+    if (adminReadOnly) {
+      generateButton.disabled = true;
+      generateButton.hidden = true;
+    }
     const refreshIcon = el("i");
     refreshIcon.setAttribute("data-feather", "refresh-cw");
     refreshIcon.setAttribute("aria-hidden", "true");
@@ -103,7 +108,7 @@
       generateButton.title = label;
     };
     const generate = async () => {
-      if (busy) return;
+      if (adminReadOnly || busy) return;
       busy = true;
       generateButton.disabled = true;
       generateButton.setAttribute("aria-busy", "true");
