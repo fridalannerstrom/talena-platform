@@ -3,6 +3,7 @@
 {% block content %}
 {% load static i18n %}
 <link rel="stylesheet" href="{% static 'css/talena/pages/integrity-guard.css' %}?v=20261104-ig-type07">
+<script src="{% static 'js/talena/interview-note-areas.js' %}?v=20261116-three-areas-1"></script>
 
 {% trans "Self-registration" as js_self_registration %}
 {% trans "Share this link with candidates. Candidates who register through the link will start the assessment automatically after registration." as js_self_registration_help %}
@@ -10264,6 +10265,10 @@ function initialiseDecisionSupportRoot(
     // ========================================================
     // INTERVIEW NOTES
     // ========================================================
+
+    // The three visible inputs update the same canonical interview_notes
+    // field. Existing save, AI and outdated-warning logic stays unchanged.
+    window.TalenaInterviewNoteAreas?.initialise(root);
 
     const notesUpdateUrl =
       root.dataset
