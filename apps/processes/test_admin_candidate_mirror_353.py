@@ -250,10 +250,11 @@ class AdminCandidateMirror353Tests(TestCase):
             )
 
     def test_saved_customer_evidence_answers_and_manual_manager_edits_are_readonly(self):
-        self.invitation.interview_notes = (
-            "### Intervjuunderlag: Personlighet\\nKunden noterade samarbete.\\n\\n"
-            "### Intervjuunderlag: Motivation\\nKunden beskrev drivkraft."
-        ).replace("\\\\n", "\\n")
+        self.invitation.interview_notes = """### Intervjuunderlag: Personlighet
+Kunden noterade samarbete.
+
+### Intervjuunderlag: Motivation
+Kunden beskrev drivkraft."""
         self.invitation.ai_post_interview_decision_support = {
             "content_blocks": {"overall_picture": "Sparad helhetsbild från användaren."},
         }
@@ -309,14 +310,16 @@ class AdminCandidateMirror353Tests(TestCase):
         self.assertNotIn("contenteditable=", html)
 
     def test_admin_does_not_mislabel_legacy_or_mixed_notes(self):
-        original = "Mötet var positivt.\\nInga ämnesrubriker finns.".replace("\\\\n", "\\n")
+        original = """Mötet var positivt.
+Inga ämnesrubriker finns."""
         self.assertEqual(
             _admin_saved_interview_notes(original),
             [{"title": "Tidigare intervjuanteckningar", "text": original}],
         )
-        mixed = original + (
-            "\\n\\n### Intervjuunderlag: Färdighet\\nLöste logiska problem."
-        ).replace("\\\\n", "\\n")
+        mixed = original + """
+
+### Intervjuunderlag: Färdighet
+Löste logiska problem."""
         self.assertEqual(
             [item["title"] for item in _admin_saved_interview_notes(mixed)],
             ["Tidigare intervjuanteckningar", "Färdighet"],
