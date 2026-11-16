@@ -1,6 +1,8 @@
 """#504: refreshed pre-interview content must have the same response styles as Personality."""
+from pathlib import Path
 from types import SimpleNamespace
 
+from django.conf import settings
 from django.template.loader import render_to_string
 from django.test import SimpleTestCase
 from django.utils.translation import override
@@ -67,3 +69,19 @@ class PreInterviewResponseStylesRefreshTests(SimpleTestCase):
             })
         self.assertIn("Det finns ännu inget personlighetsresultat", html)
         self.assertIn("Resultat ännu inte tillgängligt", html)
+
+    def test_response_styles_and_questions_share_a_single_card(self):
+        base = Path(settings.BASE_DIR) / "templates/customer/processes/partials/candidate_insights/tabs"
+        interview = (base / "_final_output.html").read_text(encoding="utf-8")
+        questions = (base / "_questions.html").read_text(encoding="utf-8")
+
+        wrapper = interview.index('data-pre-interview-content-card')
+        styles = interview.index('data-pre-interview-response-styles', wrapper)
+        divider = interview.index('pre-interview-content-card__divider', styles)
+        question_include = interview.index('tabs/_questions.html', divider)
+        self.assertLess(wrapper, styles)
+        self.assertLess(styles, divider)
+        self.assertLess(divider, question_include)
+        self.assertIn('pre-interview-content-card > .combined-questions-card', questions)
+        self.assertIn('border: 0 !important;', questions)
+        self.assertIn('border-top: 1px solid var(--talena-border);', questions)
