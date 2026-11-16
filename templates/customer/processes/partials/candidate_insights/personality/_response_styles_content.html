@@ -9,9 +9,15 @@
       <div class="response-styles-header mb-4 mt-4">
 
         <div>
-          <h2 class="insight-summary-title mb-1">
-             {% trans "Response styles" %}
-          </h2>
+          {% if response_styles_interview_mode %}
+            <h3 class="insight-summary-sub-title mb-1">
+              {% if LANGUAGE_CODE|slice:":2" == "sv" %}Kommunikationsstrategi{% else %}Communication strategy{% endif %}
+            </h3>
+          {% else %}
+            <h2 class="insight-summary-title mb-1">
+              {% trans "Response styles" %}
+            </h2>
+          {% endif %}
 
           <p class="text-muted small mb-0">
              {% blocktrans with candidate_name=candidate.first_name %}These indicators describe how {{ candidate_name }} used the questionnaire response scale. They provide context for interpreting the personality profile and are not personality traits themselves.{% endblocktrans %}
@@ -32,7 +38,11 @@
   </section>
 {% else %}
   <section class="mb-4 purpose-fit-card" data-response-styles-unavailable>
-    <h2 class="insight-summary-title mb-2">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Svarsstilar{% else %}Response styles{% endif %}</h2>
+    {% if response_styles_interview_mode %}
+      <h3 class="insight-summary-sub-title mb-2">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Kommunikationsstrategi{% else %}Communication strategy{% endif %}</h3>
+    {% else %}
+      <h2 class="insight-summary-title mb-2">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Svarsstilar{% else %}Response styles{% endif %}</h2>
+    {% endif %}
     <p class="text-muted mb-0">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Det finns ännu inget personlighetsresultat att visa svarsstilar för.{% else %}Personality results are not yet available, so response styles cannot be shown.{% endif %}</p>
   </section>
 {% endif %}
