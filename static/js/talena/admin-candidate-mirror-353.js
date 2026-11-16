@@ -11,6 +11,8 @@
     "[data-insights-tab]",
     "[data-insights-subtab]",
     "[data-decision-tab]",
+    "[data-after-interview-tab]",
+    "[data-after-interview-primary-tab]",
     "[data-bs-toggle='collapse']",
     "[data-bs-toggle='tab']",
     "[data-bs-toggle='modal']",
