@@ -410,6 +410,13 @@
     if (!(root instanceof Element)) return;
     if (initialisedRoots.has(root) || loadingRoots.has(root)) return;
 
+    // The legacy AI briefing has been replaced by shared static response styles.
+    // Do not fetch old pre-interview AI content when that view is absent.
+    if (!root.querySelector("[data-pre-interview-content]")) {
+      initialisedRoots.add(root);
+      return;
+    }
+
     polishExistingContent(root);
 
     if (root.dataset.hasPreInterviewResult !== "true") {

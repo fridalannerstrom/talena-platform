@@ -5,21 +5,52 @@
 {# Talena candidate i18n batch 1 #}
 
 <style>
-  /* Keep the interview guidance and saved assessment questions visually
-     inside one continuous card while preserving their independent logic. */
-  .process-page #candidate-insights-panel-prepare-interview > .final-output-card {
-    margin-bottom: 0 !important;
-    border-bottom-right-radius: 0 !important;
-    border-bottom-left-radius: 0 !important;
+  /* The shared candidate-insight-page shell owns the outer border and radius.
+     Match the inner spacing used by the Personality subworkspace. */
+  .process-page #candidate-insights-panel-prepare-interview .pre-interview-content-card {
+    padding: 1.25rem 1.5rem 1.5rem;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    min-width: 0;
   }
 
-  .process-page #candidate-insights-panel-prepare-interview > .combined-questions-card {
-    margin-top: 0 !important;
-    padding: 1.35rem 1.2rem 1.15rem !important;
-    border: 1px solid var(--talena-border) !important;
-    border-top: 0 !important;
-    border-radius: 0 0 18px 18px !important;
-    background: #fff !important;
+  .process-page #candidate-insights-panel-prepare-interview .pre-interview-content-card__divider {
+    height: 0;
+    margin: 1.65rem 0 1.9rem;
+    border: 0;
+    border-top: 1px solid var(--talena-border);
+    opacity: 1;
+  }
+
+  /* Make interview questions a clear main section under the shared page shell. */
+  .process-page #candidate-insights-panel-prepare-interview [data-combined-questions-root]
+  .combined-questions-main-title {
+    font-size: clamp(1.55rem, 1.95vw, 1.8rem) !important;
+    line-height: 1.14 !important;
+    letter-spacing: -0.035em !important;
+  }
+
+  .process-page #candidate-insights-panel-prepare-interview [data-combined-questions-root]
+  .combined-question-section__title {
+    font-size: clamp(1.1rem, 1.4vw, 1.2rem) !important;
+    line-height: 1.25 !important;
+    font-weight: 725 !important;
+  }
+
+  .process-page #candidate-insights-panel-prepare-interview [data-combined-questions-root]
+  .combined-questions-main-eyebrow {
+    margin-bottom: 0.65rem !important;
+  }
+
+  /* The outer card owns the surface; avoid a second nested question border. */
+  .process-page #candidate-insights-panel-prepare-interview .pre-interview-content-card > .combined-questions-card {
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
     box-shadow: none !important;
   }
 
@@ -175,9 +206,9 @@
     }
   }
 
-  @media (max-width: 767px) {
-    .process-page #candidate-insights-panel-prepare-interview > .combined-questions-card {
-      padding: 1rem 0.9rem 0.9rem !important;
+  @media (max-width: 620px) {
+    .process-page #candidate-insights-panel-prepare-interview .pre-interview-content-card {
+      padding: 1rem;
     }
   }
 
@@ -204,7 +235,10 @@
 
     <div>
 
-<h2 class="insight-summary-title mb-1">
+<div class="candidate-section-eyebrow combined-questions-main-eyebrow" data-pre-interview-questions-eyebrow>
+  {% if LANGUAGE_CODE|slice:":2" == "sv" %}Intervjufrågor{% else %}Interview questions{% endif %}
+</div>
+<h2 class="insight-summary-title combined-questions-main-title mb-1">
   {% trans "All assessment questions" %}
 </h2>
 
@@ -259,7 +293,7 @@
             <div class="combined-question-section__heading">
               <div>
 
-                <h3 class="personality-questions-section-title mb-1">
+                <h3 class="personality-questions-section-title combined-question-section__title mb-1">
                   {{ section.title }}
                 </h3>
 

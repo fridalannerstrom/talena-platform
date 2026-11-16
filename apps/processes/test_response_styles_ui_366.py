@@ -152,8 +152,36 @@ class ResponseStylesUiTests(SimpleTestCase):
         interview = (Path(settings.BASE_DIR) /
                      "templates/customer/processes/partials/candidate_insights/tabs/_final_output.html"
                      ).read_text(encoding="utf-8")
-        self.assertIn("data-pre-interview-generate", interview)
-        self.assertIn("data-response-style-interview-guidance", interview)
+        self.assertNotIn("data-pre-interview-generate", interview)
+        self.assertNotIn("data-static-communication-strategy", interview)
+        self.assertIn("data-pre-interview-response-styles", interview)
+        self.assertIn('tabs/_questions.html', interview)
+
+    def test_pre_interview_reuses_the_exact_personality_response_styles(self):
+        base = Path(settings.BASE_DIR) / (
+            "templates/customer/processes/partials/candidate_insights"
+        )
+        personality = (base / "personality/_results.html").read_text(
+            encoding="utf-8"
+        )
+        interview = (base / "tabs/_final_output.html").read_text(
+            encoding="utf-8"
+        )
+        shared_path = "personality/_response_styles_content.html"
+        include = "customer/processes/partials/candidate_insights/" + shared_path
+        self.assertIn(include, personality)
+        self.assertIn(include, interview)
+        shared = (base / shared_path).read_text(encoding="utf-8")
+        self.assertIn("_static_communication_guidance.html", shared)
+        self.assertIn("profile_contrast_analysis.activated_contrasts", shared)
+        self.assertIn("data-profile-contrasts-intro", shared)
+        self.assertIn("profileContrastsHeading", shared)
+        self.assertIn("preInterviewProfileContrastsHeading", interview)
+        self.assertNotIn("data-pre-interview-content", interview)
+        self.assertNotIn("data-pre-interview-overall-synthesis", interview)
+        self.assertNotIn("Kommunikationsstrategi", interview)
+        self.assertNotIn("Communication strategy", interview)
+        self.assertIn("data-combined-questions", (base / "tabs/_questions.html").read_text(encoding="utf-8"))
 
     def test_report_labels_do_not_expose_sten_or_change_score_scale(self):
         content = json.loads((Path(settings.BASE_DIR) /

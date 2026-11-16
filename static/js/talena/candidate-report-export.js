@@ -68,8 +68,12 @@
     { id: "derailment-report", selector: "#reports-subpanel-derailment-report",
       ready: element => !!element.querySelector(".derailment-report__overview") },
     { id: "prepare-interview",
-      selector: "#candidate-insights-panel-prepare-interview [data-pre-interview-content]",
-      ready: element => !element.classList.contains("d-none") && element.textContent.trim().length > 80 },
+      selector: "#candidate-insights-panel-prepare-interview [data-pre-interview-response-styles]",
+      ready: element => !!element.querySelector(
+        '[data-static-profile-status]:not([data-static-profile-status="unavailable"]), ' +
+        '[data-static-social-desirability]:not([data-static-social-desirability="unavailable"]), ' +
+        '[data-profile-contrast-id]'
+      ) },
     ...[["overview","after-overview"]]
       .map(([panel, id]) => ({
         id, selector: '[data-after-interview-tab-panel="' + panel + '"] .after-interview-tab-card',

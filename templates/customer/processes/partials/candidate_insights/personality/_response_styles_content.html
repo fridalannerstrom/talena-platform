@@ -1,0 +1,114 @@
+{% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
+<!-- RESPONSE STYLES -->
+{% if has_personality_results and response_styles %}
+  <section class="mb-4 purpose-fit-card">
+
+
+      <!-- HEADER -->
+      <div class="response-styles-header mb-4 mt-4">
+
+        <div>
+          {% if response_styles_interview_mode %}
+            <h3 class="insight-summary-sub-title mb-1">
+              {% if LANGUAGE_CODE|slice:":2" == "sv" %}Kommunikationsstrategi{% else %}Communication strategy{% endif %}
+            </h3>
+          {% else %}
+            <h2 class="insight-summary-title mb-1">
+              {% trans "Response styles" %}
+            </h2>
+          {% endif %}
+
+          <p class="text-muted small mb-0">
+             {% blocktrans with candidate_name=candidate.first_name %}These indicators describe how {{ candidate_name }} used the questionnaire response scale. They provide context for interpreting the personality profile and are not personality traits themselves.{% endblocktrans %}
+          </p>
+        </div>
+
+      </div>
+
+
+      <!-- RESPONSE STYLE RESULTS -->
+      {% include "customer/processes/partials/candidate_insights/_static_communication_guidance.html" %}
+
+      <!-- FOOTER -->
+      <div class="small text-muted border-bottom mt-4 pb-4">
+         {% blocktrans %}Response-style indicators should be used as interpretive context rather than as measures of ability, suitability or honesty.{% endblocktrans %}
+      </div>
+
+  </section>
+{% else %}
+  <section class="mb-4 purpose-fit-card" data-response-styles-unavailable>
+    {% if response_styles_interview_mode %}
+      <h3 class="insight-summary-sub-title mb-2">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Kommunikationsstrategi{% else %}Communication strategy{% endif %}</h3>
+    {% else %}
+      <h2 class="insight-summary-title mb-2">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Svarsstilar{% else %}Response styles{% endif %}</h2>
+    {% endif %}
+    <p class="text-muted mb-0">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Det finns ännu inget personlighetsresultat att visa svarsstilar för.{% else %}Personality results are not yet available, so response styles cannot be shown.{% endif %}</p>
+  </section>
+{% endif %}
+<!-- /RESPONSE STYLES -->
+  <section class="purpose-fit-card mt-4" aria-labelledby="{{ response_styles_contrasts_heading_id|default:'profileContrastsHeading' }}">
+    <h3 id="{{ response_styles_contrasts_heading_id|default:'profileContrastsHeading' }}" class="insight-summary-sub-title">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Möjliga nyanser att utforska{% else %}Possible nuances to explore{% endif %}</h3>
+    {% if profile_contrast_analysis.activated_contrasts %}
+      <p data-profile-contrasts-intro="matched">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Här visas utvalda mönster av indikatorer inom ett och samma karaktärsdrag som kan vara intressanta att utforska. Se dem som möjliga nyanser att förstå bättre, inte som slutsatser.{% else %}This section shows selected patterns of indicators within a single personality trait that may be interesting to explore. Consider them possible nuances to understand better, not conclusions.{% endif %}</p>
+    {% endif %}
+    {% for contrast in profile_contrast_analysis.activated_contrasts %}
+      <article class="profile-contrast-card" data-profile-contrast-id="{{ contrast.id }}">
+        <div class="profile-contrast-card__dimensions">
+          <span class="profile-contrast-card__label">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Egenskaper att utforska tillsammans{% else %}Traits to explore together{% endif %}</span>
+          <div class="profile-contrast-card__scale-list personality-overview-chart--segmented">
+            {% for dimension in contrast.dimensions %}
+              <div class="profile-contrast-card__scale-item">
+                <span class="profile-contrast-card__dimension-name">{{ dimension.label }}</span>
+                <div
+                  class="personality-overview-item__scale profile-contrast-card__scale"
+                  role="img"
+                  aria-label="{{ dimension.label }}: {{ dimension.sten }} / 10"
+                >
+                  <span class="personality-overview-item__arrow" aria-hidden="true">←</span>
+                  <span class="personality-overview-item__track" aria-hidden="true">
+                    {% for segment in dimension.graph_segments %}
+                      <span
+                        class="personality-overview-item__segment{% if segment.score == 5 or segment.score == 6 %} personality-overview-item__segment--center{% endif %}{% if segment.filled_toward_midpoint %} personality-overview-item__segment--filled{% endif %}{% if segment.selected %} personality-overview-item__segment--selected{% endif %}"
+                        title="{{ dimension.label }}: {{ segment.score }}/10"
+                      ></span>
+                    {% endfor %}
+                  </span>
+                  <span class="personality-overview-item__arrow" aria-hidden="true">→</span>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="profile-contrast-card__hypothesis">
+          <span class="profile-contrast-card__label">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Möjlig hypotes att utforska{% else %}Possible hypothesis to explore{% endif %}</span>
+          <p>{{ contrast.hypothesis }}</p>
+        </div>
+      </article>
+    {% empty %}
+      {% if has_personality_results and profile_contrast_analysis.available_dimension_count|default:0 >= 2 %}
+        <div class="profile-contrast-empty" data-contrast-empty-state="no-patterns" role="status">
+          <span class="profile-contrast-empty__icon" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="9"></circle><path d="M12 11v5 M12 8h.01"></path>
+            </svg>
+          </span>
+          <div>
+            <p class="profile-contrast-empty__description" data-profile-contrasts-intro="no-patterns">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Här visas utvalda mönster av indikatorer inom ett och samma karaktärsdrag som kan vara intressanta att utforska. I den här profilen framträder inga av dessa mönster, men det kan fortfarande finnas andra nyanser och samband som är värdefulla att utforska i samtalet.{% else %}This section shows selected patterns of indicators within a single personality trait that may be interesting to explore. None of these patterns stand out in this profile, but there may still be other nuances and connections worth exploring in conversation.{% endif %}</p>
+          </div>
+        </div>
+      {% else %}
+        <div class="profile-contrast-empty profile-contrast-empty--pending" data-contrast-empty-state="unavailable" role="status">
+          <span class="profile-contrast-empty__icon" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="9"></circle><path d="M12 11v5 M12 8h.01"></path>
+            </svg>
+          </span>
+          <div>
+            <h4 class="profile-contrast-empty__title">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Resultat ännu inte tillgängligt{% else %}Results not yet available{% endif %}</h4>
+            <p class="profile-contrast-empty__description">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Det finns ännu inte tillräckligt med personlighetsresultat för att visa möjliga nyanser. När resultaten finns tillgängliga visas de här.{% else %}There are not yet enough personality results to show possible nuances. They will appear here when the results are available.{% endif %}</p>
+          </div>
+        </div>
+      {% endif %}
+    {% endfor %}
+  </section>
