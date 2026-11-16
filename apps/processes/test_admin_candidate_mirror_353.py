@@ -264,6 +264,9 @@ class AdminCandidateMirror353Tests(TestCase):
                 self.assertIn("candidate-assessments.css", html)
                 self.assertIn("candidate-charts.css", html)
                 self.assertIn("candidate-insight-tabs.css", html)
+                self.assertIn("candidate-eyebrows.js", html)
+                self.assertIn("candidate-ai-badges.js", html)
+                self.assertIn("candidate-chart-theme.js", html)
                 self.assertLess(
                     html.index("admin-pages.css"),
                     html.rindex("candidate-insights.css"),
@@ -321,6 +324,29 @@ class AdminCandidateMirrorSource353Tests(SimpleTestCase):
             "candidate-insight-tabs.css",
         ):
             self.assertIn(stylesheet, admin)
+
+    def test_admin_reuses_visual_only_customer_helpers_without_auto_generation(self):
+        root = Path(settings.BASE_DIR)
+        customer_header = (
+            root / "templates/customer/processes/_process_header.html"
+        ).read_text(encoding="utf-8")
+        admin_helpers = (
+            root / "templates/admin/accounts/partials/_candidate_customer_presentation_js.html"
+        ).read_text(encoding="utf-8")
+        for helper in (
+            "candidate-chart-theme.js",
+            "candidate-copy-link.js",
+            "candidate-eyebrows.js",
+            "candidate-ai-badges.js",
+        ):
+            with self.subTest(helper=helper):
+                self.assertIn(helper, customer_header)
+                self.assertIn(helper, admin_helpers)
+        # This script can fetch generated interview content and must not be
+        # started by an internal admin GET.
+        self.assertNotIn("pre-interview-briefing.js", admin_helpers)
+        self.assertNotIn("initCandidatePurposeFitStream", admin_helpers)
+        self.assertNotIn("initCandidateSummaryStream", admin_helpers)
 
     def test_admin_mirror_has_customer_process_scope_without_styling_admin_globally(self):
         root = Path(settings.BASE_DIR)
