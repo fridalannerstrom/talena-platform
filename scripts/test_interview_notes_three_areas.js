@@ -99,5 +99,5 @@ for (const key of ["personality", "motivation", "skills"]) {
 assert.ok(template.includes('data-interview-notes-input'));
 assert.ok(parent.includes("TalenaInterviewNoteAreas?.initialise(root)"));
 assert.ok(parent.includes("interview_notes: input.value"));
-assert.ok(parent.includes("interview_notes:\n                    notesInput.value"));
+assert.match(parent, /interview_notes:\s*notesInput\.value/);
 console.log("Interview notes three-area UI, legacy data and unchanged AI input contract: OK");
