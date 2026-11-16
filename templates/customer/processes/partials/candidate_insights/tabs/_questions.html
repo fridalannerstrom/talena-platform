@@ -18,10 +18,30 @@
 
   .process-page #candidate-insights-panel-prepare-interview .pre-interview-content-card__divider {
     height: 0;
-    margin: 1.35rem 0;
+    margin: 1.65rem 0 1.9rem;
     border: 0;
     border-top: 1px solid var(--talena-border);
     opacity: 1;
+  }
+
+  /* Make interview questions a clear main section under the shared page shell. */
+  .process-page #candidate-insights-panel-prepare-interview [data-combined-questions-root]
+  .combined-questions-main-title {
+    font-size: clamp(1.55rem, 1.95vw, 1.8rem) !important;
+    line-height: 1.14 !important;
+    letter-spacing: -0.035em !important;
+  }
+
+  .process-page #candidate-insights-panel-prepare-interview [data-combined-questions-root]
+  .combined-question-section__title {
+    font-size: clamp(1.1rem, 1.4vw, 1.2rem) !important;
+    line-height: 1.25 !important;
+    font-weight: 725 !important;
+  }
+
+  .process-page #candidate-insights-panel-prepare-interview [data-combined-questions-root]
+  .combined-questions-main-eyebrow {
+    margin-bottom: 0.65rem !important;
   }
 
   /* The outer card owns the surface; avoid a second nested question border. */
@@ -215,7 +235,10 @@
 
     <div>
 
-<h2 class="insight-summary-title mb-1">
+<div class="candidate-section-eyebrow combined-questions-main-eyebrow" data-pre-interview-questions-eyebrow>
+  {% if LANGUAGE_CODE|slice:":2" == "sv" %}Intervjufrågor{% else %}Interview questions{% endif %}
+</div>
+<h2 class="insight-summary-title combined-questions-main-title mb-1">
   {% trans "All assessment questions" %}
 </h2>
 
@@ -270,7 +293,7 @@
             <div class="combined-question-section__heading">
               <div>
 
-                <h3 class="personality-questions-section-title mb-1">
+                <h3 class="personality-questions-section-title combined-question-section__title mb-1">
                   {{ section.title }}
                 </h3>
 
