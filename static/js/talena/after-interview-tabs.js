@@ -50,7 +50,12 @@
       managerPersonalityAdviceTitle: "Tips för trivsel",
       managerPersonalityTestMissing: "Ingen testtolkning är tillgänglig ännu.",
       managerPersonalityInterviewMissing: "Intervjuanteckningarna innehåller inget tillräckligt underlag om det här temat.",
-      managerSkillNames: { numerical: "Numeriskt", logical: "Logiskt", verbal: "Verbalt" },
+      managerSkillNames: { numerical: "Numerisk förmåga", logical: "Logisk förmåga", verbal: "Verbal förmåga" },
+      managerSkillDescriptions: {
+        numerical: "Avser att mäta en persons förmåga att hantera och använda numerisk information, såsom att lösa matematiska problem, utföra grundläggande beräkningar och tolka diagram och statistik. Genom att slutföra TQ:s numeriska test får man en uppfattning om hur väl en person tar sig an och bearbetar siffror och numerisk data.",
+        logical: "Avser att mäta en persons förmåga att tänka logiskt, analytiskt och att dra slutsatser baserat på abstrakta mönster och sekvenser. Genom att genomföra TQ:s logiska test får man en uppfattning om hur väl en person bearbetar abstrakt information och mönster där det vid första anblick inte finns någon uppenbar logik.",
+        verbal: "Avser att mäta en persons förmåga att analysera och tolka skriftlig information för att bilda en slutsats. Testet består av olika uppgifter som inkluderar läsning och förståelse av texter samt att dra slutsatser och resonera utifrån denna textmassa. Genom att slutföra TQ:s verbala test får man en uppfattning om hur väl en person kan förstå och bearbeta skriftlig information.",
+      },
       managerSkillsUnavailable: "Färdighetsresultat visas här när de är tillgängliga.",
       managerSkillsGuideTitle: "Så tolkar du färdighetsresultaten",
       managerSkillsGuideIntro: "Resultaten visar hur kandidaten kan hantera uppgifter med olika grad av komplexitet. Se dem som ett underlag i samtalet och väg in rollens krav och övrig information.",
@@ -188,7 +193,12 @@
       managerPersonalityAdviceTitle: "Wellbeing tips",
       managerPersonalityTestMissing: "No test interpretation is available yet.",
       managerPersonalityInterviewMissing: "The interview notes do not contain enough information about this theme.",
-      managerSkillNames: { numerical: "Numerical", logical: "Logical", verbal: "Verbal" },
+      managerSkillNames: { numerical: "Numerical ability", logical: "Logical ability", verbal: "Verbal ability" },
+      managerSkillDescriptions: {
+        numerical: "Measures a person's ability to handle and use numerical information, including solving mathematical problems, carrying out basic calculations, and interpreting charts and statistics. Completing TQ's numerical test provides an indication of how a person approaches and processes numbers and numerical data.",
+        logical: "Measures a person's ability to think logically and analytically and draw conclusions from abstract patterns and sequences. Completing TQ's logical test provides an indication of how a person processes abstract information and patterns where the underlying logic may not be immediately apparent.",
+        verbal: "Measures a person's ability to analyse and interpret written information to reach a conclusion. The test includes tasks that involve reading and understanding texts, drawing conclusions, and reasoning from written material. Completing TQ's verbal test provides an indication of how well a person understands and processes written information.",
+      },
       managerSkillsUnavailable: "Skills results will appear here when they are available.",
       managerSkillsGuideTitle: "How to interpret the skills results",
       managerSkillsGuideIntro: "The results indicate how the candidate may handle tasks with different levels of complexity. Use them as a starting point for conversation and consider the role requirements alongside other information.",
@@ -1560,7 +1570,11 @@
       }
       __PANEL__ .after-interview-manager-report__skill { margin: 0 0 1.5rem; }
       __PANEL__ .after-interview-manager-report__skill-title {
-        margin: 0 0 .7rem; color: var(--talena-ink, #191817); font-size: 1rem; font-weight: 700;
+        margin: 0 0 .45rem; color: var(--talena-ink, #191817); font-size: 1rem; font-weight: 700;
+      }
+      __PANEL__ .after-interview-manager-report__skill-description {
+        max-width: 920px; margin: 0 0 1rem; color: #5e5751;
+        font-size: .78rem; line-height: 1.65;
       }
       __PANEL__ .after-interview-manager-report__levels {
         display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .75rem;
@@ -2228,7 +2242,10 @@
       const heading = document.createElement("h5");
       heading.className = "after-interview-manager-report__skill-title";
       heading.textContent = skillLabels[key];
-      skill.appendChild(heading);
+      const skillDescription = document.createElement("p");
+      skillDescription.className = "after-interview-manager-report__skill-description";
+      skillDescription.textContent = copy().managerSkillDescriptions[key] || "";
+      skill.append(heading, skillDescription);
 
       const levels = document.createElement("div");
       levels.className = "after-interview-manager-report__levels";
