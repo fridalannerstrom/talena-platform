@@ -1384,6 +1384,7 @@
       }
       __PANEL__ .after-interview-evidence-compilation {
         display: grid; gap: .55rem; padding: 1.1rem 1.2rem;
+        margin-top: 1.25rem;
         border: 1px solid var(--talena-border, #e5dfd8); border-radius: 14px;
         background: #faf8f6;
       }
@@ -1391,7 +1392,7 @@
         margin: 0; font-size: 1rem; font-weight: 700;
       }
       __PANEL__ .after-interview-evidence-compilation__description {
-        margin: 0; color: var(--talena-muted, #6f6863);
+        margin: 0; color: #5e5751; line-height: 1.55;
       }
       __PANEL__ .after-interview-evidence-compilation__button {
         justify-self: start; display: inline-flex; align-items: center; gap: .5rem;
