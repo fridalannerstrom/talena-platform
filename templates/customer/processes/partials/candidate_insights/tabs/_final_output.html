@@ -154,15 +154,15 @@
 
         <div class="interview-notes-areas" data-interview-notes-areas>
           <p class="interview-notes-legacy-hint" data-interview-notes-legacy-help hidden>
-            {% trans "Your previous notes are preserved under Personality until you choose how to distribute them. You can move or paste parts into the other fields." %}
+            {% if LANGUAGE_CODE|slice:":2" == "sv" %}Dina tidigare anteckningar visas tillfälligt i första fältet, utan att kategoriseras automatiskt. Flytta gärna text till rätt område.{% else %}Your previous notes appear temporarily in the first field without being automatically categorised. Move the text to the relevant areas when ready.{% endif %}
           </p>
 
           <div class="interview-notes-area">
             <label for="candidate-interview-notes-personality" class="interview-notes-area__title">
-              {% trans "Personality" %}
+              {% if LANGUAGE_CODE|slice:":2" == "sv" %}Personlighet{% else %}Personality{% endif %}
             </label>
             <p class="interview-notes-area__description">
-              {% trans "Examples about collaboration, communication, working methods and preferences." %}
+              {% if LANGUAGE_CODE|slice:":2" == "sv" %}Exempel om samarbete, kommunikation, arbetssätt och preferenser.{% else %}Examples about collaboration, communication, working methods and preferences.{% endif %}
             </p>
             <textarea
               id="candidate-interview-notes-personality"
@@ -170,7 +170,7 @@
               rows="5"
               maxlength="30000"
               data-interview-notes-area="personality"
-              placeholder="{% trans 'Add examples and observations related to personality…' %}"
+              placeholder="{% if LANGUAGE_CODE|slice:":2" == "sv" %}Beskriv situationer och exempel kopplade till personlighet…{% else %}Add examples and observations related to personality…{% endif %}"
             ></textarea>
           </div>
 
@@ -179,7 +179,7 @@
               {% trans "Motivation" %}
             </label>
             <p class="interview-notes-area__description">
-              {% trans "What the candidate says gives energy, motivates or influences job satisfaction." %}
+              {% if LANGUAGE_CODE|slice:":2" == "sv" %}Vad kandidaten berättar ger energi, skapar motivation eller påverkar trivseln.{% else %}What the candidate says gives energy, motivates or influences job satisfaction.{% endif %}
             </p>
             <textarea
               id="candidate-interview-notes-motivation"
@@ -187,16 +187,16 @@
               rows="5"
               maxlength="30000"
               data-interview-notes-area="motivation"
-              placeholder="{% trans 'Add what the candidate describes about motivation…' %}"
+              placeholder="{% if LANGUAGE_CODE|slice:":2" == "sv" %}Anteckna vad kandidaten beskriver om motivation…{% else %}Add what the candidate describes about motivation…{% endif %}"
             ></textarea>
           </div>
 
           <div class="interview-notes-area">
             <label for="candidate-interview-notes-skills" class="interview-notes-area__title">
-              {% trans "Skills" %}
+              {% if LANGUAGE_CODE|slice:":2" == "sv" %}Färdighet{% else %}Skills{% endif %}
             </label>
             <p class="interview-notes-area__description">
-              {% trans "Concrete examples of numerical, logical or verbal reasoning in practice." %}
+              {% if LANGUAGE_CODE|slice:":2" == "sv" %}Konkreta exempel på numeriskt, logiskt eller verbalt resonemang i praktiken.{% else %}Concrete examples of numerical, logical or verbal reasoning in practice.{% endif %}
             </p>
             <textarea
               id="candidate-interview-notes-skills"
@@ -204,7 +204,7 @@
               rows="5"
               maxlength="30000"
               data-interview-notes-area="skills"
-              placeholder="{% trans 'Add examples related to numerical, logical or verbal reasoning…' %}"
+              placeholder="{% if LANGUAGE_CODE|slice:":2" == "sv" %}Anteckna exempel på numeriskt, logiskt eller verbalt resonemang…{% else %}Add examples related to numerical, logical or verbal reasoning…{% endif %}"
             ></textarea>
           </div>
         </div>
