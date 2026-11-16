@@ -408,8 +408,51 @@
   background: var(--talena-surface-soft) !important;
 }
 
+.process-page .interview-notes-areas {
+  display: grid;
+  gap: 1rem;
+}
+
+.process-page .interview-notes-area {
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--talena-border);
+  border-radius: 14px;
+  background: #fff;
+}
+
+.process-page .interview-notes-area__title {
+  display: block;
+  margin: 0 0 0.3rem;
+  color: var(--talena-text);
+  font-size: 0.82rem;
+  font-weight: 750;
+}
+
+.process-page .interview-notes-area__description {
+  margin: 0 0 0.75rem;
+  color: #625b56;
+  font-size: 0.7rem;
+  line-height: 1.5;
+}
+
+.process-page .interview-notes-legacy-hint {
+  margin: 0;
+  padding: 0.8rem 1rem;
+  border: 1px solid #ead8c7;
+  border-radius: 12px;
+  background: #fff8ef;
+  color: #70543d;
+  font-size: 0.7rem;
+  line-height: 1.5;
+}
+
+.process-page .interview-notes-legacy-hint[hidden] {
+  display: none;
+}
+
+
 .process-page [data-interview-notes-root] textarea.form-control {
-  min-height: 210px;
+  min-height: 145px;
   padding: 0.85rem 0.9rem;
   border: 1px solid var(--talena-border) !important;
   border-radius: 12px !important;
