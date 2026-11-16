@@ -11,6 +11,10 @@
     "[data-insights-tab]",
     "[data-insights-subtab]",
     "[data-decision-tab]",
+    // #353: these switch *views* of the same saved personality result.
+    "[data-personality-view-tab]",
+    "[data-indicator-toggle]",
+    "#toggle-all-personality-indicators",
     "[data-after-interview-tab]",
     "[data-after-interview-primary-tab]",
     "[data-bs-toggle='collapse']",
@@ -44,6 +48,54 @@
     }
   }
 
+  function activatePersonalityProfileTab(button) {
+    const root = button.closest("[data-personality-profile-root]");
+    if (!root) return;
+    const view = button.dataset.personalityViewTab;
+    const panels = root.querySelectorAll("[data-personality-view-panel]");
+    if (!Array.from(panels).some(panel => panel.dataset.personalityViewPanel === view)) {
+      return;
+    }
+
+    root.querySelectorAll("[data-personality-view-tab]").forEach(tab => {
+      const active = tab.dataset.personalityViewTab === view;
+      tab.classList.toggle("is-active", active);
+      tab.setAttribute("aria-selected", String(active));
+      tab.tabIndex = active ? 0 : -1;
+    });
+    panels.forEach(panel => {
+      const active = panel.dataset.personalityViewPanel === view;
+      panel.hidden = !active;
+    });
+    root.querySelectorAll("[data-personality-detailed-only]").forEach(item => {
+      item.hidden = view !== "detailed";
+    });
+    // No URL/hash changes: several candidates can be opened in admin.
+  }
+
+  function toggleIndicator(button) {
+    const panelId = button.getAttribute("aria-controls");
+    const panel = panelId ? document.getElementById(panelId) : null;
+    if (!panel) return;
+    const expanded = button.getAttribute("aria-expanded") !== "true";
+    button.setAttribute("aria-expanded", String(expanded));
+    panel.hidden = !expanded;
+  }
+
+  function toggleAllIndicators(button) {
+    const root = button.closest(".personality-profile");
+    if (!root) return;
+    const buttons = Array.from(root.querySelectorAll("[data-indicator-toggle]"));
+    const expanded = buttons.some(item => item.getAttribute("aria-expanded") !== "true");
+    buttons.forEach(item => {
+      const panelId = item.getAttribute("aria-controls");
+      const panel = panelId ? document.getElementById(panelId) : null;
+      item.setAttribute("aria-expanded", String(expanded));
+      if (panel) panel.hidden = !expanded;
+    });
+    button.dataset.expanded = String(expanded);
+  }
+
   function passiveTabClick(control, mirror) {
     if (control.matches(".candidate-tab[data-tab-target]")) {
       const group = control.dataset.tabGroup;
@@ -61,6 +113,12 @@
         panel.classList.toggle("is-active", active);
         panel.hidden = !active;
       });
+    } else if (control.matches("[data-personality-view-tab]")) {
+      activatePersonalityProfileTab(control);
+    } else if (control.matches("[data-indicator-toggle]")) {
+      toggleIndicator(control);
+    } else if (control.matches("#toggle-all-personality-indicators")) {
+      toggleAllIndicators(control);
     } else if (control.matches("[data-insights-subtab]")) {
       activateItems(control.closest("[data-candidate-insights-subtabs]") || mirror,
         control, "insightsSubtab", "insightsSubpanel");
