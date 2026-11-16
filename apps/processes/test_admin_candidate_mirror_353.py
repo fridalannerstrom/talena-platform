@@ -246,6 +246,29 @@ class AdminCandidateMirror353Tests(TestCase):
                 403,
             )
 
+    def test_admin_candidate_pages_render_customer_styles_after_generic_admin_css(self):
+        self.client.force_login(self.admin)
+        company_page = reverse(
+            "accounts:company_process_detail",
+            args=[self.company.pk, self.process.pk],
+        )
+        legacy_process = reverse(
+            "accounts:admin_process_detail", args=[self.process.pk],
+        )
+        for url in (company_page, self.direct_admin_url, legacy_process):
+            with self.subTest(url=url):
+                response = self.client.get(url)
+                self.assertEqual(response.status_code, 200)
+                html = response.content.decode("utf-8")
+                self.assertIn("candidate-insights.css", html)
+                self.assertIn("candidate-assessments.css", html)
+                self.assertIn("candidate-charts.css", html)
+                self.assertIn("candidate-insight-tabs.css", html)
+                self.assertLess(
+                    html.index("admin-pages.css"),
+                    html.rindex("candidate-insights.css"),
+                )
+
     def test_company_page_candidate_links_stay_in_internal_admin_route(self):
         self.client.force_login(self.admin)
         response = self.client.get(reverse(
