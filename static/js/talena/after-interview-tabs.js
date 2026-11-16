@@ -1134,6 +1134,7 @@
         button.title = copy().regenerateSection;
         button.setAttribute("aria-label", copy().regenerateSection);
       }
+      document.dispatchEvent(new CustomEvent("talena:post-interview-part-generated"));
     } catch (generationError) {
       if (!preserveManualEdit) {
         body.textContent = previousText;
@@ -2567,6 +2568,7 @@
         }
         if (failures.length) throw new Error(failures.join(" "));
         managerAdviceHasGeneratedText = true;
+        document.dispatchEvent(new CustomEvent("talena:post-interview-part-generated"));
       } catch (generationError) {
         managerReportGenerateError.textContent =
           generationError.message || copy().sectionGenerationFailed;
@@ -2880,8 +2882,32 @@
       const changedNotesUrl = event.detail?.notesUrl || "";
       const ownNotesUrl = outputRoot.dataset.questionEvidenceNotesUrl || "";
       if (changedNotesUrl && ownNotesUrl && changedNotesUrl !== ownNotesUrl) return;
-      outputRoot.dataset.postInterviewEvidenceChanged = "true";
+      outputRoot.dataset.postInterviewEvidenceChanged =
+        String(event.detail?.evidenceChanged ?? true);
       updateReportStatus();
+    });
+
+    // Individual report buttons do not replace the entire candidate fragment.
+    // Ask the server for the authoritative content comparison after saving.
+    document.addEventListener("talena:post-interview-part-generated", async () => {
+      if (!outputRoot.isConnected || !outputRoot.dataset.refreshUrl) return;
+      try {
+        const response = await fetch(outputRoot.dataset.refreshUrl, {
+          headers: { "X-Requested-With": "XMLHttpRequest" },
+          credentials: "same-origin",
+        });
+        if (!response.ok) return;
+        const html = await response.text();
+        const fresh = new DOMParser()
+          .parseFromString(html, "text/html")
+          .querySelector("[data-final-output-root]");
+        if (!fresh || !outputRoot.isConnected) return;
+        outputRoot.dataset.postInterviewEvidenceChanged =
+          fresh.dataset.postInterviewEvidenceChanged || "false";
+        updateReportStatus();
+      } catch (_error) {
+        // Keep the previous warning if status cannot be verified.
+      }
     });
 
     let activeReportKey = "overview";
