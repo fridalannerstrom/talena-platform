@@ -37,8 +37,9 @@ assert.ok(history.includes("talena:manager-report-activity-changed"));
 assert.ok(history.includes("const PANEL_SELECTOR = \"[data-manager-report-activity-panel][data-manager-report-activity-url]\""));
 assert.ok(history.includes("container?.matches?.(PANEL_SELECTOR)"));
 assert.ok(history.includes("document.querySelectorAll(PANEL_SELECTOR)"));
-assert.ok(adminOne.includes("data-manager-report-activity-panel"));
+assert.ok(adminOne.includes("admin/accounts/companies/company_candidate_sheet.html"));
 assert.ok(adminTwo.includes("data-manager-report-activity-panel"));
+assert.ok(adminTwo.includes("customer/processes/_candidate_detail_sheet.html"));
 
 const sourceRoot = read("templates/customer/processes/partials/candidate_insights/tabs/_final_output.html");
 assert.ok(sourceRoot.includes("data-manager-report-activity-url="));
