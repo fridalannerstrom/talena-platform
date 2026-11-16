@@ -10,6 +10,7 @@
   </div>
   {% comment %} Customer candidate styles are scoped to .process-page. Keep the scope
      local to the candidate panel so the admin's other surfaces are untouched. {% endcomment %}
+  {{ admin_manager_report_edits_payload|json_script:"talena-admin-manager-report-edits" }}
   <div class="process-page">
     {% include "customer/processes/_candidate_detail_sheet.html" %}
   </div>
