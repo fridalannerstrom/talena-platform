@@ -20,7 +20,7 @@
 
   const safeName = (value) => String(value || "")
     .normalize("NFKC")
-    .replace(/[\\/:*?"<>|\\u0000-\\u001f]/g, "-")
+    .replace(/[\\/:*?"<>|\u0000-\u001f]/g, "-")
     .replace(/\s+/g, " ")
     .trim()
     .slice(0, 70) || "Kandidat";
