@@ -5,12 +5,15 @@ Synthetic data only; HTTP and persistence regressions, no Sova/OpenAI calls.
 from pathlib import Path
 
 from django.conf import settings
+from django.template.loader import render_to_string
 from django.test import SimpleTestCase, TestCase
 from django.urls import reverse
 from django.utils import timezone
 
 from apps.accounts.models import Company, CompanyMember, OrgUnit, User, UserOrgUnitAccess
 from apps.processes.models import Candidate, TestInvitation, TestProcess
+from apps.processes.interview_question_models import InterviewQuestionNote, ManagerReportTextEdit
+from apps.accounts.views import _admin_saved_interview_notes
 
 
 class AdminCandidateMirror353Tests(TestCase):
@@ -245,6 +248,128 @@ class AdminCandidateMirror353Tests(TestCase):
                 self.client.get(url, HTTP_X_REQUESTED_WITH="XMLHttpRequest").status_code,
                 403,
             )
+
+    def test_saved_customer_evidence_answers_and_manual_manager_edits_are_readonly(self):
+        self.invitation.interview_notes = (
+            "### Intervjuunderlag: Personlighet\\nKunden noterade samarbete.\\n\\n"
+            "### Intervjuunderlag: Motivation\\nKunden beskrev drivkraft."
+        ).replace("\\\\n", "\\n")
+        self.invitation.ai_post_interview_decision_support = {
+            "content_blocks": {"overall_picture": "Sparad helhetsbild från användaren."},
+        }
+        self.invitation.ai_post_interview_decision_support_status = "completed"
+        self.invitation.ai_content_languages = {"post_interview_decision_support": "sv"}
+        self.invitation.save(update_fields=[
+            "interview_notes", "ai_post_interview_decision_support",
+            "ai_post_interview_decision_support_status", "ai_content_languages",
+        ])
+        InterviewQuestionNote.objects.create(
+            process=self.process, candidate=self.candidate, source="personality",
+            question_key="q-353-1", question_text="Hur samarbetar du?",
+            note="Intervjusvar sparat av kunden.", updated_by=self.customer,
+        )
+        ManagerReportTextEdit.objects.create(
+            process=self.process, candidate=self.candidate, language_code="sv",
+            block_key="wellbeing_tips", text="Kundens manuella text i chefsrapporten.",
+            version=2, updated_by=self.customer,
+        )
+
+        response = self._get(self.admin, self.company_admin_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            [section["title"] for section in response.context["admin_interview_note_sections"]],
+            ["Personlighet", "Motivation"],
+        )
+        self.assertIn(
+            "Kunden beskrev drivkraft.",
+            response.context["admin_interview_note_sections"][1]["text"],
+        )
+        self.assertEqual(
+            response.context["admin_interview_question_notes"][0].note,
+            "Intervjusvar sparat av kunden.",
+        )
+        self.assertTrue(response.context["admin_has_manager_report"])
+        self.assertEqual(
+            response.context["admin_manager_report_edits_payload"]["edits"][0]["text"],
+            "Kundens manuella text i chefsrapporten.",
+        )
+        self.assertContains(response, "talena-admin-manager-report-edits")
+        self.assertContains(response, "Kundens manuella text i chefsrapporten.")
+
+        html = render_to_string("admin/accounts/partials/_post_interview_evidence_readonly.html", {
+            "admin_interview_note_sections": response.context["admin_interview_note_sections"],
+            "admin_interview_question_notes": response.context["admin_interview_question_notes"],
+            "interview_notes": response.context["interview_notes"],
+            "interview_notes_updated_at": response.context["interview_notes_updated_at"],
+        })
+        self.assertIn("Kunden noterade samarbete.", html)
+        self.assertIn("Intervjusvar sparat av kunden.", html)
+        self.assertIn("data-admin-interview-evidence-readonly", html)
+        self.assertNotIn("data-interview-notes-save", html)
+        self.assertNotIn("contenteditable=", html)
+
+    def test_admin_does_not_mislabel_legacy_or_mixed_notes(self):
+        original = "Mötet var positivt.\\nInga ämnesrubriker finns.".replace("\\\\n", "\\n")
+        self.assertEqual(
+            _admin_saved_interview_notes(original),
+            [{"title": "Tidigare intervjuanteckningar", "text": original}],
+        )
+        mixed = original + (
+            "\\n\\n### Intervjuunderlag: Färdighet\\nLöste logiska problem."
+        ).replace("\\\\n", "\\n")
+        self.assertEqual(
+            [item["title"] for item in _admin_saved_interview_notes(mixed)],
+            ["Tidigare intervjuanteckningar", "Färdighet"],
+        )
+        self.assertEqual(
+            _admin_saved_interview_notes(mixed)[0]["text"], original,
+        )
+
+    def test_admin_evidence_and_manager_edits_are_scoped_to_this_project(self):
+        other_candidate = Candidate.objects.create(
+            first_name="Other", last_name="Synthetic",
+            email="other-evidence-353@example.test",
+        )
+        InterviewQuestionNote.objects.create(
+            process=self.process, candidate=other_candidate, source="motivation",
+            question_key="foreign-q", question_text="Private question",
+            note="PRIVATE_OTHER_CANDIDATE_353",
+        )
+        ManagerReportTextEdit.objects.create(
+            process=self.process, candidate=other_candidate, language_code="sv",
+            block_key="wellbeing_tips", text="PRIVATE_OTHER_EDIT_353",
+        )
+        response = self._get(self.admin, self.company_admin_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn("PRIVATE_OTHER_CANDIDATE_353", response.content.decode("utf-8"))
+        self.assertNotIn("PRIVATE_OTHER_EDIT_353", response.content.decode("utf-8"))
+        self.assertEqual(response.context["admin_interview_question_notes"], [])
+        self.assertEqual(response.context["admin_manager_report_edits_payload"]["edits"], [])
+        self.assertFalse(response.context["admin_has_manager_report"])
+
+    def test_admin_after_interview_template_only_exposes_readonly_urls(self):
+        response = self._get(self.admin, self.company_admin_url)
+        self.assertEqual(response.status_code, 200)
+        context = {
+            "is_admin_candidate_mirror": True,
+            "process": self.process,
+            "candidate": self.candidate,
+            "invitation": self.invitation,
+            "interview_notes": "Kunden har sparat anteckningar",
+            "admin_interview_note_sections": _admin_saved_interview_notes("Kunden har sparat anteckningar"),
+            "admin_interview_question_notes": [],
+        }
+        source = render_to_string(
+            "customer/processes/partials/candidate_insights/tabs/_final_output.html",
+            context,
+        )
+        self.assertIn('data-admin-read-only="true"', source)
+        self.assertIn('data-post-interview-regenerate-url=""', source)
+        self.assertIn('data-interview-notes-update-url=""', source)
+        self.assertIn('data-manager-report-edit-save-url=""', source)
+        self.assertIn("Kunden har sparat anteckningar", source)
+        self.assertNotIn("data-interview-notes-save", source)
+        self.assertNotIn("data-interview-notes-area=", source)
 
     def test_admin_candidate_pages_render_customer_styles_after_generic_admin_css(self):
         self.client.force_login(self.admin)
