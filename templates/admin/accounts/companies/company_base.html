@@ -8,6 +8,11 @@
   {% include "admin/accounts/partials/_candidate_customer_styles.html" %}
 {% endblock %}
 
+{% block extra_js %}
+  {{ block.super }}
+  {% include "admin/accounts/partials/_candidate_customer_presentation_js.html" %}
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid px-2 px-md-4">
 
