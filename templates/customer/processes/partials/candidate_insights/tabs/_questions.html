@@ -5,12 +5,13 @@
 {# Talena candidate i18n batch 1 #}
 
 <style>
-  /* One cohesive card for response styles, nuances and interview questions. */
+  /* The shared candidate-insight-page shell owns the outer border and radius.
+     Match the inner spacing used by the Personality subworkspace. */
   .process-page #candidate-insights-panel-prepare-interview .pre-interview-content-card {
-    padding: 1.35rem 1.2rem 1.15rem;
-    border: 1px solid var(--talena-border);
-    border-radius: 18px;
-    background: #fff;
+    padding: 1.25rem 1.5rem 1.5rem;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
     box-shadow: none;
     min-width: 0;
   }
@@ -185,9 +186,9 @@
     }
   }
 
-  @media (max-width: 767px) {
+  @media (max-width: 620px) {
     .process-page #candidate-insights-panel-prepare-interview .pre-interview-content-card {
-      padding: 1rem 0.9rem 0.9rem;
+      padding: 1rem;
     }
   }
 
