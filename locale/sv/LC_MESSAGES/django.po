@@ -2254,7 +2254,7 @@ msgstr ""
 #: .\templates\admin\core\ai_prompts\prompt_list.html:13
 #: .\templates\admin\core\partials\admin_sidebar.html:88
 msgid "AI prompts"
-msgstr ""
+msgstr "AI-prompter"
 
 #: .\templates\admin\core\ai_prompts\prompt_list.html:17
 msgid "Manage Talena's global AI instructions and psychometric guidance."
@@ -2314,7 +2314,7 @@ msgstr "Kontoinställningar"
 
 #: .\templates\admin\core\partials\admin_sidebar.html:71
 msgid "AI"
-msgstr ""
+msgstr "AI"
 
 #: .\templates\admin\core\partials\admin_sidebar.html:94
 msgid "Companies"
@@ -2338,11 +2338,11 @@ msgstr "Alla användare"
 
 #: .\templates\admin\core\partials\admin_sidebar.html:157
 msgid "Statistics"
-msgstr "Statestik"
+msgstr "Statistik"
 
 #: .\templates\admin\core\partials\admin_sidebar.html:174
 msgid "Usage & Billing"
-msgstr ""
+msgstr "Användning och fakturering"
 
 #: .\templates\admin\core\partials\admin_sidebar.html:186
 #: .\templates\customer\core\partials\customer_sidebar.html:157

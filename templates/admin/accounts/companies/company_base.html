@@ -1,9 +1,16 @@
 {% extends "admin/core/layouts/admin_base.html" %}
 {% load static %}
 
-{% block extra_css %}
+{% comment %} #353: On all company admin pages candidates can be opened in the
+   shared customer sheet. Load its source styles after generic admin CSS. {% endcomment %}
+{% block admin_candidate_mirror_css %}
   {{ block.super }}
-  <link href="{% static 'css/talena/pages/candidate-insights.css' %}?v=20261107-431-401" rel="stylesheet" />
+  {% include "admin/accounts/partials/_candidate_customer_styles.html" %}
+{% endblock %}
+
+{% block extra_js %}
+  {{ block.super }}
+  {% include "admin/accounts/partials/_candidate_customer_presentation_js.html" %}
 {% endblock %}
 
 {% block content %}

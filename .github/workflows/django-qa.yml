@@ -58,6 +58,24 @@ jobs:
           DJANGO_SECRET_KEY: local-qa-only
           USE_AZURE_STORAGE: '0'
         run: python manage.py makemigrations processes candidate_results emails accounts activity --check --dry-run
+      - name: Verify admin candidate/customer mirror (#353)
+        env:
+          DJANGO_DEBUG: 'True'
+          DJANGO_SECRET_KEY: local-qa-only
+          USE_AZURE_STORAGE: '0'
+        run: |
+          python manage.py test apps.processes.test_admin_candidate_mirror_353 apps.processes.test_candidate_sent_assessments_tab --noinput
+          node --check static/js/talena/admin-candidate-mirror-353.js
+          node scripts/test_admin_candidate_navigation_353.js
+          node --check static/js/talena/structured-overall-picture.js
+          node --check static/js/talena/after-interview-tabs.js
+          node scripts/test_manager_report_activity_430.js
+      - name: Verify Talena admin Sova workflows (#352)
+        env:
+          DJANGO_DEBUG: 'True'
+          DJANGO_SECRET_KEY: local-qa-only
+          USE_AZURE_STORAGE: '0'
+        run: python manage.py test apps.processes.test_admin_sova_flow_352 --noinput
       - name: Verify project settings language switching (#466)
         run: |
           node --check static/js/talena/process-settings.js

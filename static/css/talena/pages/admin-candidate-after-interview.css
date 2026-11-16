@@ -1,0 +1,77 @@
+/* #353 - Saved After interview evidence and reports inside Talena admin.
+   Every selector is limited to the shared read-only candidate mirror. */
+.talena-admin-candidate-mirror [data-admin-read-only="true"] .after-interview-journey,
+.talena-admin-candidate-mirror [data-admin-read-only="true"] .after-interview-evidence-intro__tip,
+.talena-admin-candidate-mirror [data-admin-read-only="true"] .after-interview-evidence-compilation,
+.talena-admin-candidate-mirror [data-admin-read-only="true"] [data-post-interview-section],
+.talena-admin-candidate-mirror [data-admin-read-only="true"] [data-interview-notes-save],
+.talena-admin-candidate-mirror [data-admin-read-only="true"] [data-post-interview-generate],
+.talena-admin-candidate-mirror [data-admin-read-only="true"] [data-overall-picture-generate],
+.talena-admin-candidate-mirror [data-admin-read-only="true"] .after-interview-overall__generate,
+.talena-admin-candidate-mirror [data-admin-read-only="true"] .after-interview-tab-card__regenerate,
+.talena-admin-candidate-mirror [data-admin-read-only="true"] .after-interview-manager-report__generate,
+.talena-admin-candidate-mirror [data-admin-read-only="true"] .after-interview-manager-report__edit-controls,
+.talena-admin-candidate-mirror [data-admin-read-only="true"] .after-interview-manager-report__pdf-button,
+.talena-admin-candidate-mirror [data-admin-read-only="true"] .after-interview-manager-report__confirm-dialog,
+.talena-admin-candidate-mirror [data-admin-read-only="true"] .after-interview-manager-report__edit-dialog,
+.talena-admin-candidate-mirror [data-admin-read-only="true"] .after-interview-reports__status,
+.talena-admin-candidate-mirror [data-admin-read-only="true"] [data-after-interview-tab][hidden] {
+  display: none !important;
+}
+
+.talena-admin-candidate-mirror [data-admin-interview-evidence-readonly] {
+  padding: 1.25rem 1.5rem;
+}
+
+.talena-admin-candidate-mirror [data-admin-interview-evidence-readonly] .interview-notes-areas {
+  display: grid;
+  gap: 0.8rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+}
+
+.talena-admin-candidate-mirror [data-admin-interview-evidence-readonly] .interview-notes-area {
+  min-width: 0;
+  border: 1px solid var(--talena-border);
+  border-radius: 10px;
+  padding: 1rem;
+  background: var(--talena-surface-soft);
+}
+
+.talena-admin-candidate-mirror .admin-interview-evidence-text {
+  color: var(--talena-text);
+  font-size: 0.76rem;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.talena-admin-candidate-mirror .admin-interview-question-evidence {
+  padding-top: 1rem;
+  border-top: 1px solid var(--talena-border);
+}
+
+.talena-admin-candidate-mirror .admin-interview-question-evidence__item {
+  padding: 0.9rem 0;
+  border-bottom: 1px solid var(--talena-border);
+}
+
+.talena-admin-candidate-mirror .admin-interview-question-evidence__item:last-child {
+  border-bottom: 0;
+}
+
+.talena-admin-candidate-mirror .admin-interview-question-evidence__question {
+  margin-bottom: 0.4rem;
+  font-size: 0.82rem;
+  font-weight: 650;
+  line-height: 1.45;
+  color: var(--talena-ink);
+}
+
+@media (max-width: 767px) {
+  .talena-admin-candidate-mirror [data-admin-interview-evidence-readonly] {
+    padding: 1rem;
+  }
+  .talena-admin-candidate-mirror [data-admin-interview-evidence-readonly] .interview-notes-areas {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

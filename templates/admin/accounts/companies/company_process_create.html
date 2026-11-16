@@ -84,6 +84,24 @@
 </div>
 
 <div class="mb-4">
+  <div class="form-label fw-semibold">Candidate language</div>
+  <div class="d-flex flex-wrap gap-3">
+    {% for option in form.candidate_language %}
+      <label class="form-check d-flex gap-2 align-items-center">
+        {{ option.tag }}
+        <span class="form-check-label">{{ option.choice_label }}</span>
+      </label>
+    {% endfor %}
+  </div>
+  {% for error in form.candidate_language.errors %}
+    <div class="text-danger small mt-1">{{ error }}</div>
+  {% endfor %}
+  <div class="form-text">
+    The selected language is used in Sova orders and candidate invitation emails.
+  </div>
+</div>
+
+<div class="mb-4">
   <label class="form-label fw-semibold" for="id_org_unit">
     Account / unit
   </label>
@@ -98,11 +116,52 @@
       </option>
     {% endfor %}
   </select>
+  {% for error in form.org_unit.errors %}
+    <div class="text-danger small mt-1">{{ error }}</div>
+  {% endfor %}
 
   <div class="form-text">
     Choose where this process should be placed. This controls which customer users can access it.
   </div>
 </div>
+
+          {% if project_owners %}
+            <div class="mb-4">
+              <label for="id_project_owner" class="form-label fw-semibold">
+                Customer project owner
+              </label>
+              <select name="project_owner" id="id_project_owner" class="form-select" required>
+                <option value="">Select project owner</option>
+                {% for membership in project_owners %}
+                  <option value="{{ membership.user_id }}"
+                    {% if request.POST.project_owner == membership.user_id|stringformat:"s" %}selected{% endif %}>
+                    {{ membership.user.get_full_name|default:membership.user.email|default:membership.user.username }}
+                  </option>
+                {% endfor %}
+              </select>
+              <div class="form-text">
+                Choose a customer user who can access the selected account.
+                The project will be visible to them even with own-only permissions.
+              </div>
+            </div>
+          {% endif %}
+
+          <div class="mb-4">
+            <label class="form-check d-flex gap-2 align-items-start">
+              {{ form.candidate_results_enabled }}
+              <span>
+                <span class="fw-semibold d-block">{{ form.candidate_results_enabled.label }}</span>
+                <span class="small text-muted">{{ form.candidate_results_enabled.help_text }}</span>
+              </span>
+            </label>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-check d-flex gap-2 align-items-start">
+              {{ form.project_completion_notifications_enabled }}
+              <span class="fw-semibold">{{ form.project_completion_notifications_enabled.label }}</span>
+            </label>
+          </div>
 
           {% if form.labels_text %}
             <div class="mb-4">

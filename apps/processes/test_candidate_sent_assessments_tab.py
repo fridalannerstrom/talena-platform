@@ -44,36 +44,42 @@ class AssessmentLinkStateTests(SimpleTestCase):
 
 
 class AssessmentTabTemplateTests(SimpleTestCase):
-    PATHS = (
-        "templates/customer/processes/_candidate_detail_sheet.html",
+    CUSTOMER = "templates/customer/processes/_candidate_detail_sheet.html"
+    ADMIN_MIRRORS = (
         "templates/admin/accounts/companies/company_candidate_sheet.html",
         "templates/admin/accounts/customer/candidate_detail.html",
     )
 
-    def test_merged_tab_in_customer_and_both_admin_mirrors(self):
-        for path in self.PATHS:
-            with self.subTest(path=path):
-                source = (Path(settings.BASE_DIR) / path).read_text(encoding="utf-8")
-                self.assertEqual(source.count('data-tab-target="tests"'), 1)
-                self.assertEqual(source.count('data-tab-panel="tests"'), 1)
-                self.assertNotIn('data-tab-target="link"', source)
-                self.assertNotIn('data-tab-panel="link"', source)
-                self.assertEqual(source.count("data-candidate-assessment-link"), 1)
-                self.assertLess(
-                    source.index("data-candidate-assessment-link"),
-                    source.index('data-tab-panel="activity"'),
-                )
-                self.assertIn('invitation.assessment_link_state == "available"', source)
-                self.assertIn('invitation.assessment_link_state == "expired"', source)
-                self.assertIn('invitation.assessment_link_state == "invalid"', source)
-                self.assertIn('value="{{ invitation.assessment_url }}"', source)
+    def test_shared_customer_sheet_has_one_assessment_tab(self):
+        source = (Path(settings.BASE_DIR) / self.CUSTOMER).read_text(encoding="utf-8")
+        self.assertEqual(source.count('data-tab-target="tests"'), 1)
+        self.assertEqual(source.count('data-tab-panel="tests"'), 1)
+        self.assertNotIn('data-tab-target="link"', source)
+        self.assertNotIn('data-tab-panel="link"', source)
+        self.assertEqual(source.count("data-candidate-assessment-link"), 1)
+        self.assertLess(
+            source.index("data-candidate-assessment-link"),
+            source.index('data-tab-panel="activity"'),
+        )
+        self.assertIn('invitation.assessment_link_state == "available"', source)
+        self.assertIn('invitation.assessment_link_state == "expired"', source)
+        self.assertIn('invitation.assessment_link_state == "invalid"', source)
+        self.assertIn('value="{{ invitation.assessment_url }}"', source)
+
+    def test_admin_mirrors_include_customer_sheet_not_copied_content(self):
+        company = (Path(settings.BASE_DIR) / self.ADMIN_MIRRORS[0]).read_text(encoding="utf-8")
+        direct = (Path(settings.BASE_DIR) / self.ADMIN_MIRRORS[1]).read_text(encoding="utf-8")
+        self.assertIn('{% include "customer/processes/_candidate_detail_sheet.html" %}', company)
+        self.assertIn('{% include "admin/accounts/companies/company_candidate_sheet.html" %}', direct)
+        for source in (company, direct):
+            self.assertNotIn('data-tab-panel="tests"', source)
+            self.assertNotIn("data-candidate-assessment-link", source)
 
     def test_old_customer_tab_api_maps_link_to_tests(self):
         source = (
             Path(settings.BASE_DIR) / "templates/customer/processes/process_base.html"
         ).read_text(encoding="utf-8")
         self.assertIn('if (tabTarget === "link") tabTarget = "tests";', source)
-
 
 class CandidateAssessmentLinkAccessTests(TestCase):
     def setUp(self):

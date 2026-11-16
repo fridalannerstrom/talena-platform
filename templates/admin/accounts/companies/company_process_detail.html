@@ -81,6 +81,13 @@
                   class="btn btn-outline-secondary js-selfreg">
             Self-registration
           </button>
+          {% if not process.is_archived and process.sova_sync_enabled %}
+            <a class="btn btn-dark"
+               href="{% url 'accounts:admin_process_add_candidate' process.pk %}?next={{ request.path|urlencode }}">
+              <i data-feather="user-plus"></i>
+              {% if admin_project_language|slice:":2" == "sv" %}Lägg till kandidat{% else %}Add candidate{% endif %}
+            </a>
+          {% endif %}
         {% endif %}
 
         {% if process.is_historical %}
@@ -298,15 +305,36 @@
       </div>
     </div>
 
-    <span class="badge bg-light text-dark">
-      {{ kpis.total_candidates }} candidates
-    </span>
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+      <span class="badge bg-light text-dark">
+        {{ kpis.total_candidates }} candidates
+      </span>
+      {% if not process.is_historical and not process.is_archived and process.sova_sync_enabled %}
+        <button type="submit" form="admin-company-send-tests" id="admin-company-send-button"
+                class="btn btn-dark btn-sm" disabled>
+          {% if admin_project_language|slice:":2" == "sv" %}Skicka test till valda{% else %}Send tests to selected{% endif %}
+        </button>
+      {% endif %}
+    </div>
   </div>
 
+  {% if not process.is_historical %}
+    <form id="admin-company-send-tests" method="post"
+          action="{% url 'accounts:admin_process_send_tests' process.pk %}">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ request.path }}">
+  {% endif %}
   <div class="table-responsive talena-assessment-matrix" data-project-test-statuses data-status-url="{% url 'accounts:admin_process_invitation_statuses' process.id %}">
     <table class="table table-striped align-middle mb-0">
       <thead>
         <tr>
+          {% if not process.is_historical %}
+            <th class="talena-assessment-select" style="width:44px;">
+              <input type="checkbox" id="admin-company-select-all"
+                     aria-label="{% if admin_project_language|slice:":2" == "sv" %}Välj alla oskickade{% else %}Select all pending{% endif %}"
+                     {% if not sendable_count %}disabled{% endif %}>
+            </th>
+          {% endif %}
           <th class="talena-assessment-name">{% if admin_project_language|slice:":2" == "sv" %}Namn{% else %}Name{% endif %}</th>
           <th>{% if admin_project_language|slice:":2" == "sv" %}E-post{% else %}Email{% endif %}</th>
           {% if process.is_historical %}
@@ -336,9 +364,9 @@
             <tr>
 <td>
 <a
-  href="{% url 'processes:process_candidate_detail' process.id record.candidate.id %}"
+  href="{% url 'accounts:company_process_candidate_detail' company.pk process.pk record.candidate.id %}"
   class="fw-semibold text-decoration-none user-name-link js-open-candidate"
-  data-sheet-url="{% url 'processes:process_candidate_detail' process.id record.candidate.id %}"
+  data-sheet-url="{% url 'accounts:company_process_candidate_detail' company.pk process.pk record.candidate.id %}"
   data-candidate-id="{{ record.candidate.id }}"
   data-candidate-name="{{ record.candidate.first_name }} {{ record.candidate.last_name|escape }}"
 >
@@ -395,16 +423,33 @@
 
           {% for inv in invitations %}
             <tr>
+              <td class="talena-assessment-select">
+                {% if not process.is_archived and process.sova_sync_enabled %}
+                  {% if inv.status == "created" or inv.status == "failed" %}
+                    <input type="checkbox" name="invitation_ids" value="{{ inv.pk }}"
+                           class="admin-company-invitation-checkbox"
+                           aria-label="{% if admin_project_language|slice:":2" == "sv" %}Skicka test till{% else %}Send tests to{% endif %} {{ inv.candidate.first_name }} {{ inv.candidate.last_name }}">
+                  {% else %}
+                    <span class="text-muted" aria-label="Already processed">—</span>
+                  {% endif %}
+                {% else %}
+                  <span class="text-muted">—</span>
+                {% endif %}
+              </td>
               <td class="talena-assessment-name">
                 {% if inv.candidate %}
 <a
-  href="{% url 'processes:process_candidate_detail' process.id inv.candidate.id %}"
+  href="{% url 'accounts:company_process_candidate_detail' company.pk process.pk inv.candidate.id %}"
   class="fw-semibold text-decoration-none user-name-link js-open-candidate"
-  data-sheet-url="{% url 'processes:process_candidate_detail' process.id inv.candidate.id %}"
+  data-sheet-url="{% url 'accounts:company_process_candidate_detail' company.pk process.pk inv.candidate.id %}"
   data-candidate-id="{{ inv.candidate.id }}"
   data-candidate-name="{{ inv.candidate.first_name }} {{ inv.candidate.last_name|escape }}"
 >
-                    {{ inv.candidate.name|default:inv.candidate.email }}
+                    {% if inv.candidate.first_name or inv.candidate.last_name %}
+                      {{ inv.candidate.first_name }} {{ inv.candidate.last_name }}
+                    {% else %}
+                      {{ inv.candidate.email }}
+                    {% endif %}
                   </a>
                   {% include "customer/processes/partials/_integrity_guard_badge.html" with inv=inv %}
                 {% else %}
@@ -425,8 +470,8 @@
               {% endfor %}
 
               <td class="text-muted text-nowrap">
-                {% if inv.created_at %}
-                  {{ inv.created_at|date:"Y-m-d H:i" }}
+                {% if inv.invited_at %}
+                  {{ inv.invited_at|date:"Y-m-d H:i" }}
                 {% else %}
                   —
                 {% endif %}
@@ -452,8 +497,37 @@
       </tbody>
     </table>
   </div>
+  {% if not process.is_historical %}
+    </form>
+  {% endif %}
 </div>
 
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const form = document.getElementById("admin-company-send-tests");
+  const sendButton = document.getElementById("admin-company-send-button");
+  const selectAll = document.getElementById("admin-company-select-all");
+  if (!form || !sendButton) return;
+
+  const checkboxes = Array.from(form.querySelectorAll(".admin-company-invitation-checkbox"));
+  const updateSelection = () => {
+    const selected = checkboxes.filter(box => box.checked).length;
+    sendButton.disabled = selected === 0;
+    if (selectAll) {
+      selectAll.checked = checkboxes.length > 0 && selected === checkboxes.length;
+      selectAll.indeterminate = selected > 0 && selected < checkboxes.length;
+    }
+  };
+  if (selectAll) {
+    selectAll.addEventListener("change", () => {
+      checkboxes.forEach(box => { box.checked = selectAll.checked; });
+      updateSelection();
+    });
+  }
+  checkboxes.forEach(box => box.addEventListener("change", updateSelection));
+  updateSelection();
+});
+</script>
 
 {% include "admin/accounts/partials/_removed_candidate_history.html" %}
 
@@ -529,67 +603,8 @@
 document.addEventListener("DOMContentLoaded", () => {
   initCompanyCandidateSheet();
   initSelfRegistrationModal();
-  initCandidateSheetAiObserver();
+  // Admin only reads already-saved AI. Opening a sheet never starts generation.
 });
-
-function initCandidateSheetAiObserver() {
-  const sheetBody = document.getElementById(
-    "candidateSheetBody"
-  );
-
-  if (!sheetBody) {
-    console.error(
-      "[ADMIN CANDIDATE] candidateSheetBody not found"
-    );
-    return;
-  }
-
-  function startCandidateAi() {
-    const purposeFitCard =
-      sheetBody.querySelector(
-        "#purposeFitCard"
-      );
-
-    if (!purposeFitCard) {
-      return;
-    }
-
-    console.log(
-      "[ADMIN CANDIDATE] Purpose Fit card detected"
-    );
-
-    initCandidatePurposeFitWhenReady(
-      sheetBody
-    );
-  }
-
-  /*
-   * Candidate HTML is inserted asynchronously with
-   * innerHTML. Watch the sheet body and initialise AI
-   * as soon as the candidate workspace appears.
-   */
-  const observer = new MutationObserver(() => {
-    startCandidateAi();
-  });
-
-  observer.observe(
-    sheetBody,
-    {
-      childList: true
-    }
-  );
-
-  /*
-   * Also check immediately in case a candidate is
-   * already rendered.
-   */
-  startCandidateAi();
-
-  console.log(
-    "[ADMIN CANDIDATE] AI observer ready"
-  );
-}
-
 
   function initCompanyCandidateSheet() {
     const sheetEl = document.getElementById("candidateSheet");
@@ -639,34 +654,6 @@ function initCandidateSheetAiObserver() {
         }
 
 sheetBody.innerHTML = await response.text();
-
-/*
- * Start Candidate Insights AI after the candidate
- * workspace has been inserted into the offcanvas.
- */
-if (
-  typeof window.initCandidatePurposeFitStream
-  === "function"
-) {
-  console.log(
-    "[ADMIN CANDIDATE] Starting Purpose Fit directly"
-  );
-
-  try {
-    await window.initCandidatePurposeFitStream(
-      sheetBody
-    );
-  } catch (error) {
-    console.error(
-      "[ADMIN CANDIDATE] Purpose Fit failed:",
-      error
-    );
-  }
-} else {
-  console.error(
-    "[ADMIN CANDIDATE] initCandidatePurposeFitStream is missing"
-  );
-}
 
 refreshDynamicCandidateSheetContent(
   sheetBody,
@@ -731,56 +718,6 @@ refreshDynamicCandidateSheetContent(
       updateNavigation();
     });
   }
-
-function initCandidatePurposeFitWhenReady(
-  container,
-  attempt = 0
-) {
-  const maxAttempts = 20;
-
-  if (
-    typeof window.initCandidatePurposeFitStream
-    === "function"
-  ) {
-    console.log(
-      "[ADMIN CANDIDATE] Starting Purpose Fit"
-    );
-
-    Promise.resolve(
-      window.initCandidatePurposeFitStream(
-        container
-      )
-    ).catch((error) => {
-      console.error(
-        "[ADMIN CANDIDATE] Purpose Fit init failed:",
-        error
-      );
-    });
-
-    return;
-  }
-
-  if (attempt >= maxAttempts) {
-    console.error(
-      "[ADMIN CANDIDATE] candidate-purpose-fit.js " +
-      "was not ready after waiting."
-    );
-
-    return;
-  }
-
-  console.log(
-    "[ADMIN CANDIDATE] Waiting for Purpose Fit script...",
-    attempt + 1
-  );
-
-  setTimeout(() => {
-    initCandidatePurposeFitWhenReady(
-      container,
-      attempt + 1
-    );
-  }, 100);
-}
 
 function initAdminCandidateInsightsTabs(container) {
   if (!container) {
@@ -1178,16 +1115,6 @@ function refreshDynamicCandidateSheetContent(
 );
 
   /*
-   * AI Overview / Purpose Fit
-   *
-   * This helper waits briefly if candidate-purpose-fit.js
-   * has not finished loading yet.
-   */
-  initCandidatePurposeFitWhenReady(
-    sheetBody
-  );
-
-  /*
    * Bootstrap tooltips
    */
   if (window.bootstrap) {
@@ -1224,15 +1151,7 @@ function refreshDynamicCandidateSheetContent(
     );
   }
 
-  /*
-   * Candidate summary
-   */
-  if (
-    typeof window.initCandidateSummaryStream
-    === "function"
-  ) {
-    window.initCandidateSummaryStream();
-  }
+
 }
 
   window.switchTabs = function (buttonEl) {
@@ -1418,7 +1337,8 @@ function refreshDynamicCandidateSheetContent(
   </div>
 </div>
 
-<script src="{% static 'js/candidate-purpose-fit.js' %}"></script>
+{# #353: Read-only mirror, no purpose-fit auto-generation script. #}
+<script src="{% static 'js/talena/admin-candidate-mirror-353.js' %}?v=20261116-personality-navigation-2"></script>
 
 <script src="{% static 'js/talena/project-assessment-status.js' %}?v=20261105-447-shortcut"></script>
 {% endblock %}

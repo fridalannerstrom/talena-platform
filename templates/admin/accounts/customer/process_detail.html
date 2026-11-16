@@ -1,11 +1,22 @@
 {% extends "admin/core/layouts/admin_base.html" %}
 {% block title %}Testprocess | Talena{% endblock %}
 
+{% block admin_candidate_mirror_css %}
+  {{ block.super }}
+  {% include "admin/accounts/partials/_candidate_customer_styles.html" %}
+{% endblock %}
+
+{% block extra_js %}
+  {{ block.super }}
+  {% include "admin/accounts/partials/_candidate_customer_presentation_js.html" %}
+{% endblock %}
+
 {% block content %}
 {% load static i18n %}
 {% get_current_language as admin_project_language %}
 <link rel="stylesheet" href="{% static 'css/talena/pages/integrity-guard.css' %}?v=20261104-ig-type07">
 <link rel="stylesheet" href="{% static 'css/talena/pages/project-assessment-status.css' %}?v=20261105-447-shortcut">
+
 
 <a href="{% if request.GET.next %}{{ request.GET.next }}{% else %}{% url 'accounts:admin_user_detail' pk=process.created_by.id %}{% endif %}"
     class="text-muted small text-decoration-none">
@@ -348,6 +359,7 @@
 </script>
 
 <script src="{% static 'js/talena/project-assessment-status.js' %}?v=20261105-447-shortcut"></script>
+<script src="{% static 'js/talena/admin-candidate-mirror-353.js' %}?v=20261116-personality-navigation-2"></script>
 
 
 <script>

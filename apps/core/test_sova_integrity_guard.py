@@ -458,16 +458,19 @@ class IntegrityGuardTemplateTests(SimpleTestCase):
                     "_integrity_guard_badge.html",
                     (root / path).read_text(encoding="utf-8"),
                 )
-        for path in (
-            "templates/customer/processes/_candidate_detail_sheet.html",
-            "templates/admin/accounts/customer/candidate_detail.html",
-            "templates/admin/accounts/companies/company_candidate_sheet.html",
-        ):
-            with self.subTest(path=path):
-                self.assertIn(
-                    "_integrity_guard_panel.html",
-                    (root / path).read_text(encoding="utf-8"),
-                )
+        shared_sheet = (
+            root / "templates/customer/processes/_candidate_detail_sheet.html"
+        ).read_text(encoding="utf-8")
+        self.assertIn("_integrity_guard_panel.html", shared_sheet)
+        # #353: both admin entry points include the same customer partial.
+        company_mirror = (
+            root / "templates/admin/accounts/companies/company_candidate_sheet.html"
+        ).read_text(encoding="utf-8")
+        self.assertIn("_candidate_detail_sheet.html", company_mirror)
+        direct_mirror = (
+            root / "templates/admin/accounts/customer/candidate_detail.html"
+        ).read_text(encoding="utf-8")
+        self.assertIn("company_candidate_sheet.html", direct_mirror)
         # Nothing in the candidate-facing portal or report mentions monitoring.
         self.assertNotIn(
             "integrity_guard",

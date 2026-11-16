@@ -1,4 +1,5 @@
 {% load static i18n %}
+{% get_current_language as ADMIN_SIDEBAR_LANGUAGE %}
 
 <div id="layoutSidenav_nav">
   <nav class="sidenav sidenav-light talena-sidebar">
@@ -51,14 +52,14 @@
           <span>{% trans "Account settings" %}</span>
         </a>
 
-        <div class="sidenav-menu-heading">{% trans "AI" %}</div>
+        <div class="sidenav-menu-heading">{% if ADMIN_SIDEBAR_LANGUAGE|slice:":2" == "sv" %}AI{% else %}{% trans "AI" %}{% endif %}</div>
 
         <a
           class="nav-link sidebar-link {% if request.resolver_match.url_name == 'admin_ai_prompts' or request.resolver_match.url_name == 'admin_ai_prompt_edit' %}active{% endif %}"
           href="{% url 'core:admin_ai_prompts' %}"
         >
           <div class="nav-link-icon"><i data-feather="cpu"></i></div>
-          <span>{% trans "AI prompts" %}</span>
+          <span>{% if ADMIN_SIDEBAR_LANGUAGE|slice:":2" == "sv" %}AI-prompter{% else %}{% trans "AI prompts" %}{% endif %}</span>
         </a>
 
         <div class="sidenav-menu-heading">{% trans "Companies" %}</div>
@@ -89,14 +90,14 @@
           <span>{% trans "All users" %}</span>
         </a>
 
-        <div class="sidenav-menu-heading">{% trans "Statistics" %}</div>
+        <div class="sidenav-menu-heading">{% if ADMIN_SIDEBAR_LANGUAGE|slice:":2" == "sv" %}Statistik{% else %}{% trans "Statistics" %}{% endif %}</div>
 
         <a
           class="nav-link sidebar-link {% if request.resolver_match.url_name == 'admin_usage_billing' %}active{% endif %}"
           href="{% url 'accounts:admin_usage_billing' %}"
         >
           <div class="nav-link-icon"><i data-feather="pie-chart"></i></div>
-          <span>{% trans "Usage & Billing" %}</span>
+          <span>{% if ADMIN_SIDEBAR_LANGUAGE|slice:":2" == "sv" %}Användning och fakturering{% else %}{% trans "Usage & Billing" %}{% endif %}</span>
         </a>
 
       </div>
