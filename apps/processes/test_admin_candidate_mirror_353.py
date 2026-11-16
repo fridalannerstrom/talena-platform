@@ -272,6 +272,26 @@ class AdminCandidateMirror353Tests(TestCase):
                     html.rindex("candidate-insights.css"),
                 )
 
+    def test_django_template_comments_never_appear_as_candidate_text(self):
+        self.client.force_login(self.admin)
+        for url in (
+            self.company_admin_url,
+            self.direct_admin_url,
+        ):
+            with self.subTest(url=url):
+                response = self.client.get(url)
+                self.assertEqual(response.status_code, 200)
+                html = response.content.decode("utf-8")
+                for leaked_comment in (
+                    "Customer candidate styles are scoped",
+                    "Keep the internal admin candidate mirror",
+                    "Shared customer presentation helpers only",
+                    "Optional late-loaded customer candidate CSS",
+                    "On all company admin pages candidates",
+                ):
+                    self.assertNotIn(leaked_comment, html)
+                self.assertNotIn("{#", html)
+
     def test_company_page_candidate_links_stay_in_internal_admin_route(self):
         self.client.force_login(self.admin)
         response = self.client.get(reverse(
