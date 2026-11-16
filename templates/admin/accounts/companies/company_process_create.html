@@ -116,6 +116,9 @@
       </option>
     {% endfor %}
   </select>
+  {% for error in form.org_unit.errors %}
+    <div class="text-danger small mt-1">{{ error }}</div>
+  {% endfor %}
 
   <div class="form-text">
     Choose where this process should be placed. This controls which customer users can access it.
