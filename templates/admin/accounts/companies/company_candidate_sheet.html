@@ -8,7 +8,11 @@
       Customer view · {{ company.name }} · {{ process.name }} · Read-only
     {% endif %}
   </div>
-  {% include "customer/processes/_candidate_detail_sheet.html" %}
+  {# Customer candidate styles are scoped to .process-page. Keep the scope
+     local to the candidate panel so the admin's other surfaces are untouched. #}
+  <div class="process-page">
+    {% include "customer/processes/_candidate_detail_sheet.html" %}
+  </div>
 </div>
 {# Audit data is a separate, privileged admin tool, never part of the customer sheet. #}
 <div class="talena-admin-candidate-audit mt-3">
