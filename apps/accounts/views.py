@@ -2978,51 +2978,124 @@ def admin_remove_candidate_from_process(request, process_id, candidate_id):
     return redirect("accounts:admin_process_detail", pk=process.id)
 
 
+def _admin_process_return_url(process, submitted_url):
+    """Only allow returning to this process's own company admin page."""
+    default = reverse("accounts:admin_process_detail", kwargs={"pk": process.pk})
+    if process.company_id:
+        company_url = reverse(
+            "accounts:company_process_detail",
+            kwargs={"company_pk": process.company_id, "process_pk": process.pk},
+        )
+        if submitted_url == company_url:
+            return company_url
+    return default
+
+
 @admin_required
 def admin_process_send_tests(request, pk):
     process = get_object_or_404(TestProcess, pk=pk)
-
-    if process.is_historical or not process.sova_sync_enabled:
-        messages.error(request, "This is a historical project and cannot send SOVA invitations.")
-        return redirect("accounts:admin_process_detail", pk=process.pk)
+    return_url = _admin_process_return_url(process, request.POST.get("next"))
+    swedish = (get_language() or "sv").startswith("sv")
 
     if request.method != "POST":
-        return redirect("accounts:admin_process_detail", pk=process.pk)
+        return redirect(return_url)
+
+    if (
+        process.is_historical
+        or process.is_archived
+        or not process.sova_sync_enabled
+        or not process.account_code
+        or not process.project_code
+    ):
+        messages.error(
+            request,
+            "Projektet är inte ett aktivt Sova-projekt som kan skicka tester."
+            if swedish else "This project is not an active Sova project that can send tests.",
+        )
+        return redirect(return_url)
 
     invitation_ids = request.POST.getlist("invitation_ids")
     if not invitation_ids:
-        messages.warning(request, "Välj minst en kandidat.")
-        return redirect("accounts:admin_process_detail", pk=process.pk)
+        messages.warning(
+            request,
+            "Välj minst en kandidat." if swedish else "Select at least one candidate.",
+        )
+        return redirect(return_url)
 
-    invitations = (
-        TestInvitation.objects
-        .filter(process=process, id__in=invitation_ids,
-                removed_from_process_at__isnull=True)
-        .select_related("candidate")
+    # Never accept IDs belonging to a different project or removed candidates.
+    # Expired/sent/started/completed invitations must not be reordered.
+    invitations = list(
+        TestInvitation.objects.filter(
+            process=process,
+            id__in=invitation_ids,
+            removed_from_process_at__isnull=True,
+            status__in=("created", "failed"),
+        ).select_related("candidate")
     )
+    if not invitations:
+        messages.info(
+            request,
+            "Inga valda kandidater har oskickade tester. Redan skickade, "
+            "påbörjade, avslutade eller utgångna tester skickas inte igen."
+            if swedish else
+            "No selected candidate has a pending invitation. Sent, started, "
+            "completed or expired tests will not be ordered again.",
+        )
+        return redirect(return_url)
 
-    result = send_assessments_and_emails(
-        process=process,
-        invitations=invitations,
-        actor_user=request.user,
-        context="admin",
-    )
+    try:
+        result = send_assessments_and_emails(
+            process=process,
+            invitations=invitations,
+            actor_user=request.user,
+            context="admin",
+        )
+    except Exception as exc:
+        # Never render provider exception bodies or candidate details in the UI.
+        import logging
+        logging.getLogger(__name__).warning(
+            "Admin Sova send could not start: process_id=%s error_type=%s",
+            process.pk, type(exc).__name__,
+        )
+        messages.error(
+            request,
+            "Utskicket kunde inte startas. Kontrollera Sova-inställningarna "
+            "och försök igen. Ingen ny inbjudan ska skapas manuellt."
+            if swedish else
+            "The send could not be started. Check the Sova configuration "
+            "and retry. Do not create another invitation manually.",
+        )
+        return redirect(return_url)
 
-    if result["sent_count"]:
-        messages.success(request, f"Skickade test till {result['sent_count']} kandidat(er).")
+    if result.get("sent_count"):
+        messages.success(
+            request,
+            f"Tester skickade till {result['sent_count']} kandidat(er)."
+            if swedish else f"Tests sent to {result['sent_count']} candidate(s).",
+        )
 
-    if result["errors"]:
-        for err in result["errors"]:
-            messages.error(request, f"Kunde inte skicka till {err['email']}: {err['error']}")
+    if result.get("errors"):
+        # Errors returned by the shared service can contain external response
+        # bodies or candidate email addresses: never disclose them here.
+        messages.error(
+            request,
+            f"Utskicket misslyckades för {len(result['errors'])} kandidat(er). "
+            "Kontrollera Sova-konfiguration och mejlleverans. "
+            "Det går att försöka igen utan att beställa om redan skapade tester."
+            if swedish else
+            f"Sending failed for {len(result['errors'])} candidate(s). "
+            "Check the Sova configuration and email delivery. You can retry "
+            "without reordering assessments that were already created.",
+        )
 
-    if result["sent_count"] == 0:
-        if result["skipped_count"]:
-            messages.info(request, "Inget skickades (alla markerade var redan skickade/igång/klara).")
-        else:
-            messages.warning(request, "Inget skickades. Kolla felmeddelanden ovan.")
+    if not result.get("sent_count") and not result.get("errors"):
+        messages.info(
+            request,
+            "Inget ytterligare utskick behövdes."
+            if swedish else "No additional invitations needed to be sent.",
+        )
 
-    return redirect("accounts:admin_process_detail", pk=process.pk)
-
+    return redirect(return_url)
 
 
 @admin_required
@@ -3062,20 +3135,27 @@ def admin_process_invitation_statuses(request, pk):
 @admin_required
 def admin_process_add_candidate(request, pk):
     process = get_object_or_404(TestProcess, pk=pk)
-
     is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest"
+    submitted_next = (
+        request.POST.get("next") if request.method == "POST"
+        else request.GET.get("next")
+    )
+    return_url = _admin_process_return_url(process, submitted_next)
+
+    if process.is_historical or process.is_archived or not process.sova_sync_enabled:
+        return HttpResponseForbidden("This project does not accept live candidates.")
 
     if request.method == "POST":
         form = CandidateCreateForm(request.POST)
         if form.is_valid():
             email = form.cleaned_data["email"].strip().lower()
 
-            candidate, created = Candidate.objects.get_or_create(
+            candidate, _ = Candidate.objects.get_or_create(
                 email=email,
                 defaults={
                     "first_name": form.cleaned_data["first_name"],
                     "last_name": form.cleaned_data["last_name"],
-                }
+                },
             )
 
             invitation, inv_created = TestInvitation.objects.get_or_create(
@@ -3088,51 +3168,59 @@ def admin_process_add_candidate(request, pk):
                 },
             )
 
-            if not inv_created and invitation.source == "invited" and invitation.invited_by_id is None:
+            if invitation.removed_from_process_at:
+                # Removed links are retained for audit; never quietly reactivate.
+                message = (
+                    "Kandidaten har tidigare tagits bort från projektet. "
+                    "Kontrollera historiken innan kandidaten återaktiveras."
+                )
+                messages.warning(request, message)
+                if is_ajax:
+                    return JsonResponse({"ok": False, "message": message}, status=409)
+                return redirect(return_url)
+
+            if not inv_created and invitation.source == "invited" and not invitation.invited_by_id:
                 invitation.invited_by = request.user
                 invitation.save(update_fields=["invited_by"])
 
-
             if inv_created:
-                msg = f"{candidate.email} har lagts till i projektet."
-                messages.success(request, msg)
+                message = "Kandidaten har lagts till i projektet."
+                messages.success(request, message)
             else:
-                msg = f"{candidate.email} är redan i projektet."
-                messages.info(request, msg)
+                message = "Kandidaten finns redan i projektet. Ingen dubbel inbjudan skapades."
+                messages.info(request, message)
 
             if is_ajax:
                 return JsonResponse({
                     "ok": True,
-                    "message": msg,
-                    "redirect_url": reverse("accounts:admin_process_detail", kwargs={"pk": process.pk})
+                    "message": message,
+                    "redirect_url": return_url,
                 })
 
-            return redirect("accounts:admin_process_detail", pk=process.pk)
+            return redirect(return_url)
 
-        # Ogiltigt form
         if is_ajax:
             return render(
                 request,
                 "admin/accounts/customer/_add_candidate_form.html",
                 {"process": process, "form": form},
-                status=400
+                status=400,
             )
-
     else:
         form = CandidateCreateForm()
 
-    # GET: om AJAX -> partial, annars hel sida (valfritt)
     if is_ajax:
-        return render(request, "admin/accounts/customer/_add_candidate_form.html", {
-            "process": process,
-            "form": form,
-        })
+        return render(
+            request,
+            "admin/accounts/customer/_add_candidate_form.html",
+            {"process": process, "form": form},
+        )
 
-    return render(request, "admin/accounts/customer/process_add_candidate.html", {
-        "process": process,
-        "form": form,
-    })
-
+    return render(
+        request,
+        "admin/accounts/customer/process_add_candidate.html",
+        {"process": process, "form": form, "next_url": return_url},
+    )
 
 
 @admin_required
