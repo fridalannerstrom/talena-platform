@@ -347,9 +347,20 @@
                           </div>
                         {% endif %}
                       </div>
-                      <a class="btn btn-outline-primary btn-sm" href="{{ candidate_result_preview_url }}" target="_blank" rel="noopener">
-                        {% if LANGUAGE_CODE|slice:":2" == "sv" %}Visa kandidatrapport{% else %}View candidate result{% endif %}
-                      </a>
+                      <div class="d-flex flex-wrap gap-2">
+                        <a class="btn btn-outline-primary btn-sm" href="{{ candidate_result_preview_url }}" target="_blank" rel="noopener">
+                          {% if LANGUAGE_CODE|slice:":2" == "sv" %}Visa kandidatrapport{% else %}View candidate result{% endif %}
+                        </a>
+                        <a
+                          class="btn btn-primary btn-sm"
+                          href="{{ candidate_result_preview_url }}"
+                          target="_blank"
+                          rel="noopener"
+                          data-candidate-result-download
+                        >
+                          {% if LANGUAGE_CODE|slice:":2" == "sv" %}Ladda ner PDF{% else %}Download PDF{% endif %}
+                        </a>
+                      </div>
                     </div>
 
                     <iframe
@@ -361,7 +372,7 @@
                       onload="this.style.height=Math.max(760,this.contentWindow.document.documentElement.scrollHeight)+'px'">
                     </iframe>
                   </section>
-                {% elif candidate_result_status.sharing_enabled %}
+                {% else %}
                   <div class="candidate-result-report-empty">
                     {% if LANGUAGE_CODE|slice:":2" == "sv" %}
                       Kandidatrapporten visas här när det finns ett färdigt resultat.
