@@ -66,6 +66,8 @@ jobs:
         run: |
           python manage.py test apps.processes.test_admin_candidate_mirror_353 apps.processes.test_candidate_sent_assessments_tab --noinput
           node --check static/js/talena/admin-candidate-mirror-353.js
+          node --check static/js/talena/structured-overall-picture.js
+          node --check static/js/talena/after-interview-tabs.js
           node scripts/test_manager_report_activity_430.js
       - name: Verify Talena admin Sova workflows (#352)
         env:
