@@ -2480,32 +2480,10 @@ def build_candidate_final_output(
     }
 
 def _post_interview_evidence_changed(owner, process) -> bool:
-    """Return whether interview notes or saved question answers changed."""
-    saved_result = owner.ai_post_interview_decision_support or {}
-    if not saved_result:
-        return False
+    """Show the report warning only when saved interview content differs."""
+    from .post_interview_evidence import post_interview_evidence_changed
 
-    if saved_result.get("interview_evidence_changed_since_compilation") is True:
-        return True
-
-    notes_updated_at = owner.interview_notes_updated_at
-    notes_version = owner.ai_post_interview_decision_support_notes_version
-    if notes_updated_at and (
-        not notes_version or notes_updated_at > notes_version
-    ):
-        return True
-
-    latest_question_note = (
-        InterviewQuestionNote.objects
-        .filter(process=process, candidate=owner.candidate)
-        .aggregate(latest=Max("updated_at"))
-        .get("latest")
-    )
-    generated_at = owner.ai_post_interview_decision_support_generated_at
-    return bool(
-        latest_question_note
-        and (not generated_at or latest_question_note > generated_at)
-    )
+    return post_interview_evidence_changed(owner, process)
 
 
 
