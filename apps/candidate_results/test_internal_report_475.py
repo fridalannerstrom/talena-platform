@@ -54,10 +54,10 @@ class InternalCandidateReportWithoutSharingTests(TestCase):
         self.assertEqual(result.status_code, 200)
         snapshot = CandidateResultSnapshot.objects.get(invitation=self.invitation)
         self.assertIsNotNone(snapshot)
-        self.assertContains(result, "Ladda ner PDF")
+        self.assertContains(result, "Download PDF")
         self.assertContains(result, "data-candidate-result-download")
         self.assertContains(result, reverse("candidate_results:preview", kwargs={"snapshot_id": snapshot.pk}))
-        self.assertContains(result, "Intern förhandsvisning")
+        self.assertContains(result, "Internal preview")
         self.assertFalse(self.process.candidate_results_enabled)
         self.assertFalse(CandidateResultAccess.objects.filter(snapshot=snapshot).exists())
         self.assertFalse(EmailLog.objects.filter(invitation=self.invitation, template_type="candidate_result").exists())
@@ -78,7 +78,7 @@ class InternalCandidateReportWithoutSharingTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "data-candidate-result-pdf-button")
         self.assertContains(response, "candidate-result-internal-pdf.js")
-        self.assertNotContains(response, "data-feedback-choice")
+        self.assertNotContains(response, 'class="feedback-choices"')
         self.assertEqual(CandidateResultAccess.objects.count(), 0)
 
     def test_public_result_link_is_still_blocked_when_sharing_is_off(self):
