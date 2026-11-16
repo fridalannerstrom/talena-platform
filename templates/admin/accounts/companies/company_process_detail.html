@@ -364,9 +364,9 @@
             <tr>
 <td>
 <a
-  href="{% url 'processes:process_candidate_detail' process.id record.candidate.id %}"
+  href="{% url 'accounts:company_process_candidate_detail' company.pk process.pk record.candidate.id %}"
   class="fw-semibold text-decoration-none user-name-link js-open-candidate"
-  data-sheet-url="{% url 'processes:process_candidate_detail' process.id record.candidate.id %}"
+  data-sheet-url="{% url 'accounts:company_process_candidate_detail' company.pk process.pk record.candidate.id %}"
   data-candidate-id="{{ record.candidate.id }}"
   data-candidate-name="{{ record.candidate.first_name }} {{ record.candidate.last_name|escape }}"
 >
@@ -439,9 +439,9 @@
               <td class="talena-assessment-name">
                 {% if inv.candidate %}
 <a
-  href="{% url 'processes:process_candidate_detail' process.id inv.candidate.id %}"
+  href="{% url 'accounts:company_process_candidate_detail' company.pk process.pk inv.candidate.id %}"
   class="fw-semibold text-decoration-none user-name-link js-open-candidate"
-  data-sheet-url="{% url 'processes:process_candidate_detail' process.id inv.candidate.id %}"
+  data-sheet-url="{% url 'accounts:company_process_candidate_detail' company.pk process.pk inv.candidate.id %}"
   data-candidate-id="{{ inv.candidate.id }}"
   data-candidate-name="{{ inv.candidate.first_name }} {{ inv.candidate.last_name|escape }}"
 >
@@ -603,67 +603,8 @@ document.addEventListener("DOMContentLoaded", () => {
 document.addEventListener("DOMContentLoaded", () => {
   initCompanyCandidateSheet();
   initSelfRegistrationModal();
-  initCandidateSheetAiObserver();
+  // Admin only reads already-saved AI. Opening a sheet never starts generation.
 });
-
-function initCandidateSheetAiObserver() {
-  const sheetBody = document.getElementById(
-    "candidateSheetBody"
-  );
-
-  if (!sheetBody) {
-    console.error(
-      "[ADMIN CANDIDATE] candidateSheetBody not found"
-    );
-    return;
-  }
-
-  function startCandidateAi() {
-    const purposeFitCard =
-      sheetBody.querySelector(
-        "#purposeFitCard"
-      );
-
-    if (!purposeFitCard) {
-      return;
-    }
-
-    console.log(
-      "[ADMIN CANDIDATE] Purpose Fit card detected"
-    );
-
-    initCandidatePurposeFitWhenReady(
-      sheetBody
-    );
-  }
-
-  /*
-   * Candidate HTML is inserted asynchronously with
-   * innerHTML. Watch the sheet body and initialise AI
-   * as soon as the candidate workspace appears.
-   */
-  const observer = new MutationObserver(() => {
-    startCandidateAi();
-  });
-
-  observer.observe(
-    sheetBody,
-    {
-      childList: true
-    }
-  );
-
-  /*
-   * Also check immediately in case a candidate is
-   * already rendered.
-   */
-  startCandidateAi();
-
-  console.log(
-    "[ADMIN CANDIDATE] AI observer ready"
-  );
-}
-
 
   function initCompanyCandidateSheet() {
     const sheetEl = document.getElementById("candidateSheet");
@@ -713,34 +654,6 @@ function initCandidateSheetAiObserver() {
         }
 
 sheetBody.innerHTML = await response.text();
-
-/*
- * Start Candidate Insights AI after the candidate
- * workspace has been inserted into the offcanvas.
- */
-if (
-  typeof window.initCandidatePurposeFitStream
-  === "function"
-) {
-  console.log(
-    "[ADMIN CANDIDATE] Starting Purpose Fit directly"
-  );
-
-  try {
-    await window.initCandidatePurposeFitStream(
-      sheetBody
-    );
-  } catch (error) {
-    console.error(
-      "[ADMIN CANDIDATE] Purpose Fit failed:",
-      error
-    );
-  }
-} else {
-  console.error(
-    "[ADMIN CANDIDATE] initCandidatePurposeFitStream is missing"
-  );
-}
 
 refreshDynamicCandidateSheetContent(
   sheetBody,
@@ -805,56 +718,6 @@ refreshDynamicCandidateSheetContent(
       updateNavigation();
     });
   }
-
-function initCandidatePurposeFitWhenReady(
-  container,
-  attempt = 0
-) {
-  const maxAttempts = 20;
-
-  if (
-    typeof window.initCandidatePurposeFitStream
-    === "function"
-  ) {
-    console.log(
-      "[ADMIN CANDIDATE] Starting Purpose Fit"
-    );
-
-    Promise.resolve(
-      window.initCandidatePurposeFitStream(
-        container
-      )
-    ).catch((error) => {
-      console.error(
-        "[ADMIN CANDIDATE] Purpose Fit init failed:",
-        error
-      );
-    });
-
-    return;
-  }
-
-  if (attempt >= maxAttempts) {
-    console.error(
-      "[ADMIN CANDIDATE] candidate-purpose-fit.js " +
-      "was not ready after waiting."
-    );
-
-    return;
-  }
-
-  console.log(
-    "[ADMIN CANDIDATE] Waiting for Purpose Fit script...",
-    attempt + 1
-  );
-
-  setTimeout(() => {
-    initCandidatePurposeFitWhenReady(
-      container,
-      attempt + 1
-    );
-  }, 100);
-}
 
 function initAdminCandidateInsightsTabs(container) {
   if (!container) {
@@ -1252,16 +1115,6 @@ function refreshDynamicCandidateSheetContent(
 );
 
   /*
-   * AI Overview / Purpose Fit
-   *
-   * This helper waits briefly if candidate-purpose-fit.js
-   * has not finished loading yet.
-   */
-  initCandidatePurposeFitWhenReady(
-    sheetBody
-  );
-
-  /*
    * Bootstrap tooltips
    */
   if (window.bootstrap) {
@@ -1298,15 +1151,7 @@ function refreshDynamicCandidateSheetContent(
     );
   }
 
-  /*
-   * Candidate summary
-   */
-  if (
-    typeof window.initCandidateSummaryStream
-    === "function"
-  ) {
-    window.initCandidateSummaryStream();
-  }
+
 }
 
   window.switchTabs = function (buttonEl) {
@@ -1492,7 +1337,8 @@ function refreshDynamicCandidateSheetContent(
   </div>
 </div>
 
-<script src="{% static 'js/candidate-purpose-fit.js' %}"></script>
+{# #353: Read-only mirror, no purpose-fit auto-generation script. #}
+<script src="{% static 'js/talena/admin-candidate-mirror-353.js' %}"></script>
 
 <script src="{% static 'js/talena/project-assessment-status.js' %}?v=20261105-447-shortcut"></script>
 {% endblock %}
