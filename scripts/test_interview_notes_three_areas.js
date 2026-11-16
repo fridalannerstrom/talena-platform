@@ -83,9 +83,13 @@ assert.equal(hint.hidden, false);
 area.initialise(root); // idempotent for dynamically mounted pages
 fields.motivation.input("Söker variation.");
 assert.equal(inputEvents, 1, "One editor input creates one native input event");
+assert.ok(combined.value.startsWith(legacyText));
+assert.ok(!combined.value.includes("### Intervjuunderlag: Personlighet"),
+  "Editing other areas must not reclassify older notes");
 assert.equal(area.parse(combined.value).sections.personality, legacyText);
 assert.equal(area.parse(combined.value).sections.motivation, "Söker variation.");
 assert.equal(area.parse(combined.value).sections.skills, "");
+assert.equal(area.parse(combined.value).legacy, true);
 
 // Source of truth stays the existing interview_notes field; no new endpoint,
 // model schema, AI prompt or report generator is necessary.
