@@ -8,8 +8,8 @@
       Customer view · {{ company.name }} · {{ process.name }} · Read-only
     {% endif %}
   </div>
-  {# Customer candidate styles are scoped to .process-page. Keep the scope
-     local to the candidate panel so the admin's other surfaces are untouched. #}
+  {% comment %} Customer candidate styles are scoped to .process-page. Keep the scope
+     local to the candidate panel so the admin's other surfaces are untouched. {% endcomment %}
   <div class="process-page">
     {% include "customer/processes/_candidate_detail_sheet.html" %}
   </div>
