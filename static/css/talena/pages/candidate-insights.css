@@ -18,7 +18,8 @@
    CANDIDATE PROFILE HEADER
    ========================================================= */
 
-.process-page .candidate-profile-header {
+.process-page .candidate-profile-header,
+.talena-admin main .talena-admin-candidate-mirror .process-page .candidate-profile-header {
   overflow: hidden;
   border: 1px solid var(--talena-border) !important;
   border-radius: 10px !important;
@@ -298,7 +299,8 @@
    CANDIDATE INSIGHTS WORKSPACE
    ========================================================= */
 
-.process-page .candidate-insights-workspace {
+.process-page .candidate-insights-workspace,
+.talena-admin main .talena-admin-candidate-mirror .process-page .candidate-insights-workspace {
   overflow: hidden;
   border: 1px solid var(--talena-border) !important;
   border-radius: 20px !important;
@@ -706,7 +708,8 @@
    brings the workspace closer to the warm Talena concept.
    ========================================================= */
 
-.process-page .candidate-insights-workspace {
+.process-page .candidate-insights-workspace,
+.talena-admin main .talena-admin-candidate-mirror .process-page .candidate-insights-workspace {
   overflow: visible;
   border: 0 !important;
   border-radius: 0 !important;
