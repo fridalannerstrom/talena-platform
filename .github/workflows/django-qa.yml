@@ -58,6 +58,12 @@ jobs:
           DJANGO_SECRET_KEY: local-qa-only
           USE_AZURE_STORAGE: '0'
         run: python manage.py makemigrations processes candidate_results emails accounts activity --check --dry-run
+      - name: Verify Leadership introduction accordion (#374)
+        env:
+          DJANGO_DEBUG: 'True'
+          DJANGO_SECRET_KEY: local-qa-only
+          USE_AZURE_STORAGE: '0'
+        run: python manage.py test apps.reports.test_leadership_intro_374 --noinput
       - name: Verify admin candidate/customer mirror (#353)
         env:
           DJANGO_DEBUG: 'True'
