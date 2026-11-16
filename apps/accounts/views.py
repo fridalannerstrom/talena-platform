@@ -20,7 +20,7 @@ from apps.processes.services.project_assessment_status import (
 )
 from django.utils.translation import get_language
 from apps.accounts.report_branding import get_report_branding
-from .utils.org_access import get_accessible_orgunit_ids
+from .utils.org_access import get_accessible_orgunit_ids, get_effective_orgunit_permissions
 from apps.processes.views import (
     build_scores_by_competency,
     build_practitioner_report,
@@ -3845,6 +3845,13 @@ def get_template_icon_class(tests, title=""):
 def company_process_create(request, company_pk):
     company = get_object_or_404(Company, pk=company_pk)
     org_units = OrgUnit.objects.filter(company=company).order_by("name")
+    project_owners = list(
+        CompanyMember.objects.filter(company=company, user__is_active=True)
+        .exclude(user__is_staff=True)
+        .exclude(user__is_superuser=True)
+        .select_related("user")
+        .order_by("user__first_name", "user__last_name", "user__email")
+    )
 
     error = None
 
@@ -3922,6 +3929,7 @@ def company_process_create(request, company_pk):
         "company": company,
         "error": error,
         "org_units": org_units,
+        "project_owners": project_owners,
         "process_purposes": PROCESS_PURPOSES,
         "available_tests": AVAILABLE_TESTS,
         "purpose_recommended_tests": PURPOSE_RECOMMENDED_TESTS,
@@ -3972,6 +3980,35 @@ def company_process_create(request, company_pk):
                     },
                 )
 
+            # The owning customer must actually have access to the chosen
+            # unit. Own-only customer access depends on created_by matching.
+            project_owner = request.user
+            if project_owners:
+                owner_id = (request.POST.get("project_owner") or "").strip()
+                project_owner = next(
+                    (member.user for member in project_owners
+                     if str(member.user_id) == owner_id),
+                    None,
+                )
+                if project_owner is None:
+                    form.add_error(
+                        None, "Select a project owner from this customer."
+                    )
+                    return render(
+                        request, "admin/accounts/companies/company_process_create.html",
+                        {**context_base, "form": form},
+                    )
+                if not get_effective_orgunit_permissions(
+                    project_owner, company
+                ).get(org_unit.id):
+                    form.add_error(
+                        None, "The selected project owner has no access to this account/unit."
+                    )
+                    return render(
+                        request, "admin/accounts/companies/company_process_create.html",
+                        {**context_base, "form": form},
+                    )
+
             if isinstance(label_names, str):
                 label_names = [
                     item.strip()
@@ -4021,7 +4058,7 @@ def company_process_create(request, company_pk):
                 provider="sova",
                 account_code=acc,
                 project_code=proj,
-                created_by=request.user,
+                created_by=project_owner,
                 created_by_admin=request.user,
                 purpose=purpose,
                 selected_tests=selected_tests,
