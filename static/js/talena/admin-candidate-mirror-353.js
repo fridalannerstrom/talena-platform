@@ -13,6 +13,9 @@
     "[data-decision-tab]",
     "[data-bs-toggle='collapse']",
     "[data-bs-toggle='tab']",
+    "[data-bs-toggle='modal']",
+    "[data-bs-toggle='dropdown']",
+    "button[aria-expanded][aria-controls]",
     ".js-open-email-modal",
     "[data-copy-candidate-url]"
   ].join(", ");
