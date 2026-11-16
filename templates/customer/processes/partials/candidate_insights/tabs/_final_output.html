@@ -13,6 +13,8 @@
 <div
   data-final-output-root
   data-decision-support-root
+  data-admin-read-only="{% if is_admin_candidate_mirror %}true{% else %}false{% endif %}"
+  data-admin-has-manager-report="{% if admin_has_manager_report %}true{% else %}false{% endif %}"
   data-manager-report-brand-primary="{{ report_branding.palette.primary|default:'#FF6F61' }}"
   data-manager-report-brand-light="{{ report_branding.palette.light|default:'#FFF0ED' }}"
   data-manager-report-brand-dark="{{ report_branding.palette.dark|default:'#C94D41' }}"
@@ -21,21 +23,21 @@
   data-manager-report-brand-focus="{{ report_branding.cover_focus_y|default_if_none:50 }}"
   data-manager-report-brand-company="{{ report_branding.company_name|default:'Talena' }}"
   data-refresh-url="{{ final_output_refresh_url }}"
-  data-pre-interview-stream-url="{{ pre_interview_decision_support_stream_url }}"
-  data-pre-interview-regenerate-url="{{ pre_interview_decision_support_regenerate_url }}"
-  data-interview-notes-update-url="{{ interview_notes_update_url }}"
+  data-pre-interview-stream-url="{% if not is_admin_candidate_mirror %}{{ pre_interview_decision_support_stream_url }}{% endif %}"
+  data-pre-interview-regenerate-url="{% if not is_admin_candidate_mirror %}{{ pre_interview_decision_support_regenerate_url }}{% endif %}"
+  data-interview-notes-update-url="{% if not is_admin_candidate_mirror %}{{ interview_notes_update_url }}{% endif %}"
   data-pre-interview-status="{{ pre_interview_decision_support_status|default:'not_started' }}"
   data-has-pre-interview-result="{% if has_pre_interview_decision_support %}true{% else %}false{% endif %}"
-  data-post-interview-stream-url="{{ post_interview_decision_support_stream_url }}"
-  data-post-interview-regenerate-url="{{ post_interview_decision_support_regenerate_url }}"
+  data-post-interview-stream-url="{% if not is_admin_candidate_mirror %}{{ post_interview_decision_support_stream_url }}{% endif %}"
+  data-post-interview-regenerate-url="{% if not is_admin_candidate_mirror %}{{ post_interview_decision_support_regenerate_url }}{% endif %}"
   data-post-interview-status="{{ post_interview_decision_support_status|default:'not_started' }}"
   data-post-interview-evidence-changed="{% if post_interview_evidence_changed %}true{% else %}false{% endif %}"
   data-has-post-interview-result="{% if has_post_interview_decision_support %}true{% else %}false{% endif %}"
-  data-manager-report-pdf-prepare-url="{% url 'processes:process_candidate_manager_report_pdf_prepare' process.id candidate.id %}"
-  data-manager-report-pdf-generated-url="{% url 'processes:process_candidate_manager_report_pdf_generated' process.id candidate.id %}"
-  data-manager-report-activity-url="{% url 'processes:process_candidate_manager_report_activity' process.id candidate.id %}"
-  data-manager-report-edits-url="{% url 'processes:process_candidate_manager_report_text_edits' process.id candidate.id %}"
-  data-manager-report-edit-save-url="{% url 'processes:process_candidate_manager_report_text_edit_update' process.id candidate.id %}"
+  data-manager-report-pdf-prepare-url="{% if not is_admin_candidate_mirror %}{% url 'processes:process_candidate_manager_report_pdf_prepare' process.id candidate.id %}{% endif %}"
+  data-manager-report-pdf-generated-url="{% if not is_admin_candidate_mirror %}{% url 'processes:process_candidate_manager_report_pdf_generated' process.id candidate.id %}{% endif %}"
+  data-manager-report-activity-url="{% if not is_admin_candidate_mirror %}{% url 'processes:process_candidate_manager_report_activity' process.id candidate.id %}{% endif %}"
+  data-manager-report-edits-url="{% if not is_admin_candidate_mirror %}{% url 'processes:process_candidate_manager_report_text_edits' process.id candidate.id %}{% endif %}"
+  data-manager-report-edit-save-url="{% if not is_admin_candidate_mirror %}{% url 'processes:process_candidate_manager_report_text_edit_update' process.id candidate.id %}{% endif %}"
 >
 
   {# Canonical library consumed by Chefsrapport; never written to candidate data. #}
@@ -101,6 +103,9 @@
 
 
       <!-- INTERVIEW NOTES -->
+      {% if is_admin_candidate_mirror %}
+        {% include "admin/accounts/partials/_post_interview_evidence_readonly.html" %}
+      {% else %}
 
       <section
         class="response-style-ai-card mt-4 mb-4 pb-4"
@@ -269,6 +274,8 @@
 
       </section>
 
+
+      {% endif %}
 
       <!-- POST-INTERVIEW DECISION SUPPORT -->
 
