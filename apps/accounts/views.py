@@ -1002,14 +1002,43 @@ def admin_usage_billing(request):
     )
 
 
-def build_candidate_detail_context(process, invitation, language="sv"):
-    """Backwards-compatible alias for the shared customer candidate view model.
+# The customer route marks a completed AI interpretation outdated when its
+# saved language differs from the current interface language. In admin we
+# calculate exactly the same visible state on a shallow copy: no database
+# writes should happen merely because someone opened the mirror.
+def _admin_readonly_ai_state(owner, language):
+    from copy import copy
+    from apps.core.ai.language import ai_content_language_matches
 
-    The legacy admin-only implementation generated AI content on GET for some
-    processes and drifted from the customer UI. Do not reintroduce that code.
-    """
+    visible = copy(owner)
+    fields = (
+        ("purpose_fit", "ai_purpose_fit", "ai_purpose_fit_status"),
+        ("response_style_guidance", "ai_response_style_guidance", "ai_response_style_guidance_status"),
+        ("cognitive_interpretation", "ai_cognitive_interpretation", "ai_cognitive_interpretation_status"),
+        ("cognitive_questions", "ai_cognitive_questions", "ai_cognitive_questions_status"),
+        ("motivation_interpretation", "ai_motivation_interpretation", "ai_motivation_interpretation_status"),
+        ("motivation_questions", "ai_motivation_questions", "ai_motivation_questions_status"),
+        ("personality_interpretation", "ai_personality_interpretation", "ai_personality_interpretation_status"),
+        ("personality_questions", "ai_personality_questions", "ai_personality_questions_status"),
+        ("pre_interview_decision_support", "ai_pre_interview_decision_support", "ai_pre_interview_decision_support_status"),
+        ("post_interview_decision_support", "ai_post_interview_decision_support", "ai_post_interview_decision_support_status"),
+    )
+    for content_key, result_field, status_field in fields:
+        if (
+            getattr(visible, result_field, None)
+            and getattr(visible, status_field, None) == "completed"
+            and not ai_content_language_matches(visible, content_key, language)
+        ):
+            setattr(visible, status_field, "outdated")
+    return visible
+
+
+def build_candidate_detail_context(process, invitation, language="sv"):
+    """Same customer view-model, with read-only derived language states."""
     return build_shared_candidate_detail_context(
-        process=process, invitation=invitation, language=language,
+        process=process,
+        invitation=_admin_readonly_ai_state(invitation, language),
+        language=language,
     )
 
 
@@ -1322,7 +1351,8 @@ def admin_candidate_detail(request, process_pk, candidate_pk):
             process=process, candidate_id=candidate_pk,
         )
         ctx = build_shared_historical_candidate_detail_context(
-            process=process, historical_candidate=historical_candidate,
+            process=process,
+            historical_candidate=_admin_readonly_ai_state(historical_candidate, language_code),
             language=language_code,
         )
     else:
@@ -2971,7 +3001,8 @@ def company_process_candidate_detail(request, company_pk, process_pk, candidate_
             process=process, candidate_id=candidate_pk,
         )
         ctx = build_shared_historical_candidate_detail_context(
-            process=process, historical_candidate=historical_candidate,
+            process=process,
+            historical_candidate=_admin_readonly_ai_state(historical_candidate, language_code),
             language=language_code,
         )
     else:
