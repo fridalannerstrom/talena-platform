@@ -1,4 +1,14 @@
 {% load i18n motivation_practical_advice %}
+{% get_current_language as LANGUAGE_CODE %}
+{% if LANGUAGE_CODE|slice:":2" == "sv" %}
+  {% trans "Insikter" as pre_interview_eyebrow %}
+  {% trans "Inför intervju" as pre_interview_title %}
+  {% trans "Använd kandidatens svarsstilar och testfrågor som stöd för att förbereda samtalet." as pre_interview_description %}
+{% else %}
+  {% trans "Candidate insights" as pre_interview_eyebrow %}
+  {% trans "Prepare for interview" as pre_interview_title %}
+  {% trans "Use the candidate's response styles and assessment questions to prepare for the conversation." as pre_interview_description %}
+{% endif %}
 
 <div
   data-final-output-root
@@ -38,18 +48,19 @@
 
   <div
     id="candidate-insights-panel-prepare-interview"
-    class="candidate-insights-panel"
+    class="candidate-insights-panel candidate-insight-page"
     role="tabpanel"
     data-insights-panel="prepare-interview"
     hidden
   >
+    {% include "customer/processes/partials/candidate_insights/_panel_header.html" with section_eyebrow=pre_interview_eyebrow section_title=pre_interview_title section_description=pre_interview_description %}
 
-    <!-- Shared card: response styles and interview questions belong together. -->
+    <!-- Shared content area, matching the inset of the other insight pages. -->
     <div class="pre-interview-content-card" data-pre-interview-content-card>
 
       <!-- Exact same static response styles and profile nuances as in Personality. -->
       <div class="personality-profile candidate-pre-interview-response-styles" data-pre-interview-response-styles>
-        {% include "customer/processes/partials/candidate_insights/personality/_response_styles_content.html" with response_styles_contrasts_heading_id="preInterviewProfileContrastsHeading" %}
+        {% include "customer/processes/partials/candidate_insights/personality/_response_styles_content.html" with response_styles_contrasts_heading_id="preInterviewProfileContrastsHeading" response_styles_interview_mode=True %}
       </div>
 
       <hr class="pre-interview-content-card__divider" aria-hidden="true">
