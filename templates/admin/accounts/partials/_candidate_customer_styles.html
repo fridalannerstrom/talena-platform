@@ -1,9 +1,9 @@
 {% load static %}
-{# Ticket #353: Keep the internal admin candidate mirror on the exact same
+{% comment %} Ticket #353: Keep the internal admin candidate mirror on the exact same
    process stylesheet stack as the customer project page. Compare this list
    against customer/processes/_process_header.html in the parity regression
    test when customer styles change. Scope visual rules to the .process-page
-   wrapper inside the candidate sheet, never to the whole admin page. #}
+   wrapper inside the candidate sheet, never to the whole admin page. {% endcomment %}
 <link href="{% static 'css/talena/pages/process-structure.css' %}" rel="stylesheet" />
 <link href="{% static 'css/talena/pages/process-detail.css' %}" rel="stylesheet" />
 <link href="{% static 'css/talena/pages/process-detail-consistency.css' %}" rel="stylesheet" />
