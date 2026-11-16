@@ -47,6 +47,10 @@
 
   {# Final low-risk viewport/accessibility hardening. #}
   <link href="{% static 'css/talena/qa.css' %}" rel="stylesheet" />
+
+  {# Optional late-loaded customer candidate CSS: after generic admin rules,
+     only on admin pages that present the shared candidate sheet. #}
+  {% block admin_candidate_mirror_css %}{% endblock %}
 </head>
 
 <body class="nav-fixed talena-admin">
