@@ -152,21 +152,70 @@
         </div>
 
 
-        <label
-          for="candidate-interview-notes"
-          class="visually-hidden"
-        >
-          {% trans "Interview notes and candidate examples" %}
-        </label>
+        <div class="interview-notes-areas" data-interview-notes-areas>
+          <p class="interview-notes-legacy-hint" data-interview-notes-legacy-help hidden>
+            {% trans "Your previous notes are preserved under Personality until you choose how to distribute them. You can move or paste parts into the other fields." %}
+          </p>
 
+          <div class="interview-notes-area">
+            <label for="candidate-interview-notes-personality" class="interview-notes-area__title">
+              {% trans "Personality" %}
+            </label>
+            <p class="interview-notes-area__description">
+              {% trans "Examples about collaboration, communication, working methods and preferences." %}
+            </p>
+            <textarea
+              id="candidate-interview-notes-personality"
+              class="form-control"
+              rows="5"
+              maxlength="30000"
+              data-interview-notes-area="personality"
+              placeholder="{% trans 'Add examples and observations related to personality…' %}"
+            ></textarea>
+          </div>
+
+          <div class="interview-notes-area">
+            <label for="candidate-interview-notes-motivation" class="interview-notes-area__title">
+              {% trans "Motivation" %}
+            </label>
+            <p class="interview-notes-area__description">
+              {% trans "What the candidate says gives energy, motivates or influences job satisfaction." %}
+            </p>
+            <textarea
+              id="candidate-interview-notes-motivation"
+              class="form-control"
+              rows="5"
+              maxlength="30000"
+              data-interview-notes-area="motivation"
+              placeholder="{% trans 'Add what the candidate describes about motivation…' %}"
+            ></textarea>
+          </div>
+
+          <div class="interview-notes-area">
+            <label for="candidate-interview-notes-skills" class="interview-notes-area__title">
+              {% trans "Skills" %}
+            </label>
+            <p class="interview-notes-area__description">
+              {% trans "Concrete examples of numerical, logical or verbal reasoning in practice." %}
+            </p>
+            <textarea
+              id="candidate-interview-notes-skills"
+              class="form-control"
+              rows="5"
+              maxlength="30000"
+              data-interview-notes-area="skills"
+              placeholder="{% trans 'Add examples related to numerical, logical or verbal reasoning…' %}"
+            ></textarea>
+          </div>
+        </div>
+
+        {# Keep the existing API/AI input field intact. The three visible fields update its value. #}
         <textarea
           id="candidate-interview-notes"
-          class="form-control"
-          rows="8"
-          maxlength="30000"
-          placeholder="{% trans 'Paste interview notes, candidate examples and relevant observations here…' %}"
+          hidden
+          aria-hidden="true"
+          tabindex="-1"
           data-interview-notes-input
-          aria-describedby="interview-notes-pii-notice"
         >{{ interview_notes }}</textarea>
         {% include "shared/ai_pii_notice.html" with kind="interview" notice_id="interview-notes-pii-notice" %}
 
