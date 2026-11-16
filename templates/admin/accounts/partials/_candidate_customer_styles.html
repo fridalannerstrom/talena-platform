@@ -1,0 +1,30 @@
+{% load static %}
+{# Ticket #353: Keep the internal admin candidate mirror on the exact same
+   process stylesheet stack as the customer project page. Compare this list
+   against customer/processes/_process_header.html in the parity regression
+   test when customer styles change. Scope visual rules to the .process-page
+   wrapper inside the candidate sheet, never to the whole admin page. #}
+<link href="{% static 'css/talena/pages/process-structure.css' %}" rel="stylesheet" />
+<link href="{% static 'css/talena/pages/process-detail.css' %}" rel="stylesheet" />
+<link href="{% static 'css/talena/pages/process-detail-consistency.css' %}" rel="stylesheet" />
+<link href="{% static 'css/talena/pages/process-modals.css' %}" rel="stylesheet" />
+<link href="{% static 'css/talena/pages/process-notices.css' %}" rel="stylesheet" />
+<link href="{% static 'css/talena/pages/candidate-insights.css' %}?v=20261110-467-v2" rel="stylesheet" />
+<link href="{% static 'css/talena/pages/personality-dynamics.css' %}" rel="stylesheet" />
+<link href="{% static 'css/talena/pages/candidate-assessments.css' %}?v=20261101-364" rel="stylesheet" />
+<link href="{% static 'css/talena/pages/candidate-charts.css' %}" rel="stylesheet" />
+<link href="{% static 'css/talena/pages/personality-trait-scale-experiment.css' %}?v=personality-compact-365-20261101" rel="stylesheet" />
+<link href="{% static 'css/talena/pages/candidate-sheet-utilities.css' %}" rel="stylesheet" />
+<link href="{% static 'css/talena/pages/candidate-ai-update.css' %}" rel="stylesheet" />
+<link href="{% static 'css/talena/pages/candidate-decision-support.css' %}" rel="stylesheet" />
+<link href="{% static 'css/talena/pages/process-candidate-polish.css' %}" rel="stylesheet" />
+<link href="{% static 'css/talena/pages/process-overview-polish.css' %}" rel="stylesheet" />
+<link href="{% static 'css/talena/pages/candidate-eyebrows.css' %}?v=20261107-428-tooltip-v1" rel="stylesheet" />
+<link href="{% static 'css/talena/pages/candidate-insight-tabs.css' %}?v=20261107-after-interview-flush-padding" rel="stylesheet" />
+{# Customer layout-level styles needed for the shared report components. #}
+<link href="{% static 'css/talena/pages/team-styles.css' %}" rel="stylesheet" />
+<link href="{% static 'css/talena/pages/interview-question-notes.css' %}" rel="stylesheet" />
+<link href="{% static 'css/talena/pages/structured-overall-picture.css' %}?v=20261030-355-single-refresh" rel="stylesheet" />
+<link href="{% static 'css/talena/pages/team-report-export.css' %}" rel="stylesheet" />
+<link href="{% static 'css/talena/pages/candidate-report-export.css' %}?v=20261115-personality-questions-parity-1" rel="stylesheet" />
+<link href="{% static 'css/talena/pages/candidate-report-packages.css' %}?v=20261115-package-diagnostics-1" rel="stylesheet" />
