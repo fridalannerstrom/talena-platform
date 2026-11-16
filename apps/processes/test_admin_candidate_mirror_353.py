@@ -148,6 +148,32 @@ class AdminCandidateMirror353Tests(TestCase):
             "Synthetic saved interpretation only",
         )
 
+    def test_language_mismatch_appears_outdated_without_admin_db_write(self):
+        self.invitation.ai_personality_interpretation = {
+            "summary": "A saved result in another language",
+        }
+        self.invitation.ai_personality_interpretation_status = "completed"
+        self.invitation.ai_content_languages = {"personality_interpretation": "en"}
+        self.invitation.save(update_fields=[
+            "ai_personality_interpretation",
+            "ai_personality_interpretation_status",
+            "ai_content_languages",
+        ])
+        admin = self._get(self.admin, self.company_admin_url, language="sv")
+        self.assertEqual(admin.status_code, 200)
+        self.assertEqual(
+            admin.context["personality_interpretation_status"], "outdated",
+        )
+        self.invitation.refresh_from_db()
+        # Merely viewing the admin mirror cannot change the saved state.
+        self.assertEqual(
+            self.invitation.ai_personality_interpretation_status, "completed",
+        )
+        customer = self._get(self.customer, self.customer_url, language="sv")
+        self.assertEqual(
+            customer.context["personality_interpretation_status"], "outdated",
+        )
+
     def test_just_opening_admin_does_not_mutate_ai_or_trigger_orders(self):
         self.client.force_login(self.admin)
         before = (
