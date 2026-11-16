@@ -5,13 +5,31 @@
 {# Talena candidate i18n batch 1 #}
 
 <style>
-  /* Questions are a standalone card below the shared response styles. */
-  .process-page #candidate-insights-panel-prepare-interview > .combined-questions-card {
-    margin-top: 0 !important;
-    padding: 1.35rem 1.2rem 1.15rem !important;
-    border: 1px solid var(--talena-border) !important;
-    border-radius: 18px !important;
-    background: #fff !important;
+  /* One cohesive card for response styles, nuances and interview questions. */
+  .process-page #candidate-insights-panel-prepare-interview .pre-interview-content-card {
+    padding: 1.35rem 1.2rem 1.15rem;
+    border: 1px solid var(--talena-border);
+    border-radius: 18px;
+    background: #fff;
+    box-shadow: none;
+    min-width: 0;
+  }
+
+  .process-page #candidate-insights-panel-prepare-interview .pre-interview-content-card__divider {
+    height: 0;
+    margin: 1.35rem 0;
+    border: 0;
+    border-top: 1px solid var(--talena-border);
+    opacity: 1;
+  }
+
+  /* The outer card owns the surface; avoid a second nested question border. */
+  .process-page #candidate-insights-panel-prepare-interview .pre-interview-content-card > .combined-questions-card {
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
     box-shadow: none !important;
   }
 
@@ -168,8 +186,8 @@
   }
 
   @media (max-width: 767px) {
-    .process-page #candidate-insights-panel-prepare-interview > .combined-questions-card {
-      padding: 1rem 0.9rem 0.9rem !important;
+    .process-page #candidate-insights-panel-prepare-interview .pre-interview-content-card {
+      padding: 1rem 0.9rem 0.9rem;
     }
   }
 
