@@ -826,6 +826,72 @@
   font-size: 0.92rem;
   line-height: 1.3;
 }
+/* #374: The model explanation is optional reading, not a full-page preamble.
+   Native details/summary supports mouse and keyboard without JavaScript. */
+.process-page #reports-subpanel-leadership-report .leadership-report__intro-disclosure {
+  width: 100%;
+  min-width: 0;
+}
+.process-page #reports-subpanel-leadership-report .leadership-report__intro-summary {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.85rem;
+  width: 100%;
+  min-width: 0;
+  cursor: pointer;
+  list-style: none;
+}
+.process-page #reports-subpanel-leadership-report .leadership-report__intro-summary::-webkit-details-marker {
+  display: none;
+}
+.process-page #reports-subpanel-leadership-report .leadership-report__intro-summary::marker {
+  content: "";
+}
+.process-page #reports-subpanel-leadership-report .leadership-report__intro-summary h3 {
+  flex: 1 1 190px;
+  min-width: 0;
+  margin: 0;
+}
+.process-page #reports-subpanel-leadership-report .leadership-report__intro-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex: 0 0 auto;
+  color: #836c65;
+  font-size: 0.68rem;
+  font-weight: 650;
+}
+.process-page #reports-subpanel-leadership-report .leadership-report__intro-action::after {
+  content: "";
+  width: 0.45rem;
+  height: 0.45rem;
+  margin-right: 0.1rem;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg);
+}
+.process-page #reports-subpanel-leadership-report .leadership-report__intro-action--open,
+.process-page #reports-subpanel-leadership-report .leadership-report__intro-disclosure[open] .leadership-report__intro-action--closed {
+  display: none;
+}
+.process-page #reports-subpanel-leadership-report .leadership-report__intro-disclosure[open] .leadership-report__intro-action--open {
+  display: inline;
+}
+.process-page #reports-subpanel-leadership-report .leadership-report__intro-disclosure[open] .leadership-report__intro-action::after {
+  transform: rotate(225deg);
+}
+.process-page #reports-subpanel-leadership-report .leadership-report__intro-summary:focus-visible {
+  outline: 2px solid var(--talena-coral, #ef5e52);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+.process-page #reports-subpanel-leadership-report .leadership-report__intro-body {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e6ddd5;
+}
+
 .process-page #reports-subpanel-leadership-report .leadership-report__intro-text {
   max-width: none;
   width: 100%;
