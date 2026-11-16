@@ -1,0 +1,62 @@
+{% load i18n %}
+{% get_current_language as current_language %}
+<section class="response-style-ai-card mt-4 mb-4 pb-4"
+         data-interview-notes-root
+         data-admin-interview-evidence-readonly>
+  <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
+    <div>
+      <h3 class="purpose-fit-section-title mb-1">
+        {% if current_language|slice:":2" == "sv" %}Sparat intervjuunderlag{% else %}Saved interview evidence{% endif %}
+      </h3>
+      <p class="small text-muted mb-0">
+        {% if current_language|slice:":2" == "sv" %}
+          Här visas anteckningar och intervjusvar som kunden har sparat. Underlaget kan inte ändras i admin.
+        {% else %}
+          Interview notes and answers saved by the customer. They cannot be changed in admin.
+        {% endif %}
+      </p>
+    </div>
+    {% if interview_notes_updated_at %}
+      <span class="small text-muted" data-interview-notes-last-saved>
+        {% if current_language|slice:":2" == "sv" %}Senast sparat{% else %}Last saved{% endif %}
+        {{ interview_notes_updated_at|date:"Y-m-d H:i" }}
+      </span>
+    {% endif %}
+  </div>
+
+  {% if admin_interview_note_sections %}
+    <div class="interview-notes-areas" data-admin-saved-note-sections>
+      {% for section in admin_interview_note_sections %}
+        <div class="interview-notes-area">
+          <h4 class="interview-notes-area__title">{{ section.title }}</h4>
+          <div class="admin-interview-evidence-text">{{ section.text|linebreaksbr }}</div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="small text-muted mb-3" data-admin-no-interview-notes>
+      {% if current_language|slice:":2" == "sv" %}Inga intervjuanteckningar har sparats ännu.{% else %}No interview notes have been saved yet.{% endif %}
+    </p>
+  {% endif %}
+
+  <section class="admin-interview-question-evidence mt-4" aria-label="{% if current_language|slice:":2" == "sv" %}Sparade intervjusvar{% else %}Saved interview answers{% endif %}">
+    <h4 class="purpose-fit-section-title mb-3">
+      {% if current_language|slice:":2" == "sv" %}Sparade intervjusvar{% else %}Saved interview answers{% endif %}
+    </h4>
+    {% for item in admin_interview_question_notes %}
+      <article class="admin-interview-question-evidence__item">
+        <div class="small text-muted mb-1">{{ item.get_source_display }}</div>
+        <h5 class="admin-interview-question-evidence__question">{{ item.question_text }}</h5>
+        <div class="admin-interview-evidence-text">{{ item.note|linebreaksbr }}</div>
+      </article>
+    {% empty %}
+      <p class="small text-muted mb-0">
+        {% if current_language|slice:":2" == "sv" %}Inga svar har sparats på intervjufrågorna ännu.{% else %}No answers have been saved for the interview questions yet.{% endif %}
+      </p>
+    {% endfor %}
+  </section>
+
+  {# Keep the original saved input for status comparison in the customer report renderer. #}
+  <textarea hidden aria-hidden="true" tabindex="-1" readonly
+            data-interview-notes-input>{{ interview_notes }}</textarea>
+</section>
