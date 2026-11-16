@@ -486,8 +486,9 @@ def create_candidate_result_snapshot(
     actor=None,
 ) -> tuple[CandidateResultSnapshot, bool]:
     """Create a static snapshot, or safely upgrade an earlier AI snapshot."""
-    if not invitation.process.candidate_results_enabled:
-        raise ValueError("Candidate results are not enabled for this process.")
+    # The static report is also used internally when candidate sharing is off.
+    # Public access and outgoing emails are guarded separately by the sharing
+    # toggle; creating this snapshot issues no credentials or notification.
     if invitation.status != "completed":
         raise ValueError("Candidate result snapshots require a completed invitation.")
 
