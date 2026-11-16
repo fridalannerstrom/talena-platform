@@ -1906,9 +1906,10 @@
     const hasAdminManagerReport = outputRoot?.dataset.adminHasManagerReport === "true";
     const hasPostInterviewResult =
       outputRoot?.dataset.hasPostInterviewResult === "true";
-    const hasCompiledPostInterviewResult =
-      hasPostInterviewResult &&
-      ["completed", "outdated"].includes(outputRoot?.dataset.postInterviewStatus);
+    const hasCompiledPostInterviewResult = readOnlyAdmin
+      ? (hasPostInterviewResult || hasAdminManagerReport)
+      : (hasPostInterviewResult &&
+        ["completed", "outdated"].includes(outputRoot?.dataset.postInterviewStatus));
     // A refreshed candidate fragment may have kept the old URL tab selection.
     // On the first successful compilation (or a different candidate), use the
     // proper default rather than restoring the previously selected Underlag.
@@ -2064,11 +2065,18 @@
       reportNav.appendChild(button);
       reportPanels.appendChild(tabPanel);
     });
-    if (readOnlyAdmin && !hasAdminManagerReport) {
-      const managerTab = buttons.get("managerReport");
-      managerTab.hidden = true;
-      managerTab.disabled = true;
-      managerTab.setAttribute("aria-disabled", "true");
+    if (readOnlyAdmin) {
+      for (const [key, available] of [
+        ["overview", hasPostInterviewResult],
+        ["managerReport", hasAdminManagerReport],
+      ]) {
+        const reportTab = buttons.get(key);
+        if (!available) {
+          reportTab.hidden = true;
+          reportTab.disabled = true;
+          reportTab.setAttribute("aria-disabled", "true");
+        }
+      }
     }
     reportNavWrapper.appendChild(reportNav);
     reportsArea.append(reportsHeader, reportStatus, reportNavWrapper, reportPanels);
@@ -2595,7 +2603,7 @@
     }
 
     managerReportGenerateButton.addEventListener("click", async () => {
-      if (managerReportGenerateButton.disabled) return;
+      if (readOnlyAdmin || managerReportGenerateButton.disabled) return;
       managerReportGenerateError.classList.add("d-none");
       managerReportGenerateButton.disabled = true;
       managerReportGenerateButton.setAttribute("aria-busy", "true");
@@ -2818,11 +2826,15 @@
     evidenceIntro.className = "after-interview-evidence-intro";
     const evidenceKicker = document.createElement("p");
     evidenceKicker.className = "after-interview-evidence-intro__kicker";
-    evidenceKicker.textContent = copy().evidenceKicker;
+    evidenceKicker.textContent = readOnlyAdmin
+      ? (isSwedish() ? "SPARAT UNDERLAG" : "SAVED EVIDENCE")
+      : copy().evidenceKicker;
     const evidenceHeading = document.createElement("h3");
     evidenceHeading.className = "after-interview-evidence-intro__title";
-    evidenceHeading.textContent = hasCompiledPostInterviewResult
-      ? copy().evidenceHeadingReady : copy().evidenceHeading;
+    evidenceHeading.textContent = readOnlyAdmin
+      ? (isSwedish() ? "Underlag från intervjun" : "Interview evidence")
+      : hasCompiledPostInterviewResult
+        ? copy().evidenceHeadingReady : copy().evidenceHeading;
     const evidenceLead = document.createElement("p");
     evidenceLead.className = "after-interview-evidence-intro__description";
     evidenceLead.textContent = readOnlyAdmin
@@ -2976,12 +2988,16 @@
       }
     });
 
-    let activeReportKey = "overview";
+    const defaultReportKey = readOnlyAdmin && !hasPostInterviewResult && hasAdminManagerReport
+      ? "managerReport" : "overview";
+    let activeReportKey = defaultReportKey;
     const activate = (key, updateUrl = true) => {
+      const available = !readOnlyAdmin || key === "evidence" ||
+        (key === "overview" && hasPostInterviewResult) ||
+        (key === "managerReport" && hasAdminManagerReport);
       const activeKey = keys.includes(key) &&
-        (hasCompiledPostInterviewResult || key === "evidence") &&
-        (!readOnlyAdmin || key !== "managerReport" || hasAdminManagerReport)
-        ? key : (hasCompiledPostInterviewResult ? "overview" : "evidence");
+        (hasCompiledPostInterviewResult || key === "evidence") && available
+        ? key : (hasCompiledPostInterviewResult ? defaultReportKey : "evidence");
       const reportsActive = activeKey !== "evidence";
       if (reportsActive) activeReportKey = activeKey;
       evidenceButton.classList.toggle("is-active", !reportsActive);
@@ -3027,7 +3043,7 @@
       (hasCompiledPostInterviewResult || requested === "evidence");
     const initial = restoreRequested
       ? requested
-      : hasCompiledPostInterviewResult ? "overview" : "evidence";
+      : hasCompiledPostInterviewResult ? defaultReportKey : "evidence";
     activate(initial, false);
     if ((requested && requested !== initial) || url.searchParams.has("afterTestTab")) {
       url.searchParams.delete("afterTestTab");
