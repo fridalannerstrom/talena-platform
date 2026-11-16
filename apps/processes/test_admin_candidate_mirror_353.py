@@ -272,6 +272,71 @@ class AdminCandidateMirrorSource353Tests(SimpleTestCase):
         self.assertIn("data-admin-candidate-mirror", source)
         self.assertIn("data-manager-report-activity-panel", source)
 
+    def test_admin_styles_include_the_same_ordered_customer_process_styles(self):
+        root = Path(settings.BASE_DIR)
+        customer = (root / "templates/customer/processes/_process_header.html"
+                    ).read_text(encoding="utf-8")
+        admin = (root / "templates/admin/accounts/partials/_candidate_customer_styles.html"
+                 ).read_text(encoding="utf-8")
+        def process_links(source):
+            return [
+                line.strip() for line in source.splitlines()
+                if line.strip().startswith("<link ")
+                and "css/talena/pages/" in line
+            ]
+        customer_links = process_links(customer)
+        admin_links = process_links(admin)
+        # The customer process header remains the source of truth. Keeping
+        # these links and cache versions identical prevents admin style drift.
+        self.assertGreaterEqual(len(customer_links), 15)
+        self.assertEqual(admin_links[:len(customer_links)], customer_links)
+        for stylesheet in (
+            "candidate-insights.css",
+            "candidate-assessments.css",
+            "candidate-charts.css",
+            "process-candidate-polish.css",
+            "candidate-insight-tabs.css",
+        ):
+            self.assertIn(stylesheet, admin)
+
+    def test_admin_mirror_has_customer_process_scope_without_styling_admin_globally(self):
+        root = Path(settings.BASE_DIR)
+        sheet = (root / "templates/admin/accounts/companies/company_candidate_sheet.html"
+                 ).read_text(encoding="utf-8")
+        self.assertIn('<div class="process-page">', sheet)
+        self.assertLess(
+            sheet.index('<div class="process-page">'),
+            sheet.index('customer/processes/_candidate_detail_sheet.html'),
+        )
+        self.assertIn("data-admin-candidate-mirror", sheet)
+        base = (root / "templates/admin/core/layouts/admin_base.html"
+                ).read_text(encoding="utf-8")
+        self.assertLess(
+            base.index("admin-pages.css"),
+            base.index("{% block admin_candidate_mirror_css %}"),
+        )
+        for template in (
+            "templates/admin/accounts/companies/company_base.html",
+            "templates/admin/accounts/customer/candidate_detail.html",
+            "templates/admin/accounts/customer/process_detail.html",
+        ):
+            with self.subTest(template=template):
+                content = (root / template).read_text(encoding="utf-8")
+                self.assertIn(
+                    '{% include "admin/accounts/partials/_candidate_customer_styles.html" %}',
+                    content,
+                )
+        css = (root / "static/css/talena/pages/candidate-insights.css"
+               ).read_text(encoding="utf-8")
+        self.assertIn(
+            ".talena-admin main .talena-admin-candidate-mirror .process-page .candidate-profile-header",
+            css,
+        )
+        self.assertIn(
+            ".talena-admin main .talena-admin-candidate-mirror .process-page .candidate-insights-workspace",
+            css,
+        )
+
     def test_admin_does_not_auto_generate_on_open(self):
         root = Path(settings.BASE_DIR)
         source = (root / "templates/admin/accounts/companies/company_process_detail.html"
