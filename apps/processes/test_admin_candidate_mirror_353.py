@@ -382,14 +382,14 @@ Löste logiska problem."""
         )
         for language, labels in (
             ("sv", ("AI-prompter", "Användning och fakturering", "Statistik")),
-            ("en", ("AI prompts", "Usage &amp; Billing", "Statistics")),
+            ("en", ("AI prompts", "Usage & Billing", "Statistics")),
         ):
             with self.subTest(language=language):
                 response = self.client.get(url, HTTP_ACCEPT_LANGUAGE=language)
                 self.assertEqual(response.status_code, 200)
                 html = response.content.decode("utf-8")
                 for label in labels:
-                    self.assertIn(label, html)
+                    self.assertIn(label, html.replace("&amp;", "&"))
                 self.assertIn(
                     '<div class="sidenav-menu-heading">AI</div>', html,
                 )
