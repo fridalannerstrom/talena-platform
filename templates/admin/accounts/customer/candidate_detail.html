@@ -4,13 +4,12 @@
 
 {% block extra_css %}
   {{ block.super }}
-  <link href="{% static 'css/talena/pages/candidate-insights.css' %}?v=20261107-431-401" rel="stylesheet">
   <link href="{% static 'css/talena/pages/integrity-guard.css' %}?v=20261104-ig-type07" rel="stylesheet">
-  <link href="{% static 'css/talena/pages/interview-question-notes.css' %}" rel="stylesheet">
-  <link href="{% static 'css/talena/pages/structured-overall-picture.css' %}" rel="stylesheet">
-  <link href="{% static 'css/talena/pages/team-styles.css' %}" rel="stylesheet">
-  <link href="{% static 'css/talena/pages/candidate-report-export.css' %}?v=20261115-personality-questions-parity-1" rel="stylesheet">
-  <link href="{% static 'css/talena/pages/candidate-report-packages.css' %}?v=20261115-package-diagnostics-1" rel="stylesheet">
+{% endblock %}
+
+{% block admin_candidate_mirror_css %}
+  {{ block.super }}
+  {% include "admin/accounts/partials/_candidate_customer_styles.html" %}
 {% endblock %}
 
 {% block content %}
