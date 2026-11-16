@@ -69,7 +69,11 @@
       ready: element => !!element.querySelector(".derailment-report__overview") },
     { id: "prepare-interview",
       selector: "#candidate-insights-panel-prepare-interview [data-pre-interview-response-styles]",
-      ready: element => !!element.querySelector(".static-communication-guidance, .profile-contrast-card") },
+      ready: element => !!element.querySelector(
+        '[data-static-profile-status]:not([data-static-profile-status="unavailable"]), ' +
+        '[data-static-social-desirability]:not([data-static-social-desirability="unavailable"]), ' +
+        '[data-profile-contrast-id]'
+      ) },
     ...[["overview","after-overview"]]
       .map(([panel, id]) => ({
         id, selector: '[data-after-interview-tab-panel="' + panel + '"] .after-interview-tab-card',
