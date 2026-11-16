@@ -58,6 +58,12 @@ jobs:
           DJANGO_SECRET_KEY: local-qa-only
           USE_AZURE_STORAGE: '0'
         run: python manage.py makemigrations processes candidate_results emails accounts activity --check --dry-run
+      - name: Verify Talena admin Sova workflows (#352)
+        env:
+          DJANGO_DEBUG: 'True'
+          DJANGO_SECRET_KEY: local-qa-only
+          USE_AZURE_STORAGE: '0'
+        run: python manage.py test apps.processes.test_admin_sova_flow_352 --noinput
       - name: Verify project settings language switching (#466)
         run: |
           node --check static/js/talena/process-settings.js
