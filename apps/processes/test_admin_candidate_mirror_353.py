@@ -374,6 +374,28 @@ Löste logiska problem."""
         self.assertNotIn("data-interview-notes-save", source)
         self.assertNotIn("data-interview-notes-area=", source)
 
+    def test_admin_sidebar_labels_are_visible_in_swedish_and_english(self):
+        self.client.force_login(self.admin)
+        url = reverse(
+            "accounts:company_process_detail",
+            args=[self.company.pk, self.process.pk],
+        )
+        for language, labels in (
+            ("sv", ("AI-prompter", "Användning och fakturering", "Statistik")),
+            ("en", ("AI prompts", "Usage &amp; Billing", "Statistics")),
+        ):
+            with self.subTest(language=language):
+                response = self.client.get(url, HTTP_ACCEPT_LANGUAGE=language)
+                self.assertEqual(response.status_code, 200)
+                html = response.content.decode("utf-8")
+                for label in labels:
+                    self.assertIn(label, html)
+                self.assertIn(
+                    '<div class="sidenav-menu-heading">AI</div>', html,
+                )
+                self.assertNotIn("Statestik", html)
+                self.assertNotIn("<span></span>", html)
+
     def test_admin_candidate_pages_render_customer_styles_after_generic_admin_css(self):
         self.client.force_login(self.admin)
         company_page = reverse(
