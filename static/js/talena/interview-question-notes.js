@@ -696,19 +696,22 @@
     renderSummary(url);
   };
 
-  const markPostInterviewOutdated = (status) => {
-    if (status !== "outdated") return;
-
+  const syncPostInterviewEvidenceWarning = (status, needsUpdate) => {
     document.querySelectorAll("[data-post-interview-status-badge]").forEach((badge) => {
-      badge.classList.remove("d-none");
+      badge.classList.toggle("d-none", !needsUpdate);
     });
 
     document.querySelectorAll("[data-post-interview-outdated]").forEach((warning) => {
-      warning.classList.remove("d-none");
+      warning.classList.toggle("d-none", !needsUpdate);
     });
 
     const root = document.querySelector("[data-final-output-root]");
-    if (root) root.dataset.postInterviewStatus = "outdated";
+    if (root) {
+      root.dataset.postInterviewEvidenceChanged = String(needsUpdate);
+      if (needsUpdate && status === "outdated") {
+        root.dataset.postInterviewStatus = "outdated";
+      }
+    }
   };
 
   const saveField = async (field) => {
@@ -755,11 +758,12 @@
       updateCache(notesUrl, savedNote);
       setPiiSaveInfo(field, payload.possible_personal_data === true);
       if (payload.evidence_changed === true) {
-        markPostInterviewOutdated(payload.post_interview_status);
+        const needsUpdate = payload.post_interview_evidence_changed === true;
+        syncPostInterviewEvidenceWarning(payload.post_interview_status, needsUpdate);
 
         document.dispatchEvent(
           new CustomEvent("candidate-interview-question-note-updated", {
-            detail: { source, question, note, notesUrl },
+            detail: { source, question, note, notesUrl, evidenceChanged: needsUpdate },
           }),
         );
       }

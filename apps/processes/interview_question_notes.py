@@ -18,6 +18,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_GET, require_POST
 
 from .interview_note_privacy import contains_interview_note_personal_data
+from .post_interview_evidence import post_interview_evidence_changed
 from .access_control import process_edit_access_required, process_view_access_required
 from .interview_question_models import (
     InterviewQuestionNote,
@@ -498,8 +499,10 @@ def process_candidate_interview_question_note_update(
             "note": "",
         }
 
-    # Repeated autosaves with the same answer do not change interview evidence.
-    if evidence_changed and owner.ai_post_interview_decision_support:
+    # A save is not necessarily a change relative to the report: restoring an
+    # answer to its generated value must not trigger the warning.
+    reports_need_update = post_interview_evidence_changed(owner, process)
+    if evidence_changed and owner.ai_post_interview_decision_support and reports_need_update:
         post_interview_status = "outdated"
         decision_support = dict(owner.ai_post_interview_decision_support)
         decision_support["interview_evidence_changed_since_compilation"] = True
@@ -521,6 +524,7 @@ def process_candidate_interview_question_note_update(
             "has_note": bool(note_text),
             "possible_personal_data": possible_personal_data,
             "evidence_changed": evidence_changed,
+            "post_interview_evidence_changed": reports_need_update,
             "post_interview_status": post_interview_status,
         }
     )
@@ -794,31 +798,11 @@ def process_candidate_post_interview_decision_support_stream_with_evidence(
     saved_purpose = normalize_purpose_key(
         owner.ai_post_interview_decision_support_purpose
     )
-    current_notes_version = owner.interview_notes_updated_at
-    saved_notes_version = owner.ai_post_interview_decision_support_notes_version
-    latest_question_note = (
-        InterviewQuestionNote.objects
-        .filter(process=process, candidate=owner.candidate)
-        .exclude(note="")
-        .aggregate(latest=Max("updated_at"))
-        .get("latest")
-    )
-    generated_at = owner.ai_post_interview_decision_support_generated_at
-
+    # Do not infer an edit from generation timestamps. Individual report
+    # regenerations update their own content digests, not every report part.
     evidence_changed = (
         saved_purpose != current_purpose
-        or bool(
-            current_notes_version
-            and (
-                not saved_notes_version
-                or current_notes_version > saved_notes_version
-            )
-        )
-        or bool(
-            latest_question_note
-            and saved_result
-            and (not generated_at or latest_question_note > generated_at)
-        )
+        or post_interview_evidence_changed(owner, process)
     )
     if saved_result and evidence_changed and current_status == "completed":
         current_status = "outdated"

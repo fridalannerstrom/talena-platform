@@ -77,6 +77,38 @@
       box-shadow: 0 0 0 4px var(--coral-soft);
     }
 
+    .candidate-result-pdf-toolbar {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin: 0 0 18px;
+    }
+    .candidate-result-pdf-toolbar__button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 42px;
+      padding: 10px 19px;
+      border: 0;
+      border-radius: 999px;
+      background: #171312;
+      color: #fff;
+      font: inherit;
+      font-size: .82rem;
+      font-weight: 750;
+      cursor: pointer;
+    }
+    .candidate-result-pdf-toolbar__button:disabled {
+      opacity: .6;
+      cursor: wait;
+    }
+    .candidate-result-pdf-toolbar__error {
+      color: #9d3434;
+      font-size: .82rem;
+    }
+    .candidate-result-pdf-toolbar__error[hidden] { display: none; }
+
     .preview-banner {
       display: flex;
       align-items: flex-start;
@@ -645,7 +677,7 @@
   </style>
 </head>
 <body>
-  <main class="page-shell">
+  <main class="page-shell" {% if preview %}data-candidate-result-internal-preview{% endif %}>
     <header class="site-header">
       <img class="brand-logo" src="{% static 'images/talena-logo.svg' %}" alt="Talena">
       <div class="language-chip" aria-label="{% if locale|slice:':2' == 'sv' %}Svenska{% else %}English{% endif %}">
@@ -661,6 +693,15 @@
           <strong>{{ copy.preview_label }}</strong>
           <span>{{ copy.preview_body }}</span>
         </div>
+      </div>
+    {% endif %}
+
+    {% if preview %}
+      <div class="candidate-result-pdf-toolbar">
+        <button class="candidate-result-pdf-toolbar__button" type="button" data-candidate-result-pdf-button>
+          <span data-candidate-result-pdf-label>{% if locale|slice:":2" == "sv" %}Ladda ner PDF{% else %}Download PDF{% endif %}</span>
+        </button>
+        <span class="candidate-result-pdf-toolbar__error" data-candidate-result-pdf-error role="alert" hidden></span>
       </div>
     {% endif %}
 
@@ -867,6 +908,10 @@
     {% endif %}
   </main>
 
+  {% if preview %}
+    <script src="{% static 'js/talena/pdf-export-core.js' %}"></script>
+    <script src="{% static 'js/talena/candidate-result-internal-pdf.js' %}"></script>
+  {% endif %}
   <script>
     const feedbackDialogs = document.querySelectorAll(".feedback-dialog");
 

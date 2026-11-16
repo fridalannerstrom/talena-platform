@@ -5,7 +5,10 @@ from .audit import (
     CANDIDATE_RESULT_ACTIVITY_VERBS,
     log_candidate_result_access_expired,
 )
-from .content import ensure_candidate_result_snapshot_current
+from .content import (
+    create_candidate_result_snapshot,
+    ensure_candidate_result_snapshot_current,
+)
 from .models import CandidateResultAccess, CandidateResultSnapshot
 
 
@@ -82,6 +85,17 @@ def build_candidate_result_panel_context(process, invitation) -> dict:
     )
     if snapshot:
         snapshot, _upgraded = ensure_candidate_result_snapshot_current(snapshot)
+    elif (
+        invitation.status == "completed"
+        and not getattr(invitation, "removed_from_process_at", None)
+    ):
+        # Loading the *authorised* candidate detail prepares the same static
+        # report for internal use regardless of the public sharing setting.
+        # This creates no public link, verification code or outgoing email.
+        snapshot, _created = create_candidate_result_snapshot(
+            invitation,
+            language_code=getattr(process, "candidate_language", "sv") or "sv",
+        )
 
     sharing_enabled = bool(getattr(process, "candidate_results_enabled", False))
     reflections = (

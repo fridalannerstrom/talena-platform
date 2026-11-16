@@ -63,7 +63,7 @@ categorical personality claims, diagnoses, suitability and hiring verdicts.
 Preserve detail where supported. Do not reproduce headings inside the fields:
 Talena displays Testbild and Intervjun itself."""
 PERSONALITY_THEME_VERSION = 2
-GENERATION_RULES_VERSION = 9
+GENERATION_RULES_VERSION = 10
 PERSONALITY_THEMES = (
     {"sv": "Samarbete och relationer", "en": "Collaboration and relationships",
      "traits": ("Cooperative", "Connecting"),
@@ -330,40 +330,27 @@ def _skill_evidence_key(text):
 
 
 def _notes_for_category(notes, category, item_key=None):
-    source = {"skills": "cognitive", "motivation": "motivation", "personality": "personality"}[category]
-    question_items = notes["question_evidence"].get("items") or []
-    items = []
-    if category in ("skills", "motivation"):
-        for item in question_items:
-            if item.get("source") != source:
-                continue
-            if category == "skills":
-                if item_key not in _SKILL_INTERVIEW_CUES:
-                    continue
-                # A saved cognitive answer must also match this particular skill.
-                topic = _skill_evidence_key(
-                    str(item.get("question") or "") + " " +
-                    str(item.get("saved_answer_or_note") or "")
-                )
-                if topic != item_key:
-                    continue
-            items.append({
-                "question": item.get("question") or "",
-                "saved_answer_or_note": item.get("saved_answer_or_note") or "",
-            })
+    """Give each report item the complete saved interview account.
 
-    general_notes = ""
-    if category == "skills" and item_key in _SKILL_INTERVIEW_CUES:
-        relevant = [
-            paragraph.strip()
-            for paragraph in str(notes.get("general_notes") or "").splitlines()
-            if paragraph.strip() and _skill_evidence_key(paragraph) == item_key
-        ]
-        general_notes = "\\n".join(relevant)
-
-    # General notes are not evidence of a motivation factor or personality
-    # theme by themselves. Personality has its own conservative theme router.
-    return {"general_notes": general_notes, "question_evidence": items}
+    A useful example can be in general notes or under a differently labelled
+    question. Keyword and source-tab filters used to hide real interview
+    evidence. Preserve exact question/answer pairs, and let the writer select
+    only the statements that actually concern the requested area.
+    """
+    question_items = notes.get("question_evidence", {}).get("items") or []
+    return {
+        "general_notes": str(notes.get("general_notes") or "").strip(),
+        "question_evidence": [
+            {
+                "question": str(item.get("question") or ""),
+                "saved_answer_or_note": str(item.get("saved_answer_or_note") or ""),
+                "source": str(item.get("source") or ""),
+            }
+            for item in question_items
+            if isinstance(item, dict)
+            and str(item.get("saved_answer_or_note") or "").strip()
+        ],
+    }
 
 
 def _completion(prompt, owner, *, output_tokens=1800):
@@ -614,76 +601,14 @@ def _theme_selection(owner, shared, rows, notes, language):
 
 
 def _assign_personality_interview_evidence(owner, themes, notes, language):
-    """Assign each interview record only to a clearly relevant personality theme."""
-    question_items = list(notes.get("question_evidence", {}).get("items") or [])
-    records = []
-    if notes.get("general_notes"):
-        records.append({"source": "general", "index": 0, "text": str(notes["general_notes"])})
-    for index, item in enumerate(question_items):
-        if item.get("source") == "personality":
-            records.append({
-                "source": "question",
-                "index": index,
-                "question": str(item.get("question") or ""),
-                "text": str(item.get("saved_answer_or_note") or ""),
-            })
-    assigned = {
-        theme["key"]: {"general_notes": "", "question_evidence": []}
-        for theme in themes
-    }
-    if not records or not themes:
-        return assigned
+    """No forced one-theme assignment: a concrete example can span themes.
 
-    theme_scope = [
-        {"key": theme["key"], "title": theme["title"], "scope": theme["scope"]}
-        for theme in themes
-    ]
-    prompt = "\n\n".join([
-        "Classify interview records for the ten fixed personality themes.",
-        "Return JSON only: {\"assignments\":[{\"source\":\"general|question\",\"index\":integer,\"theme\":theme_key}]}",
-        "Assign a record to the single best-matching theme based first on the exact interview question, even if the answer says the person has no practical experience. A question about leading, coordinating, or ensuring all parts of a task are completed is relevant to the matching theme even when the answer describes only theoretical knowledge or tracking software. Use the answer only for facts it explicitly states; never treat the question or its examples as the person's actions. Be conservative; leave unrelated records unassigned. For personality, general notes must explicitly describe work behaviour, choices, preferences, collaboration or reactions. Exclude self-reported skill levels, test performance, qualifications and task errors from personality evidence, including numerical-data difficulties. Do not infer relevance from the role or assessment. Assign each record to at most one theme. Do not create, rewrite, or summarize evidence.",
-        "Language: " + language,
-        "Themes: " + json.dumps(theme_scope, ensure_ascii=False),
-        "Interview records: " + json.dumps(records, ensure_ascii=False),
-    ])
-    try:
-        parsed = _completion(prompt, owner, output_tokens=900)
-    except Exception:
-        return assigned
-    theme_aliases = {}
-    for theme in themes:
-        theme_aliases[theme["key"]] = theme["key"]
-        theme_aliases[str(theme["title"]).casefold()] = theme["key"]
-    used = set()
-    for item in parsed.get("assignments") or []:
-        if not isinstance(item, dict):
-            continue
-        source = item.get("source")
-        if source in ("question-specific", "question_evidence"):
-            source = "question"
-        index = item.get("index")
-        if isinstance(index, str) and index.isdigit():
-            index = int(index)
-        theme_value = item.get("theme") or item.get("theme_key") or item.get("theme_title")
-        theme_key = theme_aliases.get(str(theme_value).strip().casefold())
-        if source not in ("general", "question") or not isinstance(index, int):
-            continue
-        identity = (source, index)
-        if identity in used or theme_key not in assigned:
-            continue
-        record = next((row for row in records if row["source"] == source and row["index"] == index), None)
-        if not record:
-            continue
-        used.add(identity)
-        if source == "general":
-            assigned[theme_key]["general_notes"] = record["text"]
-        else:
-            original = question_items[index]
-            assigned[theme_key]["question_evidence"].append({
-                "question": original.get("question") or "",
-                "saved_answer_or_note": original.get("saved_answer_or_note") or "",
-            })
-    return assigned
+    The former AI router silently lost notes not classifiable into one exact
+    theme, and only let one theme use each example. Keep all interview input
+    accessible for theme-specific selection by the final writer.
+    """
+    evidence = _notes_for_category(notes, "personality")
+    return {theme["key"]: deepcopy(evidence) for theme in themes}
 
 
 def _item_prompt(owner, category, item, shared, notes, language):
@@ -720,8 +645,8 @@ def _item_prompt(owner, category, item, shared, notes, language):
             "one trait replace the other. Describe preferences and possible tendencies only. Do not use "
             "ability or competence language (including 'förmåga', 'kompetens', 'ability' or 'competence'), "
             "claim that a test establishes what the person can do, or predict work performance; situational "
-            "results must remain situational. Intervjun: use only the interview records selected for this "
-            "theme, and do not infer willingness or leadership from theoretical knowledge or use of software."
+            "results must remain situational. Intervjun: select only the facts relevant to this theme "
+            "from the complete interview record, and do not infer willingness or leadership from theory or software."
         )
     elif category == "motivation":
         final_boundary += (
@@ -739,15 +664,17 @@ def _item_prompt(owner, category, item, shared, notes, language):
         "AREA: " + str(item["title"]),
         "PURPOSE: " + str(shared.get("purpose_label") or ""),
         "ASSESSMENT FOR THIS AREA ONLY:\n" + json.dumps(item["evidence"], ensure_ascii=False),
-        "INTERVIEW NOTES (only cite material explicitly relevant to this area):\n" +
+        "COMPLETE INTERVIEW MATERIAL (select only statements relevant to this area):\n" +
         json.dumps(notes, ensure_ascii=False),
         "THEME SCOPE: " + str(item.get("scope") or ""),
         "PROTECTED EVIDENCE RULES: Testbild must use ONLY the assessment evidence for this item; "
-        "Intervjun must use ONLY the interview records supplied for this exact theme. "
+        "Intervjun must use ONLY factual statements in the supplied interview records that relate to this theme. "
         "Do not use one field's evidence in the other field. Never turn a question into an answer, "
         "add actions, intentions, frequency, outcomes, skills or examples absent from the saved text, "
-        "or infer a stable pattern from one account. If selected interview evidence is empty or "
-        "does not address this theme, say so briefly. If test evidence is empty, say so briefly. "
+        "or infer a stable pattern from one account. Review the full notes before claiming "
+        "that interview evidence for this theme is absent; the same real example can inform "
+        "multiple themes. If no statement addresses this theme, say so briefly. "
+        "If test evidence is empty, say so briefly. "
         "No other assessment sources, raw scores in prose, predictions, or suitability decisions. "
         "Keep exact question/answer provenance; an interviewer note is not a verbatim quote. "
         "Do not emit personal identifiers.",
