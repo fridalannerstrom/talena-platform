@@ -51,10 +51,13 @@ class StructuredOverallPictureTests(SimpleTestCase):
         self.assertEqual([u["title"] for u in units], ["Learning", "Authority", "Quality"])
         self.assertTrue(all("score" not in u["evidence"] for u in units))
 
-    def test_question_context_stays_with_matching_category_only(self):
+    def test_question_context_stays_with_complete_interview_material(self):
         notes = report._notes_for_category(self.notes, "skills")
-        self.assertEqual(len(notes["question_evidence"]), 1)
+        # A question saved under another tab can still contain a relevant
+        # detail. Keep the exact question with each answer for the model.
+        self.assertEqual(len(notes["question_evidence"]), 2)
         self.assertEqual(notes["question_evidence"][0]["question"], "How did you analyse the figures?")
+        self.assertEqual(notes["question_evidence"][1]["question"], "How did you collaborate?")
 
     def test_synthesis_does_not_contain_failed_items(self):
         sections = {
@@ -93,7 +96,8 @@ class StructuredOverallPictureTests(SimpleTestCase):
                 self.shared, report._notes_for_category(self.notes, "skills"), "sv"
             )
         self.assertIn("How did you analyse the figures?", text)
-        self.assertNotIn("How did you collaborate?", text)
+        self.assertIn("How did you collaborate?", text)
+        self.assertIn("Testbild must use ONLY the assessment evidence", text)
         self.assertNotIn("personal_email", text)
 
     def test_selected_personality_themes_reject_unknown_traits(self):
