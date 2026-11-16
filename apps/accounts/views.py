@@ -1017,7 +1017,7 @@ def _admin_saved_interview_notes(raw_text):
         "Färdighet": "Färdighet",
     }
     pattern = re.compile(
-        r"^### Intervjuunderlag: (Personlighet|Motivation|Färdighet)[ \\t]*$",
+        r"^### Intervjuunderlag: (Personlighet|Motivation|Färdighet)[ \t]*$",
         re.MULTILINE,
     )
     matches = list(pattern.finditer(source))
