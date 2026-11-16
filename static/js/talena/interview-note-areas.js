@@ -13,7 +13,7 @@
     motivation: "Motivation",
     skills: "Färdighet",
   });
-  const HEADER_PATTERN = /^## (Personlighet|Motivation|Färdighet)[ \t]*$/gm;
+  const HEADER_PATTERN = /^### Intervjuunderlag: (Personlighet|Motivation|Färdighet)[ \t]*$/gm;
   const KEY_BY_HEADING = Object.freeze(
     Object.fromEntries(ORDER.map(key => [HEADINGS[key], key]))
   );
@@ -51,7 +51,7 @@
   function serialize(sections) {
     return ORDER.map(key => {
       const value = String(sections?.[key] || "").trim();
-      return value ? "## " + HEADINGS[key] + "\n" + value : "";
+      return value ? "### Intervjuunderlag: " + HEADINGS[key] + "\n" + value : "";
     }).filter(Boolean).join("\n\n");
   }
 
