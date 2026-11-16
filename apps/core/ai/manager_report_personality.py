@@ -414,3 +414,18 @@ def save_manager_report_personality(
         "ai_manager_report_personality_purpose",
         "ai_content_languages",
     ])
+
+    # Manager personality is regenerated independently of Overall picture and
+    # manager advice. Snapshot only this part, never clear the other digests.
+    from django.db import transaction
+    from apps.processes.post_interview_evidence import stamp_report_evidence
+
+    with transaction.atomic():
+        stored_owner = type(owner).objects.select_for_update().get(pk=owner.pk)
+        if stored_owner.ai_post_interview_decision_support:
+            stored_owner.ai_post_interview_decision_support = stamp_report_evidence(
+                stored_owner.ai_post_interview_decision_support,
+                stored_owner,
+                "manager_personality",
+            )
+            stored_owner.save(update_fields=["ai_post_interview_decision_support"])
