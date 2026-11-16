@@ -71,13 +71,16 @@ jobs:
       - name: Verify privacy warning for blocked interview note saves
         run: node scripts/test_interview_note_pii_save.js
       - name: Verify After interview final output refresh state
-        run: node scripts/test_after_interview_final_output_refresh.js
+        run: |
+          node --check static/js/talena/after-interview-tabs.js
+          node --check static/js/talena/interview-question-notes.js
+          node scripts/test_after_interview_final_output_refresh.js
       - name: Verify content-based After interview evidence warnings
         env:
           DJANGO_DEBUG: 'True'
           DJANGO_SECRET_KEY: local-qa-only
           USE_AZURE_STORAGE: '0'
-        run: python manage.py test apps.processes.test_post_interview_evidence_digests --noinput
+        run: python manage.py test apps.processes.test_post_interview_evidence_digests apps.processes.test_interview_question_notes apps.core.test_post_interview_question_evidence apps.core.test_structured_overall_picture --noinput
       - name: Verify shared pre-interview response styles (#504)
         env:
           DJANGO_DEBUG: 'True'
