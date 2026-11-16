@@ -91,17 +91,45 @@ def _route_manager_interview_evidence(
 
 
 
-def _get_manager_report_interview_evidence(owner) -> dict[str, list[dict[str, str]]]:
+def _get_manager_report_interview_material(owner):
+    """Keep all saved interview material, even when cue-based routing is unsure.
+
+    Keyword routing is only a hint for the model, never a completeness gate.
+    A multi-theme example, paraphrase or English question must not disappear
+    merely because it lacks one of the Swedish keyword cues.
+    """
     from apps.processes.interview_question_evidence import (
         build_interview_question_evidence,
     )
 
     question_evidence = build_interview_question_evidence(owner)
     notes = str(getattr(owner, "interview_notes", "") or "").strip()
-    return _route_manager_interview_evidence(
-        notes,
-        question_evidence.get("items") or [],
-    )
+    items = question_evidence.get("items") or []
+    routed = _route_manager_interview_evidence(notes, items)
+    return routed, notes, items
+
+
+def _get_manager_report_interview_evidence(owner) -> dict[str, list[dict[str, str]]]:
+    # Compatibility for callers that need the suggested primary theme only.
+    routed, _notes, _items = _get_manager_report_interview_material(owner)
+    return routed
+
+
+def _enforce_manager_interview_availability(
+    event: dict[str, Any], *, has_interview_evidence: bool
+) -> dict[str, Any]:
+    """Only blank a candidate account when there is no interview input at all.
+
+    With interview evidence, relevance is judged against the full source notes
+    and the specific question/answer pairs by the report generator.
+    """
+    if (
+        event.get("type") == "manager_report_personality_text"
+        and event.get("part") == "candidate_describes"
+        and not has_interview_evidence
+    ):
+        return {**event, "text": ""}
+    return event
 
 
 
@@ -120,7 +148,9 @@ def build_manager_report_personality_prompt(owner, *, language_code: str = "en")
         language_code=language_code,
     )
 
-    interview_evidence_by_theme = _get_manager_report_interview_evidence(owner)
+    interview_evidence_by_theme, general_interview_notes, question_items = (
+        _get_manager_report_interview_material(owner)
+    )
 
     guidance = {}
     for theme in PERSONALITY_MANAGER_REPORT_THEMES:
@@ -169,14 +199,24 @@ Process context: {shared_context["context_text"] or "No additional process conte
 PERSONALITY INDICATOR INTERPRETATIONS BY THEME
 {json.dumps(indicator_interpretations, ensure_ascii=False, indent=2)}
 
-INTERVIEW EVIDENCE ROUTED BY THEME
-Each interview item below is assigned to at most one theme because its question or note clearly concerns that theme. An empty list means there is no clearly relevant interview evidence for that theme.
+INTERVIEW EVIDENCE SUGGESTED BY THEME
+The keyword-based routing below is only a helpful first suggestion. It can miss
+paraphrases, English questions and examples involving multiple themes. An empty
+theme list does NOT prove that relevant interview evidence is missing.
 {json.dumps(interview_evidence_by_theme, ensure_ascii=False, indent=2)}
+
+COMPLETE GENERAL INTERVIEW NOTES
+{general_interview_notes or "No general interview notes were provided."}
+
+COMPLETE SAVED QUESTION-SPECIFIC INTERVIEW EVIDENCE
+These records preserve each answer together with the exact question it answered.
+{json.dumps(question_items, ensure_ascii=False, indent=2)}
 
 EVIDENCE RULES
 - For each testbild field, use only the personality indicator interpretations for its theme. Do not use interview evidence.
-- For each candidate_describes field, use only interview evidence listed under that exact theme. Do not use evidence listed under another theme or personality test results.
-- Treat the interview evidence as the candidate's account, not as proof of skill, competence, behaviour, or performance.
+- For each candidate_describes field, review BOTH the suggested theme entries and the complete interview notes and question/answer records. Select specific, factual details that actually concern this theme, even when the keyword router failed to classify them. An example may be relevant to more than one theme, but do not repeat the same description unnecessarily.
+- Do not turn an item routed under another theme into a claim about this theme unless its actual words clearly support that connection. Never borrow personality test results as interview evidence.
+- Preserve provenance: interview notes may be a paraphrased candidate account or an interviewer observation. Do not present an interviewer's inference as the candidate's own statement or as proof of skill, competence, behaviour, or performance.
 - For testbild text, describe possible preferences or tendencies; never call them natural ability, competence, or proven performance.
 - Do not infer feelings, reactions, support needs, motivation, experience, or ability from an event unless the interview notes explicitly describe them.
 - A factual example of an error (such as giving incorrect change) does not by itself show how the person handles pressure, takes responsibility, or needs support.
@@ -184,7 +224,8 @@ EVIDENCE RULES
 - Context may clarify relevance but is not evidence about the candidate.
 - Do not recommend that the recruiter explore a trait, and do not describe a trait as valuable, suitable, or beneficial for the role.
 - Describe role relevance only as a cautious possible expression of the stated tendency, not as a claim about contribution or fit.
-- If the routed evidence does not directly address the field, return an empty string for that field.
+- Prioritise a brief, grounded account of what was actually described over a generic statement about missing interview evidence. A limited example may be summarised narrowly, with its uncertainty clear; it need not prove a stable personality pattern.
+- If the complete interview material has no factual information relevant to a theme, return an empty string for that field rather than asserting that all interview notes are missing.
 - Do not invent candidate facts, behaviours, experience, or role requirements.
 
 FIELD GUIDANCE
@@ -294,7 +335,10 @@ def stream_manager_report_personality(
     *, owner, language_code: str = "en"
 ) -> Iterable[dict[str, Any]]:
     language_code = normalize_ai_language(language_code)
-    interview_evidence_by_theme = _get_manager_report_interview_evidence(owner)
+    _suggested_themes, general_notes, question_items = (
+        _get_manager_report_interview_material(owner)
+    )
+    has_interview_evidence = bool(general_notes or question_items)
     prompt = redact_candidate_name(
         build_manager_report_personality_prompt(
             owner,
@@ -304,13 +348,9 @@ def stream_manager_report_personality(
     )
 
     def enforce_interview_evidence_boundary(event: dict[str, Any]) -> dict[str, Any]:
-        if (
-            event.get("type") == "manager_report_personality_text"
-            and event.get("part") == "candidate_describes"
-            and not interview_evidence_by_theme.get(str(event.get("theme") or ""))
-        ):
-            return {**event, "text": ""}
-        return event
+        return _enforce_manager_interview_availability(
+            event, has_interview_evidence=has_interview_evidence
+        )
     system_language_instruction = get_ai_system_language_instruction(
         language_code,
         owner=owner,
