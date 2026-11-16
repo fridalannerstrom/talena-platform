@@ -45,7 +45,17 @@
     </h4>
     {% for item in admin_interview_question_notes %}
       <article class="admin-interview-question-evidence__item">
-        <div class="small text-muted mb-1">{{ item.get_source_display }}</div>
+        <div class="small text-muted mb-1">
+          {% if item.source == "personality" %}
+            {% if current_language|slice:":2" == "sv" %}Personlighet{% else %}Personality{% endif %}
+          {% elif item.source == "motivation" %}
+            Motivation
+          {% elif item.source == "cognitive" %}
+            {% if current_language|slice:":2" == "sv" %}Färdighet{% else %}Ability{% endif %}
+          {% else %}
+            {{ item.get_source_display }}
+          {% endif %}
+        </div>
         <h5 class="admin-interview-question-evidence__question">{{ item.question_text }}</h5>
         <div class="admin-interview-evidence-text">{{ item.note|linebreaksbr }}</div>
       </article>
