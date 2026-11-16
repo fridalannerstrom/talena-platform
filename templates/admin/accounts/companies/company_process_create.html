@@ -125,6 +125,27 @@
   </div>
 </div>
 
+          {% if project_owners %}
+            <div class="mb-4">
+              <label for="id_project_owner" class="form-label fw-semibold">
+                Customer project owner
+              </label>
+              <select name="project_owner" id="id_project_owner" class="form-select" required>
+                <option value="">Select project owner</option>
+                {% for membership in project_owners %}
+                  <option value="{{ membership.user_id }}"
+                    {% if request.POST.project_owner == membership.user_id|stringformat:"s" %}selected{% endif %}>
+                    {{ membership.user.get_full_name|default:membership.user.email|default:membership.user.username }}
+                  </option>
+                {% endfor %}
+              </select>
+              <div class="form-text">
+                Choose a customer user who can access the selected account.
+                The project will be visible to them even with own-only permissions.
+              </div>
+            </div>
+          {% endif %}
+
           <div class="mb-4">
             <label class="form-check d-flex gap-2 align-items-start">
               {{ form.candidate_results_enabled }}
