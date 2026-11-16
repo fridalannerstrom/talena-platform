@@ -74,6 +74,10 @@ jobs:
         run: |
           node --check static/js/talena/interview-note-areas.js
           node scripts/test_interview_notes_three_areas.js
+      - name: Verify manager-report skill descriptions
+        run: |
+          node --check static/js/talena/after-interview-tabs.js
+          node scripts/test_manager_skill_descriptions_20261116.js
       - name: Verify After interview final output refresh state
         run: |
           node --check static/js/talena/after-interview-tabs.js
