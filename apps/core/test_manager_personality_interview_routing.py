@@ -9,6 +9,7 @@ from apps.core.ai.manager_report_personality import (
     _enforce_manager_interview_availability,
     _get_manager_report_interview_material,
     build_manager_report_personality_prompt,
+    build_manager_report_personality_part_prompt,
     stream_manager_report_personality,
 )
 
@@ -126,7 +127,7 @@ class ManagerPersonalityInterviewEvidenceTests(SimpleTestCase):
                   return_value=(blank_routes, "", [
                       {"question": "Tell me about a situation", "saved_answer_or_note": "The candidate set out options."}
                   ])),
-            patch("apps.core.ai.manager_report_personality.build_manager_report_personality_prompt",
+            patch("apps.core.ai.manager_report_personality.build_manager_report_personality_part_prompt",
                   return_value="Safe test prompt"),
             patch("apps.core.ai.manager_report_personality.redact_candidate_name",
                   side_effect=lambda prompt, candidate: prompt),
@@ -144,3 +145,66 @@ class ManagerPersonalityInterviewEvidenceTests(SimpleTestCase):
         ]
         self.assertEqual(len(matches), 1)
         self.assertEqual(matches[0]["text"], event["text"])
+
+    def test_testbild_prompt_never_receives_interview_evidence(self):
+        """Even a strongly relevant interview example cannot enter Testbild."""
+        owner = SimpleNamespace()
+        with (
+            patch(
+                "apps.core.ai.manager_report_personality.build_shared_ai_context",
+                return_value={"purpose_label": "Recruitment", "context_text": ""},
+            ),
+            patch(
+                "apps.core.ai.manager_report_personality.build_personality_indicator_interpretations",
+                return_value={"leading_and_working_with_others": [{"text": "Assessment-only preference"}]},
+            ),
+            patch(
+                "apps.core.ai.manager_report_personality.get_ai_feature_prompt_instructions",
+                return_value="Explain test results without claiming competence.",
+            ),
+            patch(
+                "apps.core.ai.manager_report_personality._get_manager_report_interview_material",
+                side_effect=AssertionError("Testbild must not load interview notes"),
+            ),
+        ):
+            prompt = build_manager_report_personality_part_prompt(
+                owner, part="testbild", language_code="sv"
+            )
+        self.assertIn("Assessment-only preference", prompt)
+        self.assertNotIn("COMPLETE INTERVIEW MATERIAL ONLY", prompt)
+        self.assertNotIn("saved_interview_question_answers", prompt)
+        self.assertIn("No interview notes, saved answers", prompt)
+
+    def test_interview_prompt_contains_saved_notes_not_assessment_interpretations(self):
+        owner = SimpleNamespace()
+        routes = {
+            "leading_and_working_with_others": [],
+            "organising_and_thinking_patterns": [],
+            "interaction_and_emotion_management": [],
+        }
+        with (
+            patch(
+                "apps.core.ai.manager_report_personality.build_shared_ai_context",
+                return_value={"purpose_label": "Recruitment", "context_text": ""},
+            ),
+            patch(
+                "apps.core.ai.manager_report_personality.build_personality_indicator_interpretations",
+                side_effect=AssertionError("Interview text must not load test results"),
+            ),
+            patch(
+                "apps.core.ai.manager_report_personality.get_ai_feature_prompt_instructions",
+                return_value="Describe only grounded interview examples.",
+            ),
+            patch(
+                "apps.core.ai.manager_report_personality._get_manager_report_interview_material",
+                return_value=(routes, "Kandidaten prioriterade om när tempot ökade.",
+                              [{"question": "Vad gjorde du när det blev akut?",
+                                "saved_answer_or_note": "Jag informerade berörda chefer."}]),
+            ),
+        ):
+            prompt = build_manager_report_personality_part_prompt(
+                owner, part="candidate_describes", language_code="sv"
+            )
+        self.assertIn("Kandidaten prioriterade om", prompt)
+        self.assertIn("Jag informerade berörda chefer.", prompt)
+        self.assertNotIn("PERSONALITY INDICATOR INTERPRETATIONS ONLY", prompt)
