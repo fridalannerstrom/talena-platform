@@ -3037,12 +3037,16 @@
 
     const url = new URL(window.location.href);
     const requested = url.searchParams.get(URL_PARAM);
+    const requestedAvailable = !readOnlyAdmin || requested === "evidence" ||
+      (requested === "overview" && hasPostInterviewResult) ||
+      (requested === "managerReport" && hasAdminManagerReport);
     const restoreRequested =
       !candidateChanged && !justCompiled &&
-      keys.includes(requested) &&
+      keys.includes(requested) && requestedAvailable &&
       (hasCompiledPostInterviewResult || requested === "evidence");
     const initial = restoreRequested
       ? requested
+      : readOnlyAdmin ? "evidence"
       : hasCompiledPostInterviewResult ? defaultReportKey : "evidence";
     activate(initial, false);
     if ((requested && requested !== initial) || url.searchParams.has("afterTestTab")) {
