@@ -125,8 +125,12 @@ class AdminCandidateMirror353Tests(TestCase):
             "summary": "Synthetic saved interpretation only",
         }
         self.invitation.ai_personality_interpretation_status = "completed"
+        # Real completed interpretations carry their generated language;
+        # otherwise the customer view correctly changes the status to outdated.
+        self.invitation.ai_content_languages = {"personality_interpretation": "sv"}
         self.invitation.save(update_fields=[
             "ai_personality_interpretation", "ai_personality_interpretation_status",
+            "ai_content_languages",
         ])
         customer = self._get(self.customer, self.customer_url)
         admin = self._get(self.admin, self.company_admin_url)
