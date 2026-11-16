@@ -70,6 +70,14 @@ jobs:
         run: python manage.py test apps.processes.test_project_completion_email --noinput
       - name: Verify privacy warning for blocked interview note saves
         run: node scripts/test_interview_note_pii_save.js
+      - name: Verify three-area interview note editor preserves the AI input contract
+        run: |
+          node --check static/js/talena/interview-note-areas.js
+          node scripts/test_interview_notes_three_areas.js
+      - name: Verify manager-report skill descriptions
+        run: |
+          node --check static/js/talena/after-interview-tabs.js
+          node scripts/test_manager_skill_descriptions_20261116.js
       - name: Verify After interview final output refresh state
         run: |
           node --check static/js/talena/after-interview-tabs.js
