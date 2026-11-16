@@ -4038,6 +4038,15 @@ def save_post_interview_content_block(
                 "overall_picture"
             ]
 
+        # Each independently generated report part snapshots the exact notes
+        # and question answers it used. Regenerating a different part must not
+        # silently mark this one as current.
+        if block_key in {"overall_picture", "wellbeing_tips"}:
+            from apps.processes.post_interview_evidence import (
+                stamp_report_evidence,
+            )
+            result = stamp_report_evidence(result, stored_owner, block_key)
+
         stored_owner.ai_post_interview_decision_support = result
         stored_owner.ai_post_interview_decision_support_purpose = (
             get_process_purpose_key(stored_owner.process)
