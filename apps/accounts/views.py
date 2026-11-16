@@ -3937,7 +3937,7 @@ def company_process_create(request, company_pk):
     # 3. POST: skapa processen
     # --------------------------------------------------
     if request.method == "POST":
-        form = TestProcessWizardCreateForm(request.POST)
+        form = TestProcessWizardCreateForm(request.POST, org_units=org_units)
 
         if form.is_valid():
             purpose = form.cleaned_data.get("purpose")
@@ -4089,7 +4089,7 @@ def company_process_create(request, company_pk):
         messages.error(request, "Could not create SOVA project. Check the form fields.")
 
     else:
-        form = TestProcessWizardCreateForm()
+        form = TestProcessWizardCreateForm(org_units=org_units)
 
     return render(
         request,
