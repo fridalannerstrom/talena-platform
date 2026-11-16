@@ -139,3 +139,26 @@ class PreInterviewResponseStylesRefreshTests(SimpleTestCase):
         self.assertIn("Kommunikationsstrategi", interview)
         self.assertIn('<h3 class="insight-summary-sub-title mb-1">', interview)
         self.assertNotIn("<h2 class=\"insight-summary-title mb-1\">", interview)
+
+    def test_interview_questions_use_section_eyebrow_and_larger_headings(self):
+        base = Path(settings.BASE_DIR)
+        questions = (
+            base / "templates/customer/processes/partials/"
+            "candidate_insights/tabs/_questions.html"
+        ).read_text(encoding="utf-8")
+        eyebrow_script = (
+            base / "static/js/talena/candidate-eyebrows.js"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("data-pre-interview-questions-eyebrow", questions)
+        self.assertIn("Intervjufrågor", questions)
+        self.assertIn("Interview questions", questions)
+        self.assertIn("combined-questions-main-title", questions)
+        self.assertIn("combined-question-section__title", questions)
+        self.assertIn("font-size: clamp(1.55rem, 1.95vw, 1.8rem)", questions)
+        self.assertIn("font-size: clamp(1.1rem, 1.4vw, 1.2rem)", questions)
+        self.assertIn("margin: 1.65rem 0 1.9rem;", questions)
+        self.assertIn(
+            'hasAttribute("data-pre-interview-questions-eyebrow")',
+            eyebrow_script,
+        )
