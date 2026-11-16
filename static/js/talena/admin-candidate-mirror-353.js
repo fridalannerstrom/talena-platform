@@ -87,6 +87,15 @@
     });
   }
 
+  // The old admin route has no customer page script defining switchTabs.
+  // Keep the standard customer inline tab handler working there as well.
+  if (typeof window.switchTabs !== "function") {
+    window.switchTabs = function (button) {
+      const mirror = button.closest("[data-admin-candidate-mirror]");
+      if (mirror) passiveTabClick(button, mirror);
+    };
+  }
+
   document.addEventListener("click", function (event) {
     const mirror = event.target.closest?.("[data-admin-candidate-mirror]");
     if (!mirror) return;
