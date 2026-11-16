@@ -88,6 +88,11 @@
 .talena-candidate-pdf-stage .team-style-guidance-explainer[open] > * {
   visibility:visible;
 }
+/* #374: Export the full expanded Leadership explanation, not the
+   interactive Show/Hide control from the on-screen accordion. */
+.talena-candidate-pdf-stage[data-candidate-pdf-report="leadership-report"] .leadership-report__intro-action {
+  display: none !important;
+}
 
 
 /* Unified candidate-report actions. These rules deliberately override the

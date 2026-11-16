@@ -25,7 +25,19 @@
       <div class="leadership-report__intro-icon" aria-hidden="true"><i data-feather="compass"></i></div>
       <div class="leadership-report__intro-copy">
         <span class="leadership-report__eyebrow">{{ leadership_report_content.profile_eyebrow }}</span>
-        <h3 id="leadership-intro-title">{{ leadership_report_content.introduction.title }}</h3>
+        <details class="leadership-report__intro-disclosure">
+          <summary class="leadership-report__intro-summary">
+            <h3 id="leadership-intro-title">{{ leadership_report_content.introduction.title }}</h3>
+            <span class="leadership-report__intro-action">
+              <span class="leadership-report__intro-action--closed">
+                {% if leadership_language|slice:":2" == "sv" %}Visa förklaring{% else %}Show explanation{% endif %}
+              </span>
+              <span class="leadership-report__intro-action--open">
+                {% if leadership_language|slice:":2" == "sv" %}Dölj förklaring{% else %}Hide explanation{% endif %}
+              </span>
+            </span>
+          </summary>
+          <div class="leadership-report__intro-body">
         {% with sections=leadership_report_content.introduction_sections %}
           {% if sections %}
             <div class="leadership-report__intro-text">
@@ -55,6 +67,8 @@
             </div>
           {% endif %}
         {% endwith %}
+          </div>
+        </details>
       </div>
     </section>
 
