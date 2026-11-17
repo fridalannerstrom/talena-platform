@@ -1930,6 +1930,155 @@
       __PANEL__ .after-interview-manager-report__guide-caveat { font-size: .70rem; }
       __PANEL__ .after-interview-manager-report__skills-empty { font-size: .76rem; }
       __PANEL__ .after-interview-manager-report__actions .btn { font-size: .84rem; }
+      /* Chefsrapport: clear section > topic > evidence hierarchy in Talena. */
+      __PANEL__ .after-interview-manager-report__intro {
+        max-width: 76ch; margin-top: 1.15rem;
+        font-size: .88rem; line-height: 1.76; color: #4d4742;
+      }
+      __PANEL__ .after-interview-manager-report__intro-paragraph {
+        margin-bottom: .85rem;
+      }
+      __PANEL__ .after-interview-manager-report__skills,
+      __PANEL__ .after-interview-manager-report__motivation,
+      __PANEL__ .after-interview-manager-report__personality,
+      __PANEL__ .after-interview-manager-report__wellbeing {
+        margin-top: 2.15rem; padding-top: 1.65rem;
+        border-top: 1px solid var(--talena-border, #e5dfd8);
+      }
+      __PANEL__ .after-interview-manager-report__skills-title,
+      __PANEL__ .after-interview-manager-report__motivation-title,
+      __PANEL__ .after-interview-manager-report__personality-title,
+      __PANEL__ .after-interview-manager-report__wellbeing-title {
+        margin: 0 0 .7rem; color: var(--talena-ink, #191817);
+        font-size: 1.3rem; font-weight: 800; line-height: 1.25;
+        letter-spacing: -.023em;
+      }
+      __PANEL__ .after-interview-manager-report__section-intro {
+        max-width: 76ch; margin: 0 0 1.45rem;
+        font-size: .86rem; line-height: 1.7; color: #655d57;
+      }
+      __PANEL__ .after-interview-manager-report__skill { margin-bottom: 2rem; }
+      __PANEL__ .after-interview-manager-report__skill-title,
+      __PANEL__ .after-interview-manager-report__motivator-name,
+      __PANEL__ .after-interview-manager-report__personality-theme-title {
+        margin-bottom: .55rem; font-size: 1.055rem;
+        font-weight: 760; line-height: 1.35; letter-spacing: -.012em;
+      }
+      __PANEL__ .after-interview-manager-report__skill-description,
+      __PANEL__ .after-interview-manager-report__motivator-definition {
+        margin-bottom: 1.1rem; font-size: .855rem;
+        line-height: 1.72; color: #59534e;
+      }
+      __PANEL__ .after-interview-manager-report__motivator-definition { margin-bottom: 0; }
+      __PANEL__ .after-interview-manager-report__motivator {
+        gap: 1.6rem; padding: 1.35rem 1.5rem;
+      }
+      __PANEL__ .after-interview-manager-report__motivation-grid { gap: 1.2rem; }
+      __PANEL__ .after-interview-manager-report__motivator-practical-title {
+        font-size: .89rem; margin-bottom: .85rem;
+      }
+      __PANEL__ .after-interview-manager-report__motivator-practical-box-title {
+        font-size: .83rem; line-height: 1.4;
+      }
+      __PANEL__ .after-interview-manager-report__motivator-practical-list {
+        font-size: .825rem; line-height: 1.66;
+      }
+      __PANEL__ .after-interview-manager-report__level-title { font-size: .88rem; }
+      __PANEL__ .after-interview-manager-report__level-description {
+        font-size: .795rem; line-height: 1.57;
+      }
+      __PANEL__ .after-interview-manager-report__personality-theme {
+        margin-bottom: 1.1rem; padding: 1.3rem;
+      }
+      __PANEL__ .after-interview-manager-report__personality-parts { gap: 1.1rem; }
+      __PANEL__ .after-interview-manager-report__personality-part-title {
+        font-size: .74rem; margin-bottom: .6rem; letter-spacing: .055em;
+      }
+      __PANEL__ .after-interview-manager-report__personality-part-text {
+        color: #504943; font-size: .845rem; line-height: 1.7;
+      }
+      __PANEL__ .after-interview-manager-report__personality-part + .after-interview-manager-report__personality-part {
+        padding-left: 1.1rem;
+      }
+      __PANEL__ .after-interview-manager-report__interview-comments {
+        margin-top: 1.7rem; padding: 1.2rem 1.4rem;
+      }
+      __PANEL__ .after-interview-manager-report__interview-comments-title {
+        font-size: .99rem; font-weight: 760;
+      }
+      __PANEL__ .after-interview-manager-report__interview-comments-text {
+        margin-top: .8rem; font-size: .86rem; line-height: 1.72;
+      }
+      __PANEL__ .after-interview-manager-report__wellbeing
+      .after-interview-manager-report__personality-advice-text {
+        font-size: .88rem; line-height: 1.78;
+      }
+      __PANEL__ .after-interview-manager-report__wellbeing
+      .after-interview-rich-text__paragraph {
+        margin-bottom: 1.05rem;
+      }
+
+      /* PDF-only layout: A4 portrait must NEVER nest a two-column
+         motivation-card grid inside its own two-column advice grid. */
+      __PANEL__ .after-interview-manager-report__pdf-layout {
+        font-size: .83rem; line-height: 1.62;
+      }
+      __PANEL__ .after-interview-manager-report__pdf-layout
+      .after-interview-manager-report__skills,
+      __PANEL__ .after-interview-manager-report__pdf-layout
+      .after-interview-manager-report__motivation,
+      __PANEL__ .after-interview-manager-report__pdf-layout
+      .after-interview-manager-report__personality,
+      __PANEL__ .after-interview-manager-report__pdf-layout
+      .after-interview-manager-report__wellbeing {
+        margin-top: 1.5rem; padding-top: 1.1rem;
+      }
+      __PANEL__ .after-interview-manager-report__pdf-layout
+      .after-interview-manager-report__motivation-grid {
+        grid-template-columns: minmax(0, 1fr) !important; gap: 1rem;
+      }
+      __PANEL__ .after-interview-manager-report__pdf-layout
+      .after-interview-manager-report__motivator {
+        grid-template-columns: minmax(0, 1fr) !important;
+        gap: .9rem; padding: 1.1rem 1.25rem; break-inside: avoid;
+      }
+      __PANEL__ .after-interview-manager-report__pdf-layout
+      .after-interview-manager-report__motivator-practical {
+        border-left: 0; padding: .9rem 0 0; border-top: 1px solid #e5dfd8;
+      }
+      __PANEL__ .after-interview-manager-report__pdf-layout
+      .after-interview-manager-report__motivator-practical-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: .8rem;
+      }
+      __PANEL__ .after-interview-manager-report__pdf-layout
+      .after-interview-manager-report__motivator-practical-box {
+        padding: .85rem; overflow-wrap: break-word; word-break: normal;
+      }
+      __PANEL__ .after-interview-manager-report__pdf-layout
+      .after-interview-manager-report__motivator-practical-list {
+        font-size: .8rem; line-height: 1.57; word-break: normal;
+      }
+      __PANEL__ .after-interview-manager-report__pdf-layout
+      .after-interview-manager-report__motivator-name {
+        font-size: 1.05rem; margin-bottom: .3rem;
+      }
+      __PANEL__ .after-interview-manager-report__pdf-layout
+      .after-interview-manager-report__motivator-definition {
+        font-size: .83rem; line-height: 1.62;
+      }
+      __PANEL__ .after-interview-manager-report__pdf-layout
+      .after-interview-manager-report__skill-title,
+      __PANEL__ .after-interview-manager-report__pdf-layout
+      .after-interview-manager-report__personality-theme-title {
+        font-size: 1.01rem;
+      }
+      __PANEL__ .after-interview-manager-report__pdf-layout
+      .after-interview-manager-report__level { min-height: 112px; }
+      __PANEL__ .after-interview-manager-report__pdf-layout
+      .after-interview-manager-report__interview-comments {
+        margin-top: 1.3rem; break-inside: avoid;
+      }
       @media (max-width: 1050px) {
         __PANEL__ .after-interview-manager-report__levels { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       }
@@ -2245,6 +2394,8 @@
       exportRoot.hidden = false;
       exportRoot.style.cssText = "display:block;width:100%;margin:0;padding:0;";
       const printableReport = managerReportCard.cloneNode(true);
+      printableReport.classList.add("after-interview-manager-report__pdf-layout");
+      printableReport.setAttribute("data-manager-report-pdf-layout", "a4-portrait");
       printableReport.hidden = false;
       printableReport.style.cssText =
         "display:block;width:100%;max-width:none;margin:0;padding:0;border:0;" +
@@ -2261,7 +2412,6 @@
       [
         ".after-interview-manager-report__levels",
         ".after-interview-manager-report__guide-levels",
-        ".after-interview-manager-report__motivation-grid",
         ".after-interview-manager-report__personality-parts",
       ].forEach((selector) => printableReport.querySelectorAll(selector).forEach((grid) => {
         grid.style.gridTemplateColumns = "repeat(2, minmax(0, 1fr))";
