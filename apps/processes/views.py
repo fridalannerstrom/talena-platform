@@ -6122,7 +6122,7 @@ def process_update(request, pk):
     if obj.is_historical:
         return HttpResponseForbidden("Historical projects are read-only.")
 
-    company = get_company_for_user(request.user)
+    company = obj.company if is_admin(request.user) else get_company_for_user(request.user)
     if not company or obj.company_id != company.id:
         return HttpResponseForbidden("No access.")
 
@@ -7022,7 +7022,7 @@ def process_add_candidate(request, pk):
     if process.is_historical:
         return HttpResponseForbidden("Historical projects are read-only.")
 
-    company = get_company_for_user(request.user)
+    company = process.company if is_admin(request.user) else get_company_for_user(request.user)
     if not company or process.company_id != company.id:
         return HttpResponseForbidden("No access.")
 
@@ -7444,7 +7444,7 @@ def remove_candidate_from_process(request, process_id, candidate_id):
     # Editor permission is based on the account and org unit, not who created
     # the project. The URL-level edit guard also enforces Editor/Own/Viewer.
     process = get_object_or_404(TestProcess, pk=process_id)
-    company = get_company_for_user(request.user)
+    company = process.company if is_admin(request.user) else get_company_for_user(request.user)
     if (
         not company
         or process.company_id != company.pk
@@ -7526,7 +7526,7 @@ def process_send_tests(request, pk):
         messages.error(request, "This is a historical project and cannot send SOVA invitations.")
         return redirect("processes:process_detail", pk=process.pk)
 
-    company = get_company_for_user(request.user)
+    company = process.company if is_admin(request.user) else get_company_for_user(request.user)
     if not company or process.company_id != company.id:
         return HttpResponseForbidden("No access.")
 
