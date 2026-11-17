@@ -424,6 +424,24 @@
     }
   };
 
+  const getManagerMotivationInterviewEvidence = (panel) => {
+    const source = panel.closest("[data-final-output-root]")?.querySelector(
+      "#talena-manager-motivation-interview-evidence"
+    );
+    if (!source) return { notes: "", answers: [] };
+    try {
+      const data = JSON.parse(source.textContent || "{}");
+      return {
+        notes: typeof data?.notes === "string" ? data.notes : "",
+        answers: Array.isArray(data?.answers) ? data.answers.filter((item) =>
+          typeof item?.question === "string" && typeof item?.answer === "string"
+        ) : [],
+      };
+    } catch (_) {
+      return { notes: "", answers: [] };
+    }
+  };
+
   const isSwedish = () =>
     (document.documentElement.lang || "").toLowerCase().startsWith("sv");
 
@@ -1809,6 +1827,36 @@
         margin: 0; padding: 1rem; border: 1px dashed var(--talena-border, #e5dfd8);
         border-radius: 11px; color: var(--talena-text-muted, #766e68); font-size: .76rem;
       }
+      __PANEL__ .after-interview-manager-report__motivation-evidence {
+        margin-top: 1.25rem; padding: 1.1rem 1.2rem;
+        border: 1px solid var(--talena-border, #e5dfd8);
+        border-radius: 12px; background: #faf9f7;
+        break-inside: auto;
+      }
+      __PANEL__ .after-interview-manager-report__motivation-evidence-title {
+        margin: 0 0 .25rem; font-size: .95rem; font-weight: 750;
+        color: var(--talena-ink, #191817);
+      }
+      __PANEL__ .after-interview-manager-report__motivation-evidence-provenance {
+        margin: 0 0 1rem; font-size: .72rem; line-height: 1.55;
+        color: var(--talena-text-muted, #766e68);
+      }
+      __PANEL__ .after-interview-manager-report__motivation-evidence-label {
+        margin: .8rem 0 .2rem; font-size: .7rem; font-weight: 700;
+        color: var(--talena-ink, #191817); letter-spacing: .015em;
+      }
+      __PANEL__ .after-interview-manager-report__motivation-evidence-text {
+        margin: 0; white-space: pre-line; font-size: .78rem;
+        line-height: 1.6; color: #4f4943; overflow-wrap: anywhere;
+      }
+      __PANEL__ .after-interview-manager-report__motivation-answer {
+        margin-top: .9rem; padding-top: .45rem;
+        border-top: 1px solid var(--talena-border, #e5dfd8);
+        break-inside: avoid;
+      }
+      __PANEL__ .after-interview-manager-report__motivation-evidence-empty {
+        margin: 0; font-size: .78rem; color: var(--talena-text-muted, #766e68);
+      }
       __PANEL__ .after-interview-manager-report__personality {
         margin-top: 1.8rem;
       }
@@ -1878,7 +1926,18 @@
         margin: 0; color: var(--talena-text-muted, #766e68); font-size: .74rem; line-height: 1.55;
       }
       __PANEL__ .after-interview-manager-report__intro {
-        max-width: 760px; margin: .65rem 0 0; color: var(--talena-text-muted, #766e68); font-size: .9rem; line-height: 1.65;
+        max-width: 920px; margin: .85rem 0 0; color: #554f49;
+        font-size: .83rem; line-height: 1.65;
+      }
+      __PANEL__ .after-interview-manager-report__intro-paragraph {
+        margin: 0 0 .65rem; orphans: 2; widows: 2;
+      }
+      __PANEL__ .after-interview-manager-report__intro-paragraph strong {
+        color: var(--talena-ink, #191817); font-weight: 750;
+      }
+      __PANEL__ .after-interview-manager-report__section-intro {
+        max-width: 900px; margin: -.35rem 0 1.15rem; font-size: .8rem;
+        line-height: 1.65; color: #625b56; break-inside: avoid;
       }
       __PANEL__ .after-interview-manager-report .after-interview-tab-card__title {
         font-size: clamp(1.15rem, 1.8vw, 1.55rem);
@@ -2503,6 +2562,54 @@
         motivationGrid.appendChild(motivator);
       });
       managerMotivation.appendChild(motivationGrid);
+
+      // The interview section contains saved source text, never AI-generated
+      // conclusions or detached answers. It is copied unchanged into the PDF.
+      const evidence = getManagerMotivationInterviewEvidence(panel);
+      const evidenceSection = document.createElement("section");
+      evidenceSection.className = "after-interview-manager-report__motivation-evidence";
+      const evidenceTitle = document.createElement("h5");
+      evidenceTitle.className = "after-interview-manager-report__motivation-evidence-title";
+      evidenceTitle.textContent = copy().managerMotivationInterviewTitle;
+      const provenance = document.createElement("p");
+      provenance.className = "after-interview-manager-report__motivation-evidence-provenance";
+      provenance.textContent = copy().managerMotivationInterviewSource;
+      evidenceSection.append(evidenceTitle, provenance);
+
+      if (evidence.notes.trim()) {
+        const noteTitle = document.createElement("h6");
+        noteTitle.className = "after-interview-manager-report__motivation-evidence-label";
+        noteTitle.textContent = copy().managerMotivationNotesTitle;
+        const note = document.createElement("p");
+        note.className = "after-interview-manager-report__motivation-evidence-text";
+        note.textContent = evidence.notes.trim();
+        evidenceSection.append(noteTitle, note);
+      }
+      evidence.answers.forEach((item) => {
+        const answerCard = document.createElement("div");
+        answerCard.className = "after-interview-manager-report__motivation-answer";
+        const questionTitle = document.createElement("h6");
+        questionTitle.className = "after-interview-manager-report__motivation-evidence-label";
+        questionTitle.textContent = copy().managerMotivationQuestionTitle;
+        const question = document.createElement("p");
+        question.className = "after-interview-manager-report__motivation-evidence-text";
+        question.textContent = item.question;
+        const answerTitle = document.createElement("h6");
+        answerTitle.className = "after-interview-manager-report__motivation-evidence-label";
+        answerTitle.textContent = copy().managerMotivationAnswerTitle;
+        const answer = document.createElement("p");
+        answer.className = "after-interview-manager-report__motivation-evidence-text";
+        answer.textContent = item.answer;
+        answerCard.append(questionTitle, question, answerTitle, answer);
+        evidenceSection.appendChild(answerCard);
+      });
+      if (!evidence.notes.trim() && !evidence.answers.length) {
+        const empty = document.createElement("p");
+        empty.className = "after-interview-manager-report__motivation-evidence-empty";
+        empty.textContent = copy().managerMotivationInterviewMissing;
+        evidenceSection.appendChild(empty);
+      }
+      managerMotivation.appendChild(evidenceSection);
       managerReportCard.appendChild(managerMotivation);
     }
 
