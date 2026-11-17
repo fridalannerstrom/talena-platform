@@ -25,6 +25,7 @@ from apps.projects.models import ProjectMeta
 from apps.processes.services.process_recommendations import PROCESS_PURPOSES
 from apps.accounts.utils.org_access import get_company_for_user
 from apps.accounts.utils.org_access import user_can_edit_process
+from apps.core.utils.auth import is_admin
 
 from apps.processes.purpose_context_config import get_purpose_context_config
 
@@ -36,7 +37,13 @@ def edit_process_invitation_template(request, process_id):
         pk=process_id,
     )
 
-    company = get_company_for_user(request.user)
+    # Reuse the customer's existing editor in Talena admin work mode.
+    # The project determines the tenant, not the administrator's membership.
+    company = (
+        process.company
+        if is_admin(request.user)
+        else get_company_for_user(request.user)
+    )
 
     if not company or process.company_id != company.id:
         return HttpResponseForbidden(
@@ -125,6 +132,12 @@ def edit_process_invitation_template(request, process_id):
         "default_source": resolve_invitation_template(process, language)["source"],
         "placeholders": get_email_template_placeholders(),
 
+        # Use the same project navigation in Talena's admin shell.
+        # Ordinary customer accounts keep their existing layout.
+        "process_base_layout": (
+            "admin/core/layouts/admin_base.html"
+            if is_admin(request.user) else ""
+        ),
         # Needed by process_base / _process_header.html
         "active": "email_templates",
         "meta": meta,
