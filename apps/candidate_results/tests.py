@@ -236,7 +236,7 @@ class CandidateResultInterpretationTests(TestCase):
             "Du är vanligtvis samarbetsvillig och bekväm med att jobba både självständigt och i team.",
             serialised_content,
         )
-        self.assertEqual(metadata["content_version"], "candidate-static-v5")
+        self.assertEqual(metadata["content_version"], "candidate-static-v6-513")
         self.assertTrue(fingerprint)
         self.assertNotIn("sten", serialised_content.casefold())
         self.assertNotIn("percentile", serialised_content.casefold())
