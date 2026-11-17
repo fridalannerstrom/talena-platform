@@ -139,7 +139,8 @@ class StructuredOverallPictureTests(SimpleTestCase):
             patch.object(report, "_save"),
             patch.object(report, "_subject_evidence", side_effect=evidence),
             patch.object(report, "_theme_selection", return_value=[
-                {"key": "theme_1", "title": "Samarbete i praktiken", "traits": ["Empathy"]}
+                {"key": "theme_2", "title": "Hjälpsamhet och finnas där för andra",
+                 "traits": ["Empathy"], "scope": "hur personen uppmärksammar andras behov och väljer om och hur stöd ges"}
             ]),
             patch.object(report, "_guidance", return_value=("Protected", "Scoped")),
             patch.object(report, "_completion", side_effect=completion),
