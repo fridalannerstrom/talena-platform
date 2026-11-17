@@ -5,6 +5,7 @@ from django.test import SimpleTestCase
 from apps.candidate_results.content import (
     CANDIDATE_PERSONALITY_CONTENT_EN,
     CANDIDATE_PERSONALITY_CONTENT_SV,
+    CANDIDATE_PERSONALITY_TOPICS,
     build_candidate_result_content,
 )
 from apps.core.ai.motivation_interpretation import MOTIVATION_DEFINITIONS
@@ -158,10 +159,19 @@ class CandidateResultStaticContentQATests(SimpleTestCase):
                                     groups[0]["title"],
                                     titles[section["section_key"]],
                                 )
-                                self.assertEqual(
-                                    groups[0]["body"],
-                                    texts[indicator_key][score_band],
+                                # Every source indicator is rendered under
+                                # exactly one of the ten new topic headings.
+                                topics = CANDIDATE_PERSONALITY_TOPICS[section["section_key"]]
+                                topic_label = next(
+                                    (sv if language == "sv" else en)
+                                    for trait_keys, sv, en in topics
+                                    if trait["trait_name"] in trait_keys
                                 )
+                                self.assertEqual(groups[0]["body"], "")
+                                self.assertEqual(groups[0]["items"], [{
+                                    "label": topic_label,
+                                    "text": texts[indicator_key][score_band],
+                                }])
 
     def test_skill_text_covers_all_ability_and_percentile_boundaries(self):
         boundaries = (
