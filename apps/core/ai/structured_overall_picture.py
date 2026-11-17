@@ -783,6 +783,16 @@ def generate_structured_overall_picture(owner, *, language_code="sv", category=N
             if any(sec.get("status") not in ("completed", "not_applicable") for sec in sources):
                 yield {"type": "structured_section_error", "section": part, "message": "Regenerate outdated/failed source sections before final synthesis."}
                 continue
+            # A stand-alone synthesis request must not reuse old source prose
+            # written before interview notes were isolated per assessment area.
+            if any(
+                sec.get("status") == "completed"
+                and sec.get("generation_rules_version") != GENERATION_RULES_VERSION
+                for sec in sources
+            ):
+                yield {"type": "structured_section_error", "section": part,
+                       "message": "Regenerate source sections with current evidence rules before final synthesis."}
+                continue
             fingerprint = _hash({
                 "generation_rules_version": GENERATION_RULES_VERSION,
                 "sources": sources, "language": language, "guidance": _guidance(part, language),
@@ -806,7 +816,8 @@ def generate_structured_overall_picture(owner, *, language_code="sv", category=N
 
         rows = _subject_evidence(owner, part, language, shared, notes)
         if not rows:
-            sections[part] = {"status": "not_applicable", "items": []}
+            sections[part] = {"status": "not_applicable", "items": [],
+                              "generation_rules_version": GENERATION_RULES_VERSION}
             _save(owner, state)
             yield {"type": "structured_section_skipped", "section": part}
             continue
@@ -872,6 +883,7 @@ def generate_structured_overall_picture(owner, *, language_code="sv", category=N
                        "message": "This report item could not be generated."}
             sections[part] = {
                 "status": "failed" if section_error else "generating",
+                "generation_rules_version": GENERATION_RULES_VERSION,
                 "items": saved_items + [old_items[x["key"]] for x in units[len(saved_items):]
                                          if x["key"] in old_items],
                 "themes": themes,
@@ -880,6 +892,7 @@ def generate_structured_overall_picture(owner, *, language_code="sv", category=N
             _save(owner, state)
         sections[part] = {
             "status": "failed" if section_error else "completed",
+            "generation_rules_version": GENERATION_RULES_VERSION,
             "items": saved_items, "themes": themes,
             **({"theme_version": PERSONALITY_THEME_VERSION} if part == "personality" else {}),
             "generated_at": timezone.now().isoformat(),
