@@ -51,23 +51,23 @@ for (const snippet of [
 // existing module; unsaved general notes get an immediate visible warning.
 for (const snippet of [
   'notesInput.value !== originalSavedNotes',
-  'outputRoot?.dataset.postInterviewStatus === "outdated"',
+  'outputRoot?.dataset.postInterviewEvidenceChanged === "true"',
   '"candidate-interview-question-note-updated"',
   'reportStatus.classList.toggle("needs-update", needsUpdate)',
-  'reportsRefresh.classList.toggle("needs-update", needsUpdate)',
+  'reportsButton.classList.toggle("needs-update", needsUpdate)',
   'reportStatusTitle.textContent = hasUnsavedNotes',
   'reportStatusDetail.textContent = needsUpdate',
 ]) assert.ok(tabs.includes(snippet), "Report freshness contract missing: " + snippet);
 
-// Both regenerate buttons delegate to the existing full-compilation action,
-// which retains auto-save, privacy checks and manual-edit confirmations.
+// The Evidence regenerate button delegates to the existing full-compilation
+// action, retaining auto-save, privacy checks and manual-edit confirmations.
 for (const snippet of [
   'evidenceCard.append(evidenceIntro, notesRoot, postSection)',
-  'rebuildButton.dataset.afterInterviewRebuild = "evidence"',
-  'reportsRefresh.dataset.afterInterviewRebuild = "reports"',
+  'compilationAction.className = "after-interview-evidence-compilation"',
+  'compilationDescription.textContent = copy().compileAgainDescription',
   "'[data-post-interview-generate][data-regenerate=\"true\"]'",
-  'nativeButton.click()',
-  'tabs.querySelectorAll("[data-after-interview-rebuild]")',
+  'nativeCompileButton.dataset.structured = "true"',
+  'nativeCompileButton.click()',
   "journeySteps.querySelectorAll",
 ]) assert.ok(tabs.includes(snippet), "Regeneration contract missing: " + snippet);
 assert.ok(!tabs.includes("legacyGlobalRegenerate?.remove()"),
@@ -101,9 +101,9 @@ assert.ok(tabs.includes('postSection.setAttribute("aria-hidden", "true")'),
   "Hidden internal regeneration controls should not enter the accessibility tree.");
 assert.ok(tabs.includes('evidenceCard.append(evidenceIntro, notesRoot, postSection)'),
   "Original post-interview section must stay mounted.");
-assert.ok(tabs.includes('rebuildDescription.textContent = copy().evidenceRebuildHint'),
+assert.ok(tabs.includes('compilationDescription.textContent = copy().compileAgainDescription'),
   "Keep the single visible regeneration explanation.");
-assert.ok(tabs.includes('rebuildButton.dataset.afterInterviewRebuild = "evidence"'),
+assert.ok(tabs.includes('compilationButton.addEventListener("click", () => {'),
   "Keep the regeneration action on the visible row.");
 
 // Motivation layout: each factor gets a readable explanation and two guidance
