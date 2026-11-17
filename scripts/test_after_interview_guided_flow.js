@@ -17,10 +17,11 @@ const reportTabStyles = fs.readFileSync("static/css/talena/pages/candidate-insig
 const teamReportsTabs = fs.readFileSync("templates/customer/processes/partials/candidate_insights/tabs/_reports.html", "utf8");
 const insightTabsCss = fs.readFileSync("static/css/talena/pages/candidate-insight-tabs.css", "utf8");
 
-// Two primary tabs: Evidence and Reports. Three active report keys
-// are nested rather than rewritten, preserving PDF, URL and refresh behavior.
+// Two primary tabs: Evidence and Reports. Only active report keys
+// are nested; the retired "Undersök vidare" / explore tab must stay removed.
+// Preserve PDF, URL and refresh behavior for remaining report panels.
 for (const snippet of [
-  'const keys = ["evidence", "overview", "explore", "managerReport"]',
+  'const keys = ["evidence", "overview", "managerReport"]',
   'const reportKeys = keys.filter((key) => key !== "evidence")',
   'primaryNav.appendChild(evidenceButton)',
   'primaryNav.appendChild(reportsButton)',
@@ -30,6 +31,9 @@ for (const snippet of [
   'reportsArea.append(reportsHeader, reportStatus, reportNavWrapper, reportPanels)',
   'tabs.append(journey, navSection, tabPanels)',
 ]) assert.ok(tabs.includes(snippet), "Two-level tab contract missing: " + snippet);
+
+assert.ok(!tabs.includes('const keys = ["evidence", "overview", "explore", "managerReport"]'),
+  "Retired explore tab must not return.");
 
 // A new candidate cannot access reports through tabs or a stale URL.
 // Completed reports default to Helhetsbild/Overall picture after compilation.
