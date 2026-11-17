@@ -23,6 +23,7 @@ from .automatic_invitations import (
 from .interview_question_notes import (
     process_candidate_manager_report_text_edit_update,
     process_candidate_manager_report_text_edits,
+    process_candidate_manager_report_interview_comment_generate,
     process_candidate_interview_question_note_update,
     process_candidate_interview_question_notes,
     process_candidate_post_interview_decision_support_regenerate_with_evidence,
@@ -198,6 +199,11 @@ urlpatterns = [
         ),
         views.process_candidate_personality_interpretation_regenerate,
         name="process_candidate_personality_interpretation_regenerate",
+    ),
+    path(
+        "<int:process_id>/candidates/<int:candidate_id>/manager-report-comments/<str:category>/generate/",
+        process_candidate_manager_report_interview_comment_generate,
+        name="process_candidate_manager_report_interview_comment_generate",
     ),
     path(
         (
