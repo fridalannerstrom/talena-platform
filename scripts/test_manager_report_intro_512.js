@@ -9,9 +9,6 @@ const html = fs.readFileSync(
   "utf8"
 );
 const views = fs.readFileSync("apps/processes/views.py", "utf8");
-const helper = fs.readFileSync(
-  "apps/processes/services/manager_report_motivation_evidence.py", "utf8"
-);
 
 const requiredSwedish = [
   "Testresultaten är ett underlag för att skapa en bättre förståelse",
@@ -43,21 +40,33 @@ assert.ok(js.includes("managerSkills.hidden = true;"), "Missing skills must not 
 assert.ok(js.includes("if (managerMotivators.length) {"), "Motivation requires actual results");
 assert.ok(js.includes("if (personalityRoot) {"), "Personality requires actual results");
 
-assert.ok(html.includes('manager_motivation_interview_evidence|json_script:"talena-manager-motivation-interview-evidence"'));
-assert.ok(js.includes("getManagerMotivationInterviewEvidence(panel)"));
-assert.ok(js.includes("managerMotivation.appendChild(evidenceSection);"));
-assert.ok(js.includes("evidence.notes.trim() && !evidence.answers.length"));
-assert.ok(js.includes("question.textContent = item.question;"), "The source question must remain attached to the saved answer");
-assert.ok(js.includes("answer.textContent = item.answer;"), "Never render raw user HTML");
-assert.ok(helper.includes('if item.get("source") == "motivation"'), "No contamination from personality or cognitive");
-assert.ok(helper.includes("Old free-form notes have no trustworthy category"));
-assert.ok(views.includes('"manager_motivation_interview_evidence"'), "Provide source in both main and refreshed report");
+const notes = fs.readFileSync("apps/processes/interview_question_notes.py", "utf8");
+const comments = fs.readFileSync("apps/core/ai/manager_report_interview_comments.py", "utf8");
+const personality = fs.readFileSync("apps/core/ai/manager_report_personality.py", "utf8");
+
+assert.ok(html.includes('manager_report_interview_comments|json_script:"talena-manager-report-interview-comments"'));
+assert.ok(!html.includes('manager_motivation_interview_evidence|json_script:'),
+  "The manager report must not render raw interview notes as JSON");
+assert.ok(js.includes("getManagerInterviewComments(panel)"));
+assert.ok(js.includes('makeManagerCommentSection("motivation")'));
+assert.ok(js.includes('makeManagerCommentSection("skills")'));
+assert.ok(js.includes('key = "interview_comments:" + category'));
+assert.ok(js.includes("managerReportEditController.setAiText(key, data.text || \"\")"));
+assert.ok(!js.includes("answer.textContent = item.answer"), "No verbatim interview answers may be shown");
+assert.ok(!js.includes("evidence.notes.trim()"), "No copy/paste of raw notes in PDF or web UI");
+assert.ok(notes.includes('block_key in {"interview_comments:motivation", "interview_comments:skills"}'));
+assert.ok(comments.includes("build_manager_report_comment_prompt"));
+assert.ok(comments.includes('str(item.get("source") or "").strip().casefold() == source'));
+assert.ok(comments.includes("redact_candidate_name"));
+assert.ok(comments.includes("visible_manager_report_comments"));
+assert.ok(personality.includes('["personality"].strip()'), "Personality AI must use only its own note field");
+assert.ok(views.includes('"manager_report_interview_comments"'), "Saved AI comments must be available in both report contexts");
 
 const pdfClone = js.indexOf("const printableReport = managerReportCard.cloneNode(true);");
-const reportContents = js.indexOf("managerMotivation.appendChild(evidenceSection)");
-assert.ok(pdfClone >= 0 && reportContents > pdfClone, "PDF clones the complete live report");
-assert.ok(!js.includes('".after-interview-manager-report__motivation-evidence,"'),
-  "Saved interview evidence must remain in the PDF, not be filtered");
+const reportContents = js.indexOf('managerMotivation.appendChild(makeManagerCommentSection("motivation"))');
+assert.ok(pdfClone >= 0 && reportContents > pdfClone, "PDF clones the full report including AI comments");
+assert.ok(!js.includes('".after-interview-manager-report__interview-comments,"'),
+  "AI comments must remain visible in the PDF");
 
 const guide = js.indexOf("managerSkills.appendChild(guide);");
 const reportMotivation = js.indexOf('const managerMotivation = document.createElement("section");');
@@ -67,4 +76,4 @@ assert.ok(js.includes("managerReportEditController.register("),
   "Manager report manual-edit controls must remain intact");
 assert.ok(js.includes("managerReportAiTasks.push(async () => {"),
   "Manager AI regeneration tasks must remain intact");
-console.log("Ticket #512: source-backed Motivation, intros and shared PDF contract OK");
+console.log("Ticket #512: AI-polished, source-isolated manager comments, intros and PDF contract OK");
