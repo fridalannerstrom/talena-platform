@@ -114,10 +114,6 @@ from apps.core.ai.manager_report_personality import (
 from apps.processes.services.candidate_insights import (
     build_candidate_insights,
 )
-from apps.processes.services.manager_report_motivation_evidence import (
-    build_manager_motivation_interview_evidence,
-)
-
 from apps.processes.services.candidate_profile import (
     build_historical_candidate_profile,
 )
