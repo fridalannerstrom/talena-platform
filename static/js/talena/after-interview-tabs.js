@@ -23,7 +23,25 @@
         evidence: "Intervjuanteckningar och svar som Talena använder som underlag.",
       },
       managerReportTitle: "Chefsrapport",
-      managerReportIntro: "Här samlas tillgängliga testresultat tillsammans med personens egna perspektiv och konkreta tips för att förstå och använda insikterna i praktiken.",
+      managerReportIntroParagraphs: [
+        "Testresultaten är ett underlag för att skapa en bättre förståelse för vilka beteenden och arbetssätt som kan komma mer naturligt för personen, vad som motiverar hen och hur hen tar sig an olika typer av uppgifter.",
+        "Resultaten jämförs med en normgrupp, det vill säga en grupp personer som tidigare har genomfört samma test.",
+        "Ett testresultat är en början, inte hela bilden. Resultaten ska inte ses som absoluta sanningar eller som en bedömning av vad personen är bra eller mindre bra på. Hur personens egenskaper kommer till uttryck påverkas även av tidigare erfarenheter, sammanhanget och situationen.",
+        "Kandidatens kommentarer bygger på utvalda delar av intervjuunderlaget och bidrar till att nyansera testresultaten och sätta dem i ett praktiskt sammanhang.",
+      ],
+      managerReportIntroEmphasis: "Ett testresultat är en början, inte hela bilden.",
+      managerReportNormGroup: "normgrupp",
+      managerSectionIntroductions: {
+        personality: "Personlighetsformuläret beskriver personens typiska beteenden, preferenser och sätt att förhålla sig till olika situationer.",
+        motivation: "Motivationsformuläret beskriver vad som tenderar att ge personen engagemang i arbetet och vad som kan vara mindre motiverande.",
+        skills: "Färdighetstestet ger en indikation på hur snabbt och korrekt personen hanterar olika typer av uppgifter, exempelvis logisk, numerisk eller verbal problemlösning.",
+      },
+      managerMotivationInterviewTitle: "Från intervjuunderlaget",
+      managerMotivationInterviewSource: "Sparade intervjuanteckningar och svar. Detta är inte en AI-tolkning av testresultatet.",
+      managerMotivationNotesTitle: "Intervjuanteckningar om motivation",
+      managerMotivationQuestionTitle: "Intervjufråga",
+      managerMotivationAnswerTitle: "Sparat svar eller anteckning",
+      managerMotivationInterviewMissing: "Det finns ännu inget sparat intervjuunderlag specifikt om motivation.",
       savePdf: "Spara som PDF",
       creatingPdf: "Skapar PDF…",
       pdfGenerationFailed: "PDF:en kunde inte skapas. Försök igen.",
@@ -166,7 +184,25 @@
         evidence: "Interview notes and answers used by Talena as evidence.",
       },
       managerReportTitle: "Manager report",
-      managerReportIntro: "This report brings together available assessment results, the person's own perspectives and practical tips for understanding and applying the insights.",
+      managerReportIntroParagraphs: [
+        "Assessment results are a starting point for understanding which behaviours and working styles may come more naturally to the person, what motivates them, and how they approach different tasks.",
+        "The results are compared with a norm group, meaning people who have previously completed the same assessment.",
+        "A test result is a starting point, not the whole picture. Results are not absolute truths or a judgment of what the person is good or less good at. How their characteristics are expressed also depends on prior experience, context and circumstances.",
+        "The candidate's comments are drawn from selected interview material and help put the assessment results in practical context.",
+      ],
+      managerReportIntroEmphasis: "A test result is a starting point, not the whole picture.",
+      managerReportNormGroup: "norm group",
+      managerSectionIntroductions: {
+        personality: "The personality questionnaire describes the person's typical behaviours, preferences and ways of approaching different situations.",
+        motivation: "The motivation questionnaire describes what tends to engage the person at work and what may be less motivating.",
+        skills: "The ability assessment indicates how quickly and accurately the person handles different types of tasks, such as logical, numerical or verbal reasoning.",
+      },
+      managerMotivationInterviewTitle: "From the interview evidence",
+      managerMotivationInterviewSource: "Saved interview notes and answers. This is not an AI interpretation of the assessment results.",
+      managerMotivationNotesTitle: "Interview notes about motivation",
+      managerMotivationQuestionTitle: "Interview question",
+      managerMotivationAnswerTitle: "Saved answer or note",
+      managerMotivationInterviewMissing: "No motivation-specific interview evidence has been saved yet.",
       savePdf: "Save as PDF",
       creatingPdf: "Creating PDF…",
       pdfGenerationFailed: "The PDF could not be created. Please try again.",
@@ -385,6 +421,24 @@
       return JSON.parse(source.textContent || "{}");
     } catch (_) {
       return { sv: {}, en: {} };
+    }
+  };
+
+  const getManagerMotivationInterviewEvidence = (panel) => {
+    const source = panel.closest("[data-final-output-root]")?.querySelector(
+      "#talena-manager-motivation-interview-evidence"
+    );
+    if (!source) return { notes: "", answers: [] };
+    try {
+      const data = JSON.parse(source.textContent || "{}");
+      return {
+        notes: typeof data?.notes === "string" ? data.notes : "",
+        answers: Array.isArray(data?.answers) ? data.answers.filter((item) =>
+          typeof item?.question === "string" && typeof item?.answer === "string"
+        ) : [],
+      };
+    } catch (_) {
+      return { notes: "", answers: [] };
     }
   };
 
@@ -1773,6 +1827,36 @@
         margin: 0; padding: 1rem; border: 1px dashed var(--talena-border, #e5dfd8);
         border-radius: 11px; color: var(--talena-text-muted, #766e68); font-size: .76rem;
       }
+      __PANEL__ .after-interview-manager-report__motivation-evidence {
+        margin-top: 1.25rem; padding: 1.1rem 1.2rem;
+        border: 1px solid var(--talena-border, #e5dfd8);
+        border-radius: 12px; background: #faf9f7;
+        break-inside: auto;
+      }
+      __PANEL__ .after-interview-manager-report__motivation-evidence-title {
+        margin: 0 0 .25rem; font-size: .95rem; font-weight: 750;
+        color: var(--talena-ink, #191817);
+      }
+      __PANEL__ .after-interview-manager-report__motivation-evidence-provenance {
+        margin: 0 0 1rem; font-size: .72rem; line-height: 1.55;
+        color: var(--talena-text-muted, #766e68);
+      }
+      __PANEL__ .after-interview-manager-report__motivation-evidence-label {
+        margin: .8rem 0 .2rem; font-size: .7rem; font-weight: 700;
+        color: var(--talena-ink, #191817); letter-spacing: .015em;
+      }
+      __PANEL__ .after-interview-manager-report__motivation-evidence-text {
+        margin: 0; white-space: pre-line; font-size: .78rem;
+        line-height: 1.6; color: #4f4943; overflow-wrap: anywhere;
+      }
+      __PANEL__ .after-interview-manager-report__motivation-answer {
+        margin-top: .9rem; padding-top: .45rem;
+        border-top: 1px solid var(--talena-border, #e5dfd8);
+        break-inside: avoid;
+      }
+      __PANEL__ .after-interview-manager-report__motivation-evidence-empty {
+        margin: 0; font-size: .78rem; color: var(--talena-text-muted, #766e68);
+      }
       __PANEL__ .after-interview-manager-report__personality {
         margin-top: 1.8rem;
       }
@@ -1842,7 +1926,18 @@
         margin: 0; color: var(--talena-text-muted, #766e68); font-size: .74rem; line-height: 1.55;
       }
       __PANEL__ .after-interview-manager-report__intro {
-        max-width: 760px; margin: .65rem 0 0; color: var(--talena-text-muted, #766e68); font-size: .9rem; line-height: 1.65;
+        max-width: 920px; margin: .85rem 0 0; color: #554f49;
+        font-size: .83rem; line-height: 1.65;
+      }
+      __PANEL__ .after-interview-manager-report__intro-paragraph {
+        margin: 0 0 .65rem; orphans: 2; widows: 2;
+      }
+      __PANEL__ .after-interview-manager-report__intro-paragraph strong {
+        color: var(--talena-ink, #191817); font-weight: 750;
+      }
+      __PANEL__ .after-interview-manager-report__section-intro {
+        max-width: 900px; margin: -.35rem 0 1.15rem; font-size: .8rem;
+        line-height: 1.65; color: #625b56; break-inside: avoid;
       }
       __PANEL__ .after-interview-manager-report .after-interview-tab-card__title {
         font-size: clamp(1.15rem, 1.8vw, 1.55rem);
@@ -2229,17 +2324,41 @@
     });
     managerReportActions.appendChild(pdfButton);
     managerReportHeader.append(managerReportHeading, managerReportActions);
-    const managerReportIntro = document.createElement("p");
+    const managerReportIntro = document.createElement("div");
     managerReportIntro.className = "after-interview-manager-report__intro";
-    managerReportIntro.textContent = copy().managerReportIntro;
+    copy().managerReportIntroParagraphs.forEach((value, index) => {
+      const paragraph = document.createElement("p");
+      paragraph.className = "after-interview-manager-report__intro-paragraph";
+      // Emphasis is semantic so it also survives the report's PDF clone.
+      const emphasis = index === 1 ? copy().managerReportNormGroup
+        : index === 2 ? copy().managerReportIntroEmphasis : "";
+      const emphasisAt = emphasis ? value.indexOf(emphasis) : -1;
+      if (emphasisAt !== -1) {
+        paragraph.appendChild(document.createTextNode(value.slice(0, emphasisAt)));
+        const strong = document.createElement("strong");
+        strong.textContent = emphasis;
+        paragraph.appendChild(strong);
+        paragraph.appendChild(document.createTextNode(value.slice(emphasisAt + emphasis.length)));
+      } else {
+        paragraph.textContent = value;
+      }
+      managerReportIntro.appendChild(paragraph);
+    });
     managerReportCard.append(managerReportHeader, managerReportIntro, managerReportPdfError);
+
+    const makeManagerSectionIntro = (key) => {
+      const intro = document.createElement("p");
+      intro.className = "after-interview-manager-report__section-intro";
+      intro.textContent = copy().managerSectionIntroductions[key];
+      return intro;
+    };
 
     const managerSkills = document.createElement("section");
     managerSkills.className = "after-interview-manager-report__skills";
     const managerSkillsTitle = document.createElement("h4");
     managerSkillsTitle.className = "after-interview-manager-report__skills-title";
     managerSkillsTitle.textContent = copy().managerSkillsTitle;
-    managerSkills.appendChild(managerSkillsTitle);
+    managerSkills.append(managerSkillsTitle, makeManagerSectionIntro("skills"));
 
     const workspace = panel.closest("[data-candidate-insights-workspace]");
     const managerReportEditController = createManagerReportEditController(
@@ -2328,6 +2447,8 @@
     });
 
     if (!completedSkills.size) {
+      // An uncompleted assessment must not introduce an absent test area.
+      managerSkills.hidden = true;
       const empty = document.createElement("p");
       empty.className = "after-interview-manager-report__skills-empty";
       empty.textContent = copy().managerSkillsUnavailable;
@@ -2378,7 +2499,7 @@
     const managerMotivationTitle = document.createElement("h4");
     managerMotivationTitle.className = "after-interview-manager-report__motivation-title";
     managerMotivationTitle.textContent = copy().managerMotivationTitle;
-    managerMotivation.appendChild(managerMotivationTitle);
+    managerMotivation.append(managerMotivationTitle, makeManagerSectionIntro("motivation"));
 
     const managerMotivators = [
       ...(workspace?.querySelectorAll(
@@ -2441,6 +2562,87 @@
         motivationGrid.appendChild(motivator);
       });
       managerMotivation.appendChild(motivationGrid);
+
+      // The interview section contains saved source text, never AI-generated
+      // conclusions or detached answers. It is copied unchanged into the PDF.
+      const evidenceSection = document.createElement("section");
+      evidenceSection.className = "after-interview-manager-report__motivation-evidence";
+      const renderEvidence = (evidence) => {
+        evidenceSection.replaceChildren();
+      const evidenceTitle = document.createElement("h5");
+      evidenceTitle.className = "after-interview-manager-report__motivation-evidence-title";
+      evidenceTitle.textContent = copy().managerMotivationInterviewTitle;
+      const provenance = document.createElement("p");
+      provenance.className = "after-interview-manager-report__motivation-evidence-provenance";
+      provenance.textContent = copy().managerMotivationInterviewSource;
+      evidenceSection.append(evidenceTitle, provenance);
+
+      if (evidence.notes.trim()) {
+        const noteTitle = document.createElement("h6");
+        noteTitle.className = "after-interview-manager-report__motivation-evidence-label";
+        noteTitle.textContent = copy().managerMotivationNotesTitle;
+        const note = document.createElement("p");
+        note.className = "after-interview-manager-report__motivation-evidence-text";
+        note.textContent = evidence.notes.trim();
+        evidenceSection.append(noteTitle, note);
+      }
+      evidence.answers.forEach((item) => {
+        const answerCard = document.createElement("div");
+        answerCard.className = "after-interview-manager-report__motivation-answer";
+        const questionTitle = document.createElement("h6");
+        questionTitle.className = "after-interview-manager-report__motivation-evidence-label";
+        questionTitle.textContent = copy().managerMotivationQuestionTitle;
+        const question = document.createElement("p");
+        question.className = "after-interview-manager-report__motivation-evidence-text";
+        question.textContent = item.question;
+        const answerTitle = document.createElement("h6");
+        answerTitle.className = "after-interview-manager-report__motivation-evidence-label";
+        answerTitle.textContent = copy().managerMotivationAnswerTitle;
+        const answer = document.createElement("p");
+        answer.className = "after-interview-manager-report__motivation-evidence-text";
+        answer.textContent = item.answer;
+        answerCard.append(questionTitle, question, answerTitle, answer);
+        evidenceSection.appendChild(answerCard);
+      });
+      if (!evidence.notes.trim() && !evidence.answers.length) {
+        const empty = document.createElement("p");
+        empty.className = "after-interview-manager-report__motivation-evidence-empty";
+        empty.textContent = copy().managerMotivationInterviewMissing;
+        evidenceSection.appendChild(empty);
+      }
+      };
+      renderEvidence(getManagerMotivationInterviewEvidence(panel));
+
+      // Saved questions can change without rebuilding the visible report.
+      // Reload just the source-backed Motivation text, not the entire report
+      // (which would discard existing editor state or re-run AI generation).
+      const refreshEvidence = async () => {
+        if (!evidenceSection.isConnected || !outputRoot?.dataset.refreshUrl) return;
+        try {
+          const response = await fetch(outputRoot.dataset.refreshUrl, {
+            credentials: "same-origin",
+            headers: { "X-Requested-With": "XMLHttpRequest" },
+          });
+          if (!response.ok) return;
+          const fresh = new DOMParser().parseFromString(
+            await response.text(), "text/html"
+          ).querySelector("#talena-manager-motivation-interview-evidence");
+          if (!fresh || !evidenceSection.isConnected) return;
+          const data = JSON.parse(fresh.textContent || "{}");
+          if (typeof data?.notes !== "string" || !Array.isArray(data?.answers)) return;
+          renderEvidence({
+            notes: data.notes,
+            answers: data.answers.filter((item) =>
+              typeof item?.question === "string" && typeof item?.answer === "string"
+            ),
+          });
+        } catch (_error) {
+          // Preserve the last readable source; a failed refresh is not an AI error.
+        }
+      };
+      document.addEventListener("candidate-interview-question-note-updated", refreshEvidence);
+      document.addEventListener("talena:post-interview-part-generated", refreshEvidence);
+      managerMotivation.appendChild(evidenceSection);
       managerReportCard.appendChild(managerMotivation);
     }
 
@@ -2651,7 +2853,7 @@
     });
 
     updateManagerReportGenerateLabel();
-    managerPersonality.appendChild(managerPersonalityTitle);
+    managerPersonality.append(managerPersonalityTitle, makeManagerSectionIntro("personality"));
     const renderPersonalityText = (theme, part, text) => {
       const key = "personality:" + theme + ":" + part;
       managerReportEditController.setAiText(key, text || "");

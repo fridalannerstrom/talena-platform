@@ -17,10 +17,11 @@ const reportTabStyles = fs.readFileSync("static/css/talena/pages/candidate-insig
 const teamReportsTabs = fs.readFileSync("templates/customer/processes/partials/candidate_insights/tabs/_reports.html", "utf8");
 const insightTabsCss = fs.readFileSync("static/css/talena/pages/candidate-insight-tabs.css", "utf8");
 
-// Two primary tabs: Evidence and Reports. Three active report keys
-// are nested rather than rewritten, preserving PDF, URL and refresh behavior.
+// Two primary tabs: Evidence and Reports. Only active report keys
+// are nested; the retired "Undersök vidare" / explore tab must stay removed.
+// Preserve PDF, URL and refresh behavior for remaining report panels.
 for (const snippet of [
-  'const keys = ["evidence", "overview", "explore", "managerReport"]',
+  'const keys = ["evidence", "overview", "managerReport"]',
   'const reportKeys = keys.filter((key) => key !== "evidence")',
   'primaryNav.appendChild(evidenceButton)',
   'primaryNav.appendChild(reportsButton)',
@@ -31,13 +32,16 @@ for (const snippet of [
   'tabs.append(journey, navSection, tabPanels)',
 ]) assert.ok(tabs.includes(snippet), "Two-level tab contract missing: " + snippet);
 
+assert.ok(!tabs.includes('const keys = ["evidence", "overview", "explore", "managerReport"]'),
+  "Retired explore tab must not return.");
+
 // A new candidate cannot access reports through tabs or a stale URL.
 // Completed reports default to Helhetsbild/Overall picture after compilation.
 for (const snippet of [
   'if (!hasCompiledPostInterviewResult) {\n      reportsButton.disabled = true',
   'reportsButton.setAttribute("aria-disabled", "true")',
   '(hasCompiledPostInterviewResult || key === "evidence")',
-  'hasCompiledPostInterviewResult ? "overview" : "evidence"',
+  'hasCompiledPostInterviewResult ? defaultReportKey : "evidence"',
   'lastRenderedCompiled === false && hasCompiledPostInterviewResult',
   'const activeKey = keys.includes(key)',
   'if (reportsActive) activeReportKey = activeKey',
@@ -47,23 +51,23 @@ for (const snippet of [
 // existing module; unsaved general notes get an immediate visible warning.
 for (const snippet of [
   'notesInput.value !== originalSavedNotes',
-  'outputRoot?.dataset.postInterviewStatus === "outdated"',
+  'outputRoot?.dataset.postInterviewEvidenceChanged === "true"',
   '"candidate-interview-question-note-updated"',
   'reportStatus.classList.toggle("needs-update", needsUpdate)',
-  'reportsRefresh.classList.toggle("needs-update", needsUpdate)',
+  'reportsButton.classList.toggle("needs-update", needsUpdate)',
   'reportStatusTitle.textContent = hasUnsavedNotes',
   'reportStatusDetail.textContent = needsUpdate',
 ]) assert.ok(tabs.includes(snippet), "Report freshness contract missing: " + snippet);
 
-// Both regenerate buttons delegate to the existing full-compilation action,
-// which retains auto-save, privacy checks and manual-edit confirmations.
+// The Evidence regenerate button delegates to the existing full-compilation
+// action, retaining auto-save, privacy checks and manual-edit confirmations.
 for (const snippet of [
   'evidenceCard.append(evidenceIntro, notesRoot, postSection)',
-  'rebuildButton.dataset.afterInterviewRebuild = "evidence"',
-  'reportsRefresh.dataset.afterInterviewRebuild = "reports"',
+  'compilationAction.className = "after-interview-evidence-compilation"',
+  'compilationDescription.textContent = copy().compileAgainDescription',
   "'[data-post-interview-generate][data-regenerate=\"true\"]'",
-  'nativeButton.click()',
-  'tabs.querySelectorAll("[data-after-interview-rebuild]")',
+  'nativeCompileButton.dataset.structured = "true"',
+  'nativeCompileButton.click()',
   "journeySteps.querySelectorAll",
 ]) assert.ok(tabs.includes(snippet), "Regeneration contract missing: " + snippet);
 assert.ok(!tabs.includes("legacyGlobalRegenerate?.remove()"),
@@ -84,8 +88,12 @@ assert.ok(tabs.includes('reports: "Reports"'));
 assert.ok(copy.includes("testresultat och rollkontext"));
 assert.ok(copy.includes("assessment results and role context"));
 assert.ok(view.includes("data-interview-notes-save") && view.includes("data-post-interview-generate"));
-assert.ok(view.includes('rows="8"'));
-assert.ok(shell.includes("after-interview-tabs.js") && shell.includes("430-footer-v13"));
+assert.ok(view.includes('data-interview-notes-area="personality"') &&
+  view.includes('data-interview-notes-area="motivation"') &&
+  view.includes('data-interview-notes-area="skills"') &&
+  view.includes("data-interview-notes-input"),
+  "Three visible note areas must retain the native combined save input.");
+assert.ok(shell.includes("after-interview-tabs.js") && shell.includes("20261113-evidence-recompile-v3"));
 assert.ok(header.includes("candidate-eyebrows.js") && header.includes("rolecontext-v6"));
 
 // A compiled candidate sees only the single regenerate row on Evidence.
@@ -97,9 +105,9 @@ assert.ok(tabs.includes('postSection.setAttribute("aria-hidden", "true")'),
   "Hidden internal regeneration controls should not enter the accessibility tree.");
 assert.ok(tabs.includes('evidenceCard.append(evidenceIntro, notesRoot, postSection)'),
   "Original post-interview section must stay mounted.");
-assert.ok(tabs.includes('rebuildDescription.textContent = copy().evidenceRebuildHint'),
+assert.ok(tabs.includes('compilationDescription.textContent = copy().compileAgainDescription'),
   "Keep the single visible regeneration explanation.");
-assert.ok(tabs.includes('rebuildButton.dataset.afterInterviewRebuild = "evidence"'),
+assert.ok(tabs.includes('compilationButton.addEventListener("click", () => {'),
   "Keep the regeneration action on the visible row.");
 
 // Motivation layout: each factor gets a readable explanation and two guidance
@@ -142,7 +150,8 @@ assert.ok(!tabs.includes('__PANEL__ .after-interview-report-switcher {'),
 assert.ok(tabs.includes("reportStatus.hidden = true"));
 assert.ok(tabs.includes("reportStatus.hidden = !needsUpdate"));
 assert.ok(tabs.includes('reportStatusTitle.textContent = hasUnsavedNotes'));
-assert.ok(tabs.includes('reportStatus.hidden = false;'));
+assert.ok(tabs.includes('reportsButton.classList.toggle("needs-update", needsUpdate)'),
+  "Report tab must show evidence-change warnings.");
 assert.ok(tabs.includes(".after-interview-reports__status[hidden]"));
 assert.ok(!tabs.includes("reportStatusCurrent:"),
   "No current-compilation status text should be shown.");

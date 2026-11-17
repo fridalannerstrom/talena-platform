@@ -1,6 +1,6 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db import transaction
+from django.db import DatabaseError, transaction
 from django.http import (
     Http404,
     HttpResponseBadRequest,
@@ -76,6 +76,8 @@ def _copy(locale: str) -> dict[str, str]:
             "feedback_save": "Spara reflektion",
             "feedback_cancel": "Avbryt",
             "feedback_saved": "Din reflektion har sparats.",
+            "feedback_comment_received": "Tack för din kommentar. En person i rekryteringsteamet kommer att läsa den.",
+            "feedback_retry": "Något gick fel när din reflektion skulle sparas. Försök gärna igen.",
             "feedback_saved_short": "Sparad",
             "experience_title": "Hur upplevde du testerna?",
             "experience_intro": "Berätta gärna hur du upplevde att göra testerna. Ditt svar och din kommentar blir synliga för kunden som bjöd in dig.",
@@ -131,6 +133,8 @@ def _copy(locale: str) -> dict[str, str]:
         "feedback_save": "Save reflection",
         "feedback_cancel": "Cancel",
         "feedback_saved": "Your reflection has been saved.",
+        "feedback_comment_received": "Thank you for your comment. Someone on the recruitment team will read it.",
+        "feedback_retry": "We couldn't save your reflection this time. Please try again.",
         "feedback_saved_short": "Saved",
         "experience_title": "How was your test experience?",
         "experience_intro": "Tell us what it was like to take the tests. Your rating and comment will be visible to the customer who invited you.",
@@ -212,6 +216,7 @@ def _result_context(
                 {
                     "key": key,
                     "title": section.get("title") or key.title(),
+                    "introduction": str(section.get("introduction") or "").strip(),
                     "body": body,
                     "points": points,
                     "groups": groups,
@@ -389,11 +394,44 @@ def candidate_result(request, token: str):
         access.snapshot
     )
 
+    # Feedback success is flashed once, only after a committed save.
+    # A URL query string alone must never claim that a comment was received.
+    feedback_flash_key = f"candidate_result_feedback_saved_{access.pk}"
     if request.method == "POST" and request.POST.get("action") == "save_feedback":
-        error_response = _save_candidate_feedback(request, snapshot)
-        if error_response is not None:
-            return error_response
-        return redirect(f"{request.path}?feedback_saved=1")
+        try:
+            error_response = _save_candidate_feedback(request, snapshot)
+        except DatabaseError:
+            error_response = None
+            error_message = _copy(locale)["feedback_retry"]
+            error_status = 503
+        else:
+            error_message = (
+                error_response.content.decode("utf-8", errors="replace")
+                if error_response is not None else ""
+            )
+            error_status = (
+                error_response.status_code if error_response is not None else 200
+            )
+
+        if error_message:
+            context = _result_context(snapshot)
+            context.update({
+                "feedback_error": error_message,
+                "feedback_error_area": request.POST.get("result_area", ""),
+                "feedback_error_response": request.POST.get("response", ""),
+                "feedback_error_comment": request.POST.get("comment", ""),
+            })
+            return render(
+                request, "candidate_results/result.html",
+                context, status=error_status,
+            )
+
+        # Do not show a comment-specific thank-you for rating-only feedback.
+        request.session[feedback_flash_key] = (
+            "comment" if request.POST.get("comment", "").strip()
+            else "reflection"
+        )
+        return redirect(request.path)
 
     if request.method == "POST" and request.POST.get("action") == "save_experience":
         error_response = _save_test_experience(request, snapshot)
@@ -402,7 +440,9 @@ def candidate_result(request, token: str):
         return redirect(f"{request.path}?experience_saved=1#test-experience")
 
     context = _result_context(snapshot)
-    context["feedback_saved"] = request.GET.get("feedback_saved") == "1"
+    saved_kind = request.session.pop(feedback_flash_key, None)
+    context["feedback_saved"] = saved_kind in {"comment", "reflection"}
+    context["feedback_comment_saved"] = saved_kind == "comment"
     context["experience_saved"] = request.GET.get("experience_saved") == "1"
     return render(
         request,
