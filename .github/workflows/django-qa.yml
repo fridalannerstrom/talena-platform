@@ -70,7 +70,7 @@ jobs:
           DJANGO_SECRET_KEY: local-qa-only
           USE_AZURE_STORAGE: '0'
         run: |
-          python manage.py test apps.processes.test_admin_candidate_mirror_353 apps.processes.test_candidate_sent_assessments_tab --noinput
+          python manage.py test apps.processes.test_admin_candidate_mirror_353 apps.processes.test_admin_customer_workspace_20261117 apps.processes.test_candidate_sent_assessments_tab --noinput
           node --check static/js/talena/admin-candidate-mirror-353.js
           node scripts/test_admin_candidate_navigation_353.js
           node --check static/js/talena/structured-overall-picture.js
