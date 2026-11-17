@@ -110,6 +110,8 @@ jobs:
         run: |
           python manage.py test apps.processes.test_manager_report_motivation_evidence_512 apps.core.test_manager_report_interview_comments_512 --noinput
           node scripts/test_manager_report_intro_512.js
+          node --check static/js/talena/pdf-export-core.js
+          node scripts/test_manager_report_pdf_layout_20261117.js
       - name: Verify After interview final output refresh state
         run: |
           node --check static/js/talena/after-interview-tabs.js
