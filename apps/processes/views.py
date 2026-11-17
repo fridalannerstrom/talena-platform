@@ -102,6 +102,7 @@ from apps.core.ai.personality_interpretation import (
     stream_personality_interpretation,
     save_personality_interpretation,
 )
+from apps.core.ai.manager_report_interview_comments import visible_manager_report_comments
 from apps.core.ai.manager_report_personality import (
     PERSONALITY_MANAGER_REPORT_THEMES,
     apply_manager_report_personality_event,
@@ -3640,6 +3641,9 @@ def build_candidate_detail_context(
 
         # Interview evidence
 
+        "manager_report_interview_comments": visible_manager_report_comments(
+            invitation, get_request_ai_language(request),
+        ),
         "manager_motivation_interview_evidence": (
             build_manager_motivation_interview_evidence(invitation)
         ),
@@ -5438,7 +5442,10 @@ def process_candidate_final_output(
                 },
             ),
 
-            "manager_motivation_interview_evidence": (
+            "manager_report_interview_comments": visible_manager_report_comments(
+            invitation, get_request_ai_language(request),
+        ),
+        "manager_motivation_interview_evidence": (
                 build_manager_motivation_interview_evidence(invitation)
             ),
             "interview_notes": interview_notes,
@@ -10055,6 +10062,9 @@ def build_historical_candidate_detail_context(
             },
         ),
 
+        "manager_report_interview_comments": visible_manager_report_comments(
+            historical_candidate, get_request_ai_language(request),
+        ),
         "manager_motivation_interview_evidence": (
             build_manager_motivation_interview_evidence(historical_candidate)
         ),
