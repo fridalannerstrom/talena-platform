@@ -1,62 +1,61 @@
-"""Regression tests for Overall picture interview evidence availability.
-
-The scenarios reflect the reported defect: saved examples about logical
-troubleshooting, verbal reasoning, pressure, planning and motivation existed
-in general notes, but strict routing made the generated report say none did.
-"""
+"""Regression tests for strict, server-side Helhetsbild interview-area isolation."""
 from types import SimpleNamespace
 from unittest.mock import patch
 
 from django.test import SimpleTestCase
 
 from apps.core.ai import structured_overall_picture as report
+from apps.core.ai.interview_note_areas import split_interview_notes_by_area
 
 
-class OverallPictureCompleteInterviewTests(SimpleTestCase):
+class OverallPictureInterviewAreaIsolationTests(SimpleTestCase):
     def setUp(self):
         self.notes = {
             "general_notes": (
-                "Färdighet:\n"
-                "Logisk\n"
-                "Jag felsökte ett rekryteringsformulär genom att göra testansökningar "
-                "och ändra en sak i taget tills jag hittade länken som orsakade felet.\n"
-                "Verbal\n"
-                "Jag jämförde texten i kravprofilen med mötesanteckningarna och "
-                "frågade chefen om projektledning kunde uppfylla kravet.\n"
-                "Motivation\n"
-                "Jag får energi av att växla mellan search, möten och intervjuer.\n"
-                "När flera uppgifter blev akuta sorterade jag efter tidskritikalitet "
-                "och informerade tidigt när jag inte skulle hinna.\n"
-                "Jag ändrade mina searchmeddelanden när färre kandidater svarade."
+                "### Intervjuunderlag: Personlighet\n"
+                "ONLY_PERSONALITY: Jag prioriterade med hjälp av kalendern.\n\n"
+                "### Intervjuunderlag: Motivation\n"
+                "ONLY_MOTIVATION: Jag får energi av variation.\n\n"
+                "### Intervjuunderlag: Färdighet\n"
+                "ONLY_SKILLS: Jag jämförde olika siffror och upptäckte felet."
             ),
             "question_evidence": {"items": [
                 {
                     "source": "personality",
-                    "question": "Hur planerar du många parallella processer?",
-                    "saved_answer_or_note": "Jag använder kalendern och ATS och prioriterar under dagen.",
+                    "question": "ONLY_PERSONALITY_QUESTION",
+                    "saved_answer_or_note": "ONLY_PERSONALITY_ANSWER",
+                },
+                {
+                    "source": "motivation",
+                    "question": "ONLY_MOTIVATION_QUESTION",
+                    "saved_answer_or_note": "ONLY_MOTIVATION_ANSWER",
                 },
                 {
                     "source": "cognitive",
-                    "question": "Hur såg du ett mönster i ansökningarna?",
-                    "saved_answer_or_note": "Jag jämförde olika ansökningsvägar systematiskt.",
+                    "question": "ONLY_SKILLS_QUESTION",
+                    "saved_answer_or_note": "ONLY_SKILLS_ANSWER",
                 },
             ]},
         }
 
-    def test_logical_and_verbal_areas_see_real_general_notes(self):
-        for skill in ("logical", "verbal"):
-            with self.subTest(skill=skill):
-                data = report._notes_for_category(self.notes, "skills", item_key=skill)
-                self.assertIn("felsökte ett rekryteringsformulär", data["general_notes"])
-                self.assertIn("jämförde texten i kravprofilen", data["general_notes"])
-                self.assertEqual(len(data["question_evidence"]), 2)
+    def test_each_area_only_receives_its_own_text_and_question_answers(self):
+        expected = {
+            "personality": ("ONLY_PERSONALITY:", "ONLY_PERSONALITY_QUESTION"),
+            "motivation": ("ONLY_MOTIVATION:", "ONLY_MOTIVATION_QUESTION"),
+            "skills": ("ONLY_SKILLS:", "ONLY_SKILLS_QUESTION"),
+        }
+        for category, (text, question) in expected.items():
+            with self.subTest(category=category):
+                scoped = report._notes_for_category(self.notes, category)
+                self.assertIn(text, scoped["general_notes"])
+                self.assertEqual(len(scoped["question_evidence"]), 1)
+                self.assertEqual(scoped["question_evidence"][0]["question"], question)
+                for other, (other_text, other_question) in expected.items():
+                    if other != category:
+                        self.assertNotIn(other_text, str(scoped))
+                        self.assertNotIn(other_question, str(scoped))
 
-    def test_motivation_notes_are_not_discarded_from_general_interview_field(self):
-        data = report._notes_for_category(self.notes, "motivation", item_key="factor_1")
-        self.assertIn("Jag får energi av att växla", data["general_notes"])
-        self.assertIn("När flera uppgifter blev akuta", data["general_notes"])
-
-    def test_personality_notes_can_inform_multiple_themes(self):
+    def test_personality_notes_can_inform_multiple_personality_themes(self):
         themes = [
             {"key": "theme_1", "title": "Planering och målfokus"},
             {"key": "theme_2", "title": "Stress och press"},
@@ -68,28 +67,84 @@ class OverallPictureCompleteInterviewTests(SimpleTestCase):
                 None, themes, self.notes, "sv",
             )
         for item in assigned.values():
-            self.assertIn("tidskritikalitet", item["general_notes"])
-            self.assertEqual(len(item["question_evidence"]), 2)
+            self.assertIn("ONLY_PERSONALITY:", item["general_notes"])
+            self.assertEqual(len(item["question_evidence"]), 1)
+            self.assertNotIn("ONLY_MOTIVATION", str(item))
+            self.assertNotIn("ONLY_SKILLS", str(item))
         self.assertIsNot(
             assigned["theme_1"]["question_evidence"],
             assigned["theme_2"]["question_evidence"],
         )
 
-    def test_prompt_keeps_test_and_interview_sources_separate(self):
-        item = {
-            "key": "theme_1", "title": "Planering och målfokus",
-            "scope": "prioritering och omplanering",
-            "evidence": {"traits": [{"summary": "Prefers flexible plans."}]},
+    def test_actual_ai_prompts_cannot_see_other_fields(self):
+        items = {
+            "skills": {"title": "Logisk", "evidence": {"test": "logical"}},
+            "motivation": {"title": "Variation", "evidence": {"name": "Variation"}},
+            "personality": {
+                "title": "Planering och målfokus", "scope": "prioritering",
+                "evidence": {"traits": [{"summary": "Värderar tydlig planering"}]},
+            },
+        }
+        expected = {
+            "personality": "ONLY_PERSONALITY",
+            "motivation": "ONLY_MOTIVATION",
+            "skills": "ONLY_SKILLS",
         }
         owner = SimpleNamespace()
         with patch.object(report, "_guidance", return_value=("Global rules", "Scoped guidance")):
-            prompt = report._item_prompt(
-                owner, "personality", item, {"purpose_label": "Recruitment"},
-                report._notes_for_category(self.notes, "personality"), "sv",
+            for category, item in items.items():
+                with self.subTest(category=category):
+                    prompt = report._item_prompt(
+                        owner, category, item, {"purpose_label": "Recruitment"},
+                        report._notes_for_category(self.notes, category), "sv",
+                    )
+                    self.assertIn("INTERVIEW MATERIAL FROM THIS AREA ONLY", prompt)
+                    self.assertIn(expected[category], prompt)
+                    for other, marker in expected.items():
+                        if other != category:
+                            self.assertNotIn(marker, prompt)
+
+    def test_empty_area_does_not_inherit_other_areas_or_invent_interview_text(self):
+        notes = {
+            "general_notes": (
+                "### Intervjuunderlag: Personlighet\n"
+                "Only a personality account is present."
+            ),
+            "question_evidence": {"items": []},
+        }
+        scoped = report._notes_for_category(notes, "skills")
+        self.assertEqual(scoped, {"general_notes": "", "question_evidence": []})
+        with patch.object(report, "_completion", return_value={
+            "testbild": "Testet ger en indikation.",
+            "intervjun": "Påhittad intervjuberättelse.",
+        }):
+            testbild, interview = report._generate_validated_item(
+                SimpleNamespace(), "Färdighet test evidence",
+                language="sv", category="skills", notes=scoped,
             )
-        self.assertIn("ASSESSMENT FOR THIS AREA ONLY", prompt)
-        self.assertIn("COMPLETE INTERVIEW MATERIAL", prompt)
-        self.assertIn("Prefers flexible plans.", prompt)
-        self.assertIn("Jag ändrade mina searchmeddelanden", prompt)
-        self.assertIn("Testbild must use ONLY the assessment evidence", prompt)
-        self.assertIn("Intervjun must use ONLY factual statements", prompt)
+        self.assertEqual(testbild, "Testet ger en indikation.")
+        self.assertEqual(interview, report.MISSING_INTERVIEW["sv"])
+
+    def test_legacy_notes_are_not_guessed_into_other_areas(self):
+        legacy = "Ett äldre odelat intervjuunderlag med blandade teman."
+        sections = split_interview_notes_by_area(legacy)
+        self.assertEqual(sections["personality"], legacy)
+        self.assertEqual(sections["motivation"], "")
+        self.assertEqual(sections["skills"], "")
+        for category in ("skills", "motivation"):
+            scoped = report._notes_for_category({
+                "general_notes": legacy, "question_evidence": {"items": []},
+            }, category)
+            self.assertEqual(scoped["general_notes"], "")
+
+    def test_old_prefix_and_repeated_headings_follow_existing_ui_contract(self):
+        notes = (
+            "Äldre osorterat underlag.\n\n"
+            "### Intervjuunderlag: Motivation\nMotiv A\n\n"
+            "### Intervjuunderlag: Färdighet\nNumerisk A\n\n"
+            "### Intervjuunderlag: Motivation\nMotiv B"
+        )
+        fields = split_interview_notes_by_area(notes)
+        self.assertEqual(fields["personality"], "Äldre osorterat underlag.")
+        self.assertEqual(fields["motivation"], "Motiv A\n\nMotiv B")
+        self.assertEqual(fields["skills"], "Numerisk A")
