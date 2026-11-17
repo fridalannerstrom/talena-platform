@@ -88,7 +88,11 @@ assert.ok(tabs.includes('reports: "Reports"'));
 assert.ok(copy.includes("testresultat och rollkontext"));
 assert.ok(copy.includes("assessment results and role context"));
 assert.ok(view.includes("data-interview-notes-save") && view.includes("data-post-interview-generate"));
-assert.ok(view.includes('rows="8"'));
+assert.ok(view.includes('data-interview-notes-area="personality"') &&
+  view.includes('data-interview-notes-area="motivation"') &&
+  view.includes('data-interview-notes-area="skills"') &&
+  view.includes("data-interview-notes-input"),
+  "Three visible note areas must retain the native combined save input.");
 assert.ok(shell.includes("after-interview-tabs.js") && shell.includes("430-footer-v13"));
 assert.ok(header.includes("candidate-eyebrows.js") && header.includes("rolecontext-v6"));
 
@@ -146,7 +150,8 @@ assert.ok(!tabs.includes('__PANEL__ .after-interview-report-switcher {'),
 assert.ok(tabs.includes("reportStatus.hidden = true"));
 assert.ok(tabs.includes("reportStatus.hidden = !needsUpdate"));
 assert.ok(tabs.includes('reportStatusTitle.textContent = hasUnsavedNotes'));
-assert.ok(tabs.includes('reportStatus.hidden = false;'));
+assert.ok(tabs.includes('reportsButton.classList.toggle("needs-update", needsUpdate)'),
+  "Report tab must show evidence-change warnings.");
 assert.ok(tabs.includes(".after-interview-reports__status[hidden]"));
 assert.ok(!tabs.includes("reportStatusCurrent:"),
   "No current-compilation status text should be shown.");
