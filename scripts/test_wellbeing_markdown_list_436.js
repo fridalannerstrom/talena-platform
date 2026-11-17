@@ -103,8 +103,6 @@ assert.equal(custom.children[0].type, "h3", "Distinct wellbeing subheadings must
 for (const spec of [
   { key: "interview_summary", heading: "## Intervjusammanfattning" },
   { key: "interview_summary", heading: "**Interview summary**" },
-  { key: "explore_further", heading: "### Undersök vidare" },
-  { key: "explore_further", heading: "Investigate further:" },
   { key: "overall_picture", heading: "# Helhetsbild" },
 ]) {
   const raw = spec.heading + "\n\nKandidatens svar och exempel:\nEtt konkret exempel.";
@@ -114,13 +112,10 @@ for (const spec of [
   assert.equal(result.children[0].type, "p");
   assert.equal(result.originalSource, raw, "Stored AI/edited text must be untouched");
 }
-const followup = renderText(
-  "Undersök vidare\n\n## Kvarstående osäkerheter\n\nEtt förslag.",
-  { blockContentKey: "explore_further" }
-);
-assert.equal(followup.children.length, 2,
-  "Meaningful nested headings should survive duplicate title removal");
-assert.equal(followup.children[0].type, "h3");
+// Retired Explore is not an active report card; only existing areas
+// participate in duplicate-title suppression.
+assert.ok(!src.includes('const keys = ["evidence", "overview", "explore", "managerReport"]'),
+  "The retired Explore tab must stay absent.");
 const nonmatching = renderText("## Kandidatens svar och exempel\n\nText", {
   sourceKey: "interview_summary",
 });
