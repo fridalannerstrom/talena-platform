@@ -480,6 +480,12 @@ class TestInvitation(models.Model):
         default=dict,
         blank=True,
     )
+
+    # AI-polished, individually sourced Motivation and Skills interview comments.
+    ai_manager_report_interview_comments = models.JSONField(
+        default=dict,
+        blank=True,
+    )
     ai_manager_report_personality_status = models.CharField(
         max_length=30,
         default="not_started",
@@ -1503,6 +1509,12 @@ class HistoricalProcessCandidate(models.Model):
     )
 
     ai_manager_report_personality = models.JSONField(
+        default=dict,
+        blank=True,
+    )
+
+    # AI-polished, individually sourced Motivation and Skills interview comments.
+    ai_manager_report_interview_comments = models.JSONField(
         default=dict,
         blank=True,
     )
