@@ -467,4 +467,19 @@ document.addEventListener("DOMContentLoaded", function () {
 {% endif %}
 
 <script src="{% static 'js/talena/project-assessment-status.js' %}?v=20261105-447-shortcut"></script>
+
+{% if process_base_layout %}
+<script>
+  // Deep-link from a Talena admin candidate to the shared customer workspace.
+  // The normal customer candidate-sheet click handlers are registered during
+  // DOMContentLoaded, so open on the next task after they have initialized.
+  document.addEventListener("DOMContentLoaded", () => {
+    const candidateId = new URLSearchParams(window.location.search).get("focus_candidate");
+    if (!candidateId || !/^\\d+$/.test(candidateId)) return;
+    const trigger = Array.from(document.querySelectorAll(".js-open-candidate[data-candidate-id]"))
+      .find(link => link.dataset.candidateId === candidateId);
+    if (trigger) window.setTimeout(() => trigger.click(), 0);
+  });
+</script>
+{% endif %}
 {% endblock %}
