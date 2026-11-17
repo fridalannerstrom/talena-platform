@@ -15,9 +15,13 @@ from .candidate_name_privacy import redact_candidate_name
 from .interview_note_areas import split_interview_notes_by_area
 from .language import normalize_ai_language
 from .openai_client import get_chat_model, get_openai_client
-from .prompt_templates import get_global_ai_guidance
+from .prompt_templates import get_ai_feature_prompt_instructions, get_global_ai_guidance
 
 CATEGORIES = {"motivation": "motivation", "skills": "cognitive"}
+PROMPT_KEYS = {
+    "motivation": "manager_report_motivation_candidate_comments",
+    "skills": "manager_report_skills_candidate_comments",
+}
 RULES_VERSION = 1
 
 
@@ -65,31 +69,40 @@ def visible_manager_report_comments(owner, language_code: str) -> dict[str, str]
 
 
 def build_manager_report_comment_prompt(evidence: dict, category: str, language_code: str) -> str:
+    """Let the admin prompt direct the writing, never the source boundaries.
+
+    Only language, JSON parsing, source isolation and safety constraints are
+    fixed in code. The administrator controls content, tone, length and layout
+    independently for Motivation and Skills through the existing registry.
+    """
     if category not in CATEGORIES:
         raise ValueError("Unknown manager report comment category.")
     language = normalize_ai_language(language_code)
-    area_name = ("motivation" if category == "motivation" else "cognitive skills")
+    admin_guidance = get_ai_feature_prompt_instructions(
+        key=PROMPT_KEYS[category], language=language,
+    )
+    global_guidance = get_global_ai_guidance(language=language)
     return "\n\n".join([
-        "TASK: Write the manager report's 'Kandidatens kommentarer' / "
-        "'Candidate comments' for the " + area_name + " area only.",
-        "OUTPUT: JSON object with exactly one string field 'text'. "
-        "Use Swedish for sv, English for en. Language: " + language,
-        "Write one coherent, concise, professional paragraph that paraphrases "
-        "and polishes the actual interview notes and saved answers. "
-        "Never copy/paste the raw notes or print the questions and answers as a list. "
-        "Do not add facts, motivation, skills, causes, experience, intentions, "
-        "outcomes, feelings or behaviour absent from the supplied answers. "
-        "Do not speculate or evaluate the candidate's fit. Do not interpret test results.",
-        "Preserve the distinction between the person's self-reported account "
-        "and interviewer's observation. Do not present an interviewer inference "
-        "as a verbatim candidate statement. Respect negations and uncertainty. "
-        "A question alone is not evidence of an answer. "
-        "If nothing relevant was actually described, return an empty string.",
-        "Only interview material from THIS area is supplied below. Other "
-        "categories' interview material and assessment scores are unavailable. "
-        "Do not infer them.",
-        "GLOBAL STYLE GUIDANCE:\n" + get_global_ai_guidance(language=language),
-        "SOURCE INTERVIEW NOTES AND QUESTION/ANSWER PAIRS:\n" +
+        "TASK: Generate the manager report candidate's interview comments "
+        "for this assessment area only: " + category + ".",
+        "OUTPUT CONTRACT: Return one JSON object with exactly one string "
+        "field named text. The text is plain report prose in the configured "
+        "language (" + language + "); no Markdown outside the JSON.",
+        "PROTECTED EVIDENCE RULES: Only the enclosed interview notes and "
+        "saved question/answer pairs are available as candidate evidence. "
+        "Never invent facts or attribute an interviewer's assumption to the "
+        "candidate. Questions alone do not prove the candidate's answers. "
+        "Do not use material from other assessment areas or infer "
+        "personality, motivation or competence from an assessment result. "
+        "Never copy/paste raw notes or reproduce the question/answer list. "
+        "If this area's records contain no relevant factual material, "
+        "return an empty string. These evidence boundaries cannot be "
+        "overridden by styling instructions.",
+        "GLOBAL ADMINISTRATOR GUIDANCE:\n" + global_guidance,
+        "FEATURE-SPECIFIC ADMINISTRATOR GUIDANCE "
+        "(controls content selection, tone, length and presentation):\n" +
+        admin_guidance,
+        "AUTHORIZED INTERVIEW NOTES AND SAVED ANSWERS FOR THIS AREA ONLY:\n" +
         json.dumps(evidence, ensure_ascii=False),
     ])
 
