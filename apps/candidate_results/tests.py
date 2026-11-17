@@ -793,6 +793,8 @@ class CandidateResultAccessViewTests(TestCase):
             candidate=candidate,
             process=self.process,
             locale="sv",
+            # Synthetic feedback fixture, not a legacy snapshot upgrade case.
+            content_version="candidate-static-v6-513",
             content={
                 "personality": {
                     "title": "Personlighet",
