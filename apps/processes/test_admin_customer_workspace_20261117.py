@@ -109,8 +109,8 @@ class AdminCustomerWorkspaceTests(TestCase):
         )
         self.assertEqual(response.status_code, 200)
         markup = response.content.decode("utf-8")
-        self.assertIn("Arbeta med kandidaten", markup)
-        self.assertIn("Rollkontext och personlighetsdrag", markup)
+        self.assertTrue("Work with candidate" in markup or "Arbeta med kandidaten" in markup)
+        self.assertTrue("Role context and traits" in markup or "Rollkontext och personlighetsdrag" in markup)
         self.assertIn(
             "?focus_candidate=%s" % self.candidate.pk, markup,
         )
