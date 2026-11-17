@@ -475,7 +475,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // DOMContentLoaded, so open on the next task after they have initialized.
   document.addEventListener("DOMContentLoaded", () => {
     const candidateId = new URLSearchParams(window.location.search).get("focus_candidate");
-    if (!candidateId || !/^\\d+$/.test(candidateId)) return;
+    if (!candidateId || !/^[0-9]+$/.test(candidateId)) return;
     const trigger = Array.from(document.querySelectorAll(".js-open-candidate[data-candidate-id]"))
       .find(link => link.dataset.candidateId === candidateId);
     if (trigger) window.setTimeout(() => trigger.click(), 0);
