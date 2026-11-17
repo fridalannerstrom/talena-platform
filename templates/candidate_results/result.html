@@ -416,6 +416,20 @@
       font-size: .88rem;
       font-weight: 700;
     }
+    .feedback-notice--error {
+      color: #8d4428;
+      background: #fff8f3;
+      border-color: #e9cbb9;
+    }
+    .feedback-dialog__error {
+      margin-bottom: 14px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      color: #8d4428;
+      background: #fff8f3;
+      font-size: .82rem;
+      line-height: 1.55;
+    }
 
     .feedback-block {
       margin-top: 24px;
@@ -716,8 +730,14 @@
       </div>
     {% endif %}
 
-    {% if feedback_saved and not preview %}
-      <div class="feedback-notice" role="status">{{ copy.feedback_saved }}</div>
+    {% if not preview %}
+      {% if feedback_error %}
+        <div class="feedback-notice feedback-notice--error" role="alert">{{ feedback_error }} {{ copy.feedback_retry }}</div>
+      {% elif feedback_comment_saved %}
+        <div class="feedback-notice" role="status" data-feedback-comment-confirmation>{{ copy.feedback_comment_received }}</div>
+      {% elif feedback_saved %}
+        <div class="feedback-notice" role="status">{{ copy.feedback_saved }}</div>
+      {% endif %}
     {% endif %}
 
     <header class="hero-card" id="summary">
@@ -886,7 +906,7 @@
 
     {% if not preview %}
       {% for section in sections %}
-        <dialog id="feedback-dialog-{{ section.key }}" class="feedback-dialog">
+        <dialog id="feedback-dialog-{{ section.key }}" class="feedback-dialog" {% if feedback_error and feedback_error_area == section.key %}data-feedback-error-dialog{% endif %}>
           <form method="post" class="feedback-form">
             {% csrf_token %}
             <input type="hidden" name="action" value="save_feedback">
@@ -897,18 +917,22 @@
               <button type="button" class="dialog-close" data-feedback-close aria-label="{{ copy.feedback_cancel }}">×</button>
             </div>
 
+            {% if feedback_error and feedback_error_area == section.key %}
+              <p class="feedback-dialog__error" role="alert">{{ feedback_error }} {{ copy.feedback_retry }}</p>
+            {% endif %}
+
             <fieldset class="dialog-choices">
               <legend>{{ copy.feedback_question }}</legend>
               <label class="dialog-choice">
-                <input type="radio" name="response" value="recognises" {% if section.feedback and section.feedback.response == 'recognises' %}checked{% endif %} required>
+                <input type="radio" name="response" value="recognises" {% if feedback_error and feedback_error_area == section.key %}{% if feedback_error_response == 'recognises' %}checked{% endif %}{% elif section.feedback and section.feedback.response == 'recognises' %}checked{% endif %} required>
                 <span>👍 {{ copy.feedback_recognise }}</span>
               </label>
               <label class="dialog-choice">
-                <input type="radio" name="response" value="partly_recognises" {% if section.feedback and section.feedback.response == 'partly_recognises' %}checked{% endif %}>
+                <input type="radio" name="response" value="partly_recognises" {% if feedback_error and feedback_error_area == section.key %}{% if feedback_error_response == 'partly_recognises' %}checked{% endif %}{% elif section.feedback and section.feedback.response == 'partly_recognises' %}checked{% endif %}>
                 <span>◐ {{ copy.feedback_partial }}</span>
               </label>
               <label class="dialog-choice">
-                <input type="radio" name="response" value="does_not_recognise" {% if section.feedback and section.feedback.response == 'does_not_recognise' %}checked{% endif %}>
+                <input type="radio" name="response" value="does_not_recognise" {% if feedback_error and feedback_error_area == section.key %}{% if feedback_error_response == 'does_not_recognise' %}checked{% endif %}{% elif section.feedback and section.feedback.response == 'does_not_recognise' %}checked{% endif %}>
                 <span>👎 {{ copy.feedback_not_recognise }}</span>
               </label>
             </fieldset>
@@ -919,7 +943,7 @@
               class="feedback-textarea"
               name="comment"
               maxlength="2000"
-              placeholder="{{ copy.feedback_comment_placeholder }}">{% if section.feedback %}{{ section.feedback.comment }}{% endif %}</textarea>
+              placeholder="{{ copy.feedback_comment_placeholder }}">{% if feedback_error and feedback_error_area == section.key %}{{ feedback_error_comment }}{% elif section.feedback %}{{ section.feedback.comment }}{% endif %}</textarea>
 
             <div class="dialog-actions">
               <button type="button" class="dialog-cancel" data-feedback-close>{{ copy.feedback_cancel }}</button>
@@ -986,6 +1010,11 @@
         openFeedbackDialog(document.getElementById(button.dataset.feedbackOpen));
       });
     });
+
+    // A failed POST keeps the candidate's text and selected answer, and
+    // automatically returns them to the same dialog so they can retry.
+    const failedFeedbackDialog = document.querySelector("[data-feedback-error-dialog]");
+    if (failedFeedbackDialog) openFeedbackDialog(failedFeedbackDialog);
   </script>
 
 </body>
