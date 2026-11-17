@@ -145,6 +145,20 @@ class AdminCustomerWorkspaceTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.invitation.refresh_from_db()
         self.assertEqual(self.invitation.interview_notes, "Synthetic interview notes")
+        # The customer's view reads the same candidate record, not a staff copy.
+        self.client.force_login(self.customer)
+        customer_candidate_url = reverse(
+            "processes:process_candidate_detail",
+            args=[self.process.pk, self.candidate.pk],
+        )
+        customer_response = self.client.get(
+            customer_candidate_url, HTTP_X_REQUESTED_WITH="XMLHttpRequest"
+        )
+        self.assertEqual(customer_response.status_code, 200)
+        self.assertEqual(
+            customer_response.context["interview_notes"],
+            "Synthetic interview notes",
+        )
 
     def test_other_company_member_cannot_view_or_edit(self):
         self.client.force_login(self.other_user)
