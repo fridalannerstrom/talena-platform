@@ -1,6 +1,7 @@
 """#478: trustworthy, human confirmation of saved candidate comments."""
 from unittest.mock import patch
 
+from django.contrib.auth import get_user_model
 from django.db import DatabaseError
 from django.test import TestCase
 from django.urls import reverse
@@ -18,9 +19,13 @@ from apps.processes.models import Candidate, TestInvitation, TestProcess
 
 class CandidateCommentAcknowledgementTests(TestCase):
     def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            username="candidate-ack-478", password="not-used",
+        )
         self.company = Company.objects.create(name="Candidate acknowledgement test")
         self.process = TestProcess.objects.create(
             company=self.company,
+            created_by=self.user,
             name="Candidate result feedback",
             project_code="comment-test",
             account_code="comment-test",
