@@ -1,16 +1,9 @@
 name: Django QA
 
 on:
-  # Temporary branch-only QA while Talena production stays on main.
-  # Remove this push trigger before merging the development branch.
-  push:
-    branches:
-      - feature/admin-workspace-next-20261117
   pull_request:
     branches:
       - main
-      # Draft PR #515 targets this branch, never the production branch.
-      - feature/admin-customer-workspace-20261117
 
 jobs:
   report-package-checks:
