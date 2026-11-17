@@ -16,6 +16,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from .candidate_name_privacy import redact_candidate_name
+from .interview_note_areas import split_interview_notes_by_area
 from .language import normalize_ai_language
 from .shared_context import build_shared_ai_context
 
@@ -63,7 +64,7 @@ categorical personality claims, diagnoses, suitability and hiring verdicts.
 Preserve detail where supported. Do not reproduce headings inside the fields:
 Talena displays Testbild and Intervjun itself."""
 PERSONALITY_THEME_VERSION = 2
-GENERATION_RULES_VERSION = 10
+GENERATION_RULES_VERSION = 11
 PERSONALITY_THEMES = (
     {"sv": "Samarbete och relationer", "en": "Collaboration and relationships",
      "traits": ("Cooperative", "Connecting"),
@@ -330,24 +331,31 @@ def _skill_evidence_key(text):
 
 
 def _notes_for_category(notes, category, item_key=None):
-    """Give each report item the complete saved interview account.
+    """Only expose the matching Interview notes field and question source.
 
-    A useful example can be in general notes or under a differently labelled
-    question. Keyword and source-tab filters used to hide real interview
-    evidence. Preserve exact question/answer pairs, and let the writer select
-    only the statements that actually concern the requested area.
+    Never give OpenAI the combined persisted text, even with instructions to
+    disregard other areas. Saved answers remain attached to their exact
+    questions, but only when they originate from this assessment category.
+    No keyword guesswork and no cross-category fallback.
     """
-    question_items = notes.get("question_evidence", {}).get("items") or []
+    question_source = {
+        "skills": "cognitive",
+        "motivation": "motivation",
+        "personality": "personality",
+    }[category]
+    area_notes = split_interview_notes_by_area(notes.get("general_notes"))
+    question_items = (notes.get("question_evidence") or {}).get("items") or []
     return {
-        "general_notes": str(notes.get("general_notes") or "").strip(),
+        "general_notes": area_notes[category].strip(),
         "question_evidence": [
             {
                 "question": str(item.get("question") or ""),
                 "saved_answer_or_note": str(item.get("saved_answer_or_note") or ""),
-                "source": str(item.get("source") or ""),
+                "source": question_source,
             }
             for item in question_items
             if isinstance(item, dict)
+            and str(item.get("source") or "").strip().casefold() == question_source
             and str(item.get("saved_answer_or_note") or "").strip()
         ],
     }
@@ -512,7 +520,12 @@ def _generate_validated_item(owner, prompt, *, language, category, notes):
             intervjun = _validated_prose(
                 output.get("intervjun"), field="Intervjun", allow_empty=True,
             )
-            intervjun = intervjun or MISSING_INTERVIEW[language]
+            # If this area provided no interview evidence, never publish model-
+            # invented interview text merely because assessment data exists.
+            if not _interview_source_text(notes).strip():
+                intervjun = MISSING_INTERVIEW[language]
+            else:
+                intervjun = intervjun or MISSING_INTERVIEW[language]
             _validate_item_grounding(category, testbild, intervjun, notes)
             return testbild, intervjun
         except _EvidenceBoundaryError as error:
@@ -601,11 +614,10 @@ def _theme_selection(owner, shared, rows, notes, language):
 
 
 def _assign_personality_interview_evidence(owner, themes, notes, language):
-    """No forced one-theme assignment: a concrete example can span themes.
+    """Reuse Personality-area evidence across themes, never across categories.
 
-    The former AI router silently lost notes not classifiable into one exact
-    theme, and only let one theme use each example. Keep all interview input
-    accessible for theme-specific selection by the final writer.
+    An example may inform multiple personality themes, but the Motivation and
+    Skills input fields and their saved question answers must remain unseen.
     """
     evidence = _notes_for_category(notes, "personality")
     return {theme["key"]: deepcopy(evidence) for theme in themes}
@@ -646,7 +658,7 @@ def _item_prompt(owner, category, item, shared, notes, language):
             "ability or competence language (including 'förmåga', 'kompetens', 'ability' or 'competence'), "
             "claim that a test establishes what the person can do, or predict work performance; situational "
             "results must remain situational. Intervjun: select only the facts relevant to this theme "
-            "from the complete interview record, and do not infer willingness or leadership from theory or software."
+            "from the supplied Personality interview material, and do not infer willingness or leadership from theory or software."
         )
     elif category == "motivation":
         final_boundary += (
@@ -664,14 +676,14 @@ def _item_prompt(owner, category, item, shared, notes, language):
         "AREA: " + str(item["title"]),
         "PURPOSE: " + str(shared.get("purpose_label") or ""),
         "ASSESSMENT FOR THIS AREA ONLY:\n" + json.dumps(item["evidence"], ensure_ascii=False),
-        "COMPLETE INTERVIEW MATERIAL (select only statements relevant to this area):\n" +
+        "INTERVIEW MATERIAL FROM THIS AREA ONLY (select only statements relevant to this area):\n" +
         json.dumps(notes, ensure_ascii=False),
         "THEME SCOPE: " + str(item.get("scope") or ""),
         "PROTECTED EVIDENCE RULES: Testbild must use ONLY the assessment evidence for this item; "
         "Intervjun must use ONLY factual statements in the supplied interview records that relate to this theme. "
         "Do not use one field's evidence in the other field. Never turn a question into an answer, "
         "add actions, intentions, frequency, outcomes, skills or examples absent from the saved text, "
-        "or infer a stable pattern from one account. Review the full notes before claiming "
+        "or infer a stable pattern from one account. Review ONLY the supplied area notes before claiming "
         "that interview evidence for this theme is absent; the same real example can inform "
         "multiple themes. If no statement addresses this theme, say so briefly. "
         "If test evidence is empty, say so briefly. "
@@ -771,6 +783,16 @@ def generate_structured_overall_picture(owner, *, language_code="sv", category=N
             if any(sec.get("status") not in ("completed", "not_applicable") for sec in sources):
                 yield {"type": "structured_section_error", "section": part, "message": "Regenerate outdated/failed source sections before final synthesis."}
                 continue
+            # A stand-alone synthesis request must not reuse old source prose
+            # written before interview notes were isolated per assessment area.
+            if any(
+                sec.get("status") == "completed"
+                and sec.get("generation_rules_version") != GENERATION_RULES_VERSION
+                for sec in sources
+            ):
+                yield {"type": "structured_section_error", "section": part,
+                       "message": "Regenerate source sections with current evidence rules before final synthesis."}
+                continue
             fingerprint = _hash({
                 "generation_rules_version": GENERATION_RULES_VERSION,
                 "sources": sources, "language": language, "guidance": _guidance(part, language),
@@ -794,7 +816,8 @@ def generate_structured_overall_picture(owner, *, language_code="sv", category=N
 
         rows = _subject_evidence(owner, part, language, shared, notes)
         if not rows:
-            sections[part] = {"status": "not_applicable", "items": []}
+            sections[part] = {"status": "not_applicable", "items": [],
+                              "generation_rules_version": GENERATION_RULES_VERSION}
             _save(owner, state)
             yield {"type": "structured_section_skipped", "section": part}
             continue
@@ -860,6 +883,7 @@ def generate_structured_overall_picture(owner, *, language_code="sv", category=N
                        "message": "This report item could not be generated."}
             sections[part] = {
                 "status": "failed" if section_error else "generating",
+                "generation_rules_version": GENERATION_RULES_VERSION,
                 "items": saved_items + [old_items[x["key"]] for x in units[len(saved_items):]
                                          if x["key"] in old_items],
                 "themes": themes,
@@ -868,6 +892,7 @@ def generate_structured_overall_picture(owner, *, language_code="sv", category=N
             _save(owner, state)
         sections[part] = {
             "status": "failed" if section_error else "completed",
+            "generation_rules_version": GENERATION_RULES_VERSION,
             "items": saved_items, "themes": themes,
             **({"theme_version": PERSONALITY_THEME_VERSION} if part == "personality" else {}),
             "generated_at": timezone.now().isoformat(),

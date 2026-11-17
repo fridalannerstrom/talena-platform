@@ -51,13 +51,13 @@ class StructuredOverallPictureTests(SimpleTestCase):
         self.assertEqual([u["title"] for u in units], ["Learning", "Authority", "Quality"])
         self.assertTrue(all("score" not in u["evidence"] for u in units))
 
-    def test_question_context_stays_with_complete_interview_material(self):
+    def test_question_context_is_limited_to_the_matching_assessment_source(self):
         notes = report._notes_for_category(self.notes, "skills")
-        # A question saved under another tab can still contain a relevant
-        # detail. Keep the exact question with each answer for the model.
-        self.assertEqual(len(notes["question_evidence"]), 2)
+        # Preserve the exact question/answer pair, never another source.
+        self.assertEqual(len(notes["question_evidence"]), 1)
         self.assertEqual(notes["question_evidence"][0]["question"], "How did you analyse the figures?")
-        self.assertEqual(notes["question_evidence"][1]["question"], "How did you collaborate?")
+        self.assertNotIn("How did you collaborate?", str(notes))
+        self.assertEqual(notes["general_notes"], "")
 
     def test_synthesis_does_not_contain_failed_items(self):
         sections = {
@@ -96,24 +96,22 @@ class StructuredOverallPictureTests(SimpleTestCase):
                 self.shared, report._notes_for_category(self.notes, "skills"), "sv"
             )
         self.assertIn("How did you analyse the figures?", text)
-        self.assertIn("How did you collaborate?", text)
+        self.assertNotIn("How did you collaborate?", text)
+        self.assertNotIn("Candidate explains how work is planned.", text)
         self.assertIn("Testbild must use ONLY the assessment evidence", text)
         self.assertNotIn("personal_email", text)
 
-    def test_selected_personality_themes_reject_unknown_traits(self):
-        traits = [
-            {"key": "Empathy", "title": "Empathy", "evidence": {"summary": "Likes cooperation"}},
-            {"key": "Planning", "title": "Planning", "evidence": {"summary": "Organises activities"}},
-        ]
-        with patch.object(report, "_guidance", return_value=("Protected", "Specific")), patch.object(
-            report, "_completion", return_value={"themes": [
-                {"title": "Collaboration in practice", "traits": ["Empathy", "nonexistent"]},
-                {"title": "Planning and execution", "traits": ["Planning"]},
-            ]}
-        ):
-            selected = report._theme_selection(self.owner, self.shared, traits, self.notes, "en")
-        self.assertEqual(selected[0]["traits"], ["Empathy"])
-        self.assertEqual(len(selected), 2)
+    def test_personality_theme_selection_uses_fixed_approved_themes(self):
+        traits = [{"key": "Empathy", "title": "Empathy",
+                   "evidence": {"summary": "Likes cooperation"}}]
+        with patch.object(report, "_completion",
+                          side_effect=AssertionError("No AI theme routing")):
+            selected = report._theme_selection(
+                self.owner, self.shared, traits, self.notes, "en",
+            )
+        self.assertEqual(len(selected), len(report.PERSONALITY_THEMES))
+        self.assertEqual(selected[0]["title"], "Collaboration and relationships")
+        self.assertTrue(all("nonexistent" not in row["traits"] for row in selected))
 
     def test_full_orchestration_keeps_units_separate_and_completes_synthesis_last(self):
         self.owner.ai_post_interview_decision_support = {}
@@ -141,7 +139,8 @@ class StructuredOverallPictureTests(SimpleTestCase):
             patch.object(report, "_save"),
             patch.object(report, "_subject_evidence", side_effect=evidence),
             patch.object(report, "_theme_selection", return_value=[
-                {"key": "theme_1", "title": "Samarbete i praktiken", "traits": ["Empathy"]}
+                {"key": "theme_2", "title": "Hjälpsamhet och finnas där för andra",
+                 "traits": ["Empathy"], "scope": "hur personen uppmärksammar andras behov och väljer om och hur stöd ges"}
             ]),
             patch.object(report, "_guidance", return_value=("Protected", "Scoped")),
             patch.object(report, "_completion", side_effect=completion),
@@ -193,6 +192,9 @@ class StructuredOverallPictureTests(SimpleTestCase):
         with patch.object(report, "_completion", side_effect=[echo, repaired]) as mocked:
             testbild, intervjun = report._generate_validated_item(
                 self.owner, "Input evidence", language="sv",
+                category="personality",
+                notes={"general_notes": "Kandidaten beskriver humor.",
+                       "question_evidence": []},
             )
         self.assertEqual(testbild, repaired["testbild"])
         self.assertEqual(intervjun, repaired["intervjun"])
@@ -208,6 +210,8 @@ class StructuredOverallPictureTests(SimpleTestCase):
             with self.assertRaises(ValueError):
                 report._generate_validated_item(
                     self.owner, "Input evidence", language="sv",
+                    category="personality",
+                    notes={"general_notes": "", "question_evidence": []},
                 )
         self.assertEqual(mocked.call_count, 2)
 
@@ -225,6 +229,7 @@ class StructuredOverallPictureTests(SimpleTestCase):
         }) as mocked:
             _testbild, intervjun = report._generate_validated_item(
                 self.owner, "Input evidence", language="sv",
+                category="personality", notes={"general_notes": "", "question_evidence": []},
             )
         self.assertEqual(intervjun, report.MISSING_INTERVIEW["sv"])
         mocked.assert_called_once()

@@ -36,12 +36,8 @@
         motivation: "Motivationsformuläret beskriver vad som tenderar att ge personen engagemang i arbetet och vad som kan vara mindre motiverande.",
         skills: "Färdighetstestet ger en indikation på hur snabbt och korrekt personen hanterar olika typer av uppgifter, exempelvis logisk, numerisk eller verbal problemlösning.",
       },
-      managerMotivationInterviewTitle: "Från intervjuunderlaget",
-      managerMotivationInterviewSource: "Sparade intervjuanteckningar och svar. Detta är inte en AI-tolkning av testresultatet.",
-      managerMotivationNotesTitle: "Intervjuanteckningar om motivation",
-      managerMotivationQuestionTitle: "Intervjufråga",
-      managerMotivationAnswerTitle: "Sparat svar eller anteckning",
-      managerMotivationInterviewMissing: "Det finns ännu inget sparat intervjuunderlag specifikt om motivation.",
+      managerInterviewCommentsTitle: "Kandidatens kommentarer",
+      managerInterviewCommentsMissing: "Det finns ännu inga AI-bearbetade kommentarer från intervjuunderlaget för det här området.",
       savePdf: "Spara som PDF",
       creatingPdf: "Skapar PDF…",
       pdfGenerationFailed: "PDF:en kunde inte skapas. Försök igen.",
@@ -197,12 +193,8 @@
         motivation: "The motivation questionnaire describes what tends to engage the person at work and what may be less motivating.",
         skills: "The ability assessment indicates how quickly and accurately the person handles different types of tasks, such as logical, numerical or verbal reasoning.",
       },
-      managerMotivationInterviewTitle: "From the interview evidence",
-      managerMotivationInterviewSource: "Saved interview notes and answers. This is not an AI interpretation of the assessment results.",
-      managerMotivationNotesTitle: "Interview notes about motivation",
-      managerMotivationQuestionTitle: "Interview question",
-      managerMotivationAnswerTitle: "Saved answer or note",
-      managerMotivationInterviewMissing: "No motivation-specific interview evidence has been saved yet.",
+      managerInterviewCommentsTitle: "Candidate comments",
+      managerInterviewCommentsMissing: "There are no AI-polished interview comments for this area yet.",
       savePdf: "Save as PDF",
       creatingPdf: "Creating PDF…",
       pdfGenerationFailed: "The PDF could not be created. Please try again.",
@@ -424,21 +416,18 @@
     }
   };
 
-  const getManagerMotivationInterviewEvidence = (panel) => {
+  const getManagerInterviewComments = (panel) => {
     const source = panel.closest("[data-final-output-root]")?.querySelector(
-      "#talena-manager-motivation-interview-evidence"
+      "#talena-manager-report-interview-comments"
     );
-    if (!source) return { notes: "", answers: [] };
     try {
-      const data = JSON.parse(source.textContent || "{}");
+      const data = JSON.parse(source?.textContent || "{}");
       return {
-        notes: typeof data?.notes === "string" ? data.notes : "",
-        answers: Array.isArray(data?.answers) ? data.answers.filter((item) =>
-          typeof item?.question === "string" && typeof item?.answer === "string"
-        ) : [],
+        motivation: typeof data?.motivation === "string" ? data.motivation : "",
+        skills: typeof data?.skills === "string" ? data.skills : "",
       };
-    } catch (_) {
-      return { notes: "", answers: [] };
+    } catch (_error) {
+      return { motivation: "", skills: "" };
     }
   };
 
@@ -1488,7 +1477,8 @@
       __PANEL__ .after-interview-tab-panel { display: grid; gap: 1rem; min-width: 0; }
       __PANEL__ .after-interview-tab-panel[hidden] { display: none !important; }
       __PANEL__ .after-interview-tab-card {
-        min-width: 0; padding: 1.25rem; border: 1px solid var(--talena-border, #e5dfd8);
+        min-width: 0; padding: clamp(1.65rem, 2.7vw, 2.15rem);
+        border: 1px solid var(--talena-border, #e5dfd8);
         border-radius: 14px; background: #fff;
       }
       __PANEL__ .after-interview-tab-card__toolbar {
@@ -1827,35 +1817,20 @@
         margin: 0; padding: 1rem; border: 1px dashed var(--talena-border, #e5dfd8);
         border-radius: 11px; color: var(--talena-text-muted, #766e68); font-size: .76rem;
       }
-      __PANEL__ .after-interview-manager-report__motivation-evidence {
+      __PANEL__ .after-interview-manager-report__interview-comments {
         margin-top: 1.25rem; padding: 1.1rem 1.2rem;
         border: 1px solid var(--talena-border, #e5dfd8);
         border-radius: 12px; background: #faf9f7;
-        break-inside: auto;
-      }
-      __PANEL__ .after-interview-manager-report__motivation-evidence-title {
-        margin: 0 0 .25rem; font-size: .95rem; font-weight: 750;
-        color: var(--talena-ink, #191817);
-      }
-      __PANEL__ .after-interview-manager-report__motivation-evidence-provenance {
-        margin: 0 0 1rem; font-size: .72rem; line-height: 1.55;
-        color: var(--talena-text-muted, #766e68);
-      }
-      __PANEL__ .after-interview-manager-report__motivation-evidence-label {
-        margin: .8rem 0 .2rem; font-size: .7rem; font-weight: 700;
-        color: var(--talena-ink, #191817); letter-spacing: .015em;
-      }
-      __PANEL__ .after-interview-manager-report__motivation-evidence-text {
-        margin: 0; white-space: pre-line; font-size: .78rem;
-        line-height: 1.6; color: #4f4943; overflow-wrap: anywhere;
-      }
-      __PANEL__ .after-interview-manager-report__motivation-answer {
-        margin-top: .9rem; padding-top: .45rem;
-        border-top: 1px solid var(--talena-border, #e5dfd8);
         break-inside: avoid;
       }
-      __PANEL__ .after-interview-manager-report__motivation-evidence-empty {
-        margin: 0; font-size: .78rem; color: var(--talena-text-muted, #766e68);
+      __PANEL__ .after-interview-manager-report__interview-comments-title {
+        margin: 0; font-size: .95rem; font-weight: 750;
+        color: var(--talena-ink, #191817);
+      }
+      __PANEL__ .after-interview-manager-report__interview-comments-text {
+        margin: .65rem 0 0; white-space: pre-line;
+        font-size: .79rem; line-height: 1.65; color: #4f4943;
+        overflow-wrap: anywhere;
       }
       __PANEL__ .after-interview-manager-report__personality {
         margin-top: 1.8rem;
@@ -1956,6 +1931,237 @@
       __PANEL__ .after-interview-manager-report__guide-caveat { font-size: .70rem; }
       __PANEL__ .after-interview-manager-report__skills-empty { font-size: .76rem; }
       __PANEL__ .after-interview-manager-report__actions .btn { font-size: .84rem; }
+      /* Chefsrapport: clear section > topic > evidence hierarchy in Talena. */
+      __PANEL__ .after-interview-manager-report__intro {
+        max-width: 76ch; margin-top: 1.15rem;
+        font-size: .88rem; line-height: 1.76; color: #4d4742;
+      }
+      __PANEL__ .after-interview-manager-report__intro-paragraph {
+        margin-bottom: .85rem;
+      }
+      __PANEL__ .after-interview-manager-report__skills,
+      __PANEL__ .after-interview-manager-report__motivation,
+      __PANEL__ .after-interview-manager-report__personality,
+      __PANEL__ .after-interview-manager-report__wellbeing {
+        margin-top: 2.15rem; padding-top: 1.65rem;
+        border-top: 1px solid var(--talena-border, #e5dfd8);
+      }
+      __PANEL__ .after-interview-manager-report__skills-title,
+      __PANEL__ .after-interview-manager-report__motivation-title,
+      __PANEL__ .after-interview-manager-report__personality-title,
+      __PANEL__ .after-interview-manager-report__wellbeing-title {
+        margin: 0 0 .7rem; color: var(--talena-ink, #191817);
+        font-size: 1.3rem; font-weight: 800; line-height: 1.25;
+        letter-spacing: -.023em;
+      }
+      __PANEL__ .after-interview-manager-report__section-intro {
+        max-width: 76ch; margin: 0 0 1.45rem;
+        font-size: .86rem; line-height: 1.7; color: #655d57;
+      }
+      __PANEL__ .after-interview-manager-report__skill { margin-bottom: 2rem; }
+      __PANEL__ .after-interview-manager-report__skill-title,
+      __PANEL__ .after-interview-manager-report__motivator-name,
+      __PANEL__ .after-interview-manager-report__personality-theme-title {
+        margin-bottom: .55rem; font-size: 1.055rem;
+        font-weight: 760; line-height: 1.35; letter-spacing: -.012em;
+      }
+      __PANEL__ .after-interview-manager-report__skill-description,
+      __PANEL__ .after-interview-manager-report__motivator-definition {
+        margin-bottom: 1.1rem; font-size: .855rem;
+        line-height: 1.72; color: #59534e;
+      }
+      __PANEL__ .after-interview-manager-report__motivator-definition { margin-bottom: 0; }
+      __PANEL__ .after-interview-manager-report__motivator {
+        gap: 1.6rem; padding: 1.35rem 1.5rem;
+      }
+      __PANEL__ .after-interview-manager-report__motivation-grid { gap: 1.2rem; }
+      __PANEL__ .after-interview-manager-report__motivator-practical-title {
+        font-size: .89rem; margin-bottom: .85rem;
+      }
+      __PANEL__ .after-interview-manager-report__motivator-practical-box-title {
+        font-size: .83rem; line-height: 1.4;
+      }
+      __PANEL__ .after-interview-manager-report__motivator-practical-list {
+        font-size: .825rem; line-height: 1.66;
+      }
+      __PANEL__ .after-interview-manager-report__level-title { font-size: .88rem; }
+      __PANEL__ .after-interview-manager-report__level-description {
+        font-size: .795rem; line-height: 1.57;
+      }
+      __PANEL__ .after-interview-manager-report__personality-theme {
+        margin-bottom: 1.1rem; padding: 1.3rem;
+      }
+      __PANEL__ .after-interview-manager-report__personality-parts { gap: 1.1rem; }
+      __PANEL__ .after-interview-manager-report__personality-part-title {
+        font-size: .74rem; margin-bottom: .6rem; letter-spacing: .055em;
+      }
+      __PANEL__ .after-interview-manager-report__personality-part-text {
+        color: #504943; font-size: .845rem; line-height: 1.7;
+      }
+      __PANEL__ .after-interview-manager-report__personality-part + .after-interview-manager-report__personality-part {
+        padding-left: 1.1rem;
+      }
+      __PANEL__ .after-interview-manager-report__interview-comments {
+        margin-top: 1.7rem; padding: 1.2rem 1.4rem;
+      }
+      __PANEL__ .after-interview-manager-report__interview-comments-title {
+        font-size: .99rem; font-weight: 760;
+      }
+      __PANEL__ .after-interview-manager-report__interview-comments-text {
+        margin-top: .8rem; font-size: .86rem; line-height: 1.72;
+      }
+      __PANEL__ .after-interview-manager-report__wellbeing
+      .after-interview-manager-report__personality-advice-text {
+        font-size: .88rem; line-height: 1.78;
+      }
+      __PANEL__ .after-interview-manager-report__wellbeing
+      .after-interview-rich-text__paragraph {
+        margin-bottom: 1.05rem;
+      }
+
+      /* PDF-only layout: A4 portrait must NEVER nest a two-column
+         motivation-card grid inside its own two-column advice grid. */
+      __PANEL__ .after-interview-manager-report__pdf-layout {
+        font-size: .83rem; line-height: 1.62;
+      }
+      __PANEL__ .after-interview-manager-report__pdf-layout
+      .after-interview-manager-report__skills,
+      __PANEL__ .after-interview-manager-report__pdf-layout
+      .after-interview-manager-report__motivation,
+      __PANEL__ .after-interview-manager-report__pdf-layout
+      .after-interview-manager-report__personality,
+      __PANEL__ .after-interview-manager-report__pdf-layout
+      .after-interview-manager-report__wellbeing {
+        margin-top: 1.5rem; padding-top: 1.1rem;
+      }
+      __PANEL__ .after-interview-manager-report__pdf-layout
+      .after-interview-manager-report__motivation-grid {
+        grid-template-columns: minmax(0, 1fr) !important; gap: 1rem;
+      }
+      __PANEL__ .after-interview-manager-report__pdf-layout
+      .after-interview-manager-report__motivator {
+        grid-template-columns: minmax(0, 1fr) !important;
+        gap: .9rem; padding: 1.1rem 1.25rem; break-inside: avoid;
+      }
+      __PANEL__ .after-interview-manager-report__pdf-layout
+      .after-interview-manager-report__motivator-practical {
+        border-left: 0; padding: .9rem 0 0; border-top: 1px solid #e5dfd8;
+      }
+      __PANEL__ .after-interview-manager-report__pdf-layout
+      .after-interview-manager-report__motivator-practical-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: .8rem;
+      }
+      __PANEL__ .after-interview-manager-report__pdf-layout
+      .after-interview-manager-report__motivator-practical-box {
+        padding: .85rem; overflow-wrap: break-word; word-break: normal;
+      }
+      __PANEL__ .after-interview-manager-report__pdf-layout
+      .after-interview-manager-report__motivator-practical-list {
+        font-size: .8rem; line-height: 1.57; word-break: normal;
+      }
+      __PANEL__ .after-interview-manager-report__pdf-layout
+      .after-interview-manager-report__motivator-name {
+        font-size: 1.05rem; margin-bottom: .3rem;
+      }
+      __PANEL__ .after-interview-manager-report__pdf-layout
+      .after-interview-manager-report__motivator-definition {
+        font-size: .83rem; line-height: 1.62;
+      }
+      __PANEL__ .after-interview-manager-report__pdf-layout
+      .after-interview-manager-report__skill-title,
+      __PANEL__ .after-interview-manager-report__pdf-layout
+      .after-interview-manager-report__personality-theme-title {
+        font-size: 1.01rem;
+      }
+      __PANEL__ .after-interview-manager-report__pdf-layout
+      .after-interview-manager-report__level { min-height: 112px; }
+      __PANEL__ .after-interview-manager-report__pdf-layout
+      .after-interview-manager-report__interview-comments {
+        margin-top: 1.3rem; break-inside: avoid;
+      }
+      /* Live manager report: a clear hierarchy, calm reading rhythm and
+         full-width text. Scoped outside the cloned A4 PDF layout. */
+      __PANEL__ .after-interview-manager-report:not(.after-interview-manager-report__pdf-layout) {
+        --manager-report-section-space: 2.85rem;
+      }
+      __PANEL__ .after-interview-manager-report:not(.after-interview-manager-report__pdf-layout)
+      .after-interview-tab-card__title {
+        font-size: clamp(2rem, 3vw, 2.45rem);
+        font-weight: 800; letter-spacing: -.045em; line-height: 1.12;
+      }
+      __PANEL__ .after-interview-manager-report:not(.after-interview-manager-report__pdf-layout)
+      .after-interview-manager-report__intro,
+      __PANEL__ .after-interview-manager-report:not(.after-interview-manager-report__pdf-layout)
+      .after-interview-manager-report__section-intro,
+      __PANEL__ .after-interview-manager-report:not(.after-interview-manager-report__pdf-layout)
+      .after-interview-tab-card__description {
+        max-width: none; width: 100%; min-width: 0;
+      }
+      __PANEL__ .after-interview-manager-report:not(.after-interview-manager-report__pdf-layout)
+      .after-interview-manager-report__intro {
+        margin-top: 1.3rem; font-size: .83rem; line-height: 1.75;
+      }
+      __PANEL__ .after-interview-manager-report:not(.after-interview-manager-report__pdf-layout)
+      .after-interview-manager-report__intro-paragraph { margin-bottom: .9rem; }
+      __PANEL__ .after-interview-manager-report:not(.after-interview-manager-report__pdf-layout)
+      .after-interview-manager-report__skills,
+      __PANEL__ .after-interview-manager-report:not(.after-interview-manager-report__pdf-layout)
+      .after-interview-manager-report__motivation,
+      __PANEL__ .after-interview-manager-report:not(.after-interview-manager-report__pdf-layout)
+      .after-interview-manager-report__personality,
+      __PANEL__ .after-interview-manager-report:not(.after-interview-manager-report__pdf-layout)
+      .after-interview-manager-report__wellbeing {
+        margin-top: var(--manager-report-section-space);
+        padding-top: 1.95rem;
+      }
+      __PANEL__ .after-interview-manager-report:not(.after-interview-manager-report__pdf-layout)
+      .after-interview-manager-report__skills-title,
+      __PANEL__ .after-interview-manager-report:not(.after-interview-manager-report__pdf-layout)
+      .after-interview-manager-report__motivation-title,
+      __PANEL__ .after-interview-manager-report:not(.after-interview-manager-report__pdf-layout)
+      .after-interview-manager-report__personality-title,
+      __PANEL__ .after-interview-manager-report:not(.after-interview-manager-report__pdf-layout)
+      .after-interview-manager-report__wellbeing-title {
+        font-size: 1.48rem; font-weight: 800; line-height: 1.22;
+        margin-bottom: .8rem; letter-spacing: -.025em;
+      }
+      __PANEL__ .after-interview-manager-report:not(.after-interview-manager-report__pdf-layout)
+      .after-interview-manager-report__section-intro {
+        margin: 0 0 1.7rem; font-size: .81rem; line-height: 1.7;
+      }
+      __PANEL__ .after-interview-manager-report:not(.after-interview-manager-report__pdf-layout)
+      .after-interview-manager-report__skill {
+        margin-bottom: 2.2rem;
+      }
+      __PANEL__ .after-interview-manager-report:not(.after-interview-manager-report__pdf-layout)
+      .after-interview-manager-report__skill-description,
+      __PANEL__ .after-interview-manager-report:not(.after-interview-manager-report__pdf-layout)
+      .after-interview-manager-report__motivator-definition {
+        font-size: .81rem; line-height: 1.7;
+      }
+      __PANEL__ .after-interview-manager-report:not(.after-interview-manager-report__pdf-layout)
+      .after-interview-manager-report__motivator-practical-list {
+        font-size: .79rem; line-height: 1.65;
+      }
+      __PANEL__ .after-interview-manager-report:not(.after-interview-manager-report__pdf-layout)
+      .after-interview-manager-report__level-description {
+        font-size: .765rem;
+      }
+      __PANEL__ .after-interview-manager-report:not(.after-interview-manager-report__pdf-layout)
+      .after-interview-manager-report__personality-part-text {
+        font-size: .8rem; line-height: 1.72;
+      }
+      __PANEL__ .after-interview-manager-report:not(.after-interview-manager-report__pdf-layout)
+      .after-interview-manager-report__interview-comments-text {
+        font-size: .82rem; line-height: 1.72;
+      }
+      __PANEL__ .after-interview-manager-report:not(.after-interview-manager-report__pdf-layout)
+      .after-interview-manager-report__wellbeing .after-interview-rich-text,
+      __PANEL__ .after-interview-manager-report:not(.after-interview-manager-report__pdf-layout)
+      .after-interview-manager-report__wellbeing .after-interview-manager-report__personality-advice-text {
+        font-size: .83rem; line-height: 1.78;
+      }
       @media (max-width: 1050px) {
         __PANEL__ .after-interview-manager-report__levels { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       }
@@ -1974,7 +2180,20 @@
       @media (max-width: 767px) {
         __PANEL__ .candidate-insights-subnavigation { padding: 0 1rem; }
         __PANEL__ .candidate-insights-subworkspace__panels { padding: 1rem; }
-        __PANEL__ .after-interview-tab-card { padding: 1rem; border-radius: 12px; }
+        __PANEL__ .after-interview-tab-card { padding: 1.2rem; border-radius: 12px; }
+        __PANEL__ .after-interview-manager-report:not(.after-interview-manager-report__pdf-layout) {
+          --manager-report-section-space: 2.25rem;
+        }
+        __PANEL__ .after-interview-manager-report:not(.after-interview-manager-report__pdf-layout)
+        .after-interview-tab-card__title { font-size: 1.9rem; }
+        __PANEL__ .after-interview-manager-report:not(.after-interview-manager-report__pdf-layout)
+        .after-interview-manager-report__skills-title,
+        __PANEL__ .after-interview-manager-report:not(.after-interview-manager-report__pdf-layout)
+        .after-interview-manager-report__motivation-title,
+        __PANEL__ .after-interview-manager-report:not(.after-interview-manager-report__pdf-layout)
+        .after-interview-manager-report__personality-title,
+        __PANEL__ .after-interview-manager-report:not(.after-interview-manager-report__pdf-layout)
+        .after-interview-manager-report__wellbeing-title { font-size: 1.3rem; }
       }
     `.replaceAll("__PANEL__", PANEL_SELECTOR);
     document.head.appendChild(style);
@@ -2271,6 +2490,8 @@
       exportRoot.hidden = false;
       exportRoot.style.cssText = "display:block;width:100%;margin:0;padding:0;";
       const printableReport = managerReportCard.cloneNode(true);
+      printableReport.classList.add("after-interview-manager-report__pdf-layout");
+      printableReport.setAttribute("data-manager-report-pdf-layout", "a4-portrait");
       printableReport.hidden = false;
       printableReport.style.cssText =
         "display:block;width:100%;max-width:none;margin:0;padding:0;border:0;" +
@@ -2287,7 +2508,6 @@
       [
         ".after-interview-manager-report__levels",
         ".after-interview-manager-report__guide-levels",
-        ".after-interview-manager-report__motivation-grid",
         ".after-interview-manager-report__personality-parts",
       ].forEach((selector) => printableReport.querySelectorAll(selector).forEach((grid) => {
         grid.style.gridTemplateColumns = "repeat(2, minmax(0, 1fr))";
@@ -2375,6 +2595,56 @@
     managerReportEditStatus.setAttribute("aria-live", "polite");
     managerReportEditController.state.statusElement = managerReportEditStatus;
     managerReportCard.appendChild(managerReportEditStatus);
+    const managerReportCommentData = getManagerInterviewComments(panel);
+    const makeManagerCommentSection = (category) => {
+      const section = document.createElement("section");
+      section.className = "after-interview-manager-report__interview-comments";
+      section.dataset.managerInterviewCommentCategory = category;
+      const header = document.createElement("div");
+      header.className = "after-interview-manager-report__personality-part-header";
+      const heading = document.createElement("h5");
+      heading.className = "after-interview-manager-report__interview-comments-title";
+      heading.textContent = copy().managerInterviewCommentsTitle;
+      const text = document.createElement("p");
+      text.className = "after-interview-manager-report__interview-comments-text";
+      const key = "interview_comments:" + category;
+      const initial = managerReportCommentData[category] || "";
+      const controls = managerReportEditController.register(text, key, {
+        aiText: initial,
+        fallback: copy().managerInterviewCommentsMissing,
+        label: copy().managerInterviewCommentsTitle + " · " +
+          (category === "motivation" ? copy().managerMotivationTitle : copy().managerSkillsTitle),
+      });
+      header.append(heading, controls);
+      section.append(header, text);
+
+      if (!readOnlyAdmin) {
+        managerReportAiTasks.push(async () => {
+          const url = category === "motivation"
+            ? outputRoot?.dataset.managerReportMotivationCommentsUrl
+            : outputRoot?.dataset.managerReportSkillsCommentsUrl;
+          if (!url) throw new Error(copy().sectionGenerationFailed);
+          const response = await fetch(url, {
+            method: "POST",
+            credentials: "same-origin",
+            headers: {
+              "X-CSRFToken": csrfToken(),
+              "X-Requested-With": "XMLHttpRequest",
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({}),
+          });
+          let data = {};
+          try { data = await response.json(); } catch (_error) {}
+          if (!response.ok || !data.ok) {
+            throw new Error(data.error || copy().sectionGenerationFailed);
+          }
+          managerReportCommentData[category] = data.text || "";
+          managerReportEditController.setAiText(key, data.text || "");
+        });
+      }
+      return section;
+    };
     const skillNodes = [
       ...(workspace?.querySelectorAll(
         '#candidate-insights-panel-cognitive [data-manager-skill-key][data-manager-skill-result]'
@@ -2492,6 +2762,9 @@
     guideContent.append(guideIntro, guideLevels, guideCaveat);
     guide.append(guideSummary, guideContent);
     managerSkills.appendChild(guide);
+    if (completedSkills.size) {
+      managerSkills.appendChild(makeManagerCommentSection("skills"));
+    }
     managerReportCard.appendChild(managerSkills);
 
     const managerMotivation = document.createElement("section");
@@ -2563,86 +2836,7 @@
       });
       managerMotivation.appendChild(motivationGrid);
 
-      // The interview section contains saved source text, never AI-generated
-      // conclusions or detached answers. It is copied unchanged into the PDF.
-      const evidenceSection = document.createElement("section");
-      evidenceSection.className = "after-interview-manager-report__motivation-evidence";
-      const renderEvidence = (evidence) => {
-        evidenceSection.replaceChildren();
-      const evidenceTitle = document.createElement("h5");
-      evidenceTitle.className = "after-interview-manager-report__motivation-evidence-title";
-      evidenceTitle.textContent = copy().managerMotivationInterviewTitle;
-      const provenance = document.createElement("p");
-      provenance.className = "after-interview-manager-report__motivation-evidence-provenance";
-      provenance.textContent = copy().managerMotivationInterviewSource;
-      evidenceSection.append(evidenceTitle, provenance);
-
-      if (evidence.notes.trim()) {
-        const noteTitle = document.createElement("h6");
-        noteTitle.className = "after-interview-manager-report__motivation-evidence-label";
-        noteTitle.textContent = copy().managerMotivationNotesTitle;
-        const note = document.createElement("p");
-        note.className = "after-interview-manager-report__motivation-evidence-text";
-        note.textContent = evidence.notes.trim();
-        evidenceSection.append(noteTitle, note);
-      }
-      evidence.answers.forEach((item) => {
-        const answerCard = document.createElement("div");
-        answerCard.className = "after-interview-manager-report__motivation-answer";
-        const questionTitle = document.createElement("h6");
-        questionTitle.className = "after-interview-manager-report__motivation-evidence-label";
-        questionTitle.textContent = copy().managerMotivationQuestionTitle;
-        const question = document.createElement("p");
-        question.className = "after-interview-manager-report__motivation-evidence-text";
-        question.textContent = item.question;
-        const answerTitle = document.createElement("h6");
-        answerTitle.className = "after-interview-manager-report__motivation-evidence-label";
-        answerTitle.textContent = copy().managerMotivationAnswerTitle;
-        const answer = document.createElement("p");
-        answer.className = "after-interview-manager-report__motivation-evidence-text";
-        answer.textContent = item.answer;
-        answerCard.append(questionTitle, question, answerTitle, answer);
-        evidenceSection.appendChild(answerCard);
-      });
-      if (!evidence.notes.trim() && !evidence.answers.length) {
-        const empty = document.createElement("p");
-        empty.className = "after-interview-manager-report__motivation-evidence-empty";
-        empty.textContent = copy().managerMotivationInterviewMissing;
-        evidenceSection.appendChild(empty);
-      }
-      };
-      renderEvidence(getManagerMotivationInterviewEvidence(panel));
-
-      // Saved questions can change without rebuilding the visible report.
-      // Reload just the source-backed Motivation text, not the entire report
-      // (which would discard existing editor state or re-run AI generation).
-      const refreshEvidence = async () => {
-        if (!evidenceSection.isConnected || !outputRoot?.dataset.refreshUrl) return;
-        try {
-          const response = await fetch(outputRoot.dataset.refreshUrl, {
-            credentials: "same-origin",
-            headers: { "X-Requested-With": "XMLHttpRequest" },
-          });
-          if (!response.ok) return;
-          const fresh = new DOMParser().parseFromString(
-            await response.text(), "text/html"
-          ).querySelector("#talena-manager-motivation-interview-evidence");
-          if (!fresh || !evidenceSection.isConnected) return;
-          const data = JSON.parse(fresh.textContent || "{}");
-          if (typeof data?.notes !== "string" || !Array.isArray(data?.answers)) return;
-          renderEvidence({
-            notes: data.notes,
-            answers: data.answers.filter((item) =>
-              typeof item?.question === "string" && typeof item?.answer === "string"
-            ),
-          });
-        } catch (_error) {
-          // Preserve the last readable source; a failed refresh is not an AI error.
-        }
-      };
-      document.addEventListener("candidate-interview-question-note-updated", refreshEvidence);
-      document.addEventListener("talena:post-interview-part-generated", refreshEvidence);
-      managerMotivation.appendChild(evidenceSection);
+      managerMotivation.appendChild(makeManagerCommentSection("motivation"));
       managerReportCard.appendChild(managerMotivation);
     }
 
@@ -2684,7 +2878,10 @@
           String(personalityRoot.dataset[datasetKeyFor(theme.key, part)] || "").trim()
         )
       );
-      const hasGeneratedText = managerAdviceHasGeneratedText || hasPersonalityText;
+      const hasGeneratedComments = Boolean(
+        managerReportCommentData.motivation || managerReportCommentData.skills
+      );
+      const hasGeneratedText = managerAdviceHasGeneratedText || hasPersonalityText || hasGeneratedComments;
       const label = hasGeneratedText
         ? copy().regenerateManagerReport
         : copy().generateManagerReport;

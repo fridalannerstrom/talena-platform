@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "review_date": "2026-11-05",
+  "review_date": "2026-11-17",
   "status": "code_source_callsite_inventory_not_verified_network_payloads",
   "scope": "Only Python OpenAI SDK callsites under apps/. No actual candidate data inspected.",
   "sdk_client": "apps/core/ai/openai_client.py",
@@ -90,6 +90,36 @@
       ],
       "freetext": true,
       "comment": "File defines post-interview function twice; first is shadowed at runtime. Account for all source calls; separately verify active version."
+    },
+    {
+      "path": "apps/core/ai/manager_report_interview_comments.py",
+      "calls": 1,
+      "functions": [
+        "generate_manager_report_comment"
+      ],
+      "status": "active_manager_report_comments",
+      "data": [
+        "only the matching Motivation or Skills interview notes from the three-area editor",
+        "only saved question/answer pairs tagged with the matching category",
+        "global administrator guidance for tone without assessment results"
+      ],
+      "freetext": true,
+      "comment": "Ticket #512: independent JSON-mode completion for a polished interview account, not a test interpretation. The Python source filter is applied before the call, known candidate names are redacted and the PrivacySafeOpenAI wrapper screens remaining PII. Empty source skips the call; verbatim output is rejected/retried. Stored locally with source fingerprint and language."
+    },
+    {
+      "path": "apps/core/ai/manager_report_personality.py",
+      "calls": 1,
+      "functions": [
+        "stream_manager_report_personality"
+      ],
+      "status": "active_manager_report_personality",
+      "data": [
+        "personality indicator interpretations in the Testbild-only request",
+        "Personality-only interview notes and matching saved question answers in Kandidaten beskriver-only request",
+        "global and per-theme administrator guidance"
+      ],
+      "freetext": true,
+      "comment": "Independent source-isolated streaming manager report parts. Testbild receives no interview records; Kandidaten beskriver receives no assessment evidence or notes/questions from Motivation/Skills. Candidate name is redacted before provider call."
     },
     {
       "path": "apps/core/ai/motivation_interpretation.py",
@@ -248,6 +278,21 @@
       ],
       "freetext": true,
       "comment": "Issue #355: separate focused JSON-mode completions for one item/selection/synthesis. No raw cognitive percentile or motivation STIVE is sent; these are used locally to select approved text or rank factors. Candidate name is pseudonym CANDIDATE_A, with redact_candidate_name before OpenAI. General notes can contain free text; Talena's existing PII masking/privacy wrapper applies. No candidate-facing report or AI response storage at the provider."
+    },
+    {
+      "path": "apps/processes/project_personality_trait_selection.py",
+      "calls": 1,
+      "functions": [
+        "_generate_and_store_project_selection"
+      ],
+      "status": "active_project_trait_recommendation",
+      "data": [
+        "sanitized process purpose and role context, not candidate information",
+        "approved personality trait names",
+        "administrator guidance in Swedish and English"
+      ],
+      "freetext": true,
+      "comment": "Project-level recommendations for role-relevant interview-question traits. Prompt forbids candidate facts and uses safe_context_text. No assessment results or saved interview notes are part of this call."
     },
     {
       "path": "apps/reports/services/candidate_insights.py",

@@ -102,6 +102,7 @@ from apps.core.ai.personality_interpretation import (
     stream_personality_interpretation,
     save_personality_interpretation,
 )
+from apps.core.ai.manager_report_interview_comments import visible_manager_report_comments
 from apps.core.ai.manager_report_personality import (
     PERSONALITY_MANAGER_REPORT_THEMES,
     apply_manager_report_personality_event,
@@ -113,10 +114,6 @@ from apps.core.ai.manager_report_personality import (
 from apps.processes.services.candidate_insights import (
     build_candidate_insights,
 )
-from apps.processes.services.manager_report_motivation_evidence import (
-    build_manager_motivation_interview_evidence,
-)
-
 from apps.processes.services.candidate_profile import (
     build_historical_candidate_profile,
 )
@@ -3640,8 +3637,8 @@ def build_candidate_detail_context(
 
         # Interview evidence
 
-        "manager_motivation_interview_evidence": (
-            build_manager_motivation_interview_evidence(invitation)
+        "manager_report_interview_comments": visible_manager_report_comments(
+            invitation, language,
         ),
         "interview_notes": interview_notes,
 
@@ -5438,9 +5435,9 @@ def process_candidate_final_output(
                 },
             ),
 
-            "manager_motivation_interview_evidence": (
-                build_manager_motivation_interview_evidence(invitation)
-            ),
+            "manager_report_interview_comments": visible_manager_report_comments(
+            invitation, language_code,
+        ),
             "interview_notes": interview_notes,
 
             "has_interview_notes": bool(
@@ -10055,8 +10052,8 @@ def build_historical_candidate_detail_context(
             },
         ),
 
-        "manager_motivation_interview_evidence": (
-            build_manager_motivation_interview_evidence(historical_candidate)
+        "manager_report_interview_comments": visible_manager_report_comments(
+            historical_candidate, language,
         ),
         "interview_notes": interview_notes,
 

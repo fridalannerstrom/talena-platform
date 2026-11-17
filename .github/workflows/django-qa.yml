@@ -108,8 +108,10 @@ jobs:
           DJANGO_SECRET_KEY: local-qa-only
           USE_AZURE_STORAGE: '0'
         run: |
-          python manage.py test apps.processes.test_manager_report_motivation_evidence_512 --noinput
+          python manage.py test apps.processes.test_manager_report_motivation_evidence_512 apps.core.test_manager_report_interview_comments_512 --noinput
           node scripts/test_manager_report_intro_512.js
+          node --check static/js/talena/pdf-export-core.js
+          node scripts/test_manager_report_pdf_layout_20261117.js
       - name: Verify After interview final output refresh state
         run: |
           node --check static/js/talena/after-interview-tabs.js
@@ -121,7 +123,7 @@ jobs:
           DJANGO_SECRET_KEY: local-qa-only
           USE_AZURE_STORAGE: '0'
         run: python manage.py test apps.processes.test_post_interview_evidence_digests apps.processes.test_interview_question_notes --noinput
-      - name: Verify manager personality notes use complete interview evidence
+      - name: Verify manager personality uses only Personality interview evidence
         env:
           DJANGO_DEBUG: 'True'
           DJANGO_SECRET_KEY: local-qa-only
