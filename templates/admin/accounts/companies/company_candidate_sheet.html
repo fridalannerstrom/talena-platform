@@ -1,11 +1,33 @@
 {% load i18n %}
 {# #353: The shared customer sheet is the single source of truth for admin too. #}
 <div class="talena-admin-candidate-mirror" data-admin-candidate-mirror data-read-only="true">
-  <div class="small text-muted mb-3">
-    {% if LANGUAGE_CODE|slice:":2" == "sv" %}
-      Kundvy · {{ company.name }} · {{ process.name }} · Visningsläge
-    {% else %}
-      Customer view · {{ company.name }} · {{ process.name }} · Read-only
+  <div class="d-flex justify-content-between align-items-center gap-2 flex-wrap mb-3">
+    <div class="small text-muted">
+      {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+        Kundvy · {{ company.name }} · {{ process.name }} · Förhandsvisning
+      {% else %}
+        Customer view · {{ company.name }} · {{ process.name }} · Preview
+      {% endif %}
+    </div>
+    {% if not process.is_historical %}
+      <div class="d-flex gap-2 flex-wrap">
+        <a class="btn btn-sm btn-outline-secondary"
+           href="{% url 'processes:process_role_context' process.id %}?next={% url 'processes:process_detail' process.id %}%3Ffocus_candidate%3D{{ candidate.id }}">
+          {% if LANGUAGE_CODE|slice:":2" == "sv" %}Rollkontext och personlighetsdrag{% else %}Role context and traits{% endif %}
+        </a>
+        <a class="btn btn-sm btn-outline-secondary"
+           href="{% url 'emails:edit_process_invitation_template' process.id %}">
+          {% if LANGUAGE_CODE|slice:":2" == "sv" %}E-postmallar{% else %}Email templates{% endif %}
+        </a>
+        <a class="btn btn-sm btn-outline-secondary"
+           href="{% url 'processes:process_update' process.id %}">
+          {% if LANGUAGE_CODE|slice:":2" == "sv" %}Projektinställningar{% else %}Project settings{% endif %}
+        </a>
+        <a class="btn btn-sm btn-dark"
+           href="{% url 'processes:process_detail' process.id %}?focus_candidate={{ candidate.id }}">
+          {% if LANGUAGE_CODE|slice:":2" == "sv" %}Arbeta med kandidaten{% else %}Work with candidate{% endif %}
+        </a>
+      </div>
     {% endif %}
   </div>
   {% comment %} Customer candidate styles are scoped to .process-page. Keep the scope

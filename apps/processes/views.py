@@ -113,6 +113,9 @@ from apps.core.ai.manager_report_personality import (
 from apps.processes.services.candidate_insights import (
     build_candidate_insights,
 )
+from apps.processes.services.manager_report_motivation_evidence import (
+    build_manager_motivation_interview_evidence,
+)
 
 from apps.processes.services.candidate_profile import (
     build_historical_candidate_profile,
@@ -3637,6 +3640,9 @@ def build_candidate_detail_context(
 
         # Interview evidence
 
+        "manager_motivation_interview_evidence": (
+            build_manager_motivation_interview_evidence(invitation)
+        ),
         "interview_notes": interview_notes,
 
         "interview_notes_update_url": reverse(
@@ -5432,6 +5438,9 @@ def process_candidate_final_output(
                 },
             ),
 
+            "manager_motivation_interview_evidence": (
+                build_manager_motivation_interview_evidence(invitation)
+            ),
             "interview_notes": interview_notes,
 
             "has_interview_notes": bool(
@@ -6122,7 +6131,7 @@ def process_update(request, pk):
     if obj.is_historical:
         return HttpResponseForbidden("Historical projects are read-only.")
 
-    company = get_company_for_user(request.user)
+    company = obj.company if is_admin(request.user) else get_company_for_user(request.user)
     if not company or obj.company_id != company.id:
         return HttpResponseForbidden("No access.")
 
@@ -6227,6 +6236,11 @@ def process_update(request, pk):
             "error": error,
             "template_locked": locked,
 
+            # Use the real customer settings form under Talena's admin shell.
+            "process_base_layout": (
+                "admin/core/layouts/admin_base.html"
+                if is_admin(request.user) else ""
+            ),
             # Header/base template stuff
             "active": "settings",
             "meta": meta,
@@ -6824,6 +6838,10 @@ def process_role_context(request, pk):
             ),
 
             # Header/base template
+            "process_base_layout": (
+                "admin/core/layouts/admin_base.html"
+                if is_admin(request.user) else ""
+            ),
             "meta": meta,
             "process_purpose": process_purpose,
             "can_edit": can_edit,
@@ -6846,19 +6864,22 @@ def process_detail(request, pk):
 
     context_config = get_purpose_context_config(process.purpose)
 
-    company_id = (
-        CompanyMember.objects
-        .filter(user=request.user)
-        .values_list("company_id", flat=True)
-        .first()
-    )
-    company = get_object_or_404(Company, pk=company_id)
+    # Talena administrators may work on a customer's real project without
+    # being added as a CompanyMember. Never use the admin's default customer:
+    # the project itself selects the tenant for every subsequent operation.
+    if is_admin(request.user):
+        company = process.company
+    else:
+        company_id = (
+            CompanyMember.objects
+            .filter(user=request.user)
+            .values_list("company_id", flat=True)
+            .first()
+        )
+        company = get_object_or_404(Company, pk=company_id)
+        if process.company_id != company.id:
+            return HttpResponseForbidden("No access.")
 
-    # Must belong to the same company
-    if process.company_id != company.id:
-        return HttpResponseForbidden("No access.")
-
-    # Access rule, including own-only logic
     if not user_can_view_process(request.user, company, process):
         return HttpResponseForbidden("You do not have access to this project.")
 
@@ -6974,6 +6995,12 @@ def process_detail(request, pk):
 
     context = {
         "process": process,
+        # Admin uses the same interactive customer project and candidate code,
+        # but under the Talena admin shell and the administrator's own identity.
+        "process_base_layout": (
+            "admin/core/layouts/admin_base.html"
+            if is_admin(request.user) else ""
+        ),
         "invitations": invitations,
         "project_tests": project_tests,
         "project_table_colspan": max(1, len(project_tests)) + 2 + (2 if can_edit else 0),
@@ -7009,7 +7036,7 @@ def process_add_candidate(request, pk):
     if process.is_historical:
         return HttpResponseForbidden("Historical projects are read-only.")
 
-    company = get_company_for_user(request.user)
+    company = process.company if is_admin(request.user) else get_company_for_user(request.user)
     if not company or process.company_id != company.id:
         return HttpResponseForbidden("No access.")
 
@@ -7431,7 +7458,7 @@ def remove_candidate_from_process(request, process_id, candidate_id):
     # Editor permission is based on the account and org unit, not who created
     # the project. The URL-level edit guard also enforces Editor/Own/Viewer.
     process = get_object_or_404(TestProcess, pk=process_id)
-    company = get_company_for_user(request.user)
+    company = process.company if is_admin(request.user) else get_company_for_user(request.user)
     if (
         not company
         or process.company_id != company.pk
@@ -7513,7 +7540,7 @@ def process_send_tests(request, pk):
         messages.error(request, "This is a historical project and cannot send SOVA invitations.")
         return redirect("processes:process_detail", pk=process.pk)
 
-    company = get_company_for_user(request.user)
+    company = process.company if is_admin(request.user) else get_company_for_user(request.user)
     if not company or process.company_id != company.id:
         return HttpResponseForbidden("No access.")
 
@@ -10028,6 +10055,9 @@ def build_historical_candidate_detail_context(
             },
         ),
 
+        "manager_motivation_interview_evidence": (
+            build_manager_motivation_interview_evidence(historical_candidate)
+        ),
         "interview_notes": interview_notes,
 
         "has_interview_notes": bool(

@@ -236,7 +236,7 @@ class CandidateResultInterpretationTests(TestCase):
             "Du är vanligtvis samarbetsvillig och bekväm med att jobba både självständigt och i team.",
             serialised_content,
         )
-        self.assertEqual(metadata["content_version"], "candidate-static-v5")
+        self.assertEqual(metadata["content_version"], "candidate-static-v6-513")
         self.assertTrue(fingerprint)
         self.assertNotIn("sten", serialised_content.casefold())
         self.assertNotIn("percentile", serialised_content.casefold())
@@ -382,10 +382,18 @@ class CandidateResultAccessViewTests(TestCase):
             candidate=self.candidate,
             process=self.process,
             locale="sv",
+            # This fixture tests comment/verification flow, not version
+            # migration. Keep its synthetic personality area stable while
+            # dedicated migration tests cover upgrading actual SOVA reports.
+            content_version="candidate-static-v6-513",
             content={
                 "introduction": {
-                    "title": "Välkommen",
-                    "body": "Detta är ditt resultat.",
+                    "title": "Ditt resultat",
+                    "body": (
+                        "Testresultaten är ett underlag för att skapa en bättre "
+                        "förståelse för vilka beteenden och arbetssätt som kan "
+                        "komma mer naturligt för dig."
+                    ),
                     "points": [],
                 },
                 "personality": {
@@ -407,7 +415,7 @@ class CandidateResultAccessViewTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Visa ditt resultat")
-        self.assertNotContains(response, "Detta är ditt resultat.")
+        self.assertNotContains(response, "Testresultaten är ett underlag för att skapa en bättre förståelse")
 
         response = self.client.post(
             f"/candidate-results/{self.raw_token}/",
@@ -415,7 +423,7 @@ class CandidateResultAccessViewTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Detta är ditt resultat.")
+        self.assertContains(response, "Testresultaten är ett underlag för att skapa en bättre förståelse")
         self.assertContains(response, "view-candidate@example.com")
 
     def test_candidate_can_save_feedback_for_an_available_area(self):
@@ -608,7 +616,7 @@ class CandidateResultAccessViewTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Detta är ditt resultat.")
+        self.assertContains(response, "Testresultaten är ett underlag för att skapa en bättre förståelse")
         self.assertContains(response, "Förhandsvisning för behörig användare")
         self.assertNotContains(response, "Visa ditt resultat")
 
@@ -785,6 +793,8 @@ class CandidateResultAccessViewTests(TestCase):
             candidate=candidate,
             process=self.process,
             locale="sv",
+            # Synthetic feedback fixture, not a legacy snapshot upgrade case.
+            content_version="candidate-static-v6-513",
             content={
                 "personality": {
                     "title": "Personlighet",

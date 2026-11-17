@@ -70,7 +70,7 @@ jobs:
           DJANGO_SECRET_KEY: local-qa-only
           USE_AZURE_STORAGE: '0'
         run: |
-          python manage.py test apps.processes.test_admin_candidate_mirror_353 apps.processes.test_candidate_sent_assessments_tab --noinput
+          python manage.py test apps.processes.test_admin_candidate_mirror_353 apps.processes.test_admin_customer_workspace_20261117 apps.processes.test_candidate_sent_assessments_tab --noinput
           node --check static/js/talena/admin-candidate-mirror-353.js
           node scripts/test_admin_candidate_navigation_353.js
           node --check static/js/talena/structured-overall-picture.js
@@ -102,6 +102,14 @@ jobs:
         run: |
           node --check static/js/talena/after-interview-tabs.js
           node scripts/test_manager_skill_descriptions_20261116.js
+      - name: Verify manager report introductions and interview evidence (#512)
+        env:
+          DJANGO_DEBUG: 'True'
+          DJANGO_SECRET_KEY: local-qa-only
+          USE_AZURE_STORAGE: '0'
+        run: |
+          python manage.py test apps.processes.test_manager_report_motivation_evidence_512 --noinput
+          node scripts/test_manager_report_intro_512.js
       - name: Verify After interview final output refresh state
         run: |
           node --check static/js/talena/after-interview-tabs.js
@@ -128,6 +136,20 @@ jobs:
           python manage.py test apps.candidate_results.test_internal_report_475 --noinput
           node --check static/js/talena/candidate-result-internal-pdf.js
           node scripts/test_candidate_result_internal_pdf_475.js
+      - name: Verify candidate report headings, introductions and access (#513)
+        env:
+          DJANGO_DEBUG: 'True'
+          DJANGO_SECRET_KEY: local-qa-only
+          USE_AZURE_STORAGE: '0'
+        run: |
+          python manage.py test apps.candidate_results.test_static_content_qa apps.candidate_results.tests apps.core.test_ai_payload_candidate_results --noinput
+          node scripts/test_candidate_report_513.js
+      - name: Verify candidate comment confirmation and retry (#478)
+        env:
+          DJANGO_DEBUG: 'True'
+          DJANGO_SECRET_KEY: local-qa-only
+          USE_AZURE_STORAGE: '0'
+        run: python manage.py test apps.candidate_results.test_feedback_acknowledgement_478 --noinput
       - name: Verify shared pre-interview response styles (#504)
         env:
           DJANGO_DEBUG: 'True'

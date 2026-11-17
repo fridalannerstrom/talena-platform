@@ -36,7 +36,7 @@ from .audit import log_candidate_result_event
 from .models import CandidateResultSnapshot
 
 
-CANDIDATE_RESULT_CONTENT_VERSION = "candidate-static-v5"
+CANDIDATE_RESULT_CONTENT_VERSION = "candidate-static-v6-513"
 _PERSONALITY_LIBRARY_DIR = (
     Path(__file__).parents[1]
     / "reports"
@@ -107,20 +107,72 @@ _FIXED_COPY = {
     "sv": {
         "introduction_title": "Ditt resultat",
         "introduction_body": (
-            "Resultatet beskriver möjliga preferenser och tendenser utifrån dina svar. "
-            "Det är inte en absolut sanning eller ett betyg, utan ett underlag för en vidare dialog."
+            "Testresultaten är ett underlag för att skapa en bättre förståelse för "
+            "vilka beteenden och arbetssätt som kan komma mer naturligt för dig, "
+            "vad som motiverar dig och hur du tar dig an olika typer av uppgifter."
         ),
+        "norm_before": "Dina resultat jämförs med en ",
+        "norm_emphasis": "normgrupp",
+        "norm_after": ", det vill säga en grupp personer som tidigare har genomfört samma test.",
+        "caveat_emphasis": "Ett testresultat är en början, inte hela bilden.",
+        "caveat_after": (
+            " Resultaten ska inte ses som absoluta sanningar eller som en bedömning av "
+            "vad du är bra eller mindre bra på. Hur dina egenskaper kommer till uttryck "
+            "påverkas också av dina erfarenheter, sammanhanget och situationen."
+        ),
+        "comment_candidate": (
+            "Om du vill kan du lämna en kommentar till ditt resultat, exempelvis för att "
+            "förtydliga något, ge ett konkret exempel eller beskriva en situation där du "
+            "inte riktigt känner igen dig. Dina kommentarer blir då en del av underlaget "
+            "och hjälper den som tar del av rapporten att förstå resultatet i sitt sammanhang."
+        ),
+        "comment_preview": (
+            "När rapporten delas med kandidaten och hen har verifierat sin åtkomst kan "
+            "kandidaten lämna en kommentar till sitt resultat. Kommentarerna blir då en del "
+            "av underlaget. Den här interna förhandsvisningen har ingen kommentarsfunktion."
+        ),
+        "section_introductions": {
+            "personality": "Personlighetsformuläret beskriver dina typiska beteenden, preferenser och sätt att förhålla dig till olika situationer.",
+            "motivation": "Motivationsformuläret beskriver vad som tenderar att ge dig engagemang i arbetet, och vad som kan vara mindre motiverande.",
+            "skills": "Färdighetstestet ger en indikation på hur snabbt och korrekt du hanterar olika typer av uppgifter, exempelvis logisk, numerisk eller verbal problemlösning.",
+        },
         "personality_title": "Personlighet",
         "skills_title": "Färdigheter",
         "motivation_title": "Motivation",
         "top_motivators_title": CANDIDATE_RESULT_SECTION_COPY["sv"]["title"],
     },
     "en": {
-        "introduction_title": "Your result",
+        "introduction_title": "Your results",
         "introduction_body": (
-            "The result describes possible preferences and tendencies based on your responses. "
-            "It is not an absolute truth or a grade, but a basis for further conversation."
+            "Assessment results provide a starting point for understanding the behaviours "
+            "and working styles that may come more naturally to you, what motivates you, "
+            "and how you approach different tasks."
         ),
+        "norm_before": "Your results are compared with a ",
+        "norm_emphasis": "norm group",
+        "norm_after": ", a group of people who have previously completed the same assessment.",
+        "caveat_emphasis": "An assessment result is a starting point, not the whole picture.",
+        "caveat_after": (
+            " The results are not absolute truths or a judgment of what you are good or "
+            "less good at. How your characteristics appear also depends on your experiences, "
+            "the context and the situation."
+        ),
+        "comment_candidate": (
+            "If you wish, you can leave a comment on your results to clarify something, "
+            "share an example or describe a situation where you do not fully recognise "
+            "yourself. Your comments then become part of the information used to "
+            "understand the results in context."
+        ),
+        "comment_preview": (
+            "When the report is shared and the candidate has verified access, they can "
+            "leave comments on their results. Comments then become part of the report "
+            "context. This internal preview does not allow comments."
+        ),
+        "section_introductions": {
+            "personality": "The personality questionnaire describes your typical behaviours, preferences and ways of approaching different situations.",
+            "motivation": "The motivation questionnaire describes what tends to engage you at work and what may be less motivating.",
+            "skills": "The ability assessment indicates how quickly and accurately you handle different types of tasks, such as logical, numerical or verbal reasoning.",
+        },
         "personality_title": "Personality",
         "skills_title": "Skills",
         "motivation_title": "Motivation",
@@ -182,6 +234,40 @@ def _personality_results(invitation) -> dict[str, int]:
     return results
 
 
+# Ticket #513: exact and complete 18-trait mapping to the ten candidate-
+# facing subheadings. These are presentation groupings, never SOVA score edits.
+# The original order of traits inside each grouping is intentional.
+CANDIDATE_PERSONALITY_TOPICS = {
+    "leading_and_working_with_others": (
+        (("Cooperative", "Connecting"), "Samarbete och relationer", "Collaboration and relationships"),
+        (("Empathy", "Supporting"), "Hjälpsamhet och finnas där för andra", "Helping and supporting others"),
+        (("Dynamic", "Influential"), "Påverka andra och komma framåt", "Influencing others and moving forward"),
+    ),
+    "organisation_and_thinking_style": (
+        (("Goal-focused", "Structured"), "Planering och målfokus", "Planning and goal focus"),
+        (("Analytical", "Complex Thinking"), "Analys och strategi", "Analysis and strategy"),
+        (("Creativity", "Adaptability"), "Förändring och nytänkande", "Change and new ideas"),
+    ),
+    "interacting_and_managing_emotions": (
+        (("Straightforward",), "Kommunikationsstil och principfasthet", "Communication style and principles"),
+        (("Status Avoidance", "Modesty"), "Att synas eller smälta in", "Standing out or blending in"),
+        (("Resilience", "Emotional Control"), "Stress och press", "Stress and pressure"),
+        (("Independence",), "Självständigt arbete och förankring", "Independent work and alignment"),
+    ),
+}
+
+# Catch accidental drift if the assessment schema changes: never silently
+# drop or double count an indicator under a new heading.
+for _section in TRAIT_AND_INDICATOR_PROFILE["sections"]:
+    _actual = [trait["trait_name"] for trait in _section["traits"]]
+    _mapped = [
+        name for group in CANDIDATE_PERSONALITY_TOPICS[_section["section_key"]]
+        for name in group[0]
+    ]
+    if sorted(_actual) != sorted(_mapped):
+        raise ValueError("Candidate personality topic mapping must cover each trait exactly once")
+
+
 def _candidate_personality_groups(
     invitation,
     *,
@@ -209,50 +295,55 @@ def _candidate_personality_groups(
     }
     groups = []
     for section in TRAIT_AND_INDICATOR_PROFILE["sections"]:
-        sentences = []
-        for trait_definition in section["traits"]:
-            trait_key = trait_definition["trait_name"]
-            workbook_trait = workbook_traits.get(trait_key, {})
-            indicator_definitions = {
-                item["key"]: item
-                for item in workbook_trait.get("indicators", [])
-            }
+        trait_definitions = {
+            trait["trait_name"]: trait for trait in section["traits"]
+        }
+        topics = []
+        for trait_keys, title_sv, title_en in CANDIDATE_PERSONALITY_TOPICS[section["section_key"]]:
+            sentences = []
+            for trait_key in trait_keys:
+                trait_definition = trait_definitions[trait_key]
+                workbook_trait = workbook_traits.get(trait_key, {})
+                indicator_definitions = {
+                    item["key"]: item
+                    for item in workbook_trait.get("indicators", [])
+                }
 
-            for indicator_key in trait_definition.get("indicators", []):
-                sten = scores.get(indicator_key)
-                score_band = get_score_band(sten)
-                if score_band is None:
-                    continue
+                for indicator_key in trait_definition.get("indicators", []):
+                    sten = scores.get(indicator_key)
+                    score_band = get_score_band(sten)
+                    if score_band is None:
+                        continue
+                    if language_code == "sv":
+                        text = (
+                            indicator_definitions.get(indicator_key, {})
+                            .get("score_texts", {})
+                            .get(score_band, "")
+                        )
+                    else:
+                        text = (
+                            _CANDIDATE_PERSONALITY_TEXTS_EN
+                            .get(indicator_key, {})
+                            .get(score_band, "")
+                        )
+                    if text and text.strip():
+                        sentences.append(text.strip())
 
-                if language_code == "sv":
-                    candidate_text = indicator_definitions.get(
-                        indicator_key,
-                        {},
-                    )
-                    text = candidate_text.get(
-                        "score_texts",
-                        {},
-                    ).get(score_band, "")
-                else:
-                    text = _CANDIDATE_PERSONALITY_TEXTS_EN.get(
-                        indicator_key,
-                        {},
-                    ).get(score_band, "")
+            if sentences:
+                topics.append({
+                    "label": title_sv if language_code == "sv" else title_en,
+                    "text": " ".join(sentences),
+                })
 
-                if text and text.strip():
-                    sentences.append(text.strip())
-
-        if not sentences:
-            continue
-
-        title = (
-            section_titles[language_code].get(section["section_key"])
-            or section["section_name"]
-        )
-        groups.append({
-            "title": title,
-            "body": " ".join(sentences),
-        })
+        if topics:
+            groups.append({
+                "title": (
+                    section_titles[language_code].get(section["section_key"])
+                    or section["section_name"]
+                ),
+                "body": "",
+                "items": topics,
+            })
     return groups
 
 
@@ -384,6 +475,13 @@ def build_static_candidate_result_content(
         "introduction": {
             "title": copy["introduction_title"],
             "body": copy["introduction_body"],
+            "norm_before": copy["norm_before"],
+            "norm_emphasis": copy["norm_emphasis"],
+            "norm_after": copy["norm_after"],
+            "caveat_emphasis": copy["caveat_emphasis"],
+            "caveat_after": copy["caveat_after"],
+            "comment_candidate": copy["comment_candidate"],
+            "comment_preview": copy["comment_preview"],
         },
         "personality": _area_content(
             copy["personality_title"],
@@ -407,6 +505,9 @@ def build_static_candidate_result_content(
             ),
         ),
     }
+    for section_key in ("personality", "motivation", "skills"):
+        if content.get(section_key) is not None:
+            content[section_key]["introduction"] = copy["section_introductions"][section_key]
     return {key: value for key, value in content.items() if value is not None}
 
 

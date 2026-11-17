@@ -1,4 +1,14 @@
-{% extends "customer/core/layouts/customer_base.html" %}
+{% extends process_base_layout|default:"customer/core/layouts/customer_base.html" %}
+{% load static %}
+
+{# Only the Talena admin workspace uses the admin shell. Customer pages are unchanged. #}
+{% block admin_candidate_mirror_css %}
+  {{ block.super }}
+  {% if process_base_layout %}
+    {% include "admin/accounts/partials/_candidate_customer_styles.html" %}
+    <link href="{% static 'css/talena/ai-privacy-notice.css' %}" rel="stylesheet" />
+  {% endif %}
+{% endblock %}
 
 {% block content %}
 {% load static i18n %}
@@ -151,10 +161,24 @@
 
 <div class="container-fluid px-2 px-md-4 process-page">
 
-  <a href="{% url 'processes:process_list' %}"
-     class="text-muted small text-decoration-none d-inline-flex align-items-center gap-1 mb-3">
-    ← {% trans "Back to projects" %}
-  </a>
+  {% if process_base_layout %}
+    <a href="{% url 'accounts:company_process_detail' process.company_id process.id %}"
+       class="text-muted small text-decoration-none d-inline-flex align-items-center gap-1 mb-3">
+      ← {% if LANGUAGE_CODE|slice:":2" == "sv" %}Tillbaka till Talena-admin{% else %}Back to Talena admin{% endif %}
+    </a>
+    <div class="alert alert-light border small py-2 mb-3" role="status">
+      {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+        <strong>Administratörsläge:</strong> Ändringar och AI-rapporter sparas på kundens verkliga projekt.
+      {% else %}
+        <strong>Administrator workspace:</strong> Changes and AI reports are saved to the customer's real project.
+      {% endif %}
+    </div>
+  {% else %}
+    <a href="{% url 'processes:process_list' %}"
+       class="text-muted small text-decoration-none d-inline-flex align-items-center gap-1 mb-3">
+      ← {% trans "Back to projects" %}
+    </a>
+  {% endif %}
 
   {% with current_active=active|default:"overview" %}
     {% include "customer/processes/_process_header.html" with process=process active=current_active %}
@@ -11117,4 +11141,26 @@ if (postGenerateButton) {
 })();
 </script>
 
+{% endblock %}
+
+{% block extra_js %}
+  {{ block.super }}
+  {% if process_base_layout %}
+    {# Customer runtime is reused without cloning the 11k-line process action logic. #}
+    <script src="{% static 'js/talena/ai-privacy-notice.js' %}"></script>
+    <script src="{% static 'js/talena/personality-question-basis.js' %}"></script>
+    <script src="{% static 'js/talena/interview-question-notes.js' %}?v=20261113-noop-save-v1"></script>
+    <script src="{% static 'js/talena/post-interview-evidence-availability.js' %}?v=20261107-structured"></script>
+    <script src="{% static 'js/talena/qa.js' %}"></script>
+    <script src="{% static 'js/talena/after-interview-structure.js' %}"></script>
+    <script src="{% static 'js/talena/pdf-export-core.js' %}?v=20261115-personality-questions-parity-1"></script>
+    <script src="{% static 'js/talena/candidate-result-internal-pdf.js' %}?v=20261116-ticket-475-1"></script>
+    <script src="{% static 'js/talena/structured-overall-picture.js' %}?v=20261107-three-ai-headings-v2"></script>
+    <script src="{% static 'js/talena/manager-report-pdf-metadata.js' %}?v=20261107-430-v2"></script>
+    <script src="{% static 'js/talena/after-interview-tabs.js' %}?v=20261113-evidence-recompile-v3"></script>
+    <script src="{% static 'js/talena/candidate-report-export.js' %}?v=20261115-personality-questions-parity-1"></script>
+    <script src="{% static 'js/talena/report-package-core.js' %}?v=20261104-449-1"></script>
+    <script src="{% static 'js/talena/candidate-report-packages.js' %}?v=20261115-package-diagnostics-1"></script>
+    <script src="{% static 'js/talena/team-style-hover-fix.js' %}"></script>
+  {% endif %}
 {% endblock %}

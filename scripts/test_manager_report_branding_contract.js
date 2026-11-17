@@ -18,8 +18,10 @@ for (const key of [
 }
 assert.ok(views.includes('"report_branding": get_report_branding(process.company)'),
   "candidate view and refresh must derive tenant branding from process company");
-assert.ok(admin.includes('"report_branding": get_report_branding(process.company)'),
-  "admin candidate view must derive tenant branding from process company");
+assert.ok(admin.includes('ctx = build_candidate_detail_context(') &&
+  admin.includes('"company": process.company') &&
+  views.includes('"report_branding": get_report_branding(process.company)'),
+  "Admin candidate mirror must reuse process-scoped tenant branding from the shared context");
 assert.ok(base.includes("js/talena/pdf-export-core.js"),
   "candidate pages must load the shared PDF renderer");
 assert.ok(base.includes("css/talena/pages/team-report-export.css"),
