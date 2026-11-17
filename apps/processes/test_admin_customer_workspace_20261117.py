@@ -127,10 +127,11 @@ class AdminCustomerWorkspaceTests(TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.context["can_manage_candidate_results"])
-        markup = response.content.decode("utf-8")
-        self.assertIn('data-admin-read-only="false"', markup)
-        self.assertIn('data-interview-notes-update-url="', markup)
-        self.assertIn('data-personality-questions-root', markup)
+        self.assertEqual(
+            response.context["interview_notes_update_url"], self.notes_url,
+        )
+        self.assertTrue(response.context["personality_questions_stream_url"])
+        self.assertTrue(response.context["post_interview_decision_support_stream_url"])
         self.invitation.refresh_from_db()
         self.assertFalse(self.invitation.interview_notes)
 
