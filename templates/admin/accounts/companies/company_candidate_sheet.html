@@ -15,6 +15,14 @@
            href="{% url 'processes:process_role_context' process.id %}?next={% url 'processes:process_detail' process.id %}%3Ffocus_candidate%3D{{ candidate.id }}">
           {% if LANGUAGE_CODE|slice:":2" == "sv" %}Rollkontext och personlighetsdrag{% else %}Role context and traits{% endif %}
         </a>
+        <a class="btn btn-sm btn-outline-secondary"
+           href="{% url 'emails:edit_process_invitation_template' process.id %}">
+          {% if LANGUAGE_CODE|slice:":2" == "sv" %}E-postmallar{% else %}Email templates{% endif %}
+        </a>
+        <a class="btn btn-sm btn-outline-secondary"
+           href="{% url 'processes:process_update' process.id %}">
+          {% if LANGUAGE_CODE|slice:":2" == "sv" %}Projektinställningar{% else %}Project settings{% endif %}
+        </a>
         <a class="btn btn-sm btn-dark"
            href="{% url 'processes:process_detail' process.id %}?focus_candidate={{ candidate.id }}">
           {% if LANGUAGE_CODE|slice:":2" == "sv" %}Arbeta med kandidaten{% else %}Work with candidate{% endif %}
