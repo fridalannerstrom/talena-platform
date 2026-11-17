@@ -41,7 +41,7 @@ for (const snippet of [
   'if (!hasCompiledPostInterviewResult) {\n      reportsButton.disabled = true',
   'reportsButton.setAttribute("aria-disabled", "true")',
   '(hasCompiledPostInterviewResult || key === "evidence")',
-  'hasCompiledPostInterviewResult ? "overview" : "evidence"',
+  'hasCompiledPostInterviewResult ? defaultReportKey : "evidence"',
   'lastRenderedCompiled === false && hasCompiledPostInterviewResult',
   'const activeKey = keys.includes(key)',
   'if (reportsActive) activeReportKey = activeKey',
