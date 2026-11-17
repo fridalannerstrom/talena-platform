@@ -104,6 +104,62 @@ class OverallPictureInterviewAreaIsolationTests(SimpleTestCase):
                         if other != category:
                             self.assertNotIn(marker, prompt)
 
+    def test_full_generation_never_routes_other_areas_into_model_calls(self):
+        owner = SimpleNamespace(
+            candidate=SimpleNamespace(first_name="Test", last_name="Candidate"),
+            ai_post_interview_decision_support={},
+        )
+        units = {
+            "skills": [{"key": "logical", "title": "Logisk",
+                        "evidence": {"test": "logical"}}],
+            "motivation": [{"key": "factor_1", "title": "Variation",
+                            "evidence": {"name": "Variation"}}],
+            "personality": [{"key": "Cooperative", "title": "Samverkande",
+                             "evidence": {"summary": "Works with others."}}],
+        }
+        prompts = []
+
+        def completion(prompt, _owner, **_kwargs):
+            prompts.append(prompt)
+            if "Respond as JSON object with a single key text" in prompt:
+                return {"text": "Källorna vägs samman utan nya fakta."}
+            return {"testbild": "Testet indikerar en preferens.",
+                    "intervjun": "Intervjun ger ett exempel."}
+
+        with (
+            patch.object(report, "_state", return_value={
+                "schema": 1, "sections": {}, "language": "",
+            }),
+            patch.object(report, "_save"),
+            patch.object(report, "_subject_evidence",
+                         side_effect=lambda _owner, category, *_args: units[category]),
+            patch.object(report, "_theme_selection", return_value=[{
+                "key": "theme_1", "title": "Samarbete och relationer",
+                "traits": ["Cooperative"], "scope": "samarbete",
+            }]),
+            patch.object(report, "_guidance", return_value=("Global rules", "Scoped guidance")),
+            patch.object(report, "_completion", side_effect=completion),
+            patch.object(report, "build_shared_ai_context", return_value={
+                "purpose_label": "Recruitment",
+            }),
+            patch("apps.core.ai.post_interview_question_evidence_policy.get_post_interview_note_evidence",
+                  return_value={**self.notes, "has_evidence": True}),
+        ):
+            events = list(report.generate_structured_overall_picture(owner, force=True))
+
+        self.assertEqual(events[-1]["type"], "structured_result")
+        self.assertEqual(len(prompts), 4)
+        for category, title in (("skills", "Logisk"), ("motivation", "Variation"),
+                                ("personality", "Samarbete och relationer")):
+            with self.subTest(category=category):
+                model_prompt = next(p for p in prompts if "AREA: " + title in p)
+                own = {"skills": "ONLY_SKILLS", "motivation": "ONLY_MOTIVATION",
+                       "personality": "ONLY_PERSONALITY"}[category]
+                self.assertIn(own, model_prompt)
+                for marker in ("ONLY_SKILLS", "ONLY_MOTIVATION", "ONLY_PERSONALITY"):
+                    if marker != own:
+                        self.assertNotIn(marker, model_prompt)
+
     def test_empty_area_does_not_inherit_other_areas_or_invent_interview_text(self):
         notes = {
             "general_notes": (
