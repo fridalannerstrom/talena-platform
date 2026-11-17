@@ -1477,7 +1477,8 @@
       __PANEL__ .after-interview-tab-panel { display: grid; gap: 1rem; min-width: 0; }
       __PANEL__ .after-interview-tab-panel[hidden] { display: none !important; }
       __PANEL__ .after-interview-tab-card {
-        min-width: 0; padding: 1.25rem; border: 1px solid var(--talena-border, #e5dfd8);
+        min-width: 0; padding: clamp(1.65rem, 2.7vw, 2.15rem);
+        border: 1px solid var(--talena-border, #e5dfd8);
         border-radius: 14px; background: #fff;
       }
       __PANEL__ .after-interview-tab-card__toolbar {
@@ -2079,6 +2080,88 @@
       .after-interview-manager-report__interview-comments {
         margin-top: 1.3rem; break-inside: avoid;
       }
+      /* Live manager report: a clear hierarchy, calm reading rhythm and
+         full-width text. Scoped outside the cloned A4 PDF layout. */
+      __PANEL__ .after-interview-manager-report:not(.after-interview-manager-report__pdf-layout) {
+        --manager-report-section-space: 2.85rem;
+      }
+      __PANEL__ .after-interview-manager-report:not(.after-interview-manager-report__pdf-layout)
+      .after-interview-tab-card__title {
+        font-size: clamp(2rem, 3vw, 2.45rem);
+        font-weight: 800; letter-spacing: -.045em; line-height: 1.12;
+      }
+      __PANEL__ .after-interview-manager-report:not(.after-interview-manager-report__pdf-layout)
+      .after-interview-manager-report__intro,
+      __PANEL__ .after-interview-manager-report:not(.after-interview-manager-report__pdf-layout)
+      .after-interview-manager-report__section-intro,
+      __PANEL__ .after-interview-manager-report:not(.after-interview-manager-report__pdf-layout)
+      .after-interview-tab-card__description {
+        max-width: none; width: 100%; min-width: 0;
+      }
+      __PANEL__ .after-interview-manager-report:not(.after-interview-manager-report__pdf-layout)
+      .after-interview-manager-report__intro {
+        margin-top: 1.3rem; font-size: .83rem; line-height: 1.75;
+      }
+      __PANEL__ .after-interview-manager-report:not(.after-interview-manager-report__pdf-layout)
+      .after-interview-manager-report__intro-paragraph { margin-bottom: .9rem; }
+      __PANEL__ .after-interview-manager-report:not(.after-interview-manager-report__pdf-layout)
+      .after-interview-manager-report__skills,
+      __PANEL__ .after-interview-manager-report:not(.after-interview-manager-report__pdf-layout)
+      .after-interview-manager-report__motivation,
+      __PANEL__ .after-interview-manager-report:not(.after-interview-manager-report__pdf-layout)
+      .after-interview-manager-report__personality,
+      __PANEL__ .after-interview-manager-report:not(.after-interview-manager-report__pdf-layout)
+      .after-interview-manager-report__wellbeing {
+        margin-top: var(--manager-report-section-space);
+        padding-top: 1.95rem;
+      }
+      __PANEL__ .after-interview-manager-report:not(.after-interview-manager-report__pdf-layout)
+      .after-interview-manager-report__skills-title,
+      __PANEL__ .after-interview-manager-report:not(.after-interview-manager-report__pdf-layout)
+      .after-interview-manager-report__motivation-title,
+      __PANEL__ .after-interview-manager-report:not(.after-interview-manager-report__pdf-layout)
+      .after-interview-manager-report__personality-title,
+      __PANEL__ .after-interview-manager-report:not(.after-interview-manager-report__pdf-layout)
+      .after-interview-manager-report__wellbeing-title {
+        font-size: 1.48rem; font-weight: 800; line-height: 1.22;
+        margin-bottom: .8rem; letter-spacing: -.025em;
+      }
+      __PANEL__ .after-interview-manager-report:not(.after-interview-manager-report__pdf-layout)
+      .after-interview-manager-report__section-intro {
+        margin: 0 0 1.7rem; font-size: .81rem; line-height: 1.7;
+      }
+      __PANEL__ .after-interview-manager-report:not(.after-interview-manager-report__pdf-layout)
+      .after-interview-manager-report__skill {
+        margin-bottom: 2.2rem;
+      }
+      __PANEL__ .after-interview-manager-report:not(.after-interview-manager-report__pdf-layout)
+      .after-interview-manager-report__skill-description,
+      __PANEL__ .after-interview-manager-report:not(.after-interview-manager-report__pdf-layout)
+      .after-interview-manager-report__motivator-definition {
+        font-size: .81rem; line-height: 1.7;
+      }
+      __PANEL__ .after-interview-manager-report:not(.after-interview-manager-report__pdf-layout)
+      .after-interview-manager-report__motivator-practical-list {
+        font-size: .79rem; line-height: 1.65;
+      }
+      __PANEL__ .after-interview-manager-report:not(.after-interview-manager-report__pdf-layout)
+      .after-interview-manager-report__level-description {
+        font-size: .765rem;
+      }
+      __PANEL__ .after-interview-manager-report:not(.after-interview-manager-report__pdf-layout)
+      .after-interview-manager-report__personality-part-text {
+        font-size: .8rem; line-height: 1.72;
+      }
+      __PANEL__ .after-interview-manager-report:not(.after-interview-manager-report__pdf-layout)
+      .after-interview-manager-report__interview-comments-text {
+        font-size: .82rem; line-height: 1.72;
+      }
+      __PANEL__ .after-interview-manager-report:not(.after-interview-manager-report__pdf-layout)
+      .after-interview-manager-report__wellbeing .after-interview-rich-text,
+      __PANEL__ .after-interview-manager-report:not(.after-interview-manager-report__pdf-layout)
+      .after-interview-manager-report__wellbeing .after-interview-manager-report__personality-advice-text {
+        font-size: .83rem; line-height: 1.78;
+      }
       @media (max-width: 1050px) {
         __PANEL__ .after-interview-manager-report__levels { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       }
@@ -2097,7 +2180,20 @@
       @media (max-width: 767px) {
         __PANEL__ .candidate-insights-subnavigation { padding: 0 1rem; }
         __PANEL__ .candidate-insights-subworkspace__panels { padding: 1rem; }
-        __PANEL__ .after-interview-tab-card { padding: 1rem; border-radius: 12px; }
+        __PANEL__ .after-interview-tab-card { padding: 1.2rem; border-radius: 12px; }
+        __PANEL__ .after-interview-manager-report:not(.after-interview-manager-report__pdf-layout) {
+          --manager-report-section-space: 2.25rem;
+        }
+        __PANEL__ .after-interview-manager-report:not(.after-interview-manager-report__pdf-layout)
+        .after-interview-tab-card__title { font-size: 1.9rem; }
+        __PANEL__ .after-interview-manager-report:not(.after-interview-manager-report__pdf-layout)
+        .after-interview-manager-report__skills-title,
+        __PANEL__ .after-interview-manager-report:not(.after-interview-manager-report__pdf-layout)
+        .after-interview-manager-report__motivation-title,
+        __PANEL__ .after-interview-manager-report:not(.after-interview-manager-report__pdf-layout)
+        .after-interview-manager-report__personality-title,
+        __PANEL__ .after-interview-manager-report:not(.after-interview-manager-report__pdf-layout)
+        .after-interview-manager-report__wellbeing-title { font-size: 1.3rem; }
       }
     `.replaceAll("__PANEL__", PANEL_SELECTOR);
     document.head.appendChild(style);
