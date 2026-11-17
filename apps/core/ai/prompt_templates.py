@@ -7266,6 +7266,102 @@ AI_PROMPT_REGISTRY.update({
 })
 
 
+# #512: editable Chefsrapport comments from separately scoped interview evidence.
+# These are business-writing instructions. Runtime enforces source routing,
+# JSON output, privacy and factual grounding independently of these defaults.
+AI_PROMPT_REGISTRY.update({
+    "manager_report_motivation_candidate_comments": {
+        "name": "Chefsrapport · Motivation · Kandidatens kommentarer",
+        "category": "Chefsrapport",
+        "description": (
+            "Styr AI-bearbetningen av sparade motivationsanteckningar och "
+            "svar på motivationsfrågor i chefsrapporten. Ändra fritt ton, "
+            "längd, disposition och vilken information som ska prioriteras. "
+            "Testresultat och andra intervjufält skickas inte till denna prompt."
+        ),
+        "defaults": {
+            "sv": """UPPGIFT – KANDIDATENS KOMMENTARER OM MOTIVATION
+
+Utifrån intervjuanteckningar och sparade svar om motivation: skriv en tydlig,
+välformulerad kandidatbeskrivning till chefsrapportens läsare.
+
+Fokusera på vad personen faktiskt berättar om sådant som engagerar,
+stimulerar eller påverkar trivsel och drivkrafter i arbetet. Välj ut det
+mest relevanta underlaget och fånga gärna konkreta exempel och nyanser när
+de finns. Skriv naturlig, sammanhängande text på ungefär 3–5 meningar.
+Om underlaget är kort, skriv kortare. Undvik att upprepa råanteckningar
+ordagrant, uppräkningar av frågor och svar eller schablonformuleringar.
+
+Skilj kandidatens egna beskrivningar från intervjuarens observationer.
+Förklara inte testresultat eller anta drivkrafter som kandidaten inte
+uttryckligen har beskrivit. Om det saknas relevant information, lämna
+texten tom.""".strip(),
+            "en": """TASK – CANDIDATE COMMENTS ABOUT MOTIVATION
+
+Using only the interview notes and saved answers about motivation, write
+a clear and polished candidate account for a manager reading the report.
+
+Focus on what the person actually describes as engaging, stimulating,
+or affecting their motivation and experience of work. Prioritise the
+most relevant details and preserve concrete examples and nuance when
+present. Use natural, connected prose of roughly 3–5 sentences, or
+less if the evidence is brief. Avoid copying raw notes verbatim,
+question-and-answer lists, or generic stock phrases.
+
+Distinguish the candidate's own account from interviewer observations.
+Do not interpret assessment results or assume motives the candidate did
+not express. If relevant interview information is missing, leave the
+text empty.""".strip(),
+        },
+    },
+    "manager_report_skills_candidate_comments": {
+        "name": "Chefsrapport · Färdighet · Kandidatens kommentarer",
+        "category": "Chefsrapport",
+        "description": (
+            "Styr AI-bearbetningen av färdighetsanteckningar och svar på "
+            "färdighetsfrågor i chefsrapporten. Ändra fritt ton, längd, "
+            "disposition och prioriteringar. Personlighets- och "
+            "motivationsunderlag eller testresultat skickas inte till prompten."
+        ),
+        "defaults": {
+            "sv": """UPPGIFT – KANDIDATENS KOMMENTARER OM FÄRDIGHET
+
+Utifrån intervjuanteckningar och sparade svar om färdighet: skriv en tydlig,
+välformulerad kandidatbeskrivning till chefsrapportens läsare.
+
+Beskriv de situationer, arbetsuppgifter och tillvägagångssätt kandidaten
+faktiskt berättar om, exempelvis hur hen har resonerat kring information,
+problem, siffror eller texter när sådana exempel finns. Välj de viktigaste
+detaljerna och behåll både nyanser och uttryckt osäkerhet. Skriv naturlig,
+sammanhängande text på ungefär 3–5 meningar, kortare om underlaget är tunt.
+Undvik att kopiera intervjuanteckningar ordagrant eller rada upp frågesvar.
+
+En beskriven strategi eller en enskild händelse bevisar inte en generell
+förmåga eller kompetens. Skilj personens egna uppgifter från
+intervjuarens observationer och håll texten fri från testtolkning.
+Om relevant intervjuunderlag saknas, lämna texten tom.""".strip(),
+            "en": """TASK – CANDIDATE COMMENTS ABOUT SKILLS
+
+Using only the interview notes and saved answers about skills, write
+a clear and polished candidate account for a manager reading the report.
+
+Describe actual situations, tasks and approaches discussed in the
+interview, such as how the person reasoned about information, problems,
+numbers or written material when such examples are available. Select the
+most useful details and preserve nuance and acknowledged uncertainty.
+Use natural, connected prose of roughly 3–5 sentences, or less if the
+source material is limited. Avoid copying raw notes verbatim or
+listing questions and answers.
+
+A described strategy or one event does not demonstrate general ability
+or competence. Distinguish the candidate's own account from interviewer
+observations, and do not interpret assessment results here.
+If there is no relevant interview evidence, leave the text empty.""".strip(),
+        },
+    },
+})
+
+
 # #355: independently editable After interview / Helhetsbild prompts.
 from .structured_overall_picture import PROMPT_REGISTRY_ADDITIONS
 AI_PROMPT_REGISTRY.update(PROMPT_REGISTRY_ADDITIONS)
