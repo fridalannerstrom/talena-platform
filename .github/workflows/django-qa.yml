@@ -151,6 +151,12 @@ jobs:
         run: |
           python manage.py test apps.candidate_results.test_static_content_qa apps.candidate_results.tests apps.core.test_ai_payload_candidate_results --noinput
           node scripts/test_candidate_report_513.js
+      - name: Verify candidate comment confirmation and retry (#478)
+        env:
+          DJANGO_DEBUG: 'True'
+          DJANGO_SECRET_KEY: local-qa-only
+          USE_AZURE_STORAGE: '0'
+        run: python manage.py test apps.candidate_results.test_feedback_acknowledgement_478 --noinput
       - name: Verify shared pre-interview response styles (#504)
         env:
           DJANGO_DEBUG: 'True'
