@@ -15,6 +15,31 @@ from apps.core.ai.manager_report_personality import (
 
 
 class ManagerPersonalityInterviewEvidenceTests(SimpleTestCase):
+
+    def test_personality_comments_never_receive_motivation_or_skills_notes(self):
+        owner = SimpleNamespace(interview_notes=(
+            "### Intervjuunderlag: Personlighet\nPersonality example.\n"
+            "### Intervjuunderlag: Motivation\nMotivation secret.\n"
+            "### Intervjuunderlag: Färdighet\nSkills secret."
+        ))
+        items = [
+            {"source": "personality", "question": "Personality question",
+             "saved_answer_or_note": "Personality answer"},
+            {"source": "motivation", "question": "Motivation question",
+             "saved_answer_or_note": "Motivation answer"},
+            {"source": "cognitive", "question": "Skills question",
+             "saved_answer_or_note": "Skills answer"},
+        ]
+        with patch(
+            "apps.processes.interview_question_evidence.build_interview_question_evidence",
+            return_value={"items": items},
+        ):
+            routed, notes, saved = _get_manager_report_interview_material(owner)
+        self.assertEqual(notes, "Personality example.")
+        self.assertEqual([item["source"] for item in saved], ["personality"])
+        self.assertNotIn("Motivation secret", str((routed, notes, saved)))
+        self.assertNotIn("Skills secret", str((routed, notes, saved)))
+
     def test_uncategorised_english_question_and_answer_are_not_discarded(self):
         item = {
             "source": "personality",
