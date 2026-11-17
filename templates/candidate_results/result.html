@@ -310,6 +310,8 @@
     }
 
     .intro-card p + p { margin-top: 12px; }
+    .intro-card strong { color: var(--ink); font-weight: 750; }
+    .intro-card p { break-inside: avoid; orphans: 2; widows: 2; }
 
     .section-grid {
       display: grid;
@@ -351,6 +353,13 @@
       font-size: 1rem;
       line-height: 1.78;
     }
+    .section-card > .section-introduction {
+      margin: 3px 0 19px;
+      color: var(--text);
+      font-size: .91rem;
+      line-height: 1.7;
+      break-inside: avoid;
+    }
 
     ul {
       margin: 16px 0 0;
@@ -372,7 +381,8 @@
       font-size: .98rem;
       line-height: 1.75;
     }
-    .result-group-item + .result-group-item { margin-top: 12px; }
+    .result-group-item { break-inside: avoid; page-break-inside: avoid; }
+    .result-group-item + .result-group-item { margin-top: 20px; }
     .result-group-item strong {
       display: block;
       margin-bottom: 3px;
@@ -755,12 +765,24 @@
       {% else %}
         <p>{{ copy.discussion_body }}</p>
       {% endif %}
+      {% if introduction.norm_emphasis %}
+        <p>{{ introduction.norm_before }}<strong>{{ introduction.norm_emphasis }}</strong>{{ introduction.norm_after }}</p>
+        <p><strong>{{ introduction.caveat_emphasis }}</strong>{{ introduction.caveat_after }}</p>
+        {% if preview %}
+          <p>{{ introduction.comment_preview }}</p>
+        {% else %}
+          <p>{{ introduction.comment_candidate }}</p>
+        {% endif %}
+      {% endif %}
     </section>
 
     <div class="section-grid">
       {% for section in sections %}
         <section class="section-card" id="section-{{ section.key }}">
           <h2>{{ section.title }}</h2>
+          {% if section.introduction %}
+            <p class="section-introduction">{{ section.introduction }}</p>
+          {% endif %}
           {% if section.body %}<p>{{ section.body }}</p>{% endif %}
           {% if section.points %}
             <ul>
