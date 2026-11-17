@@ -382,10 +382,18 @@ class CandidateResultAccessViewTests(TestCase):
             candidate=self.candidate,
             process=self.process,
             locale="sv",
+            # This fixture tests comment/verification flow, not version
+            # migration. Keep its synthetic personality area stable while
+            # dedicated migration tests cover upgrading actual SOVA reports.
+            content_version="candidate-static-v6-513",
             content={
                 "introduction": {
-                    "title": "Välkommen",
-                    "body": "Detta är ditt resultat.",
+                    "title": "Ditt resultat",
+                    "body": (
+                        "Testresultaten är ett underlag för att skapa en bättre "
+                        "förståelse för vilka beteenden och arbetssätt som kan "
+                        "komma mer naturligt för dig."
+                    ),
                     "points": [],
                 },
                 "personality": {
