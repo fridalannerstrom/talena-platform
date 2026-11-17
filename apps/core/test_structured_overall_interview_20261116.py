@@ -160,6 +160,36 @@ class OverallPictureInterviewAreaIsolationTests(SimpleTestCase):
                     if marker != own:
                         self.assertNotIn(marker, model_prompt)
 
+    def test_synthesis_refuses_old_unscoped_generated_sections(self):
+        owner = SimpleNamespace()
+        old_state = {
+            "schema": 1, "language": "sv",
+            "sections": {
+                "skills": {
+                    "status": "completed", "generation_rules_version": 10,
+                    "items": [{"status": "completed", "title": "Logisk",
+                               "testbild": "Old test text", "intervjun": "Old mixed notes"}],
+                },
+                "motivation": {"status": "not_applicable", "items": []},
+                "personality": {"status": "not_applicable", "items": []},
+            },
+        }
+        with (
+            patch.object(report, "_state", return_value=old_state),
+            patch.object(report, "build_shared_ai_context", return_value={}),
+            patch.object(report, "_completion",
+                         side_effect=AssertionError("Do not send old synthesis sources")),
+            patch("apps.core.ai.post_interview_question_evidence_policy.get_post_interview_note_evidence",
+                  return_value={**self.notes, "has_evidence": True}),
+        ):
+            events = list(report.generate_structured_overall_picture(
+                owner, category="synthesis",
+            ))
+        errors = [event for event in events
+                  if event["type"] == "structured_section_error"]
+        self.assertEqual(len(errors), 1)
+        self.assertIn("current evidence rules", errors[0]["message"])
+
     def test_empty_area_does_not_inherit_other_areas_or_invent_interview_text(self):
         notes = {
             "general_notes": (
