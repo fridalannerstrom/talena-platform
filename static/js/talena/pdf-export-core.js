@@ -124,8 +124,14 @@
       ".team-analytics-grid, .team-table tr, .card, .card-body, .team-goal-list, " +
       ".team-style-profile-card, .team-styles-section, .team-profile-pdf-heading, " +
       ".after-interview-manager-report__skill, .after-interview-manager-report__guide-level, " +
-      ".after-interview-manager-report__motivator, .after-interview-manager-report__personality-theme, " +
+      ".after-interview-manager-report__motivator, .after-interview-manager-report__motivator-practical-box, " +
+      ".after-interview-manager-report__personality-theme, .after-interview-manager-report__personality-part, " +
       ".after-interview-manager-report__personality-advice, .after-interview-manager-report__wellbeing, " +
+      ".after-interview-manager-report__interview-comments, .after-interview-manager-report__intro-paragraph, " +
+      ".after-interview-manager-report__section-intro, .after-interview-manager-report__motivator-name, " +
+      ".after-interview-manager-report__motivation-title, .after-interview-manager-report__skills-title, " +
+      ".after-interview-manager-report__personality-title, .after-interview-manager-report__guide-summary, " +
+      ".after-interview-manager-report__wellbeing-title, " +
       // Trait cards may be taller than a page, so rows and summaries must
       // also be possible breakpoints. Never split an indicator's text/scale.
       ".personality-profile-section__header, .personality-trait-card__header, " +
@@ -391,6 +397,63 @@
     return ranges;
   }
 
+  function getManagerReportPageGuides(node, source, maxHeight) {
+    // The manager report is a single browser-rasterized long page. CSS
+    // break-inside alone cannot protect its content from canvas slicing.
+    // Convert logical units into pixel ranges for the actual A4 page cutter.
+    const rect = node.getBoundingClientRect();
+    if (!rect.width) return [];
+    const scale = source.width / rect.width;
+    const protectedRanges = [];
+
+    function protect(startNode, endNode = startNode, maxPageFraction = 0.95) {
+      if (!startNode || !endNode) return;
+      const startRect = startNode.getBoundingClientRect();
+      const endRect = endNode.getBoundingClientRect();
+      if (!startRect.height || !endRect.height) return;
+      const start = Math.max(0, Math.round((startRect.top - rect.top) * scale));
+      const end = Math.min(source.height, Math.round((endRect.bottom - rect.top) * scale));
+      // Over-height content must break inside; it cannot be protected as a
+      // whole without leading to blank pages or unbounded pagination.
+      if (end > start && end - start <= maxHeight * maxPageFraction) {
+        protectedRanges.push({ start, end });
+      }
+    }
+
+    node.querySelectorAll(
+      ".after-interview-manager-report__skill, " +
+      ".after-interview-manager-report__motivator, " +
+      ".after-interview-manager-report__interview-comments, " +
+      ".after-interview-manager-report__personality-theme, " +
+      ".after-interview-manager-report__guide-level"
+    ).forEach(section => protect(section));
+
+    node.querySelectorAll(
+      ".after-interview-manager-report__motivator-practical-box, " +
+      ".after-interview-manager-report__intro-paragraph, " +
+      ".after-interview-manager-report__wellbeing .after-interview-rich-text__paragraph, " +
+      ".after-interview-manager-report__wellbeing .after-interview-rich-text__list"
+    ).forEach(section => protect(section));
+
+    // Keep each heading with an intro / first substantive card if it fits.
+    [
+      [".after-interview-manager-report__skills-title",
+       ".after-interview-manager-report__skill"],
+      [".after-interview-manager-report__motivation-title",
+       ".after-interview-manager-report__motivator"],
+      [".after-interview-manager-report__personality-title",
+       ".after-interview-manager-report__personality-theme"],
+      [".after-interview-manager-report__wellbeing-title",
+       ".after-interview-manager-report__wellbeing .after-interview-rich-text__paragraph"],
+      [".after-interview-manager-report__guide-summary",
+       ".after-interview-manager-report__guide-level"],
+    ].forEach(([heading, firstCard]) => {
+      protect(node.querySelector(heading), node.querySelector(firstCard), 0.75);
+    });
+
+    return protectedRanges;
+  }
+
   function addCanvasPages(pdf, source, opts) {
     if (!source.width || !source.height) throw new Error("PDF page is empty.");
     const pageW = pdf.internal.pageSize.getWidth();
@@ -417,7 +480,11 @@
       opts.node?.querySelector?.(".personality-quick-view");
     const personalityDescriptionsPdf = personalityResultsPdf &&
       opts.node?.querySelector?.(".personality-trait-descriptions-view");
-    const protectedRanges = motivationPdf
+    const managerReportPdf = opts.continuous &&
+      opts.node?.matches?.('[data-manager-report-pdf-layout="a4-portrait"]');
+    const protectedRanges = managerReportPdf
+      ? getManagerReportPageGuides(opts.node, source, maxHeight)
+      : motivationPdf
       ? getMotivationPageGuides(opts.node, source)
       : (motivationQuestionsPdf || cognitiveQuestionsPdf || personalityQuestionsPdf)
         ? getMotivationQuestionsPageGuides(opts.node, source)
