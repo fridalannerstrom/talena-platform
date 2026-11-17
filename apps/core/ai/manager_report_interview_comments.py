@@ -79,7 +79,7 @@ def build_manager_report_comment_prompt(evidence: dict, category: str, language_
         "Never copy/paste the raw notes or print the questions and answers as a list. "
         "Do not add facts, motivation, skills, causes, experience, intentions, "
         "outcomes, feelings or behaviour absent from the supplied answers. "
-        "Do not speculate, evaluate the candidate's fit, or interpret test results.",
+        "Do not speculate or evaluate the candidate's fit. Do not interpret test results.",
         "Preserve the distinction between the person's self-reported account "
         "and interviewer's observation. Do not present an interviewer inference "
         "as a verbatim candidate statement. Respect negations and uncertainty. "
