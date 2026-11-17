@@ -173,6 +173,93 @@ class CandidateResultStaticContentQATests(SimpleTestCase):
                                     "text": texts[indicator_key][score_band],
                                 }])
 
+    def test_all_eighteen_traits_are_in_exactly_ten_ordered_report_headings(self):
+        indicator_keys = [
+            indicator
+            for section in TRAIT_AND_INDICATOR_PROFILE["sections"]
+            for trait in section["traits"]
+            for indicator in trait["indicators"]
+        ]
+        invitation = self._invitation([{
+            "activity": "Personality",
+            "competencies": [
+                {"competency": key, "sten": 5} for key in indicator_keys
+            ],
+        }])
+        expected_titles = {
+            "sv": [
+                "Samarbete och relationer",
+                "Hjälpsamhet och finnas där för andra",
+                "Påverka andra och komma framåt",
+                "Planering och målfokus",
+                "Analys och strategi",
+                "Förändring och nytänkande",
+                "Kommunikationsstil och principfasthet",
+                "Att synas eller smälta in",
+                "Stress och press",
+                "Självständigt arbete och förankring",
+            ],
+            "en": [
+                topic[2] for section in TRAIT_AND_INDICATOR_PROFILE["sections"]
+                for topic in CANDIDATE_PERSONALITY_TOPICS[section["section_key"]]
+            ],
+        }
+        for language in ("sv", "en"):
+            with self.subTest(language=language):
+                content, _metadata, _fingerprint = build_candidate_result_content(
+                    invitation, language_code=language
+                )
+                groups = content["personality"]["groups"]
+                self.assertEqual(len(groups), 3)
+                self.assertEqual(
+                    [item["label"] for group in groups for item in group["items"]],
+                    expected_titles[language],
+                )
+                self.assertEqual(
+                    [len(group["items"]) for group in groups], [3, 3, 4]
+                )
+                for group in groups:
+                    self.assertEqual(group["body"], "")
+                    self.assertTrue(all(item["text"] for item in group["items"]))
+                self.assertEqual(len(indicator_keys), 54)
+
+    def test_introduction_always_present_and_section_intros_only_with_results(self):
+        for language in ("sv", "en"):
+            with self.subTest(language=language):
+                empty, _metadata, _fingerprint = build_candidate_result_content(
+                    self._invitation([]), language_code=language
+                )
+                self.assertIsNone(empty.get("personality"))
+                self.assertIsNone(empty.get("skills"))
+                self.assertIsNone(empty.get("motivation"))
+                intro = empty["introduction"]
+                self.assertTrue(intro["body"])
+                self.assertTrue(intro["norm_emphasis"])
+                self.assertTrue(intro["caveat_emphasis"])
+                self.assertTrue(intro["comment_candidate"])
+                self.assertTrue(intro["comment_preview"])
+                personality, _metadata, _fingerprint = build_candidate_result_content(
+                    self._invitation([{
+                        "activity": "Personality",
+                        "competencies": [{"competency": "Teamwork", "sten": 5}],
+                    }]), language_code=language
+                )
+                self.assertTrue(personality["personality"]["introduction"])
+                self.assertNotIn("skills", personality)
+                self.assertNotIn("motivation", personality)
+
+    def test_single_trait_topics_are_not_split_or_doubled(self):
+        grouped = CANDIDATE_PERSONALITY_TOPICS["interacting_and_managing_emotions"]
+        self.assertEqual(grouped[0][0], ("Straightforward",))
+        self.assertEqual(grouped[-1][0], ("Independence",))
+        traits = [
+            name for section in TRAIT_AND_INDICATOR_PROFILE["sections"]
+            for group in CANDIDATE_PERSONALITY_TOPICS[section["section_key"]]
+            for name in group[0]
+        ]
+        self.assertEqual(len(traits), 18)
+        self.assertEqual(len(set(traits)), 18)
+
     def test_skill_text_covers_all_ability_and_percentile_boundaries(self):
         boundaries = (
             (0, "very-low"),
