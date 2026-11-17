@@ -63,7 +63,7 @@ class ManagerReportCommentTests(SimpleTestCase):
             for category in ("motivation", "skills"):
                 evidence = comments.manager_report_comment_evidence(self.owner, category)
                 prompt = comments.build_manager_report_comment_prompt(evidence, category, "sv")
-                self.assertIn("Kandidatens kommentarer", prompt)
+                self.assertIn("TASK: Generate the manager report candidate", prompt)
                 self.assertIn("Never copy/paste", prompt)
                 self.assertIn("Admin wants shorter prose.", prompt)
                 self.assertIn("Do not use material from other assessment areas", prompt)
