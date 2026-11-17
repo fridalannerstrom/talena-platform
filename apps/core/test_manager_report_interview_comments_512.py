@@ -121,6 +121,33 @@ class ManagerReportCommentTests(SimpleTestCase):
         redact.assert_called_once()
         self.assertNotIn("SKILLS_ONLY", redact.call_args.args[0])
 
+    def test_verbatim_model_response_is_rewritten_before_it_can_be_saved(self):
+        from unittest.mock import Mock
+
+        raw = "MOTIVATION_ONLY: Variation i arbetet ger energi."
+        generated = "Kandidaten beskriver att variation bidrar till energi i arbetet."
+        responses = [
+            SimpleNamespace(choices=[SimpleNamespace(
+                finish_reason="stop", message=SimpleNamespace(content=json.dumps({"text": value}))
+            )])
+            for value in (raw, generated)
+        ]
+        create = Mock(side_effect=responses)
+        client = SimpleNamespace(chat=SimpleNamespace(completions=SimpleNamespace(create=create)))
+        with (
+            patch(
+                "apps.processes.interview_question_evidence.build_interview_question_evidence",
+                return_value={"items": []},
+            ),
+            patch.object(comments, "get_openai_client", return_value=client),
+            patch.object(comments, "get_chat_model", return_value="mock-model"),
+            patch.object(comments, "get_global_ai_guidance", return_value="Source faithful."),
+        ):
+            text, _fingerprint = comments.generate_manager_report_comment(self.owner, "motivation", "sv")
+        self.assertEqual(text, generated)
+        self.assertEqual(create.call_count, 2)
+        self.assertIn("REPAIR:", create.call_args.kwargs["messages"][1]["content"])
+
     def test_persisted_comments_are_only_visible_with_matching_source_and_language(self):
         with patch(
             "apps.processes.interview_question_evidence.build_interview_question_evidence",
