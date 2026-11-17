@@ -34,7 +34,7 @@ assert.ok(js.includes('"[data-overall-picture-generate]"') &&
 assert.ok(js.includes('"[data-after-interview-regenerate]"') &&
   js.includes('source.querySelector(generateSelector)') &&
   js.includes('pair.append(toolbar, generate)'),
-  "Undersök vidare must pair PDF and refresh in its title toolbar");
+  "Active After interview reports must pair PDF and refresh in their title toolbar");
 assert.ok(!js.includes('["interview","after-interview"]'),
   "Retired Interview summary must not be offered as a PDF option");
 const afterInterviewCards = read("static/js/talena/after-interview-tabs.js");
@@ -90,7 +90,7 @@ assert.ok(js.includes("if (!item || !isReady(item)) throw Error(copy.unavailable
 for (const id of [
   "overview", "personality", "motivation", "cognitive", "team-report",
   "leadership-report", "derailment-report", "prepare-interview",
-  "after-overview", "after-explore", "manager-report"
+  "after-overview", "manager-report"
 ]) {
   assert.ok(js.includes(id), "Registry missing " + id);
 }
