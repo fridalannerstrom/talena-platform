@@ -116,6 +116,24 @@ class AdminCustomerWorkspaceTests(TestCase):
         )
         self.assertIn('data-read-only="true"', markup)
 
+    def test_admin_work_mode_uses_write_enabled_candidate_endpoints(self):
+        self.client.force_login(self.admin)
+        candidate_url = reverse(
+            "processes:process_candidate_detail",
+            args=[self.process.pk, self.candidate.pk],
+        )
+        response = self.client.get(
+            candidate_url, HTTP_X_REQUESTED_WITH="XMLHttpRequest"
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context["can_manage_candidate_results"])
+        markup = response.content.decode("utf-8")
+        self.assertIn('data-admin-read-only="false"', markup)
+        self.assertIn('data-interview-notes-update-url="', markup)
+        self.assertIn('data-personality-questions-root', markup)
+        self.invitation.refresh_from_db()
+        self.assertFalse(self.invitation.interview_notes)
+
     def test_admin_interview_notes_update_real_candidate_owner(self):
         self.client.force_login(self.admin)
         response = self.client.post(
