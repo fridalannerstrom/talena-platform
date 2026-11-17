@@ -23,7 +23,25 @@
         evidence: "Intervjuanteckningar och svar som Talena använder som underlag.",
       },
       managerReportTitle: "Chefsrapport",
-      managerReportIntro: "Här samlas tillgängliga testresultat tillsammans med personens egna perspektiv och konkreta tips för att förstå och använda insikterna i praktiken.",
+      managerReportIntroParagraphs: [
+        "Testresultaten är ett underlag för att skapa en bättre förståelse för vilka beteenden och arbetssätt som kan komma mer naturligt för personen, vad som motiverar hen och hur hen tar sig an olika typer av uppgifter.",
+        "Resultaten jämförs med en normgrupp, det vill säga en grupp personer som tidigare har genomfört samma test.",
+        "Ett testresultat är en början, inte hela bilden. Resultaten ska inte ses som absoluta sanningar eller som en bedömning av vad personen är bra eller mindre bra på. Hur personens egenskaper kommer till uttryck påverkas även av tidigare erfarenheter, sammanhanget och situationen.",
+        "Kandidatens kommentarer bygger på utvalda delar av intervjuunderlaget och bidrar till att nyansera testresultaten och sätta dem i ett praktiskt sammanhang.",
+      ],
+      managerReportIntroEmphasis: "Ett testresultat är en början, inte hela bilden.",
+      managerReportNormGroup: "normgrupp",
+      managerSectionIntroductions: {
+        personality: "Personlighetsformuläret beskriver personens typiska beteenden, preferenser och sätt att förhålla sig till olika situationer.",
+        motivation: "Motivationsformuläret beskriver vad som tenderar att ge personen engagemang i arbetet och vad som kan vara mindre motiverande.",
+        skills: "Färdighetstestet ger en indikation på hur snabbt och korrekt personen hanterar olika typer av uppgifter, exempelvis logisk, numerisk eller verbal problemlösning.",
+      },
+      managerMotivationInterviewTitle: "Från intervjuunderlaget",
+      managerMotivationInterviewSource: "Sparade intervjuanteckningar och svar. Detta är inte en AI-tolkning av testresultatet.",
+      managerMotivationNotesTitle: "Intervjuanteckningar om motivation",
+      managerMotivationQuestionTitle: "Intervjufråga",
+      managerMotivationAnswerTitle: "Sparat svar eller anteckning",
+      managerMotivationInterviewMissing: "Det finns ännu inget sparat intervjuunderlag specifikt om motivation.",
       savePdf: "Spara som PDF",
       creatingPdf: "Skapar PDF…",
       pdfGenerationFailed: "PDF:en kunde inte skapas. Försök igen.",
@@ -166,7 +184,25 @@
         evidence: "Interview notes and answers used by Talena as evidence.",
       },
       managerReportTitle: "Manager report",
-      managerReportIntro: "This report brings together available assessment results, the person's own perspectives and practical tips for understanding and applying the insights.",
+      managerReportIntroParagraphs: [
+        "Assessment results are a starting point for understanding which behaviours and working styles may come more naturally to the person, what motivates them, and how they approach different tasks.",
+        "The results are compared with a norm group, meaning people who have previously completed the same assessment.",
+        "A test result is a starting point, not the whole picture. Results are not absolute truths or a judgment of what the person is good or less good at. How their characteristics are expressed also depends on prior experience, context and circumstances.",
+        "The candidate's comments are drawn from selected interview material and help put the assessment results in practical context.",
+      ],
+      managerReportIntroEmphasis: "A test result is a starting point, not the whole picture.",
+      managerReportNormGroup: "norm group",
+      managerSectionIntroductions: {
+        personality: "The personality questionnaire describes the person's typical behaviours, preferences and ways of approaching different situations.",
+        motivation: "The motivation questionnaire describes what tends to engage the person at work and what may be less motivating.",
+        skills: "The ability assessment indicates how quickly and accurately the person handles different types of tasks, such as logical, numerical or verbal reasoning.",
+      },
+      managerMotivationInterviewTitle: "From the interview evidence",
+      managerMotivationInterviewSource: "Saved interview notes and answers. This is not an AI interpretation of the assessment results.",
+      managerMotivationNotesTitle: "Interview notes about motivation",
+      managerMotivationQuestionTitle: "Interview question",
+      managerMotivationAnswerTitle: "Saved answer or note",
+      managerMotivationInterviewMissing: "No motivation-specific interview evidence has been saved yet.",
       savePdf: "Save as PDF",
       creatingPdf: "Creating PDF…",
       pdfGenerationFailed: "The PDF could not be created. Please try again.",
@@ -2229,17 +2265,41 @@
     });
     managerReportActions.appendChild(pdfButton);
     managerReportHeader.append(managerReportHeading, managerReportActions);
-    const managerReportIntro = document.createElement("p");
+    const managerReportIntro = document.createElement("div");
     managerReportIntro.className = "after-interview-manager-report__intro";
-    managerReportIntro.textContent = copy().managerReportIntro;
+    copy().managerReportIntroParagraphs.forEach((value, index) => {
+      const paragraph = document.createElement("p");
+      paragraph.className = "after-interview-manager-report__intro-paragraph";
+      // Emphasis is semantic so it also survives the report's PDF clone.
+      const emphasis = index === 1 ? copy().managerReportNormGroup
+        : index === 2 ? copy().managerReportIntroEmphasis : "";
+      const emphasisAt = emphasis ? value.indexOf(emphasis) : -1;
+      if (emphasisAt !== -1) {
+        paragraph.appendChild(document.createTextNode(value.slice(0, emphasisAt)));
+        const strong = document.createElement("strong");
+        strong.textContent = emphasis;
+        paragraph.appendChild(strong);
+        paragraph.appendChild(document.createTextNode(value.slice(emphasisAt + emphasis.length)));
+      } else {
+        paragraph.textContent = value;
+      }
+      managerReportIntro.appendChild(paragraph);
+    });
     managerReportCard.append(managerReportHeader, managerReportIntro, managerReportPdfError);
+
+    const makeManagerSectionIntro = (key) => {
+      const intro = document.createElement("p");
+      intro.className = "after-interview-manager-report__section-intro";
+      intro.textContent = copy().managerSectionIntroductions[key];
+      return intro;
+    };
 
     const managerSkills = document.createElement("section");
     managerSkills.className = "after-interview-manager-report__skills";
     const managerSkillsTitle = document.createElement("h4");
     managerSkillsTitle.className = "after-interview-manager-report__skills-title";
     managerSkillsTitle.textContent = copy().managerSkillsTitle;
-    managerSkills.appendChild(managerSkillsTitle);
+    managerSkills.append(managerSkillsTitle, makeManagerSectionIntro("skills"));
 
     const workspace = panel.closest("[data-candidate-insights-workspace]");
     const managerReportEditController = createManagerReportEditController(
@@ -2328,6 +2388,8 @@
     });
 
     if (!completedSkills.size) {
+      // An uncompleted assessment must not introduce an absent test area.
+      managerSkills.hidden = true;
       const empty = document.createElement("p");
       empty.className = "after-interview-manager-report__skills-empty";
       empty.textContent = copy().managerSkillsUnavailable;
@@ -2378,7 +2440,7 @@
     const managerMotivationTitle = document.createElement("h4");
     managerMotivationTitle.className = "after-interview-manager-report__motivation-title";
     managerMotivationTitle.textContent = copy().managerMotivationTitle;
-    managerMotivation.appendChild(managerMotivationTitle);
+    managerMotivation.append(managerMotivationTitle, makeManagerSectionIntro("motivation"));
 
     const managerMotivators = [
       ...(workspace?.querySelectorAll(
@@ -2651,7 +2713,7 @@
     });
 
     updateManagerReportGenerateLabel();
-    managerPersonality.appendChild(managerPersonalityTitle);
+    managerPersonality.append(managerPersonalityTitle, makeManagerSectionIntro("personality"));
     const renderPersonalityText = (theme, part, text) => {
       const key = "personality:" + theme + ":" + part;
       managerReportEditController.setAiText(key, text || "");
