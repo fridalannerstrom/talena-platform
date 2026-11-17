@@ -3,12 +3,14 @@
 All fixtures are synthetic. No Sova/OpenAI calls are needed.
 """
 import json
+from unittest.mock import patch
 
 from django.test import TestCase
 from django.urls import reverse
 
 from apps.accounts.models import Company, CompanyMember, OrgUnit, User, UserOrgUnitAccess
 from apps.processes.models import Candidate, TestInvitation, TestProcess
+from apps.emails.models import EmailTemplate
 
 
 class AdminCustomerWorkspaceTests(TestCase):
@@ -180,3 +182,104 @@ class AdminCustomerWorkspaceTests(TestCase):
         self.assertEqual(response.context["process_base_layout"], "")
         self.assertTrue(response.context["can_edit"])
         self.assertNotIn("Administrator workspace:", response.content.decode("utf-8"))
+
+    def test_admin_can_edit_process_email_template_without_company_membership(self):
+        email_url = reverse(
+            "emails:edit_process_invitation_template", args=[self.process.pk],
+        )
+        self.client.force_login(self.admin)
+        response = self.client.get(email_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.context["process_base_layout"],
+            "admin/core/layouts/admin_base.html",
+        )
+        self.assertContains(response, "talena-admin")
+        self.assertContains(response, reverse(
+            "processes:process_update", args=[self.process.pk],
+        ))
+
+        response = self.client.post(email_url, {
+            "action": "save",
+            "subject": "Synthetic interview invitation",
+            "body": "Hej {first_name}! {assessment_url}",
+        })
+        self.assertEqual(response.status_code, 302)
+        template = EmailTemplate.objects.get(
+            process=self.process, template_type="invitation", language="sv",
+        )
+        self.assertEqual(template.subject, "Synthetic interview invitation")
+        self.assertEqual(template.body, "Hej {first_name}! {assessment_url}")
+        self.assertTrue(template.is_active)
+
+        self.client.force_login(self.customer)
+        response = self.client.get(email_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["process_base_layout"], "")
+        self.assertEqual(response.context["form"].initial["subject"], template.subject)
+
+    def test_admin_can_edit_project_settings_in_shared_workspace(self):
+        settings_url = reverse("processes:process_update", args=[self.process.pk])
+        self.client.force_login(self.admin)
+        with patch("apps.processes.views.SovaClient") as sova:
+            sova.return_value.get_template_accounts_with_projects.return_value = []
+            response = self.client.get(settings_url)
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(
+                response.context["process_base_layout"],
+                "admin/core/layouts/admin_base.html",
+            )
+            self.assertContains(response, "talena-admin")
+            self.assertContains(response, reverse(
+                "emails:edit_process_invitation_template", args=[self.process.pk],
+            ))
+
+            with patch("apps.processes.views.resolve_sova_template") as resolve:
+                resolve.return_value = {
+                    "account_code": "MODERN",
+                    "project_code": "PQ-MQ",
+                }
+                response = self.client.post(settings_url, {
+                    "name": "Updated by Talena admin",
+                    "purpose": "hiring",
+                    "selected_tests": ["personality", "motivation"],
+                    "candidate_language": "sv",
+                    "labels_text": "Internal check",
+                    "project_completion_notifications_enabled": "on",
+                })
+        self.assertEqual(response.status_code, 302)
+        self.process.refresh_from_db()
+        self.assertEqual(self.process.name, "Updated by Talena admin")
+        self.assertEqual(self.process.company_id, self.company.pk)
+        self.assertEqual(self.process.account_code, "MODERN")
+        self.assertEqual(list(self.process.labels.values_list("name", flat=True)),
+                         ["Internal check"])
+
+        self.client.force_login(self.customer)
+        with patch("apps.processes.views.SovaClient") as sova:
+            sova.return_value.get_template_accounts_with_projects.return_value = []
+            response = self.client.get(settings_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["process_base_layout"], "")
+        self.assertEqual(response.context["process"].name, "Updated by Talena admin")
+
+    def test_other_customer_cannot_edit_templates_or_settings(self):
+        self.client.force_login(self.other_user)
+        template_url = reverse(
+            "emails:edit_process_invitation_template", args=[self.process.pk],
+        )
+        settings_url = reverse("processes:process_update", args=[self.process.pk])
+        for url in (template_url, settings_url):
+            with self.subTest(url=url):
+                self.assertIn(self.client.get(url).status_code, (403, 404))
+                self.assertIn(self.client.post(url, {
+                    "action": "save",
+                    "subject": "Unauthorized",
+                    "body": "{assessment_url}",
+                    "name": "Unauthorized",
+                    "purpose": "hiring",
+                    "candidate_language": "sv",
+                }).status_code, (403, 404))
+        self.assertFalse(EmailTemplate.objects.filter(process=self.process).exists())
+        self.process.refresh_from_db()
+        self.assertEqual(self.process.name, "Customer recruitment")
