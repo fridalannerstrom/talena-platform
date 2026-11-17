@@ -6227,6 +6227,11 @@ def process_update(request, pk):
             "error": error,
             "template_locked": locked,
 
+            # Use the real customer settings form under Talena's admin shell.
+            "process_base_layout": (
+                "admin/core/layouts/admin_base.html"
+                if is_admin(request.user) else ""
+            ),
             # Header/base template stuff
             "active": "settings",
             "meta": meta,
