@@ -3,9 +3,11 @@ import json
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from django.test import SimpleTestCase
+from django.test import SimpleTestCase, TestCase
 
 from apps.core.ai import manager_report_interview_comments as comments
+from apps.core.ai.prompt_templates import get_default_ai_prompt, list_ai_prompt_definitions
+from apps.processes.models import AIPromptTemplate
 
 
 NOTES = (
@@ -56,19 +58,62 @@ class ManagerReportCommentTests(SimpleTestCase):
                 return_value={"items": ITEMS},
             ),
             patch.object(comments, "get_global_ai_guidance", return_value="Keep it balanced."),
+            patch.object(comments, "get_ai_feature_prompt_instructions", return_value="Admin wants shorter prose."),
         ):
             for category in ("motivation", "skills"):
                 evidence = comments.manager_report_comment_evidence(self.owner, category)
                 prompt = comments.build_manager_report_comment_prompt(evidence, category, "sv")
                 self.assertIn("Kandidatens kommentarer", prompt)
                 self.assertIn("Never copy/paste", prompt)
-                self.assertIn("not interpret test results", prompt)
+                self.assertIn("Admin wants shorter prose.", prompt)
+                self.assertIn("Do not use material from other assessment areas", prompt)
                 self.assertNotIn("PERSONALITY_ONLY", prompt)
                 self.assertNotIn("PERSONALITY_ANSWER", prompt)
                 self.assertNotIn(
                     "SKILLS_ONLY" if category == "motivation" else "MOTIVATION_ONLY",
                     prompt,
                 )
+
+    def test_registry_lists_two_distinct_editable_prompts_in_both_languages(self):
+        definitions = {item["key"]: item for item in list_ai_prompt_definitions()}
+        for category, key in comments.PROMPT_KEYS.items():
+            with self.subTest(category=category):
+                self.assertIn(key, definitions)
+                self.assertEqual(definitions[key]["category"], "Chefsrapport")
+                for language in ("sv", "en"):
+                    self.assertGreater(len(get_default_ai_prompt(key=key, language=language)), 100)
+        self.assertNotEqual(
+            get_default_ai_prompt(key=comments.PROMPT_KEYS["motivation"], language="sv"),
+            get_default_ai_prompt(key=comments.PROMPT_KEYS["skills"], language="sv"),
+        )
+
+    def test_admin_prompt_controls_length_tone_and_selection_not_hardcoded_style(self):
+        calls = []
+        def feature_prompt(*, key, language, **_kwargs):
+            calls.append((key, language))
+            return "CUSTOM ADMIN: Write exactly seven sentences. Use a warm, factual tone."
+
+        with (
+            patch.object(comments, "get_global_ai_guidance", return_value="Global prompt."),
+            patch.object(comments, "get_ai_feature_prompt_instructions", side_effect=feature_prompt),
+        ):
+            for category, lang in (("motivation", "sv"), ("skills", "en")):
+                with self.subTest(category=category, language=lang):
+                    prompt = comments.build_manager_report_comment_prompt(
+                        {"notes": "Relevant interview fact.", "answers": []},
+                        category, lang,
+                    )
+                    self.assertIn("Write exactly seven sentences", prompt)
+                    self.assertIn("Global prompt.", prompt)
+                    self.assertNotIn("3–5 sentences", prompt)
+                    self.assertNotIn("one coherent, concise", prompt)
+                    self.assertIn("PROTECTED EVIDENCE RULES", prompt)
+                    self.assertIn('"notes": "Relevant interview fact."', prompt)
+        self.assertEqual(
+            calls,
+            [(comments.PROMPT_KEYS["motivation"], "sv"),
+             (comments.PROMPT_KEYS["skills"], "en")],
+        )
 
     def test_plain_legacy_notes_are_never_sent_to_motivation_or_skills(self):
         self.owner.interview_notes = "Unclassified notes from the old editor."
@@ -112,6 +157,7 @@ class ManagerReportCommentTests(SimpleTestCase):
             patch.object(comments, "get_openai_client", return_value=client),
             patch.object(comments, "get_chat_model", return_value="mock-model"),
             patch.object(comments, "get_global_ai_guidance", return_value="Respect the source."),
+            patch.object(comments, "get_ai_feature_prompt_instructions", return_value="Use concise prose."),
             patch.object(comments, "redact_candidate_name",
                          side_effect=lambda text, candidate: text.replace("Example", "CANDIDATE_A")) as redact,
         ):
@@ -142,6 +188,7 @@ class ManagerReportCommentTests(SimpleTestCase):
             patch.object(comments, "get_openai_client", return_value=client),
             patch.object(comments, "get_chat_model", return_value="mock-model"),
             patch.object(comments, "get_global_ai_guidance", return_value="Source faithful."),
+            patch.object(comments, "get_ai_feature_prompt_instructions", return_value="Use one paragraph."),
         ):
             text, _fingerprint = comments.generate_manager_report_comment(self.owner, "motivation", "sv")
         self.assertEqual(text, generated)
@@ -192,3 +239,44 @@ class ManagerReportCommentTests(SimpleTestCase):
         ):
             evidence = comments.manager_report_comment_evidence(self.owner, "skills")
             self.assertEqual(evidence["answers"][0]["question"], "SKILLS_QUESTION")
+
+
+
+class ManagerReportCommentAdminOverrideTests(TestCase):
+    """Real database overrides, with no live OpenAI request."""
+
+    def test_active_admin_prompt_replaces_default_for_each_area_and_language(self):
+        for area, key in comments.PROMPT_KEYS.items():
+            for language in ("sv", "en"):
+                instruction = f"ADMIN_OVERRIDE::{area}::{language}: Write eight sentences."
+                AIPromptTemplate.objects.create(
+                    key=key,
+                    name=f"Chefsrapport {area}",
+                    language=language,
+                    prompt_text=instruction,
+                    is_active=True,
+                )
+                with patch.object(comments, "get_global_ai_guidance", return_value="GLOBAL ONLY"):
+                    prompt = comments.build_manager_report_comment_prompt(
+                        {"notes": "Actual interview statement.", "answers": []},
+                        area, language,
+                    )
+                self.assertIn(instruction, prompt)
+                self.assertIn("GLOBAL ONLY", prompt)
+                self.assertNotIn("3–5 sentences", prompt)
+                self.assertNotIn("3–5 meningar", prompt)
+                self.assertIn("PROTECTED EVIDENCE RULES", prompt)
+
+    def test_inactive_override_falls_back_to_editable_registry_default(self):
+        key = comments.PROMPT_KEYS["motivation"]
+        AIPromptTemplate.objects.create(
+            key=key, name="Motivation", language="sv",
+            prompt_text="INACTIVE ADMIN OVERRIDE", is_active=False,
+        )
+        with patch.object(comments, "get_global_ai_guidance", return_value="GLOBAL ONLY"):
+            prompt = comments.build_manager_report_comment_prompt(
+                {"notes": "Sparad uppgift från intervjun.", "answers": []},
+                "motivation", "sv",
+            )
+        self.assertIn(get_default_ai_prompt(key=key, language="sv"), prompt)
+        self.assertNotIn("INACTIVE ADMIN OVERRIDE", prompt)
