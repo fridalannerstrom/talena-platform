@@ -51,13 +51,13 @@ class StructuredOverallPictureTests(SimpleTestCase):
         self.assertEqual([u["title"] for u in units], ["Learning", "Authority", "Quality"])
         self.assertTrue(all("score" not in u["evidence"] for u in units))
 
-    def test_question_context_stays_with_complete_interview_material(self):
+    def test_question_context_is_limited_to_the_matching_assessment_source(self):
         notes = report._notes_for_category(self.notes, "skills")
-        # A question saved under another tab can still contain a relevant
-        # detail. Keep the exact question with each answer for the model.
-        self.assertEqual(len(notes["question_evidence"]), 2)
+        # Preserve the exact question/answer pair, never another source.
+        self.assertEqual(len(notes["question_evidence"]), 1)
         self.assertEqual(notes["question_evidence"][0]["question"], "How did you analyse the figures?")
-        self.assertEqual(notes["question_evidence"][1]["question"], "How did you collaborate?")
+        self.assertNotIn("How did you collaborate?", str(notes))
+        self.assertEqual(notes["general_notes"], "")
 
     def test_synthesis_does_not_contain_failed_items(self):
         sections = {
@@ -96,7 +96,8 @@ class StructuredOverallPictureTests(SimpleTestCase):
                 self.shared, report._notes_for_category(self.notes, "skills"), "sv"
             )
         self.assertIn("How did you analyse the figures?", text)
-        self.assertIn("How did you collaborate?", text)
+        self.assertNotIn("How did you collaborate?", text)
+        self.assertNotIn("Candidate explains how work is planned.", text)
         self.assertIn("Testbild must use ONLY the assessment evidence", text)
         self.assertNotIn("personal_email", text)
 
