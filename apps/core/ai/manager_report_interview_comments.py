@@ -105,30 +105,52 @@ def generate_manager_report_comment(owner, category: str, language_code: str) ->
         build_manager_report_comment_prompt(evidence, category, language),
         owner.candidate,
     )
-    response = get_openai_client().chat.completions.create(
-        model=get_chat_model(),
-        messages=[
-            {"role": "system", "content":
-             "You write a source-faithful manager report from interview material only. "
-             "Reply with a JSON object containing only the text string."},
-            {"role": "user", "content": prompt},
-        ],
-        temperature=0.2,
-        response_format={"type": "json_object"},
-        max_completion_tokens=900,
-    )
-    choice = response.choices[0]
-    if getattr(choice, "finish_reason", "") == "length":
-        raise ValueError("The generated candidate comments were incomplete.")
-    raw = choice.message.content
-    if isinstance(raw, list):
-        raw = "".join(str(getattr(part, "text", "")) for part in raw)
-    parsed = json.loads(raw or "{}")
-    if not isinstance(parsed, dict) or not isinstance(parsed.get("text"), str):
-        raise ValueError("Invalid AI response for candidate comments.")
     from .structured_overall_picture import _validated_prose
-    polished = _validated_prose(parsed["text"], field="Kandidatens kommentarer", allow_empty=True)
-    return polished, fingerprint
+
+    def normalized(value):
+        return " ".join(str(value or "").split()).casefold()
+
+    original_fragments = {
+        normalized(value) for value in [
+            evidence["notes"], *(item["answer"] for item in evidence["answers"])
+        ] if normalized(value)
+    }
+    client = get_openai_client()
+    for attempt in range(2):
+        request_prompt = prompt
+        if attempt:
+            request_prompt += (
+                "\n\nREPAIR: Your prior response repeated a source note verbatim. "
+                "Rewrite it as a polished, concise report paragraph without "
+                "adding or changing any facts."
+            )
+        response = client.chat.completions.create(
+            model=get_chat_model(),
+            messages=[
+                {"role": "system", "content":
+                 "You write a source-faithful manager report from interview material only. "
+                 "Reply with a JSON object containing only the text string."},
+                {"role": "user", "content": request_prompt},
+            ],
+            temperature=0.2,
+            response_format={"type": "json_object"},
+            max_completion_tokens=900,
+        )
+        choice = response.choices[0]
+        if getattr(choice, "finish_reason", "") == "length":
+            raise ValueError("The generated candidate comments were incomplete.")
+        raw = choice.message.content
+        if isinstance(raw, list):
+            raw = "".join(str(getattr(part, "text", "")) for part in raw)
+        parsed = json.loads(raw or "{}")
+        if not isinstance(parsed, dict) or not isinstance(parsed.get("text"), str):
+            raise ValueError("Invalid AI response for candidate comments.")
+        polished = _validated_prose(
+            parsed["text"], field="Kandidatens kommentarer", allow_empty=True
+        )
+        if not polished or normalized(polished) not in original_fragments:
+            return polished, fingerprint
+    raise ValueError("The AI repeated interview notes instead of rewriting them.")
 
 
 def store_manager_report_comment(owner, category: str, *, text: str, fingerprint: str, language_code: str):
