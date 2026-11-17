@@ -212,6 +212,7 @@ def _result_context(
                 {
                     "key": key,
                     "title": section.get("title") or key.title(),
+                    "introduction": str(section.get("introduction") or "").strip(),
                     "body": body,
                     "points": points,
                     "groups": groups,
