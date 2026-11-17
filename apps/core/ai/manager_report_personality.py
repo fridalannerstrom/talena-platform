@@ -102,9 +102,19 @@ def _get_manager_report_interview_material(owner):
         build_interview_question_evidence,
     )
 
+    from .interview_note_areas import split_interview_notes_by_area
+
     question_evidence = build_interview_question_evidence(owner)
-    notes = str(getattr(owner, "interview_notes", "") or "").strip()
-    items = question_evidence.get("items") or []
+    # Personlighet must not receive Motivation or Skills source notes.
+    notes = split_interview_notes_by_area(
+        getattr(owner, "interview_notes", "") or ""
+    )["personality"].strip()
+    items = [
+        item for item in question_evidence.get("items") or []
+        if isinstance(item, dict)
+        and str(item.get("source") or "").strip().casefold() == "personality"
+        and str(item.get("saved_answer_or_note") or "").strip()
+    ]
     routed = _route_manager_interview_evidence(notes, items)
     return routed, notes, items
 
