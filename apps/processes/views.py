@@ -6824,6 +6824,10 @@ def process_role_context(request, pk):
             ),
 
             # Header/base template
+            "process_base_layout": (
+                "admin/core/layouts/admin_base.html"
+                if is_admin(request.user) else ""
+            ),
             "meta": meta,
             "process_purpose": process_purpose,
             "can_edit": can_edit,
@@ -6846,19 +6850,22 @@ def process_detail(request, pk):
 
     context_config = get_purpose_context_config(process.purpose)
 
-    company_id = (
-        CompanyMember.objects
-        .filter(user=request.user)
-        .values_list("company_id", flat=True)
-        .first()
-    )
-    company = get_object_or_404(Company, pk=company_id)
+    # Talena administrators may work on a customer's real project without
+    # being added as a CompanyMember. Never use the admin's default customer:
+    # the project itself selects the tenant for every subsequent operation.
+    if is_admin(request.user):
+        company = process.company
+    else:
+        company_id = (
+            CompanyMember.objects
+            .filter(user=request.user)
+            .values_list("company_id", flat=True)
+            .first()
+        )
+        company = get_object_or_404(Company, pk=company_id)
+        if process.company_id != company.id:
+            return HttpResponseForbidden("No access.")
 
-    # Must belong to the same company
-    if process.company_id != company.id:
-        return HttpResponseForbidden("No access.")
-
-    # Access rule, including own-only logic
     if not user_can_view_process(request.user, company, process):
         return HttpResponseForbidden("You do not have access to this project.")
 
@@ -6974,6 +6981,12 @@ def process_detail(request, pk):
 
     context = {
         "process": process,
+        # Admin uses the same interactive customer project and candidate code,
+        # but under the Talena admin shell and the administrator's own identity.
+        "process_base_layout": (
+            "admin/core/layouts/admin_base.html"
+            if is_admin(request.user) else ""
+        ),
         "invitations": invitations,
         "project_tests": project_tests,
         "project_table_colspan": max(1, len(project_tests)) + 2 + (2 if can_edit else 0),
