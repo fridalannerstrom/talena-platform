@@ -191,7 +191,9 @@ class StructuredOverallPictureTests(SimpleTestCase):
         with patch.object(report, "_completion", side_effect=[echo, repaired]) as mocked:
             testbild, intervjun = report._generate_validated_item(
                 self.owner, "Input evidence", language="sv",
-                category="personality", notes={"general_notes": "", "question_evidence": []},
+                category="personality",
+                notes={"general_notes": "Kandidaten beskriver humor.",
+                       "question_evidence": []},
             )
         self.assertEqual(testbild, repaired["testbild"])
         self.assertEqual(intervjun, repaired["intervjun"])
@@ -207,7 +209,8 @@ class StructuredOverallPictureTests(SimpleTestCase):
             with self.assertRaises(ValueError):
                 report._generate_validated_item(
                     self.owner, "Input evidence", language="sv",
-                category="personality", notes={"general_notes": "", "question_evidence": []},
+                    category="personality",
+                    notes={"general_notes": "", "question_evidence": []},
                 )
         self.assertEqual(mocked.call_count, 2)
 
