@@ -13,23 +13,25 @@ const backend = read("apps/processes/interview_question_notes.py");
 const shell = read("templates/customer/core/layouts/customer_base.html");
 const header = read("templates/customer/processes/_process_header.html");
 
-assert.ok(tabs.includes('const keys = ["evidence", "overview", "explore", "managerReport"]'));
+assert.ok(tabs.includes('const keys = ["evidence", "overview", "managerReport"]'));
+assert.ok(!tabs.includes('const keys = ["evidence", "overview", "explore", "managerReport"]'),
+  "Explore/Undersök vidare must remain retired.");
 assert.ok(tabs.includes('const reportKeys = keys.filter((key) => key !== "evidence")'));
 assert.ok(!tabs.includes('panels.get("interview")'), "Retired summary cannot be rendered as a tab");
 assert.ok(!tabs.includes('makeCard(panel, "interview_summary"'),
   "No invisible legacy Interview summary card may remain");
 assert.ok(tabs.includes('keys.includes(requested)') &&
-  tabs.includes('hasCompiledPostInterviewResult ? "overview" : "evidence"') &&
+  tabs.includes('hasCompiledPostInterviewResult ? defaultReportKey : "evidence"') &&
   tabs.includes('url.searchParams.set(URL_PARAM, initial)'),
   "Old afterTab=interview links must resolve to a current tab");
-assert.ok(tabs.includes('copy().tabs.overview') && tabs.includes('copy().tabs.explore'),
-  "Keep Helhetsbild and Undersök vidare");
+assert.ok(tabs.includes('copy().tabs.overview') && tabs.includes('copy().tabs.managerReport'),
+  "Keep the active Helhetsbild and Chefsrapport tabs.");
 assert.ok(!pdfRegistry.includes('["interview","after-interview"]'),
   "Retired interview summary PDF option must disappear");
 
-const approved = "Här samlas tillgängliga testresultat tillsammans med personens egna perspektiv och konkreta tips för att förstå och använda insikterna i praktiken.";
-assert.ok(tabs.includes('managerReportIntro: "' + approved + '"'),
-  "Manager-report intro must use exact approved Swedish text");
+const approved = "Ett testresultat är en början, inte hela bilden.";
+assert.ok(tabs.includes("managerReportIntroParagraphs: [") && tabs.includes(approved),
+  "Manager-report intro must include the approved interpretation and norm-group caveat.");
 assert.ok(tabs.includes("assessment results, interview evidence and role context"));
 assert.ok(tabs.includes("testresultat, intervjuunderlag och rollkontext"));
 assert.ok(labels.includes("testresultat och rollkontext"));
@@ -65,6 +67,6 @@ assert.ok(badges.includes('".after-interview-manager-report__personality-title"'
   "Single AI provenance badge covers Personality and Wellbeing; preserve manual-edit provenance");
 assert.ok(!badges.includes('field.parentNode.insertBefore(badge, field)'),
   "Do not repeat an AI badge for every manager personality paragraph");
-assert.ok(shell.includes("430-footer-v13") && shell.includes("retired-summary-v4"));
+assert.ok(shell.includes("20261113-evidence-recompile-v3") && shell.includes("retired-summary-v4"));
 assert.ok(header.includes("rolecontext-v6") && header.includes("ai-generated-only-v4"));
-console.log("Ticket #442: retired tab, legacy preservation, approved copy and quieter AI badges passed.");
+console.log("Ticket #442: retired report tabs, legacy preservation, approved copy and quieter AI badges passed.");
