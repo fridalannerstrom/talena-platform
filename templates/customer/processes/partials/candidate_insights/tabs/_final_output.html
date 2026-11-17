@@ -38,14 +38,16 @@
   data-manager-report-activity-url="{% if not is_admin_candidate_mirror %}{% url 'processes:process_candidate_manager_report_activity' process.id candidate.id %}{% endif %}"
   data-manager-report-edits-url="{% if not is_admin_candidate_mirror %}{% url 'processes:process_candidate_manager_report_text_edits' process.id candidate.id %}{% endif %}"
   data-manager-report-edit-save-url="{% if not is_admin_candidate_mirror %}{% url 'processes:process_candidate_manager_report_text_edit_update' process.id candidate.id %}{% endif %}"
+  data-manager-report-motivation-comments-url="{% if not is_admin_candidate_mirror %}{% url 'processes:process_candidate_manager_report_interview_comment_generate' process.id candidate.id 'motivation' %}{% endif %}"
+  data-manager-report-skills-comments-url="{% if not is_admin_candidate_mirror %}{% url 'processes:process_candidate_manager_report_interview_comment_generate' process.id candidate.id 'skills' %}{% endif %}"
 >
 
   {# Canonical library consumed by Chefsrapport; never written to candidate data. #}
   {% talena_motivation_practical_advice as mq_practical_advice %}
   {{ mq_practical_advice|json_script:"talena-motivation-practical-advice" }}
 
-  {# Saved interview evidence, not AI-generated conclusions. Scoped to this candidate. #}
-  {{ manager_motivation_interview_evidence|json_script:"talena-manager-motivation-interview-evidence" }}
+  {# Only AI-polished comments are rendered in the manager report, never raw notes. #}
+  {{ manager_report_interview_comments|json_script:"talena-manager-report-interview-comments" }}
 
   <!-- ================================================== -->
   <!-- PREPARE FOR INTERVIEW -->
