@@ -61,6 +61,8 @@ MANAGER_REPORT_PERSONALITY_PARTS = {"testbild", "candidate_describes"}
 def manager_report_edit_block_is_allowed(block_key: str) -> bool:
     if block_key == "wellbeing_tips":
         return True
+    if block_key in {"interview_comments:motivation", "interview_comments:skills"}:
+        return True
 
     parts = str(block_key or "").split(":")
     return (
@@ -72,6 +74,10 @@ def manager_report_edit_block_is_allowed(block_key: str) -> bool:
 
 
 def _manager_report_ai_text(owner, block_key: str) -> str:
+    if block_key in {"interview_comments:motivation", "interview_comments:skills"}:
+        category = block_key.split(":")[1]
+        saved = owner.ai_manager_report_interview_comments or {}
+        return str((saved.get(category) or {}).get("text") or "")
     if block_key == "wellbeing_tips":
         result = owner.ai_post_interview_decision_support or {}
         return str(
@@ -87,6 +93,11 @@ def _manager_report_ai_text(owner, block_key: str) -> str:
 
 
 def _manager_report_source_generated_at(owner, block_key: str):
+    if block_key in {"interview_comments:motivation", "interview_comments:skills"}:
+        from django.utils.dateparse import parse_datetime
+        category = block_key.split(":")[1]
+        saved = owner.ai_manager_report_interview_comments or {}
+        return parse_datetime(str((saved.get(category) or {}).get("generated_at") or ""))
     if block_key == "wellbeing_tips":
         return owner.ai_post_interview_decision_support_generated_at
     return owner.ai_manager_report_personality_generated_at
@@ -1202,3 +1213,53 @@ def process_candidate_post_interview_decision_support_regenerate_with_evidence(
 
     return JsonResponse({"ok": True, "stream_url": stream_url})
 
+
+
+@login_required
+@process_edit_access_required
+@require_POST
+def process_candidate_manager_report_interview_comment_generate(
+    request, process_id, candidate_id, category,
+):
+    """Produce one grounded, polished interview account for a manager report.
+
+    Reject category mixing and changes made while OpenAI is responding.
+    Existing manual report edits are not deleted or overwritten.
+    """
+    from apps.core.ai.language import get_request_ai_language
+    from apps.core.ai.manager_report_interview_comments import (
+        CATEGORIES,
+        comment_fingerprint,
+        generate_manager_report_comment,
+        manager_report_comment_evidence,
+        store_manager_report_comment,
+    )
+
+    if category not in CATEGORIES:
+        return JsonResponse({"error": "Unknown manager-report comment category."}, status=400)
+
+    process = get_object_or_404(TestProcess, pk=process_id)
+    owner = get_candidate_question_owner(process, candidate_id)
+    language = get_request_ai_language(request)
+    try:
+        text, fingerprint = generate_manager_report_comment(owner, category, language)
+        with transaction.atomic():
+            current = type(owner).objects.select_for_update().get(pk=owner.pk)
+            current_evidence = manager_report_comment_evidence(current, category)
+            if comment_fingerprint(current_evidence, language) != fingerprint:
+                return JsonResponse({
+                    "error": "Interview material changed during generation. Generate again."
+                }, status=409)
+            store_manager_report_comment(
+                current, category, text=text,
+                fingerprint=fingerprint, language_code=language,
+            )
+    except Exception:
+        logger.exception("Unable to generate manager-report interview comments")
+        return JsonResponse({
+            "error": "Could not generate candidate comments. Existing report text was preserved."
+        }, status=502)
+
+    response = JsonResponse({"ok": True, "category": category, "text": text})
+    response["Cache-Control"] = "private, no-store"
+    return response
