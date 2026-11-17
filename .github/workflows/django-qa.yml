@@ -9,6 +9,8 @@ on:
   pull_request:
     branches:
       - main
+      # Draft PR #515 targets this branch, never the production branch.
+      - feature/admin-customer-workspace-20261117
 
 jobs:
   report-package-checks:
@@ -141,6 +143,14 @@ jobs:
           python manage.py test apps.candidate_results.test_internal_report_475 --noinput
           node --check static/js/talena/candidate-result-internal-pdf.js
           node scripts/test_candidate_result_internal_pdf_475.js
+      - name: Verify candidate report headings, introductions and access (#513)
+        env:
+          DJANGO_DEBUG: 'True'
+          DJANGO_SECRET_KEY: local-qa-only
+          USE_AZURE_STORAGE: '0'
+        run: |
+          python manage.py test apps.candidate_results.test_static_content_qa apps.candidate_results.tests apps.core.test_ai_payload_candidate_results --noinput
+          node scripts/test_candidate_report_513.js
       - name: Verify shared pre-interview response styles (#504)
         env:
           DJANGO_DEBUG: 'True'
