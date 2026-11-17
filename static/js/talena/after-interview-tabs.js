@@ -2565,9 +2565,10 @@
 
       // The interview section contains saved source text, never AI-generated
       // conclusions or detached answers. It is copied unchanged into the PDF.
-      const evidence = getManagerMotivationInterviewEvidence(panel);
       const evidenceSection = document.createElement("section");
       evidenceSection.className = "after-interview-manager-report__motivation-evidence";
+      const renderEvidence = (evidence) => {
+        evidenceSection.replaceChildren();
       const evidenceTitle = document.createElement("h5");
       evidenceTitle.className = "after-interview-manager-report__motivation-evidence-title";
       evidenceTitle.textContent = copy().managerMotivationInterviewTitle;
@@ -2609,6 +2610,38 @@
         empty.textContent = copy().managerMotivationInterviewMissing;
         evidenceSection.appendChild(empty);
       }
+      };
+      renderEvidence(getManagerMotivationInterviewEvidence(panel));
+
+      // Saved questions can change without rebuilding the visible report.
+      // Reload just the source-backed Motivation text, not the entire report
+      // (which would discard existing editor state or re-run AI generation).
+      const refreshEvidence = async () => {
+        if (!evidenceSection.isConnected || !outputRoot?.dataset.refreshUrl) return;
+        try {
+          const response = await fetch(outputRoot.dataset.refreshUrl, {
+            credentials: "same-origin",
+            headers: { "X-Requested-With": "XMLHttpRequest" },
+          });
+          if (!response.ok) return;
+          const fresh = new DOMParser().parseFromString(
+            await response.text(), "text/html"
+          ).querySelector("#talena-manager-motivation-interview-evidence");
+          if (!fresh || !evidenceSection.isConnected) return;
+          const data = JSON.parse(fresh.textContent || "{}");
+          if (typeof data?.notes !== "string" || !Array.isArray(data?.answers)) return;
+          renderEvidence({
+            notes: data.notes,
+            answers: data.answers.filter((item) =>
+              typeof item?.question === "string" && typeof item?.answer === "string"
+            ),
+          });
+        } catch (_error) {
+          // Preserve the last readable source; a failed refresh is not an AI error.
+        }
+      };
+      document.addEventListener("candidate-interview-question-note-updated", refreshEvidence);
+      document.addEventListener("talena:post-interview-part-generated", refreshEvidence);
       managerMotivation.appendChild(evidenceSection);
       managerReportCard.appendChild(managerMotivation);
     }
