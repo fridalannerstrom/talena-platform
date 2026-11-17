@@ -81,6 +81,40 @@ class InternalCandidateReportWithoutSharingTests(TestCase):
         self.assertNotContains(response, 'class="feedback-choices"')
         self.assertEqual(CandidateResultAccess.objects.count(), 0)
 
+    def test_talena_admin_mirror_can_open_and_download_without_sharing(self):
+        # #513 extends #475: the full admin candidate mirror must expose the
+        # same authorised preview as the customer's report tab.
+        self.assertFalse(self.process.candidate_results_enabled)
+        admin_url = reverse(
+            "accounts:company_process_candidate_detail",
+            args=[self.company.pk, self.process.pk, self.candidate.pk],
+        )
+        response = self.client.get(
+            admin_url, HTTP_X_REQUESTED_WITH="XMLHttpRequest"
+        )
+        self.assertEqual(response.status_code, 200)
+        snapshot = CandidateResultSnapshot.objects.get(invitation=self.invitation)
+        preview_url = reverse(
+            "candidate_results:preview", kwargs={"snapshot_id": snapshot.pk}
+        )
+        self.assertContains(response, preview_url)
+        self.assertContains(response, "data-candidate-result-download")
+        self.assertContains(response, "data-read-only=\"true\"")
+        preview = self.client.get(preview_url)
+        self.assertEqual(preview.status_code, 200)
+        self.assertContains(preview, "data-candidate-result-pdf-button")
+        self.assertContains(preview, "Den här interna förhandsvisningen")
+        self.assertNotContains(preview, 'class="feedback-choices"')
+
+        self.process.refresh_from_db()
+        self.assertFalse(self.process.candidate_results_enabled)
+        self.assertEqual(CandidateResultAccess.objects.count(), 0)
+        self.assertFalse(
+            EmailLog.objects.filter(
+                invitation=self.invitation, template_type="candidate_result"
+            ).exists()
+        )
+
     def test_public_result_link_is_still_blocked_when_sharing_is_off(self):
         from apps.candidate_results.services import create_candidate_result_access
 
