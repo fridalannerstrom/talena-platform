@@ -407,7 +407,7 @@ class CandidateResultAccessViewTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Visa ditt resultat")
-        self.assertNotContains(response, "Detta är ditt resultat.")
+        self.assertNotContains(response, "Testresultaten är ett underlag för att skapa en bättre förståelse")
 
         response = self.client.post(
             f"/candidate-results/{self.raw_token}/",
@@ -415,7 +415,7 @@ class CandidateResultAccessViewTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Detta är ditt resultat.")
+        self.assertContains(response, "Testresultaten är ett underlag för att skapa en bättre förståelse")
         self.assertContains(response, "view-candidate@example.com")
 
     def test_candidate_can_save_feedback_for_an_available_area(self):
@@ -608,7 +608,7 @@ class CandidateResultAccessViewTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Detta är ditt resultat.")
+        self.assertContains(response, "Testresultaten är ett underlag för att skapa en bättre förståelse")
         self.assertContains(response, "Förhandsvisning för behörig användare")
         self.assertNotContains(response, "Visa ditt resultat")
 
