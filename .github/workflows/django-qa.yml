@@ -102,6 +102,14 @@ jobs:
         run: |
           node --check static/js/talena/after-interview-tabs.js
           node scripts/test_manager_skill_descriptions_20261116.js
+      - name: Verify manager report introductions and interview evidence (#512)
+        env:
+          DJANGO_DEBUG: 'True'
+          DJANGO_SECRET_KEY: local-qa-only
+          USE_AZURE_STORAGE: '0'
+        run: |
+          python manage.py test apps.processes.test_manager_report_motivation_evidence_512 --noinput
+          node scripts/test_manager_report_intro_512.js
       - name: Verify After interview final output refresh state
         run: |
           node --check static/js/talena/after-interview-tabs.js
