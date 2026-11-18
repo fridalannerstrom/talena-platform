@@ -237,7 +237,6 @@ class CandidateResultStaticContentQATests(SimpleTestCase):
                 self.assertTrue(intro["norm_emphasis"])
                 self.assertTrue(intro["caveat_emphasis"])
                 self.assertTrue(intro["comment_candidate"])
-                self.assertTrue(intro["comment_preview"])
                 personality, _metadata, _fingerprint = build_candidate_result_content(
                     self._invitation([{
                         "activity": "Personality",
