@@ -82,8 +82,25 @@
 .talena-ai-stats__report-exports .talena-ai-stats__panel{
   padding-bottom:1.1rem
 }
-.talena-ai-stats__report-exports .talena-ai-stats__footnote{
-  border-top:1px solid #eff0f3;padding-top:1rem;margin-top:1rem
+/* Keep the aggregated table and event history visually separate. */
+.talena-ai-stats__report-exports .talena-ai-stats__report-history{
+  margin-top:1rem
+}
+.talena-ai-stats__report-history-table{min-width:900px}
+.talena-ai-stats__report-history-table th{white-space:nowrap}
+.talena-ai-stats__report-history-table td{
+  max-width:245px;overflow-wrap:anywhere;vertical-align:middle
+}
+.talena-ai-stats__report-history-date{
+  color:#7b8495;font-variant-numeric:tabular-nums;white-space:nowrap;
+  font-size:.78rem!important
+}
+.talena-ai-stats__report-history-company{font-weight:650}
+.talena-ai-stats__report-history-project{font-size:.74rem;color:#8790a1;margin-top:.3rem}
+.talena-ai-stats__report-pagination{
+  display:flex;align-items:center;justify-content:flex-end;gap:.8rem;
+  border-top:1px solid #eff0f3;padding:.9rem .25rem .25rem;
+  font-size:.78rem;color:#7b8495
 }
 @media(max-width:767px){.talena-ai-stats__report-metrics{grid-template-columns:1fr}}
 
