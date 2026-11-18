@@ -51,17 +51,29 @@ const blendVisible = str => {
 const parsed = str => str.match(/[\d.]+/g).map(Number);
 const brightness = rgb => rgb.reduce((a,b)=>a+b,0);
 for (const rgb of palette) {
-  for (const opacity of [0.38, 0.68, 0.96]) {
+  let previousLight = null;
+  for (const opacity of [0.38, 0.52, 0.68, 0.84, 0.96]) {
     const fill = "rgba("+rgb.join(", ")+", "+opacity+")";
     const visible = blendVisible(fill);
     const darker = parsed(roseAccentColour(fill,"top"));
     const lighter = parsed(roseAccentColour(fill,"bottom"));
-    assert.ok(brightness(darker)<brightness(visible),
-      "Top colour must be darker than the rendered translucent petal");
-    assert.ok(brightness(lighter)>brightness(visible),
-      "Bottom colour must be lighter than the rendered translucent petal");
-    assert.ok(darker.every((v,i)=>v<visible[i]));
-    assert.ok(lighter.every((v,i)=>v>visible[i]));
+    assert.ok(darker.every((v,i)=>v<rgb[i]),
+      "Top accent must darken its original domain colour");
+    assert.ok(lighter.every((v,i)=>v>rgb[i]),
+      "Bottom accent must be a lighter version of its domain colour");
+    assert.ok(brightness(darker)<brightness(lighter),
+      "Top should remain the stronger and bottom the softer mark");
+    assert.ok(brightness(lighter)<660,
+      "Bottom accent must retain enough pigment to show on a white canvas");
+    if(opacity <= 0.68) {
+      assert.ok(lighter.every((v,i)=>v<visible[i]),
+        "On pale low-score petals, the soft accent must remain visible");
+    }
+    if(previousLight) {
+      assert.deepEqual(lighter,previousLight,
+        "Low-score transparency cannot bleach the bottom marker");
+    }
+    previousLight=lighter;
   }
 }
 
