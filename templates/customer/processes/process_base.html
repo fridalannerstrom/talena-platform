@@ -2500,9 +2500,11 @@ emptyState.textContent =
     5: 0.96,
   };
 
-  // Derive each tip and label dot from that petal's actual rendered fill.
-  // Compositing over white first accounts for low-STIVE transparency:
-  // a 'lighter' accent must never be darker than the visible fill.
+  // Keep accents visible even on very pale (low-STIVE) petals:
+  // derive the shade from its original opaque domain colour, NOT from
+  // the fill after its STIVE opacity has been blended with white.
+  // "Bottom" stays lighter than its domain base, but retains enough
+  // pigment to be legible against the off-white chart background.
   function roseAccentColour(fill, rank) {
     if (rank !== "top" && rank !== "bottom") return null;
 
@@ -2511,13 +2513,11 @@ emptyState.textContent =
     );
     if (!match) return null;
 
-    const alpha = Math.min(1, Math.max(0, Number(match[4] ?? 1)));
-    const ratio = rank === "top" ? 0.24 : 0.28;
+    const ratio = rank === "top" ? 0.24 : 0.14;
     const target = rank === "top" ? 0 : 255;
     const channels = match.slice(1, 4).map((channel) => {
-      const raw = Math.min(255, Math.max(0, Number(channel)));
-      const visible = raw * alpha + 255 * (1 - alpha);
-      return Math.round(visible * (1 - ratio) + target * ratio);
+      const base = Math.min(255, Math.max(0, Number(channel)));
+      return Math.round(base * (1 - ratio) + target * ratio);
     });
     return `rgb(${channels.join(", ")})`;
   }
