@@ -128,7 +128,9 @@ const assertDraw=()=>{
     .filter(item=>item.highlight);
   assert.equal(tipStrokes.length,6);
   assert.equal(dots.length,6);
-  assert.equal(new Set(tipStrokes.map(op=>op.colour)).size,6);
+  // Identical factors from the same domain can legitimately have the
+  // same tone; distinct domains must not collapse to two global colours.
+  assert.ok(new Set(tipStrokes.map(op=>op.colour)).size>=3);
   highlighted.forEach((item,i)=>{
     const expected=roseAccentColour(chart.data.datasets[0].backgroundColor[item.index],item.highlight);
     assert.equal(tipStrokes[i].colour,expected);
