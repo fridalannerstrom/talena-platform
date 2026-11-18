@@ -37,7 +37,7 @@
             <canvas
               data-motivation-rose-chart
               role="img"
-              aria-label="{% if motivation_language|slice:":2" == "sv" %}Cirkulär översikt över personens motivationsprofil{% if motivation_insights.has_rose_highlights %}. Korallfärgade markeringar visar de tre högsta drivkrafterna, mörkgröna markeringar de tre lägsta.{% endif %}{% else %}Circular overview of the candidate's motivation profile{% if motivation_insights.has_rose_highlights %}. Coral accents mark the three highest drivers, dark green accents the three lowest.{% endif %}{% endif %}"
+              aria-label="{% if motivation_language|slice:":2" == "sv" %}Cirkulär översikt över personens motivationsprofil{% if motivation_insights.has_rose_highlights %}. Korallfärgade markeringar visar de tre mest framträdande drivkrafterna, plommonfärgade markeringar de tre minst framträdande.{% endif %}{% else %}Circular overview of the candidate's motivation profile{% if motivation_insights.has_rose_highlights %}. Coral accents mark the three most prominent drivers, plum accents the three least prominent.{% endif %}{% endif %}"
             ></canvas>
           </div>
 
@@ -45,11 +45,11 @@
             <div class="motivation-rose-chart__legend" aria-label="{% if motivation_language|slice:":2" == "sv" %}Markeringar i motivationsgrafen{% else %}Highlights in the motivation chart{% endif %}">
               <span class="motivation-rose-chart__legend-item">
                 <span class="motivation-rose-chart__legend-dot motivation-rose-chart__legend-dot--top" aria-hidden="true"></span>
-                {% if motivation_language|slice:":2" == "sv" %}Topp 3 drivkrafter{% else %}Top 3 drivers{% endif %}
+                {% if motivation_language|slice:":2" == "sv" %}Mest framträdande (3){% else %}Most prominent (3){% endif %}
               </span>
               <span class="motivation-rose-chart__legend-item">
                 <span class="motivation-rose-chart__legend-dot motivation-rose-chart__legend-dot--bottom" aria-hidden="true"></span>
-                {% if motivation_language|slice:":2" == "sv" %}Lägst 3 drivkrafter{% else %}Bottom 3 drivers{% endif %}
+                {% if motivation_language|slice:":2" == "sv" %}Minst framträdande (3){% else %}Least prominent (3){% endif %}
               </span>
             </div>
           {% endif %}
