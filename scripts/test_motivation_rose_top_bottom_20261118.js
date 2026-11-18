@@ -1,6 +1,6 @@
 "use strict";
-// Motivation rose: server-ranked top/bottom 3, same palette on hover/PDF,
-// and no mid-word break in labels such as Självständighet.
+// #435 follow-up: quiet tip arcs + label dots for top/bottom three motivation
+// factors. Existing domain colours and white radial separations are unchanged.
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const vm = require("node:vm");
@@ -11,88 +11,137 @@ const html = read("templates/customer/processes/partials/candidate_insights/moti
 const styles = read("static/css/talena/pages/candidate-charts.css");
 
 assert.ok(html.includes('data-factor-highlight="{{ item.rose_highlight|default:\'\' }}"'));
-assert.ok(html.includes("motivation-rose-chart__legend-outline--top"));
-assert.ok(html.includes("motivation-rose-chart__legend-outline--bottom"));
+assert.ok(html.includes("motivation-rose-chart__legend-dot--top"));
+assert.ok(html.includes("motivation-rose-chart__legend-dot--bottom"));
 assert.ok(html.includes("motivation_insights.less_central_drivers"),
-  "Bottom 3 list and chart must follow one backend ranking");
-assert.ok(styles.includes("border-color: #c4574b"));
-assert.ok(styles.includes("border-color: #276f62"));
+  "Bottom 3 chart and text must use the same STIVE order");
+assert.ok(styles.includes("background: #c4574b"));
+assert.ok(styles.includes("background: #276f62"));
+assert.ok(!styles.includes("motivation-rose-chart__legend-outline"));
+assert.ok(html.includes("Coral accents mark the three highest drivers"),
+  "The accessible description should explain the new visual markers");
 assert.ok(base.includes("window.TalenaPdfMotivationRose = Object.freeze({"));
 assert.ok(base.includes("stage.append(chartRoot.cloneNode(true))"),
-  "PDF must clone the same highlighted rose as the candidate view");
-assert.ok(base.includes('highlight: ["top", "bottom"].includes(element.dataset.factorHighlight)'),
-  "The initial chart and offscreen PDF must read the ranked highlights");
-assert.ok(/borderColor:\s*roseBorders/.test(base),
-  "The initial chart must draw highlighted petals without waiting for the theme pass");
-assert.ok(/hoverBorderColor:\s*roseBorders/.test(base),
-  "The PDF and hover states should retain the rank outlines");
-assert.ok(html.includes("Coral outlines mark the three highest drivers"),
-  "Screen reader label must explain the outline meaning");
+  "The PDF must clone and render the same chart and highlight data");
+assert.ok(base.includes("const tipRadius ="));
+assert.ok(base.includes("const dotX ="));
+assert.ok(!base.includes("roseBorders"), "Do not highlight the entire radial edge");
+assert.ok(/borderColor:\s*"#ffffff"/.test(base));
+assert.ok(/hoverBorderColor:\s*"#ffffff"/.test(base));
 
 const wrapMatch = base.match(/  function wrapLabel\(value, maxWidth, ctx\) \{[\s\S]*?\n  \}\n\n  \/\*/);
 assert.ok(wrapMatch, "Motivation label wrapper must exist");
 const wrapSource = wrapMatch[0].slice(0, wrapMatch[0].lastIndexOf("\n\n  /*"));
 const wrapLabel = new Function("return " + wrapSource)();
-const ctx = {measureText: value => ({width: value.length * 7})};
-assert.deepEqual(wrapLabel("Självständighet", 76, ctx), ["Självständighet"]);
-assert.deepEqual(wrapLabel("Människors utveckling", 90, ctx),
+const measure = value => ({ width: value.length * 7 });
+assert.deepEqual(wrapLabel("Självständighet", 76, {measureText:measure}), ["Självständighet"]);
+assert.deepEqual(wrapLabel("Människors utveckling", 90, {measureText:measure}),
   ["Människors", "utveckling"]);
-assert.ok(base.includes("labelMaxWidth\n              );"),
-  "Use canvas maximum drawing width rather than splitting a long word");
 
+// Exercise the real Chart.js afterDraw plugin, not just string matching.
+// It paints six coloured tip arcs and six matching dots, but zero coloured
+// radial sides or complete petal outlines.
 const ranked = {top:[0,4,8], bottom:[1,6,11]};
-const labels = Array.from({length:20}, (_,i) => ({
-  dataset: {
-    factorNameSv: i===5 ? "Självständighet" : "Drivkraft "+i,
-    factorNameEn: "Factor "+i,
-    factorScore: String((i%5)+1),
-    domainIndex: String(Math.floor(i/5)),
-    factorDomainSv: "Tillhörighet",
-    factorHighlight: ranked.top.includes(i) ? "top" :
-      ranked.bottom.includes(i) ? "bottom" : "",
+const items = Array.from({length:20}, (_,i) => ({
+  name:i===5 ? "Självständighet" : "Drivkraft "+i,
+  score:1 + i%5,
+  highlight:ranked.top.includes(i) ? "top" : ranked.bottom.includes(i) ? "bottom" : "",
+  domainIndex:Math.floor(i/5),
+}));
+const arcs = items.map((_,i) => ({
+  startAngle:i*Math.PI*2/20,
+  endAngle:(i+1)*Math.PI*2/20,
+  innerRadius:0,
+  outerRadius:50 + i*3,
+  options:{},
+}));
+const pluginMatch = base.match(/const motivationRoseLabelsPlugin = ([\s\S]*?)\n\n\n  const chartInstance = new ChartLibrary/);
+assert.ok(pluginMatch, "Expected the embedded rose drawing plugin");
+const pluginSource = pluginMatch[1].trim().replace(/;$/, "");
+const palette = {top:"#c4574b", bottom:"#276f62"};
+const plugin = new Function(
+  "items","domainGroups","narrow","compact","wrapLabel","highlightStroke",
+  "return (" + pluginSource + ")"
+)(items, [{startIndex:0},{startIndex:5},{startIndex:10},{startIndex:15}],
+  false,false,wrapLabel,palette);
+const draws=[];
+const ctx={
+  beginPath(){this.lastArc=null;this.lastLine=null;},
+  save(){},restore(){},
+  moveTo(...args){this.lastLine=args;},
+  lineTo(...args){this.lastLine=[...(this.lastLine||[]),...args];},
+  arc(x,y,r,start,end){this.lastArc={x,y,r,start,end};},
+  stroke(){draws.push({kind:"stroke",colour:this.strokeStyle,
+    width:this.lineWidth,arc:this.lastArc,line:this.lastLine});},
+  fill(){draws.push({kind:"fill",colour:this.fillStyle,arc:this.lastArc});},
+  fillText(value,x,y,maxWidth){draws.push({kind:"text",value,x,y,maxWidth});},
+  measureText:measure,
+};
+const chart={
+  getDatasetMeta:()=>({data:arcs}),
+  scales:{r:{xCenter:350,yCenter:350,drawingArea:190}},
+  ctx,
+};
+plugin.afterDraw(chart);
+const tipStrokes=draws.filter(x=>x.kind==="stroke"&&
+  [palette.top,palette.bottom].includes(x.colour));
+const dots=draws.filter(x=>x.kind==="fill"&&
+  [palette.top,palette.bottom].includes(x.colour));
+assert.equal(tipStrokes.length,6);
+assert.equal(tipStrokes.filter(x=>x.colour===palette.top).length,3);
+assert.equal(tipStrokes.filter(x=>x.colour===palette.bottom).length,3);
+assert.ok(tipStrokes.every(x=>x.arc && !x.line && x.arc.end-x.arc.start>0),
+  "Each accent must be a short circular tip, never a radial side");
+assert.ok(tipStrokes.every(x=>x.arc.end-x.arc.start<Math.PI*2/20),
+  "Do not outline a full petal");
+assert.equal(dots.length,6);
+assert.equal(dots.filter(x=>x.colour===palette.top).length,3);
+assert.equal(dots.filter(x=>x.colour===palette.bottom).length,3);
+assert.ok(dots.every(x=>x.arc && x.arc.r<=4));
+assert.ok(draws.some(x=>x.kind==="text"&&x.value==="Självständighet"));
+assert.ok(draws.every(x=>!x.arc || Number.isFinite(x.arc.r)));
+
+// The separate chart theme is allowed to change the domain fill colours,
+// but it must keep every side separator white through hover/re-draw.
+const labels=items.map((item,i)=>({
+  dataset:{
+    factorNameSv:item.name,factorNameEn:item.name,
+    factorScore:String(item.score),domainIndex:String(item.domainIndex),
+    factorDomainSv:"Tillhörighet",factorHighlight:item.highlight,
   },
 }));
-const root = {
-  querySelectorAll: selector =>
-    selector==="[data-motivation-rose-item]" ? labels : [],
-};
-const arcs = Array.from({length:20}, () => ({options:{}}));
-const canvas = {
+const root={querySelectorAll:selector=>
+  selector==="[data-motivation-rose-item]"?labels:[]};
+const canvas={
   clientWidth:780,
-  matches: selector=>selector==="[data-motivation-rose-chart]",
-  closest: selector=>selector==="[data-motivation-rose-chart-root]"
-    ? root : null,
+  matches:selector=>selector==="[data-motivation-rose-chart]",
+  closest:selector=>selector==="[data-motivation-rose-chart-root]"?root:null,
 };
-const plugin = {id:"motivationRoseLabels", afterDraw(){}};
-const dataset = {borderWidth:3};
-const chart = {
-  canvas,
-  data:{datasets:[dataset]},
+const dataset={borderWidth:3};
+const liveChart={
+  canvas,data:{datasets:[dataset]},
   getDatasetMeta:()=>({data:arcs}),
   options:{scales:{r:{ticks:{},grid:{}}},layout:{}},
-  config:{plugins:[plugin]},
-  draw(){},
-  update(){this.draw();},
+  config:{plugins:[{id:"motivationRoseLabels",afterDraw(){}}]},
+  draw(){},update(){this.draw();},
 };
-canvas._motivationRoseChartInstance=chart;
+canvas._motivationRoseChartInstance=liveChart;
 const scheduled=[];
-const document = {
+const document={
   readyState:"complete",documentElement:{lang:"sv"},
   querySelectorAll:selector=>selector==="[data-motivation-rose-chart]"?[canvas]:[],
   addEventListener(){},
 };
-const window = {setTimeout:fn=>scheduled.push(fn)};
-vm.runInNewContext(theme, {document,window}, {timeout:1000});
-assert.ok(scheduled.length,"Motivation theme should schedule a draw");
+const window={setTimeout:fn=>scheduled.push(fn)};
+vm.runInNewContext(theme,{document,window},{timeout:1000});
+assert.ok(scheduled.length,"Chart theme should schedule its initial draw");
 scheduled[0]();
-assert.equal(chart.$talenaBrandTheme,true);
-assert.equal(arcs.filter(x=>x.options.borderColor==="#c4574b").length,3);
-assert.equal(arcs.filter(x=>x.options.borderColor==="#276f62").length,3);
-assert.equal(arcs.filter(x=>x.options.borderColor==="#ffffff").length,14);
-assert.equal(dataset.borderColor.length,20);
-assert.equal(arcs[0].options.borderColor,arcs[0].options.hoverBorderColor);
-chart.draw(); // ensure highlights survive after re-render/hover
-assert.equal(arcs[0].options.borderColor,"#c4574b");
-assert.equal(arcs[1].options.borderColor,"#276f62");
-assert.equal(arcs[2].options.borderColor,"#ffffff");
-console.log("Motivation rose top/bottom 3 strokes, legend, PDF clone and word wrapping OK");
+assert.equal(liveChart.$talenaBrandTheme,true);
+assert.equal(dataset.borderColor,"#ffffff");
+assert.equal(dataset.hoverBorderColor,"#ffffff");
+assert.ok(arcs.every(x=>x.options.borderColor==="#ffffff"));
+assert.ok(arcs.every(x=>x.options.hoverBorderColor==="#ffffff"));
+liveChart.draw();
+assert.ok(arcs.every(x=>x.options.borderColor==="#ffffff"));
+
+console.log("Motivation rose tip arcs, name dots, neutral borders, PDF path and word wrapping OK");
