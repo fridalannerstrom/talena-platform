@@ -466,7 +466,7 @@ class AIStatisticsTests(TestCase):
         self.assertIn("call_rows", ai.context)
         self.assertNotIn("operational", ai.context)
         self.assertNotIn("report_exports", ai.context)
-        self.assertContains(ai, 'class="talena-ai-stats__history"')
+        self.assertContains(ai, 'talena-ai-stats__history-table')
         self.assertNotContains(ai, 'class="talena-ai-stats__operational"')
         self.assertNotContains(ai, 'class="talena-ai-stats__report-exports"')
         self.assertContains(ai, 'name="feature"')
