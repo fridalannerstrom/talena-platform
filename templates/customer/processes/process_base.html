@@ -2498,16 +2498,12 @@ emptyState.textContent =
     5: 0.92,
   };
 
+  // Only the petal tips and their labels carry the rank highlight.
+  // Full radial borders remain neutral, so even short petals stay clean.
   const highlightStroke = {
     top: "#c4574b",
     bottom: "#276f62",
   };
-  const roseBorders = items.map(
-    (item) => highlightStroke[item.highlight] || "#ffffff"
-  );
-  const roseBorderWidths = items.map(
-    (item) => item.highlight ? (compact ? 3.2 : 4) : (compact ? 2 : 3)
-  );
 
   const backgroundColours = items.map(
     (item) => {
@@ -2683,6 +2679,34 @@ emptyState.textContent =
 
 
       /*
+       * Draw a short curved accent along ONLY the outer tip of each
+       * ranked petal. Do not outline the radial sides. This also runs
+       * for the offscreen Chart.js canvas used in PDF generation.
+       */
+      items.forEach((item, index) => {
+        const arc = arcs[index];
+        const colour = highlightStroke[item.highlight];
+        if (!colour || !arc || !Number.isFinite(arc.outerRadius)) {
+          return;
+        }
+        const sweep = arc.endAngle - arc.startAngle;
+        if (!Number.isFinite(sweep) || sweep <= 0) {
+          return;
+        }
+        const inset = sweep * 0.19;
+        const tipRadius = Math.max(1, arc.outerRadius - (narrow ? 1.5 : 2));
+        ctx.beginPath();
+        ctx.arc(
+          centerX, centerY, tipRadius,
+          arc.startAngle + inset, arc.endAngle - inset
+        );
+        ctx.strokeStyle = colour;
+        ctx.lineWidth = narrow ? 2 : 2.6;
+        ctx.lineCap = "round";
+        ctx.stroke();
+      });
+
+      /*
        * Factor labels and score values.
        */
       items.forEach(
@@ -2776,6 +2800,25 @@ emptyState.textContent =
             }
           );
 
+          // A small dot beside the printed factor name connects it to
+          // its highlighted petal even when that petal is very short.
+          const colour = highlightStroke[item.highlight];
+          if (colour) {
+            const printedWidth = Math.min(
+              labelMaxWidth,
+              Math.max(...labelLines.map(line => ctx.measureText(line).width), 0)
+            );
+            const dotX = cosine > 0.12
+              ? labelX - 10
+              : cosine < -0.12
+                ? labelX + 10
+                : labelX - printedWidth / 2 - 9;
+            ctx.beginPath();
+            ctx.arc(dotX, labelY, narrow ? 2.6 : 3.2, 0, Math.PI * 2);
+            ctx.fillStyle = colour;
+            ctx.fill();
+          }
+
 
           /*
            * Numeric motivation scores are intentionally omitted from
@@ -2811,16 +2854,16 @@ emptyState.textContent =
               backgroundColours,
 
             borderColor:
-              roseBorders,
+              "#ffffff",
 
             borderWidth:
-              roseBorderWidths,
+              compact ? 2 : 3,
 
             hoverBorderColor:
-              roseBorders,
+              "#ffffff",
 
             hoverBorderWidth:
-              roseBorderWidths,
+              compact ? 2 : 3,
 
             borderRadius:
               compact ? 7 : 12,
