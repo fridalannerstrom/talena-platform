@@ -667,8 +667,8 @@
   background: var(--talena-chart-accent) !important;
 }
 
-/* Motivation rose: legend swatches explain tonal contrast, not a global
-   top/bottom hue. Tip arcs and name dots derive from each petal's fill. */
+/* Motivation rose: neutral line weights explain the six complete
+   domain-coloured outlines, without implying positive/negative results. */
 .process-page .motivation-rose-chart__legend {
   display: flex;
   justify-content: center;
@@ -686,18 +686,21 @@
   gap: .43rem;
   white-space: nowrap;
 }
-.process-page .motivation-rose-chart__legend-dot {
+.process-page .motivation-rose-chart__legend-line {
   display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex: 0 0 8px;
+  width: 18px;
+  height: 0;
+  border-top-style: solid;
+  border-radius: 2px;
+  flex: 0 0 18px;
 }
-.process-page .motivation-rose-chart__legend-dot--top {
-  background: #83766b;
+.process-page .motivation-rose-chart__legend-line--top {
+  border-top-width: 3px;
+  border-top-color: #82776e;
 }
-.process-page .motivation-rose-chart__legend-dot--bottom {
-  background: #b9ada2;
+.process-page .motivation-rose-chart__legend-line--bottom {
+  border-top-width: 1.5px;
+  border-top-color: #82776e;
 }
 @media (max-width: 480px) {
   .process-page .motivation-rose-chart__legend {
