@@ -5,16 +5,19 @@ import os
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
-from django.test import SimpleTestCase, TestCase
+from django.http import StreamingHttpResponse
+from django.test import RequestFactory, SimpleTestCase, TestCase
 from django.urls import reverse
 
 from apps.accounts.models import Company, User
 from apps.activity.models import ActivityEvent
 from apps.activity.services import customer_visible_activity
 from apps.core.ai.openai_client import PrivacySafeOpenAI
+from apps.core.ai.usage_metrics import ai_usage_actor_scope
+from apps.core.middleware import AIPiiMaskingNoticeMiddleware
 from apps.core.ai.pii_sanitizer import PrivacySanitizationError
 from apps.core.ai.usage_metrics import record_ai_call
-from apps.processes.models import TestProcess
+from apps.processes.models import Candidate, TestInvitation, TestProcess
 
 
 class AIClientMeteringTests(SimpleTestCase):
@@ -209,3 +212,133 @@ class AIStatisticsTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context["totals"]["count"], 0)
         self.assertEqual(response.context["feature_rows"], [])
+
+    @patch.dict(os.environ, {"TALENA_AI_USAGE_LOGGING_ENABLED": "1"})
+    def test_candidate_and_actor_derive_only_from_authenticated_request_and_invitation(self):
+        candidate = Candidate.objects.create(
+            first_name="Synthetic", last_name="Candidate", email="safe.test@example.test",
+        )
+        invitation = TestInvitation.objects.create(
+            process=self.process, candidate=candidate,
+        )
+        with ai_usage_actor_scope(self.outsider.pk):
+            record_ai_call(
+                feature="personality_interpretation", operation="chat",
+                model="gpt-test", outcome="succeeded", owner=invitation,
+            )
+        event = ActivityEvent.objects.get(verb=ActivityEvent.Verb.AI_CALL_SUCCEEDED)
+        self.assertEqual(event.company_id, self.company.pk)
+        self.assertEqual(event.process_id, self.process.pk)
+        self.assertEqual(event.candidate_id, candidate.pk)
+        self.assertEqual(event.actor_id, self.outsider.pk)
+        self.assertNotIn("Synthetic", str(event.meta))
+        self.assertNotIn("safe.test@example.test", str(event.meta))
+        self.assertEqual(customer_visible_activity(ActivityEvent.objects.all()).count(), 0)
+
+        self.client.force_login(self.admin)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        row = response.context["call_rows"][0]
+        self.assertEqual(row["company"], self.company.name)
+        self.assertEqual(row["actor"], self.outsider.get_username())
+        self.assertEqual(row["candidate"], str(candidate))
+        self.assertEqual(row["process"], self.process.name)
+        self.assertContains(response, str(candidate))
+
+    @patch.dict(os.environ, {"TALENA_AI_USAGE_LOGGING_ENABLED": "1"})
+    def test_owner_shaped_payload_cannot_spoof_candidate_link(self):
+        candidate = Candidate.objects.create(
+            first_name="Not", last_name="Attributed", email="not-attributed@example.test",
+        )
+        fake_owner = SimpleNamespace(
+            process=self.process, candidate=candidate, candidate_id=candidate.pk,
+        )
+        record_ai_call(
+            feature="personality_interpretation", operation="chat",
+            model="gpt-test", outcome="succeeded", owner=fake_owner,
+        )
+        event = ActivityEvent.objects.get(verb=ActivityEvent.Verb.AI_CALL_SUCCEEDED)
+        self.assertIsNone(event.candidate_id)
+        self.assertIsNone(event.actor_id)
+
+    def test_existing_event_without_actor_and_candidate_is_not_backfilled(self):
+        self._events()
+        self.client.force_login(self.admin)
+        response = self.client.get(self.url, {"company": str(self.company.pk)})
+        self.assertEqual(response.status_code, 200)
+        rows = response.context["call_rows"]
+        self.assertEqual(len(rows), 2)
+        self.assertTrue(all(row["company"] == self.company.name for row in rows))
+        self.assertTrue(all(row["actor"] is None for row in rows))
+        self.assertTrue(all(row["candidate"] is None for row in rows))
+        self.assertNotIn(self.other_company.name, [row["company"] for row in rows])
+
+    def test_detail_rows_are_paginated_without_sensitive_csv_expansion(self):
+        for n in range(29):
+            ActivityEvent.objects.create(
+                company=self.company, verb=ActivityEvent.Verb.AI_CALL_SUCCEEDED,
+                meta={"schema": 1, "feature": "overall_picture", "operation": "chat"},
+            )
+        self.client.force_login(self.admin)
+        first = self.client.get(self.url)
+        second = self.client.get(self.url, {"page": "2"})
+        self.assertEqual(first.context["call_page"].paginator.count, 29)
+        self.assertEqual(len(first.context["call_rows"]), 25)
+        self.assertEqual(len(second.context["call_rows"]), 4)
+        self.assertContains(first, "page=2")
+        exported = self.client.get(self.export_url)
+        self.assertEqual(exported.status_code, 200)
+        self.assertNotIn(self.admin.email, exported.content.decode("utf-8"))
+        self.assertNotIn(self.company.name, exported.content.decode("utf-8"))
+
+    @patch.dict(os.environ, {"TALENA_AI_USAGE_LOGGING_ENABLED": "1"})
+    @patch("apps.core.ai.openai_client.sanitize_ai_payload", side_effect=lambda x: x)
+    def test_authenticated_user_survives_deferred_stream_without_cross_request_leak(self, sanitize):
+        candidate = Candidate.objects.create(
+            first_name="Deferred", last_name="Candidate", email="deferred@example.test",
+        )
+        invitation = TestInvitation.objects.create(process=self.process, candidate=candidate)
+        raw = Mock()
+        raw.chat.completions.create.side_effect = lambda **kwargs: iter([
+            SimpleNamespace(
+                choices=[SimpleNamespace(delta=SimpleNamespace(content="ok"))],
+                usage=None,
+            ),
+        ])
+
+        def view(request):
+            def chunks():
+                client = PrivacySafeOpenAI(
+                    raw, feature="personality_interpretation", owner=invitation,
+                )
+                for item in client.chat.completions.create(
+                    model="gpt-test", messages=[{"role": "user", "content": "test"}],
+                    stream=True,
+                ):
+                    yield item.choices[0].delta.content
+            return StreamingHttpResponse(
+                chunks(), content_type="text/plain",
+            )
+
+        mw = AIPiiMaskingNoticeMiddleware(view)
+        request = RequestFactory().get("/synthetic/")
+        request.user = self.outsider
+        response = mw(request)
+        # At this point the view has returned and the middleware has exited
+        # its initial request context: the provider work is still deferred.
+        self.assertEqual("".join(chunk.decode() if isinstance(chunk, bytes) else chunk
+                                 for chunk in response.streaming_content), "ok")
+        event = ActivityEvent.objects.get(verb=ActivityEvent.Verb.AI_CALL_SUCCEEDED)
+        self.assertEqual(event.actor_id, self.outsider.pk)
+        self.assertEqual(event.candidate_id, candidate.pk)
+
+        # A second request with an anonymous user must never inherit that ID.
+        from django.contrib.auth.models import AnonymousUser
+        request2 = RequestFactory().get("/synthetic/")
+        request2.user = AnonymousUser()
+        list(mw(request2).streaming_content)
+        latest = ActivityEvent.objects.filter(
+            verb=ActivityEvent.Verb.AI_CALL_SUCCEEDED,
+        ).order_by("-pk").first()
+        self.assertIsNone(latest.actor_id)
+        self.assertEqual(latest.candidate_id, candidate.pk)
