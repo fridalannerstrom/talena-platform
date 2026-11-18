@@ -790,11 +790,8 @@
       {% if introduction.norm_emphasis %}
         <p>{{ introduction.norm_before }}<strong>{{ introduction.norm_emphasis }}</strong>{{ introduction.norm_after }}</p>
         <p><strong>{{ introduction.caveat_emphasis }}</strong>{{ introduction.caveat_after }}</p>
-        {% if preview %}
-          <p>{{ introduction.comment_preview }}</p>
-        {% else %}
-          <p>{{ introduction.comment_candidate }}</p>
-        {% endif %}
+        {# The internal preview shows the exact same report copy as the candidate. #}
+        <p>{{ introduction.comment_candidate }}</p>
       {% endif %}
     </section>
 
