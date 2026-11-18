@@ -260,3 +260,78 @@ class PlatformActivityLogTests(TestCase):
                    if row["verb"] == ActivityEvent.Verb.AI_CALL_SUCCEEDED]
         self.assertEqual(len(ai_rows), 1)
         self.assertEqual(ai_rows[0]["category"], "ai")
+
+
+    def test_customer_sees_only_completed_manager_pdf_not_preparation(self):
+        # The previously displayed double rows are two distinct audit records,
+        # but only the browser-confirmed PDF is a customer activity.
+        prepared = ActivityEvent.objects.create(
+            company=self.company_a, actor=self.customer,
+            verb=ActivityEvent.Verb.MANAGER_REPORT_PDF_PREPARED,
+            meta={"report": "manager_report", "status": "prepared"},
+        )
+        generated = ActivityEvent.objects.create(
+            company=self.company_a, actor=self.customer,
+            verb=ActivityEvent.Verb.MANAGER_REPORT_PDF_GENERATED,
+            meta={
+                "report": "manager_report",
+                "status": "client_reported_generated",
+                "prepared_event_id": prepared.pk,
+            },
+        )
+        # A failed/abandoned preparation must not imply a finished PDF.
+        abandoned = ActivityEvent.objects.create(
+            company=self.company_b, actor=self.customer,
+            verb=ActivityEvent.Verb.MANAGER_REPORT_PDF_PREPARED,
+        )
+        self.client.force_login(self.platform_admin)
+
+        customer = self.client.get(
+            self.list_url, {"category": "reports"}, HTTP_ACCEPT_LANGUAGE="sv"
+        )
+        self.assertEqual(customer.status_code, 200)
+        self.assertEqual([item["id"] for item in customer.context["events"]],
+                         [generated.pk])
+        self.assertEqual(customer.context["page_obj"].paginator.count, 1)
+        self.assertNotIn(
+            ActivityEvent.Verb.MANAGER_REPORT_PDF_PREPARED,
+            [code for code, _ in customer.context["verbs"]],
+        )
+        self.assertContains(customer, "Chefsrapport PDF genererad")
+        self.assertNotContains(customer, "Chefsrapport PDF förberedd")
+
+        # Filtering by the legacy technical verb must not bypass the scope.
+        hidden = self.client.get(
+            self.list_url, {"verb": ActivityEvent.Verb.MANAGER_REPORT_PDF_PREPARED}
+        )
+        self.assertEqual(hidden.context["events"], [])
+
+        customer_csv = self.client.get(
+            self.export_url, {"category": "reports"}
+        )
+        customer_rows = list(csv.DictReader(
+            StringIO(customer_csv.content.decode("utf-8"))
+        ))
+        self.assertEqual(
+            [int(row["event_id"]) for row in customer_rows], [generated.pk]
+        )
+
+        admin = self.client.get(
+            self.list_url, {"scope": "admin", "category": "reports"},
+        )
+        self.assertEqual({item["id"] for item in admin.context["events"]},
+                         {prepared.pk, abandoned.pk})
+        self.assertNotIn(generated.pk,
+                         [item["id"] for item in admin.context["events"]])
+        admin_csv = self.client.get(
+            self.export_url, {"scope": "admin", "category": "reports"}
+        )
+        admin_rows = list(csv.DictReader(
+            StringIO(admin_csv.content.decode("utf-8"))
+        ))
+        self.assertEqual({int(row["event_id"]) for row in admin_rows},
+                         {prepared.pk, abandoned.pk})
+
+        # The original preparation records are preserved unchanged.
+        self.assertTrue(ActivityEvent.objects.filter(pk=prepared.pk).exists())
+        self.assertTrue(ActivityEvent.objects.filter(pk=abandoned.pk).exists())
