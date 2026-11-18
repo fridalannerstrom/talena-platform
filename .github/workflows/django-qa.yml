@@ -22,6 +22,8 @@ jobs:
           node --check static/js/talena/team-profile-export.js
           node --check static/js/talena/candidate-result-internal-pdf.js
           node scripts/test_report_export_tracking_435.js
+          node --check static/js/talena/candidate-chart-theme.js
+          node scripts/test_motivation_rose_top_bottom_20261118.js
           node scripts/test_candidate_pdf_hidden_motivation_chart_20261115.js
           node scripts/test_candidate_report_chart_coverage_20261115.js
           node scripts/test_candidate_pdf_overview_export_20261115.js
