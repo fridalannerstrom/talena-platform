@@ -5,7 +5,7 @@ from uuid import uuid4
 from django.test import Client, TestCase
 from django.urls import reverse
 
-from apps.accounts.models import Company, User
+from apps.accounts.models import Company, CompanyMember, OrgUnit, User, UserOrgUnitAccess
 from apps.activity.models import ActivityEvent
 from apps.activity.usage_summary import platform_report_exports
 from apps.processes.models import Candidate, TestInvitation, TestProcess
@@ -128,6 +128,41 @@ class ReportExportReceiptTests(TestCase):
         self.assertEqual(self.client.get(self.candidate_url).status_code, 405)
         self.assertFalse(ActivityEvent.objects.filter(
             verb=ActivityEvent.Verb.REPORT_EXPORT_GENERATED,
+        ).exists())
+
+    def test_customer_viewer_may_confirm_only_own_visible_team_and_project(self):
+        unit = OrgUnit.objects.create(
+            company=self.company, name="Synthetic unit", unit_code="TEST",
+        )
+        viewer = User.objects.create_user("export-viewer", password="test-password")
+        CompanyMember.objects.create(
+            company=self.company, user=viewer, primary_org_unit=unit,
+        )
+        UserOrgUnitAccess.objects.create(
+            user=viewer, org_unit=unit, permission="viewer",
+        )
+        self.process.org_unit = unit
+        self.process.save(update_fields=["org_unit"])
+        self.team.org_unit = unit
+        self.team.save(update_fields=["org_unit"])
+        foreign_team = Team.objects.create(
+            company=self.other, name="Not visible",
+        )
+        foreign_url = reverse("teams:team_report_export_receipt",
+                              args=[foreign_team.pk])
+        self.client.force_login(viewer)
+        self.assertEqual(self.post_receipt(
+            self.candidate_url, "overview",
+        ).status_code, 200)
+        self.assertEqual(self.post_receipt(
+            self.team_url, "team-overview",
+        ).status_code, 200)
+        self.assertEqual(self.post_receipt(
+            foreign_url, "team-overview",
+        ).status_code, 404)
+        self.assertFalse(ActivityEvent.objects.filter(
+            verb=ActivityEvent.Verb.REPORT_EXPORT_GENERATED,
+            company=self.other,
         ).exists())
 
     def test_access_is_server_authorized_and_csrf_protected(self):
