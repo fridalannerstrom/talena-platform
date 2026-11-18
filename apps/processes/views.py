@@ -6697,6 +6697,16 @@ def process_role_context(request, pk):
                     context_text=submitted_data.get("context_text", ""),
                     selected_traits=effective_project_traits,
                 )
+            else:
+                # save_context_for_purpose replaces this purpose's JSON entry.
+                # Restore legacy partial manual settings instead of silently
+                # erasing a customer's old choice on a context-only edit.
+                purpose_data = dict(role_context.purpose_data or {})
+                entry = dict(purpose_data.get(purpose_key) or {})
+                entry["personality_question_traits"] = previous_project_traits
+                purpose_data[purpose_key] = entry
+                role_context.purpose_data = purpose_data
+                role_context.save(update_fields=["purpose_data"])
 
             if context_changed:
                 mark_candidate_ai_content_outdated(process)
