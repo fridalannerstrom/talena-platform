@@ -29,4 +29,8 @@ def customer_visible_activity(queryset):
     )
     return queryset.alias(
         _removed_project_candidate=Exists(removed_membership),
-    ).filter(_removed_project_candidate=False)
+    ).filter(_removed_project_candidate=False).exclude(verb__in=[
+        ActivityEvent.Verb.AI_CALL_SUCCEEDED,
+        ActivityEvent.Verb.AI_CALL_FAILED,
+        ActivityEvent.Verb.AI_CALL_INCOMPLETE,
+    ])
