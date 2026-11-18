@@ -37,7 +37,7 @@
             <canvas
               data-motivation-rose-chart
               role="img"
-              aria-label="{% if motivation_language|slice:":2" == "sv" %}Cirkulär översikt över personens motivationsprofil{% if motivation_insights.has_rose_highlights %}. Korallfärgade markeringar visar de tre mest framträdande drivkrafterna, plommonfärgade markeringar de tre minst framträdande.{% endif %}{% else %}Circular overview of the candidate's motivation profile{% if motivation_insights.has_rose_highlights %}. Coral accents mark the three most prominent drivers, plum accents the three least prominent.{% endif %}{% endif %}"
+              aria-label="{% if motivation_language|slice:":2" == "sv" %}Cirkulär översikt över personens motivationsprofil{% if motivation_insights.has_rose_highlights %}. Mörkare nyanser av staplarnas egna färger markerar de tre mest framträdande drivkrafterna, ljusare nyanser de tre minst framträdande.{% endif %}{% else %}Circular overview of the candidate's motivation profile{% if motivation_insights.has_rose_highlights %}. Darker shades of each petal's own colour mark the three most prominent drivers; lighter shades mark the three least prominent.{% endif %}{% endif %}"
             ></canvas>
           </div>
 
@@ -45,11 +45,11 @@
             <div class="motivation-rose-chart__legend" aria-label="{% if motivation_language|slice:":2" == "sv" %}Markeringar i motivationsgrafen{% else %}Highlights in the motivation chart{% endif %}">
               <span class="motivation-rose-chart__legend-item">
                 <span class="motivation-rose-chart__legend-dot motivation-rose-chart__legend-dot--top" aria-hidden="true"></span>
-                {% if motivation_language|slice:":2" == "sv" %}Mest framträdande (3){% else %}Most prominent (3){% endif %}
+                {% if motivation_language|slice:":2" == "sv" %}Mest framträdande (3) · mörkare nyans{% else %}Most prominent (3) · darker shade{% endif %}
               </span>
               <span class="motivation-rose-chart__legend-item">
                 <span class="motivation-rose-chart__legend-dot motivation-rose-chart__legend-dot--bottom" aria-hidden="true"></span>
-                {% if motivation_language|slice:":2" == "sv" %}Minst framträdande (3){% else %}Least prominent (3){% endif %}
+                {% if motivation_language|slice:":2" == "sv" %}Minst framträdande (3) · ljusare nyans{% else %}Least prominent (3) · lighter shade{% endif %}
               </span>
             </div>
           {% endif %}
