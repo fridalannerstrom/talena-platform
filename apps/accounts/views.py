@@ -2965,6 +2965,12 @@ def company_process_detail(request, company_pk, process_pk):
         company=company,
     )
 
+    # Talena staff open the real customer project workspace by default.
+    # The previous administrative overview remains available explicitly for
+    # internal operations (historical imports, audit and billing controls).
+    if request.GET.get("admin_tools") != "1":
+        return redirect("processes:process_detail", pk=process.pk)
+
     invitations = (
         TestInvitation.objects
         .filter(process=process, removed_from_process_at__isnull=True)
