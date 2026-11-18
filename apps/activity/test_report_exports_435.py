@@ -85,6 +85,20 @@ class ReportExportReceiptTests(TestCase):
         })
         self.assertNotIn("PRIVATE", repr(event.meta))
 
+    def test_export_identifier_reuse_with_other_type_is_rejected(self):
+        token = str(uuid4())
+        self.assertEqual(
+            self.post_receipt(self.candidate_url, "overview", export_id=token).status_code,
+            200,
+        )
+        replay = self.post_receipt(
+            self.candidate_url, "candidate-package-zip", export_id=token,
+        )
+        self.assertEqual(replay.status_code, 409)
+        self.assertEqual(ActivityEvent.objects.filter(
+            verb=ActivityEvent.Verb.REPORT_EXPORT_GENERATED,
+        ).count(), 1)
+
     def test_team_receipt_has_company_not_subject_or_fake_process(self):
         response = self.post_receipt(
             self.team_url, "team-package-zip", candidate_id=42,
@@ -172,7 +186,7 @@ class ReportExportReceiptTests(TestCase):
         response = self.client.get(stats_url, {"company": self.company.pk})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context["report_exports"]["total"], 4)
-        self.assertContains(response, "Report exports")
+        self.assertContains(response, 'class="talena-ai-stats__report-exports"')
         self.assertNotContains(response, "Unrelated tenant")
 
     def test_empty_summary_does_not_count_pdf_preparations(self):
