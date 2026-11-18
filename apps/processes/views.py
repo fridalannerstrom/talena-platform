@@ -1614,6 +1614,16 @@ def build_motivation_insight_section(
         motivators = []
         less_central_drivers = []
 
+    # The rose and the written summaries must highlight the SAME precise
+    # STIVE-ranked factors, including stable ties. Fewer than six measured
+    # factors cannot form two disjoint groups of three.
+    has_rose_highlights = has_profile_difference and len(available_items) >= 6
+    if has_rose_highlights:
+        for item in motivators:
+            item["rose_highlight"] = "top"
+        for item in less_central_drivers:
+            item["rose_highlight"] = "bottom"
+
     def join_text(values):
         values = [
             value
@@ -1708,6 +1718,7 @@ def build_motivation_insight_section(
         "highest_score": highest_score,
         "lowest_score": lowest_score,
         "has_profile_difference": has_profile_difference,
+        "has_rose_highlights": has_rose_highlights,
     }
 
 
