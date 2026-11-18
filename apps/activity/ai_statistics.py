@@ -23,7 +23,10 @@ from django.views.decorators.http import require_GET
 from apps.accounts.models import Company
 from apps.activity.admin_views import _audit_access, can_view_platform_audit
 from apps.activity.models import ActivityEvent
-from apps.activity.usage_summary import platform_activity_summary, platform_report_exports
+from apps.activity.usage_summary import (
+    REPORT_LABELS, platform_activity_summary, platform_report_exports,
+    report_export_events,
+)
 from apps.core.ai.usage_metrics import FEATURES, FEATURES_EN, OUTCOMES, usage_logging_enabled
 
 AI_VERBS = tuple(OUTCOMES.values())
@@ -148,6 +151,46 @@ def _trend(queryset, start, end):
     return series
 
 
+def _report_history(*, request, start, end, company, english, limit=25):
+    """Admin-only report receipts, paginated and filtered like the totals.
+
+    Include actual ORM-linked candidate/user names when present, and the
+    existing verified actor_name snapshot for older manager-report PDFs.
+    Never expose raw JSON, report content or untrusted report type names.
+    """
+    qs = report_export_events(
+        start=start, end=end, company=company,
+    ).select_related("company", "process", "candidate", "actor")
+    page = Paginator(qs.order_by("-created_at", "-pk"), limit).get_page(
+        request.GET.get("report_page")
+    )
+    rows = []
+    for event in page.object_list:
+        code = (
+            "manager-report"
+            if event.verb == ActivityEvent.Verb.MANAGER_REPORT_PDF_GENERATED
+            else (event.meta or {}).get("report_type")
+        )
+        if code not in REPORT_LABELS:
+            continue
+        label_sv, label_en = REPORT_LABELS[code]
+        actor = event.actor
+        user = (
+            (actor.get_full_name() or actor.get_username())
+            if actor else (event.actor_name.strip() or None)
+        )
+        rows.append({
+            "when": event.created_at,
+            "report": label_en if english else label_sv,
+            "format": "ZIP" if code.endswith("-zip") else "PDF",
+            "user": user,
+            "candidate": str(event.candidate) if event.candidate_id else None,
+            "company": event.company.name if event.company_id else None,
+            "project": event.process.name if event.process_id else None,
+        })
+    return page, rows
+
+
 def _call_history(queryset, request, labels, *, limit=25):
     """Bounded, admin-only detail view. Never expose raw event.meta."""
     queryset = queryset.select_related(
@@ -215,9 +258,20 @@ def platform_ai_statistics(request):
             start=start, end=end, company=company,
         )
     elif tab == "reports":
-        context["report_exports"] = platform_report_exports(
-            start=start, end=end, company=company, english=english,
+        report_page, report_rows = _report_history(
+            request=request, start=start, end=end,
+            company=company, english=english,
         )
+        context.update({
+            "report_exports": platform_report_exports(
+                start=start, end=end, company=company, english=english,
+            ),
+            "report_page": report_page,
+            "report_rows": report_rows,
+            "report_filter_query": urlencode({
+                "tab": "reports", **shared_filters,
+            }),
+        })
     else:
         qs = _base_queryset(start, end, company, feature)
         call_page, call_rows = _call_history(qs, request, labels)
