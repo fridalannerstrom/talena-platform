@@ -403,7 +403,7 @@ class AIStatisticsTests(TestCase):
         self.assertEqual(totals["manager_text_edits"], 1)
         self.assertEqual(sum(group["count"] for group in operational["categories"]), 4)
         self.assertContains(response, "operational-metrics")
-        self.assertContains(response, "Operational activity")
+        self.assertContains(response, 'class="talena-ai-stats__operational"')
 
         # Opening either admin statistics or the activity log must not change
         # customer activity totals, even though access itself is audited.
@@ -419,4 +419,4 @@ class AIStatisticsTests(TestCase):
         self.assertEqual(operational["totals"]["events"], 0)
         self.assertEqual(operational["totals"]["manager_text_edits"], 0)
         self.assertTrue(all(item["width"] == 0 for item in operational["categories"]))
-        self.assertContains(response, "not fully instrumented yet")
+        self.assertContains(response, 'talena-ai-stats__category-row')
