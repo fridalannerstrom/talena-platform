@@ -1,14 +1,32 @@
 """Opt-in, metadata-only OpenAI metering for Talena (#435).
 
-Never store user inputs, outputs, exception messages, candidate identifiers,
-prompt versions or provider request IDs. Features are code-owned allowlisted
-identifiers. The existing ActivityEvent table is the shared audit source.
+Never store user inputs, outputs, exception messages, free-text identifiers,
+prompt versions or provider request IDs. Only ORM foreign keys derived from
+an authenticated request and a persisted test invitation may identify an actor
+or candidate. The existing ActivityEvent table is the shared audit source.
 """
 import logging
 import os
 import re
+from contextlib import contextmanager
+from contextvars import ContextVar
 
 logger = logging.getLogger(__name__)
+
+# Only a server-authenticated actor's integer PK; never a request object or
+# user-supplied parameter. Explicitly scoped and reset for streamed responses.
+_request_actor_id = ContextVar("talena_ai_usage_actor_id", default=None)
+
+
+@contextmanager
+def ai_usage_actor_scope(actor_id):
+    safe_id = actor_id if type(actor_id) is int and actor_id > 0 else None
+    token = _request_actor_id.set(safe_id)
+    try:
+        yield
+    finally:
+        _request_actor_id.reset(token)
+
 
 # Only static, code-owned feature identifiers can be persisted.
 FEATURES = {
@@ -103,8 +121,9 @@ def record_ai_call(*, feature, operation, model, outcome, usage=None,
                    owner=None, process=None, company=None):
     """Best-effort provider-call metric, never a candidate/report-success claim.
 
-    A feature is a static code string. Tenant derives only from known ORM objects,
-    never client-supplied company IDs. No actor/candidate references are stored.
+    A feature is a static code string. Actor is taken only from the authenticated
+    server request; candidate only from a persisted TestInvitation. Never
+    accept candidate or actor from request payloads or generated text.
     """
     if not usage_logging_enabled():
         return
@@ -130,10 +149,23 @@ def record_ai_call(*, feature, operation, model, outcome, usage=None,
             if related_process is not None
             else company
         )
+        # Only an ORM invitation conclusively binds a candidate to a process.
+        # An untrusted owner-shaped object cannot spoof candidate attribution.
+        from apps.processes.models import TestInvitation
+        candidate_id = (
+            owner.candidate_id
+            if isinstance(owner, TestInvitation)
+            and owner.pk is not None
+            and related_process is not None
+            and owner.process_id == related_process.pk
+            else None
+        )
         ActivityEvent.objects.create(
             verb=OUTCOMES[outcome],
             company=related_company,
             process=related_process,
+            actor_id=_request_actor_id.get(),
+            candidate_id=candidate_id,
             meta=meta,
         )
     except Exception:
