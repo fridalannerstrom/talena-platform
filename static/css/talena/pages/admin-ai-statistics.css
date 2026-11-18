@@ -69,17 +69,8 @@
 .talena-ai-stats__log-link:hover{border-color:var(--talena-coral,#ff6f61);color:var(--talena-coral-strong,#cf5950)}
 .talena-ai-stats__log-link svg{width:14px;height:14px}
 .talena-ai-stats__operational-metrics{grid-template-columns:repeat(4,minmax(0,1fr))}
-.talena-ai-stats__operational-chart{padding:1.3rem 1.4rem}
-.talena-ai-stats__operational-chart .talena-ai-stats__panel-heading h3{font-size:1.05rem;font-weight:750;letter-spacing:-.02em;margin:0}
-.talena-ai-stats__category-list{display:grid;gap:.85rem}
-.talena-ai-stats__category-row{display:grid;grid-template-columns:minmax(135px,220px) minmax(60px,1fr) 40px;gap:1rem;align-items:center}
-.talena-ai-stats__category-row>span{font-size:.81rem;color:#5f6c7a;font-weight:550}
-.talena-ai-stats__category-row>strong{font-size:.82rem;font-variant-numeric:tabular-nums;text-align:right}
-.talena-ai-stats__category-track{height:9px;background:#f6f2f0;border-radius:99px;overflow:hidden}
-.talena-ai-stats__category-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--talena-coral,#ff6f61),var(--talena-coral-strong,#cf5950))}
 .talena-ai-stats__ai-heading{margin-top:.25rem}
 @media(max-width:1100px){.talena-ai-stats__operational-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:600px){.talena-ai-stats__category-row{grid-template-columns:minmax(0,130px) minmax(40px,1fr) 26px;gap:.6rem}.talena-ai-stats__category-row>span{font-size:.72rem}.talena-ai-stats__section-heading h2{font-size:1.18rem}}
 
 
 /* #435: real browser-reported report-file receipts, not download claims. */
@@ -95,3 +86,45 @@
   border-top:1px solid #eff0f3;padding-top:1rem;margin-top:1rem
 }
 @media(max-width:767px){.talena-ai-stats__report-metrics{grid-template-columns:1fr}}
+
+
+/* #435: distinct views with a single purpose per tab. */
+.talena-ai-stats__tabs{
+  display:flex;align-items:center;gap:.35rem;flex-wrap:wrap;
+  border-bottom:1px solid #e7e8ee;margin:0 0 1.4rem;padding:0 .15rem
+}
+.talena-ai-stats__tab{
+  display:inline-flex;align-items:center;gap:.55rem;
+  padding:.88rem 1.25rem .9rem;
+  text-decoration:none;color:#737c8d;font-size:.88rem;font-weight:680;
+  border-bottom:3px solid transparent;transition:color .16s,border-color .16s
+}
+.talena-ai-stats__tab svg{width:16px;height:16px;flex:none}
+.talena-ai-stats__tab:hover{color:#333c4d;text-decoration:none}
+.talena-ai-stats__tab.is-active{
+  color:var(--talena-coral-strong,#cf5950);
+  border-bottom-color:var(--talena-coral,#ff6f61);
+  font-weight:780
+}
+.talena-ai-stats__tab:focus-visible{
+  outline:2px solid var(--talena-coral,#ff6f61);
+  outline-offset:-2px;border-radius:5px
+}
+.talena-ai-stats__filters--simple{
+  grid-template-columns:minmax(140px,1fr) minmax(140px,1fr)
+    minmax(190px,1.5fr) auto
+}
+.talena-ai-stats__operational,.talena-ai-stats__report-exports{
+  margin-bottom:0
+}
+.talena-ai-stats__operational .talena-ai-stats__metrics{margin-bottom:0}
+.talena-ai-stats__ai-heading{margin-top:.15rem}
+@media(max-width:1100px){
+  .talena-ai-stats__filters--simple{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:600px){
+  .talena-ai-stats__tabs{gap:0}
+  .talena-ai-stats__tab{padding:.73rem .78rem;font-size:.77rem;gap:.38rem}
+  .talena-ai-stats__tab svg{width:14px;height:14px}
+  .talena-ai-stats__filters--simple{grid-template-columns:1fr}
+}
