@@ -18,6 +18,7 @@ from apps.core.middleware import AIPiiMaskingNoticeMiddleware
 from apps.core.ai.pii_sanitizer import PrivacySanitizationError
 from apps.core.ai.usage_metrics import record_ai_call
 from apps.processes.models import Candidate, TestInvitation, TestProcess
+from apps.processes.interview_question_models import ManagerReportTextEditEvent
 
 
 class AIClientMeteringTests(SimpleTestCase):
@@ -342,3 +343,80 @@ class AIStatisticsTests(TestCase):
         ).order_by("-pk").first()
         self.assertIsNone(latest.actor_id)
         self.assertEqual(latest.candidate_id, candidate.pk)
+
+    def test_operational_metrics_reuse_existing_events_but_not_internal_audit_or_ai(self):
+        candidate = Candidate.objects.create(
+            first_name="Synthetic", last_name="Stats", email="stats@example.test",
+        )
+        operational_events = [
+            ActivityEvent.Verb.INVITE_SENT,
+            ActivityEvent.Verb.TEST_COMPLETED,
+            ActivityEvent.Verb.CANDIDATE_RESULT_LINK_OPENED,
+            ActivityEvent.Verb.MANAGER_REPORT_PDF_GENERATED,
+        ]
+        for verb in operational_events:
+            ActivityEvent.objects.create(
+                company=self.company, process=self.process,
+                candidate=candidate, verb=verb,
+            )
+        # Preparing a PDF is not proof of a completed export.
+        ActivityEvent.objects.create(
+            company=self.company, process=self.process,
+            verb=ActivityEvent.Verb.MANAGER_REPORT_PDF_PREPARED,
+        )
+        ActivityEvent.objects.create(
+            company=None, actor=self.admin, verb=ActivityEvent.Verb.ADMIN_LOG_ACCESSED,
+        )
+        ActivityEvent.objects.create(
+            company=self.company, process=self.process,
+            verb=ActivityEvent.Verb.AI_CALL_SUCCEEDED,
+            meta={"schema": 1, "feature": "overall_picture"},
+        )
+        ActivityEvent.objects.create(
+            company=self.other_company, verb=ActivityEvent.Verb.INVITE_SENT,
+        )
+        ManagerReportTextEditEvent.objects.create(
+            process=self.process, candidate=candidate, actor=self.admin,
+            action=ManagerReportTextEditEvent.Action.SAVED,
+            block_key="testbild", language_code="sv", version=1,
+        )
+        ManagerReportTextEditEvent.objects.create(
+            process=self.process, candidate=candidate, actor=self.admin,
+            action=ManagerReportTextEditEvent.Action.RESTORED_AI,
+            block_key="testbild", language_code="sv", version=2,
+        )
+
+        self.client.force_login(self.admin)
+        response = self.client.get(self.url, {
+            "company": str(self.company.pk), "feature": "overall_picture",
+        })
+        self.assertEqual(response.status_code, 200)
+        operational = response.context["operational"]
+        totals = operational["totals"]
+        self.assertEqual(totals["events"], 4)
+        self.assertEqual(totals["companies"], 1)
+        self.assertEqual(totals["projects"], 1)
+        self.assertEqual(totals["invitations"], 1)
+        self.assertEqual(totals["assessments_completed"], 1)
+        self.assertEqual(totals["candidate_report_opens"], 1)
+        self.assertEqual(totals["confirmed_manager_pdfs"], 1)
+        self.assertEqual(totals["manager_text_edits"], 1)
+        self.assertEqual(sum(group["count"] for group in operational["categories"]), 4)
+        self.assertContains(response, "operational-metrics")
+        self.assertContains(response, "Operational activity")
+
+        # Opening either admin statistics or the activity log must not change
+        # customer activity totals, even though access itself is audited.
+        second = self.client.get(self.url, {"company": str(self.company.pk)})
+        self.assertEqual(second.context["operational"]["totals"]["events"], 4)
+        self.assertEqual(second.context["operational"]["totals"]["manager_text_edits"], 1)
+
+    def test_operational_empty_state_is_zero_only_for_instrumented_events(self):
+        self.client.force_login(self.admin)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        operational = response.context["operational"]
+        self.assertEqual(operational["totals"]["events"], 0)
+        self.assertEqual(operational["totals"]["manager_text_edits"], 0)
+        self.assertTrue(all(item["width"] == 0 for item in operational["categories"]))
+        self.assertContains(response, "not fully instrumented yet")
