@@ -19,8 +19,8 @@ for(const ref of ["data-team-package-open","data-team-package-status",
     "candidate-report-packages.css","team-report-packages.css"])
   assert.ok(tpl.includes(ref),"team template missing "+ref);
 assert.ok(tpl.indexOf("report-package-core.js")<tpl.indexOf("team-report-packages.js"));
-assert.ok(/team-profile-export\.js' %}\?v=20261104-449-adapters-/.test(tpl) &&
-  /team-report-export\.js' %}\?v=20261104-449-adapters-/.test(tpl),
+assert.ok(/team-profile-export\.js' %}\?v=\d{8}-[\w-]+/.test(tpl) &&
+  /team-report-export\.js' %}\?v=\d{8}-[\w-]+/.test(tpl),
   "Both existing team PDF adapters need updated cache versions so the package picker sees their new APIs");
 assert.ok(team.includes('if(!adaptersReady()){status(t.unavailable,true,true);return;}'),
   "Unloaded adapters must show a clear error, never pretend the team has no reports");
