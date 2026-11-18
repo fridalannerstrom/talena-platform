@@ -34,6 +34,29 @@ FEATURES = {
     "role_trait_selection": "Val av personlighetsdrag",
     "question_quality": "Frågekvalitetskontroll",
 }
+FEATURES_EN = {
+    "assistant_chat": "AI chat",
+    "rag_embedding": "RAG retrieval",
+    "team_insights": "Team report",
+    "purpose_fit": "Role fit",
+    "motivation_questions": "Motivation questions",
+    "candidate_summary": "Candidate summary",
+    "pre_interview": "Before interview",
+    "post_interview": "After interview",
+    "prompt_playground": "Prompt preview",
+    "cognitive_questions": "Ability questions",
+    "response_styles": "Response styles",
+    "personality_questions": "Personality questions",
+    "cognitive_interpretation": "Ability interpretation",
+    "manager_interview_comments": "Manager report: interview",
+    "motivation_interpretation": "Motivation interpretation",
+    "manager_personality": "Manager report: personality",
+    "general_candidate_insights": "Candidate insights",
+    "personality_interpretation": "Personality interpretation",
+    "overall_picture": "Overall picture",
+    "role_trait_selection": "Personality trait selection",
+    "question_quality": "Question quality review",
+}
 OPERATIONS = frozenset({"chat", "embeddings", "responses"})
 OUTCOMES = {
     "succeeded": "ai_call_succeeded",
