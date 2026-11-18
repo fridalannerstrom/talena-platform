@@ -99,6 +99,6 @@ class AIPiiMaskingNoticeMiddleware:
                     if is_ndjson
                     else self._stream_with_actor(original_stream, actor_id)
                 )
-        elif state.masked_sent:
+        elif not response.streaming and state.masked_sent:
             response[self.HEADER] = "1"
         return response
