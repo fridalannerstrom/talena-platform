@@ -76,6 +76,13 @@ jobs:
           node --check static/js/talena/structured-overall-picture.js
           node --check static/js/talena/after-interview-tabs.js
           node scripts/test_manager_report_activity_430.js
+      - name: Verify AI provider metering and admin statistics (#435)
+        env:
+          DJANGO_DEBUG: 'True'
+          DJANGO_SECRET_KEY: local-qa-only
+          USE_AZURE_STORAGE: '0'
+          TALENA_AI_USAGE_LOGGING_ENABLED: '0'
+        run: python manage.py test apps.activity.test_ai_statistics_435 apps.core.test_ai_pii_sanitizer apps.core.test_ai_privacy_notice --noinput
       - name: Verify Talena admin Sova workflows (#352)
         env:
           DJANGO_DEBUG: 'True'
