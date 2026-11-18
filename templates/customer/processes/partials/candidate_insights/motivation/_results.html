@@ -37,7 +37,7 @@
             <canvas
               data-motivation-rose-chart
               role="img"
-              aria-label="{% if motivation_language|slice:":2" == "sv" %}Cirkulär översikt över personens motivationsprofil{% else %}{% blocktrans %}Circular overview of the candidate's motivation profile{% endblocktrans %}{% endif %}"
+              aria-label="{% if motivation_language|slice:":2" == "sv" %}Cirkulär översikt över personens motivationsprofil{% if motivation_insights.has_rose_highlights %}. Korallkontur markerar de tre högsta drivkrafterna, mörkgrön kontur de tre lägsta.{% endif %}{% else %}Circular overview of the candidate's motivation profile{% if motivation_insights.has_rose_highlights %}. Coral outlines mark the three highest drivers, dark green outlines the three lowest.{% endif %}{% endif %}"
             ></canvas>
           </div>
 
