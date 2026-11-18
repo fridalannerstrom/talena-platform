@@ -141,7 +141,12 @@ class ResponseStylesUiTests(SimpleTestCase):
         self.assertNotIn("About Consequence Scale and Ratings Spread", markup)
         self.assertNotIn('data-response-style-guidance-root', markup)
         self.assertNotIn('data-guidance-stream-url', markup)
-        self.assertIn("response-style-scale response-style-profile__scale", markup)
+        # The old score-scale widget was replaced by the static,
+        # interview-oriented communication guidance. Keep guarding against
+        # obsolete UI and accidental STEN disclosure in the rendered HTML.
+        self.assertIn('data-static-communication-guidance', markup)
+        self.assertIn('data-static-profile-status="unavailable"', markup)
+        self.assertNotIn("response-style-scale response-style-profile__scale", markup)
         self.assertNotIn("response-style-item__result", markup)
 
     def test_obsolete_auto_streaming_is_removed_but_interview_tools_remain(self):
@@ -177,7 +182,10 @@ class ResponseStylesUiTests(SimpleTestCase):
         self.assertIn("data-profile-contrasts-intro", shared)
         self.assertIn("profileContrastsHeading", shared)
         self.assertIn("preInterviewProfileContrastsHeading", interview)
-        self.assertNotIn("data-pre-interview-content", interview)
+        # The new shared card deliberately uses content-card. It is NOT
+        # the legacy separate pre-interview content block.
+        self.assertIn("data-pre-interview-content-card", interview)
+        self.assertNotIn("data-pre-interview-content=", interview)
         self.assertNotIn("data-pre-interview-overall-synthesis", interview)
         self.assertNotIn("Kommunikationsstrategi", interview)
         self.assertNotIn("Communication strategy", interview)
