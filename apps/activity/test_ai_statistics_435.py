@@ -192,7 +192,7 @@ class AIStatisticsTests(TestCase):
         self.assertEqual(self.client.get(self.url).status_code, 403)
         self.assertEqual(self.client.get(self.export_url).status_code, 403)
         self.client.force_login(self.admin)
-        response = self.client.get(self.url, {"company": str(self.company.pk)})
+        response = self.client.get(self.url, {"company": str(self.company.pk), "tab": "ai"})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context["totals"]["count"], 2)
         self.assertEqual(response.context["totals"]["succeeded"], 1)
@@ -209,7 +209,9 @@ class AIStatisticsTests(TestCase):
 
     def test_empty_state_and_invalid_dates_are_handled(self):
         self.client.force_login(self.admin)
-        response = self.client.get(self.url, {"from": "2026-13-55", "to": "invalid"})
+        response = self.client.get(self.url, {
+            "tab": "ai", "from": "2026-13-55", "to": "invalid",
+        })
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context["totals"]["count"], 0)
         self.assertEqual(response.context["feature_rows"], [])
@@ -237,7 +239,7 @@ class AIStatisticsTests(TestCase):
         self.assertEqual(customer_visible_activity(ActivityEvent.objects.all()).count(), 0)
 
         self.client.force_login(self.admin)
-        response = self.client.get(self.url)
+        response = self.client.get(self.url, {"tab": "ai"})
         self.assertEqual(response.status_code, 200)
         row = response.context["call_rows"][0]
         self.assertEqual(row["company"], self.company.name)
@@ -265,7 +267,9 @@ class AIStatisticsTests(TestCase):
     def test_existing_event_without_actor_and_candidate_is_not_backfilled(self):
         self._events()
         self.client.force_login(self.admin)
-        response = self.client.get(self.url, {"company": str(self.company.pk)})
+        response = self.client.get(self.url, {
+            "tab": "ai", "company": str(self.company.pk),
+        })
         self.assertEqual(response.status_code, 200)
         rows = response.context["call_rows"]
         self.assertEqual(len(rows), 2)
@@ -281,8 +285,8 @@ class AIStatisticsTests(TestCase):
                 meta={"schema": 1, "feature": "overall_picture", "operation": "chat"},
             )
         self.client.force_login(self.admin)
-        first = self.client.get(self.url)
-        second = self.client.get(self.url, {"page": "2"})
+        first = self.client.get(self.url, {"tab": "ai"})
+        second = self.client.get(self.url, {"tab": "ai", "page": "2"})
         self.assertEqual(first.context["call_page"].paginator.count, 29)
         self.assertEqual(len(first.context["call_rows"]), 25)
         self.assertEqual(len(second.context["call_rows"]), 4)
@@ -401,7 +405,7 @@ class AIStatisticsTests(TestCase):
         self.assertEqual(totals["candidate_report_opens"], 1)
         self.assertEqual(totals["confirmed_manager_pdfs"], 1)
         self.assertEqual(totals["manager_text_edits"], 1)
-        self.assertEqual(sum(group["count"] for group in operational["categories"]), 4)
+        self.assertNotIn("categories", operational)
         self.assertContains(response, "operational-metrics")
         self.assertContains(response, 'class="talena-ai-stats__operational"')
 
@@ -418,5 +422,55 @@ class AIStatisticsTests(TestCase):
         operational = response.context["operational"]
         self.assertEqual(operational["totals"]["events"], 0)
         self.assertEqual(operational["totals"]["manager_text_edits"], 0)
-        self.assertTrue(all(item["width"] == 0 for item in operational["categories"]))
-        self.assertContains(response, 'talena-ai-stats__category-row')
+        self.assertNotIn("categories", operational)
+        self.assertNotContains(response, "Recorded activity by category")
+        self.assertNotContains(response, "Registrerade aktiviteter per kategori")
+
+    def test_stats_are_separate_tabs_and_filters_are_preserved(self):
+        self._events()
+        self.client.force_login(self.admin)
+        shared = {"company": str(self.company.pk), "from": "2026-11-01",
+                  "to": "2026-11-18"}
+        overview = self.client.get(self.url, shared)
+        self.assertEqual(overview.status_code, 200)
+        self.assertEqual(overview.context["active_tab"], "overview")
+        self.assertIn("operational", overview.context)
+        self.assertNotIn("report_exports", overview.context)
+        self.assertNotIn("totals", overview.context)
+        self.assertContains(overview, 'class="talena-ai-stats__operational"')
+        self.assertNotContains(overview, 'class="talena-ai-stats__report-exports"')
+        self.assertNotContains(overview, 'class="talena-ai-stats__history"')
+        self.assertNotContains(overview, "Recorded activity by category")
+        self.assertContains(overview, "tab=reports&amp;from=2026-11-01")
+        self.assertContains(overview, "company=" + str(self.company.pk))
+        self.assertNotContains(overview, 'name="feature"')
+
+        reports = self.client.get(self.url, {**shared, "tab": "reports",
+                                              "feature": "overall_picture"})
+        self.assertEqual(reports.status_code, 200)
+        self.assertEqual(reports.context["active_tab"], "reports")
+        self.assertIn("report_exports", reports.context)
+        self.assertNotIn("operational", reports.context)
+        self.assertNotIn("totals", reports.context)
+        self.assertContains(reports, 'class="talena-ai-stats__report-exports"')
+        self.assertNotContains(reports, 'class="talena-ai-stats__operational"')
+        self.assertNotContains(reports, 'class="talena-ai-stats__history"')
+        self.assertNotContains(reports, "Export AI usage (CSV)")
+        self.assertNotContains(reports, 'name="feature"')
+
+        ai = self.client.get(self.url, {**shared, "tab": "ai",
+                                        "feature": "overall_picture"})
+        self.assertEqual(ai.status_code, 200)
+        self.assertEqual(ai.context["active_tab"], "ai")
+        self.assertIn("totals", ai.context)
+        self.assertIn("call_rows", ai.context)
+        self.assertNotIn("operational", ai.context)
+        self.assertNotIn("report_exports", ai.context)
+        self.assertContains(ai, 'class="talena-ai-stats__history"')
+        self.assertNotContains(ai, 'class="talena-ai-stats__operational"')
+        self.assertNotContains(ai, 'class="talena-ai-stats__report-exports"')
+        self.assertContains(ai, 'name="feature"')
+        self.assertIn("tab=ai", ai.context["filter_query"])
+
+        invalid = self.client.get(self.url, {"tab": "unknown"})
+        self.assertEqual(invalid.context["active_tab"], "overview")
