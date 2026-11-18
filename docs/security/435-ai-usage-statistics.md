@@ -144,11 +144,59 @@ Delningen beskriver händelsens registrerade sammanhang och ursprung,
 inte en fullständig klassificering av användarbeteende. Aktör som
 saknas kan inte rekonstrueras säkert i efterhand.
 
+## Etapp 3: Rapportexporter per typ (2026-11-18)
+
+Admin → Statistik visar nu ett eget block **Rapportexporter** med total,
+PDF, ZIP och uppdelning per kodägd rapporttyp. Siffrorna kommer från två
+säkra, metadata-only eventkällor:
+
+- `manager_report_pdf_generated`: befintlig Chefsrapport-historik
+  efter klientbekräftad PDF-generering (#429/#430).
+- `report_export_generated`: nytt klientrapporterat **färdigskapande**
+  av en PDF eller ZIP. Endast när den aktuella webbläsaren har producerat
+  filen och startat sparandet. Inga felaktiga/avbrutna exporter eller
+  mellanliggande PDF-blobbar för rapportpaket ska räknas.
+
+Rapporttyper: personlighet, motivation, färdighet (resultat, tolkning,
+frågor, reflektioner), överblick, individuella teamprofiler, ledarskap,
+urspårning, inför/efter intervju, interna kandidatrapports-PDF,
+teamrapporter, samtliga teamprofiler som ZIP, kandidaters och teams
+sammanslagna PDF:er respektive ZIP-paket.
+
+**Viktiga begränsningar:**
+
+- PDF och ZIP skapas huvudsakligen **i webbläsaren**. Talena kan inte
+  garantera att användaren verkligen sparade en lokal fil eller läste
+  innehållet. KPI:n är webbläsarrapporterad, inte en Sova-faktureringslogg.
+- Ett färdigskapat ZIP-/PDF-paket räknas som **en** exporthändelse.
+  Dess ingående PDF-filer räknas inte som separata nedladdningar.
+  För Chefsrapportens befintliga PDF-kvitto skapar en mellanliggande
+  package-blob inte ett separat `manager_report_pdf_generated` event.
+  Historiska Chefsrapport-event kan ha andra villkor.
+- Export-POST tar endast **statisk rapportkod** och ett slumpgenererat
+  **UUIDv4-kvitto** för idempotens. På serversidan härleds företag, kandidat,
+  projekt och aktör från autentiserad, åtkomstskyddad URL/ORM-data.
+  Inga rapporttitlar, fria filnamn, AI-texter, personuppgifter i JSON
+  eller PDF-blobbar skickas till statistikendpointen.
+- Process- och teamåtkomst verifieras mot befintlig behörighetsmodell.
+  CSRF, POST-only och en idempotent replay-check gäller även för team.
+  Teamrapporter loggas mot företaget utan kandidat-/projektidentitet.
+- Offentliga kandidatportalen är **inte** instrumenterad: endast behörig
+  intern förhandsvisning av kandidatrapporten loggar PDF-kvitton.
+- Detaljerad individuell logg finns för plattformsadmin, men aggregerad
+  exportstatistik har prioritet. Event följer ActivityEvents gallring.
+  Nyretentionbeslutet för AI- och rapporttelemetri kvarstår innan prod.
+
+Test: `python manage.py test apps.activity.test_report_exports_435 --noinput`
+och `node scripts/test_report_export_tracking_435.js`. Kontrollera även
+`python manage.py makemigrations activity --check --dry-run`.
+
 ## Migreringskedja
 
 `activity.0008_platform_admin_audit_access`
 → `activity.0009_manager_report_pdf_prepared`
-→ `activity.0010_ai_usage_verbs`.
+→ `activity.0010_ai_usage_verbs`
+→ `activity.0011_report_export_generated`.
 
 De felaktiga parallella migrationerna `0009_ai_usage_verbs` och
 `0009_manager_report_pdf_prepared_in_activity` har tagits bort från
