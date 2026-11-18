@@ -73,6 +73,16 @@ def _log_receipt(*, user, company, code, export_id, process=None,
             company=company, verb=ActivityEvent.Verb.REPORT_EXPORT_GENERATED,
             meta__export_id=export_id,
         ).first()
+        if event is not None and (
+            event.actor_id != user.pk
+            or event.process_id != (process.pk if process else None)
+            or event.candidate_id != (candidate.pk if candidate else None)
+            or (event.meta or {}).get("report_type") != code
+        ):
+            # A replayed receipt must not silently become a receipt for a
+            # different report, candidate or authenticated actor.
+            return JsonResponse({"error": "Export receipt already belongs to another report."},
+                                status=409)
         if event is None:
             event = ActivityEvent.objects.create(
                 company=company, process=process, candidate=candidate,
