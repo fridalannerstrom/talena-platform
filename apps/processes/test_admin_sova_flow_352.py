@@ -47,10 +47,11 @@ class AdminSovaFlow352Tests(TestCase):
             selected_tests=["personality"],
             candidate_language="en",
         )
+        # The legacy internal SOVA controls live behind Adminverktyg.
         self.detail_url = reverse(
             "accounts:company_process_detail",
             args=[self.company.pk, self.process.pk],
-        )
+        ) + "?admin_tools=1"
         self.add_url = reverse(
             "accounts:admin_process_add_candidate", args=[self.process.pk],
         )
