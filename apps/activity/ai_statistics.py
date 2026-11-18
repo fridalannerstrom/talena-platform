@@ -8,6 +8,7 @@ import csv
 from datetime import datetime, time, timedelta
 
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 from django.db.models import BigIntegerField, Count, Q, Sum
 from django.db.models.functions import Cast, TruncDate
 from django.http import HttpResponse, HttpResponseForbidden
@@ -15,6 +16,7 @@ from django.shortcuts import render
 from django.utils import timezone
 from django.utils.dateparse import parse_date
 from django.utils.translation import get_language
+from django.utils.http import urlencode
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET
 
@@ -145,6 +147,38 @@ def _trend(queryset, start, end):
     return series
 
 
+def _call_history(queryset, request, labels, *, limit=25):
+    """Bounded, admin-only detail view. Never expose raw event.meta."""
+    queryset = queryset.select_related(
+        "company", "actor", "candidate", "process",
+    ).order_by("-created_at", "-pk")
+    page = Paginator(queryset, limit).get_page(request.GET.get("page"))
+    rows = []
+    for event in page.object_list:
+        meta = event.meta if isinstance(event.meta, dict) else {}
+        code = meta.get("feature")
+        # All feature names shown are from our own static catalog.
+        feature_label = labels.get(code) if isinstance(code, str) else None
+        actor = event.actor
+        actor_name = (
+            (actor.get_full_name() or actor.get_username()) if actor else None
+        )
+        token_count = meta.get("total_tokens")
+        if type(token_count) is not int or token_count < 0:
+            token_count = None
+        rows.append({
+            "time": event.created_at,
+            "feature": feature_label,
+            "company": event.company.name if event.company_id else None,
+            "actor": actor_name,
+            "candidate": str(event.candidate) if event.candidate_id else None,
+            "process": event.process.name if event.process_id else None,
+            "outcome": event.verb,
+            "tokens": token_count,
+        })
+    return page, rows
+
+
 @login_required
 @never_cache
 @require_GET
@@ -157,6 +191,13 @@ def platform_ai_statistics(request):
     labels = FEATURES_EN if (get_language() or "sv").startswith("en") else FEATURES
     feature_rows = _feature_rows(qs, labels)
     trend = _trend(qs, start, end)
+    call_page, call_rows = _call_history(qs, request, labels)
+    # Only validated, bounded fields are copied into links.
+    filter_query = urlencode({
+        "from": start.isoformat(), "to": end.isoformat(),
+        **({"company": company} if company else {}),
+        **({"feature": feature} if feature else {}),
+    })
     earliest = (ActivityEvent.objects.filter(verb__in=AI_VERBS)
                 .order_by("created_at").values_list("created_at", flat=True).first())
     context = {
@@ -165,6 +206,9 @@ def platform_ai_statistics(request):
         "companies": Company.objects.order_by("name").only("id", "name"),
         "features": labels,
         "feature_rows": feature_rows,
+        "call_page": call_page,
+        "call_rows": call_rows,
+        "filter_query": filter_query,
         "totals": totals,
         "trend": trend,
         "earliest": earliest,
