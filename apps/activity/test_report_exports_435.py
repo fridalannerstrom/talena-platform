@@ -239,3 +239,119 @@ class ReportExportReceiptTests(TestCase):
         )
         self.assertEqual(summary["total"], 0)
         self.assertEqual(summary["rows"], [])
+
+    def test_report_history_shows_manager_pdf_user_candidate_and_company(self):
+        """Keep the report-type totals, but attribute each actual receipt."""
+        from django.utils import timezone
+        manager = ActivityEvent.objects.create(
+            company=self.company, process=self.process,
+            candidate=self.candidate, actor=self.admin,
+            verb=ActivityEvent.Verb.MANAGER_REPORT_PDF_GENERATED,
+            actor_name="Export Admin",
+            meta={"status": "client_reported_generated"},
+        )
+        # Technical preparation must never appear as an individual export.
+        ActivityEvent.objects.create(
+            company=self.company, process=self.process,
+            candidate=self.candidate, actor=self.admin,
+            verb=ActivityEvent.Verb.MANAGER_REPORT_PDF_PREPARED,
+        )
+        self.post_receipt(self.candidate_url, "motivation-results")
+        self.post_receipt(self.team_url, "team-package-zip")
+        ActivityEvent.objects.create(
+            company=self.other, verb=ActivityEvent.Verb.MANAGER_REPORT_PDF_GENERATED,
+        )
+        url = reverse("core:admin_ai_statistics")
+        today = timezone.localdate().isoformat()
+        response = self.client.get(url, {
+            "tab": "reports", "company": str(self.company.pk),
+            "from": today, "to": today,
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["report_page"].paginator.count, 3)
+        rows = response.context["report_rows"]
+        self.assertEqual(len(rows), 3)
+        by_report = {row["report"]: row for row in rows}
+        # Admin display names may be localized by request language.
+        manager_row = next(row for row in rows
+                           if row["when"] == manager.created_at)
+        self.assertEqual(manager_row["user"],
+                         self.admin.get_full_name() or self.admin.get_username())
+        self.assertEqual(manager_row["candidate"], str(self.candidate))
+        self.assertEqual(manager_row["company"], self.company.name)
+        self.assertEqual(manager_row["project"], self.process.name)
+        self.assertEqual(manager_row["format"], "PDF")
+        team_row = next(row for row in rows if row["format"] == "ZIP")
+        self.assertEqual(team_row["user"],
+                         self.admin.get_full_name() or self.admin.get_username())
+        self.assertIsNone(team_row["candidate"])
+        self.assertEqual(team_row["company"], self.company.name)
+        self.assertContains(response, str(self.candidate))
+        self.assertContains(response, self.admin.get_username())
+        self.assertContains(response, "talena-ai-stats__report-history-table")
+        self.assertNotContains(
+            response,
+            "Manager report PDFs reuse their existing confirmation history.",
+        )
+        self.assertEqual(response.context["report_exports"]["total"], 3)
+
+    def test_report_history_retains_existing_verified_actor_name_if_user_missing(self):
+        from django.utils import timezone
+        ActivityEvent.objects.create(
+            company=self.company, candidate=self.candidate, process=self.process,
+            actor=None, actor_name="Previous account",
+            verb=ActivityEvent.Verb.MANAGER_REPORT_PDF_GENERATED,
+        )
+        ActivityEvent.objects.create(
+            company=self.company, process=self.process,
+            actor=None, actor_name="",
+            verb=ActivityEvent.Verb.MANAGER_REPORT_PDF_GENERATED,
+        )
+        response = self.client.get(
+            reverse("core:admin_ai_statistics"),
+            {"tab": "reports", "company": str(self.company.pk)},
+        )
+        self.assertEqual(response.status_code, 200)
+        rows = response.context["report_rows"]
+        self.assertEqual(len(rows), 2)
+        self.assertIn("Previous account", [row["user"] for row in rows])
+        self.assertIn(None, [row["user"] for row in rows])
+        self.assertIn(str(self.candidate), [row["candidate"] for row in rows])
+        self.assertIn(None, [row["candidate"] for row in rows])
+
+    def test_report_history_has_25_rows_per_page_and_keeps_filters(self):
+        url = reverse("core:admin_ai_statistics")
+        for _ in range(27):
+            ActivityEvent.objects.create(
+                company=self.company, actor=self.admin,
+                process=self.process, candidate=self.candidate,
+                verb=ActivityEvent.Verb.MANAGER_REPORT_PDF_GENERATED,
+            )
+        # Unknown JSON report codes are not counted or displayed.
+        ActivityEvent.objects.create(
+            company=self.company, actor=self.admin,
+            verb=ActivityEvent.Verb.REPORT_EXPORT_GENERATED,
+            meta={"report_type": "invalid-private-name"},
+        )
+        ActivityEvent.objects.create(
+            company=self.other, actor=self.admin,
+            verb=ActivityEvent.Verb.MANAGER_REPORT_PDF_GENERATED,
+        )
+        params = {"tab": "reports", "company": str(self.company.pk)}
+        first = self.client.get(url, params)
+        second = self.client.get(url, {**params, "report_page": "2"})
+        self.assertEqual(first.status_code, 200)
+        self.assertEqual(first.context["report_page"].paginator.count, 27)
+        self.assertEqual(first.context["report_exports"]["total"], 27)
+        self.assertEqual(len(first.context["report_rows"]), 25)
+        self.assertEqual(len(second.context["report_rows"]), 2)
+        self.assertContains(first, "report_page=2")
+        self.assertContains(first, "tab=reports")
+        self.assertContains(first, "company=" + str(self.company.pk))
+        self.assertNotContains(first, "invalid-private-name")
+        self.assertTrue(all(row["company"] == self.company.name
+                            for row in second.context["report_rows"]))
+        # Details remain private to platform admins, not customer accounts.
+        self.client.force_login(self.stranger)
+        denied = self.client.get(url, params)
+        self.assertEqual(denied.status_code, 403)
