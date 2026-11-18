@@ -2563,16 +2563,10 @@ emptyState.textContent =
         line = "";
       }
 
-      // Keep even an unusually long single word fully visible.
-      for (const character of Array.from(word)) {
-        const next = line + character;
-        if (line && ctx.measureText(next).width > maxWidth) {
-          lines.push(line);
-          line = character;
-        } else {
-          line = next;
-        }
-      }
+      // Never break inside a word (e.g. "Självständighet" became
+      // "Självständighe" + "t"). Canvas fillText's maxWidth below
+      // scales the complete label slightly if space is tight.
+      line = word;
     });
 
     if (line) {
@@ -2716,7 +2710,7 @@ emptyState.textContent =
             Math.max(
               42,
               Math.min(
-                narrow ? 62 : compact ? 85 : 90,
+                narrow ? 75 : compact ? 100 : 116,
                 centerX - factorLabelRadius - 8
               )
             );
