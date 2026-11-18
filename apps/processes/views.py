@@ -6685,12 +6685,18 @@ def process_role_context(request, pk):
 
             role_context.apply_context_data(submitted_data)
             role_context.save()
-            save_project_personality_trait_overrides(
-                role_context,
-                purpose_key=purpose_key,
-                context_text=submitted_data.get("context_text", ""),
-                selected_traits=effective_project_traits,
-            )
+            # Do not break context-only saves for older projects that
+            # previously stored fewer than eight manually selected traits.
+            # Their legacy choice remains visible until an editor replaces
+            # it with exactly eight, but cannot be used to classify the
+            # response-style profile in the meantime.
+            if project_traits_submitted or len(effective_project_traits) in (0, 8):
+                save_project_personality_trait_overrides(
+                    role_context,
+                    purpose_key=purpose_key,
+                    context_text=submitted_data.get("context_text", ""),
+                    selected_traits=effective_project_traits,
+                )
 
             if context_changed:
                 mark_candidate_ai_content_outdated(process)
