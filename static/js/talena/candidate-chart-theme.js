@@ -16,13 +16,6 @@
     { rgb: [197, 151, 79] },
   ];
 
-  // Subtle high-contrast outlines distinguish the three most and three
-  // least prominent STIVE drivers without changing their domain fill colours.
-  const ROSE_HIGHLIGHT_STROKES = Object.freeze({
-    top: "#c4574b",
-    bottom: "#276f62",
-  });
-
   const TEAM_STYLE_PALETTE = {
     explore: DOMAIN_PALETTE[0],
     lead: DOMAIN_PALETTE[1],
@@ -133,7 +126,7 @@
     return `rgba(${palette.rgb[0]}, ${palette.rgb[1]}, ${palette.rgb[2]}, ${opacity})`;
   }
 
-  function applyRenderedArcTheme(chart, colours, borders = null, widths = null) {
+  function applyRenderedArcTheme(chart, colours) {
     const arcs = chart?.getDatasetMeta?.(0)?.data || [];
     const dataset = chart?.data?.datasets?.[0];
 
@@ -150,10 +143,10 @@
 
       arc.options.backgroundColor = colour;
       arc.options.hoverBackgroundColor = colour;
-      arc.options.borderColor = borders?.[index] || "#ffffff";
-      arc.options.hoverBorderColor = borders?.[index] || "#ffffff";
-      arc.options.borderWidth = widths?.[index] ?? dataset.borderWidth;
-      arc.options.hoverBorderWidth = widths?.[index] ?? dataset.borderWidth;
+      arc.options.borderColor = "#ffffff";
+      arc.options.hoverBorderColor = "#ffffff";
+      arc.options.borderWidth = dataset.borderWidth;
+      arc.options.hoverBorderWidth = dataset.borderWidth;
       arc.options.offset = 0;
       arc.options.hoverOffset = 0;
     });
@@ -175,23 +168,17 @@
 
     const colours = items.map(paletteFor);
     const compact = canvas.clientWidth < 700;
-    const normalWidth = compact ? 2 : 3;
-    const borders = items.map(
-      (item) => ROSE_HIGHLIGHT_STROKES[item.highlight] || "#ffffff"
-    );
-    const widths = items.map(
-      (item) => item.highlight ? (compact ? 3.2 : 4) : normalWidth
-    );
-
     dataset.backgroundColor = colours;
     dataset.hoverBackgroundColor = colours;
-    dataset.borderColor = borders;
-    dataset.hoverBorderColor = borders;
-    dataset.borderWidth = widths;
-    dataset.hoverBorderWidth = widths;
+    dataset.borderColor = "#ffffff";
+    dataset.hoverBorderColor = "#ffffff";
+    dataset.borderWidth = compact ? 2 : 3;
+    dataset.hoverBorderWidth = dataset.borderWidth;
     dataset.hoverOffset = 0;
 
-    applyRenderedArcTheme(chart, colours, borders, widths);
+    // The chart's own draw plugin paints the small tip accents and
+    // name dots after Chart.js draws these neutral petal borders.
+    applyRenderedArcTheme(chart, colours);
 
     return colours;
   }
