@@ -1,0 +1,43 @@
+.talena-ai-stats{color:#253047;padding-bottom:3rem}
+.talena-ai-stats__top{display:flex;align-items:flex-start;justify-content:space-between;gap:1.5rem;flex-wrap:wrap;margin-bottom:1.7rem}
+.talena-ai-stats__eyebrow{display:flex;align-items:center;gap:.5rem;font-size:.7rem;letter-spacing:.13em;font-weight:800;color:#7762ab;margin-bottom:.6rem}
+.talena-ai-stats__eyebrow svg{width:15px;height:15px}
+.talena-ai-stats__top h1{font-size:2.15rem;font-weight:750;letter-spacing:-.04em;margin:0 0 .55rem}
+.talena-ai-stats__top p{color:#667085;margin:0;max-width:720px;font-size:.92rem}
+.talena-ai-stats__top .btn{display:flex;gap:.55rem;align-items:center;white-space:nowrap}
+.talena-ai-stats__top .btn svg{width:15px;height:15px}
+.talena-ai-stats__notice{display:flex;gap:.75rem;align-items:flex-start;border:1px solid #e6dcf4;background:#faf8ff;padding:1rem 1.1rem;border-radius:12px;color:#574772;font-size:.88rem;margin-bottom:1.4rem;line-height:1.5}
+.talena-ai-stats__notice svg{width:18px;min-width:18px}
+.talena-ai-stats__notice code{white-space:normal;overflow-wrap:anywhere}
+.talena-ai-stats__filters{display:grid;grid-template-columns:repeat(2,minmax(120px,1fr)) minmax(180px,1.4fr) minmax(180px,1.4fr) auto;align-items:end;gap:.8rem;background:#fff;border:1px solid #e8eaf1;border-radius:13px;padding:1.1rem;margin-bottom:1.4rem;box-shadow:0 8px 22px rgba(30,38,66,.025)}
+.talena-ai-stats__filters label{display:grid;gap:.35rem;color:#5d6678;font-size:.74rem;font-weight:700}
+.talena-ai-stats__filters input,.talena-ai-stats__filters select{min-width:0;font-size:.85rem}
+.talena-ai-stats__filters button{white-space:nowrap}
+.talena-ai-stats__metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.95rem;margin-bottom:1.1rem}
+.talena-ai-stats__metric,.talena-ai-stats__panel{background:#fff;border:1px solid #e8eaf1;border-radius:14px;box-shadow:0 8px 25px rgba(35,43,70,.035)}
+.talena-ai-stats__metric{padding:1.25rem;display:flex;flex-direction:column;gap:.4rem}
+.talena-ai-stats__metric span{font-size:.78rem;font-weight:650;color:#626b7d}
+.talena-ai-stats__metric strong{font-size:2rem;line-height:1.25;letter-spacing:-.045em;font-variant-numeric:tabular-nums;font-weight:750}
+.talena-ai-stats__metric small{color:#798294;font-size:.72rem}
+.talena-ai-stats__grid{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(250px,.9fr);gap:1rem;margin-bottom:1rem}
+.talena-ai-stats__panel{padding:1.25rem}
+.talena-ai-stats__panel-heading{display:flex;align-items:center;justify-content:space-between;gap:.9rem;flex-wrap:wrap;margin-bottom:1.15rem}
+.talena-ai-stats__panel-heading h2{font-size:1.08rem;margin:0;font-weight:750;letter-spacing:-.02em}
+.talena-ai-stats__panel-heading span{font-size:.76rem;color:#8690a0}
+.talena-ai-stats__trend{display:flex;align-items:end;gap:5px;min-height:170px;height:170px;border-bottom:1px solid #e8eaf0;padding:10px 5px 0}
+.talena-ai-stats__bar-shell{height:100%;display:flex;align-items:end;min-width:2px;flex:1}
+.talena-ai-stats__bar{background:linear-gradient(180deg,#8d78c8,#6956a4);width:100%;border-radius:5px 5px 0 0;min-height:2px}
+.talena-ai-stats__details{display:grid;gap:.85rem}
+.talena-ai-stats__details>div{display:flex;justify-content:space-between;align-items:baseline;gap:1rem;padding-bottom:.7rem;border-bottom:1px solid #eff0f3}
+.talena-ai-stats__details span{color:#7b8495;font-size:.76rem}
+.talena-ai-stats__details strong{font-size:.86rem;font-weight:700;text-align:right}
+.talena-ai-stats__footnote{color:#798294;font-size:.74rem;line-height:1.55;margin:1.1rem 0 0}
+.talena-ai-stats__table-section{padding-bottom:.55rem}
+.talena-ai-stats__table-section .table{margin:0}
+.talena-ai-stats__table-section th{font-size:.74rem;font-weight:700;color:#718095;border-bottom-color:#eef0f4}
+.talena-ai-stats__table-section td{font-size:.82rem;padding:.75rem .5rem;border-bottom-color:#f0f1f4}
+.talena-ai-stats__table-section tbody tr:last-child td{border:0}
+.talena-ai-stats__empty{color:#8a93a1;font-size:.8rem;line-height:1.55;margin:.85rem 0 0;text-align:center;padding:1rem}
+@media(max-width:1100px){.talena-ai-stats__filters{grid-template-columns:repeat(2,minmax(0,1fr))}.talena-ai-stats__metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:767px){.talena-ai-stats__grid{grid-template-columns:1fr}.talena-ai-stats__top h1{font-size:1.7rem}.talena-ai-stats__metric{padding:1rem}.talena-ai-stats__metric strong{font-size:1.55rem}}
+@media(max-width:500px){.talena-ai-stats__filters{grid-template-columns:1fr}.talena-ai-stats__metrics{grid-template-columns:1fr 1fr}.talena-ai-stats__metric span{font-size:.72rem}.talena-ai-stats__table-section{padding:.85rem}}
