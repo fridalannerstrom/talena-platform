@@ -15,11 +15,13 @@ from django.shortcuts import get_object_or_404
 from django.views.decorators.http import require_POST
 
 from apps.activity.models import ActivityEvent
+from apps.core.utils.auth import is_admin
 from apps.processes.access_control import process_view_access_required
 from apps.processes.interview_question_notes import get_candidate_question_owner
 from apps.processes.models import TestProcess, TestInvitation
 from apps.processes.services.access import get_accessible_processes_for_user
 from apps.teams.views import _team_visibility_queryset
+from apps.teams.models import Team
 
 CANDIDATE_REPORT_TYPES = frozenset({
     "overview", "candidate-static-report",
@@ -125,10 +127,15 @@ def confirm_team_report_export(request, pk):
     data = _payload(request, TEAM_REPORT_TYPES)
     if data is None:
         return JsonResponse({"error": "Invalid report export receipt."}, status=400)
-    accessible_processes, company = get_accessible_processes_for_user(
-        request.user, include_archived=True,
-    )
-    team = get_object_or_404(_team_visibility_queryset(request.user, company), pk=pk)
+    if is_admin(request.user):
+        # Platform admins have global Talena access even without membership
+        # in the customer's own organisational units.
+        team = get_object_or_404(Team, pk=pk)
+    else:
+        _processes, company = get_accessible_processes_for_user(
+            request.user, include_archived=True,
+        )
+        team = get_object_or_404(_team_visibility_queryset(request.user, company), pk=pk)
     code, export_id = data
     return _log_receipt(
         user=request.user, company=team.company, code=code, export_id=export_id,
