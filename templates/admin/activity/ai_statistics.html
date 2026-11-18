@@ -4,7 +4,7 @@
 {% block title %}Statistik · Talena{% endblock %}
 {% block extra_css %}
   {{ block.super }}
-  <link href="{% static 'css/talena/pages/admin-ai-statistics.css' %}?v=20261118-435e" rel="stylesheet">
+  <link href="{% static 'css/talena/pages/admin-ai-statistics.css' %}?v=20261118-435f" rel="stylesheet">
 {% endblock %}
 {% block content %}
 <div class="talena-ai-stats">
@@ -213,8 +213,63 @@
           </tbody>
         </table>
       </div>
-      <p class="talena-ai-stats__footnote">{% if LANG|slice:":2" == "sv" %}Chefsrapporten använder sin befintliga bekräftelsehistorik. Övriga rapporter och ZIP-paket mäts först från den nya exportspårningen. Felaktiga eller avbrutna exporter räknas inte. En webbläsarrapportering är inte samma sak som en verifierad fil på användarens dator.{% else %}Manager report PDFs reuse their existing confirmation history. Other reports and ZIP packages are tracked only from the new export instrumentation. Failed and interrupted exports are excluded. A browser receipt is not proof of a saved local file.{% endif %}</p>
     </div>
+
+    <section class="talena-ai-stats__panel talena-ai-stats__table-section talena-ai-stats__report-history">
+      <div class="talena-ai-stats__panel-heading">
+        <div>
+          <h3>{% if LANG|slice:":2" == "sv" %}Enskilda rapportexporter{% else %}Individual report exports{% endif %}</h3>
+          <p class="talena-ai-stats__table-intro">{% if LANG|slice:":2" == "sv" %}Se vem som skapade rapporten och vilken kandidat den gäller, när uppgifterna finns registrerade.{% else %}See who generated each report and which candidate it belongs to, when that information is available.{% endif %}</p>
+        </div>
+        <span>{{ report_page.paginator.count }} {% if LANG|slice:":2" == "sv" %}exporter under perioden{% else %}exports in selected period{% endif %}</span>
+      </div>
+      <div class="table-responsive">
+        <table class="table align-middle talena-ai-stats__report-history-table">
+          <thead>
+            <tr>
+              <th scope="col">{% if LANG|slice:":2" == "sv" %}Tidpunkt{% else %}Date &amp; time{% endif %}</th>
+              <th scope="col">{% if LANG|slice:":2" == "sv" %}Rapport{% else %}Report{% endif %}</th>
+              <th scope="col">{% if LANG|slice:":2" == "sv" %}Format{% else %}Format{% endif %}</th>
+              <th scope="col">{% if LANG|slice:":2" == "sv" %}Användare{% else %}User{% endif %}</th>
+              <th scope="col">{% if LANG|slice:":2" == "sv" %}Kandidat{% else %}Candidate{% endif %}</th>
+              <th scope="col">{% if LANG|slice:":2" == "sv" %}Företag / projekt{% else %}Company / project{% endif %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in report_rows %}
+              <tr>
+                <td class="talena-ai-stats__report-history-date">{{ item.when|date:"Y-m-d H:i" }}</td>
+                <td><strong>{{ item.report }}</strong></td>
+                <td>{{ item.format }}</td>
+                <td>{{ item.user|default:"–" }}</td>
+                <td>{{ item.candidate|default:"–" }}</td>
+                <td>
+                  <div class="talena-ai-stats__report-history-company">{{ item.company|default:"–" }}</div>
+                  {% if item.project %}<div class="talena-ai-stats__report-history-project">{{ item.project }}</div>{% endif %}
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="6" class="talena-ai-stats__empty">
+                  {% if LANG|slice:":2" == "sv" %}Inga registrerade rapportexporter för perioden.{% else %}No recorded report exports for this period.{% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% if report_page.paginator.num_pages > 1 %}
+        <nav class="talena-ai-stats__report-pagination" aria-label="{% if LANG|slice:":2" == "sv" %}Bläddra bland rapportexporter{% else %}Browse report exports{% endif %}">
+          {% if report_page.has_previous %}
+            <a class="btn btn-outline-secondary btn-sm" href="?{{ report_filter_query }}&amp;report_page={{ report_page.previous_page_number }}">{% if LANG|slice:":2" == "sv" %}Föregående{% else %}Previous{% endif %}</a>
+          {% endif %}
+          <span>{{ report_page.number }} / {{ report_page.paginator.num_pages }}</span>
+          {% if report_page.has_next %}
+            <a class="btn btn-outline-secondary btn-sm" href="?{{ report_filter_query }}&amp;report_page={{ report_page.next_page_number }}">{% if LANG|slice:":2" == "sv" %}Nästa{% else %}Next{% endif %}</a>
+          {% endif %}
+        </nav>
+      {% endif %}
+    </section>
   </section>
   {% endif %}
 
