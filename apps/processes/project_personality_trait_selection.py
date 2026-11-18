@@ -287,7 +287,7 @@ why the role context makes the trait useful to explore, without describing any c
         },
     }
 
-    client = get_openai_client()
+    client = get_openai_client(feature="role_trait_selection")
     response = client.chat.completions.create(
         model=get_chat_model(),
         messages=[
