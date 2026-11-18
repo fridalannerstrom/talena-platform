@@ -111,6 +111,80 @@
     </section>
   </div>
 
+  <section class="talena-ai-stats__panel talena-ai-stats__table-section talena-ai-stats__history">
+    <div class="talena-ai-stats__panel-heading">
+      <div>
+        <h2>{% if LANG|slice:":2" == "sv" %}Enskilda AI-anrop{% else %}Individual AI calls{% endif %}</h2>
+        <p class="talena-ai-stats__table-intro">{% if LANG|slice:":2" == "sv" %}Senaste registrerade anrop med tillgängligt företag, användare och kandidat. Äldre händelser kompletteras inte i efterhand.{% else %}Latest recorded calls with available company, user and candidate. Older events are not retroactively attributed.{% endif %}</p>
+      </div>
+      <span>{{ call_page.paginator.count }} {% if LANG|slice:":2" == "sv" %}anrop under perioden{% else %}calls in selected period{% endif %}</span>
+    </div>
+    <div class="table-responsive">
+      <table class="table align-middle talena-ai-stats__history-table">
+        <thead>
+          <tr>
+            <th scope="col">{% if LANG|slice:":2" == "sv" %}Tidpunkt{% else %}Date &amp; time{% endif %}</th>
+            <th scope="col">{% if LANG|slice:":2" == "sv" %}Funktion{% else %}Feature{% endif %}</th>
+            <th scope="col">{% if LANG|slice:":2" == "sv" %}Företag{% else %}Company{% endif %}</th>
+            <th scope="col">{% if LANG|slice:":2" == "sv" %}Användare{% else %}User{% endif %}</th>
+            <th scope="col">{% if LANG|slice:":2" == "sv" %}Kandidat{% else %}Candidate{% endif %}</th>
+            <th scope="col">{% if LANG|slice:":2" == "sv" %}Projekt{% else %}Project{% endif %}</th>
+            <th scope="col">{% if LANG|slice:":2" == "sv" %}Status{% else %}Status{% endif %}</th>
+            <th scope="col" class="text-end">Tokens</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in call_rows %}
+            <tr>
+              <td class="talena-ai-stats__history-date">{{ row.time|date:"Y-m-d H:i" }}</td>
+              <td><strong>{{ row.feature|default:"–" }}</strong></td>
+              <td>{{ row.company|default:"–" }}</td>
+              <td>{{ row.actor|default:"–" }}</td>
+              <td>{{ row.candidate|default:"–" }}</td>
+              <td>{{ row.process|default:"–" }}</td>
+              <td>
+                {% if row.outcome == "ai_call_succeeded" %}
+                  <span class="talena-ai-stats__status talena-ai-stats__status--ok">{% if LANG|slice:":2" == "sv" %}Lyckades{% else %}Completed{% endif %}</span>
+                {% elif row.outcome == "ai_call_failed" %}
+                  <span class="talena-ai-stats__status talena-ai-stats__status--fail">{% if LANG|slice:":2" == "sv" %}Fel{% else %}Failed{% endif %}</span>
+                {% else %}
+                  <span class="talena-ai-stats__status talena-ai-stats__status--incomplete">{% if LANG|slice:":2" == "sv" %}Avbrutet{% else %}Incomplete{% endif %}</span>
+                {% endif %}
+              </td>
+              <td class="text-end">{% if row.tokens is not None %}{{ row.tokens }}{% else %}–{% endif %}</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="8" class="talena-ai-stats__empty">
+              {% if LANG|slice:":2" == "sv" %}Inga AI-anrop finns registrerade för det här urvalet.{% else %}No AI calls are recorded for this selection.{% endif %}
+            </td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="talena-ai-stats__history-footer">
+      <p>
+        {% if LANG|slice:":2" == "sv" %}
+          Streck (–) betyder att uppgiften inte registrerades eller inte längre finns. Personliga uppgifter visas bara för behörig Talena-admin.
+        {% else %}
+          A dash (–) means the detail was never recorded or is no longer available. Personal details are restricted to authorised Talena admins.
+        {% endif %}
+      </p>
+      {% if call_page.paginator.num_pages > 1 %}
+      <nav aria-label="{% if LANG|slice:":2" == "sv" %}Bläddra bland AI-anrop{% else %}AI call history pagination{% endif %}">
+        <div class="talena-ai-stats__pagination">
+          {% if call_page.has_previous %}
+            <a class="btn btn-outline-secondary btn-sm" href="?{{ filter_query }}&amp;page={{ call_page.previous_page_number }}">{% if LANG|slice:":2" == "sv" %}Föregående{% else %}Previous{% endif %}</a>
+          {% endif %}
+          <span>{{ call_page.number }} / {{ call_page.paginator.num_pages }}</span>
+          {% if call_page.has_next %}
+            <a class="btn btn-outline-secondary btn-sm" href="?{{ filter_query }}&amp;page={{ call_page.next_page_number }}">{% if LANG|slice:":2" == "sv" %}Nästa{% else %}Next{% endif %}</a>
+          {% endif %}
+        </div>
+      </nav>
+      {% endif %}
+    </div>
+  </section>
+
   <section class="talena-ai-stats__panel talena-ai-stats__table-section">
     <div class="talena-ai-stats__panel-heading">
       <h2>{% if LANG|slice:":2" == "sv" %}Användning per funktion{% else %}Usage by feature{% endif %}</h2>
