@@ -53,8 +53,10 @@ RAG och intern AI-chatt) saknar legitim projektkoppling.
 
 Endast plattformsadmin/superuser, serverkontroll på både HTML och CSV.
 Datumintervallet begränsas till 366 dagar för förutsägbar prestanda;
-SQL-aggregat används för KPI:er, funktioner och dagsserie. Grafen använder
-högst 32 datum-buckets. Endast kategorier som faktiskt loggats visas.
+SQL-aggregat används för KPI:er, funktioner och AI-dagsserie. AI-grafen
+använder högst 32 datum-buckets. Kategorigrafen för verksamhetsaktivitet
+har tagits bort, eftersom KPI-korten och aktivitetsloggen redan visar
+relevant information.
 
 En ny tabell **Enskilda AI-anrop** visar högst 25 händelser per sida med
 funktion, tidpunkt, företag, inloggad användare, kandidat, projekt, utfall
@@ -74,10 +76,13 @@ Separat detaljerad audit-CSV fortsätter att tillhöra #434.
 
 ## Etapp 2: Verksamhetsaktivitet från befintlig logg
 
-Samma adminvy visar nu **Verksamhetsaktivitet** ovanför AI-avsnittet.
-Ingen ny spårning eller migration krävs för dessa mått. Endast registrerade
-händelser som redan finns används, och tid/organisation följer sidans filter.
-AI-funktionsfiltret berör endast AI-delarna.
+Statistikvyn öppnar fliken **Översikt** som standard. Där finns
+**Verksamhetsaktivitet** med tydligt definierade KPI:er och länk till
+aktivitetsloggen. Ingen ny spårning eller migration krävs för dessa mått.
+Endast redan registrerade händelser används, och tid/organisation följer
+sidans filter. Fliken **Rapportstatistik** innehåller enbart PDF-/ZIP-måtten,
+och **AI-statistik** innehåller enbart OpenAI-anrop, tokens och AI-tabeller.
+AI-funktionsfiltret visas bara på AI-fliken.
 
 Definitioner:
 
@@ -117,6 +122,24 @@ ska inte visas som noll utfall utan som ej färdigmätta.
 om att alla händelsetyper instrumenterats sedan dess. Gamla, oregistrerade
 handlingar kan inte räknas i efterhand.
 
+## Statistikflikarnas gränser (2026-11-18)
+
+Samma adminadress `/admin-ai-statistics/` har tre länkbara serverstyrda
+flikar via validerad queryparameter `tab=overview|reports|ai`:
+
+- `overview` (standard): endast sammanfattning av befintliga
+  verksamhetshändelser. Den duplicerande kategorigrafen är borttagen.
+- `reports`: endast antal PDF/ZIP och fördelning per rapporttyp. En
+  förberedd fil räknas inte.
+- `ai`: endast AI-anrop och AI-trenden, enskilda anrop samt aggregerad
+  AI-CSV. Varning om avstängd AI-insamling visas enbart på AI-fliken.
+
+Datum- och organisationsfilter behålls när användaren byter flik, men
+AI-funktionsfiltret är bara relevant på AI-fliken och följer inte med till
+andra vyer. Endast den aktiva flikens datafrågor körs, så de andra tabellernas
+persondetaljer inte laddas i onödan. Samma plattformsadmin-behörighet
+skyddar alla tre vyer. Ingen migration eller dataradering krävs.
+
 ## Aktivitetsloggens två flikar (2026-11-18)
 
 Admin → Aktivitetslogg öppnar nu **Kundaktivitet** som standard och har en
@@ -153,8 +176,8 @@ saknas kan inte rekonstrueras säkert i efterhand.
 
 ## Etapp 3: Rapportexporter per typ (2026-11-18)
 
-Admin → Statistik visar nu ett eget block **Rapportexporter** med total,
-PDF, ZIP och uppdelning per kodägd rapporttyp. Siffrorna kommer från två
+Admin → Statistik → Rapportstatistik visar en fristående flik med
+PDF, ZIP, total och uppdelning per kodägd rapporttyp. Siffrorna kommer från två
 säkra, metadata-only eventkällor:
 
 - `manager_report_pdf_generated`: befintlig Chefsrapport-historik
