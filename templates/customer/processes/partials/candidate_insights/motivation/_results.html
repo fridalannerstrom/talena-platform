@@ -41,6 +41,19 @@
             ></canvas>
           </div>
 
+          {% if motivation_insights.has_rose_highlights %}
+            <div class="motivation-rose-chart__legend" aria-label="{% if motivation_language|slice:":2" == "sv" %}Markeringar i motivationsgrafen{% else %}Highlights in the motivation chart{% endif %}">
+              <span class="motivation-rose-chart__legend-item">
+                <span class="motivation-rose-chart__legend-outline motivation-rose-chart__legend-outline--top" aria-hidden="true"></span>
+                {% if motivation_language|slice:":2" == "sv" %}Topp 3 drivkrafter{% else %}Top 3 drivers{% endif %}
+              </span>
+              <span class="motivation-rose-chart__legend-item">
+                <span class="motivation-rose-chart__legend-outline motivation-rose-chart__legend-outline--bottom" aria-hidden="true"></span>
+                {% if motivation_language|slice:":2" == "sv" %}Lägst 3 drivkrafter{% else %}Bottom 3 drivers{% endif %}
+              </span>
+            </div>
+          {% endif %}
+
           <!-- LOADING / EMPTY STATE -->
           <div
             class="motivation-rose-chart__empty"
@@ -61,6 +74,7 @@
                 data-factor-name-sv="{{ item|motivation_name_sv|escape }}"
                 data-factor-name-en="{{ item.name|escape }}"
                 data-factor-score="{{ item.score|unlocalize }}"
+                data-factor-highlight="{{ item.rose_highlight|default:'' }}"
                 data-factor-domain="{{ item.domain_data|motivation_domain_title|escape }}"
                 data-factor-domain-sv="{{ item.domain_data|motivation_domain_title_sv|escape }}"
                 data-factor-domain-en="{{ item.domain_data.title|escape }}"
@@ -148,7 +162,7 @@
           </div>
 
           <div class="motivation-summary-list">
-            {% with least_prominent=motivation_insights|motivation_least_prominent %}
+            {% with least_prominent=motivation_insights.less_central_drivers %}
               {% for item in least_prominent %}
                 <div class="motivation-summary-item">
                   <div class="motivation-summary-item__header">
