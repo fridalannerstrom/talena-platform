@@ -84,6 +84,15 @@ class _MeteredEndpoint:
             outcome = "failed"
             raise
         finally:
+            if outcome != "succeeded":
+                # Closing the browser's stream must also release the
+                # underlying SDK/HTTP stream, not just our wrapper generator.
+                close_source = getattr(source, "close", None)
+                if callable(close_source):
+                    try:
+                        close_source()
+                    except Exception:
+                        pass  # Never hide the real provider/consumer outcome.
             self._record(model=model, outcome=outcome, usage=usage)
 
     def _send_accounted(self, kwargs):
