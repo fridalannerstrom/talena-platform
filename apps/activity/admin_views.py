@@ -47,6 +47,7 @@ CATEGORIES = {
     "security": {"user_logged_in"},
     "audit": {"admin_log_accessed", "admin_log_exported"},
     "reports": {"manager_report_pdf_prepared", "manager_report_pdf_generated"},
+    "ai": {"ai_call_succeeded", "ai_call_failed", "ai_call_incomplete"},
 }
 ALL_KNOWN_VERBS = {item for verbs in CATEGORIES.values() for item in verbs}
 CATEGORY_CHOICES = (
@@ -56,6 +57,7 @@ CATEGORY_CHOICES = (
     ("security", "Säkerhet", "Security"),
     ("audit", "Loggåtkomst", "Audit access"),
     ("reports", "Rapportexporter", "Report exports"),
+    ("ai", "AI-anrop", "AI calls"),
 )
 CATEGORY_BY_VERB = {
     verb: key for key, values in CATEGORIES.items() for verb in values
@@ -101,6 +103,9 @@ ENGLISH_VERB_LABELS = {
     "admin_log_exported": "Internal activity log CSV prepared",
     "manager_report_pdf_prepared": "Manager report PDF prepared",
     "manager_report_pdf_generated": "Manager report PDF generated (browser confirmed)",
+    "ai_call_succeeded": "AI provider call succeeded",
+    "ai_call_failed": "AI provider call failed",
+    "ai_call_incomplete": "AI provider stream interrupted",
 }
 
 
@@ -236,7 +241,7 @@ def platform_activity_log(request):
         "categories": category_choices,
         "companies": Company.objects.order_by("name").only("id", "name"),
         "verbs": ActivityEvent.Verb.choices,
-        "tracked_categories": ("candidate", "portal", "organisation", "security", "reports"),
+        "tracked_categories": ("candidate", "portal", "organisation", "security", "reports", "ai"),
         "earliest_known": (
             ActivityEvent.objects.exclude(
                 verb__in=CATEGORIES["audit"]
