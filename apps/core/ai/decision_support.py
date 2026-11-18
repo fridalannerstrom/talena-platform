@@ -1352,7 +1352,7 @@ def stream_pre_interview_decision_support(
             "are available for decision support."
         )
 
-    client = get_openai_client()
+    client = get_openai_client(feature="pre_interview", owner=owner)
 
     prompt = (
         build_pre_interview_decision_support_prompt(
@@ -2236,7 +2236,7 @@ def stream_post_interview_decision_support(
             "are available for decision support."
         )
 
-    client = get_openai_client()
+    client = get_openai_client(feature="post_interview", owner=owner)
 
     prompt = (
         build_post_interview_decision_support_prompt(
@@ -3124,7 +3124,7 @@ def stream_post_interview_decision_support(
             "are available for decision support."
         )
 
-    client = get_openai_client()
+    client = get_openai_client(feature="post_interview", owner=owner)
 
     prompt = build_post_interview_decision_support_prompt(
         owner,
@@ -3849,7 +3849,7 @@ def stream_post_interview_content_block(
         },
     }
 
-    client = get_openai_client()
+    client = get_openai_client(feature="post_interview", owner=owner)
     prompt = redact_candidate_name(prompt, owner.candidate)
 
     system_instruction = (
