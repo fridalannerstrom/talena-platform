@@ -219,15 +219,7 @@
   {% endif %}
 
   {% if active_tab == 'ai' %}
-  <div class="talena-ai-stats__section-heading talena-ai-stats__ai-heading">
-    <div>
-      <div class="talena-ai-stats__section-eyebrow">{% if LANG|slice:":2" == "sv" %}OPENAI-ANVÄNDNING{% else %}OPENAI USAGE{% endif %}</div>
-      <h2>{% if LANG|slice:":2" == "sv" %}AI-statistik{% else %}AI statistics{% endif %}</h2>
-      <p>{% if LANG|slice:":2" == "sv" %}Anrop till OpenAI. Här gäller även filtret för AI-funktion.{% else %}OpenAI provider calls. The AI feature filter applies to this section too.{% endif %}</p>
-    </div>
-  </div>
-
-  <div class="talena-ai-stats__metrics">
+    <div class="talena-ai-stats__metrics">
     <div class="talena-ai-stats__metric">
       <span>{% if LANG|slice:":2" == "sv" %}Registrerade AI-anrop{% else %}Recorded AI calls{% endif %}</span>
       <strong>{{ totals.count }}</strong>
