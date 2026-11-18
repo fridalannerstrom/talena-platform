@@ -667,15 +667,15 @@
   background: var(--talena-chart-accent) !important;
 }
 
-/* Motivation rose: the outlines mark the *same* three highest and lowest
-   precise STIVE scores as the written motivation summaries. */
+/* Motivation rose: subtle tip accents and label dots highlight the same
+   precise STIVE-ranked drivers as the written motivation summaries. */
 .process-page .motivation-rose-chart__legend {
   display: flex;
   justify-content: center;
   align-items: center;
   flex-wrap: wrap;
-  gap: .8rem 1.7rem;
-  margin: -.15rem auto 1.15rem;
+  gap: .55rem 1.3rem;
+  margin: -.25rem auto 1.1rem;
   color: var(--talena-text-muted, #626d76);
   font-size: .73rem;
   line-height: 1.4;
@@ -683,23 +683,21 @@
 .process-page .motivation-rose-chart__legend-item {
   display: inline-flex;
   align-items: center;
-  gap: .5rem;
+  gap: .43rem;
   white-space: nowrap;
 }
-.process-page .motivation-rose-chart__legend-outline {
+.process-page .motivation-rose-chart__legend-dot {
   display: inline-block;
-  width: 15px;
-  height: 15px;
-  border: 3px solid transparent;
-  border-radius: 5px;
-  background: #fbfaf8;
-  flex: 0 0 15px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: 0 0 8px;
 }
-.process-page .motivation-rose-chart__legend-outline--top {
-  border-color: #c4574b;
+.process-page .motivation-rose-chart__legend-dot--top {
+  background: #c4574b;
 }
-.process-page .motivation-rose-chart__legend-outline--bottom {
-  border-color: #276f62;
+.process-page .motivation-rose-chart__legend-dot--bottom {
+  background: #276f62;
 }
 @media (max-width: 480px) {
   .process-page .motivation-rose-chart__legend {
