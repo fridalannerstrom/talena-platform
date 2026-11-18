@@ -3,6 +3,7 @@ from django.contrib.auth.views import LoginView, LogoutView
 from . import views
 from apps.core import webhooks
 from apps.activity import admin_views as activity_admin_views
+from apps.activity import ai_statistics as activity_ai_statistics
 
 from .views import (
     customer_dashboard,
@@ -29,6 +30,10 @@ urlpatterns = [
          name="admin_activity_log"),
     path("admin-activity/export/", activity_admin_views.platform_activity_export,
          name="admin_activity_export"),
+    path("admin-ai-statistics/", activity_ai_statistics.platform_ai_statistics,
+         name="admin_ai_statistics"),
+    path("admin-ai-statistics/export/", activity_ai_statistics.platform_ai_statistics_export,
+         name="admin_ai_statistics_export"),
 
     path("webhooks/sova/", sova_webhook, name="sova_webhook"),
     path("search/", views.global_search, name="global_search"),
