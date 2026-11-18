@@ -46,7 +46,7 @@ CATEGORIES = {
     },
     "security": {"user_logged_in"},
     "audit": {"admin_log_accessed", "admin_log_exported"},
-    "reports": {"manager_report_pdf_prepared", "manager_report_pdf_generated"},
+    "reports": {"manager_report_pdf_prepared", "manager_report_pdf_generated", "report_export_generated"},
     "ai": {"ai_call_succeeded", "ai_call_failed", "ai_call_incomplete"},
 }
 ALL_KNOWN_VERBS = {item for verbs in CATEGORIES.values() for item in verbs}
@@ -108,6 +108,7 @@ ENGLISH_VERB_LABELS = {
     "admin_log_exported": "Internal activity log CSV prepared",
     "manager_report_pdf_prepared": "Manager report PDF prepared",
     "manager_report_pdf_generated": "Manager report PDF generated (browser confirmed)",
+    "report_export_generated": "Report PDF/ZIP generated (browser reported)",
     "ai_call_succeeded": "AI provider call succeeded",
     "ai_call_failed": "AI provider call failed",
     "ai_call_incomplete": "AI provider stream interrupted",
