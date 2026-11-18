@@ -4,6 +4,7 @@ from . import views
 from .manager_report_pdf import (
     prepare_manager_report_pdf, confirm_manager_report_pdf_generated,
 )
+from apps.activity.report_export_receipts import confirm_candidate_report_export
 from .manager_report_activity import (
     customer_manager_report_activity, platform_manager_report_activity,
 )
@@ -304,6 +305,11 @@ urlpatterns = [
         "<int:process_id>/candidates/<int:candidate_id>/manager-report-pdf/generated/",
         confirm_manager_report_pdf_generated,
         name="process_candidate_manager_report_pdf_generated",
+    ),
+    path(
+        "<int:process_id>/candidates/<int:candidate_id>/reports/export-receipt/",
+        confirm_candidate_report_export,
+        name="process_candidate_report_export_receipt",
     ),
     path(
         "<int:process_id>/candidates/<int:candidate_id>/manager-report-activity/",
