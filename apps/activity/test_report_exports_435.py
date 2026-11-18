@@ -187,7 +187,10 @@ class ReportExportReceiptTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context["report_exports"]["total"], 4)
         self.assertContains(response, 'class="talena-ai-stats__report-exports"')
-        self.assertNotContains(response, "Unrelated tenant")
+        # The organisation filter legitimately lists other tenant names;
+        # no other tenant's export must affect this filtered metric.
+        self.assertEqual(sum(row["count"] for row in
+                             response.context["report_exports"]["rows"]), 4)
 
     def test_empty_summary_does_not_count_pdf_preparations(self):
         from django.utils import timezone
