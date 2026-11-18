@@ -16,7 +16,7 @@ assert.ok(html.includes("Mest framträdande (3) · mörkare nyans"));
 assert.ok(html.includes("Minst framträdande (3) · ljusare nyans"));
 assert.ok(html.includes("Darker shades of each petal"));
 assert.ok(css.includes("background: #83766b"));
-assert.ok(css.includes("background: #d9d1ca"));
+assert.ok(css.includes("background: #b9ada2"));
 assert.ok(!css.includes("motivation-rose-chart__legend-outline"));
 assert.ok(base.includes("window.TalenaPdfMotivationRose = Object.freeze({"));
 assert.ok(base.includes("stage.append(chartRoot.cloneNode(true))"));
