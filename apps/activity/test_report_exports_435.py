@@ -218,7 +218,7 @@ class ReportExportReceiptTests(TestCase):
         self.assertEqual(codes["team-package-pdf"], 1)
         self.assertNotIn("team-profile", codes)
         stats_url = reverse("core:admin_ai_statistics")
-        response = self.client.get(stats_url, {"company": self.company.pk})
+        response = self.client.get(stats_url, {"tab": "reports", "company": self.company.pk})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context["report_exports"]["total"], 4)
         self.assertContains(response, 'class="talena-ai-stats__report-exports"')
