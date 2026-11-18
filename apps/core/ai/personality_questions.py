@@ -1141,7 +1141,7 @@ def _generate_repaired_personality_questions_event(
     """
 
     try:
-        client = get_openai_client()
+        client = get_openai_client(feature="personality_questions", owner=owner)
 
         repair_prompt = redact_candidate_name(
             _build_personality_questions_repair_prompt(
@@ -1223,7 +1223,7 @@ def stream_personality_questions(
             "No personality assessment results are available."
         )
 
-    client = get_openai_client()
+    client = get_openai_client(feature="personality_questions", owner=owner)
 
     prompt = build_personality_questions_prompt(
         invitation=owner,
