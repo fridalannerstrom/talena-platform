@@ -72,6 +72,51 @@ CSV innehåller bara period, featurekod, antal per providerutfall och
 rapporterade tokens. Inga namn, aktörer eller kandidat-/projekt-ID:n.
 Separat detaljerad audit-CSV fortsätter att tillhöra #434.
 
+## Etapp 2: Verksamhetsaktivitet från befintlig logg
+
+Samma adminvy visar nu **Verksamhetsaktivitet** ovanför AI-avsnittet.
+Ingen ny spårning eller migration krävs för dessa mått. Endast registrerade
+händelser som redan finns används, och tid/organisation följer sidans filter.
+AI-funktionsfiltret berör endast AI-delarna.
+
+Definitioner:
+
+- **Företag/projekt med aktivitet:** antal distinkta företag respektive
+  projekt med minst en befintlig verksamhetshändelse under perioden. Detta
+  är **inte** totala antal befintliga kunder/öppna projekt.
+- **Skickade inbjudningar:** antal `invite_sent`-händelser, inte unika
+  personer och inte antal Sova-ordrar.
+- **Slutförda tester:** antal `test_completed`-händelser, inte bekräftat
+  antal unika kandidater.
+- **Öppnade kandidatrapporter:** antal `candidate_result_link_opened`,
+  inte bevis att någon läst eller granskat innehållet.
+- **Chefsrapport PDF:** antal `manager_report_pdf_generated` (webbläsaren
+  rapporterade generering); `manager_report_pdf_prepared` räknas **inte**
+  som en färdig export eller garanterad lokal nedladdning.
+- **Sparade mänskliga textredigeringar:** antal `ManagerReportTextEditEvent`
+  med `action=saved`; återställning till AI-text räknas inte som en
+  mänsklig redigering och avsaknad av redigering säger inget om granskning.
+- **Verksamhetshändelser per kategori:** endast tillåtna typer i
+  ActivityEvent för organisation, kandidat/test, kandidatportal och
+  webbläsarbekräftad chefsrapport-PDF. Allt räknas som händelser,
+  inte unika sessioner.
+
+`admin_log_accessed` och `admin_log_exported` är särskilda
+**säkerhetshändelser** och visas fortsatt i aktivitetsloggen, men **ingår
+inte i någon verksamhets-KPI**. Inte heller AI-anrop, generell användar-
+inloggning eller bara förberedda PDF:er ingår. Öppning av statistikvyn ska
+därmed inte kunna öka måtten. Aktivitetsloggen innehåller nu en tydlig
+svensk/engelsk förklaring av detta samt rätt kategori på AI- och
+rapporthändelser.
+
+Sova-integrationsfel, explicita granskningar och övriga exporttyper
+har **inte** tillräcklig registrering för rättvisande KPI:er. Dessa
+ska inte visas som noll utfall utan som ej färdigmätta.
+
+**Datatäckning:** Datumet för första kända händelse är inte ett löfte
+om att alla händelsetyper instrumenterats sedan dess. Gamla, oregistrerade
+handlingar kan inte räknas i efterhand.
+
 ## Migreringskedja
 
 `activity.0008_platform_admin_audit_access`
