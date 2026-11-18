@@ -162,10 +162,17 @@
 <div class="container-fluid px-2 px-md-4 process-page">
 
   {% if process_base_layout %}
-    <a href="{% url 'accounts:company_process_detail' process.company_id process.id %}"
-       class="text-muted small text-decoration-none d-inline-flex align-items-center gap-1 mb-3">
-      ← {% if LANGUAGE_CODE|slice:":2" == "sv" %}Tillbaka till Talena-admin{% else %}Back to Talena admin{% endif %}
-    </a>
+    <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap mb-3">
+      <a href="{% url 'accounts:company_processes' process.company_id %}"
+         class="text-muted small text-decoration-none d-inline-flex align-items-center gap-1">
+        ← {% if LANGUAGE_CODE|slice:":2" == "sv" %}Tillbaka till företagets projekt{% else %}Back to company projects{% endif %}
+      </a>
+      <a href="{% url 'accounts:company_process_detail' process.company_id process.id %}?admin_tools=1"
+         class="btn btn-sm btn-outline-secondary">
+        <i class="fa-solid fa-screwdriver-wrench me-1" aria-hidden="true"></i>
+        {% if LANGUAGE_CODE|slice:":2" == "sv" %}Adminverktyg{% else %}Admin tools{% endif %}
+      </a>
+    </div>
     <div class="alert alert-light border small py-2 mb-3" role="status">
       {% if LANGUAGE_CODE|slice:":2" == "sv" %}
         <strong>Administratörsläge:</strong> Ändringar och AI-rapporter sparas på kundens verkliga projekt.
