@@ -80,3 +80,18 @@
 .talena-ai-stats__ai-heading{margin-top:.25rem}
 @media(max-width:1100px){.talena-ai-stats__operational-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:600px){.talena-ai-stats__category-row{grid-template-columns:minmax(0,130px) minmax(40px,1fr) 26px;gap:.6rem}.talena-ai-stats__category-row>span{font-size:.72rem}.talena-ai-stats__section-heading h2{font-size:1.18rem}}
+
+
+/* #435: real browser-reported report-file receipts, not download claims. */
+.talena-ai-stats__report-exports{margin:0 0 2.3rem}
+.talena-ai-stats__report-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}
+.talena-ai-stats__report-exports .talena-ai-stats__panel-heading h3{
+  font-size:1.05rem;letter-spacing:-.02em;font-weight:750;margin:0
+}
+.talena-ai-stats__report-exports .talena-ai-stats__panel{
+  padding-bottom:1.1rem
+}
+.talena-ai-stats__report-exports .talena-ai-stats__footnote{
+  border-top:1px solid #eff0f3;padding-top:1rem;margin-top:1rem
+}
+@media(max-width:767px){.talena-ai-stats__report-metrics{grid-template-columns:1fr}}
