@@ -22,20 +22,8 @@ ACTIVITY_VERBS = frozenset().union(
     CATEGORIES["organisation"],
     {"manager_report_pdf_generated", "report_export_generated"},
 )
-CATEGORIZED_VERBS = (
-    ("projects", "Projekt och organisationer", "Projects & organisations",
-     frozenset(CATEGORIES["organisation"])),
-    ("tests", "Kandidater och tester", "Candidates & assessments",
-     frozenset(CATEGORIES["candidate"])),
-    ("portal", "Kandidatportal", "Candidate portal",
-     frozenset(CATEGORIES["portal"])),
-    ("exports", "Webbläsarbekräftade rapportfiler", "Browser-reported report files",
-     frozenset({"manager_report_pdf_generated", "report_export_generated"})),
-)
-
-
 def platform_activity_summary(*, start, end, company=None, english=False):
-    """Bounded aggregations; returns zeros only for *logged* event categories.
+    """Summary of recorded business events, excluding technical admin actions.
 
     Distinct company/project counts mean entities with at least one qualifying
     recorded event during the period, not all live accounts or projects.
@@ -79,20 +67,7 @@ def platform_activity_summary(*, start, end, company=None, english=False):
     )
     summary["manager_text_edits"] = edits.count()
 
-    grouped = events.values("verb").annotate(n=Count("pk"))
-    by_verb = {entry["verb"]: entry["n"] for entry in grouped}
-    rows = [
-        {
-            "key": key,
-            "name": en if english else sv,
-            "count": sum(by_verb.get(verb, 0) for verb in verbs),
-        }
-        for key, sv, en, verbs in CATEGORIZED_VERBS
-    ]
-    peak = max((row["count"] for row in rows), default=0)
-    for row in rows:
-        row["width"] = round(100 * row["count"] / peak) if peak else 0
-    return {"totals": summary, "categories": rows}
+    return {"totals": summary}
 
 
 # Static, code-owned report names. Never render arbitrary report_type from JSON
