@@ -41,3 +41,19 @@
 @media(max-width:1100px){.talena-ai-stats__filters{grid-template-columns:repeat(2,minmax(0,1fr))}.talena-ai-stats__metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:767px){.talena-ai-stats__grid{grid-template-columns:1fr}.talena-ai-stats__top h1{font-size:1.7rem}.talena-ai-stats__metric{padding:1rem}.talena-ai-stats__metric strong{font-size:1.55rem}}
 @media(max-width:500px){.talena-ai-stats__filters{grid-template-columns:1fr}.talena-ai-stats__metrics{grid-template-columns:1fr 1fr}.talena-ai-stats__metric span{font-size:.72rem}.talena-ai-stats__table-section{padding:.85rem}}
+
+
+/* #435: separate call-level audit history from aggregate totals. */
+.talena-ai-stats__history{margin-bottom:1rem}
+.talena-ai-stats__table-intro{color:#7b8495;font-size:.78rem;line-height:1.6;margin:.45rem 0 0;max-width:850px}
+.talena-ai-stats__history-table{min-width:1000px}
+.talena-ai-stats__history-table th{white-space:nowrap}
+.talena-ai-stats__history-table td{vertical-align:middle;max-width:230px;overflow-wrap:anywhere}
+.talena-ai-stats__history-date{color:#7b8495;font-variant-numeric:tabular-nums;white-space:nowrap;font-size:.78rem!important}
+.talena-ai-stats__status{display:inline-block;white-space:nowrap;border-radius:999px;padding:.26rem .58rem;font-size:.71rem;font-weight:650}
+.talena-ai-stats__status--ok{background:#edf7f1;color:#286545}
+.talena-ai-stats__status--fail{background:#fff0f0;color:#9c3d3d}
+.talena-ai-stats__status--incomplete{background:#fff5e5;color:#98651d}
+.talena-ai-stats__history-footer{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;border-top:1px solid #eff0f3;padding:.9rem .25rem .25rem}
+.talena-ai-stats__history-footer p{max-width:790px;font-size:.74rem;color:#7b8495;margin:0;line-height:1.5}
+.talena-ai-stats__pagination{display:flex;align-items:center;gap:.65rem;font-size:.78rem;color:#7b8495}
