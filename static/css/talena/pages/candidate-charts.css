@@ -694,10 +694,10 @@
   flex: 0 0 8px;
 }
 .process-page .motivation-rose-chart__legend-dot--top {
-  background: #c4574b;
+  background: #c96a5b;
 }
 .process-page .motivation-rose-chart__legend-dot--bottom {
-  background: #276f62;
+  background: #6e5c7e;
 }
 @media (max-width: 480px) {
   .process-page .motivation-rose-chart__legend {
