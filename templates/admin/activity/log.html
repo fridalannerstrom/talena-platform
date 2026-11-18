@@ -4,7 +4,7 @@
 {% block title %}{% get_current_language as LANGUAGE_CODE %}{% if LANGUAGE_CODE|slice:":2" == "sv" %}Aktivitetslogg{% else %}Activity log{% endif %} · Talena{% endblock %}
 {% block extra_css %}
   {{ block.super }}
-  <link href="{% static 'css/talena/pages/admin-activity-log.css' %}?v=20261118-435a" rel="stylesheet">
+  <link href="{% static 'css/talena/pages/admin-activity-log.css' %}?v=20261118-435b" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
@@ -19,9 +19,9 @@
       <h1>{% if LANGUAGE_CODE|slice:":2" == "sv" %}Aktivitetslogg{% else %}Activity log{% endif %}</h1>
       <p>
         {% if LANGUAGE_CODE|slice:":2" == "sv" %}
-          Spårbara händelser som Talena faktiskt har registrerat. Åtkomst och export loggas.
+          {% if active_scope == "admin" %}Interna aktiviteter och säkerhetshändelser, inklusive åtkomst till loggar och statistik.{% else %}Kundernas registrerade aktiviteter i Talena, utan intern admin- och säkerhetsloggning.{% endif %}
         {% else %}
-          Traceable events actually recorded by Talena. Access and exports are audited.
+          {% if active_scope == "admin" %}Internal activity and security events, including access to logs and statistics.{% else %}Recorded customer activity in Talena, without internal admin and audit events.{% endif %}
         {% endif %}
       </p>
     </div>
@@ -30,6 +30,21 @@
       {% if LANGUAGE_CODE|slice:":2" == "sv" %}Exportera CSV (max 1 000){% else %}Export CSV (max 1,000){% endif %}
     </a>
   </header>
+
+  <nav class="talena-audit__tabs" aria-label="{% if LANGUAGE_CODE|slice:":2" == "sv" %}Välj aktivitetsvy{% else %}Choose activity view{% endif %}">
+    <a href="?scope=customer{% if tab_date_query %}&amp;{{ tab_date_query }}{% endif %}"
+       class="talena-audit__tab{% if active_scope == 'customer' %} is-active{% endif %}"
+       {% if active_scope == 'customer' %}aria-current="page"{% endif %}>
+      <i data-feather="users" aria-hidden="true"></i>
+      {% if LANGUAGE_CODE|slice:":2" == "sv" %}Kundaktivitet{% else %}Customer activity{% endif %}
+    </a>
+    <a href="?scope=admin{% if tab_date_query %}&amp;{{ tab_date_query }}{% endif %}"
+       class="talena-audit__tab{% if active_scope == 'admin' %} is-active{% endif %}"
+       {% if active_scope == 'admin' %}aria-current="page"{% endif %}>
+      <i data-feather="shield" aria-hidden="true"></i>
+      Admin
+    </a>
+  </nav>
 
   <section class="talena-audit__stats" aria-label="{% if LANGUAGE_CODE|slice:":2" == "sv" %}Loggöversikt{% else %}Log overview{% endif %}">
     <div class="talena-audit__metric">
@@ -50,6 +65,7 @@
   </section>
 
   <form class="talena-audit__filters" method="get" action="{% url 'core:admin_activity_log' %}">
+    <input type="hidden" name="scope" value="{{ active_scope }}">
     <div class="talena-audit__filter-title">
       <i data-feather="filter" aria-hidden="true"></i>
       <strong>{% if LANGUAGE_CODE|slice:":2" == "sv" %}Filtrera händelser{% else %}Filter events{% endif %}</strong>
@@ -109,17 +125,18 @@
     </div>
     <div class="talena-audit__form-actions">
       <button class="btn btn-dark" type="submit"><i data-feather="search" aria-hidden="true"></i> {% if LANGUAGE_CODE|slice:":2" == "sv" %}Visa händelser{% else %}Show events{% endif %}</button>
-      <a class="btn btn-light" href="{% url 'core:admin_activity_log' %}">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Rensa filter{% else %}Clear filters{% endif %}</a>
+      <a class="btn btn-light" href="{% url 'core:admin_activity_log' %}?scope={{ active_scope }}">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Rensa filter{% else %}Clear filters{% endif %}</a>
     </div>
   </form>
 
   <section class="talena-audit__panel">
     <div class="talena-audit__panel-heading">
       <div>
-        <h2>{% if LANGUAGE_CODE|slice:":2" == "sv" %}Registrerade aktiviteter{% else %}Recorded activity{% endif %}</h2>
+        <h2>{% if active_scope == "admin" %}{% if LANGUAGE_CODE|slice:":2" == "sv" %}Adminaktiviteter{% else %}Admin activity{% endif %}{% else %}{% if LANGUAGE_CODE|slice:":2" == "sv" %}Kundernas aktiviteter{% else %}Customer activity{% endif %}{% endif %}</h2>
         <p>{% if LANGUAGE_CODE|slice:":2" == "sv" %}Nyast först · 30 händelser per sida{% else %}Newest first · 30 events per page{% endif %}</p>
       </div>
     </div>
+    {% if active_scope == "admin" %}
     <p class="talena-audit__explain">
       <i data-feather="info" aria-hidden="true"></i>
       {% if LANGUAGE_CODE|slice:":2" == "sv" %}
@@ -128,6 +145,8 @@
         <strong>What is audit access?</strong> When a platform admin opens an internal activity log or statistics view, access is recorded for security. This is not customer activity and is excluded from operational statistics. Filter by Audit access to inspect these events.
       {% endif %}
     </p>
+
+    {% endif %}
 
     {% if events %}
     <div class="talena-audit__table-scroll">
@@ -203,9 +222,9 @@
     <div>
       <strong>{% if LANGUAGE_CODE|slice:":2" == "sv" %}Vad visas ännu inte?{% else %}What is not covered yet?{% endif %}</strong>
       <p>{% if LANGUAGE_CODE|slice:":2" == "sv" %}
-        AI-generering, manuell granskning, enskilda resultatöppningar och rapportexporter behöver separat instrumentering. Endast faktiskt registrerade händelser visas. Ingen fullständig historik kan återskapas i efterhand. CSV innehåller bara interna ID:n och händelsetyper, inte kandidatdata eller AI-innehåll.
+        Händelserna är uppdelade i Kundaktivitet och Admin. Interna loggåtkomster finns kvar av säkerhetsskäl, men syns bara under Admin. AI-anrop och vissa rapportexporter registreras redan; manuell granskning, alla resultatvisningar och fler exporttyper saknar fortfarande fullständig mätning. CSV omfattar bara den valda fliken och innehåller endast ID:n och händelsetyper, inte kandidattexter eller AI-innehåll.
       {% else %}
-        AI generation, explicit human review, individual result views and report exports require further instrumentation. Only actual recorded events appear; earlier unrecorded events cannot be reconstructed. CSV includes IDs and event types, never candidate or AI content.
+        Events are separated into Customer activity and Admin. Internal audit access remains recorded for security, but is only shown under Admin. AI calls and some report exports are already tracked; explicit human review, some result views and more export types still lack full coverage. CSV exports only the selected tab and contains IDs and event types, never candidate text or AI output.
       {% endif %}</p>
     </div>
   </footer>
