@@ -946,7 +946,7 @@ def generate_candidate_purpose_fit_events(
         )
     )
 
-    client = get_openai_client()
+    client = get_openai_client(feature="purpose_fit", owner=invitation)
 
     prompt = build_purpose_fit_prompt(
         invitation,
