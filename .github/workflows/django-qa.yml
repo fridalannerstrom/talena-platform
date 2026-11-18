@@ -16,6 +16,12 @@ jobs:
           node --check static/js/talena/candidate-report-packages.js
           node scripts/test_candidate_report_packages_contract.js
           node scripts/test_candidate_report_package_runtime_20261115.js
+          node --check static/js/talena/report-export-activity.js
+          node --check static/js/talena/team-report-packages.js
+          node --check static/js/talena/team-report-export.js
+          node --check static/js/talena/team-profile-export.js
+          node --check static/js/talena/candidate-result-internal-pdf.js
+          node scripts/test_report_export_tracking_435.js
           node scripts/test_candidate_pdf_hidden_motivation_chart_20261115.js
           node scripts/test_candidate_report_chart_coverage_20261115.js
           node scripts/test_candidate_pdf_overview_export_20261115.js
@@ -82,7 +88,7 @@ jobs:
           DJANGO_SECRET_KEY: local-qa-only
           USE_AZURE_STORAGE: '0'
           TALENA_AI_USAGE_LOGGING_ENABLED: '0'
-        run: python manage.py test apps.activity.test_ai_statistics_435 apps.core.test_ai_pii_sanitizer apps.core.test_ai_privacy_notice --noinput
+        run: python manage.py test apps.activity.test_ai_statistics_435 apps.activity.test_report_exports_435 apps.activity.test_admin_activity_log_432 apps.core.test_ai_pii_sanitizer apps.core.test_ai_privacy_notice --noinput
       - name: Verify Talena admin Sova workflows (#352)
         env:
           DJANGO_DEBUG: 'True'
