@@ -19,9 +19,9 @@
       <h1>{% if LANGUAGE_CODE|slice:":2" == "sv" %}Aktivitetslogg{% else %}Activity log{% endif %}</h1>
       <p>
         {% if LANGUAGE_CODE|slice:":2" == "sv" %}
-          {% if active_scope == "admin" %}Interna aktiviteter och säkerhetshändelser, inklusive åtkomst till loggar och statistik.{% else %}Kundernas registrerade aktiviteter i Talena, utan intern admin- och säkerhetsloggning.{% endif %}
+          {% if active_scope == "admin" %}Interna aktiviteter, säkerhetshändelser och tekniska förberedelser av rapporter.{% else %}Kundernas registrerade aktiviteter i Talena, utan intern admin- och säkerhetsloggning.{% endif %}
         {% else %}
-          {% if active_scope == "admin" %}Internal activity and security events, including access to logs and statistics.{% else %}Recorded customer activity in Talena, without internal admin and audit events.{% endif %}
+          {% if active_scope == "admin" %}Internal activity, security events and technical report preparations.{% else %}Recorded customer activity in Talena, without internal admin and audit events.{% endif %}
         {% endif %}
       </p>
     </div>
@@ -140,9 +140,9 @@
     <p class="talena-audit__explain">
       <i data-feather="info" aria-hidden="true"></i>
       {% if LANGUAGE_CODE|slice:":2" == "sv" %}
-        <strong>Vad är loggåtkomst?</strong> Varje gång en plattformsadmin öppnar en intern aktivitetslogg eller statistikvy loggas åtkomsten av säkerhetsskäl. Det är inte en kundaktivitet och räknas inte i statistikens verksamhetsmått. Välj kategorin Loggåtkomst om du vill se bara dessa händelser.
+        <strong>Vad är loggåtkomst?</strong> Varje gång en plattformsadmin öppnar en intern aktivitetslogg eller statistikvy loggas åtkomsten av säkerhetsskäl. Det är inte en kundaktivitet och räknas inte i statistikens verksamhetsmått. Välj kategorin Loggåtkomst om du vill se bara dessa händelser. Här finns också tekniska PDF-förberedelser; kundfliken visar enbart bekräftat genererade chefsrapport-PDF:er.
       {% else %}
-        <strong>What is audit access?</strong> When a platform admin opens an internal activity log or statistics view, access is recorded for security. This is not customer activity and is excluded from operational statistics. Filter by Audit access to inspect these events.
+        <strong>What is audit access?</strong> When a platform admin opens an internal activity log or statistics view, access is recorded for security. This is not customer activity and is excluded from operational statistics. Filter by Audit access to inspect these events. Technical PDF preparations also appear here; Customer activity displays only browser-confirmed manager report PDFs.
       {% endif %}
     </p>
 
