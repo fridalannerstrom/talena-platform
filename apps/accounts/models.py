@@ -89,6 +89,14 @@ class Company(models.Model):
         verbose_name="Organisationsnummer",
     )
 
+    # Visibility only: Sova's Integrity Guard remains active, ingested and stored.
+    # Platform admins can hide its status from Talena for this entire company.
+    integrity_guard_visible = models.BooleanField(
+        default=True,
+        verbose_name="Visa Integrity Guard i Talena",
+        help_text="Döljer endast Integrity Guard i Talenas gränssnitt, inte i Sova.",
+    )
+
     # ---------------------------------------------------------
     # Migration onboarding
     # ---------------------------------------------------------

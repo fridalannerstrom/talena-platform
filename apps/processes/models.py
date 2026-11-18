@@ -208,6 +208,13 @@ class TestInvitation(models.Model):
             extract_integrity_guard, integrity_guard_for_display,
         )
 
+        # Visibility is a company-owned Talena presentation choice only.
+        # Keep the persisted Sova result intact so admins can re-enable it.
+        # Never expose a summary or diagnostic when the company opted out.
+        if self.process_id and self.process.company_id:
+            if not self.process.company.integrity_guard_visible:
+                return {"visible": False, "state": "unknown", "entries": []}
+
         # Read the already-stored Sova callback for existing invitations:
         # older parser versions stored only the overall Guard status, although
         # the original webhook JSON contains per-diagnostic/per-test findings.

@@ -6,6 +6,23 @@ on:
       - main
 
 jobs:
+  integrity-guard-visibility:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Verify admin-only Integrity Guard visibility and Sova ingestion
+        env:
+          DJANGO_DEBUG: 'True'
+          DJANGO_SECRET_KEY: local-qa-only
+          USE_AZURE_STORAGE: '0'
+        run: python manage.py test apps.accounts.test_integrity_guard_visibility apps.core.test_sova_integrity_guard --noinput
+
   report-package-checks:
     runs-on: ubuntu-latest
     steps:

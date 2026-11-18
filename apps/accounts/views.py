@@ -1508,6 +1508,33 @@ def company_list(request):
 
 @login_required
 @admin_required
+@require_POST
+def company_integrity_guard_visibility(request, pk):
+    """Company-wide Talena-only visibility, writable by platform admins."""
+    # Staff permissions alone must not grant access to this setting.
+    if not (request.user.is_superuser or getattr(request.user, "role", "") == "admin"):
+        return HttpResponseForbidden("Not allowed")
+
+    company = get_object_or_404(Company, pk=pk)
+    value = request.POST.get("integrity_guard_visible")
+    if value not in ("0", "1"):
+        return HttpResponse("Invalid visibility value.", status=400)
+
+    visible = value == "1"
+    if company.integrity_guard_visible != visible:
+        company.integrity_guard_visible = visible
+        company.save(update_fields=["integrity_guard_visible"])
+
+    messages.success(
+        request,
+        "Integrity Guard is now shown in Talena for this company."
+        if visible else "Integrity Guard is now hidden in Talena for this company.",
+    )
+    return redirect("accounts:company_detail", pk=company.pk)
+
+
+@login_required
+@admin_required
 def company_detail(request, pk):
     company = get_object_or_404(Company, pk=pk)
 
