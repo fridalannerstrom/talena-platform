@@ -186,6 +186,8 @@ class EightSelectedTraitsProfileTests(SimpleTestCase):
 
         with self.assertRaises(forms.ValidationError):
             submitted(self.selected[:4])
+        with self.assertRaises(forms.ValidationError):
+            submitted(self.selected[:7] + [self.selected[0]])
         self.assertEqual(submitted(self.selected), self.selected)
         self.assertEqual(submitted([]), [])
 
