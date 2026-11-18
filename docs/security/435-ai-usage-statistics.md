@@ -139,6 +139,13 @@ ActivityEvent-tabell, inte nya datakällor eller nytt bakgrundsspårningssystem.
 - `admin_log_accessed` och `admin_log_exported` fortsätter att
   registreras som säkerhetsspårbarhet, men finns enbart i fliken Admin.
   De exkluderas fortfarande från verksamhets-KPI:erna.
+- `manager_report_pdf_prepared` är en teknisk förberedelse, inte en
+  färdig export. Den visas inte längre under Kundaktivitet eller i dess
+  CSV-export, men finns kvar under Admin för felsökning även när
+  förberedelsen hade en kundanvändare som aktör. Kundaktivitet visar
+  enbart `manager_report_pdf_generated` för en avslutad chefsrapport-PDF.
+  Preparationshändelser raderas eller omvandlas inte, och en förberedelse
+  som aldrig slutfördes ger inte något genereringsmått.
 
 Delningen beskriver händelsens registrerade sammanhang och ursprung,
 inte en fullständig klassificering av användarbeteende. Aktör som
