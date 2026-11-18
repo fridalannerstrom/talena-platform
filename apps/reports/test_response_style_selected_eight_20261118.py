@@ -1,6 +1,9 @@
 """#435 follow-up: both response-style views use exactly eight selected traits."""
+import json
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
+
+from django import forms
 from django.test import SimpleTestCase
 
 from apps.reports.libraries.personality.communication_guidance import (
@@ -170,3 +173,73 @@ class EightSelectedTraitsProfileTests(SimpleTestCase):
             source.count("selected_traits=project_response_style_trait_names(process)"),
             3,
         )
+
+    def test_role_context_form_blocks_partial_manual_selection(self):
+        from apps.processes.forms import ProcessRoleContextForm
+
+        def submitted(selected):
+            form = ProcessRoleContextForm(
+                data={"save_personality_traits": "1"},
+            )
+            form.cleaned_data = {"personality_question_traits": selected}
+            return form.clean_personality_question_traits()
+
+        with self.assertRaises(forms.ValidationError):
+            submitted(self.selected[:4])
+        self.assertEqual(submitted(self.selected), self.selected)
+        self.assertEqual(submitted([]), [])
+
+    def test_ai_project_recommendation_must_contain_eight(self):
+        from apps.processes.project_personality_trait_selection import (
+            _generate_and_store_project_selection,
+        )
+        role_context = SimpleNamespace(purpose_data={}, save=Mock())
+        context = {
+            "role_context": role_context,
+            "purpose_key": "hiring",
+            "purpose_label": "Recruitment",
+            "context_text": "Synthetic recruiter role",
+            "safe_context_text": "Synthetic recruiter role",
+        }
+        response = SimpleNamespace(choices=[
+            SimpleNamespace(message=SimpleNamespace(
+                content=json.dumps({"items": [
+                    {"name": name, "reason_sv": "Relevant", "reason_en": "Relevant"}
+                    for name in self.selected
+                ]}),
+            ))
+        ])
+        client = Mock()
+        client.chat.completions.create.return_value = response
+        with (
+            patch("apps.processes.project_personality_trait_selection."
+                  "get_ai_feature_prompt_instructions", return_value=""),
+            patch("apps.processes.project_personality_trait_selection."
+                  "get_openai_client", return_value=client),
+            patch("apps.processes.project_personality_trait_selection."
+                  "get_chat_model", return_value="fake-model"),
+        ):
+            items = _generate_and_store_project_selection(context)
+        self.assertEqual(len(items), 8)
+        self.assertEqual(len(set(item["name"] for item in items)), 8)
+        self.assertEqual(
+            len(role_context.purpose_data["hiring"][
+                "_personality_question_trait_selection"]["items"]), 8,
+        )
+
+        role_context.purpose_data = {}
+        response.choices[0].message.content = json.dumps({"items": [
+            {"name": name, "reason_sv": "", "reason_en": ""}
+            for name in self.selected[:7]
+        ]})
+        with (
+            patch("apps.processes.project_personality_trait_selection."
+                  "get_ai_feature_prompt_instructions", return_value=""),
+            patch("apps.processes.project_personality_trait_selection."
+                  "get_openai_client", return_value=client),
+            patch("apps.processes.project_personality_trait_selection."
+                  "get_chat_model", return_value="fake-model"),
+        ):
+            with self.assertRaisesRegex(ValueError, "exactly eight"):
+                _generate_and_store_project_selection(context)
+        self.assertEqual(role_context.purpose_data, {})
