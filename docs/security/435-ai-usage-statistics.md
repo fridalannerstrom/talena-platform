@@ -30,8 +30,12 @@ OpenAI-klient, bara för kodägda och godkända funktioner.
   heltal `prompt_tokens`, `completion_tokens` och `total_tokens`.
 - `company/process` endast om godkänd server-side owner/process/team
   finns i aktuell funktion; annars plattformsnivå, ej falskt kundattribuerat.
-- Ingen `candidate`, `invitation`, `actor`, prompts, svar, råa fel,
-  kandidatnamn, testpoäng, fritext, IP, URL eller tokens/secret.
+- För nya opt-in-anrop länkas `actor` till inloggad serverautentiserad
+  användare, och `candidate` endast när anropskoden har en sparad
+  `TestInvitation` som hör till samma projekt. Det är en intern
+  audit-referens, inte metadata från AI-modellen eller klienten.
+- Ingen `invitation`-FK, prompt, AI-svar, råa fel, kandidatnamn i `meta`,
+  testpoäng, fritext, IP, URL eller hemligheter sparas i AI-händelsen.
 
 ### Streaming
 
@@ -51,6 +55,15 @@ Endast plattformsadmin/superuser, serverkontroll på både HTML och CSV.
 Datumintervallet begränsas till 366 dagar för förutsägbar prestanda;
 SQL-aggregat används för KPI:er, funktioner och dagsserie. Grafen använder
 högst 32 datum-buckets. Endast kategorier som faktiskt loggats visas.
+
+En ny tabell **Enskilda AI-anrop** visar högst 25 händelser per sida med
+funktion, tidpunkt, företag, inloggad användare, kandidat, projekt, utfall
+och tillgängligt tokenantal. Sidan kan bläddras med de befintliga
+period-, företags- och funktionsfiltren. Urvalsbaserade relationer läses från
+FK-kolumner och förmedlas aldrig till kundvyn eller vanlig CSV-export.
+När gamla händelser saknar användare/kandidat visas streck, utan backfill
+eller felaktig attribution. Radering av kandidat rensar relevant FK-historik
+enligt den befintliga ActivityEvent-modellens relationspolicy.
 Event som aldrig loggats kan inte räknas som noll faktisk användning.
 Loggåtkomst/export markeras med befintliga `admin_log_accessed` /
 `admin_log_exported` och statiska scopes.
@@ -83,7 +96,9 @@ python manage.py test apps.activity.test_ai_statistics_435 apps.core.test_ai_pii
 
 Syntetiska regressioner provar: avstängd insamling, stream-events och
 usage-only chunk, avbruten stream, SDK-fel utan feltextläckage,
-saneringsblockering, separata tenant, otillåten adminåtkomst,
+saneringsblockering, verifierat kandidat- och aktörsursprung även för
+uppskjutna HTTP-strömmar, inget läckage mellan förfrågningar,
+paginering, separata tenant, otillåten adminåtkomst,
 aggregerad CSV och tomma/ogiltiga filter. Ingen extern OpenAI/Sova-anropning.
 
 ## Kvar på #435, #433 och #305
