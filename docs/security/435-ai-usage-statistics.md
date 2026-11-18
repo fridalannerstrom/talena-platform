@@ -62,14 +62,13 @@ Separat detaljerad audit-CSV fortsätter att tillhöra #434.
 ## Migreringskedja
 
 `activity.0008_platform_admin_audit_access`
-→ `activity.0009_manager_report_pdf_prepared_in_activity`
+→ `activity.0009_manager_report_pdf_prepared`
 → `activity.0010_ai_usage_verbs`.
 
-Den tidigare parallella `activity.0009_ai_usage_verbs` har tagits bort.
-Vid utveckling kan `0009_manager_report_pdf_prepared_in_activity.py`
-redan ha genererats lokalt utan att ha versionshanterats. Säkerhetskopiera
-den lokala filen utanför migreringsmappen före `git pull` om den är
-untracked, så att den nya spårade migrationsfilen kan hämtas.
+De felaktiga parallella migrationerna `0009_ai_usage_verbs` och
+`0009_manager_report_pdf_prepared_in_activity` har tagits bort från
+branchen. Vi återanvänder den ursprungliga chefsrapportmigrationen
+`0009_manager_report_pdf_prepared` som redan finns i repo.
 
 ## Säkerhet, tester och kontroll
 
