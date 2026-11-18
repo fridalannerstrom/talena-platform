@@ -243,7 +243,7 @@ class ScopedRemovalTests(TestCase):
             reverse(
                 "accounts:company_process_detail",
                 args=[self.company.pk, self.project.pk],
-            ),
+            ) + "?admin_tools=1",
         )
         for url in urls:
             with self.subTest(url=url):
