@@ -1372,7 +1372,7 @@ def admin_process_detail(request, pk):
     invitations = (
         TestInvitation.objects
         .filter(process=process, removed_from_process_at__isnull=True)
-        .select_related("candidate")
+        .select_related("candidate", "process__company")
         .prefetch_related("assessment_usages")
         .order_by("-created_at")
     )
@@ -2701,7 +2701,7 @@ def admin_process_invitation_statuses(request, pk):
     qs = (
         TestInvitation.objects
         .filter(process=process, removed_from_process_at__isnull=True)
-        .select_related("candidate")
+        .select_related("candidate", "process__company")
         .prefetch_related("assessment_usages")
         .order_by("created_at")
     )
@@ -3003,7 +3003,7 @@ def company_process_detail(request, company_pk, process_pk):
     invitations = (
         TestInvitation.objects
         .filter(process=process, removed_from_process_at__isnull=True)
-        .select_related("candidate")
+        .select_related("candidate", "process__company")
         .prefetch_related("assessment_usages")
         .order_by("-created_at")
     )

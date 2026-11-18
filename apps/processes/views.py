@@ -6960,7 +6960,7 @@ def process_detail(request, pk):
         invitations = (
             process.invitations
             .filter(removed_from_process_at__isnull=True)
-            .select_related("candidate")
+            .select_related("candidate", "process__company")
             .prefetch_related("assessment_usages")
             .order_by("-created_at")
         )
@@ -7686,7 +7686,7 @@ def process_candidate_detail(request, process_id, candidate_id):
 
     else:
         invitation = get_object_or_404(
-            TestInvitation.objects.select_related("candidate"),
+            TestInvitation.objects.select_related("candidate", "process__company"),
             process=process,
             candidate_id=candidate_id,
         )
