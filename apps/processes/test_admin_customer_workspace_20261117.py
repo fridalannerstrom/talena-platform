@@ -74,6 +74,48 @@ class AdminCustomerWorkspaceTests(TestCase):
             args=[self.process.pk, self.candidate.pk],
         )
 
+    def test_admin_project_links_open_shared_workspace_by_default(self):
+        self.client.force_login(self.admin)
+        admin_project_url = reverse(
+            "accounts:company_process_detail",
+            args=[self.company.pk, self.process.pk],
+        )
+        response = self.client.get(admin_project_url)
+        self.assertRedirects(response, self.detail_url, fetch_redirect_response=False)
+
+        response = self.client.get(self.detail_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "admin_tools=1")
+        self.assertContains(response, reverse(
+            "accounts:company_processes", args=[self.company.pk],
+        ))
+
+    def test_admin_can_still_open_internal_project_tools(self):
+        self.client.force_login(self.admin)
+        admin_project_url = reverse(
+            "accounts:company_process_detail",
+            args=[self.company.pk, self.process.pk],
+        )
+        response = self.client.get(admin_project_url + "?admin_tools=1")
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(
+            response, "admin/accounts/companies/company_process_detail.html"
+        )
+        self.assertContains(response, self.detail_url)
+        self.assertContains(response, "talena-admin")
+
+    def test_customer_cannot_open_internal_admin_tools(self):
+        self.client.force_login(self.customer)
+        admin_project_url = reverse(
+            "accounts:company_process_detail",
+            args=[self.company.pk, self.process.pk],
+        )
+        for path in (admin_project_url, admin_project_url + "?admin_tools=1"):
+            with self.subTest(path=path):
+                response = self.client.get(path)
+                self.assertIn(response.status_code, (302, 403, 404))
+                self.assertNotEqual(response.get("Location"), self.detail_url)
+
     def test_admin_without_company_membership_gets_real_customer_workspace(self):
         self.assertFalse(CompanyMember.objects.filter(user=self.admin).exists())
         self.client.force_login(self.admin)
