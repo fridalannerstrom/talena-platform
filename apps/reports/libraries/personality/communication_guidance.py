@@ -9,11 +9,12 @@ from typing import Any
 from apps.reports.libraries.personality.definitions import (
     TRAIT_AND_INDICATOR_PROFILE,
 )
+from apps.core.ai.personality_ai_evidence import canonical_parent_trait_name
 
 
-PROFILE_MIDDLE_THRESHOLD = 10
-PROFILE_CLEAR_THRESHOLD = 9
-MINIMUM_EXPECTED_COVERAGE = 0.5
+REQUIRED_PROFILE_TRAITS = 8
+PROFILE_MIDDLE_THRESHOLD = 4
+PROFILE_CLEAR_THRESHOLD = 5
 
 _MIDDLE_PROFILE_TEXT = (
     "Profilen tyder på att personens beteende till stor del beror på situationen. "
@@ -311,8 +312,14 @@ def build_static_communication_guidance(
     response_styles: list[dict[str, Any]] | None,
     *,
     language: str = "sv",
+    selected_traits: list[str] | None = None,
 ) -> dict[str, Any]:
-    """Build fixed localized profile and response-style copy without AI."""
+    """Classify only the eight project-selected parent traits, without AI.
+
+    No profile classification is made if the role selection is missing,
+    partial, duplicated, or lacks any of its eight assessment scores.
+    Social desirability remains a separate Sova response-style indicator.
+    """
     language_key = "sv" if str(language or "").lower().startswith("sv") else "en"
     middle_profile_text = (
         _MIDDLE_PROFILE_TEXT if language_key == "sv" else _MIDDLE_PROFILE_TEXT_EN
@@ -321,18 +328,30 @@ def build_static_communication_guidance(
         _CLEAR_PROFILE_TEXT if language_key == "sv" else _CLEAR_PROFILE_TEXT_EN
     )
 
-    scores = _available_trait_scores(personality_profile)
-    expected_count = len(_expected_trait_keys())
-    minimum_coverage = math.ceil(expected_count * MINIMUM_EXPECTED_COVERAGE)
-    middle_count = sum(4 <= score <= 7 for _, score in scores)
-    clear_count = sum(score <= 3 or score >= 8 for _, score in scores)
+    selected_keys = [
+        _normalise_key(canonical_parent_trait_name(trait))
+        for trait in (selected_traits or [])
+    ]
+    selection_valid = (
+        len(selected_keys) == REQUIRED_PROFILE_TRAITS
+        and len(set(selected_keys)) == REQUIRED_PROFILE_TRAITS
+        and all(key in _expected_trait_keys() for key in selected_keys)
+    )
+    available = dict(_available_trait_scores(personality_profile))
+    scores = (
+        [available[key] for key in selected_keys if key in available]
+        if selection_valid else []
+    )
+    complete = selection_valid and len(scores) == REQUIRED_PROFILE_TRAITS
+    middle_count = sum(4 <= score <= 7 for score in scores)
+    clear_count = sum(score <= 3 or score >= 8 for score in scores)
 
     profile_status = "unavailable"
     profile_title = ""
     profile_interpretation = ""
     profile_tips: list[str] = []
 
-    if len(scores) >= minimum_coverage and middle_count >= PROFILE_MIDDLE_THRESHOLD:
+    if complete and middle_count >= PROFILE_MIDDLE_THRESHOLD:
         profile_status = "middle"
         profile_title = (
             "Situationsbaserad profil"
@@ -348,7 +367,7 @@ def build_static_communication_guidance(
             ("Utforska " if language_key == "sv" else "Explore ") + middle_follow_up,
             middle_profile_text[1],
         ]
-    elif len(scores) >= minimum_coverage and clear_count >= PROFILE_CLEAR_THRESHOLD:
+    elif complete and clear_count >= PROFILE_CLEAR_THRESHOLD:
         profile_status = "clear"
         profile_title = "Tydlig profil" if language_key == "sv" else "Clear profile"
         profile_interpretation = clear_profile_text[0]
@@ -369,6 +388,9 @@ def build_static_communication_guidance(
         ),
         "available": profile_status != "unavailable" or bool(social_text),
         "available_trait_count": len(scores),
+        "selected_trait_count": len(selected_keys),
+        "required_trait_count": REQUIRED_PROFILE_TRAITS,
+        "profile_selection_complete": bool(complete),
         "middle_trait_count": middle_count,
         "clear_trait_count": clear_count,
     }
