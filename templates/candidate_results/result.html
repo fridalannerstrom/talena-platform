@@ -702,7 +702,8 @@
   </style>
 </head>
 <body>
-  <main class="page-shell" {% if preview %}data-candidate-result-internal-preview{% endif %}>
+  <main class="page-shell" {% if preview %}data-candidate-result-internal-preview
+    data-report-export-receipt-url="{% url 'processes:process_candidate_report_export_receipt' process.id candidate.id %}"{% endif %}>
     <header class="site-header">
       <img class="brand-logo" src="{% static 'images/talena-logo.svg' %}" alt="Talena">
       <div class="language-chip" aria-label="{% if locale|slice:':2' == 'sv' %}Svenska{% else %}English{% endif %}">
@@ -957,7 +958,8 @@
 
   {% if preview %}
     <script src="{% static 'js/talena/pdf-export-core.js' %}"></script>
-    <script src="{% static 'js/talena/candidate-result-internal-pdf.js' %}"></script>
+    <script src="{% static 'js/talena/report-export-activity.js' %}?v=20261118-435-1"></script>
+    <script src="{% static 'js/talena/candidate-result-internal-pdf.js' %}?v=20261118-435-1"></script>
   {% endif %}
   <script>
     const feedbackDialogs = document.querySelectorAll(".feedback-dialog");
