@@ -143,3 +143,19 @@ class PlatformActivityLogTests(TestCase):
             ActivityEvent.objects.filter(verb=ActivityEvent.Verb.ADMIN_LOG_ACCESSED).count(),
             1,
         )
+
+    def test_ai_events_are_labelled_and_log_access_is_explained(self):
+        ActivityEvent.objects.create(
+            company=self.company_a,
+            verb=ActivityEvent.Verb.AI_CALL_SUCCEEDED,
+            meta={"schema": 1, "feature": "overall_picture"},
+        )
+        self.client.force_login(self.platform_admin)
+        response = self.client.get(self.list_url, HTTP_ACCEPT_LANGUAGE="sv")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Vad är loggåtkomst?")
+        self.assertContains(response, "AI-anrop")
+        ai_rows = [row for row in response.context["events"]
+                   if row["verb"] == ActivityEvent.Verb.AI_CALL_SUCCEEDED]
+        self.assertEqual(len(ai_rows), 1)
+        self.assertEqual(ai_rows[0]["category"], "ai")
