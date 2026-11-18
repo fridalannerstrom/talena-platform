@@ -22,7 +22,7 @@ from apps.processes.services.access import get_accessible_processes_for_user
 from apps.teams.views import _team_visibility_queryset
 
 CANDIDATE_REPORT_TYPES = frozenset({
-    "overview",
+    "overview", "candidate-static-report",
     "personality-results", "personality-interpretation",
     "personality-questions", "personality-candidate-reflection",
     "motivation-results", "motivation-interpretation",
