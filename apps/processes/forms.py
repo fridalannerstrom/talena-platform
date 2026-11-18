@@ -365,9 +365,9 @@ class ProcessRoleContextForm(forms.ModelForm):
         # deliberately chooses the separate Talena-recommended eight-trait
         # mode. Context-only saves must not invalidate old selections.
         if "save_personality_traits" in self.data:
-            if selected and len(selected) != 8:
+            if selected and (len(selected) != 8 or len(set(selected)) != 8):
                 raise forms.ValidationError(
-                    _("Choose exactly eight personality traits.")
+                    _("Choose exactly eight distinct personality traits.")
                 )
         elif len(selected) > 8:
             raise forms.ValidationError(
