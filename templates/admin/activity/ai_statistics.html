@@ -1,22 +1,22 @@
 {% extends "admin/core/layouts/admin_base.html" %}
 {% load static i18n %}
 {% get_current_language as LANG %}
-{% block title %}AI-statistik · Talena{% endblock %}
+{% block title %}Statistik · Talena{% endblock %}
 {% block extra_css %}
   {{ block.super }}
-  <link href="{% static 'css/talena/pages/admin-ai-statistics.css' %}?v=20261118-435b" rel="stylesheet">
+  <link href="{% static 'css/talena/pages/admin-ai-statistics.css' %}?v=20261118-435c" rel="stylesheet">
 {% endblock %}
 {% block content %}
 <div class="talena-ai-stats">
   <div class="talena-ai-stats__top">
     <div>
       <div class="talena-ai-stats__eyebrow"><i data-feather="bar-chart-2" aria-hidden="true"></i> TALENA · ADMIN</div>
-      <h1>{% if LANG|slice:":2" == "sv" %}AI-statistik{% else %}AI statistics{% endif %}</h1>
-      <p>{% if LANG|slice:":2" == "sv" %}Verkliga OpenAI-anrop, aggregerade per funktion och period. Inga kandidattexter lagras här.{% else %}Actual OpenAI provider calls aggregated by feature and period. No candidate text is stored here.{% endif %}</p>
+      <h1>{% if LANG|slice:":2" == "sv" %}Talena-statistik{% else %}Talena statistics{% endif %}</h1>
+      <p>{% if LANG|slice:":2" == "sv" %}Verksamhetsaktivitet och AI-användning baserad på faktiska registrerade händelser. Inga testresultat eller kandidattexter ingår i statistiken.{% else %}Operational activity and AI usage based on actual recorded events. No assessment results or candidate text are included in the statistics.{% endif %}</p>
     </div>
     <a href="{% url 'core:admin_ai_statistics_export' %}?{{ request.GET.urlencode }}" class="btn btn-outline-dark">
       <i data-feather="download" aria-hidden="true"></i>
-      {% if LANG|slice:":2" == "sv" %}Exportera aggregerad CSV{% else %}Export aggregate CSV{% endif %}
+      {% if LANG|slice:":2" == "sv" %}Exportera AI-statistik (CSV){% else %}Export AI usage (CSV){% endif %}
     </a>
   </div>
 
@@ -46,7 +46,7 @@
         {% endfor %}
       </select>
     </label>
-    <label>{% if LANG|slice:":2" == "sv" %}AI-funktion{% else %}AI feature{% endif %}
+    <label>{% if LANG|slice:":2" == "sv" %}AI-funktion (endast AI){% else %}AI feature (AI only){% endif %}
       <select class="form-select" name="feature">
         <option value="">{% if LANG|slice:":2" == "sv" %}Alla funktioner{% else %}All features{% endif %}</option>
         {% for code, label in features.items %}
@@ -56,6 +56,88 @@
     </label>
     <button class="btn btn-dark" type="submit">{% if LANG|slice:":2" == "sv" %}Visa statistik{% else %}Apply filters{% endif %}</button>
   </form>
+
+  <section class="talena-ai-stats__operational" aria-label="{% if LANG|slice:":2" == "sv" %}Verksamhetsaktivitet{% else %}Operational activity{% endif %}">
+    <div class="talena-ai-stats__section-heading">
+      <div>
+        <div class="talena-ai-stats__section-eyebrow">{% if LANG|slice:":2" == "sv" %}REGISTRERADE HÄNDELSER{% else %}RECORDED EVENTS{% endif %}</div>
+        <h2>{% if LANG|slice:":2" == "sv" %}Verksamhetsaktivitet{% else %}Operational activity{% endif %}</h2>
+        <p>{% if LANG|slice:":2" == "sv" %}Siffrorna räknas från den befintliga aktivitetsloggen och sparade chefsrapportredigeringar. Intern loggåtkomst, AI-leverantörsanrop och enbart förberedda PDF:er ingår inte. Organisations- och datumfilter gäller här.{% else %}Figures come from the existing activity log and saved manager-report text edits. Internal audit access, AI provider calls and PDF preparations are excluded. Organisation and date filters apply here.{% endif %}</p>
+      </div>
+      <a href="{% url 'core:admin_activity_log' %}" class="talena-ai-stats__log-link">
+        {% if LANG|slice:":2" == "sv" %}Visa aktivitetslogg{% else %}Open activity log{% endif %}
+        <i data-feather="external-link" aria-hidden="true"></i>
+      </a>
+    </div>
+    <div class="talena-ai-stats__metrics talena-ai-stats__operational-metrics">
+      <div class="talena-ai-stats__metric">
+        <span>{% if LANG|slice:":2" == "sv" %}Företag med aktivitet{% else %}Companies with activity{% endif %}</span>
+        <strong>{{ operational.totals.companies }}</strong>
+        <small>{% if LANG|slice:":2" == "sv" %}Unika företag med registrerad händelse{% else %}Distinct companies with a recorded event{% endif %}</small>
+      </div>
+      <div class="talena-ai-stats__metric">
+        <span>{% if LANG|slice:":2" == "sv" %}Projekt med aktivitet{% else %}Projects with activity{% endif %}</span>
+        <strong>{{ operational.totals.projects }}</strong>
+        <small>{% if LANG|slice:":2" == "sv" %}Unika projekt i aktivitetsloggen{% else %}Distinct projects in the activity log{% endif %}</small>
+      </div>
+      <div class="talena-ai-stats__metric">
+        <span>{% if LANG|slice:":2" == "sv" %}Skickade inbjudningar{% else %}Invitations sent{% endif %}</span>
+        <strong>{{ operational.totals.invitations }}</strong>
+        <small>{% if LANG|slice:":2" == "sv" %}Registrerade utskickshändelser{% else %}Recorded invitation events{% endif %}</small>
+      </div>
+      <div class="talena-ai-stats__metric">
+        <span>{% if LANG|slice:":2" == "sv" %}Slutförda tester{% else %}Completed assessments{% endif %}</span>
+        <strong>{{ operational.totals.assessments_completed }}</strong>
+        <small>{% if LANG|slice:":2" == "sv" %}Registrerade slutförandehändelser{% else %}Recorded completion events{% endif %}</small>
+      </div>
+      <div class="talena-ai-stats__metric">
+        <span>{% if LANG|slice:":2" == "sv" %}Kandidatrapport öppnad{% else %}Candidate report opens{% endif %}</span>
+        <strong>{{ operational.totals.candidate_report_opens }}</strong>
+        <small>{% if LANG|slice:":2" == "sv" %}Öppningshändelser, inte bevis för läsning{% else %}Open events, not proof of reading{% endif %}</small>
+      </div>
+      <div class="talena-ai-stats__metric">
+        <span>{% if LANG|slice:":2" == "sv" %}Chefsrapport PDF{% else %}Manager report PDFs{% endif %}</span>
+        <strong>{{ operational.totals.confirmed_manager_pdfs }}</strong>
+        <small>{% if LANG|slice:":2" == "sv" %}Webbläsarbekräftad generering{% else %}Browser-confirmed generation{% endif %}</small>
+      </div>
+      <div class="talena-ai-stats__metric">
+        <span>{% if LANG|slice:":2" == "sv" %}Sparade textredigeringar{% else %}Saved text edits{% endif %}</span>
+        <strong>{{ operational.totals.manager_text_edits }}</strong>
+        <small>{% if LANG|slice:":2" == "sv" %}Chefsrapport, inte en granskningskvittens{% else %}Manager report, not a review confirmation{% endif %}</small>
+      </div>
+      <div class="talena-ai-stats__metric">
+        <span>{% if LANG|slice:":2" == "sv" %}Verksamhetshändelser{% else %}Operational events{% endif %}</span>
+        <strong>{{ operational.totals.events }}</strong>
+        <small>{% if LANG|slice:":2" == "sv" %}Endast stödda händelsetyper{% else %}Supported event types only{% endif %}</small>
+      </div>
+    </div>
+    <div class="talena-ai-stats__panel talena-ai-stats__operational-chart">
+      <div class="talena-ai-stats__panel-heading">
+        <h3>{% if LANG|slice:":2" == "sv" %}Registrerade aktiviteter per kategori{% else %}Recorded activity by category{% endif %}</h3>
+        <span>{{ start|date:"Y-m-d" }} – {{ end|date:"Y-m-d" }}</span>
+      </div>
+      <div class="talena-ai-stats__category-list">
+        {% for category in operational.categories %}
+          <div class="talena-ai-stats__category-row">
+            <span>{{ category.name }}</span>
+            <div class="talena-ai-stats__category-track">
+              <div class="talena-ai-stats__category-fill" style="width:{{ category.width }}%"></div>
+            </div>
+            <strong>{{ category.count }}</strong>
+          </div>
+        {% endfor %}
+      </div>
+      <p class="talena-ai-stats__footnote">{% if LANG|slice:":2" == "sv" %}Detta mäter bara händelser som Talena har loggat. Mänsklig granskning och Sova-integrationsfel saknar ännu komplett instrumentering; ett saknat mått betyder inte noll faktisk aktivitet.{% else %}These numbers cover only events Talena has recorded. Human review confirmations and Sova integration errors are not fully instrumented yet; missing measurements do not mean zero real activity.{% endif %}</p>
+    </div>
+  </section>
+
+  <div class="talena-ai-stats__section-heading talena-ai-stats__ai-heading">
+    <div>
+      <div class="talena-ai-stats__section-eyebrow">{% if LANG|slice:":2" == "sv" %}OPENAI-ANVÄNDNING{% else %}OPENAI USAGE{% endif %}</div>
+      <h2>{% if LANG|slice:":2" == "sv" %}AI-statistik{% else %}AI statistics{% endif %}</h2>
+      <p>{% if LANG|slice:":2" == "sv" %}Anrop till OpenAI. Här gäller även filtret för AI-funktion.{% else %}OpenAI provider calls. The AI feature filter applies to this section too.{% endif %}</p>
+    </div>
+  </div>
 
   <div class="talena-ai-stats__metrics">
     <div class="talena-ai-stats__metric">
