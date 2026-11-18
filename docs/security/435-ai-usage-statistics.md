@@ -117,6 +117,33 @@ ska inte visas som noll utfall utan som ej färdigmätta.
 om att alla händelsetyper instrumenterats sedan dess. Gamla, oregistrerade
 handlingar kan inte räknas i efterhand.
 
+## Aktivitetsloggens två flikar (2026-11-18)
+
+Admin → Aktivitetslogg öppnar nu **Kundaktivitet** som standard och har en
+separat **Admin**-flik. Detta är två serverfiltrerade vyer över samma
+ActivityEvent-tabell, inte nya datakällor eller nytt bakgrundsspårningssystem.
+
+- **Kundaktivitet:** händelser knutna till ett kundföretag, utförda av en
+  kundanvändare eller registrerade automatiskt/av kandidatportalen utan aktör.
+  Plattformadmins handlingar hos en kund visas **inte** här när aktören är
+  känd. Användare som tagits bort går inte att klassificera i efterhand;
+  sådana händelser med kundkoppling behandlas som kundrelaterade och märks
+  fortfarande som okänd/tidigare aktör.
+- **Admin:** interna loggåtkomster/exporter och plattformshändelser utan
+  kundkoppling, plus händelser som initierats av plattformsadmin,
+  inklusive adminåtgärder kopplade till ett kundprojekt.
+- Tabbyte behåller ett eventuellt datumintervall men återställer övriga
+  filter så att kundfilter inte gömmer plattformsloggar av misstag.
+  Datum-, organisations-, aktörs- och händelsefilter, paginering och
+  **CSV-exporten** använder alla samma serverbestämda flikgräns.
+- `admin_log_accessed` och `admin_log_exported` fortsätter att
+  registreras som säkerhetsspårbarhet, men finns enbart i fliken Admin.
+  De exkluderas fortfarande från verksamhets-KPI:erna.
+
+Delningen beskriver händelsens registrerade sammanhang och ursprung,
+inte en fullständig klassificering av användarbeteende. Aktör som
+saknas kan inte rekonstrueras säkert i efterhand.
+
 ## Migreringskedja
 
 `activity.0008_platform_admin_audit_access`
