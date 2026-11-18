@@ -21,11 +21,12 @@ class AIPiiMaskingNoticeMiddleware:
         self.get_response = get_response
 
     @classmethod
-    def _stream_events(cls, source, state):
+    def _stream_events(cls, source, state, actor_id=None):
         from apps.core.ai.privacy_notice import privacy_request_scope
+        from apps.core.ai.usage_metrics import ai_usage_actor_scope
 
         sent = False
-        with privacy_request_scope(state):
+        with privacy_request_scope(state), ai_usage_actor_scope(actor_id):
             for chunk in source:
                 if state.masked_sent and not sent:
                     sent = True
@@ -35,11 +36,12 @@ class AIPiiMaskingNoticeMiddleware:
                 yield cls.EVENT
 
     @classmethod
-    async def _async_stream_events(cls, source, state):
+    async def _async_stream_events(cls, source, state, actor_id=None):
         from apps.core.ai.privacy_notice import privacy_request_scope
+        from apps.core.ai.usage_metrics import ai_usage_actor_scope
 
         sent = False
-        with privacy_request_scope(state):
+        with privacy_request_scope(state), ai_usage_actor_scope(actor_id):
             async for chunk in source:
                 if state.masked_sent and not sent:
                     sent = True
@@ -48,28 +50,52 @@ class AIPiiMaskingNoticeMiddleware:
             if state.masked_sent and not sent:
                 yield cls.EVENT
 
+    @staticmethod
+    def _stream_with_actor(source, actor_id):
+        from apps.core.ai.usage_metrics import ai_usage_actor_scope
+        with ai_usage_actor_scope(actor_id):
+            yield from source
+
+    @staticmethod
+    async def _async_stream_with_actor(source, actor_id):
+        from apps.core.ai.usage_metrics import ai_usage_actor_scope
+        with ai_usage_actor_scope(actor_id):
+            async for chunk in source:
+                yield chunk
+
     def __call__(self, request):
         from apps.core.ai.privacy_notice import (
             PrivacyRequestState,
             privacy_request_scope,
         )
+        from apps.core.ai.usage_metrics import ai_usage_actor_scope, usage_logging_enabled
 
+        # AuthenticationMiddleware runs first. Never obtain attribution from
+        # a URL, client payload, cookie string, or a generated AI response.
+        user = getattr(request, "user", None)
+        actor_id = (
+            user.pk if user is not None and user.is_authenticated and user.is_active
+            else None
+        ) if usage_logging_enabled() else None
         state = PrivacyRequestState()
-        with privacy_request_scope(state):
+        with privacy_request_scope(state), ai_usage_actor_scope(actor_id):
             response = self.get_response(request)
 
-        if response.streaming and response.get("Content-Type", "").startswith(
-            "application/x-ndjson"
-        ):
+        if response.streaming:
             original_stream = response.streaming_content
+            is_ndjson = response.get("Content-Type", "").startswith("application/x-ndjson")
             if response.is_async:
-                response.streaming_content = self._async_stream_events(
-                    original_stream, state
+                response.streaming_content = (
+                    self._async_stream_events(original_stream, state, actor_id)
+                    if is_ndjson
+                    else self._async_stream_with_actor(original_stream, actor_id)
                 )
             else:
-                response.streaming_content = self._stream_events(
-                    original_stream, state
+                response.streaming_content = (
+                    self._stream_events(original_stream, state, actor_id)
+                    if is_ndjson
+                    else self._stream_with_actor(original_stream, actor_id)
                 )
-        elif not response.streaming and state.masked_sent:
+        elif state.masked_sent:
             response[self.HEADER] = "1"
         return response
