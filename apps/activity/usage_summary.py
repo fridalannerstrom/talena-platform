@@ -99,6 +99,7 @@ def platform_activity_summary(*, start, end, company=None, english=False):
 # as a label, and never expose filenames or subject identities.
 REPORT_LABELS = {
     "overview": ("Överblick", "Overview"),
+    "candidate-static-report": ("Kandidatrapport", "Candidate report"),
     "personality-results": ("Personlighet · Resultat", "Personality · Results"),
     "personality-interpretation": ("Personlighet · AI-tolkning", "Personality · AI interpretation"),
     "personality-questions": ("Personlighet · Frågor", "Personality · Questions"),
