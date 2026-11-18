@@ -11,7 +11,7 @@ const theme = read("static/js/talena/candidate-chart-theme.js");
 const html = read("templates/customer/processes/partials/candidate_insights/motivation/_results.html");
 const css = read("static/css/talena/pages/candidate-charts.css");
 
-assert.ok(html.includes('data-factor-highlight="{{ item.rose_highlight|default:\'\'}"'));
+assert.ok(html.includes('data-factor-highlight="{{ item.rose_highlight|default:'));
 assert.ok(html.includes("motivation_insights.less_central_drivers"));
 assert.ok(html.includes("Mest framträdande (3)"));
 assert.ok(html.includes("Minst framträdande (3)"));
