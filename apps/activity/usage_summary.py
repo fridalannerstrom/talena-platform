@@ -20,7 +20,7 @@ ACTIVITY_VERBS = frozenset().union(
     CATEGORIES["candidate"],
     CATEGORIES["portal"],
     CATEGORIES["organisation"],
-    {"manager_report_pdf_generated"},
+    {"manager_report_pdf_generated", "report_export_generated"},
 )
 CATEGORIZED_VERBS = (
     ("projects", "Projekt och organisationer", "Projects & organisations",
@@ -29,8 +29,8 @@ CATEGORIZED_VERBS = (
      frozenset(CATEGORIES["candidate"])),
     ("portal", "Kandidatportal", "Candidate portal",
      frozenset(CATEGORIES["portal"])),
-    ("exports", "Bekräftade chefsrapport-PDF", "Confirmed manager report PDFs",
-     frozenset({"manager_report_pdf_generated"})),
+    ("exports", "Webbläsarbekräftade rapportfiler", "Browser-reported report files",
+     frozenset({"manager_report_pdf_generated", "report_export_generated"})),
 )
 
 
@@ -73,6 +73,9 @@ def platform_activity_summary(*, start, end, company=None, english=False):
         confirmed_manager_pdfs=Count(
             "pk", filter=Q(verb=ActivityEvent.Verb.MANAGER_REPORT_PDF_GENERATED),
         ),
+        report_export_receipts=Count(
+            "pk", filter=Q(verb=ActivityEvent.Verb.REPORT_EXPORT_GENERATED),
+        ),
     )
     summary["manager_text_edits"] = edits.count()
 
@@ -90,3 +93,79 @@ def platform_activity_summary(*, start, end, company=None, english=False):
     for row in rows:
         row["width"] = round(100 * row["count"] / peak) if peak else 0
     return {"totals": summary, "categories": rows}
+
+
+# Static, code-owned report names. Never render arbitrary report_type from JSON
+# as a label, and never expose filenames or subject identities.
+REPORT_LABELS = {
+    "overview": ("Överblick", "Overview"),
+    "personality-results": ("Personlighet · Resultat", "Personality · Results"),
+    "personality-interpretation": ("Personlighet · AI-tolkning", "Personality · AI interpretation"),
+    "personality-questions": ("Personlighet · Frågor", "Personality · Questions"),
+    "personality-candidate-reflection": ("Personlighet · Reflektioner", "Personality · Reflections"),
+    "motivation-results": ("Motivation · Resultat", "Motivation · Results"),
+    "motivation-interpretation": ("Motivation · AI-tolkning", "Motivation · AI interpretation"),
+    "motivation-questions": ("Motivation · Frågor", "Motivation · Questions"),
+    "motivation-candidate-reflection": ("Motivation · Reflektioner", "Motivation · Reflections"),
+    "cognitive-results": ("Färdighet · Resultat", "Ability · Results"),
+    "cognitive-interpretation": ("Färdighet · AI-tolkning", "Ability · AI interpretation"),
+    "cognitive-questions": ("Färdighet · Frågor", "Ability · Questions"),
+    "cognitive-candidate-reflection": ("Färdighet · Reflektioner", "Ability · Reflections"),
+    "team-report": ("Individuell teamprofil", "Individual team profile"),
+    "leadership-report": ("Ledarskapsrapport", "Leadership report"),
+    "derailment-report": ("Urspårningsrapport", "Derailment report"),
+    "prepare-interview": ("Inför intervju", "Before interview"),
+    "after-overview": ("Helhetsbild", "Overall picture"),
+    "after-interview": ("Intervjusammanfattning", "Interview summary"),
+    "manager-report": ("Chefsrapport", "Manager report"),
+    "candidate-package-pdf": ("Kandidatpaket · sammanslagen PDF", "Candidate package · merged PDF"),
+    "candidate-package-zip": ("Kandidatpaket · ZIP", "Candidate package · ZIP"),
+    "team-overview": ("Teamrapport", "Team report"),
+    "team-profile": ("Individuell teamprofil · team", "Individual team profile · team"),
+    "team-profiles-zip": ("Alla teamprofiler · ZIP", "All team profiles · ZIP"),
+    "team-package-pdf": ("Teamrapporter · sammanslagen PDF", "Team reports · merged PDF"),
+    "team-package-zip": ("Teamrapporter · ZIP", "Team reports · ZIP"),
+}
+
+
+def platform_report_exports(*, start, end, company=None, english=False):
+    """Counts browser-reported file preparations, not verified local downloads.
+
+    Distinguish prior dedicated Chefsrapport receipts, PDF vs ZIP and one
+    successful *package* from any constituent PDF blobs.
+    """
+    begin = timezone.make_aware(datetime.combine(start, time.min))
+    until = timezone.make_aware(datetime.combine(end + timedelta(days=1), time.min))
+    qs = ActivityEvent.objects.filter(
+        created_at__gte=begin, created_at__lt=until,
+        verb__in=[
+            ActivityEvent.Verb.MANAGER_REPORT_PDF_GENERATED,
+            ActivityEvent.Verb.REPORT_EXPORT_GENERATED,
+        ],
+    )
+    if company is not None:
+        qs = qs.filter(company_id=company)
+    grouped = qs.values("verb", "meta__report_type").annotate(count=Count("pk"))
+    by_report = {}
+    for item in grouped:
+        code = ("manager-report"
+                if item["verb"] == ActivityEvent.Verb.MANAGER_REPORT_PDF_GENERATED
+                else item["meta__report_type"])
+        if code not in REPORT_LABELS:
+            continue
+        by_report[code] = by_report.get(code, 0) + item["count"]
+    rows = []
+    for code, count in by_report.items():
+        name_sv, name_en = REPORT_LABELS[code]
+        rows.append({
+            "code": code, "label": name_en if english else name_sv,
+            "format": "ZIP" if code.endswith("-zip") else "PDF",
+            "count": count,
+        })
+    rows.sort(key=lambda row: (-row["count"], row["label"]))
+    pdf_count = sum(row["count"] for row in rows if row["format"] == "PDF")
+    zip_count = sum(row["count"] for row in rows if row["format"] == "ZIP")
+    return {
+        "total": pdf_count + zip_count,
+        "pdf": pdf_count, "zip": zip_count, "rows": rows,
+    }
