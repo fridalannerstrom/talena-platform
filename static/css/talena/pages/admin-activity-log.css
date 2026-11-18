@@ -58,3 +58,11 @@
   .talena-audit__filters {padding:16px;}
   .talena-audit__panel-heading {padding:15px;}
 }
+
+
+/* Explain internal access audit events without visually competing with the log. */
+.talena-audit__explain{display:flex;align-items:flex-start;gap:.65rem;font-size:.78rem;line-height:1.6;color:#6e7785;background:#faf8f6;border-bottom:1px solid #eee9e5;padding:.85rem 1.4rem;margin:0}
+.talena-audit__explain strong{color:#485363}
+.talena-audit__explain svg{width:15px;height:15px;flex:0 0 15px;margin-top:2px;color:var(--talena-coral-strong,#cf5950)}
+.talena-audit__category.is-ai{color:#9c4f43;background:#fff1ee}
+.talena-audit__category.is-reports{color:#41675b;background:#ecf7f1}
