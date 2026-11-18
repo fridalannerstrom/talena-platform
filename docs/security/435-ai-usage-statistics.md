@@ -59,6 +59,18 @@ CSV innehåller bara period, featurekod, antal per providerutfall och
 rapporterade tokens. Inga namn, aktörer eller kandidat-/projekt-ID:n.
 Separat detaljerad audit-CSV fortsätter att tillhöra #434.
 
+## Migreringskedja
+
+`activity.0008_platform_admin_audit_access`
+→ `activity.0009_manager_report_pdf_prepared_in_activity`
+→ `activity.0010_ai_usage_verbs`.
+
+Den tidigare parallella `activity.0009_ai_usage_verbs` har tagits bort.
+Vid utveckling kan `0009_manager_report_pdf_prepared_in_activity.py`
+redan ha genererats lokalt utan att ha versionshanterats. Säkerhetskopiera
+den lokala filen utanför migreringsmappen före `git pull` om den är
+untracked, så att den nya spårade migrationsfilen kan hämtas.
+
 ## Säkerhet, tester och kontroll
 
 Först med lokal flagga:
