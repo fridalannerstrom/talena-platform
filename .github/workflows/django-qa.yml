@@ -170,7 +170,7 @@ jobs:
           DJANGO_DEBUG: 'True'
           DJANGO_SECRET_KEY: local-qa-only
           USE_AZURE_STORAGE: '0'
-        run: python manage.py test apps.processes.test_pre_interview_response_styles_504 --noinput
+        run: python manage.py test apps.processes.test_pre_interview_response_styles_504 apps.reports.test_response_style_selected_eight_20261118 --noinput
       - name: Verify guided After interview journey and locked analysis tabs
         run: |
           node scripts/test_after_interview_guided_flow.js
