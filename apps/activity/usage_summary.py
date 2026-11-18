@@ -104,23 +104,36 @@ REPORT_LABELS = {
 }
 
 
-def platform_report_exports(*, start, end, company=None, english=False):
-    """Counts browser-reported file preparations, not verified local downloads.
+def report_export_events(*, start, end, company=None):
+    """Only file-generation receipts with known report codes; no preparations.
 
-    Distinguish prior dedicated Chefsrapport receipts, PDF vs ZIP and one
-    successful *package* from any constituent PDF blobs.
+    A single queryset is shared by aggregate metrics and the admin-only
+    event-level history so their totals stay in sync.
     """
     begin = timezone.make_aware(datetime.combine(start, time.min))
     until = timezone.make_aware(datetime.combine(end + timedelta(days=1), time.min))
     qs = ActivityEvent.objects.filter(
-        created_at__gte=begin, created_at__lt=until,
-        verb__in=[
-            ActivityEvent.Verb.MANAGER_REPORT_PDF_GENERATED,
-            ActivityEvent.Verb.REPORT_EXPORT_GENERATED,
-        ],
+        created_at__gte=begin,
+        created_at__lt=until,
+    ).filter(
+        Q(verb=ActivityEvent.Verb.MANAGER_REPORT_PDF_GENERATED)
+        | Q(
+            verb=ActivityEvent.Verb.REPORT_EXPORT_GENERATED,
+            meta__report_type__in=tuple(REPORT_LABELS),
+        )
     )
     if company is not None:
         qs = qs.filter(company_id=company)
+    return qs
+
+
+def platform_report_exports(*, start, end, company=None, english=False):
+    """Count recorded completed file generations, not verified downloads.
+
+    Group client-confirmed manager PDFs separately from general PDF/ZIP
+    receipts. Both the totals and the individual history use the same scope.
+    """
+    qs = report_export_events(start=start, end=end, company=company)
     grouped = qs.values("verb", "meta__report_type").annotate(count=Count("pk"))
     by_report = {}
     for item in grouped:
