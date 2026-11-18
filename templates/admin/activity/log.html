@@ -120,6 +120,14 @@
         <p>{% if LANGUAGE_CODE|slice:":2" == "sv" %}Nyast först · 30 händelser per sida{% else %}Newest first · 30 events per page{% endif %}</p>
       </div>
     </div>
+    <p class="talena-audit__explain">
+      <i data-feather="info" aria-hidden="true"></i>
+      {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+        <strong>Vad är loggåtkomst?</strong> Varje gång en plattformsadmin öppnar en intern aktivitetslogg eller statistikvy loggas åtkomsten av säkerhetsskäl. Det är inte en kundaktivitet och räknas inte i statistikens verksamhetsmått. Välj kategorin Loggåtkomst om du vill se bara dessa händelser.
+      {% else %}
+        <strong>What is audit access?</strong> When a platform admin opens an internal activity log or statistics view, access is recorded for security. This is not customer activity and is excluded from operational statistics. Filter by Audit access to inspect these events.
+      {% endif %}
+    </p>
 
     {% if events %}
     <div class="talena-audit__table-scroll">
@@ -142,6 +150,8 @@
                 {% elif event.category == "organisation" %}{% if LANGUAGE_CODE|slice:":2" == "sv" %}Organisation{% else %}Organisation{% endif %}
                 {% elif event.category == "security" %}{% if LANGUAGE_CODE|slice:":2" == "sv" %}Säkerhet{% else %}Security{% endif %}
                 {% elif event.category == "audit" %}{% if LANGUAGE_CODE|slice:":2" == "sv" %}Loggåtkomst{% else %}Audit access{% endif %}
+                {% elif event.category == "ai" %}{% if LANGUAGE_CODE|slice:":2" == "sv" %}AI-anrop{% else %}AI calls{% endif %}
+                {% elif event.category == "reports" %}{% if LANGUAGE_CODE|slice:":2" == "sv" %}Rapportexport{% else %}Report exports{% endif %}
                 {% else %}{% if LANGUAGE_CODE|slice:":2" == "sv" %}Övrigt{% else %}Other{% endif %}
                 {% endif %}
               </span>
