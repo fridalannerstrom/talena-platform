@@ -365,7 +365,7 @@ def _completion(prompt, owner, *, output_tokens=1800):
     """One non-streaming, schema-constrained call for exactly one unit."""
     from .openai_client import get_chat_model, get_openai_client
     safe = redact_candidate_name(prompt, owner.candidate)
-    client = get_openai_client()
+    client = get_openai_client(feature="overall_picture", owner=owner)
     response = client.chat.completions.create(
         model=get_chat_model(),
         messages=[
