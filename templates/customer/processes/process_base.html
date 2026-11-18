@@ -2483,27 +2483,44 @@ emptyState.textContent =
    * Keep each motivation domain visually related,
    * while score controls both length and intensity.
    */
+  // Match candidate-chart-theme.js so offscreen PDF and on-screen rose
+  // start with identical muted domain colours and STIVE opacity.
   const domainColours = [
-    [177, 23, 120],
-    [111, 60, 183],
-    [62, 142, 230],
-    [35, 55, 180],
+    [239, 94, 82],
+    [207, 137, 127],
+    [126, 162, 143],
+    [197, 151, 79],
   ];
 
   const opacityByScore = {
     1: 0.38,
-    2: 0.5,
-    3: 0.64,
-    4: 0.78,
-    5: 0.92,
+    2: 0.52,
+    3: 0.68,
+    4: 0.84,
+    5: 0.96,
   };
 
-  // Only the petal tips and their labels carry the rank highlight.
-  // Full radial borders remain neutral, so even short petals stay clean.
-  const highlightStroke = {
-    top: "#c96a5b",
-    bottom: "#6e5c7e",
-  };
+  // Derive each tip and label dot from that petal's actual rendered fill.
+  // Compositing over white first accounts for low-STIVE transparency:
+  // a 'lighter' accent must never be darker than the visible fill.
+  function roseAccentColour(fill, rank) {
+    if (rank !== "top" && rank !== "bottom") return null;
+
+    const match = String(fill || "").match(
+      /^rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)\s*(?:,\s*([\d.]+)\s*)?\)$/i
+    );
+    if (!match) return null;
+
+    const alpha = Math.min(1, Math.max(0, Number(match[4] ?? 1)));
+    const ratio = rank === "top" ? 0.24 : 0.28;
+    const target = rank === "top" ? 0 : 255;
+    const channels = match.slice(1, 4).map((channel) => {
+      const raw = Math.min(255, Math.max(0, Number(channel)));
+      const visible = raw * alpha + 255 * (1 - alpha);
+      return Math.round(visible * (1 - ratio) + target * ratio);
+    });
+    return `rgb(${channels.join(", ")})`;
+  }
 
   const backgroundColours = items.map(
     (item) => {
@@ -2631,6 +2648,16 @@ emptyState.textContent =
 
        ctx.save();
 
+      // The Talena chart theme can refresh dataset colours after initial
+      // render; PDFs use the same helper on the offscreen chart.
+      const fills = chart.data?.datasets?.[0]?.backgroundColor;
+      const highlightColours = items.map((item, index) =>
+        roseAccentColour(
+          Array.isArray(fills) ? fills[index] : fills,
+          item.highlight
+        )
+      );
+
       /*
        * Domain separator lines.
        */
@@ -2685,7 +2712,7 @@ emptyState.textContent =
        */
       items.forEach((item, index) => {
         const arc = arcs[index];
-        const colour = highlightStroke[item.highlight];
+        const colour = highlightColours[index];
         if (!colour || !arc || !Number.isFinite(arc.outerRadius)) {
           return;
         }
@@ -2802,7 +2829,7 @@ emptyState.textContent =
 
           // A small dot beside the printed factor name connects it to
           // its highlighted petal even when that petal is very short.
-          const colour = highlightStroke[item.highlight];
+          const colour = highlightColours[index];
           if (colour) {
             const printedWidth = Math.min(
               labelMaxWidth,
