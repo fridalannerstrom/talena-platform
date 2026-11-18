@@ -589,7 +589,7 @@ def stream_cognitive_questions(
         )
     )
     
-    client = get_openai_client()
+    client = get_openai_client(feature="cognitive_questions", owner=owner)
 
     prompt = build_cognitive_questions_prompt(
         owner=owner,
