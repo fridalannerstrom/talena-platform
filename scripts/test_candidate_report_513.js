@@ -47,8 +47,9 @@ for (const text of [
 ]) {
   assert.ok(content.includes(text), "Missing approved candidate introduction: " + text);
 }
-assert.ok(report.includes("{% if preview %}") && report.includes("{{ introduction.comment_preview }}"),
-  "Admin/PDF preview must not promise editable candidate comments");
+assert.ok(report.includes("<p>{{ introduction.comment_candidate }}</p>") &&
+  !report.includes("{{ introduction.comment_preview }}"),
+  "Admin/PDF preview must show the same introduction as the candidate");
 assert.ok(report.includes("{{ introduction.comment_candidate }}") &&
   report.includes("data-feedback-choice="), "Candidate feedback UI remains available");
 assert.ok(report.includes("<strong>{{ introduction.norm_emphasis }}</strong>") &&
