@@ -81,9 +81,12 @@ class AIPiiMaskingNoticeMiddleware:
         with privacy_request_scope(state), ai_usage_actor_scope(actor_id):
             response = self.get_response(request)
 
-        if response.streaming:
+        is_ndjson = response.streaming and response.get(
+            "Content-Type", ""
+        ).startswith("application/x-ndjson")
+        # Preserve existing file/other stream behavior when metering is off.
+        if response.streaming and (is_ndjson or actor_id is not None):
             original_stream = response.streaming_content
-            is_ndjson = response.get("Content-Type", "").startswith("application/x-ndjson")
             if response.is_async:
                 response.streaming_content = (
                     self._async_stream_events(original_stream, state, actor_id)
