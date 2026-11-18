@@ -177,8 +177,24 @@ saknas kan inte rekonstrueras säkert i efterhand.
 ## Etapp 3: Rapportexporter per typ (2026-11-18)
 
 Admin → Statistik → Rapportstatistik visar en fristående flik med
-PDF, ZIP, total och uppdelning per kodägd rapporttyp. Siffrorna kommer från två
-säkra, metadata-only eventkällor:
+PDF, ZIP, total och uppdelning per kodägd rapporttyp. Under summeringen finns
+även **Enskilda rapportexporter**: en paginerad adminlista med tidpunkt,
+rapporttyp, format, företag/projekt, inloggad användare och kandidat.
+Den inkluderar befintliga, browser-confirmed Chefsrapport-PDF:er. Användare
+hämtas från aktörens ORM-relation, med den redan verifierade
+`actor_name`-historiken som fallback om kontot tagits bort. Saknas
+kandidatrelation visas ett streck (vanligt för teamrapporter); inga namn
+gissas eller återställs från rapportens innehåll.
+
+Listan har 25 händelser per sida och använder samma datum- och
+företagsfilter som KPI-summeringen. En gemensam allowlistad queryset
+räknar endast färdiggenererade rapportfiler. Paginering behåller vald
+rapportflik och filter. Uppgifterna får bara visas för Talenas
+plattformsadministratörer, aldrig via kundsidan eller aggregerad AI-CSV.
+Den tidigare långa tekniska förklaringstexten längst ner på
+Rapportstatistik har tagits bort.
+
+Siffrorna kommer från två säkra, metadata-only eventkällor:
 
 - `manager_report_pdf_generated`: befintlig Chefsrapport-historik
   efter klientbekräftad PDF-generering (#429/#430).
