@@ -14,13 +14,14 @@ from django.http import HttpResponse, HttpResponseForbidden
 from django.shortcuts import render
 from django.utils import timezone
 from django.utils.dateparse import parse_date
+from django.utils.translation import get_language
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET
 
 from apps.accounts.models import Company
 from apps.activity.admin_views import _audit_access, can_view_platform_audit
 from apps.activity.models import ActivityEvent
-from apps.core.ai.usage_metrics import FEATURES, OUTCOMES, usage_logging_enabled
+from apps.core.ai.usage_metrics import FEATURES, FEATURES_EN, OUTCOMES, usage_logging_enabled
 
 AI_VERBS = tuple(OUTCOMES.values())
 SUCCESS = OUTCOMES["succeeded"]
@@ -48,6 +49,8 @@ def _date_filters(request):
         start = end - timedelta(days=365)
     company = (request.GET.get("company") or "")[:20]
     company = int(company) if company.isascii() and company.isdecimal() else None
+    if company is not None and not 1 <= company < 2 ** 63:
+        company = None
     feature = (request.GET.get("feature") or "")[:64]
     if feature not in FEATURES:
         feature = ""
@@ -91,7 +94,8 @@ def _summary(queryset):
     return totals
 
 
-def _feature_rows(queryset):
+def _feature_rows(queryset, labels=None):
+    labels = labels or FEATURES
     groups = queryset.values("meta__feature").annotate(
         count=Count("id"),
         succeeded=Count("id", filter=Q(verb=SUCCESS)),
@@ -108,7 +112,7 @@ def _feature_rows(queryset):
             continue
         rows.append({
             "code": code,
-            "label": FEATURES[code],
+            "label": labels[code],
             "count": row["count"],
             "succeeded": row["succeeded"],
             "failed": row["failed"],
@@ -150,7 +154,8 @@ def platform_ai_statistics(request):
     start, end, company, feature = _date_filters(request)
     qs = _base_queryset(start, end, company, feature)
     totals = _summary(qs)
-    feature_rows = _feature_rows(qs)
+    labels = FEATURES_EN if (get_language() or "sv").startswith("en") else FEATURES
+    feature_rows = _feature_rows(qs, labels)
     trend = _trend(qs, start, end)
     earliest = (ActivityEvent.objects.filter(verb__in=AI_VERBS)
                 .order_by("created_at").values_list("created_at", flat=True).first())
@@ -158,7 +163,7 @@ def platform_ai_statistics(request):
         "start": start, "end": end,
         "selected_company": company, "selected_feature": feature,
         "companies": Company.objects.order_by("name").only("id", "name"),
-        "features": FEATURES,
+        "features": labels,
         "feature_rows": feature_rows,
         "totals": totals,
         "trend": trend,
