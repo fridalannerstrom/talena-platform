@@ -79,7 +79,10 @@ assert.ok(historyApi.includes("process_view_access_required"));
 assert.ok(!historyApi.includes('"text":'));
 assert.ok(adminOne.includes("admin/accounts/companies/company_candidate_sheet.html"));
 assert.ok(adminTwo.includes("process_candidate_manager_report_activity_admin"));
-assert.ok(adminExplorer.includes('"reports": {"manager_report_pdf_prepared", "manager_report_pdf_generated"}'));
+const reportVerbs = adminExplorer.match(/"reports":\s*\{([^}]*)\}/)?.[1] ?? "";
+for (const verb of ["manager_report_pdf_prepared", "manager_report_pdf_generated"]) {
+  assert.ok(reportVerbs.includes(`"${verb}"`), `missing manager report audit verb: ${verb}`);
+}
 
 const directIndex = customer.indexOf("await renderElementAsPdf(printableReport, filename, outputRoot);");
 const directRecord = customer.indexOf("await window.TalenaManagerReportPdf.recordGenerated(outputRoot, reportMetadata);");
