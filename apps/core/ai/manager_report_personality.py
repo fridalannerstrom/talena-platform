@@ -445,7 +445,7 @@ def stream_manager_report_personality(
     system_language_instruction = get_ai_system_language_instruction(
         language_code, owner=owner,
     )
-    client = get_openai_client()
+    client = get_openai_client(feature="manager_personality", owner=owner)
 
     for part in PARTS:
         if part == "candidate_describes":

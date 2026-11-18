@@ -379,7 +379,7 @@ Löste logiska problem."""
         url = reverse(
             "accounts:company_process_detail",
             args=[self.company.pk, self.process.pk],
-        )
+        ) + "?admin_tools=1"
         for language, labels in (
             ("sv", ("AI-prompter", "Användning och fakturering", "Statistik")),
             ("en", ("AI prompts", "Usage & Billing", "Statistics")),
@@ -400,7 +400,7 @@ Löste logiska problem."""
         company_page = reverse(
             "accounts:company_process_detail",
             args=[self.company.pk, self.process.pk],
-        )
+        ) + "?admin_tools=1"
         legacy_process = reverse(
             "accounts:admin_process_detail", args=[self.process.pk],
         )
@@ -446,7 +446,7 @@ Löste logiska problem."""
         response = self.client.get(reverse(
             "accounts:company_process_detail",
             args=[self.company.pk, self.process.pk],
-        ))
+        ) + "?admin_tools=1")
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, self.company_admin_url)
         self.assertNotContains(response,

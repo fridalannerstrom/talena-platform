@@ -143,3 +143,195 @@ class PlatformActivityLogTests(TestCase):
             ActivityEvent.objects.filter(verb=ActivityEvent.Verb.ADMIN_LOG_ACCESSED).count(),
             1,
         )
+
+    def test_customer_tab_is_default_and_admin_audit_is_separate(self):
+        audit = ActivityEvent.objects.create(
+            company=None,
+            verb=ActivityEvent.Verb.ADMIN_LOG_ACCESSED,
+            actor=self.platform_admin,
+        )
+        customer_ai = ActivityEvent.objects.create(
+            company=self.company_a,
+            verb=ActivityEvent.Verb.AI_CALL_SUCCEEDED,
+            meta={"schema": 1, "feature": "overall_picture"},
+        )
+        admin_on_behalf_of_customer = ActivityEvent.objects.create(
+            company=self.company_a, actor=self.platform_admin,
+            verb=ActivityEvent.Verb.CANDIDATE_ADDED,
+        )
+        system_on_behalf_of_customer = ActivityEvent.objects.create(
+            company=self.company_a, actor=None,
+            verb=ActivityEvent.Verb.TEST_COMPLETED,
+        )
+        self.client.force_login(self.platform_admin)
+        customer = self.client.get(self.list_url, HTTP_ACCEPT_LANGUAGE="sv")
+        self.assertEqual(customer.status_code, 200)
+        self.assertEqual(customer.context["active_scope"], "customer")
+        self.assertContains(customer, "Kundaktivitet")
+        self.assertContains(customer, "Kundernas aktiviteter")
+        self.assertNotContains(customer, "Vad är loggåtkomst?")
+        self.assertEqual(set(e["id"] for e in customer.context["events"]), {
+            self.first.pk, self.second.pk, customer_ai.pk,
+            system_on_behalf_of_customer.pk,
+        })
+        self.assertNotIn(audit.pk, [e["id"] for e in customer.context["events"]])
+        self.assertNotIn(admin_on_behalf_of_customer.pk,
+                         [e["id"] for e in customer.context["events"]])
+        self.assertTrue(any(e["category"] == "ai" for e in customer.context["events"]))
+        self.assertNotIn("audit", [key for key, _ in customer.context["categories"]])
+
+        admin = self.client.get(self.list_url, {"scope": "admin"}, HTTP_ACCEPT_LANGUAGE="sv")
+        self.assertEqual(admin.status_code, 200)
+        self.assertEqual(admin.context["active_scope"], "admin")
+        self.assertContains(admin, "Vad är loggåtkomst?")
+        self.assertContains(admin, "Adminaktiviteter")
+        admin_ids = {e["id"] for e in admin.context["events"]}
+        self.assertIn(audit.pk, admin_ids)
+        self.assertIn(admin_on_behalf_of_customer.pk, admin_ids)
+        self.assertNotIn(customer_ai.pk, admin_ids)
+        self.assertNotIn(system_on_behalf_of_customer.pk, admin_ids)
+        self.assertNotIn(self.first.pk, admin_ids)
+        self.assertIn("audit", [key for key, _ in admin.context["categories"]])
+
+    def test_customer_and_admin_csv_have_the_same_server_side_scope(self):
+        admin_tenant = ActivityEvent.objects.create(
+            company=self.company_a, actor=self.platform_admin,
+            verb=ActivityEvent.Verb.COMPANY_UPDATED,
+        )
+        internal = ActivityEvent.objects.create(
+            actor=self.platform_admin, company=None,
+            verb=ActivityEvent.Verb.ADMIN_LOG_ACCESSED,
+        )
+        self.client.force_login(self.platform_admin)
+        customer = self.client.get(self.export_url)
+        customer_data = list(csv.DictReader(StringIO(customer.content.decode("utf-8"))))
+        self.assertEqual({int(row["event_id"]) for row in customer_data},
+                         {self.first.pk, self.second.pk})
+        self.assertNotIn(str(internal.pk), [row["event_id"] for row in customer_data])
+        admin = self.client.get(self.export_url, {"scope": "admin"})
+        admin_data = list(csv.DictReader(StringIO(admin.content.decode("utf-8"))))
+        ids = {int(row["event_id"]) for row in admin_data}
+        self.assertIn(internal.pk, ids)
+        self.assertIn(admin_tenant.pk, ids)
+        self.assertNotIn(self.first.pk, ids)
+        self.assertNotIn(self.second.pk, ids)
+        self.assertNotIn("Alpha customer", admin.content.decode("utf-8"))
+
+    def test_scope_survives_filters_and_pagination_and_invalid_scope_is_safe(self):
+        # Force 31 customer events and 40 admin audit events. Both views must
+        # paginate independently; switching tabs cannot leak the other page.
+        for index in range(30):
+            ActivityEvent.objects.create(
+                company=self.company_a, actor=self.customer,
+                verb=ActivityEvent.Verb.CANDIDATE_ADDED,
+            )
+        for index in range(40):
+            ActivityEvent.objects.create(
+                company=None, actor=self.platform_admin,
+                verb=ActivityEvent.Verb.ADMIN_LOG_ACCESSED,
+            )
+        self.client.force_login(self.platform_admin)
+        customer = self.client.get(self.list_url, {"scope": "customer"})
+        self.assertEqual(customer.context["page_obj"].paginator.count, 32)
+        self.assertEqual(len(customer.context["events"]), 30)
+        self.assertContains(customer, "scope=customer&amp;page=2")
+        admin = self.client.get(self.list_url, {"scope": "admin", "page": "2"})
+        self.assertEqual(admin.context["page_obj"].paginator.count, 41)
+        self.assertEqual(len(admin.context["events"]), 11)
+        self.assertContains(admin, 'name="scope" value="admin"')
+        self.assertContains(admin, "scope=admin&amp;page=1")
+        bad = self.client.get(self.list_url, {"scope": "all",
+                                              "category": "audit"})
+        self.assertEqual(bad.context["active_scope"], "customer")
+        self.assertEqual(bad.context["events"], [])
+        self.assertNotIn("audit", [key for key, _ in bad.context["categories"]])
+
+    def test_ai_events_are_labelled_by_category_in_customer_tab(self):
+        ActivityEvent.objects.create(
+            company=self.company_a,
+            verb=ActivityEvent.Verb.AI_CALL_SUCCEEDED,
+            meta={"schema": 1, "feature": "overall_picture"},
+        )
+        self.client.force_login(self.platform_admin)
+        response = self.client.get(self.list_url, HTTP_ACCEPT_LANGUAGE="sv")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "AI-anrop")
+        ai_rows = [row for row in response.context["events"]
+                   if row["verb"] == ActivityEvent.Verb.AI_CALL_SUCCEEDED]
+        self.assertEqual(len(ai_rows), 1)
+        self.assertEqual(ai_rows[0]["category"], "ai")
+
+
+    def test_customer_sees_only_completed_manager_pdf_not_preparation(self):
+        # The previously displayed double rows are two distinct audit records,
+        # but only the browser-confirmed PDF is a customer activity.
+        prepared = ActivityEvent.objects.create(
+            company=self.company_a, actor=self.customer,
+            verb=ActivityEvent.Verb.MANAGER_REPORT_PDF_PREPARED,
+            meta={"report": "manager_report", "status": "prepared"},
+        )
+        generated = ActivityEvent.objects.create(
+            company=self.company_a, actor=self.customer,
+            verb=ActivityEvent.Verb.MANAGER_REPORT_PDF_GENERATED,
+            meta={
+                "report": "manager_report",
+                "status": "client_reported_generated",
+                "prepared_event_id": prepared.pk,
+            },
+        )
+        # A failed/abandoned preparation must not imply a finished PDF.
+        abandoned = ActivityEvent.objects.create(
+            company=self.company_b, actor=self.customer,
+            verb=ActivityEvent.Verb.MANAGER_REPORT_PDF_PREPARED,
+        )
+        self.client.force_login(self.platform_admin)
+
+        customer = self.client.get(
+            self.list_url, {"category": "reports"}, HTTP_ACCEPT_LANGUAGE="sv"
+        )
+        self.assertEqual(customer.status_code, 200)
+        self.assertEqual([item["id"] for item in customer.context["events"]],
+                         [generated.pk])
+        self.assertEqual(customer.context["page_obj"].paginator.count, 1)
+        self.assertNotIn(
+            ActivityEvent.Verb.MANAGER_REPORT_PDF_PREPARED,
+            [code for code, _ in customer.context["verbs"]],
+        )
+        self.assertContains(customer, "Chefsrapport PDF genererad")
+        self.assertNotContains(customer, "Chefsrapport PDF förberedd")
+
+        # Filtering by the legacy technical verb must not bypass the scope.
+        hidden = self.client.get(
+            self.list_url, {"verb": ActivityEvent.Verb.MANAGER_REPORT_PDF_PREPARED}
+        )
+        self.assertEqual(hidden.context["events"], [])
+
+        customer_csv = self.client.get(
+            self.export_url, {"category": "reports"}
+        )
+        customer_rows = list(csv.DictReader(
+            StringIO(customer_csv.content.decode("utf-8"))
+        ))
+        self.assertEqual(
+            [int(row["event_id"]) for row in customer_rows], [generated.pk]
+        )
+
+        admin = self.client.get(
+            self.list_url, {"scope": "admin", "category": "reports"},
+        )
+        self.assertEqual({item["id"] for item in admin.context["events"]},
+                         {prepared.pk, abandoned.pk})
+        self.assertNotIn(generated.pk,
+                         [item["id"] for item in admin.context["events"]])
+        admin_csv = self.client.get(
+            self.export_url, {"scope": "admin", "category": "reports"}
+        )
+        admin_rows = list(csv.DictReader(
+            StringIO(admin_csv.content.decode("utf-8"))
+        ))
+        self.assertEqual({int(row["event_id"]) for row in admin_rows},
+                         {prepared.pk, abandoned.pk})
+
+        # The original preparation records are preserved unchanged.
+        self.assertTrue(ActivityEvent.objects.filter(pk=prepared.pk).exists())
+        self.assertTrue(ActivityEvent.objects.filter(pk=abandoned.pk).exists())

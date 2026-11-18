@@ -480,7 +480,7 @@ def stream_response_style_guidance(
         profile_contrast_analysis=profile_contrast_analysis,
     )
 
-    client = get_openai_client()
+    client = get_openai_client(feature="response_styles", owner=guidance_owner)
 
     prompt = redact_candidate_name(prompt, guidance_owner.candidate)
 

@@ -4,7 +4,7 @@ from .pinecone_client import get_pinecone_index
 
 
 def embed_text(text: str) -> List[float]:
-    client = get_openai_client()
+    client = get_openai_client(feature="rag_embedding")
     res = client.embeddings.create(
         model=get_embed_model(),
         input=text,

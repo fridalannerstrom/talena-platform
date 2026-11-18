@@ -206,6 +206,9 @@
       if(!current()||workspace!==original)throw Error(t.stale);
       if(!output?.size||output.size>MAX_BYTES)throw Error(t.large);
       window.TalenaReportPackageCore.download(output,packageFilename);
+      void window.TalenaReportExportActivity?.record?.(
+        original?.dataset?.reportExportReceiptUrl, "candidate-package-"+format
+      );
       status(t.done);
     }catch(err){
       if(err?.code==="REPORT_PACKAGE_TOO_LARGE"||err?.message===t.large) {

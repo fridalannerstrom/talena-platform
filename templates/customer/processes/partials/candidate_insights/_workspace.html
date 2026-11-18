@@ -117,8 +117,10 @@
   <section
     class="card candidate-insights-workspace mb-4"
     data-candidate-insights-workspace
+    data-report-export-receipt-url="{% if not is_admin_candidate_mirror %}{% url 'processes:process_candidate_report_export_receipt' process.id candidate.id %}{% endif %}"
   >
-
+    {# Ensure the AJAX-loaded candidate sheet has a CSRF token for export receipts. #}
+    {% csrf_token %}
     <div class="candidate-insights-workspace__inner">
 
       {% include "customer/processes/partials/candidate_insights/_navigation.html" %}

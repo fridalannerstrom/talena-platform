@@ -173,6 +173,48 @@ class MotivationDataPrecisionTests(SimpleTestCase):
             [item["name"] for item in insights["less_central_drivers"]],
             ["Creativity", "Curiosity", "Variety"],
         )
+        self.assertTrue(insights["has_rose_highlights"])
+        marked = {
+            item["name"]: item.get("rose_highlight")
+            for item in insights["chart_items"]
+            if item.get("rose_highlight")
+        }
+        self.assertEqual(marked, {
+            "Risk": "top", "Enjoyment": "top", "Ethics": "top",
+            "Creativity": "bottom", "Curiosity": "bottom", "Variety": "bottom",
+        })
+        self.assertEqual(
+            sorted(item["name"] for item in insights["motivators"]),
+            sorted(name for name, rank in marked.items() if rank == "top"),
+        )
+        self.assertEqual(
+            sorted(item["name"] for item in insights["less_central_drivers"]),
+            sorted(name for name, rank in marked.items() if rank == "bottom"),
+        )
+
+    def test_even_or_incomplete_motivation_profile_has_no_highlighted_top_bottom(self):
+        factors = ["Creativity", "Curiosity", "Variety", "Ethics",
+                   "Enjoyment", "Risk"]
+        even = build_motivation_insight_section([
+            {"competency": name, "stive": 3.0}
+            for name in factors
+        ])
+        self.assertFalse(even["has_profile_difference"])
+        self.assertFalse(even["has_rose_highlights"])
+        self.assertFalse(any(
+            item.get("rose_highlight") for item in even["chart_items"]
+        ))
+
+        # Fewer than six scored factors cannot form disjoint sets of three.
+        partial = build_motivation_insight_section([
+            {"competency": name, "stive": 1.2 + index * 0.7}
+            for index, name in enumerate(factors[:5])
+        ])
+        self.assertTrue(partial["has_profile_difference"])
+        self.assertFalse(partial["has_rose_highlights"])
+        self.assertFalse(any(
+            item.get("rose_highlight") for item in partial["chart_items"]
+        ))
 
     def test_ai_overview_score_parts_prefer_precise_stive(self):
         score_parts = _get_score_parts(

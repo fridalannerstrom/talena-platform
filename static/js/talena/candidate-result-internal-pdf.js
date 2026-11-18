@@ -57,6 +57,9 @@
           filename,
         }
       );
+      void window.TalenaReportExportActivity?.record?.(
+        root.dataset?.reportExportReceiptUrl, "candidate-static-report"
+      );
       return true;
     } finally {
       stage.remove();

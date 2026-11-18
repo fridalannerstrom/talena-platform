@@ -376,7 +376,8 @@
         [{node:cover, cover:true}, {node:body, continuous:true}],
         {title:item.label, subject:item.label, returnBlob:true}
       );
-      if (managerReportMetadata) {
+      // Package constituent blobs are not standalone exports.
+      if (managerReportMetadata && !options.returnBlob) {
         try {
           await window.TalenaManagerReportPdf.recordGenerated(workspace, managerReportMetadata);
         } catch (_auditError) {
@@ -395,6 +396,11 @@
         link.remove();
       } finally {
         window.setTimeout(() => URL.revokeObjectURL(url), 30000);
+      }
+      if (id !== "manager-report") {
+        void window.TalenaReportExportActivity?.record?.(
+          workspace?.dataset?.reportExportReceiptUrl, id
+        );
       }
       return blob;
     } finally {

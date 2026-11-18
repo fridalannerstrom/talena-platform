@@ -126,11 +126,6 @@ _FIXED_COPY = {
             "inte riktigt känner igen dig. Dina kommentarer blir då en del av underlaget "
             "och hjälper den som tar del av rapporten att förstå resultatet i sitt sammanhang."
         ),
-        "comment_preview": (
-            "När rapporten delas med kandidaten och hen har verifierat sin åtkomst kan "
-            "kandidaten lämna en kommentar till sitt resultat. Kommentarerna blir då en del "
-            "av underlaget. Den här interna förhandsvisningen har ingen kommentarsfunktion."
-        ),
         "section_introductions": {
             "personality": "Personlighetsformuläret beskriver dina typiska beteenden, preferenser och sätt att förhålla dig till olika situationer.",
             "motivation": "Motivationsformuläret beskriver vad som tenderar att ge dig engagemang i arbetet, och vad som kan vara mindre motiverande.",
@@ -162,11 +157,6 @@ _FIXED_COPY = {
             "share an example or describe a situation where you do not fully recognise "
             "yourself. Your comments then become part of the information used to "
             "understand the results in context."
-        ),
-        "comment_preview": (
-            "When the report is shared and the candidate has verified access, they can "
-            "leave comments on their results. Comments then become part of the report "
-            "context. This internal preview does not allow comments."
         ),
         "section_introductions": {
             "personality": "The personality questionnaire describes your typical behaviours, preferences and ways of approaching different situations.",
@@ -481,7 +471,6 @@ def build_static_candidate_result_content(
             "caveat_emphasis": copy["caveat_emphasis"],
             "caveat_after": copy["caveat_after"],
             "comment_candidate": copy["comment_candidate"],
-            "comment_preview": copy["comment_preview"],
         },
         "personality": _area_content(
             copy["personality_title"],

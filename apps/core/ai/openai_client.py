@@ -11,6 +11,7 @@ from openai import OpenAI
 
 from .pii_sanitizer import PrivacySanitizationError, sanitize_ai_payload
 from .privacy_notice import outbound_masking_attempt, record_sent_masking
+from .usage_metrics import FEATURES, record_ai_call, usage_logging_enabled
 
 
 # No unreviewed SDK kwargs may bypass the screened prompt/input fields.
@@ -38,9 +39,87 @@ def _reject_unreviewed_sdk_fields(kwargs, allowed):
         )
 
 
-class _Completions:
-    def __init__(self, raw_client):
-        self._send = raw_client.chat.completions.create
+class _MeteredEndpoint:
+    """Shared SDK-call accounting. Never inspect prompts or generated text."""
+
+    def __init__(self, send, *, operation, feature=None, owner=None,
+                 process=None, company=None):
+        self._send = send
+        self._operation = operation
+        self._feature = feature if feature in FEATURES else None
+        self._owner = owner
+        self._process = process
+        self._company = company
+
+    def _record(self, *, model, outcome, usage=None):
+        if self._feature:
+            record_ai_call(
+                feature=self._feature,
+                operation=self._operation,
+                model=model,
+                outcome=outcome,
+                usage=usage,
+                owner=self._owner,
+                process=self._process,
+                company=self._company,
+            )
+
+    def _stream(self, source, model):
+        outcome = "incomplete"
+        usage = None
+        try:
+            for event in source:
+                item_usage = getattr(event, "usage", None)
+                if item_usage is None:
+                    item_usage = getattr(getattr(event, "response", None), "usage", None)
+                if item_usage is not None:
+                    usage = item_usage
+                # OpenAI's optional final chat-usage chunk has empty choices;
+                # existing Talena consumers access choices[0] directly.
+                if self._operation == "chat" and getattr(event, "choices", None) == []:
+                    continue
+                yield event
+            outcome = "succeeded"
+        except Exception:
+            outcome = "failed"
+            raise
+        finally:
+            if outcome != "succeeded":
+                # Closing the browser's stream must also release the
+                # underlying SDK/HTTP stream, not just our wrapper generator.
+                close_source = getattr(source, "close", None)
+                if callable(close_source):
+                    try:
+                        close_source()
+                    except Exception:
+                        pass  # Never hide the real provider/consumer outcome.
+            self._record(model=model, outcome=outcome, usage=usage)
+
+    def _send_accounted(self, kwargs):
+        if not self._feature or not usage_logging_enabled():
+            return self._send(**kwargs)
+        model = kwargs.get("model")
+        stream = kwargs.get("stream") is True
+        if stream and self._operation == "chat":
+            # Internal, literal SDK option only. Not a user-controlled kwarg.
+            # The usage-only chunk is stripped before reaching callers.
+            kwargs["stream_options"] = {"include_usage": True}
+        try:
+            result = self._send(**kwargs)
+        except Exception:
+            self._record(model=model, outcome="failed")
+            raise
+        if stream:
+            return self._stream(result, model)
+        self._record(model=model, outcome="succeeded",
+                     usage=getattr(result, "usage", None))
+        return result
+
+
+class _Completions(_MeteredEndpoint):
+    def __init__(self, raw_client, **tracking):
+        super().__init__(raw_client.chat.completions.create,
+                         operation="chat", **tracking)
 
     def create(self, **kwargs):
         _reject_unreviewed_sdk_fields(kwargs, _CHAT_ALLOWED_KWARGS)
@@ -54,19 +133,20 @@ class _Completions:
             )
         with outbound_masking_attempt() as attempt:
             kwargs["messages"] = sanitize_ai_payload(kwargs["messages"])
-            result = self._send(**kwargs)
+            result = self._send_accounted(kwargs)
         record_sent_masking(attempt)
         return result
 
 
 class _Chat:
-    def __init__(self, raw_client):
-        self.completions = _Completions(raw_client)
+    def __init__(self, raw_client, **tracking):
+        self.completions = _Completions(raw_client, **tracking)
 
 
-class _Embeddings:
-    def __init__(self, raw_client):
-        self._send = raw_client.embeddings.create
+class _Embeddings(_MeteredEndpoint):
+    def __init__(self, raw_client, **tracking):
+        super().__init__(raw_client.embeddings.create,
+                         operation="embeddings", **tracking)
 
     def create(self, **kwargs):
         _reject_unreviewed_sdk_fields(kwargs, _EMBEDDING_ALLOWED_KWARGS)
@@ -76,14 +156,15 @@ class _Embeddings:
             )
         with outbound_masking_attempt() as attempt:
             kwargs["input"] = sanitize_ai_payload(kwargs["input"])
-            result = self._send(**kwargs)
+            result = self._send_accounted(kwargs)
         record_sent_masking(attempt)
         return result
 
 
-class _Responses:
-    def __init__(self, raw_client):
-        self._send = raw_client.responses.create
+class _Responses(_MeteredEndpoint):
+    def __init__(self, raw_client, **tracking):
+        super().__init__(raw_client.responses.create,
+                         operation="responses", **tracking)
 
     def create(self, **kwargs):
         _reject_unreviewed_sdk_fields(kwargs, _RESPONSES_ALLOWED_KWARGS)
@@ -95,7 +176,7 @@ class _Responses:
             kwargs["input"] = sanitize_ai_payload(kwargs["input"])
             if "instructions" in kwargs:
                 kwargs["instructions"] = sanitize_ai_payload(kwargs["instructions"])
-            result = self._send(**kwargs)
+            result = self._send_accounted(kwargs)
         record_sent_masking(attempt)
         return result
 
@@ -103,17 +184,26 @@ class _Responses:
 class PrivacySafeOpenAI:
     """Intentionally small SDK adapter, without a raw-client escape hatch."""
 
-    def __init__(self, raw_client):
-        self.chat = _Chat(raw_client)
-        self.embeddings = _Embeddings(raw_client)
-        self.responses = _Responses(raw_client)
+    def __init__(self, raw_client, *, feature=None, owner=None,
+                 process=None, company=None):
+        tracking = {
+            "feature": feature, "owner": owner,
+            "process": process, "company": company,
+        }
+        self.chat = _Chat(raw_client, **tracking)
+        self.embeddings = _Embeddings(raw_client, **tracking)
+        self.responses = _Responses(raw_client, **tracking)
 
 
-def get_openai_client() -> PrivacySafeOpenAI:
+def get_openai_client(*, feature=None, owner=None, process=None,
+                      company=None) -> PrivacySafeOpenAI:
     api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
         raise ValueError("Missing OPENAI_API_KEY environment variable")
-    return PrivacySafeOpenAI(OpenAI(api_key=api_key))
+    return PrivacySafeOpenAI(
+        OpenAI(api_key=api_key),
+        feature=feature, owner=owner, process=process, company=company,
+    )
 
 
 def get_chat_model() -> str:

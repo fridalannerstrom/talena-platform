@@ -221,6 +221,9 @@ from apps.reports.libraries.personality.profile_contrasts import (
 from apps.reports.libraries.personality.communication_guidance import (
     build_static_communication_guidance,
 )
+from .project_personality_trait_selection import (
+    project_response_style_trait_names,
+)
 from apps.reports.libraries.personality.builder import (
     build_profile_from_resolved_report,
 )
@@ -1611,6 +1614,16 @@ def build_motivation_insight_section(
         motivators = []
         less_central_drivers = []
 
+    # The rose and the written summaries must highlight the SAME precise
+    # STIVE-ranked factors, including stable ties. Fewer than six measured
+    # factors cannot form two disjoint groups of three.
+    has_rose_highlights = has_profile_difference and len(available_items) >= 6
+    if has_rose_highlights:
+        for item in motivators:
+            item["rose_highlight"] = "top"
+        for item in less_central_drivers:
+            item["rose_highlight"] = "bottom"
+
     def join_text(values):
         values = [
             value
@@ -1705,6 +1718,7 @@ def build_motivation_insight_section(
         "highest_score": highest_score,
         "lowest_score": lowest_score,
         "has_profile_difference": has_profile_difference,
+        "has_rose_highlights": has_rose_highlights,
     }
 
 
@@ -3482,6 +3496,7 @@ def build_candidate_detail_context(
             personality_profile,
             response_styles,
             language=language,
+            selected_traits=project_response_style_trait_names(process),
         ),
         "profile_contrast_analysis": build_profile_contrast_analysis(
             personality_profile,
@@ -5183,6 +5198,7 @@ def build_pre_interview_response_styles_context(process, owner, *, language="sv"
         "response_styles": response_styles,
         "static_communication_guidance": build_static_communication_guidance(
             personality_profile, response_styles, language=language,
+            selected_traits=project_response_style_trait_names(process),
         ),
         "profile_contrast_analysis": build_profile_contrast_analysis(
             personality_profile,
@@ -6680,12 +6696,28 @@ def process_role_context(request, pk):
 
             role_context.apply_context_data(submitted_data)
             role_context.save()
-            save_project_personality_trait_overrides(
-                role_context,
-                purpose_key=purpose_key,
-                context_text=submitted_data.get("context_text", ""),
-                selected_traits=effective_project_traits,
-            )
+            # Do not break context-only saves for older projects that
+            # previously stored fewer than eight manually selected traits.
+            # Their legacy choice remains visible until an editor replaces
+            # it with exactly eight, but cannot be used to classify the
+            # response-style profile in the meantime.
+            if project_traits_submitted or len(effective_project_traits) in (0, 8):
+                save_project_personality_trait_overrides(
+                    role_context,
+                    purpose_key=purpose_key,
+                    context_text=submitted_data.get("context_text", ""),
+                    selected_traits=effective_project_traits,
+                )
+            else:
+                # save_context_for_purpose replaces this purpose's JSON entry.
+                # Restore legacy partial manual settings instead of silently
+                # erasing a customer's old choice on a context-only edit.
+                purpose_data = dict(role_context.purpose_data or {})
+                entry = dict(purpose_data.get(purpose_key) or {})
+                entry["personality_question_traits"] = previous_project_traits
+                purpose_data[purpose_key] = entry
+                role_context.purpose_data = purpose_data
+                role_context.save(update_fields=["purpose_data"])
 
             if context_changed:
                 mark_candidate_ai_content_outdated(process)
@@ -10274,6 +10306,7 @@ def build_historical_candidate_detail_context(
             personality_profile,
             response_styles,
             language=language,
+            selected_traits=project_response_style_trait_names(process),
         ),
         "profile_contrast_analysis": build_profile_contrast_analysis(
             personality_profile,

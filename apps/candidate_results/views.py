@@ -12,6 +12,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.clickjacking import xframe_options_sameorigin
+from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_http_methods, require_POST
 
 from apps.accounts.utils.org_access import user_can_edit_process
@@ -453,6 +454,7 @@ def candidate_result(request, token: str):
 
 @login_required
 @xframe_options_sameorigin
+@ensure_csrf_cookie
 def candidate_result_preview(request, snapshot_id: int):
     snapshot = get_object_or_404(
         CandidateResultSnapshot.objects.select_related(

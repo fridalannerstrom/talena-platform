@@ -256,6 +256,9 @@
             status.textContent = copy.creating + " " + done + "/" + total + "…";
           }
         });
+        void window.TalenaReportExportActivity?.record?.(
+          page?.dataset?.reportExportReceiptUrl, "team-overview"
+        );
         status.textContent = copy.ready;
       } catch (err) {
         // No raw report text or identifying information in browser logs.

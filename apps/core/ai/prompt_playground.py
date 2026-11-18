@@ -1097,7 +1097,7 @@ Do not invent information that is not present in the supplied
 sample evidence or process context.
 """.strip()
 
-    client = get_openai_client()
+    client = get_openai_client(feature="prompt_playground")
 
     response = client.chat.completions.create(
         model=get_chat_model(),

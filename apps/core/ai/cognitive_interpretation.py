@@ -523,7 +523,7 @@ def stream_cognitive_interpretation(
         )
     )
 
-    client = get_openai_client()
+    client = get_openai_client(feature="cognitive_interpretation", owner=owner)
 
     prompt = build_cognitive_interpretation_prompt(
         invitation=owner,

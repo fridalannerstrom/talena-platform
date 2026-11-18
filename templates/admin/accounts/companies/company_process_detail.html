@@ -10,6 +10,15 @@
 {# Back link #}
 {# ------------------------------------------------------------------ #}
 
+<div class="d-flex align-items-center justify-content-between gap-2 flex-wrap mb-3">
+  <span class="small text-muted">
+    {% if admin_project_language|slice:":2" == "sv" %}Interna adminverktyg{% else %}Internal admin tools{% endif %}
+  </span>
+  <a class="btn btn-sm btn-dark" href="{% url 'processes:process_detail' process.pk %}">
+    {% if admin_project_language|slice:":2" == "sv" %}Till projektets arbetsyta{% else %}Open project workspace{% endif %}
+  </a>
+</div>
+
 <div class="mb-3">
   <a href="{% url 'accounts:company_processes' company.pk %}"
      class="text-muted text-decoration-none small">

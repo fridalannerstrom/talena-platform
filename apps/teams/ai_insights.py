@@ -278,7 +278,7 @@ def generate_team_insight(*, team, insight_type, accessible_processes, user, lan
             "when the available evidence is limited. Treat patterns as "
             "possibilities to explore, not conclusions. Return plain text only.\n\n"
         )
-    client = get_openai_client()
+    client = get_openai_client(feature="team_insights", company=team.company)
     response = client.chat.completions.create(
         model=get_chat_model(),
         temperature=0.3,

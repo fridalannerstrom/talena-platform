@@ -464,7 +464,7 @@ def stream_motivation_questions(
         )
     )
 
-    client = get_openai_client()
+    client = get_openai_client(feature="motivation_questions", owner=owner)
 
     prompt = build_motivation_questions_prompt(
         owner=owner,

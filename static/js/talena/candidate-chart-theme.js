@@ -58,6 +58,9 @@
             ? element.dataset.factorDomainSv
             : element.dataset.factorDomainEn) || element.dataset.factorDomain || "",
           score,
+          highlight: ["top", "bottom"].includes(element.dataset.factorHighlight)
+            ? element.dataset.factorHighlight
+            : "",
           domainIndex: Number.isFinite(domainIndex) ? domainIndex : 0,
         };
       })
@@ -116,6 +119,23 @@
     return `rgba(${palette.rgb[0]}, ${palette.rgb[1]}, ${palette.rgb[2]}, ${opacity})`;
   }
 
+  // Match the initial Chart.js/PDF palette logic in process_base.html.
+  // Both most and least prominent petals get darker outlines; only
+  // their stroke weight and darkness differ.
+  function roseAccentColour(fill, rank) {
+    if (rank !== "top" && rank !== "bottom") return null;
+    const match = String(fill || "").match(
+      /^rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)\s*(?:,\s*([\d.]+)\s*)?\)$/i
+    );
+    if (!match) return null;
+
+    const ratio = rank === "top" ? 0.26 : 0.16;
+    const rgb = match.slice(1, 4).map((channel) =>
+      Math.round(Math.min(255, Math.max(0, Number(channel))) * (1 - ratio))
+    );
+    return `rgb(${rgb.join(", ")})`;
+  }
+
   function teamStylePaletteFor(item) {
     const palette = TEAM_STYLE_PALETTE[item.quadrantKey] || DOMAIN_PALETTE[0];
     const opacity = OPACITY_BY_SCORE[item.score] || 0.68;
@@ -123,7 +143,7 @@
     return `rgba(${palette.rgb[0]}, ${palette.rgb[1]}, ${palette.rgb[2]}, ${opacity})`;
   }
 
-  function applyRenderedArcTheme(chart, colours) {
+  function applyRenderedArcTheme(chart, colours, borderColours = null, borderWidths = null) {
     const arcs = chart?.getDatasetMeta?.(0)?.data || [];
     const dataset = chart?.data?.datasets?.[0];
 
@@ -140,10 +160,10 @@
 
       arc.options.backgroundColor = colour;
       arc.options.hoverBackgroundColor = colour;
-      arc.options.borderColor = "#ffffff";
-      arc.options.hoverBorderColor = "#ffffff";
-      arc.options.borderWidth = dataset.borderWidth;
-      arc.options.hoverBorderWidth = dataset.borderWidth;
+      arc.options.borderColor = borderColours?.[index] || "#ffffff";
+      arc.options.hoverBorderColor = borderColours?.[index] || "#ffffff";
+      arc.options.borderWidth = borderWidths?.[index] ?? dataset.borderWidth;
+      arc.options.hoverBorderWidth = borderWidths?.[index] ?? dataset.borderWidth;
       arc.options.offset = 0;
       arc.options.hoverOffset = 0;
     });
@@ -164,15 +184,27 @@
     }
 
     const colours = items.map(paletteFor);
+    const compact = canvas.clientWidth < 700;
+    const borderColours = items.map((item, index) =>
+      roseAccentColour(colours[index], item.highlight) || "#ffffff"
+    );
+    const borderWidths = items.map((item) =>
+      item.highlight === "top" ? (compact ? 2 : 2.6)
+      : item.highlight === "bottom" ? (compact ? 1.3 : 1.6)
+      : (compact ? 2 : 3)
+    );
 
     dataset.backgroundColor = colours;
     dataset.hoverBackgroundColor = colours;
-    dataset.borderColor = "#ffffff";
-    dataset.hoverBorderColor = "#ffffff";
-    dataset.hoverBorderWidth = dataset.borderWidth;
+    dataset.borderColor = borderColours;
+    dataset.hoverBorderColor = borderColours;
+    dataset.borderWidth = borderWidths;
+    dataset.hoverBorderWidth = borderWidths;
     dataset.hoverOffset = 0;
 
-    applyRenderedArcTheme(chart, colours);
+    // Keep existing Chart.js arc instances in sync across hover/redraw.
+    // The team-style diagram still uses white borders independently.
+    applyRenderedArcTheme(chart, colours, borderColours, borderWidths);
 
     return colours;
   }

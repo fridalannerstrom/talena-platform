@@ -1,0 +1,439 @@
+{% extends "admin/core/layouts/admin_base.html" %}
+{% load static i18n %}
+{% get_current_language as LANG %}
+{% block title %}Statistik · Talena{% endblock %}
+{% block extra_css %}
+  {{ block.super }}
+  <link href="{% static 'css/talena/pages/admin-ai-statistics.css' %}?v=20261118-435f" rel="stylesheet">
+{% endblock %}
+{% block content %}
+<div class="talena-ai-stats">
+  <div class="talena-ai-stats__top">
+    <div>
+      <div class="talena-ai-stats__eyebrow"><i data-feather="bar-chart-2" aria-hidden="true"></i> TALENA · ADMIN</div>
+      <h1>
+        {% if active_tab == "reports" %}
+          {% if LANG|slice:":2" == "sv" %}Rapportstatistik{% else %}Report statistics{% endif %}
+        {% elif active_tab == "ai" %}
+          {% if LANG|slice:":2" == "sv" %}AI-statistik{% else %}AI statistics{% endif %}
+        {% else %}
+          {% if LANG|slice:":2" == "sv" %}Statistiköversikt{% else %}Statistics overview{% endif %}
+        {% endif %}
+      </h1>
+      <p>
+        {% if active_tab == "reports" %}
+          {% if LANG|slice:":2" == "sv" %}Se vilka PDF-rapporter och ZIP-paket kunderna skapar i Talena.{% else %}See which PDF reports and ZIP packages customers generate in Talena.{% endif %}
+        {% elif active_tab == "ai" %}
+          {% if LANG|slice:":2" == "sv" %}Följ OpenAI-anrop, tokenförbrukning och genereringar per funktion.{% else %}Explore OpenAI calls, token usage and activity by feature.{% endif %}
+        {% else %}
+          {% if LANG|slice:":2" == "sv" %}En enkel överblick över registrerad aktivitet hos Talenas kunder.{% else %}A clear overview of recorded customer activity in Talena.{% endif %}
+        {% endif %}
+      </p>
+    </div>
+    {% if active_tab == "ai" %}
+    <a href="{% url 'core:admin_ai_statistics_export' %}?{{ filter_query }}" class="btn btn-outline-dark">
+      <i data-feather="download" aria-hidden="true"></i>
+      {% if LANG|slice:":2" == "sv" %}Exportera AI-statistik (CSV){% else %}Export AI usage (CSV){% endif %}
+    </a>
+    {% endif %}
+  </div>
+
+  <nav class="talena-ai-stats__tabs" aria-label="{% if LANG|slice:":2" == "sv" %}Statistikområden{% else %}Statistics sections{% endif %}">
+    <a href="?tab=overview{% if tab_query %}&amp;{{ tab_query }}{% endif %}"
+       class="talena-ai-stats__tab{% if active_tab == 'overview' %} is-active{% endif %}"
+       {% if active_tab == 'overview' %}aria-current="page"{% endif %}>
+      <i data-feather="layout" aria-hidden="true"></i>
+      {% if LANG|slice:":2" == "sv" %}Översikt{% else %}Overview{% endif %}
+    </a>
+    <a href="?tab=reports{% if tab_query %}&amp;{{ tab_query }}{% endif %}"
+       class="talena-ai-stats__tab{% if active_tab == 'reports' %} is-active{% endif %}"
+       {% if active_tab == 'reports' %}aria-current="page"{% endif %}>
+      <i data-feather="file-text" aria-hidden="true"></i>
+      {% if LANG|slice:":2" == "sv" %}Rapportstatistik{% else %}Report statistics{% endif %}
+    </a>
+    <a href="?tab=ai{% if tab_query %}&amp;{{ tab_query }}{% endif %}"
+       class="talena-ai-stats__tab{% if active_tab == 'ai' %} is-active{% endif %}"
+       {% if active_tab == 'ai' %}aria-current="page"{% endif %}>
+      <i data-feather="cpu" aria-hidden="true"></i>
+      {% if LANG|slice:":2" == "sv" %}AI-statistik{% else %}AI statistics{% endif %}
+    </a>
+  </nav>
+
+  {% if active_tab == 'ai' and not tracking_enabled %}
+  <div class="talena-ai-stats__notice" role="status">
+    <i data-feather="shield" aria-hidden="true"></i>
+    <div>{% if LANG|slice:":2" == "sv" %}
+      <strong>Ny insamling är avstängd.</strong> Aktivera endast efter godkänt ändamål och lagringstid med <code>TALENA_AI_USAGE_LOGGING_ENABLED=1</code>. Befintliga events visas ändå.
+      {% else %}
+      <strong>New data collection is off.</strong> Enable only after retention and purpose approval using <code>TALENA_AI_USAGE_LOGGING_ENABLED=1</code>. Previously recorded events remain visible.
+      {% endif %}</div>
+  </div>
+  {% endif %}
+
+  <form class="talena-ai-stats__filters{% if active_tab != 'ai' %} talena-ai-stats__filters--simple{% endif %}" method="get" action="{% url 'core:admin_ai_statistics' %}">
+    <input type="hidden" name="tab" value="{{ active_tab }}">
+    <label>{% if LANG|slice:":2" == "sv" %}Från{% else %}From{% endif %}
+      <input class="form-control" type="date" name="from" value="{{ start|date:'Y-m-d' }}">
+    </label>
+    <label>{% if LANG|slice:":2" == "sv" %}Till{% else %}To{% endif %}
+      <input class="form-control" type="date" name="to" value="{{ end|date:'Y-m-d' }}">
+    </label>
+    <label>{% if LANG|slice:":2" == "sv" %}Organisation{% else %}Organisation{% endif %}
+      <select class="form-select" name="company">
+        <option value="">{% if LANG|slice:":2" == "sv" %}Alla organisationer{% else %}All organisations{% endif %}</option>
+        {% for company in companies %}
+          <option value="{{ company.pk }}" {% if selected_company == company.pk %}selected{% endif %}>{{ company.name }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    {% if active_tab == 'ai' %}
+    <label>{% if LANG|slice:":2" == "sv" %}AI-funktion{% else %}AI feature{% endif %}
+      <select class="form-select" name="feature">
+        <option value="">{% if LANG|slice:":2" == "sv" %}Alla funktioner{% else %}All features{% endif %}</option>
+        {% for code, label in features.items %}
+          <option value="{{ code }}" {% if selected_feature == code %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    {% endif %}
+    <button class="btn btn-dark" type="submit">{% if LANG|slice:":2" == "sv" %}Visa statistik{% else %}Apply filters{% endif %}</button>
+  </form>
+
+  {% if active_tab == 'overview' %}
+  <section class="talena-ai-stats__operational" aria-label="{% if LANG|slice:":2" == "sv" %}Verksamhetsaktivitet{% else %}Operational activity{% endif %}">
+    <div class="talena-ai-stats__section-heading">
+      <div>
+        <div class="talena-ai-stats__section-eyebrow">{% if LANG|slice:":2" == "sv" %}REGISTRERADE HÄNDELSER{% else %}RECORDED EVENTS{% endif %}</div>
+        <h2>{% if LANG|slice:":2" == "sv" %}Verksamhetsaktivitet{% else %}Operational activity{% endif %}</h2>
+        <p>{% if LANG|slice:":2" == "sv" %}Siffrorna räknas från den befintliga aktivitetsloggen och sparade chefsrapportredigeringar. Intern loggåtkomst, AI-leverantörsanrop och enbart förberedda PDF:er ingår inte. Organisations- och datumfilter gäller här.{% else %}Figures come from the existing activity log and saved manager-report text edits. Internal audit access, AI provider calls and PDF preparations are excluded. Organisation and date filters apply here.{% endif %}</p>
+      </div>
+      <a href="{% url 'core:admin_activity_log' %}" class="talena-ai-stats__log-link">
+        {% if LANG|slice:":2" == "sv" %}Visa aktivitetslogg{% else %}Open activity log{% endif %}
+        <i data-feather="external-link" aria-hidden="true"></i>
+      </a>
+    </div>
+    <div class="talena-ai-stats__metrics talena-ai-stats__operational-metrics">
+      <div class="talena-ai-stats__metric">
+        <span>{% if LANG|slice:":2" == "sv" %}Företag med aktivitet{% else %}Companies with activity{% endif %}</span>
+        <strong>{{ operational.totals.companies }}</strong>
+        <small>{% if LANG|slice:":2" == "sv" %}Unika företag med registrerad händelse{% else %}Distinct companies with a recorded event{% endif %}</small>
+      </div>
+      <div class="talena-ai-stats__metric">
+        <span>{% if LANG|slice:":2" == "sv" %}Projekt med aktivitet{% else %}Projects with activity{% endif %}</span>
+        <strong>{{ operational.totals.projects }}</strong>
+        <small>{% if LANG|slice:":2" == "sv" %}Unika projekt i aktivitetsloggen{% else %}Distinct projects in the activity log{% endif %}</small>
+      </div>
+      <div class="talena-ai-stats__metric">
+        <span>{% if LANG|slice:":2" == "sv" %}Skickade inbjudningar{% else %}Invitations sent{% endif %}</span>
+        <strong>{{ operational.totals.invitations }}</strong>
+        <small>{% if LANG|slice:":2" == "sv" %}Registrerade utskickshändelser{% else %}Recorded invitation events{% endif %}</small>
+      </div>
+      <div class="talena-ai-stats__metric">
+        <span>{% if LANG|slice:":2" == "sv" %}Slutförda tester{% else %}Completed assessments{% endif %}</span>
+        <strong>{{ operational.totals.assessments_completed }}</strong>
+        <small>{% if LANG|slice:":2" == "sv" %}Registrerade slutförandehändelser{% else %}Recorded completion events{% endif %}</small>
+      </div>
+      <div class="talena-ai-stats__metric">
+        <span>{% if LANG|slice:":2" == "sv" %}Kandidatrapport öppnad{% else %}Candidate report opens{% endif %}</span>
+        <strong>{{ operational.totals.candidate_report_opens }}</strong>
+        <small>{% if LANG|slice:":2" == "sv" %}Öppningshändelser, inte bevis för läsning{% else %}Open events, not proof of reading{% endif %}</small>
+      </div>
+      <div class="talena-ai-stats__metric">
+        <span>{% if LANG|slice:":2" == "sv" %}Chefsrapport PDF{% else %}Manager report PDFs{% endif %}</span>
+        <strong>{{ operational.totals.confirmed_manager_pdfs }}</strong>
+        <small>{% if LANG|slice:":2" == "sv" %}Webbläsarbekräftad generering{% else %}Browser-confirmed generation{% endif %}</small>
+      </div>
+      <div class="talena-ai-stats__metric">
+        <span>{% if LANG|slice:":2" == "sv" %}Sparade textredigeringar{% else %}Saved text edits{% endif %}</span>
+        <strong>{{ operational.totals.manager_text_edits }}</strong>
+        <small>{% if LANG|slice:":2" == "sv" %}Chefsrapport, inte en granskningskvittens{% else %}Manager report, not a review confirmation{% endif %}</small>
+      </div>
+      <div class="talena-ai-stats__metric">
+        <span>{% if LANG|slice:":2" == "sv" %}Verksamhetshändelser{% else %}Operational events{% endif %}</span>
+        <strong>{{ operational.totals.events }}</strong>
+        <small>{% if LANG|slice:":2" == "sv" %}Endast stödda händelsetyper{% else %}Supported event types only{% endif %}</small>
+      </div>
+    </div>
+
+  </section>
+  {% endif %}
+
+  {% if active_tab == 'reports' %}
+  <section class="talena-ai-stats__report-exports" aria-label="{% if LANG|slice:":2" == "sv" %}Rapportexporter{% else %}Report exports{% endif %}">
+    <div class="talena-ai-stats__section-heading">
+      <div>
+        <div class="talena-ai-stats__section-eyebrow">{% if LANG|slice:":2" == "sv" %}RAPPORTER OCH PAKET{% else %}REPORTS AND PACKAGES{% endif %}</div>
+        <h2>{% if LANG|slice:":2" == "sv" %}Rapportexporter{% else %}Report exports{% endif %}</h2>
+        <p>{% if LANG|slice:":2" == "sv" %}PDF- och ZIP-filer som webbläsaren har rapporterat att den skapat. Ett sammanslaget paket räknas en gång, inte som flera separata rapporter. Ingen garanti för lokal nedladdning.{% else %}PDF and ZIP files the browser reported generating. A report package is counted once, not as individual constituent files. Local downloads cannot be guaranteed.{% endif %}</p>
+      </div>
+    </div>
+    <div class="talena-ai-stats__metrics talena-ai-stats__report-metrics">
+      <div class="talena-ai-stats__metric">
+        <span>{% if LANG|slice:":2" == "sv" %}Rapportfiler totalt{% else %}Report files total{% endif %}</span>
+        <strong>{{ report_exports.total }}</strong>
+        <small>{% if LANG|slice:":2" == "sv" %}Webbläsarrapporterade lyckade skapanden{% else %}Browser-reported successful generations{% endif %}</small>
+      </div>
+      <div class="talena-ai-stats__metric">
+        <span>PDF</span>
+        <strong>{{ report_exports.pdf }}</strong>
+        <small>{% if LANG|slice:":2" == "sv" %}Separata PDF:er och sammanslagna paket{% else %}Single PDFs and merged packages{% endif %}</small>
+      </div>
+      <div class="talena-ai-stats__metric">
+        <span>ZIP</span>
+        <strong>{{ report_exports.zip }}</strong>
+        <small>{% if LANG|slice:":2" == "sv" %}ZIP-paket räknas som en fil{% else %}ZIP packages count as one file{% endif %}</small>
+      </div>
+    </div>
+    <div class="talena-ai-stats__panel talena-ai-stats__table-section">
+      <div class="talena-ai-stats__panel-heading">
+        <h3>{% if LANG|slice:":2" == "sv" %}Exporter per rapporttyp{% else %}Exports by report type{% endif %}</h3>
+        <span>{{ start|date:"Y-m-d" }} – {{ end|date:"Y-m-d" }}</span>
+      </div>
+      <div class="table-responsive">
+        <table class="table align-middle">
+          <thead>
+            <tr>
+              <th>{% if LANG|slice:":2" == "sv" %}Rapporttyp{% else %}Report type{% endif %}</th>
+              <th>{% if LANG|slice:":2" == "sv" %}Filformat{% else %}File format{% endif %}</th>
+              <th class="text-end">{% if LANG|slice:":2" == "sv" %}Antal{% else %}Count{% endif %}</th>
+            </tr>
+          </thead>
+          <tbody>
+          {% for report in report_exports.rows %}
+            <tr>
+              <td><strong>{{ report.label }}</strong></td>
+              <td>{{ report.format }}</td>
+              <td class="text-end">{{ report.count }}</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="3" class="talena-ai-stats__empty">
+              {% if LANG|slice:":2" == "sv" %}Inga rapportfiler har registrerats för den valda perioden. Tidigare exporter kan ha saknat spårning.{% else %}No report files recorded for the selected period. Older exports may not have been tracked.{% endif %}
+            </td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <section class="talena-ai-stats__panel talena-ai-stats__table-section talena-ai-stats__report-history">
+      <div class="talena-ai-stats__panel-heading">
+        <div>
+          <h3>{% if LANG|slice:":2" == "sv" %}Enskilda rapportexporter{% else %}Individual report exports{% endif %}</h3>
+          <p class="talena-ai-stats__table-intro">{% if LANG|slice:":2" == "sv" %}Se vem som skapade rapporten och vilken kandidat den gäller, när uppgifterna finns registrerade.{% else %}See who generated each report and which candidate it belongs to, when that information is available.{% endif %}</p>
+        </div>
+        <span>{{ report_page.paginator.count }} {% if LANG|slice:":2" == "sv" %}exporter under perioden{% else %}exports in selected period{% endif %}</span>
+      </div>
+      <div class="table-responsive">
+        <table class="table align-middle talena-ai-stats__report-history-table">
+          <thead>
+            <tr>
+              <th scope="col">{% if LANG|slice:":2" == "sv" %}Tidpunkt{% else %}Date &amp; time{% endif %}</th>
+              <th scope="col">{% if LANG|slice:":2" == "sv" %}Rapport{% else %}Report{% endif %}</th>
+              <th scope="col">{% if LANG|slice:":2" == "sv" %}Format{% else %}Format{% endif %}</th>
+              <th scope="col">{% if LANG|slice:":2" == "sv" %}Användare{% else %}User{% endif %}</th>
+              <th scope="col">{% if LANG|slice:":2" == "sv" %}Kandidat{% else %}Candidate{% endif %}</th>
+              <th scope="col">{% if LANG|slice:":2" == "sv" %}Företag / projekt{% else %}Company / project{% endif %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in report_rows %}
+              <tr>
+                <td class="talena-ai-stats__report-history-date">{{ item.when|date:"Y-m-d H:i" }}</td>
+                <td><strong>{{ item.report }}</strong></td>
+                <td>{{ item.format }}</td>
+                <td>{{ item.user|default:"–" }}</td>
+                <td>{{ item.candidate|default:"–" }}</td>
+                <td>
+                  <div class="talena-ai-stats__report-history-company">{{ item.company|default:"–" }}</div>
+                  {% if item.project %}<div class="talena-ai-stats__report-history-project">{{ item.project }}</div>{% endif %}
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="6" class="talena-ai-stats__empty">
+                  {% if LANG|slice:":2" == "sv" %}Inga registrerade rapportexporter för perioden.{% else %}No recorded report exports for this period.{% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% if report_page.paginator.num_pages > 1 %}
+        <nav class="talena-ai-stats__report-pagination" aria-label="{% if LANG|slice:":2" == "sv" %}Bläddra bland rapportexporter{% else %}Browse report exports{% endif %}">
+          {% if report_page.has_previous %}
+            <a class="btn btn-outline-secondary btn-sm" href="?{{ report_filter_query }}&amp;report_page={{ report_page.previous_page_number }}">{% if LANG|slice:":2" == "sv" %}Föregående{% else %}Previous{% endif %}</a>
+          {% endif %}
+          <span>{{ report_page.number }} / {{ report_page.paginator.num_pages }}</span>
+          {% if report_page.has_next %}
+            <a class="btn btn-outline-secondary btn-sm" href="?{{ report_filter_query }}&amp;report_page={{ report_page.next_page_number }}">{% if LANG|slice:":2" == "sv" %}Nästa{% else %}Next{% endif %}</a>
+          {% endif %}
+        </nav>
+      {% endif %}
+    </section>
+  </section>
+  {% endif %}
+
+  {% if active_tab == 'ai' %}
+    <div class="talena-ai-stats__metrics">
+    <div class="talena-ai-stats__metric">
+      <span>{% if LANG|slice:":2" == "sv" %}Registrerade AI-anrop{% else %}Recorded AI calls{% endif %}</span>
+      <strong>{{ totals.count }}</strong>
+      <small>{% if LANG|slice:":2" == "sv" %}Endast instrumenterade anrop{% else %}Instrumented calls only{% endif %}</small>
+    </div>
+    <div class="talena-ai-stats__metric">
+      <span>{% if LANG|slice:":2" == "sv" %}Lyckade leverantörsanrop{% else %}Completed provider calls{% endif %}</span>
+      <strong>{{ totals.succeeded }}</strong>
+      <small>{% if LANG|slice:":2" == "sv" %}Inte ett mått på rapportkvalitet{% else %}Not a report-quality measure{% endif %}</small>
+    </div>
+    <div class="talena-ai-stats__metric">
+      <span>{% if LANG|slice:":2" == "sv" %}Fel / avbrutna{% else %}Failed / interrupted{% endif %}</span>
+      <strong>{{ totals.failed }} / {{ totals.incomplete }}</strong>
+      <small>{% if LANG|slice:":2" == "sv" %}Två skilda utfall{% else %}Two distinct outcomes{% endif %}</small>
+    </div>
+    <div class="talena-ai-stats__metric">
+      <span>{% if LANG|slice:":2" == "sv" %}Rapporterade tokens{% else %}Reported tokens{% endif %}</span>
+      <strong>{{ totals.tokens }}</strong>
+      <small>{{ totals.with_usage }} {% if LANG|slice:":2" == "sv" %}anrop med usage-metadata{% else %}calls with usage metadata{% endif %}</small>
+    </div>
+  </div>
+
+  <div class="talena-ai-stats__grid">
+    <section class="talena-ai-stats__panel">
+      <div class="talena-ai-stats__panel-heading">
+        <h2>{% if LANG|slice:":2" == "sv" %}Anrop över tid{% else %}Calls over time{% endif %}</h2>
+        <span>{{ start|date:"Y-m-d" }} – {{ end|date:"Y-m-d" }}</span>
+      </div>
+      <div class="talena-ai-stats__trend" role="img" aria-label="{% if LANG|slice:":2" == "sv" %}Antal registrerade AI-anrop under perioden{% else %}Recorded AI call count over selected period{% endif %}">
+        {% for bar in trend %}
+          <div class="talena-ai-stats__bar-shell" title="{{ bar.day|date:'Y-m-d' }}: {{ bar.count }}">
+            <div class="talena-ai-stats__bar" style="height:{{ bar.height }}%"></div>
+          </div>
+        {% endfor %}
+      </div>
+      {% if totals.count == 0 %}
+        <p class="talena-ai-stats__empty">{% if LANG|slice:":2" == "sv" %}Inga registrerade AI-anrop för urvalet. Det betyder inte att inget har genererats historiskt.{% else %}No recorded calls for this selection. This does not mean that no historic AI generation took place.{% endif %}</p>
+      {% endif %}
+    </section>
+    <section class="talena-ai-stats__panel">
+      <div class="talena-ai-stats__panel-heading">
+        <h2>{% if LANG|slice:":2" == "sv" %}Datatäckning{% else %}Data coverage{% endif %}</h2>
+      </div>
+      <div class="talena-ai-stats__details">
+        <div><span>{% if LANG|slice:":2" == "sv" %}Första registrerade AI-händelse{% else %}First AI event{% endif %}</span><strong>{% if earliest %}{{ earliest|date:"Y-m-d H:i" }}{% else %}{% if LANG|slice:":2" == "sv" %}Ingen ännu{% else %}Not yet available{% endif %}{% endif %}</strong></div>
+        <div><span>{% if LANG|slice:":2" == "sv" %}Andel lyckade av avslutade anrop{% else %}Success among resolved calls{% endif %}</span><strong>{% if totals.success_rate is not None %}{{ totals.success_rate }} %{% else %}–{% endif %}</strong></div>
+        <div><span>{% if LANG|slice:":2" == "sv" %}Anrop utan organisationskoppling{% else %}Calls without organisation attribution{% endif %}</span><strong>{{ totals.unattributed }}</strong></div>
+        <div><span>{% if LANG|slice:":2" == "sv" %}API-kostnad{% else %}API cost{% endif %}</span><strong>{% if LANG|slice:":2" == "sv" %}Inte beräknad{% else %}Not calculated{% endif %}</strong></div>
+      </div>
+      <p class="talena-ai-stats__footnote">{% if LANG|slice:":2" == "sv" %}Tokenantal visas bara när OpenAI returnerade usage-data. Kostnad kräver verifierade modellpriser. Utfall avser leverantörsanrop, inte färdiga eller godkända rapporter.{% else %}Token counts only include provider-reported usage. Cost requires verified model pricing. Call outcomes do not imply validated or approved reports.{% endif %}</p>
+    </section>
+  </div>
+
+  <section class="talena-ai-stats__panel talena-ai-stats__table-section talena-ai-stats__history">
+    <div class="talena-ai-stats__panel-heading">
+      <div>
+        <h2>{% if LANG|slice:":2" == "sv" %}Enskilda AI-anrop{% else %}Individual AI calls{% endif %}</h2>
+        <p class="talena-ai-stats__table-intro">{% if LANG|slice:":2" == "sv" %}Senaste registrerade anrop med tillgängligt företag, användare och kandidat. Äldre händelser kompletteras inte i efterhand.{% else %}Latest recorded calls with available company, user and candidate. Older events are not retroactively attributed.{% endif %}</p>
+      </div>
+      <span>{{ call_page.paginator.count }} {% if LANG|slice:":2" == "sv" %}anrop under perioden{% else %}calls in selected period{% endif %}</span>
+    </div>
+    <div class="table-responsive">
+      <table class="table align-middle talena-ai-stats__history-table">
+        <thead>
+          <tr>
+            <th scope="col">{% if LANG|slice:":2" == "sv" %}Tidpunkt{% else %}Date &amp; time{% endif %}</th>
+            <th scope="col">{% if LANG|slice:":2" == "sv" %}Funktion{% else %}Feature{% endif %}</th>
+            <th scope="col">{% if LANG|slice:":2" == "sv" %}Företag{% else %}Company{% endif %}</th>
+            <th scope="col">{% if LANG|slice:":2" == "sv" %}Användare{% else %}User{% endif %}</th>
+            <th scope="col">{% if LANG|slice:":2" == "sv" %}Kandidat{% else %}Candidate{% endif %}</th>
+            <th scope="col">{% if LANG|slice:":2" == "sv" %}Projekt{% else %}Project{% endif %}</th>
+            <th scope="col">{% if LANG|slice:":2" == "sv" %}Status{% else %}Status{% endif %}</th>
+            <th scope="col" class="text-end">Tokens</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in call_rows %}
+            <tr>
+              <td class="talena-ai-stats__history-date">{{ row.time|date:"Y-m-d H:i" }}</td>
+              <td><strong>{{ row.feature|default:"–" }}</strong></td>
+              <td>{{ row.company|default:"–" }}</td>
+              <td>{{ row.actor|default:"–" }}</td>
+              <td>{{ row.candidate|default:"–" }}</td>
+              <td>{{ row.process|default:"–" }}</td>
+              <td>
+                {% if row.outcome == "ai_call_succeeded" %}
+                  <span class="talena-ai-stats__status talena-ai-stats__status--ok">{% if LANG|slice:":2" == "sv" %}Lyckades{% else %}Completed{% endif %}</span>
+                {% elif row.outcome == "ai_call_failed" %}
+                  <span class="talena-ai-stats__status talena-ai-stats__status--fail">{% if LANG|slice:":2" == "sv" %}Fel{% else %}Failed{% endif %}</span>
+                {% else %}
+                  <span class="talena-ai-stats__status talena-ai-stats__status--incomplete">{% if LANG|slice:":2" == "sv" %}Avbrutet{% else %}Incomplete{% endif %}</span>
+                {% endif %}
+              </td>
+              <td class="text-end">{% if row.tokens is not None %}{{ row.tokens }}{% else %}–{% endif %}</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="8" class="talena-ai-stats__empty">
+              {% if LANG|slice:":2" == "sv" %}Inga AI-anrop finns registrerade för det här urvalet.{% else %}No AI calls are recorded for this selection.{% endif %}
+            </td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="talena-ai-stats__history-footer">
+      <p>
+        {% if LANG|slice:":2" == "sv" %}
+          Streck (–) betyder att uppgiften inte registrerades eller inte längre finns. Personliga uppgifter visas bara för behörig Talena-admin.
+        {% else %}
+          A dash (–) means the detail was never recorded or is no longer available. Personal details are restricted to authorised Talena admins.
+        {% endif %}
+      </p>
+      {% if call_page.paginator.num_pages > 1 %}
+      <nav aria-label="{% if LANG|slice:":2" == "sv" %}Bläddra bland AI-anrop{% else %}AI call history pagination{% endif %}">
+        <div class="talena-ai-stats__pagination">
+          {% if call_page.has_previous %}
+            <a class="btn btn-outline-secondary btn-sm" href="?{{ filter_query }}&amp;page={{ call_page.previous_page_number }}">{% if LANG|slice:":2" == "sv" %}Föregående{% else %}Previous{% endif %}</a>
+          {% endif %}
+          <span>{{ call_page.number }} / {{ call_page.paginator.num_pages }}</span>
+          {% if call_page.has_next %}
+            <a class="btn btn-outline-secondary btn-sm" href="?{{ filter_query }}&amp;page={{ call_page.next_page_number }}">{% if LANG|slice:":2" == "sv" %}Nästa{% else %}Next{% endif %}</a>
+          {% endif %}
+        </div>
+      </nav>
+      {% endif %}
+    </div>
+  </section>
+
+  <section class="talena-ai-stats__panel talena-ai-stats__table-section">
+    <div class="talena-ai-stats__panel-heading">
+      <h2>{% if LANG|slice:":2" == "sv" %}Användning per funktion{% else %}Usage by feature{% endif %}</h2>
+      <span>{% if LANG|slice:":2" == "sv" %}Sammanställd metadata{% else %}Aggregated metadata{% endif %}</span>
+    </div>
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead><tr>
+          <th>{% if LANG|slice:":2" == "sv" %}Funktion{% else %}Feature{% endif %}</th>
+          <th class="text-end">{% if LANG|slice:":2" == "sv" %}Anrop{% else %}Calls{% endif %}</th>
+          <th class="text-end">{% if LANG|slice:":2" == "sv" %}Lyckade{% else %}Completed{% endif %}</th>
+          <th class="text-end">{% if LANG|slice:":2" == "sv" %}Fel{% else %}Failed{% endif %}</th>
+          <th class="text-end">{% if LANG|slice:":2" == "sv" %}Avbrutna{% else %}Incomplete{% endif %}</th>
+          <th class="text-end">Tokens</th>
+        </tr></thead>
+        <tbody>
+          {% for row in feature_rows %}
+            <tr>
+              <td><strong>{{ row.label }}</strong></td>
+              <td class="text-end">{{ row.count }}</td>
+              <td class="text-end">{{ row.succeeded }}</td>
+              <td class="text-end">{{ row.failed }}</td>
+              <td class="text-end">{{ row.incomplete }}</td>
+              <td class="text-end">{{ row.tokens }}</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="6" class="talena-ai-stats__empty">{% if LANG|slice:":2" == "sv" %}Inga data att visa för perioden.{% else %}No data to display for this period.{% endif %}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+  {% endif %}
+</div>
+{% endblock %}

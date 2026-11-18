@@ -16,6 +16,14 @@ jobs:
           node --check static/js/talena/candidate-report-packages.js
           node scripts/test_candidate_report_packages_contract.js
           node scripts/test_candidate_report_package_runtime_20261115.js
+          node --check static/js/talena/report-export-activity.js
+          node --check static/js/talena/team-report-packages.js
+          node --check static/js/talena/team-report-export.js
+          node --check static/js/talena/team-profile-export.js
+          node --check static/js/talena/candidate-result-internal-pdf.js
+          node scripts/test_report_export_tracking_435.js
+          node --check static/js/talena/candidate-chart-theme.js
+          node scripts/test_motivation_rose_top_bottom_20261118.js
           node scripts/test_candidate_pdf_hidden_motivation_chart_20261115.js
           node scripts/test_candidate_report_chart_coverage_20261115.js
           node scripts/test_candidate_pdf_overview_export_20261115.js
@@ -76,6 +84,13 @@ jobs:
           node --check static/js/talena/structured-overall-picture.js
           node --check static/js/talena/after-interview-tabs.js
           node scripts/test_manager_report_activity_430.js
+      - name: Verify AI provider metering and admin statistics (#435)
+        env:
+          DJANGO_DEBUG: 'True'
+          DJANGO_SECRET_KEY: local-qa-only
+          USE_AZURE_STORAGE: '0'
+          TALENA_AI_USAGE_LOGGING_ENABLED: '0'
+        run: python manage.py test apps.activity.test_ai_statistics_435 apps.activity.test_report_exports_435 apps.activity.test_admin_activity_log_432 apps.core.test_ai_pii_sanitizer apps.core.test_ai_privacy_notice --noinput
       - name: Verify Talena admin Sova workflows (#352)
         env:
           DJANGO_DEBUG: 'True'
@@ -157,7 +172,13 @@ jobs:
           DJANGO_DEBUG: 'True'
           DJANGO_SECRET_KEY: local-qa-only
           USE_AZURE_STORAGE: '0'
-        run: python manage.py test apps.processes.test_pre_interview_response_styles_504 --noinput
+        run: python manage.py test apps.processes.test_pre_interview_response_styles_504 apps.reports.test_response_style_selected_eight_20261118 --noinput
+      - name: Verify motivation rose highlights match precise STIVE ordering
+        env:
+          DJANGO_DEBUG: 'True'
+          DJANGO_SECRET_KEY: local-qa-only
+          USE_AZURE_STORAGE: '0'
+        run: python manage.py test apps.core.test_motivation_data_precision --noinput
       - name: Verify guided After interview journey and locked analysis tabs
         run: |
           node scripts/test_after_interview_guided_flow.js

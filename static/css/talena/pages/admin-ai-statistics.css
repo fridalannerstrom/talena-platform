@@ -1,0 +1,147 @@
+.talena-ai-stats{color:#253047;padding-bottom:3rem}
+.talena-ai-stats__top{display:flex;align-items:flex-start;justify-content:space-between;gap:1.5rem;flex-wrap:wrap;margin-bottom:1.7rem}
+.talena-ai-stats__eyebrow{display:flex;align-items:center;gap:.5rem;font-size:.7rem;letter-spacing:.13em;font-weight:800;color:var(--talena-coral-strong,#cf5950);margin-bottom:.6rem}
+.talena-ai-stats__eyebrow svg{width:15px;height:15px}
+.talena-ai-stats__top h1{font-size:2.15rem;font-weight:750;letter-spacing:-.04em;margin:0 0 .55rem}
+.talena-ai-stats__top p{color:#667085;margin:0;max-width:720px;font-size:.92rem}
+.talena-ai-stats__top .btn{display:flex;gap:.55rem;align-items:center;white-space:nowrap}
+.talena-ai-stats__top .btn svg{width:15px;height:15px}
+.talena-ai-stats__notice{display:flex;gap:.75rem;align-items:flex-start;border:1px solid #e6dcf4;background:#faf8ff;padding:1rem 1.1rem;border-radius:12px;color:#574772;font-size:.88rem;margin-bottom:1.4rem;line-height:1.5}
+.talena-ai-stats__notice svg{width:18px;min-width:18px}
+.talena-ai-stats__notice code{white-space:normal;overflow-wrap:anywhere}
+.talena-ai-stats__filters{display:grid;grid-template-columns:repeat(2,minmax(120px,1fr)) minmax(180px,1.4fr) minmax(180px,1.4fr) auto;align-items:end;gap:.8rem;background:#fff;border:1px solid #e8eaf1;border-radius:13px;padding:1.1rem;margin-bottom:1.4rem;box-shadow:0 8px 22px rgba(30,38,66,.025)}
+.talena-ai-stats__filters label{display:grid;gap:.35rem;color:#5d6678;font-size:.74rem;font-weight:700}
+.talena-ai-stats__filters input,.talena-ai-stats__filters select{min-width:0;font-size:.85rem}
+.talena-ai-stats__filters button{white-space:nowrap}
+.talena-ai-stats__metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.95rem;margin-bottom:1.1rem}
+.talena-ai-stats__metric,.talena-ai-stats__panel{background:#fff;border:1px solid #e8eaf1;border-radius:14px;box-shadow:0 8px 25px rgba(35,43,70,.035)}
+.talena-ai-stats__metric{padding:1.25rem;display:flex;flex-direction:column;gap:.4rem}
+.talena-ai-stats__metric span{font-size:.78rem;font-weight:650;color:#626b7d}
+.talena-ai-stats__metric strong{font-size:2rem;line-height:1.25;letter-spacing:-.045em;font-variant-numeric:tabular-nums;font-weight:750}
+.talena-ai-stats__metric small{color:#798294;font-size:.72rem}
+.talena-ai-stats__grid{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(250px,.9fr);gap:1rem;margin-bottom:1rem}
+.talena-ai-stats__panel{padding:1.25rem}
+.talena-ai-stats__panel-heading{display:flex;align-items:center;justify-content:space-between;gap:.9rem;flex-wrap:wrap;margin-bottom:1.15rem}
+.talena-ai-stats__panel-heading h2{font-size:1.08rem;margin:0;font-weight:750;letter-spacing:-.02em}
+.talena-ai-stats__panel-heading span{font-size:.76rem;color:#8690a0}
+.talena-ai-stats__trend{display:flex;align-items:end;gap:5px;min-height:170px;height:170px;border-bottom:1px solid #e8eaf0;padding:10px 5px 0}
+.talena-ai-stats__bar-shell{height:100%;display:flex;align-items:end;min-width:2px;flex:1}
+.talena-ai-stats__bar{background:linear-gradient(180deg,var(--talena-coral,#ff6f61),var(--talena-coral-strong,#cf5950));width:100%;border-radius:5px 5px 0 0;min-height:2px}
+.talena-ai-stats__details{display:grid;gap:.85rem}
+.talena-ai-stats__details>div{display:flex;justify-content:space-between;align-items:baseline;gap:1rem;padding-bottom:.7rem;border-bottom:1px solid #eff0f3}
+.talena-ai-stats__details span{color:#7b8495;font-size:.76rem}
+.talena-ai-stats__details strong{font-size:.86rem;font-weight:700;text-align:right}
+.talena-ai-stats__footnote{color:#798294;font-size:.74rem;line-height:1.55;margin:1.1rem 0 0}
+.talena-ai-stats__table-section{padding-bottom:.55rem}
+.talena-ai-stats__table-section .table{margin:0}
+.talena-ai-stats__table-section th{font-size:.74rem;font-weight:700;color:#718095;border-bottom-color:#eef0f4}
+.talena-ai-stats__table-section td{font-size:.82rem;padding:.75rem .5rem;border-bottom-color:#f0f1f4}
+.talena-ai-stats__table-section tbody tr:last-child td{border:0}
+.talena-ai-stats__empty{color:#8a93a1;font-size:.8rem;line-height:1.55;margin:.85rem 0 0;text-align:center;padding:1rem}
+@media(max-width:1100px){.talena-ai-stats__filters{grid-template-columns:repeat(2,minmax(0,1fr))}.talena-ai-stats__metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:767px){.talena-ai-stats__grid{grid-template-columns:1fr}.talena-ai-stats__top h1{font-size:1.7rem}.talena-ai-stats__metric{padding:1rem}.talena-ai-stats__metric strong{font-size:1.55rem}}
+@media(max-width:500px){.talena-ai-stats__filters{grid-template-columns:1fr}.talena-ai-stats__metrics{grid-template-columns:1fr 1fr}.talena-ai-stats__metric span{font-size:.72rem}.talena-ai-stats__table-section{padding:.85rem}}
+
+
+/* #435: separate call-level audit history from aggregate totals. */
+.talena-ai-stats__history{margin-bottom:1rem}
+.talena-ai-stats__table-intro{color:#7b8495;font-size:.78rem;line-height:1.6;margin:.45rem 0 0;max-width:850px}
+.talena-ai-stats__history-table{min-width:1000px}
+.talena-ai-stats__history-table th{white-space:nowrap}
+.talena-ai-stats__history-table td{vertical-align:middle;max-width:230px;overflow-wrap:anywhere}
+.talena-ai-stats__history-date{color:#7b8495;font-variant-numeric:tabular-nums;white-space:nowrap;font-size:.78rem!important}
+.talena-ai-stats__status{display:inline-block;white-space:nowrap;border-radius:999px;padding:.26rem .58rem;font-size:.71rem;font-weight:650}
+.talena-ai-stats__status--ok{background:#edf7f1;color:#286545}
+.talena-ai-stats__status--fail{background:#fff0f0;color:#9c3d3d}
+.talena-ai-stats__status--incomplete{background:#fff5e5;color:#98651d}
+.talena-ai-stats__history-footer{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;border-top:1px solid #eff0f3;padding:.9rem .25rem .25rem}
+.talena-ai-stats__history-footer p{max-width:790px;font-size:.74rem;color:#7b8495;margin:0;line-height:1.5}
+.talena-ai-stats__pagination{display:flex;align-items:center;gap:.65rem;font-size:.78rem;color:#7b8495}
+
+
+/* #435 · Operational KPIs sourced from audited domain events, not admin visits. */
+.talena-ai-stats__operational{margin:0 0 2.3rem}
+.talena-ai-stats__section-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:1.25rem;flex-wrap:wrap;margin:0 0 1.15rem}
+.talena-ai-stats__section-eyebrow{color:var(--talena-coral-strong,#cf5950);font-size:.66rem;letter-spacing:.115em;font-weight:800;margin-bottom:.35rem}
+.talena-ai-stats__section-heading h2{font-size:1.4rem;font-weight:750;letter-spacing:-.032em;margin:0 0 .35rem}
+.talena-ai-stats__section-heading p{color:#718095;font-size:.79rem;line-height:1.6;margin:0;max-width:960px}
+.talena-ai-stats__log-link{font-size:.79rem;color:#4c5565;text-decoration:none;display:inline-flex;align-items:center;gap:.4rem;border:1px solid #e6e9ee;padding:.48rem .72rem;border-radius:8px;background:#fff;white-space:nowrap}
+.talena-ai-stats__log-link:hover{border-color:var(--talena-coral,#ff6f61);color:var(--talena-coral-strong,#cf5950)}
+.talena-ai-stats__log-link svg{width:14px;height:14px}
+.talena-ai-stats__operational-metrics{grid-template-columns:repeat(4,minmax(0,1fr))}
+.talena-ai-stats__ai-heading{margin-top:.25rem}
+@media(max-width:1100px){.talena-ai-stats__operational-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+
+/* #435: real browser-reported report-file receipts, not download claims. */
+.talena-ai-stats__report-exports{margin:0 0 2.3rem}
+.talena-ai-stats__report-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}
+.talena-ai-stats__report-exports .talena-ai-stats__panel-heading h3{
+  font-size:1.05rem;letter-spacing:-.02em;font-weight:750;margin:0
+}
+.talena-ai-stats__report-exports .talena-ai-stats__panel{
+  padding-bottom:1.1rem
+}
+/* Keep the aggregated table and event history visually separate. */
+.talena-ai-stats__report-exports .talena-ai-stats__report-history{
+  margin-top:1rem
+}
+.talena-ai-stats__report-history-table{min-width:900px}
+.talena-ai-stats__report-history-table th{white-space:nowrap}
+.talena-ai-stats__report-history-table td{
+  max-width:245px;overflow-wrap:anywhere;vertical-align:middle
+}
+.talena-ai-stats__report-history-date{
+  color:#7b8495;font-variant-numeric:tabular-nums;white-space:nowrap;
+  font-size:.78rem!important
+}
+.talena-ai-stats__report-history-company{font-weight:650}
+.talena-ai-stats__report-history-project{font-size:.74rem;color:#8790a1;margin-top:.3rem}
+.talena-ai-stats__report-pagination{
+  display:flex;align-items:center;justify-content:flex-end;gap:.8rem;
+  border-top:1px solid #eff0f3;padding:.9rem .25rem .25rem;
+  font-size:.78rem;color:#7b8495
+}
+@media(max-width:767px){.talena-ai-stats__report-metrics{grid-template-columns:1fr}}
+
+
+/* #435: distinct views with a single purpose per tab. */
+.talena-ai-stats__tabs{
+  display:flex;align-items:center;gap:.35rem;flex-wrap:wrap;
+  border-bottom:1px solid #e7e8ee;margin:0 0 1.4rem;padding:0 .15rem
+}
+.talena-ai-stats__tab{
+  display:inline-flex;align-items:center;gap:.55rem;
+  padding:.88rem 1.25rem .9rem;
+  text-decoration:none;color:#737c8d;font-size:.88rem;font-weight:680;
+  border-bottom:3px solid transparent;transition:color .16s,border-color .16s
+}
+.talena-ai-stats__tab svg{width:16px;height:16px;flex:none}
+.talena-ai-stats__tab:hover{color:#333c4d;text-decoration:none}
+.talena-ai-stats__tab.is-active{
+  color:var(--talena-coral-strong,#cf5950);
+  border-bottom-color:var(--talena-coral,#ff6f61);
+  font-weight:780
+}
+.talena-ai-stats__tab:focus-visible{
+  outline:2px solid var(--talena-coral,#ff6f61);
+  outline-offset:-2px;border-radius:5px
+}
+.talena-ai-stats__filters--simple{
+  grid-template-columns:minmax(140px,1fr) minmax(140px,1fr)
+    minmax(190px,1.5fr) auto
+}
+.talena-ai-stats__operational,.talena-ai-stats__report-exports{
+  margin-bottom:0
+}
+.talena-ai-stats__operational .talena-ai-stats__metrics{margin-bottom:0}
+.talena-ai-stats__ai-heading{margin-top:.15rem}
+@media(max-width:1100px){
+  .talena-ai-stats__filters--simple{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:600px){
+  .talena-ai-stats__tabs{gap:0}
+  .talena-ai-stats__tab{padding:.73rem .78rem;font-size:.77rem;gap:.38rem}
+  .talena-ai-stats__tab svg{width:14px;height:14px}
+  .talena-ai-stats__filters--simple{grid-template-columns:1fr}
+}

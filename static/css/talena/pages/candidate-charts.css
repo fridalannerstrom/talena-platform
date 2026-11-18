@@ -666,3 +666,45 @@
 .process-page .personality-overview-chart--segmented .personality-overview-item__segment--filled:not(.personality-overview-item__segment--selected) {
   background: var(--talena-chart-accent) !important;
 }
+
+/* Motivation rose: neutral line weights explain the six complete
+   domain-coloured outlines, without implying positive/negative results. */
+.process-page .motivation-rose-chart__legend {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: .55rem 1.3rem;
+  margin: -.25rem auto 1.1rem;
+  color: var(--talena-text-muted, #626d76);
+  font-size: .73rem;
+  line-height: 1.4;
+}
+.process-page .motivation-rose-chart__legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: .43rem;
+  white-space: nowrap;
+}
+.process-page .motivation-rose-chart__legend-line {
+  display: inline-block;
+  width: 18px;
+  height: 0;
+  border-top-style: solid;
+  border-radius: 2px;
+  flex: 0 0 18px;
+}
+.process-page .motivation-rose-chart__legend-line--top {
+  border-top-width: 3px;
+  border-top-color: #82776e;
+}
+.process-page .motivation-rose-chart__legend-line--bottom {
+  border-top-width: 1.5px;
+  border-top-color: #82776e;
+}
+@media (max-width: 480px) {
+  .process-page .motivation-rose-chart__legend {
+    gap: .55rem 1rem;
+    font-size: .67rem;
+  }
+}

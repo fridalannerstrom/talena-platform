@@ -234,6 +234,9 @@
       requireCurrent();
       if(!output?.size||output.size>pack().MAX_BYTES)throw Error(t.large);
       pack().download(output,filename);
+      void window.TalenaReportExportActivity?.record?.(
+        page?.dataset?.reportExportReceiptUrl, "team-package-"+format
+      );
       status(t.done);
       status(t.done,false,true);
     }catch(err) {

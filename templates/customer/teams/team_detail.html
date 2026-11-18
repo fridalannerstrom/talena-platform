@@ -128,6 +128,7 @@
   data-team-report-brand-logo="{{ report_branding.logo_url|default:'' }}"
   data-team-report-brand-cover="{{ report_branding.cover_url|default:'' }}"
   data-team-report-brand-focus="{{ report_branding.cover_focus_y }}"
+  data-report-export-receipt-url="{% url 'teams:team_report_export_receipt' team.pk %}"
   data-team-report-name="{{ team.name }}"
   data-team-report-company="{{ company.name }}">
 
@@ -737,12 +738,13 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
   <script src="{% static 'js/talena/team-preference-wheel.js' %}?v=20261108-375-wheel-1"></script>
   <script src="{% static 'js/talena/team-pages.js' %}"></script>
-  <script src="{% static 'js/talena/team-profile-export.js' %}?v=20261104-449-adapters-2"></script>
+  <script src="{% static 'js/talena/report-export-activity.js' %}?v=20261118-435-1"></script>
+  <script src="{% static 'js/talena/team-profile-export.js' %}?v=20261118-435-1"></script>
   <script src="{% static 'js/talena/pdf-export-core.js' %}"></script>
-  <script src="{% static 'js/talena/team-report-export.js' %}?v=20261104-449-adapters-2"></script>
+  <script src="{% static 'js/talena/team-report-export.js' %}?v=20261118-435-1"></script>
   {# #449: assemble already-rendered team PDFs using the same core as #360. #}
   <script src="{% static 'js/talena/report-package-core.js' %}?v=20261104-449-1"></script>
-  <script src="{% static 'js/talena/team-report-packages.js' %}?v=20261104-449-picker-3"></script>
+  <script src="{% static 'js/talena/team-report-packages.js' %}?v=20261118-435-1"></script>
   <script src="{% static 'js/talena/team-header-actions.js' %}?v=20261104-449-header-2"></script>
   <script>
     (function () {

@@ -979,7 +979,7 @@ def stream_motivation_interpretation(
         )
     )
 
-    client = get_openai_client()
+    client = get_openai_client(feature="motivation_interpretation", owner=owner)
 
     prompt = build_motivation_interpretation_prompt(
         invitation=owner,

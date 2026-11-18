@@ -60,6 +60,12 @@ class ActivityEvent(models.Model):
         ADMIN_LOG_EXPORTED = "admin_log_exported", "Administrativ loggexport"
         MANAGER_REPORT_PDF_PREPARED = "manager_report_pdf_prepared", "Chefsrapport PDF förberedd"
         MANAGER_REPORT_PDF_GENERATED = "manager_report_pdf_generated", "Chefsrapport PDF genererad (webbläsare)"
+        REPORT_EXPORT_GENERATED = "report_export_generated", "Rapportfil skapad (webbläsarbekräftad)"
+
+        # Opt-in, metadata-only provider-call events for #435.
+        AI_CALL_SUCCEEDED = "ai_call_succeeded", "AI-anrop lyckades"
+        AI_CALL_FAILED = "ai_call_failed", "AI-anrop misslyckades"
+        AI_CALL_INCOMPLETE = "ai_call_incomplete", "AI-ström avbröts"
 
     # A platform-admin audit lookup can cover all tenants; it does not
     # belong to a particular customer. Existing customer events retain FK.

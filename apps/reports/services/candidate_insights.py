@@ -521,7 +521,7 @@ def generate_general_candidate_insights(
     """
 
 
-    client = get_openai_client()
+    client = get_openai_client(feature="general_candidate_insights")
 
     prompt = build_general_insights_prompt(
         candidate_name=candidate_name,

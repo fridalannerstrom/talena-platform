@@ -236,13 +236,13 @@
 
               <div class="project-trait-selector-card__heading">
                 <h3 id="project-personality-traits-title" class="mb-1">
-                  {% if language_code == "sv" %}Personlighetsdrag för intervjufrågor{% else %}Personality traits for interview questions{% endif %}
+                  {% if language_code == "sv" %}Personlighetsdrag för rollen{% else %}Personality traits for the role{% endif %}
                 </h3>
                 <p class="mb-0">
                   {% if language_code == "sv" %}
-                    Välj de personlighetsdrag som är viktigast för rollen. Du kan välja själv eller låta Talena rekommendera drag utifrån rollkontexten. Samma urval används för alla kandidater i projektet.
+                    Välj exakt åtta personlighetsdrag som är viktigast för rollen, eller låt Talena rekommendera åtta. Samma urval används för intervjufrågor och profilbedömningen i Svarsstilar och Inför intervju, för alla kandidater i projektet.
                   {% else %}
-                    Choose the personality traits that matter most for this role. Select them yourself or let Talena recommend traits based on the role context. The same selection is used for every candidate in the project.
+                    Select exactly eight personality traits for the role, or let Talena recommend eight. The same selection is used for interview questions and the profile classification under Response styles and Before interview for every candidate in the project.
                   {% endif %}
                 </p>
               </div>
@@ -329,9 +329,9 @@
                     <div class="project-traits-modal__selection-summary">
                       <p class="mb-0">
                         {% if language_code == "sv" %}
-                          Välj upp till åtta personlighetsdrag för hela projektet. Avmarkera alla om du vill använda Talenas rekommendation.
+                          Välj exakt åtta personlighetsdrag för hela projektet, eller avmarkera alla för att låta Talena rekommendera åtta.
                         {% else %}
-                          Choose up to eight traits for the whole project. Clear all selections to use Talena's recommendation.
+                          Choose exactly eight traits for the whole project, or clear all selections to let Talena recommend eight.
                         {% endif %}
                       </p>
                       <span class="project-traits-modal__counter" aria-live="polite">
@@ -348,9 +348,9 @@
                       {% if form.personality_question_traits.errors %}
                         {{ form.personality_question_traits.errors|striptags }}
                       {% elif language_code == "sv" %}
-                        Välj högst åtta personlighetsdrag.
+                        Välj exakt åtta personlighetsdrag, eller avmarkera alla för Talenas rekommendation.
                       {% else %}
-                        Choose no more than eight personality traits.
+                        Choose exactly eight personality traits, or clear all to use Talena's recommendation.
                       {% endif %}
                     </div>
 
@@ -400,6 +400,7 @@
               const checkboxes = Array.from(document.querySelectorAll("[data-project-trait-checkbox]"));
               const counter = document.querySelector("[data-project-trait-count]");
               const error = document.querySelector("[data-project-traits-error]");
+              const saveButton = modalElement?.querySelector('button[name="save_personality_traits"]');
               const selectedLimit = 8;
 
               function updateTraitSelectionCount() {
@@ -410,6 +411,12 @@
                 checkboxes.forEach((checkbox) => {
                   checkbox.disabled = selectedCount >= selectedLimit && !checkbox.checked;
                 });
+                // A partial manual selection is never saved as a valid
+                // eight-trait profile. Zero explicitly opts into Talena's
+                // recommended eight traits.
+                if (saveButton) {
+                  saveButton.disabled = selectedCount !== 0 && selectedCount !== selectedLimit;
+                }
               }
 
               checkboxes.forEach((checkbox) => {

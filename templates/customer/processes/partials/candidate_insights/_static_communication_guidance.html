@@ -18,7 +18,11 @@
     </section>
   {% else %}
     <p class="text-muted small mb-3" role="status" data-static-profile-status="unavailable">
-      {% if static_communication_guidance.language == "sv" %}Profilbedömning visas inte eftersom underlaget inte räcker.{% else %}A profile assessment is not shown because there is not enough information.{% endif %}
+      {% if not static_communication_guidance.profile_selection_complete and static_communication_guidance.selected_trait_count != 8 %}
+        {% if static_communication_guidance.language == "sv" %}Välj exakt åtta karaktärsdrag i projektets rollkontext för att visa om profilen är tydlig eller situationsbaserad.{% else %}Select exactly eight personality traits in the project's role context to classify the profile as clear or situational.{% endif %}
+      {% else %}
+        {% if static_communication_guidance.language == "sv" %}Profilbedömningen kräver resultat för samtliga åtta utvalda karaktärsdrag.{% else %}The profile classification requires results for all eight selected personality traits.{% endif %}
+      {% endif %}
     </p>
   {% endif %}
 

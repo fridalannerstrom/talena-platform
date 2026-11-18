@@ -279,8 +279,8 @@ class ProcessRoleContextForm(forms.ModelForm):
         widget=forms.CheckboxSelectMultiple,
         label=_("Personality traits for interview questions"),
         help_text=_(
-            "Choose up to eight traits for the whole project. Leave all "
-            "unchecked to let Talena recommend traits from the role context."
+            "Choose exactly eight traits for the project, or leave all "
+            "unchecked to let Talena recommend exactly eight."
         ),
     )
 
@@ -361,7 +361,15 @@ class ProcessRoleContextForm(forms.ModelForm):
 
     def clean_personality_question_traits(self):
         selected = self.cleaned_data.get("personality_question_traits") or []
-        if len(selected) > 8:
+        # A manual selection must be precisely eight. Clearing the selection
+        # deliberately chooses the separate Talena-recommended eight-trait
+        # mode. Context-only saves must not invalidate old selections.
+        if "save_personality_traits" in self.data:
+            if selected and (len(selected) != 8 or len(set(selected)) != 8):
+                raise forms.ValidationError(
+                    _("Choose exactly eight distinct personality traits.")
+                )
+        elif len(selected) > 8:
             raise forms.ValidationError(
                 _("Choose no more than eight personality traits.")
             )

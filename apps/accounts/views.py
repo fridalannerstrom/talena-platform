@@ -2546,15 +2546,17 @@ def admin_remove_candidate_from_process(request, process_id, candidate_id):
 
 
 def _admin_process_return_url(process, submitted_url):
-    """Only allow returning to this process's own company admin page."""
+    """Default to the admin project workspace; permit only safe project-local return URLs."""
     default = reverse("accounts:admin_process_detail", kwargs={"pk": process.pk})
     if process.company_id:
         company_url = reverse(
             "accounts:company_process_detail",
             kwargs={"company_pk": process.company_id, "process_pk": process.pk},
         )
-        if submitted_url == company_url:
-            return company_url
+        # The legacy admin-tools view uses a fixed query flag. Preserve this
+        # explicit return target without allowing arbitrary redirect URLs.
+        if submitted_url in (company_url, f"{company_url}?admin_tools=1"):
+            return submitted_url
     return default
 
 
@@ -2964,6 +2966,12 @@ def company_process_detail(request, company_pk, process_pk):
         pk=process_pk,
         company=company,
     )
+
+    # Talena staff open the real customer project workspace by default.
+    # The previous administrative overview remains available explicitly for
+    # internal operations (historical imports, audit and billing controls).
+    if request.GET.get("admin_tools") != "1":
+        return redirect("processes:process_detail", pk=process.pk)
 
     invitations = (
         TestInvitation.objects

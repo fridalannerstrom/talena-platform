@@ -22,7 +22,7 @@ def ask_ai(
         language_code
     )
 
-    client = get_openai_client()
+    client = get_openai_client(feature="assistant_chat")
 
     if scope == "both":
         ctx_base = retrieve_context(

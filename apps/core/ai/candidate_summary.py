@@ -502,7 +502,7 @@ def stream_candidate_summary(
         language_code
     )
 
-    client = get_openai_client()
+    client = get_openai_client(feature="candidate_summary", owner=owner)
 
     prompt = build_candidate_prompt(
         owner,
