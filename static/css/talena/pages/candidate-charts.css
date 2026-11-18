@@ -667,8 +667,8 @@
   background: var(--talena-chart-accent) !important;
 }
 
-/* Motivation rose: subtle tip accents and label dots highlight the same
-   precise STIVE-ranked drivers as the written motivation summaries. */
+/* Motivation rose: legend swatches explain tonal contrast, not a global
+   top/bottom hue. Tip arcs and name dots derive from each petal's fill. */
 .process-page .motivation-rose-chart__legend {
   display: flex;
   justify-content: center;
@@ -694,10 +694,10 @@
   flex: 0 0 8px;
 }
 .process-page .motivation-rose-chart__legend-dot--top {
-  background: #c96a5b;
+  background: #83766b;
 }
 .process-page .motivation-rose-chart__legend-dot--bottom {
-  background: #6e5c7e;
+  background: #d9d1ca;
 }
 @media (max-width: 480px) {
   .process-page .motivation-rose-chart__legend {
