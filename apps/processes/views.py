@@ -221,6 +221,9 @@ from apps.reports.libraries.personality.profile_contrasts import (
 from apps.reports.libraries.personality.communication_guidance import (
     build_static_communication_guidance,
 )
+from .project_personality_trait_selection import (
+    project_response_style_trait_names,
+)
 from apps.reports.libraries.personality.builder import (
     build_profile_from_resolved_report,
 )
@@ -3482,6 +3485,7 @@ def build_candidate_detail_context(
             personality_profile,
             response_styles,
             language=language,
+            selected_traits=project_response_style_trait_names(process),
         ),
         "profile_contrast_analysis": build_profile_contrast_analysis(
             personality_profile,
@@ -5183,6 +5187,7 @@ def build_pre_interview_response_styles_context(process, owner, *, language="sv"
         "response_styles": response_styles,
         "static_communication_guidance": build_static_communication_guidance(
             personality_profile, response_styles, language=language,
+            selected_traits=project_response_style_trait_names(process),
         ),
         "profile_contrast_analysis": build_profile_contrast_analysis(
             personality_profile,
@@ -10274,6 +10279,7 @@ def build_historical_candidate_detail_context(
             personality_profile,
             response_styles,
             language=language,
+            selected_traits=project_response_style_trait_names(process),
         ),
         "profile_contrast_analysis": build_profile_contrast_analysis(
             personality_profile,
