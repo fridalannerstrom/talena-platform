@@ -23,6 +23,7 @@ from django.views.decorators.http import require_GET
 from apps.accounts.models import Company
 from apps.activity.admin_views import _audit_access, can_view_platform_audit
 from apps.activity.models import ActivityEvent
+from apps.activity.usage_summary import platform_activity_summary
 from apps.core.ai.usage_metrics import FEATURES, FEATURES_EN, OUTCOMES, usage_logging_enabled
 
 AI_VERBS = tuple(OUTCOMES.values())
@@ -191,6 +192,10 @@ def platform_ai_statistics(request):
     labels = FEATURES_EN if (get_language() or "sv").startswith("en") else FEATURES
     feature_rows = _feature_rows(qs, labels)
     trend = _trend(qs, start, end)
+    operational = platform_activity_summary(
+        start=start, end=end, company=company,
+        english=(get_language() or "sv").startswith("en"),
+    )
     call_page, call_rows = _call_history(qs, request, labels)
     # Only validated, bounded fields are copied into links.
     filter_query = urlencode({
@@ -210,6 +215,7 @@ def platform_ai_statistics(request):
         "call_rows": call_rows,
         "filter_query": filter_query,
         "totals": totals,
+        "operational": operational,
         "trend": trend,
         "earliest": earliest,
         "tracking_enabled": usage_logging_enabled(),
