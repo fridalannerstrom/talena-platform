@@ -226,8 +226,10 @@ aggregerad CSV och tomma/ogiltiga filter. Ingen extern OpenAI/Sova-anropning.
 1. Godkänt lagringstidsbeslut, automatiserad gallring och information före
    prodaktivering. Utvärdera äldre ActivityEvent-meta separat.
 2. Verifierad per-modell tokenprissättning och faktisk kostnad, om önskvärt.
-3. Produkt-/projektaktivitets-KPI med säkra definitioner, redigerings- och
-   explicit granskningsdata samt bredare PDF/ZIP-exportinstrumentering.
+3. Fortsatt täckning för produkt-/projektaktivitet och uttrycklig
+   mänsklig granskningskvittens. PDF/ZIP-instrumentering för kandidat- och
+   teamrapporter är införd; verifiera ytterligare fristående rapportflöden
+   separat om sådana upptäcks vid produktgenomgång.
 4. Meningsfulla kandidatvisningar, prompt-/rapportversionskedja och fler
    integrationsfel enligt #433/#434, först efter inventering.
 5. Manuell webbläsarkontroll svenska/engelska och CI i korrekt miljö.
