@@ -1,4 +1,4 @@
-"""Register previously defined manager-report PDF activity verbs."""
+"""Register manager-report PDF activity verbs."""
 from django.db import migrations, models
 
 
@@ -14,7 +14,6 @@ class Migration(migrations.Migration):
             field=models.CharField(
                 max_length=80,
                 choices=[
-                    ("activity", "0008_platform_admin_audit_access"),
                     ("process_created", "Process skapad"),
                     ("process_archived", "Process arkiverad"),
                     ("process_deleted", "Process raderad"),
