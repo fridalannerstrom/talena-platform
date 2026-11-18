@@ -187,44 +187,56 @@ def platform_ai_statistics(request):
     if not can_view_platform_audit(request.user):
         return HttpResponseForbidden("Not allowed.")
     start, end, company, feature = _date_filters(request)
-    qs = _base_queryset(start, end, company, feature)
-    totals = _summary(qs)
-    labels = FEATURES_EN if (get_language() or "sv").startswith("en") else FEATURES
-    feature_rows = _feature_rows(qs, labels)
-    trend = _trend(qs, start, end)
-    operational = platform_activity_summary(
-        start=start, end=end, company=company,
-        english=(get_language() or "sv").startswith("en"),
-    )
-    report_exports = platform_report_exports(
-        start=start, end=end, company=company,
-        english=(get_language() or "sv").startswith("en"),
-    )
-    call_page, call_rows = _call_history(qs, request, labels)
-    # Only validated, bounded fields are copied into links.
-    filter_query = urlencode({
+    # Three distinct, server-rendered views with direct-linkable URLs.
+    # Besides decluttering the UI, this avoids expensive AI/detail queries
+    # when an admin only wants operational or report statistics.
+    tab = request.GET.get("tab", "overview")
+    if tab not in {"overview", "reports", "ai"}:
+        tab = "overview"
+    english = (get_language() or "sv").startswith("en")
+    labels = FEATURES_EN if english else FEATURES
+    shared_filters = {
         "from": start.isoformat(), "to": end.isoformat(),
         **({"company": company} if company else {}),
-        **({"feature": feature} if feature else {}),
-    })
-    earliest = (ActivityEvent.objects.filter(verb__in=AI_VERBS)
-                .order_by("created_at").values_list("created_at", flat=True).first())
-    context = {
-        "start": start, "end": end,
-        "selected_company": company, "selected_feature": feature,
-        "companies": Company.objects.order_by("name").only("id", "name"),
-        "features": labels,
-        "feature_rows": feature_rows,
-        "call_page": call_page,
-        "call_rows": call_rows,
-        "filter_query": filter_query,
-        "totals": totals,
-        "operational": operational,
-        "report_exports": report_exports,
-        "trend": trend,
-        "earliest": earliest,
-        "tracking_enabled": usage_logging_enabled(),
     }
+    tab_query = urlencode(shared_filters)
+    context = {
+        "active_tab": tab,
+        "start": start, "end": end,
+        "selected_company": company,
+        "selected_feature": feature if tab == "ai" else "",
+        "companies": Company.objects.order_by("name").only("id", "name"),
+        "tab_query": tab_query,
+        "features": labels if tab == "ai" else {},
+        "tracking_enabled": usage_logging_enabled() if tab == "ai" else False,
+    }
+    if tab == "overview":
+        context["operational"] = platform_activity_summary(
+            start=start, end=end, company=company,
+        )
+    elif tab == "reports":
+        context["report_exports"] = platform_report_exports(
+            start=start, end=end, company=company, english=english,
+        )
+    else:
+        qs = _base_queryset(start, end, company, feature)
+        call_page, call_rows = _call_history(qs, request, labels)
+        context.update({
+            "totals": _summary(qs),
+            "feature_rows": _feature_rows(qs, labels),
+            "trend": _trend(qs, start, end),
+            "call_page": call_page,
+            "call_rows": call_rows,
+            "filter_query": urlencode({
+                "tab": "ai", **shared_filters,
+                **({"feature": feature} if feature else {}),
+            }),
+            "earliest": (
+                ActivityEvent.objects.filter(verb__in=AI_VERBS)
+                .order_by("created_at")
+                .values_list("created_at", flat=True).first()
+            ),
+        })
     response = render(request, "admin/activity/ai_statistics.html", context)
     _audit_access(request, ActivityEvent.Verb.ADMIN_LOG_ACCESSED, "ai_stats")
     response["Cache-Control"] = "private, no-store"
