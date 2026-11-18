@@ -22,10 +22,9 @@ assert.ok(base.includes("stage.append(chartRoot.cloneNode(true))"),
   "PDF must clone the same highlighted rose as the candidate view");
 assert.ok(base.includes('highlight: ["top", "bottom"].includes(element.dataset.factorHighlight)'),
   "The initial chart and offscreen PDF must read the ranked highlights");
-assert.ok(base.includes("borderColor:\\n              roseBorders".replace("\\\\n", "\\n")) ||
-  base.includes("borderColor:" + "\\n" + "              roseBorders"),
+assert.ok(/borderColor:\s*roseBorders/.test(base),
   "The initial chart must draw highlighted petals without waiting for the theme pass");
-assert.ok(base.includes("hoverBorderColor:" + "\\n" + "              roseBorders"),
+assert.ok(/hoverBorderColor:\s*roseBorders/.test(base),
   "The PDF and hover states should retain the rank outlines");
 assert.ok(html.includes("Coral outlines mark the three highest drivers"),
   "Screen reader label must explain the outline meaning");
