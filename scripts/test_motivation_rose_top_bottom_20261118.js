@@ -15,10 +15,10 @@ assert.ok(html.includes("motivation-rose-chart__legend-dot--top"));
 assert.ok(html.includes("motivation-rose-chart__legend-dot--bottom"));
 assert.ok(html.includes("motivation_insights.less_central_drivers"),
   "Bottom 3 chart and text must use the same STIVE order");
-assert.ok(styles.includes("background: #c4574b"));
-assert.ok(styles.includes("background: #276f62"));
+assert.ok(styles.includes("background: #c96a5b"));
+assert.ok(styles.includes("background: #6e5c7e"));
 assert.ok(!styles.includes("motivation-rose-chart__legend-outline"));
-assert.ok(html.includes("Coral accents mark the three highest drivers"),
+assert.ok(html.includes("Coral accents mark the three most prominent drivers"),
   "The accessible description should explain the new visual markers");
 assert.ok(base.includes("window.TalenaPdfMotivationRose = Object.freeze({"));
 assert.ok(base.includes("stage.append(chartRoot.cloneNode(true))"),
@@ -58,7 +58,7 @@ const arcs = items.map((_,i) => ({
 const pluginMatch = base.match(/const motivationRoseLabelsPlugin = ([\s\S]*?)\n\n\n  const chartInstance = new ChartLibrary/);
 assert.ok(pluginMatch, "Expected the embedded rose drawing plugin");
 const pluginSource = pluginMatch[1].trim().replace(/;$/, "");
-const palette = {top:"#c4574b", bottom:"#276f62"};
+const palette = {top:"#c96a5b", bottom:"#6e5c7e"};
 const plugin = new Function(
   "items","domainGroups","narrow","compact","wrapLabel","highlightStroke",
   "return (" + pluginSource + ")"
