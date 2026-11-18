@@ -1,10 +1,10 @@
-"""Register AI provider-call activity verbs after manager-report PDF verbs (#435)."""
+"""Register AI provider-call activity verbs after existing manager-report PDF verbs (#435)."""
 from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("activity", "0009_manager_report_pdf_prepared_in_activity"),
+        ("activity", "0009_manager_report_pdf_prepared"),
     ]
 
     operations = [
