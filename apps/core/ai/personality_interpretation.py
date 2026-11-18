@@ -838,7 +838,7 @@ def stream_personality_interpretation(
         owner
     )
 
-    client = get_openai_client()
+    client = get_openai_client(feature="personality_interpretation", owner=owner)
 
     prompt = build_personality_interpretation_prompt(
         owner=owner,
