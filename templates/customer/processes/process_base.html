@@ -2414,6 +2414,11 @@ domain:
             : 0,
 
         score,
+        // Produced by the same precise-STIVE ranking as the written
+        // top and least prominent motivation summaries.
+        highlight: ["top", "bottom"].includes(element.dataset.factorHighlight)
+          ? element.dataset.factorHighlight
+          : "",
       };
     })
     .filter((item) => {
@@ -2492,6 +2497,17 @@ emptyState.textContent =
     4: 0.78,
     5: 0.92,
   };
+
+  const highlightStroke = {
+    top: "#c4574b",
+    bottom: "#276f62",
+  };
+  const roseBorders = items.map(
+    (item) => highlightStroke[item.highlight] || "#ffffff"
+  );
+  const roseBorderWidths = items.map(
+    (item) => item.highlight ? (compact ? 3.2 : 4) : (compact ? 2 : 3)
+  );
 
   const backgroundColours = items.map(
     (item) => {
@@ -2795,16 +2811,16 @@ emptyState.textContent =
               backgroundColours,
 
             borderColor:
-              "#ffffff",
+              roseBorders,
 
             borderWidth:
-              compact ? 2 : 3,
+              roseBorderWidths,
 
             hoverBorderColor:
-              "#ffffff",
+              roseBorders,
 
             hoverBorderWidth:
-              compact ? 3 : 4,
+              roseBorderWidths,
 
             borderRadius:
               compact ? 7 : 12,
