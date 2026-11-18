@@ -103,7 +103,19 @@ class InternalCandidateReportWithoutSharingTests(TestCase):
         preview = self.client.get(preview_url)
         self.assertEqual(preview.status_code, 200)
         self.assertContains(preview, "data-candidate-result-pdf-button")
-        self.assertContains(preview, "Den här interna förhandsvisningen")
+        expected_comment = (
+            "Om du vill kan du lämna en kommentar till ditt resultat, exempelvis för att "
+            "förtydliga något, ge ett konkret exempel eller beskriva en situation där du "
+            "inte riktigt känner igen dig. Dina kommentarer blir då en del av underlaget "
+            "och hjälper den som tar del av rapporten att förstå resultatet i sitt sammanhang."
+        )
+        self.assertContains(preview, expected_comment)
+        self.assertNotContains(preview, "Den här interna förhandsvisningen")
+        self.assertNotContains(preview, "När rapporten delas med kandidaten")
+        self.assertEqual(
+            snapshot.content["introduction"]["comment_candidate"],
+            expected_comment,
+        )
         self.assertNotContains(preview, 'class="feedback-choices"')
 
         self.process.refresh_from_db()
