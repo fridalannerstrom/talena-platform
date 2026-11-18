@@ -28,10 +28,18 @@ FAILED = OUTCOMES["failed"]
 INCOMPLETE = OUTCOMES["incomplete"]
 
 
+def _valid_date(value):
+    try:
+        date = parse_date(str(value or "")[:10])
+    except (TypeError, ValueError):
+        return None
+    return date if date and 2020 <= date.year <= 2100 else None
+
+
 def _date_filters(request):
     today = timezone.localdate()
-    end = parse_date((request.GET.get("to") or "")[:10]) or today
-    start = parse_date((request.GET.get("from") or "")[:10]) or end - timedelta(days=29)
+    end = _valid_date(request.GET.get("to")) or today
+    start = _valid_date(request.GET.get("from")) or end - timedelta(days=29)
     if end > today:
         end = today
     if start > end:
