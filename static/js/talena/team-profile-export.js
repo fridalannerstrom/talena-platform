@@ -343,6 +343,9 @@
           await ensureLibraries(false);
           updateStatus(copy.exporting + "…");
           saveBlob(await createPdf(profile), filename(profile));
+          void window.TalenaReportExportActivity?.record?.(
+            sourcePage?.dataset?.reportExportReceiptUrl, "team-profile"
+          );
         });
       });
     });
@@ -372,6 +375,9 @@
         const archive = await zip.generateAsync({ type: "blob", compression: "DEFLATE" });
         const team = safeName(section.dataset.teamName);
         saveBlob(archive, team + "-teamprofiler.zip");
+        void window.TalenaReportExportActivity?.record?.(
+          sourcePage?.dataset?.reportExportReceiptUrl, "team-profiles-zip"
+        );
       });
     });
   }
