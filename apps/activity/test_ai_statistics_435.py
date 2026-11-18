@@ -74,6 +74,23 @@ class AIClientMeteringTests(SimpleTestCase):
 
     @patch("apps.core.ai.openai_client.sanitize_ai_payload", side_effect=lambda x: x)
     @patch("apps.core.ai.openai_client.record_ai_call")
+    def test_stream_exception_is_failed_not_successful(self, record, sanitize):
+        def broken_stream():
+            yield SimpleNamespace(choices=[SimpleNamespace(delta=SimpleNamespace(content="partial"))], usage=None)
+            raise RuntimeError("private provider message")
+        self.raw.chat.completions.create.return_value = broken_stream()
+        with patch.dict(os.environ, {"TALENA_AI_USAGE_LOGGING_ENABLED": "1"}):
+            client = PrivacySafeOpenAI(self.raw, feature="overall_picture")
+            with self.assertRaises(RuntimeError):
+                list(client.chat.completions.create(
+                    model="gpt-test", messages=self.messages, stream=True,
+                ))
+        record.assert_called_once()
+        self.assertEqual(record.call_args.kwargs["outcome"], "failed")
+        self.assertNotIn("private provider message", repr(record.call_args))
+
+    @patch("apps.core.ai.openai_client.sanitize_ai_payload", side_effect=lambda x: x)
+    @patch("apps.core.ai.openai_client.record_ai_call")
     def test_sdk_error_preserves_original_error_and_logs_no_exception_text(self, record, sanitize):
         self.raw.chat.completions.create.side_effect = RuntimeError("secret provider response")
         with patch.dict(os.environ, {"TALENA_AI_USAGE_LOGGING_ENABLED": "1"}):
@@ -177,7 +194,7 @@ class AIStatisticsTests(TestCase):
         self.assertEqual(response.context["totals"]["succeeded"], 1)
         self.assertEqual(response.context["totals"]["failed"], 1)
         self.assertEqual(response.context["totals"]["tokens"], 25)
-        self.assertContains(response, "AI-statistik")
+        self.assertContains(response, 'class="talena-ai-stats"')
         export = self.client.get(self.export_url, {"company": str(self.company.pk)})
         self.assertEqual(export.status_code, 200)
         data = list(csv.reader(io.StringIO(export.content.decode("utf-8"))))
