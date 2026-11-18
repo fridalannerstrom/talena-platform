@@ -128,7 +128,7 @@ def generate_manager_report_comment(owner, category: str, language_code: str) ->
             evidence["notes"], *(item["answer"] for item in evidence["answers"])
         ] if normalized(value)
     }
-    client = get_openai_client()
+    client = get_openai_client(feature="manager_interview_comments", owner=owner)
     for attempt in range(2):
         request_prompt = prompt
         if attempt:
