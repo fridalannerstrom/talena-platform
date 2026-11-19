@@ -298,42 +298,6 @@
   </div>
 </div>-->
 
-            {# Talena-only visibility; the customer may choose a project override. #}
-            <fieldset class="wizard-ig-setting mt-4" aria-labelledby="wizardIgTitle">
-              <div class="wizard-ig-heading">
-                <div>
-                  <div class="wizard-ig-title mb-1" id="wizardIgTitle">Integrity Guard</div>
-                  <p class="wizard-ig-description mb-0" id="wizardIgHelp">
-                    {% if wizard_language|slice:":2" == "sv" %}
-                      Välj om Integrity Guard ska visas i det här projektet i Talena. Övervakningen hos Sova påverkas inte.
-                    {% else %}
-                      Choose whether Integrity Guard is visible in this Talena project. Monitoring in Sova is unaffected.
-                    {% endif %}
-                  </p>
-                </div>
-                <div class="wizard-ig-options" role="group" aria-describedby="wizardIgHelp">
-                  <label class="wizard-ig-option">
-                    <input type="radio" name="integrity_guard_visibility" value="default"
-                      {% if form.integrity_guard_visibility.value == "default" or not form.integrity_guard_visibility.value %}checked{% endif %}>
-                    <span>{% if wizard_language|slice:":2" == "sv" %}Företagets inställning{% else %}Company setting{% endif %}</span>
-                  </label>
-                  <label class="wizard-ig-option">
-                    <input type="radio" name="integrity_guard_visibility" value="on"
-                      {% if form.integrity_guard_visibility.value == "on" %}checked{% endif %}>
-                    <span>{% if wizard_language|slice:":2" == "sv" %}På{% else %}On{% endif %}</span>
-                  </label>
-                  <label class="wizard-ig-option">
-                    <input type="radio" name="integrity_guard_visibility" value="off"
-                      {% if form.integrity_guard_visibility.value == "off" %}checked{% endif %}>
-                    <span>{% if wizard_language|slice:":2" == "sv" %}Av{% else %}Off{% endif %}</span>
-                  </label>
-                </div>
-              </div>
-              {% if form.integrity_guard_visibility.errors %}
-                <div class="text-danger small mt-2">{{ form.integrity_guard_visibility.errors }}</div>
-              {% endif %}
-            </fieldset>
-
             <div class="wizard-actions mt-4">
 <button
   type="button"
@@ -545,6 +509,42 @@
                 </div>
               {% endif %}
             </div>
+
+            {# Talena-only visibility; the customer may choose a project override. #}
+            <fieldset class="wizard-ig-setting mt-4" aria-labelledby="wizardIgTitle">
+              <div class="wizard-ig-heading">
+                <div>
+                  <div class="wizard-ig-title mb-1" id="wizardIgTitle">Integrity Guard</div>
+                  <p class="wizard-ig-description mb-0" id="wizardIgHelp">
+                    {% if wizard_language|slice:":2" == "sv" %}
+                      Välj om Integrity Guard ska visas i det här projektet i Talena. Övervakningen hos Sova påverkas inte.
+                    {% else %}
+                      Choose whether Integrity Guard is visible in this Talena project. Monitoring in Sova is unaffected.
+                    {% endif %}
+                  </p>
+                </div>
+                <div class="wizard-ig-options" role="group" aria-describedby="wizardIgHelp">
+                  <label class="wizard-ig-option">
+                    <input type="radio" name="integrity_guard_visibility" value="default"
+                      {% if form.integrity_guard_visibility.value == "default" or not form.integrity_guard_visibility.value %}checked{% endif %}>
+                    <span>{% if wizard_language|slice:":2" == "sv" %}Företagets inställning{% else %}Company setting{% endif %}</span>
+                  </label>
+                  <label class="wizard-ig-option">
+                    <input type="radio" name="integrity_guard_visibility" value="on"
+                      {% if form.integrity_guard_visibility.value == "on" %}checked{% endif %}>
+                    <span>{% if wizard_language|slice:":2" == "sv" %}På{% else %}On{% endif %}</span>
+                  </label>
+                  <label class="wizard-ig-option">
+                    <input type="radio" name="integrity_guard_visibility" value="off"
+                      {% if form.integrity_guard_visibility.value == "off" %}checked{% endif %}>
+                    <span>{% if wizard_language|slice:":2" == "sv" %}Av{% else %}Off{% endif %}</span>
+                  </label>
+                </div>
+              </div>
+              {% if form.integrity_guard_visibility.errors %}
+                <div class="text-danger small mt-2">{{ form.integrity_guard_visibility.errors }}</div>
+              {% endif %}
+            </fieldset>
 
             <div class="wizard-actions mt-4">
 <button
