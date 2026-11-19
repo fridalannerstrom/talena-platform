@@ -169,7 +169,7 @@ vm.runInNewContext(code,{document,window,Blob,
     "PDF stylesheet includes continuous midpoint path");
   assert.ok(css.includes(".personality-quick-view .personality-quick-scale__segment.talena-personality-pdf-selected {"),
     "PDF stylesheet distinguishes selected value from connecting path");
-  assert.ok(base.includes("20261115-personality-questions-parity-1"),
+  assert.ok(base.includes("20261119-personality-result-views-7"),
     "PDF asset cache version updated");
   console.log("Personality quick PDF: all 10 midpoint-to-result paths, preserved live chart, no data attribute dependency");
 })().catch(error=>{console.error(error);process.exitCode=1;});
