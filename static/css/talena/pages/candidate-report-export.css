@@ -63,74 +63,75 @@
 .talena-candidate-pdf-stage .talena-candidate-pdf-heading {
   font-size:23px; font-weight:700; margin:0 0 23px;
 }
-/* Response styles already has its own correct heading in the Personality
-   results subtab. Avoid printing a second generic "Svarsstilar" heading. */
-.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-response-styles"] .talena-candidate-pdf-heading {
+/* The actual Response styles and All interview questions tabs own their
+   headings. Avoid a duplicate generic PDF heading for either report. */
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-response-styles"] .talena-candidate-pdf-heading,
+.talena-candidate-pdf-stage[data-candidate-pdf-report="combined-interview-questions"] .talena-candidate-pdf-heading {
   display:none !important;
 }
-/* #483: Svarsstilar PDF continues with ALL saved interview questions from
-   Before interview, but not its duplicated Communication strategy block.
-   Keep the PDF-only layout legible even without the page-scoped CSS rules. */
-.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-response-styles"]
-.talena-response-styles-interview-questions {
-  margin-top:32px !important;
-  padding-top:24px !important;
-  border-top:1px solid #e8e4df !important;
+/* #483: Standalone "Alla intervjufrågor" PDF uses the complete question
+   guide, without the Before interview response-style duplicate.
+   Keep the PDF-only layout legible without the page-scoped CSS rules. */
+.talena-candidate-pdf-stage[data-candidate-pdf-report="combined-interview-questions"]
+[data-combined-questions-root] {
+  margin-top:0 !important;
+  padding:0 !important;
+  border:0 !important;
   background:transparent !important;
   box-shadow:none !important;
 }
-.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-response-styles"]
-.talena-response-styles-interview-questions .combined-questions-main-eyebrow {
+.talena-candidate-pdf-stage[data-candidate-pdf-report="combined-interview-questions"]
+[data-combined-questions-root] .combined-questions-main-eyebrow {
   margin:0 0 8px !important;
   font-size:11px !important;
   font-weight:700 !important;
   color:#706c69 !important;
 }
-.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-response-styles"]
-.talena-response-styles-interview-questions .combined-questions-main-title {
+.talena-candidate-pdf-stage[data-candidate-pdf-report="combined-interview-questions"]
+[data-combined-questions-root] .combined-questions-main-title {
   font-size:24px !important;
   line-height:1.24 !important;
   font-weight:730 !important;
   margin:0 0 10px !important;
 }
-.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-response-styles"]
-.talena-response-styles-interview-questions .combined-question-section__header {
+.talena-candidate-pdf-stage[data-candidate-pdf-report="combined-interview-questions"]
+[data-combined-questions-root] .combined-question-section__header {
   margin:26px 0 14px !important;
   padding:18px 0 0 !important;
   border-top:1px solid #e9e5e1 !important;
 }
-.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-response-styles"]
-.talena-response-styles-interview-questions .combined-question-section__title {
+.talena-candidate-pdf-stage[data-candidate-pdf-report="combined-interview-questions"]
+[data-combined-questions-root] .combined-question-section__title {
   font-size:18px !important;
   font-weight:730 !important;
   line-height:1.3 !important;
 }
-.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-response-styles"]
-.talena-response-styles-interview-questions .interview-section-guidance {
+.talena-candidate-pdf-stage[data-candidate-pdf-report="combined-interview-questions"]
+[data-combined-questions-root] .interview-section-guidance {
   margin:14px 0 20px !important;
 }
-.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-response-styles"]
-.talena-response-styles-interview-questions .interview-static-questions {
+.talena-candidate-pdf-stage[data-candidate-pdf-report="combined-interview-questions"]
+[data-combined-questions-root] .interview-static-questions {
   margin:16px 0 20px !important;
   padding:15px 18px !important;
   border:1px solid #e8e4df !important;
   border-radius:12px !important;
   background:#faf9f8 !important;
 }
-.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-response-styles"]
-.talena-response-styles-interview-questions .interview-static-questions__title {
+.talena-candidate-pdf-stage[data-candidate-pdf-report="combined-interview-questions"]
+[data-combined-questions-root] .interview-static-questions__title {
   margin:0 0 12px !important;
   font-size:16px !important;
   font-weight:720 !important;
 }
-.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-response-styles"]
-.talena-response-styles-interview-questions .interview-static-questions__list {
+.talena-candidate-pdf-stage[data-candidate-pdf-report="combined-interview-questions"]
+[data-combined-questions-root] .interview-static-questions__list {
   list-style:none !important;
   margin:0 !important;
   padding:0 !important;
 }
-.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-response-styles"]
-.talena-response-styles-interview-questions .interview-static-questions__item {
+.talena-candidate-pdf-stage[data-candidate-pdf-report="combined-interview-questions"]
+[data-combined-questions-root] .interview-static-questions__item {
   display:flex !important;
   align-items:flex-start !important;
   gap:12px !important;
@@ -139,51 +140,51 @@
   font-size:14px !important;
   line-height:1.5 !important;
 }
-.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-response-styles"]
-.talena-response-styles-interview-questions .personality-question-list {
+.talena-candidate-pdf-stage[data-candidate-pdf-report="combined-interview-questions"]
+[data-combined-questions-root] .personality-question-list {
   display:grid !important;
   gap:13px !important;
 }
-.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-response-styles"]
-.talena-response-styles-interview-questions .personality-question-card {
+.talena-candidate-pdf-stage[data-candidate-pdf-report="combined-interview-questions"]
+[data-combined-questions-root] .personality-question-card {
   border:1px solid #e8e4df !important;
   border-radius:12px !important;
   padding:16px 18px !important;
   background:#fff !important;
   break-inside:avoid;
 }
-.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-response-styles"]
-.talena-response-styles-interview-questions .personality-question-card__header {
+.talena-candidate-pdf-stage[data-candidate-pdf-report="combined-interview-questions"]
+[data-combined-questions-root] .personality-question-card__header {
   display:flex !important;
   align-items:flex-start !important;
   gap:12px !important;
   margin-bottom:12px !important;
 }
-.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-response-styles"]
-.talena-response-styles-interview-questions .personality-question-card__text {
+.talena-candidate-pdf-stage[data-candidate-pdf-report="combined-interview-questions"]
+[data-combined-questions-root] .personality-question-card__text {
   font-size:16px !important;
   font-weight:650 !important;
   line-height:1.5 !important;
 }
-.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-response-styles"]
-.talena-response-styles-interview-questions .personality-question-card__details {
+.talena-candidate-pdf-stage[data-candidate-pdf-report="combined-interview-questions"]
+[data-combined-questions-root] .personality-question-card__details {
   display:grid !important;
   gap:10px !important;
 }
-.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-response-styles"]
-.talena-response-styles-interview-questions .personality-question-card__detail {
+.talena-candidate-pdf-stage[data-candidate-pdf-report="combined-interview-questions"]
+[data-combined-questions-root] .personality-question-card__detail {
   padding:10px 12px !important;
   background:#faf9f8 !important;
   border-radius:9px !important;
 }
-.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-response-styles"]
-.talena-response-styles-interview-questions .personality-question-card__detail-title {
+.talena-candidate-pdf-stage[data-candidate-pdf-report="combined-interview-questions"]
+[data-combined-questions-root] .personality-question-card__detail-title {
   margin:0 0 4px !important;
   font-size:12px !important;
   font-weight:720 !important;
 }
-.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-response-styles"]
-.talena-response-styles-interview-questions .personality-question-card__detail-text {
+.talena-candidate-pdf-stage[data-candidate-pdf-report="combined-interview-questions"]
+[data-combined-questions-root] .personality-question-card__detail-text {
   font-size:12px !important;
   line-height:1.55 !important;
 }
