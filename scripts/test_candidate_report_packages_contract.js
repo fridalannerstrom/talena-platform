@@ -15,6 +15,15 @@ assert.ok(base.indexOf("report-package-core.js")<base.indexOf("candidate-report-
 assert.ok(registry.includes("exportCover")&&registry.includes("returnBlob:true"));
 assert.ok(registry.includes("TalenaReportPackages?.initialize?.(current)"));
 assert.ok(js.includes('api().getAvailableReports()'));
+assert.ok(js.includes('PACKAGE_RESULT_REPORT_IDS.has(r.id)'),
+  "The package picker must filter the report registry by an explicit result-only allowlist");
+const packageAllowlist = js.match(/const PACKAGE_RESULT_REPORT_IDS = new Set\(\[([\s\S]*?)\]\)/);
+assert.ok(packageAllowlist, "The result-only package allowlist must exist");
+const allowedIds = [...packageAllowlist[1].matchAll(/"([^"]+)"/g)].map(match=>match[1]);
+assert.deepEqual(allowedIds, ["personality-results", "motivation-results", "cognitive-results"],
+  "No overview, AI interpretations, interview questions or other AI-derived reports may be packaged");
+assert.ok(!allowedIds.some(id=>/(interpretation|questions|overview|manager-report)/.test(id)));
+
 assert.ok(js.includes('api().exportReport(report.id,{returnBlob:true})'));
 assert.ok(js.includes('api().exportCover(t.cover)'));
 assert.ok(js.includes('api().getPackageFilename(format)') &&
@@ -55,7 +64,7 @@ assert.ok(js.includes("await new Promise(resolve=>requestAnimationFrame(resolve)
   "Show updated progress before each expensive PDF rendering pass");
 assert.ok(css.includes(".talena-package-row.is-failed"),
   "Highlight the failed report so it can be excluded");
-assert.ok(base.includes("20261115-package-diagnostics-1"),
+assert.ok(base.includes("20261119-results-only-1"),
   "Version asset URLs to avoid cached report picker code");
 assert.ok(js.includes('dialog.showModal()')&&js.includes('dialog.addEventListener("cancel"'));
 assert.ok(js.includes('role","status"')&&js.includes('aria-live","polite"'));
@@ -71,6 +80,8 @@ assert.ok(css.includes(".candidate-profile-header .candidate-profile-actions .ta
   !css.includes("[data-candidate-insights-workspace] .candidate-insights-navigation {"),
   "Package button CSS must apply to candidate header, not navigation");
 assert.ok(css.includes(".talena-package-dialog")&&css.includes(".talena-package-row"));
+assert.ok(css.includes('.talena-package-row > input[type="checkbox"]') && css.includes("width:20px") &&
+  css.includes("height:20px"), "Package checkboxes must be comfortably sized");
 const sandbox={
   document:{documentElement:{lang:"sv"},querySelector:()=>null},
   window:{}
