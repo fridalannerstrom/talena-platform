@@ -80,6 +80,7 @@ REPORT_LABELS = {
     "personality-questions": ("Personlighet · Frågor", "Personality · Questions"),
     "personality-candidate-reflection": ("Personlighet · Reflektioner", "Personality · Reflections"),
     "personality-response-styles": ("Svarsstilar", "Response styles"),
+    "combined-interview-questions": ("Alla intervjufrågor", "All interview questions"),
     "motivation-results": ("Motivation · Resultat", "Motivation · Results"),
     "motivation-interpretation": ("Motivation · AI-tolkning", "Motivation · AI interpretation"),
     "motivation-questions": ("Motivation · Frågor", "Motivation · Questions"),
