@@ -54,20 +54,25 @@ assert.ok(beforeInterviewQuestions.includes("data-combined-questions-root") &&
   beforeInterviewQuestions.includes("_interview_static_questions.html") &&
   beforeInterviewQuestions.includes("section.questions"),
   "All opening and saved Personality/Motivation/Skills interview questions share one source");
-assert.ok(js.includes('"#candidate-insights-panel-prepare-interview [data-combined-questions-root]"') &&
-  js.includes('clone.append(questions)') &&
-  js.includes('talena-response-styles-interview-questions'),
-  "Svarsstilar PDF must append only the combined interview questions after the real response styles");
-assert.ok(!js.includes('clone.append(preInterview'),
-  "Do not append the duplicate Communication strategy view");
-assert.ok(js.includes('"personality-response-styles"].includes(reportId)'),
-  "The combined questions must share the existing safe PDF cleanup");
-assert.ok(core.includes('responseStylesQuestionsPdf') &&
+assert.ok(js.includes('id: "combined-interview-questions"') &&
+  js.includes('selector: "#candidate-insights-panel-prepare-interview [data-combined-questions-root]"'),
+  "Combined questions must be an independent PDF entry sourced only from Before interview questions");
+assert.ok(js.indexOf('id: "combined-interview-questions"') >
+  js.indexOf('id: "personality-response-styles"'),
+  "All interview questions must follow Svarsstilar");
+assert.ok(js.includes('element.querySelector(".personality-question-card, .interview-static-questions__item")'),
+  "Do not offer the combined question PDF if no questions are present");
+assert.ok(!js.includes('clone.append(questions)') &&
+  !js.includes('talena-response-styles-interview-questions'),
+  "Svarsstilar must not duplicate all interview questions in its own PDF");
+assert.ok(js.includes('"combined-interview-questions"].includes(reportId)'),
+  "The separate question report must use the existing PDF cleanup for notes and labels");
+assert.ok(core.includes('combinedInterviewQuestionsPdf') &&
   core.includes('getMotivationQuestionsPageGuides(opts.node, source)'),
-  "Combined interview question cards should stay intact across PDF page breaks");
-assert.ok(css.includes('data-candidate-pdf-report="personality-response-styles"') &&
+  "Interview question cards should remain intact across PDF page breaks");
+assert.ok(css.includes('data-candidate-pdf-report="combined-interview-questions"') &&
   css.includes(".talena-candidate-pdf-heading"),
-  "Keep the real Svarsstilar heading, not an extra generic PDF heading");
+  "Use the native combined interview questions heading in the PDF");
 const afterInterviewCards = read("static/js/talena/after-interview-tabs.js");
 assert.ok(afterInterviewCards.includes('button.dataset.afterInterviewRegenerate = blockKey;') &&
   afterInterviewCards.includes('toolbar.appendChild(button);') &&
@@ -240,45 +245,50 @@ vm.runInNewContext(js, context, {timeout:1000});
     "An incomplete second candidate must not inherit previous report exports");
   await assert.rejects(api.exportReport("overview", {returnBlob:true}));
 
-  // Regression #483: the bundled Svarsstilar report starts with the real
-  // Personality response styles and then appends the combined interview
-  // question sections, without the rest of Before interview.
+  // #483: two distinct report selections in the correct order. The PDF
+  // export must not combine them or leak a previous candidate's content.
   const responseStyles = new FakeElement("section", "Svarsstilar: statiskt resultat");
   responseStyles.querySelector = selector =>
     selector === ".response-styles-header" ? {} : null;
   const questions = new FakeElement("section",
     "Alla intervjufrågor: inledande, personlighet, motivation, färdighet");
   questions.querySelector = selector =>
-    selector === ".combined-question-sections" ? {} : null;
+    [".combined-question-sections",
+      ".personality-question-card, .interview-static-questions__item"].includes(selector)
+      ? {} : null;
   const third = new FakeElement();
   third.querySelector = selector =>
     selector === "#personality-response-styles-view" ? responseStyles
     : selector === "#candidate-insights-panel-prepare-interview [data-combined-questions-root]"
       ? questions : null;
-  let exportedStyles;
+  let exportedContent;
   browserWindow.TalenaPdfExport.exportSections = async (sections, options) => {
     assert.equal(options.returnBlob, true);
-    exportedStyles = sections[1].node.children[1];
+    exportedContent = sections[1].node.children[1];
     rendered += 1;
     return {type:"application/pdf", bytes:42};
   };
   currentWorkspace = third;
   api.initialize(browserDocument);
   assert.deepEqual(Array.from(api.getAvailableReports()).map(report => report.id),
-    ["personality-response-styles"]);
-  const combinedBlob = await api.exportReport(
-    "personality-response-styles", {returnBlob:true}
-  );
-  assert.equal(combinedBlob.type, "application/pdf");
-  assert.equal(exportedStyles.textContent, responseStyles.textContent);
-  assert.equal(exportedStyles.children.length, 1,
-    "Exactly one interview-question section is appended after response styles");
-  assert.equal(exportedStyles.children[0].textContent, questions.textContent);
+    ["personality-response-styles", "combined-interview-questions"]);
+  assert.equal(api.getAvailableReports()[1].title, "Alla intervjufrågor");
 
-  questions.querySelector = () => null;
   await api.exportReport("personality-response-styles", {returnBlob:true});
-  assert.equal(exportedStyles.children.length, 0,
-    "Do not append an empty interview-question section");
+  assert.equal(exportedContent.textContent, responseStyles.textContent);
+  assert.equal(exportedContent.children.length, 0,
+    "Svarsstilar must remain separate, without appended interview questions");
 
-  console.log("Candidate PDF registry: AJAX isolation and Svarsstilar+questions export OK");
+  await api.exportReport("combined-interview-questions", {returnBlob:true});
+  assert.equal(exportedContent.textContent, questions.textContent);
+  assert.equal(exportedContent.children.length, 0,
+    "All interview questions PDF should contain only its own question root");
+
+  // The question option disappears if nothing has been generated or configured.
+  questions.querySelector = selector =>
+    selector === ".combined-question-sections" ? {} : null;
+  assert.deepEqual(Array.from(api.getAvailableReports()).map(report=>report.id),
+    ["personality-response-styles"]);
+  await assert.rejects(api.exportReport("combined-interview-questions", {returnBlob:true}));
+  console.log("Candidate PDF registry: AJAX isolation, independent Svarsstilar and All questions OK");
 })().catch(error => { console.error(error); process.exitCode = 1; });
