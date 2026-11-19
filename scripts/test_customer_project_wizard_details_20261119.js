@@ -14,6 +14,12 @@ const js = fs.readFileSync(
 const css = fs.readFileSync(
   "static/css/talena/pages/process-create.css", "utf8",
 );
+const editHtml = fs.readFileSync(
+  "templates/customer/processes/process_edit.html", "utf8",
+);
+const editCss = fs.readFileSync(
+  "static/css/talena/pages/process-settings.css", "utf8",
+);
 
 const finalStepStart = html.indexOf('<!-- STEP 3: Project details and shared, compact settings -->');
 assert(finalStepStart !== -1, "Missing final wizard step");
@@ -181,4 +187,31 @@ function mountCreateSwitch(initialEnabled) {
 assert.equal(mountCreateSwitch("true").checked, true, "Previous ON choice should be retained");
 assert.equal(mountCreateSwitch("false").checked, false, "Previous OFF choice should be retained");
 
-console.log("Customer project wizard layout, switches and persistence contract: OK");
+// The settings edit page presents four separate cards without changing
+// field names, and never posts a missing auto-invitation setting.
+assert(editHtml.includes('class="process-preferences-list"'));
+assert(editHtml.includes('data-process-automatic-invitation'));
+assert(editHtml.includes('data-posted-enabled='));
+assert(editHtml.includes('class="process-preference-card candidate-results-setting"'));
+assert(editHtml.includes('name="{{ form.candidate_results_enabled.html_name }}"'));
+assert(editHtml.includes('name="{{ form.project_completion_notifications_enabled.html_name }}"'));
+assert(editHtml.includes('class="process-preference-card process-ig-setting"') ||
+       editHtml.includes('class="process-preference-card process-ig-setting"') ||
+       editHtml.includes('class="process-preference-card process-ig-setting mt-4"'));
+assert.equal(
+  (editHtml.match(/name="integrity_guard_visibility" value="/g) || []).length, 3,
+  "Edit page must keep inherited/on/off Integrity Guard values",
+);
+assert(js.includes('form.querySelector("[data-process-automatic-invitation]")'),
+  "Auto invitation must mount in its own settings card slot");
+assert(js.includes('card.className = "process-preference-card automatic-invitation-setting"'));
+assert(js.includes('marker.name = "automatic_invitation_setting_present"'));
+assert(js.includes('anchor.dataset.postedEnabled === "true"'),
+  "Do not lose automatic invitation choice after a failed save");
+assert(editCss.includes(".process-preference-card"));
+assert(editCss.includes(".process-preference-switch .form-check-input"));
+assert(editCss.includes('input[type="radio"]:checked + .process-ig-option-pill'));
+assert(editCss.includes("background-image: none !important;"));
+assert(editCss.includes(".process-preference-switch .form-check-input[type=\"checkbox\"]:checked::before"));
+
+console.log("Customer project wizard and settings cards structure: OK");
