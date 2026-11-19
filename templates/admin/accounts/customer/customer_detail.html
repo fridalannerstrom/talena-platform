@@ -1,7 +1,5 @@
 {% extends "admin/core/layouts/admin_base.html" %}
-{% block title %}Kund | Talena{% include "admin/accounts/companies/_company_member_remove_modal.html" %}
-
-{% endblock %}
+{% block title %}Kund | Talena{% endblock %}
 
 {% block content %}
 <div class="d-flex align-items-start justify-content-between gap-3 mb-3">
@@ -336,5 +334,7 @@
     });
   </script>
 {% endif %}
+
+{% include "admin/accounts/companies/_company_member_remove_modal.html" %}
 
 {% endblock %}
