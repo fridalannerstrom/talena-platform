@@ -31,6 +31,7 @@
     "team-report": "Individuell teamprofil",
     "leadership-report": "Ledarskapsrapport", "derailment-report": "Urspårningsrapport",
     "personality-response-styles": "Svarsstilar",
+    "combined-interview-questions": "Alla intervjufrågor",
     "prepare-interview": "Inför intervju", "after-overview": "Helhetsbild",
     "after-interview": "Intervjusammanfattning",
     "manager-report": "Chefsrapport"
@@ -42,6 +43,7 @@
     "team-report": "Individual team profile",
     "leadership-report": "Leadership report", "derailment-report": "Derailment report",
     "personality-response-styles": "Response styles",
+    "combined-interview-questions": "All interview questions",
     "prepare-interview": "Prepare for interview", "after-overview": "Overall picture",
     "after-interview": "Interview summary",
     "manager-report": "Manager report"
@@ -77,6 +79,12 @@
       selector: "#personality-response-styles-view",
       ready: element => !!element.querySelector(".response-styles-header") &&
         !element.querySelector("[data-response-styles-unavailable]") },
+    // Independent report: reuse the complete, already-rendered interview guide
+    // from this candidate only, without duplicating Communication strategy.
+    { id: "combined-interview-questions",
+      selector: "#candidate-insights-panel-prepare-interview [data-combined-questions-root]",
+      ready: element => !!element.querySelector(".combined-question-sections") &&
+        !!element.querySelector(".personality-question-card, .interview-static-questions__item") },
     { id: "prepare-interview",
       selector: "#candidate-insights-panel-prepare-interview [data-pre-interview-response-styles]",
       ready: element => !!element.querySelector(
@@ -200,21 +208,8 @@
     clone.classList.remove("d-none");
     clone.style.display = "block";
 
-    if (reportId === "personality-response-styles") {
-      // #483: Svarsstilar must use the Personality > Results subtab.
-      // Append ONLY the already-rendered combined interview-question content
-      // from this same authorised candidate workspace, after Svarsstilar.
-      // Do not clone Before interview itself: it repeats response-style content
-      // under the different "Communication strategy" heading.
-      const questionSource = workspace?.querySelector(
-        "#candidate-insights-panel-prepare-interview [data-combined-questions-root]"
-      );
-      if (questionSource?.querySelector(".combined-question-sections")) {
-        const questions = questionSource.cloneNode(true);
-        questions.classList.add("talena-response-styles-interview-questions");
-        clone.append(questions);
-      }
-    }
+    // The combined question guide is its own selectable report. Svarsstilar
+    // remains a clean standalone report and never embeds those questions.
 
     if (reportId === "personality-results") {
       // The web quick-profile colours its middle-to-score path with CSS
@@ -241,7 +236,7 @@
     }
 
     if (["motivation-questions", "cognitive-questions", "personality-questions",
-      "personality-response-styles"].includes(reportId)) {
+      "combined-interview-questions"].includes(reportId)) {
       // Both question guides share the same print-only layout. The interview
       // note editor is interactive UI, not part of a printable
       // interview guide. Do not export its hints, privacy-field warnings or
