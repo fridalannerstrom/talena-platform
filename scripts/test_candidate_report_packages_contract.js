@@ -15,14 +15,23 @@ assert.ok(base.indexOf("report-package-core.js")<base.indexOf("candidate-report-
 assert.ok(registry.includes("exportCover")&&registry.includes("returnBlob:true"));
 assert.ok(registry.includes("TalenaReportPackages?.initialize?.(current)"));
 assert.ok(js.includes('api().getAvailableReports()'));
-assert.ok(js.includes('PACKAGE_RESULT_REPORT_IDS.has(r.id)'),
-  "The package picker must filter the report registry by an explicit result-only allowlist");
-const packageAllowlist = js.match(/const PACKAGE_RESULT_REPORT_IDS = new Set\(\[([\s\S]*?)\]\)/);
-assert.ok(packageAllowlist, "The result-only package allowlist must exist");
+assert.ok(js.includes('PACKAGE_ALLOWED_REPORT_IDS.has(r.id)'),
+  "The picker must filter the PDF registry with an explicit #483 allowlist");
+const packageAllowlist = js.match(/const PACKAGE_ALLOWED_REPORT_IDS = new Set\(\[([\s\S]*?)\]\)/);
+assert.ok(packageAllowlist, "The #483 report package allowlist must exist");
 const allowedIds = [...packageAllowlist[1].matchAll(/"([^"]+)"/g)].map(match=>match[1]);
-assert.deepEqual(allowedIds, ["personality-results", "motivation-results", "cognitive-results"],
-  "No overview, AI interpretations, interview questions or other AI-derived reports may be packaged");
-assert.ok(!allowedIds.some(id=>/(interpretation|questions|overview|manager-report)/.test(id)));
+assert.deepEqual(allowedIds, [
+  "overview",
+  "personality-results", "personality-questions", "personality-candidate-reflection",
+  "motivation-results", "motivation-questions", "motivation-candidate-reflection",
+  "cognitive-results", "cognitive-questions", "cognitive-candidate-reflection",
+  "team-report", "leadership-report", "derailment-report",
+  "prepare-interview"
+], "Keep question PDFs, results, Svarsstilar and static reports, excluding AI interpretation reports");
+assert.ok(!allowedIds.some(id=>/(interpretation|after-|manager-report)/.test(id)));
+assert.ok(js.includes('managerExcluded:"Chefsrapporten ingår inte i rapportpaketet. Ladda ner den separat."'));
+assert.ok(js.includes('r.id==="prepare-interview"') && js.includes('Svarsstilar'),
+  "The response-style report must use the correct label in the picker");
 
 assert.ok(js.includes('api().exportReport(report.id,{returnBlob:true})'));
 assert.ok(js.includes('api().exportCover(t.cover)'));
@@ -64,7 +73,7 @@ assert.ok(js.includes("await new Promise(resolve=>requestAnimationFrame(resolve)
   "Show updated progress before each expensive PDF rendering pass");
 assert.ok(css.includes(".talena-package-row.is-failed"),
   "Highlight the failed report so it can be excluded");
-assert.ok(base.includes("20261119-results-only-1"),
+assert.ok(base.includes("20261119-report-choices-2"),
   "Version asset URLs to avoid cached report picker code");
 assert.ok(js.includes('dialog.showModal()')&&js.includes('dialog.addEventListener("cancel"'));
 assert.ok(js.includes('role","status"')&&js.includes('aria-live","polite"'));
