@@ -51,7 +51,7 @@ assert(js.includes('[data-wizard-automatic-invitation]'));
 assert(js.includes("function mountSettingsSetting()"), "Existing edit-page mount must remain");
 assert(js.includes("buildSetting({"), "Existing edit-page implementation must remain");
 
-assert(css.includes("/* Unified final-step layout (2026-11-19) */"));
+assert(css.includes("/* Unified final-step layout (2026-11-19)"));
 assert(css.includes(".wizard-setting-row"));
 assert(css.includes(".candidate-language-section"));
 
