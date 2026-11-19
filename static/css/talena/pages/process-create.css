@@ -540,3 +540,238 @@ main .container-fluid:has(#processCreateWizardForm) > .d-flex:first-child > a {
     width: 100%;
   }
 }
+
+/* Unified final-step layout (2026-11-19)
+   One calm parent card, section dividers, and compact settings rows.
+   Intentionally scoped to the creation wizard, not the Settings edit page. */
+#processCreateWizardForm .wizard-details-intro {
+  margin-bottom: 1.65rem;
+}
+
+#processCreateWizardForm .wizard-details-section {
+  min-width: 0;
+}
+
+#processCreateWizardForm .wizard-details-section + .wizard-details-section {
+  border-top: 1px solid var(--talena-border);
+  margin-top: 1.55rem;
+  padding-top: 1.4rem;
+}
+
+#processCreateWizardForm .wizard-section-title {
+  margin: 0 0 0.9rem;
+  color: var(--talena-ink);
+  font-size: 0.98rem;
+  font-weight: 760;
+  letter-spacing: -0.015em;
+}
+
+#processCreateWizardForm .wizard-section-heading {
+  margin-bottom: 0.85rem;
+}
+
+#processCreateWizardForm .wizard-section-heading .wizard-section-title {
+  margin-bottom: 0.2rem;
+}
+
+#processCreateWizardForm .wizard-section-description {
+  margin: 0;
+  color: var(--talena-text-muted);
+  font-size: 0.76rem;
+  line-height: 1.55;
+}
+
+#processCreateWizardForm .wizard-account-field {
+  margin-bottom: 1.1rem;
+}
+
+#processCreateWizardForm .wizard-account-value {
+  padding: 0.7rem 0;
+  color: var(--talena-text);
+  font-size: 0.84rem;
+  font-weight: 650;
+}
+
+#processCreateWizardForm .wizard-details-basics .row.g-3 {
+  row-gap: 1rem;
+}
+
+#processCreateWizardForm .wizard-panel[data-step="3"] .candidate-language-section {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+#processCreateWizardForm .wizard-panel[data-step="3"] .candidate-language-grid {
+  max-width: 780px;
+}
+
+#processCreateWizardForm .wizard-panel[data-step="3"] .candidate-language-card-inner {
+  min-height: 64px;
+  padding: 0.65rem 0.8rem;
+}
+
+#processCreateWizardForm .candidate-language-card > input:focus-visible + .candidate-language-card-inner {
+  outline: 3px solid rgba(255, 111, 97, 0.65);
+  outline-offset: 3px;
+}
+
+#processCreateWizardForm .wizard-settings-list {
+  width: 100%;
+  border-top: 1px solid var(--talena-border);
+}
+
+#processCreateWizardForm .wizard-automatic-invitation-slot:empty {
+  display: none;
+}
+
+#processCreateWizardForm .wizard-setting-row,
+#processCreateWizardForm fieldset.wizard-setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem 1.6rem;
+  min-width: 0;
+  margin: 0;
+  padding: 1rem 0.15rem;
+  border: 0;
+  border-bottom: 1px solid var(--talena-border);
+  border-radius: 0;
+  background: transparent;
+}
+
+#processCreateWizardForm .wizard-setting-copy {
+  flex: 1 1 360px;
+  min-width: 0;
+}
+
+#processCreateWizardForm .wizard-setting-label {
+  display: block;
+  margin: 0;
+  color: var(--talena-ink);
+  font-size: 0.82rem;
+  line-height: 1.45;
+  font-weight: 740;
+  cursor: pointer;
+}
+
+#processCreateWizardForm .wizard-setting-description {
+  margin: 0.2rem 0 0;
+  color: var(--talena-text-muted);
+  font-size: 0.73rem;
+  line-height: 1.55;
+}
+
+#processCreateWizardForm .wizard-setting-switch {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  flex: 0 0 auto;
+  min-height: 28px;
+  margin: 0;
+  padding-left: 0;
+}
+
+#processCreateWizardForm .wizard-setting-switch .form-check-input {
+  width: 2.5rem;
+  height: 1.4rem;
+  margin: 0;
+  float: none;
+  cursor: pointer;
+  border: 1px solid #c4c7ca;
+  background-color: #e4e5e6;
+  box-shadow: none;
+}
+
+#processCreateWizardForm .wizard-setting-switch .form-check-input:checked {
+  border-color: var(--talena-ink);
+  background-color: var(--talena-ink);
+}
+
+#processCreateWizardForm .wizard-setting-switch .form-check-input:focus-visible {
+  outline: 3px solid rgba(255, 111, 97, .6);
+  outline-offset: 3px;
+}
+
+#processCreateWizardForm .wizard-ig-options {
+  display: inline-flex;
+  flex: 0 1 auto;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.25rem;
+}
+
+#processCreateWizardForm .wizard-ig-option {
+  position: relative;
+  display: inline-flex;
+  margin: 0;
+  cursor: pointer;
+}
+
+#processCreateWizardForm .wizard-ig-option input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+#processCreateWizardForm .wizard-ig-option span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 35px;
+  padding: 0.4rem 0.8rem;
+  border: 1px solid var(--talena-border);
+  border-radius: 9px;
+  background: var(--talena-surface);
+  color: var(--talena-text-muted);
+  font-size: 0.74rem;
+  font-weight: 680;
+  line-height: 1.3;
+  white-space: nowrap;
+  transition: background-color .15s ease, border-color .15s ease;
+}
+
+#processCreateWizardForm .wizard-ig-option:hover span {
+  border-color: var(--talena-border-strong);
+}
+
+#processCreateWizardForm .wizard-ig-option input:checked + span {
+  border-color: #b4b4b4;
+  background: #efefef;
+  color: var(--talena-ink);
+}
+
+#processCreateWizardForm .wizard-ig-option input:focus-visible + span {
+  outline: 3px solid rgba(255, 111, 97, .6);
+  outline-offset: 2px;
+}
+
+#processCreateWizardForm .wizard-details-actions {
+  margin-top: 1.5rem !important;
+  padding-top: 0.3rem;
+}
+
+@media (max-width: 700px) {
+  #processCreateWizardForm .wizard-setting-row,
+  #processCreateWizardForm fieldset.wizard-setting-row {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 0.7rem;
+  }
+
+  #processCreateWizardForm .wizard-setting-copy {
+    flex-basis: 100%;
+  }
+
+  #processCreateWizardForm .wizard-setting-switch {
+    margin-left: auto;
+  }
+
+  #processCreateWizardForm .wizard-ig-options {
+    justify-content: flex-start;
+    width: 100%;
+  }
+}
