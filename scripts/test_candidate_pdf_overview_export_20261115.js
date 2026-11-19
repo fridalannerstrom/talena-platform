@@ -152,7 +152,11 @@ vm.runInNewContext(code,{document,window,Blob,
     "Screen AI notes remain untouched");
   assert.ok(css.includes('[data-candidate-pdf-report="overview"] .candidate-result-overview__area'));
   assert.ok(css.includes('[data-candidate-pdf-report="overview"] .candidate-result-overview__skills-list'));
-  assert.ok(base.includes("20261115-personality-questions-parity-1"), "PDF stylesheet needs a current cache version");
+  assert.match(
+    base,
+    /candidate-report-export\.css' %}\?v=[a-zA-Z0-9_-]+/,
+    "PDF stylesheet must keep a versioned asset URL to avoid stale browser caches"
+  );
   assert.ok(css.includes('Overview PDF only: remove the nested screen-style card outlines'));
   assert.ok(css.includes('border:0 !important;'));
   assert.ok(css.includes('[data-candidate-pdf-report="overview"] .candidate-result-overview__motivation-card,'));
