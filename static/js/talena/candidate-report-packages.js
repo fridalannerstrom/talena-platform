@@ -30,7 +30,7 @@
   };
   const MAX_REPORTS = 20, MAX_BYTES = 100 * 1024 * 1024, MAX_PAGES = 450, ROWS = 17;
   // #483: Keep results, question guides, static profiles, candidate
-  // reflections and the static response-style PDF. Explicitly exclude
+  // reflections and the Personality > Response styles PDF. Explicitly exclude
   // standalone AI interpretations, post-interview AI and the manager report.
   // This is deliberately an allowlist: newly added AI reports cannot slip in.
   // Interview questions are explicitly allowed as a separate product decision.
@@ -40,7 +40,7 @@
     "motivation-results", "motivation-questions", "motivation-candidate-reflection",
     "cognitive-results", "cognitive-questions", "cognitive-candidate-reflection",
     "team-report", "leadership-report", "derailment-report",
-    "prepare-interview"
+    "personality-response-styles"
   ]);
   let workspace=null, trigger=null, dialog=null, list=null, order=[], chosen=new Set(), busy=false, failedReportId=null;
   const element=(tag,cls,text)=>{
@@ -52,8 +52,6 @@
   const available=()=>current()&&api()
     ? api().getAvailableReports().filter(r=>
         PACKAGE_ALLOWED_REPORT_IDS.has(r.id) && /^[a-z0-9-]+$/.test(r.id)
-      ).map(r=>r.id==="prepare-interview"
-        ? {...r,title:sv?"Svarsstilar":"Response styles"} : r
       ).slice(0,MAX_REPORTS) : [];
   const status=(message,error=false)=>{
     const e=dialog?.querySelector("[data-package-status]");
