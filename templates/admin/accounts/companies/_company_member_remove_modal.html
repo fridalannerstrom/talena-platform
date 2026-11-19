@@ -1,0 +1,49 @@
+{# One confirmation modal per page, with a CSRF-protected POST form. #}
+<div class="modal fade" id="removeCompanyMemberModal" tabindex="-1"
+     aria-labelledby="removeCompanyMemberModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title fs-5" id="removeCompanyMemberModalLabel">Ta bort från företaget?</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Stäng"></button>
+      </div>
+      <div class="modal-body">
+        <p class="mb-2">
+          Vill du ta bort <strong data-remove-member-name></strong> från
+          <strong data-remove-company-name></strong>?
+        </p>
+        <p class="text-muted small mb-0">
+          Personen förlorar åtkomsten till företagets konton och projekt.
+          Användarkontot, tidigare projekt och historik behålls.
+          Kopplingar till andra företag påverkas inte.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Avbryt</button>
+        <form method="post" data-remove-company-member-form>
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger">Ja, ta bort från företaget</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const modal = document.getElementById("removeCompanyMemberModal");
+  if (!modal) return;
+  modal.addEventListener("show.bs.modal", function (event) {
+    const trigger = event.relatedTarget;
+    const url = trigger && trigger.dataset.memberRemovalUrl;
+    if (!url) {
+      event.preventDefault();
+      return;
+    }
+    modal.querySelector("[data-remove-company-member-form]").action = url;
+    modal.querySelector("[data-remove-member-name]").textContent =
+      trigger.dataset.memberRemovalName || "användaren";
+    modal.querySelector("[data-remove-company-name]").textContent =
+      trigger.dataset.memberRemovalCompany || "företaget";
+  });
+});
+</script>
