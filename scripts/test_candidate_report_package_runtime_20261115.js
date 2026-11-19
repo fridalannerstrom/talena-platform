@@ -83,7 +83,8 @@ async function run(format,failIndex,assembleFails=false){
     "motivation-interpretation",
     "cognitive-results", "cognitive-questions", "cognitive-candidate-reflection",
     "cognitive-interpretation", "team-report", "leadership-report", "derailment-report",
-    "personality-response-styles", "prepare-interview", "manager-report", "after-overview", "after-interview"
+    "personality-response-styles", "combined-interview-questions",
+    "prepare-interview", "manager-report", "after-overview", "after-interview"
   ];
   const reports=reportIds.map(id=>({
     id,title:id==="motivation-results"?"Motivation · Resultat":id,
@@ -119,8 +120,8 @@ async function run(format,failIndex,assembleFails=false){
   };
   const pack={
     async ensure(){},
-    async zipFiles(entries){assembled++;assert.equal(entries.length,14);if(assembleFails)throw Error("zip failure");return new Blob(["zip"],{type:"application/zip"});},
-    async merge(entries){assembled++;assert.equal(entries.length,14);if(assembleFails)throw Error("pdf failure");return new Blob(["pdf"],{type:"application/pdf"});},
+    async zipFiles(entries){assembled++;assert.equal(entries.length,15);if(assembleFails)throw Error("zip failure");return new Blob(["zip"],{type:"application/zip"});},
+    async merge(entries){assembled++;assert.equal(entries.length,15);if(assembleFails)throw Error("pdf failure");return new Blob(["pdf"],{type:"application/pdf"});},
     download(){downloaded++;}
   };
   const logs=[];
@@ -159,7 +160,7 @@ async function run(format,failIndex,assembleFails=false){
     assert.match(failed.status,/Motivation · Resultat/);
     assert.match(failed.status,/ladda ner rapporten separat/);
     assert.ok(!failed.status.includes("private candidate"));
-    assert.equal(failed.rows.length,14,"Question PDFs, Svarsstilar and results must remain");
+    assert.equal(failed.rows.length,15,"Question PDFs, Svarsstilar and results must remain");
     assert.ok(failed.rows[4].classList.contains("is-failed"));
     assert.ok(!failed.rows[3].classList.contains("is-failed"));
     assert.equal(failed.logs[0]?.[1]?.reportId,"motivation-results");
@@ -171,7 +172,7 @@ async function run(format,failIndex,assembleFails=false){
       "motivation-results", "motivation-questions", "motivation-candidate-reflection",
       "cognitive-results", "cognitive-questions", "cognitive-candidate-reflection",
       "team-report", "leadership-report", "derailment-report",
-      "personality-response-styles"
+      "personality-response-styles", "combined-interview-questions"
     ],"Keep all approved reports and questions; never include AI interpretations, manager or post-interview syntheses");
     assert.equal(success.assembled,1);
     assert.equal(success.downloaded,1);
