@@ -541,6 +541,156 @@ main .container-fluid:has(#processCreateWizardForm) > .d-flex:first-child > a {
   }
 }
 
+/* Split the final step: spacious project details and one compact settings card. */
+#processCreateWizardForm .wizard-details-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(330px, 0.95fr);
+  gap: clamp(1.3rem, 2.7vw, 2.25rem);
+  align-items: start;
+}
+
+#processCreateWizardForm .wizard-details-main,
+#processCreateWizardForm .wizard-details-aside {
+  min-width: 0;
+}
+
+#processCreateWizardForm .wizard-details-aside {
+  padding: 1.2rem 1.3rem 0.6rem;
+  border: 1px solid var(--talena-border);
+  border-radius: 16px;
+  background: #faf9f7;
+}
+
+#processCreateWizardForm .wizard-details-aside .wizard-details-settings {
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+
+#processCreateWizardForm .wizard-details-aside .wizard-section-title {
+  margin-bottom: 0.3rem;
+}
+
+#processCreateWizardForm .wizard-details-aside .wizard-section-heading {
+  margin-bottom: 0.6rem;
+}
+
+#processCreateWizardForm .wizard-details-aside .wizard-settings-list {
+  border-top: 0;
+}
+
+#processCreateWizardForm .wizard-details-aside .wizard-setting-row,
+#processCreateWizardForm .wizard-details-aside fieldset.wizard-setting-row {
+  gap: 0.8rem;
+  padding: 1.05rem 0;
+}
+
+#processCreateWizardForm .wizard-details-aside .wizard-setting-row:last-child,
+#processCreateWizardForm .wizard-details-aside fieldset.wizard-setting-row:last-child {
+  border-bottom: 0;
+}
+
+#processCreateWizardForm .wizard-details-aside .wizard-setting-copy {
+  flex: 1 1 auto;
+}
+
+#processCreateWizardForm .wizard-details-aside fieldset.wizard-ig-setting {
+  display: flex;
+  align-items: stretch;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+#processCreateWizardForm .wizard-details-aside .wizard-ig-options {
+  width: 100%;
+  justify-content: flex-start;
+  gap: 0.3rem;
+}
+
+#processCreateWizardForm .wizard-details-aside .wizard-ig-option span {
+  min-height: 32px;
+  padding: 0.35rem 0.65rem;
+  font-size: 0.7rem;
+}
+
+@media (max-width: 1099.98px) {
+  #processCreateWizardForm .wizard-details-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.5rem;
+  }
+
+  #processCreateWizardForm .wizard-details-aside {
+    padding: 1.1rem 1.2rem 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  #processCreateWizardForm .wizard-details-aside {
+    padding: 1rem 0.95rem 0.4rem;
+  }
+}
+
+/* Remove the native/bootstrap checkbox artwork and draw one stable switch.
+   Both the injected automatic-invitation control and Django results field
+   use this exact shared rule, including in their checked state. */
+#processCreateWizardForm .wizard-setting-switch input[type="checkbox"].form-check-input {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  position: relative;
+  display: block;
+  flex: 0 0 44px;
+  width: 44px !important;
+  height: 24px !important;
+  min-height: 24px;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 1px solid #c6c8ca !important;
+  border-radius: 999px !important;
+  background: #e2e3e5 !important;
+  background-image: none !important;
+  background-size: 0 !important;
+  background-position: initial !important;
+  box-shadow: none !important;
+  cursor: pointer;
+  vertical-align: middle;
+  transition: border-color .15s ease, background-color .15s ease;
+}
+
+#processCreateWizardForm .wizard-setting-switch input[type="checkbox"].form-check-input::before {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .15);
+  transform: translateX(0);
+  transition: transform .15s ease;
+  pointer-events: none;
+}
+
+#processCreateWizardForm .wizard-setting-switch input[type="checkbox"].form-check-input:checked {
+  border-color: #222 !important;
+  background: #222 !important;
+  background-image: none !important;
+}
+
+#processCreateWizardForm .wizard-setting-switch input[type="checkbox"].form-check-input:checked::before {
+  transform: translateX(20px);
+}
+
+#processCreateWizardForm .wizard-setting-switch input[type="checkbox"].form-check-input::after {
+  content: none !important;
+  display: none !important;
+}
+
+#processCreateWizardForm .wizard-setting-switch input[type="checkbox"].form-check-input:focus-visible {
+  outline: 3px solid rgba(255, 111, 97, .6);
+  outline-offset: 3px;
+}
+
 /* Unified final-step layout (2026-11-19)
    One calm parent card, section dividers, and compact settings rows.
    Intentionally scoped to the creation wizard, not the Settings edit page. */
