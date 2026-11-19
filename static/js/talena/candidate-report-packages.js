@@ -5,7 +5,7 @@
   const sv = (document.documentElement.lang || "").startsWith("sv");
   const t = sv ? {
     open:"Skapa rapportpaket",title:"Välj rapporter",description:"Välj färdiga rapporter och dra dem i önskad ordning. Du kan också använda pilarna.",
-    incomplete:"AI-tolkningar och AI-insikter ingår inte. Intervjufrågor och Svarsstilar kan väljas.",managerExcluded:"Chefsrapporten ingår inte i rapportpaketet. Ladda ner den separat.",all:"Välj alla",none:"Avmarkera alla",
+    incomplete:"AI-tolkningar och AI-insikter ingår inte. Alla intervjufrågor finns samlade i en rapport.",managerExcluded:"Chefsrapporten ingår inte i rapportpaketet. Ladda ner den separat.",all:"Välj alla",none:"Avmarkera alla",
     up:"Flytta upp",down:"Flytta ned",pdf:"En sammanslagen PDF",zip:"Separata PDF:er i ZIP",
     generate:"Ladda ner",close:"Stäng",count:"Valda rapporter",empty:"Inga färdiga rapporter.",
     toc:"Innehåll",cover:"Rapportpaket",progress:"Skapar rapport",preparing:"Sammanställer filer...",
@@ -17,7 +17,7 @@
     combineError:"De enskilda rapporterna skapades, men paketet kunde inte sättas ihop."
   } : {
     open:"Create report package",title:"Select reports",description:"Select completed reports and drag to reorder, or use the arrow buttons.",
-    incomplete:"AI interpretations and insights are excluded. Interview questions and Response styles can be included.",managerExcluded:"The Manager report is not part of the report package. Download it separately.",all:"Select all",none:"Deselect all",
+    incomplete:"AI interpretations and insights are excluded. All interview questions are combined in one report.",managerExcluded:"The Manager report is not part of the report package. Download it separately.",all:"Select all",none:"Deselect all",
     up:"Move up",down:"Move down",pdf:"One merged PDF",zip:"Separate PDFs in ZIP",
     generate:"Download",close:"Close",count:"Selected reports",empty:"No completed reports.",
     toc:"Contents",cover:"Report package",progress:"Creating report",preparing:"Combining files...",
@@ -29,16 +29,16 @@
     combineError:"The individual PDFs were created, but the package could not be assembled."
   };
   const MAX_REPORTS = 20, MAX_BYTES = 100 * 1024 * 1024, MAX_PAGES = 450, ROWS = 17;
-  // #483: Keep results, question guides, static profiles, candidate
-  // reflections and the Personality > Response styles PDF. Explicitly exclude
-  // standalone AI interpretations, post-interview AI and the manager report.
-  // This is deliberately an allowlist: newly added AI reports cannot slip in.
-  // Interview questions are explicitly allowed as a separate product decision.
+  // #483: Keep results, static profiles, candidate reflections, Svarsstilar,
+  // and ONE combined interview-question report. The three per-assessment
+  // question PDFs stay available in their own tabs, but not in report packages.
+  // Exclude AI interpretations, post-interview AI and the manager report.
+  // The allowlist also prevents newly added AI reports from slipping in.
   const PACKAGE_ALLOWED_REPORT_IDS = new Set([
     "overview",
-    "personality-results", "personality-questions", "personality-candidate-reflection",
-    "motivation-results", "motivation-questions", "motivation-candidate-reflection",
-    "cognitive-results", "cognitive-questions", "cognitive-candidate-reflection",
+    "personality-results", "personality-candidate-reflection",
+    "motivation-results", "motivation-candidate-reflection",
+    "cognitive-results", "cognitive-candidate-reflection",
     "team-report", "leadership-report", "derailment-report",
     "personality-response-styles", "combined-interview-questions"
   ]);
