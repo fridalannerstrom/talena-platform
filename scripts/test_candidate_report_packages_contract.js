@@ -22,13 +22,21 @@ assert.ok(packageAllowlist, "The #483 report package allowlist must exist");
 const allowedIds = [...packageAllowlist[1].matchAll(/"([^"]+)"/g)].map(match=>match[1]);
 assert.deepEqual(allowedIds, [
   "overview",
-  "personality-results", "personality-questions", "personality-candidate-reflection",
-  "motivation-results", "motivation-questions", "motivation-candidate-reflection",
-  "cognitive-results", "cognitive-questions", "cognitive-candidate-reflection",
+  "personality-results", "personality-candidate-reflection",
+  "motivation-results", "motivation-candidate-reflection",
+  "cognitive-results", "cognitive-candidate-reflection",
   "team-report", "leadership-report", "derailment-report",
   "personality-response-styles", "combined-interview-questions"
-], "Keep question PDFs, results, Svarsstilar, all interview questions and static reports without AI interpretations");
+], "Keep one combined question report, results, Svarsstilar and static reports without AI interpretations");
 assert.ok(!allowedIds.some(id=>/(interpretation|after-|manager-report)/.test(id)));
+assert.ok(["personality-questions", "motivation-questions", "cognitive-questions"]
+  .every(id => !allowedIds.includes(id)),
+  "Per-assessment interview questions must be excluded from the package picker");
+assert.equal(allowedIds.filter(id=>id==="combined-interview-questions").length,1,
+  "Only the single combined interview questions report may appear in the package");
+assert.ok(["personality-questions", "motivation-questions", "cognitive-questions"]
+  .every(id => registry.includes('id: area + "-" + part')),
+  "Do not remove individual question PDF capabilities from their assessment tabs");
 assert.ok(js.includes('managerExcluded:"Chefsrapporten ingår inte i rapportpaketet. Ladda ner den separat."'));
 assert.ok(!allowedIds.includes("prepare-interview"),
   "Before-interview must not be offered as Svarsstilar");
@@ -95,7 +103,7 @@ assert.ok(js.includes("await new Promise(resolve=>requestAnimationFrame(resolve)
   "Show updated progress before each expensive PDF rendering pass");
 assert.ok(css.includes(".talena-package-row.is-failed"),
   "Highlight the failed report so it can be excluded");
-assert.ok(base.includes("20261119-separate-all-questions-5"),
+assert.ok(base.includes("20261119-combined-questions-only-6"),
   "Version asset URLs to avoid cached report picker code");
 assert.ok(js.includes('dialog.showModal()')&&js.includes('dialog.addEventListener("cancel"'));
 assert.ok(js.includes('role","status"')&&js.includes('aria-live","polite"'));
