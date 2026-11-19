@@ -73,7 +73,7 @@
     return section;
   }
 
-  function buildCreateSetting() {
+  function buildCreateSetting({ checked = false } = {}) {
     // Use the same compact setting-row layout as Results and Integrity Guard.
     // Preserve the hidden presence marker so missing JS cannot alter saved data.
     const row = document.createElement("div");
@@ -107,7 +107,7 @@
     input.role = "switch";
     input.name = "automatic_invitation_enabled";
     input.id = "automaticInvitationEnabled";
-    input.checked = false;
+    input.checked = Boolean(checked);
 
     control.append(input);
     row.append(marker, copyWrap, control);
@@ -122,7 +122,10 @@
       return false;
     }
 
-    anchor.appendChild(buildCreateSetting());
+    // When the wizard is re-rendered after a validation error, keep the choice.
+    // It still persists only when the project is successfully created.
+    const checked = anchor.dataset.initialEnabled === "true";
+    anchor.appendChild(buildCreateSetting({ checked }));
     return true;
   }
 
