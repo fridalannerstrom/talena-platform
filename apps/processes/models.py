@@ -52,6 +52,20 @@ class TestProcess(models.Model):
         ),
     )
 
+    # Talena display override: None follows the company setting; Sova is unaffected.
+    integrity_guard_visible_override = models.BooleanField(
+        null=True,
+        blank=True,
+        default=None,
+        help_text="Optional project-level override for Talena's Integrity Guard display.",
+    )
+
+    @property
+    def integrity_guard_visible_in_talena(self):
+        if self.integrity_guard_visible_override is not None:
+            return self.integrity_guard_visible_override
+        return self.company.integrity_guard_visible if self.company_id else True
+
     # #466: notify the project creator when the candidate finishes all tests.
     project_completion_notifications_enabled = models.BooleanField(
         default=True,
@@ -207,6 +221,11 @@ class TestInvitation(models.Model):
         from apps.core.integrations.integrity_guard import (
             extract_integrity_guard, integrity_guard_for_display,
         )
+
+        # A project-specific choice overrides the company default in Talena only.
+        # Do not remove the original Sova evidence or send any updates to Sova.
+        if self.process_id and not self.process.integrity_guard_visible_in_talena:
+            return {"visible": False, "state": "unknown", "entries": []}
 
         # Read the already-stored Sova callback for existing invitations:
         # older parser versions stored only the overall Guard status, although

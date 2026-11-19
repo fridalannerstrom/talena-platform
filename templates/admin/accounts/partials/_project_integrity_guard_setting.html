@@ -1,0 +1,108 @@
+{# Only include inside the real project workspace for Talena platform admins. #}
+{% load i18n %}
+<style>
+  .process-page .admin-project-ig-card {
+    margin-top: -0.5rem;
+    margin-bottom: 1.25rem;
+    border-radius: 14px;
+  }
+  .admin-project-ig-card .card-body {
+    padding: 0.75rem 1.2rem;
+  }
+  .admin-project-ig-card-title {
+    font-size: 0.8rem;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+  .admin-project-ig-status,
+  .admin-project-ig-default {
+    font-size: 0.74rem;
+    color: #69707b;
+  }
+  .admin-project-ig-switch {
+    display: inline-flex;
+    align-items: center;
+    width: 42px;
+    height: 24px;
+    flex: 0 0 auto;
+    padding: 2px;
+    border: 1px solid #cbd0d6;
+    border-radius: 999px;
+    background: #dfe2e6;
+    cursor: pointer;
+    transition: background-color .15s ease, border-color .15s ease;
+  }
+  .admin-project-ig-switch.is-on {
+    background: #222;
+    border-color: #222;
+  }
+  .admin-project-ig-switch-thumb {
+    display: block;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,.16);
+    transition: transform .15s ease;
+  }
+  .admin-project-ig-switch.is-on .admin-project-ig-switch-thumb {
+    transform: translateX(18px);
+  }
+  .admin-project-ig-switch:focus-visible {
+    outline: 3px solid #e68171;
+    outline-offset: 3px;
+  }
+  .admin-project-ig-reset {
+    color: #69707b;
+    text-decoration: underline;
+    font-size: 0.72rem;
+    padding: 0;
+    border: 0;
+    background: transparent;
+  }
+  .admin-project-ig-reset:hover { color: #222; }
+</style>
+
+<section class="card admin-project-ig-card" aria-labelledby="admin-project-ig-heading">
+  <div class="card-body d-flex align-items-center justify-content-between gap-3 flex-wrap">
+    <h2 id="admin-project-ig-heading" class="admin-project-ig-card-title mb-0">Integrity Guard</h2>
+    <div class="d-flex align-items-center gap-3 ms-auto">
+      {% if process.integrity_guard_visible_override is None %}
+        <span class="admin-project-ig-default">
+          {% if LANGUAGE_CODE|slice:":2" == "sv" %}Företagsstandard{% else %}Company default{% endif %}
+        </span>
+      {% else %}
+        <form method="post" action="{% url 'accounts:project_integrity_guard_visibility' process.pk %}" class="mb-0">
+          {% csrf_token %}
+          <input type="hidden" name="integrity_guard_visible" value="default">
+          <button type="submit" class="admin-project-ig-reset"
+                  title="{% if LANGUAGE_CODE|slice:":2" == "sv" %}Följ företagets inställning{% else %}Follow company setting{% endif %}">
+            {% if LANGUAGE_CODE|slice:":2" == "sv" %}Återställ{% else %}Reset{% endif %}
+          </button>
+        </form>
+      {% endif %}
+
+      <form method="post" action="{% url 'accounts:project_integrity_guard_visibility' process.pk %}"
+            class="d-flex align-items-center gap-2 mb-0">
+        {% csrf_token %}
+        {% if process.integrity_guard_visible_in_talena %}
+          <input type="hidden" name="integrity_guard_visible" value="0">
+          <span class="admin-project-ig-status" aria-hidden="true">On</span>
+          <button type="submit" class="admin-project-ig-switch is-on" role="switch" aria-checked="true"
+                  aria-label="Integrity Guard visibility in Talena"
+                  title="{% if LANGUAGE_CODE|slice:":2" == "sv" %}Dölj Integrity Guard i detta projekt{% else %}Hide Integrity Guard in this project{% endif %}">
+            <span class="admin-project-ig-switch-thumb" aria-hidden="true"></span>
+          </button>
+        {% else %}
+          <input type="hidden" name="integrity_guard_visible" value="1">
+          <span class="admin-project-ig-status" aria-hidden="true">Off</span>
+          <button type="submit" class="admin-project-ig-switch" role="switch" aria-checked="false"
+                  aria-label="Integrity Guard visibility in Talena"
+                  title="{% if LANGUAGE_CODE|slice:":2" == "sv" %}Visa Integrity Guard i detta projekt{% else %}Show Integrity Guard in this project{% endif %}">
+            <span class="admin-project-ig-switch-thumb" aria-hidden="true"></span>
+          </button>
+        {% endif %}
+      </form>
+    </div>
+  </div>
+</section>

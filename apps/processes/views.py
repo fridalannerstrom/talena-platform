@@ -6335,6 +6335,13 @@ def process_update(request, pk):
             obj.project_completion_notifications_enabled = bool(
                 form.cleaned_data.get("project_completion_notifications_enabled")
             )
+            # Mirror the project creation choice. Omitted values from older
+            # forms must not silently reset an existing project override.
+            if "integrity_guard_visibility" in request.POST:
+                obj.integrity_guard_visible_override = {
+                    "on": True,
+                    "off": False,
+                }.get(form.cleaned_data.get("integrity_guard_visibility"))
 
             if locked:
                 # Behåll befintliga tester och befintlig Sova-koppling.
@@ -6440,6 +6447,11 @@ def process_update(request, pk):
             ),
             "project_completion_notifications_enabled": (
                 obj.project_completion_notifications_enabled
+            ),
+            "integrity_guard_visibility": (
+                "default"
+                if obj.integrity_guard_visible_override is None
+                else "on" if obj.integrity_guard_visible_override else "off"
             ),
         })
 
@@ -6960,7 +6972,7 @@ def process_detail(request, pk):
         invitations = (
             process.invitations
             .filter(removed_from_process_at__isnull=True)
-            .select_related("candidate")
+            .select_related("candidate", "process__company")
             .prefetch_related("assessment_usages")
             .order_by("-created_at")
         )
@@ -7686,7 +7698,7 @@ def process_candidate_detail(request, process_id, candidate_id):
 
     else:
         invitation = get_object_or_404(
-            TestInvitation.objects.select_related("candidate"),
+            TestInvitation.objects.select_related("candidate", "process__company"),
             process=process,
             candidate_id=candidate_id,
         )
@@ -9003,6 +9015,12 @@ def process_create_v2(request):
                     form.cleaned_data.get("candidate_results_enabled")
                     or False
                 ),
+                # None means the project follows the company's display setting.
+                # Sova monitoring and stored findings are unaffected.
+                integrity_guard_visible_override={
+                    "on": True,
+                    "off": False,
+                }.get(form.cleaned_data.get("integrity_guard_visibility")),
             )
 
             # --------------------------------------------------

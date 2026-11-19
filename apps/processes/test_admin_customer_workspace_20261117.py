@@ -90,6 +90,27 @@ class AdminCustomerWorkspaceTests(TestCase):
             "accounts:company_processes", args=[self.company.pk],
         ))
 
+    def test_integrity_guard_switch_is_only_shown_in_admin_project_workspace(self):
+        self.client.force_login(self.admin)
+        admin_page = self.client.get(self.detail_url)
+        self.assertEqual(admin_page.status_code, 200)
+        self.assertContains(admin_page, 'class="card admin-project-ig-card"')
+        self.assertContains(admin_page, 'aria-label="Integrity Guard visibility in Talena"')
+        self.assertContains(admin_page, reverse(
+            "accounts:project_integrity_guard_visibility", args=[self.process.pk],
+        ))
+        self.assertContains(admin_page, "Integrity Guard")
+
+        # The same real project is rendered to customers, without admin controls.
+        self.client.force_login(self.customer)
+        customer_page = self.client.get(self.detail_url)
+        self.assertEqual(customer_page.status_code, 200)
+        self.assertNotContains(customer_page, "admin-project-ig-card")
+        self.assertNotContains(customer_page, reverse(
+            "accounts:project_integrity_guard_visibility", args=[self.process.pk],
+        ))
+        self.assertNotContains(customer_page, "Company default")
+
     def test_admin_can_still_open_internal_project_tools(self):
         self.client.force_login(self.admin)
         admin_project_url = reverse(
@@ -304,6 +325,97 @@ class AdminCustomerWorkspaceTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context["process_base_layout"], "")
         self.assertEqual(response.context["process"].name, "Updated by Talena admin")
+
+    def _save_project_integrity_guard_setting(self, selection=None):
+        url = reverse("processes:process_update", args=[self.process.pk])
+        data = {
+            "name": self.process.name,
+            "purpose": "hiring",
+            "selected_tests": ["personality", "motivation"],
+            "candidate_language": "sv",
+            "project_completion_notifications_enabled": "on",
+        }
+        if selection is not None:
+            data["integrity_guard_visibility"] = selection
+
+        with patch("apps.processes.views.SovaClient") as sova, patch(
+            "apps.processes.views.resolve_sova_template"
+        ) as resolve:
+            sova.return_value.get_template_accounts_with_projects.return_value = []
+            resolve.return_value = {
+                "account_code": "MODERN",
+                "project_code": "PQ-MQ",
+            }
+            return self.client.post(url, data)
+
+    def test_customer_can_update_project_integrity_guard_and_restore_company_default(self):
+        self.client.force_login(self.customer)
+        settings_url = reverse("processes:process_update", args=[self.process.pk])
+        with patch("apps.processes.views.SovaClient") as sova:
+            sova.return_value.get_template_accounts_with_projects.return_value = []
+            response = self.client.get(settings_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'name="integrity_guard_visibility"', count=3)
+        self.assertContains(response, "process-ig-setting")
+        self.assertEqual(
+            response.context["form"]["integrity_guard_visibility"].value(), "default"
+        )
+
+        self.company.integrity_guard_visible = False
+        self.company.save(update_fields=["integrity_guard_visible"])
+        self.assertFalse(self.process.integrity_guard_visible_in_talena)
+
+        response = self._save_project_integrity_guard_setting("on")
+        self.assertEqual(response.status_code, 302)
+        self.process.refresh_from_db()
+        self.assertIs(self.process.integrity_guard_visible_override, True)
+        self.assertTrue(self.process.integrity_guard_visible_in_talena)
+
+        with patch("apps.processes.views.SovaClient") as sova:
+            sova.return_value.get_template_accounts_with_projects.return_value = []
+            response = self.client.get(settings_url)
+        self.assertEqual(response.context["form"]["integrity_guard_visibility"].value(), "on")
+
+        response = self._save_project_integrity_guard_setting("off")
+        self.assertEqual(response.status_code, 302)
+        self.process.refresh_from_db()
+        self.assertIs(self.process.integrity_guard_visible_override, False)
+        self.assertFalse(self.process.integrity_guard_visible_in_talena)
+
+        response = self._save_project_integrity_guard_setting("default")
+        self.assertEqual(response.status_code, 302)
+        self.process.refresh_from_db()
+        self.assertIsNone(self.process.integrity_guard_visible_override)
+        self.assertFalse(self.process.integrity_guard_visible_in_talena)
+
+        self.company.integrity_guard_visible = True
+        self.company.save(update_fields=["integrity_guard_visible"])
+        self.process.refresh_from_db()
+        self.assertTrue(self.process.integrity_guard_visible_in_talena)
+
+    def test_omitted_project_integrity_guard_value_does_not_reset_existing_override(self):
+        self.process.integrity_guard_visible_override = False
+        self.process.save(update_fields=["integrity_guard_visible_override"])
+        self.client.force_login(self.customer)
+        response = self._save_project_integrity_guard_setting()
+        self.assertEqual(response.status_code, 302)
+        self.process.refresh_from_db()
+        self.assertIs(self.process.integrity_guard_visible_override, False)
+
+    def test_project_integrity_guard_edit_rejects_invalid_selection(self):
+        self.client.force_login(self.customer)
+        response = self._save_project_integrity_guard_setting("invalid")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("integrity_guard_visibility", response.context["form"].errors)
+        self.process.refresh_from_db()
+        self.assertIsNone(self.process.integrity_guard_visible_override)
+
+    def test_other_company_cannot_change_project_integrity_guard(self):
+        self.client.force_login(self.other_user)
+        response = self._save_project_integrity_guard_setting("off")
+        self.assertIn(response.status_code, (403, 404))
+        self.process.refresh_from_db()
+        self.assertIsNone(self.process.integrity_guard_visible_override)
 
     def test_other_customer_cannot_edit_templates_or_settings(self):
         self.client.force_login(self.other_user)

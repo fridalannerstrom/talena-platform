@@ -19,6 +19,11 @@ urlpatterns = [
     # =========================================================================
     # PROCESSES & CANDIDATES (ADMIN)
     # =========================================================================
+    path(
+        "processes/<int:pk>/integrity-guard-visibility/",
+        views.project_integrity_guard_visibility,
+        name="project_integrity_guard_visibility",
+    ),
     path("processes/<int:pk>/", views.admin_process_detail, name="admin_process_detail"),
     path(
         "processes/<int:process_pk>/candidates/<int:candidate_pk>/",
@@ -42,6 +47,11 @@ urlpatterns = [
     path("companies/", views.company_list, name="company_list"),
     path("companies/create/", views.company_create, name="company_create"),
     path("companies/<int:pk>/", views.company_detail, name="company_detail"),
+    path(
+        "companies/<int:pk>/integrity-guard-visibility/",
+        views.company_integrity_guard_visibility,
+        name="company_integrity_guard_visibility",
+    ),
 
     path(
         "companies/<int:company_pk>/branding/",

@@ -226,6 +226,20 @@ class TestProcessWizardCreateForm(forms.Form):
         widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
     )
 
+    # A blank/default choice inherits the company setting. This only controls
+    # whether Sova Integrity Guard findings are displayed in Talena.
+    integrity_guard_visibility = forms.ChoiceField(
+        required=False,
+        initial="default",
+        choices=[
+            ("default", _("Use company setting")),
+            ("on", _("On")),
+            ("off", _("Off")),
+        ],
+        label="Integrity Guard",
+        widget=forms.RadioSelect,
+    )
+
     name = forms.CharField(
         max_length=255,
         required=False,

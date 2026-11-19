@@ -320,213 +320,216 @@
         </div>
       </section>
 
-      <!-- STEP 3 -->
+      <!-- STEP 3: Project details and shared, compact settings -->
       <section class="wizard-panel" data-step="3">
         <div class="card border-0 shadow-sm">
-          <div class="card-body p-4">
-
-            <div class="mb-4">
-<h2 class="h4 mb-1">
-  {% trans "Name and organize" %}
-</h2>
-
-<p class="text-muted mb-0">
-  {% trans "Give the project an internal name and add labels if you want to organize it by department, role or project." %}
-</p>
-            </div>
-
-            {% if org_units|length > 1 %}
-              <div class="mb-4">
-                <label class="form-label" for="{{ form.org_unit.id_for_label }}">
-                  {% if wizard_language|slice:":2" == "sv" %}Konto{% else %}Account{% endif %}
-                </label>
-                {{ form.org_unit }}
-                <div class="form-text">
-                  {% if wizard_language|slice:":2" == "sv" %}Välj vilket konto projektet ska tillhöra.{% else %}Choose the account this project belongs to.{% endif %}
-                </div>
-                {% if form.org_unit.errors %}
-                  <div class="text-danger small mt-1">{{ form.org_unit.errors }}</div>
+          <div class="card-body p-4 wizard-details-body">
+            <div class="wizard-details-intro">
+              <h2 class="h4 mb-1">{% trans "Name and organize" %}</h2>
+              <p class="text-muted mb-0">
+                {% if wizard_language|slice:":2" == "sv" %}
+                  Ge projektet ett namn och välj hur det ska fungera.
+                {% else %}
+                  Give your project a name and choose how it should work.
                 {% endif %}
-              </div>
-            {% else %}
-              <p class="small text-muted mb-4">
-                {% if wizard_language|slice:":2" == "sv" %}Konto:{% else %}Account:{% endif %}
-                {{ org_units.0.company.name }} · {{ org_units.0.name }}
               </p>
-            {% endif %}
-
-            <div class="row g-4">
-
-              <div class="col-12 col-lg-7">
-                <label
-  class="form-label"
-  for="processNameInput"
->
-  {% trans "Project name" %}
-</label>
-                <input
-                  type="text"
-                  name="name"
-                  id="processNameInput"
-                  class="form-control form-control-lg"
-                  value="{{ form.name.value|default:'' }}"
-                  placeholder="{% trans 'Project name' %}"
-                >
-
-                {% if form.name.errors %}
-                  <div class="text-danger small mt-1">{{ form.name.errors }}</div>
-                {% endif %}
-
-<div class="form-text">
-  {% trans "This is only used internally. You can leave it empty and Talena will create a name." %}
-</div>
-              </div>
-
-              <div class="col-12 col-lg-5">
-                <label
-  class="form-label"
-  for="processLabelsInput"
->
-  {% trans "Labels" %}
-</label>
-<input
-  type="text"
-  name="labels_text"
-  id="processLabelsInput"
-  class="form-control form-control-lg"
-                  value="{{ form.labels_text.value|default:'' }}"
-                  placeholder="{% trans 'e.g. Sales, Stockholm, Graduate' %}"
-                >
-
-                {% if form.labels_text.errors %}
-                  <div class="text-danger small mt-1">{{ form.labels_text.errors }}</div>
-                {% endif %}
-
-<div class="form-text">
-  {% trans "Separate labels with commas." %}
-</div>
-              </div>
-
             </div>
 
-            <!-- CANDIDATE LANGUAGE -->
-<div class="candidate-language-section mt-4">
-  <div class="mb-3">
-    <label class="form-label mb-1">
-      {% trans "Candidate language" %}
-    </label>
+            <div class="wizard-details-grid">
+              <div class="wizard-details-main">
 
-    <div class="form-text mt-0">
-      {% trans "Choose the language used for the candidate invitation and tests." %}
-    </div>
-  </div>
+            <!-- Basic details: no nested cards -->
+            <section class="wizard-details-section wizard-details-basics" aria-labelledby="wizardBasicHeading">
+              <h3 class="wizard-section-title" id="wizardBasicHeading">
+                {% if wizard_language|slice:":2" == "sv" %}Projektuppgifter{% else %}Project details{% endif %}
+              </h3>
 
-  <div class="candidate-language-grid">
-
-    <label class="candidate-language-card">
-      <input
-        type="radio"
-        name="candidate_language"
-        value="sv"
-        {% if form.candidate_language.value == "sv" or not form.candidate_language.value %}checked{% endif %}
-      >
-
-      <div class="candidate-language-card-inner">
-        <div class="candidate-language-code">
-          SV
-        </div>
-
-        <div>
-          <div class="candidate-language-title">
-            {% trans "Swedish" %}
-          </div>
-
-          <div class="candidate-language-description">
-            {% trans "Invitation and assessments in Swedish" %}
-          </div>
-        </div>
-
-        <span class="candidate-language-check">
-          <i class="fa-solid fa-check"></i>
-        </span>
-      </div>
-    </label>
-
-
-    <label class="candidate-language-card">
-      <input
-        type="radio"
-        name="candidate_language"
-        value="en"
-        {% if form.candidate_language.value == "en" %}checked{% endif %}
-      >
-
-      <div class="candidate-language-card-inner">
-        <div class="candidate-language-code">
-          EN
-        </div>
-
-        <div>
-          <div class="candidate-language-title">
-            {% trans "English" %}
-          </div>
-
-          <div class="candidate-language-description">
-            {% trans "Invitation and assessments in English" %}
-          </div>
-        </div>
-
-        <span class="candidate-language-check">
-          <i class="fa-solid fa-check"></i>
-        </span>
-      </div>
-    </label>
-
-  </div>
-
-  {% if form.candidate_language.errors %}
-    <div class="text-danger small mt-2">
-      {{ form.candidate_language.errors }}
-    </div>
-  {% endif %}
-</div>
-
-            <div class="candidate-results-setting mt-4 p-3 border rounded-3">
-              <div class="form-check">
-                {{ form.candidate_results_enabled }}
-                <label class="form-check-label" for="{{ form.candidate_results_enabled.id_for_label }}">
-                  {{ form.candidate_results_enabled.label }}
-                </label>
-              </div>
-              {% if form.candidate_results_enabled.help_text %}
-                <div class="form-text mt-1">
-                  {{ form.candidate_results_enabled.help_text }}
+              {% if org_units|length > 1 %}
+                <div class="wizard-account-field">
+                  <label class="form-label" for="{{ form.org_unit.id_for_label }}">
+                    {% if wizard_language|slice:":2" == "sv" %}Konto{% else %}Account{% endif %}
+                  </label>
+                  {{ form.org_unit }}
+                  <div class="form-text">
+                    {% if wizard_language|slice:":2" == "sv" %}Välj vilket konto projektet ska tillhöra.{% else %}Choose the account this project belongs to.{% endif %}
+                  </div>
+                  {% if form.org_unit.errors %}
+                    <div class="text-danger small mt-1">{{ form.org_unit.errors }}</div>
+                  {% endif %}
+                </div>
+              {% else %}
+                <div class="wizard-account-field">
+                  <div class="form-label">
+                    {% if wizard_language|slice:":2" == "sv" %}Konto{% else %}Account{% endif %}
+                  </div>
+                  <div class="wizard-account-value">{{ org_units.0.company.name }} · {{ org_units.0.name }}</div>
                 </div>
               {% endif %}
-              {% if form.candidate_results_enabled.errors %}
-                <div class="text-danger small mt-2">
-                  {{ form.candidate_results_enabled.errors|striptags }}
+
+              <div class="row g-3">
+                <div class="col-12">
+                  <label class="form-label" for="processNameInput">{% trans "Project name" %}</label>
+                  <input type="text" name="name" id="processNameInput"
+                         class="form-control form-control-lg"
+                         value="{{ form.name.value|default:'' }}"
+                         placeholder="{% trans 'Project name' %}">
+                  {% if form.name.errors %}
+                    <div class="text-danger small mt-1">{{ form.name.errors }}</div>
+                  {% endif %}
+                  <div class="form-text">
+                    {% trans "This is only used internally. You can leave it empty and Talena will create a name." %}
+                  </div>
                 </div>
-              {% endif %}
+                <div class="col-12">
+                  <label class="form-label" for="processLabelsInput">{% trans "Labels" %}</label>
+                  <input type="text" name="labels_text" id="processLabelsInput"
+                         class="form-control form-control-lg"
+                         value="{{ form.labels_text.value|default:'' }}"
+                         placeholder="{% trans 'e.g. Sales, Stockholm, Graduate' %}">
+                  {% if form.labels_text.errors %}
+                    <div class="text-danger small mt-1">{{ form.labels_text.errors }}</div>
+                  {% endif %}
+                  <div class="form-text">{% trans "Separate labels with commas." %}</div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Language cards, without a second outer box -->
+            <section class="wizard-details-section wizard-details-language" aria-labelledby="wizardLanguageHeading">
+              <div class="candidate-language-section">
+                <div class="wizard-section-heading">
+                  <h3 class="wizard-section-title" id="wizardLanguageHeading">{% trans "Candidate language" %}</h3>
+                  <p class="wizard-section-description">
+                    {% trans "Choose the language used for the candidate invitation and tests." %}
+                  </p>
+                </div>
+                <div class="candidate-language-grid">
+                  <label class="candidate-language-card">
+                    <input type="radio" name="candidate_language" value="sv"
+                           {% if form.candidate_language.value == "sv" or not form.candidate_language.value %}checked{% endif %}>
+                    <div class="candidate-language-card-inner">
+                      <div class="candidate-language-code">SV</div>
+                      <div>
+                        <div class="candidate-language-title">{% trans "Swedish" %}</div>
+                        <div class="candidate-language-description">{% trans "Invitation and assessments in Swedish" %}</div>
+                      </div>
+                      <span class="candidate-language-check" aria-hidden="true"><i class="fa-solid fa-check"></i></span>
+                    </div>
+                  </label>
+                  <label class="candidate-language-card">
+                    <input type="radio" name="candidate_language" value="en"
+                           {% if form.candidate_language.value == "en" %}checked{% endif %}>
+                    <div class="candidate-language-card-inner">
+                      <div class="candidate-language-code">EN</div>
+                      <div>
+                        <div class="candidate-language-title">{% trans "English" %}</div>
+                        <div class="candidate-language-description">{% trans "Invitation and assessments in English" %}</div>
+                      </div>
+                      <span class="candidate-language-check" aria-hidden="true"><i class="fa-solid fa-check"></i></span>
+                    </div>
+                  </label>
+                </div>
+                {% if form.candidate_language.errors %}
+                  <div class="text-danger small mt-2">{{ form.candidate_language.errors }}</div>
+                {% endif %}
+              </div>
+            </section>
+
+              </div>
+              <aside class="wizard-details-aside">
+
+            <!-- One unified group for all project settings -->
+            <section class="wizard-details-section wizard-details-settings" aria-labelledby="wizardSettingsHeading">
+              <div class="wizard-section-heading">
+                <h3 class="wizard-section-title" id="wizardSettingsHeading">
+                  {% if wizard_language|slice:":2" == "sv" %}Projektinställningar{% else %}Project settings{% endif %}
+                </h3>
+                <p class="wizard-section-description">
+                  {% if wizard_language|slice:":2" == "sv" %}
+                    Anpassa vad som ska ske när kandidater läggs till och hur resultat visas.
+                  {% else %}
+                    Choose how invitations and results work in this project.
+                  {% endif %}
+                </p>
+              </div>
+
+              <div class="wizard-settings-list">
+                {# Populated by automatic-invitation-setting.js; preserves the existing POST contract. #}
+                <div class="wizard-automatic-invitation-slot" data-wizard-automatic-invitation
+                     data-initial-enabled="{% if request.method == 'POST' and request.POST.automatic_invitation_enabled %}true{% else %}false{% endif %}"></div>
+
+                <div class="candidate-results-setting wizard-setting-row">
+                  <div class="wizard-setting-copy">
+                    <label class="wizard-setting-label" for="{{ form.candidate_results_enabled.id_for_label }}">
+                      {{ form.candidate_results_enabled.label }}
+                    </label>
+                    <p class="wizard-setting-description">
+                      {% if wizard_language|slice:":2" == "sv" %}
+                        Kandidaten kan se ett förenklat resultat när alla tester är genomförda.
+                      {% else %}
+                        Candidates can view a simplified result after completing all tests.
+                      {% endif %}
+                    </p>
+                    {% if form.candidate_results_enabled.errors %}
+                      <div class="text-danger small mt-1">{{ form.candidate_results_enabled.errors|striptags }}</div>
+                    {% endif %}
+                  </div>
+                  <div class="form-check form-switch wizard-setting-switch">
+                    {{ form.candidate_results_enabled }}
+                  </div>
+                </div>
+
+                <fieldset class="wizard-setting-row wizard-ig-setting" aria-labelledby="wizardIgTitle">
+                  <div class="wizard-setting-copy">
+                    <div class="wizard-setting-label" id="wizardIgTitle">Integrity Guard</div>
+                    <p class="wizard-setting-description" id="wizardIgHelp">
+                      {% if wizard_language|slice:":2" == "sv" %}
+                        Välj om Integrity Guard ska visas i projektet.
+                      {% else %}
+                        Choose whether to show Integrity Guard in this project.
+                      {% endif %}
+                      <button type="button" class="wizard-ig-explain-link"
+                              data-bs-toggle="modal" data-bs-target="#wizardIgInfoModal"
+                              aria-haspopup="dialog">
+                        {% if wizard_language|slice:":2" == "sv" %}Vad är Integrity Guard?{% else %}What is Integrity Guard?{% endif %}
+                      </button>
+                    </p>
+                    {% if form.integrity_guard_visibility.errors %}
+                      <div class="text-danger small mt-1">{{ form.integrity_guard_visibility.errors }}</div>
+                    {% endif %}
+                  </div>
+                  <div class="wizard-ig-options" role="group" aria-describedby="wizardIgHelp">
+                    <label class="wizard-ig-option">
+                      <input type="radio" name="integrity_guard_visibility" value="default"
+                             {% if form.integrity_guard_visibility.value == "default" or not form.integrity_guard_visibility.value %}checked{% endif %}>
+                      <span class="wizard-ig-option-label">{% if wizard_language|slice:":2" == "sv" %}Företagets inställning{% else %}Company setting{% endif %}<i class="fa-solid fa-check wizard-ig-choice-check" aria-hidden="true"></i></span>
+                    </label>
+                    <label class="wizard-ig-option">
+                      <input type="radio" name="integrity_guard_visibility" value="on"
+                             {% if form.integrity_guard_visibility.value == "on" %}checked{% endif %}>
+                      <span class="wizard-ig-option-label">{% if wizard_language|slice:":2" == "sv" %}På{% else %}On{% endif %}<i class="fa-solid fa-check wizard-ig-choice-check" aria-hidden="true"></i></span>
+                    </label>
+                    <label class="wizard-ig-option">
+                      <input type="radio" name="integrity_guard_visibility" value="off"
+                             {% if form.integrity_guard_visibility.value == "off" %}checked{% endif %}>
+                      <span class="wizard-ig-option-label">{% if wizard_language|slice:":2" == "sv" %}Av{% else %}Off{% endif %}<i class="fa-solid fa-check wizard-ig-choice-check" aria-hidden="true"></i></span>
+                    </label>
+                  </div>
+                </fieldset>
+              </div>
+            </section>
+
+              </aside>
             </div>
 
-            <div class="wizard-actions mt-4">
-<button
-  type="button"
-  class="btn btn-outline-secondary"
-  data-prev-step
->
-  {% trans "Back" %}
-</button>
-
-<button
-  type="submit"
-  class="btn btn-primary"
->
-  {% trans "Create project" %}
-</button>
+            <div class="wizard-actions wizard-details-actions mt-4">
+              <button type="button" class="btn btn-outline-secondary" data-prev-step>
+                {% trans "Back" %}
+              </button>
+              <button type="submit" class="btn btn-primary">
+                {% trans "Create project" %}
+              </button>
             </div>
-
           </div>
         </div>
       </section>
@@ -536,12 +539,93 @@
 
 </div>
 
+{# Project-creation help only. This dialog does not submit or change any settings. #}
+<div class="modal fade wizard-ig-info-modal" id="wizardIgInfoModal" tabindex="-1"
+     aria-labelledby="wizardIgInfoTitle" aria-describedby="wizardIgInfoIntro">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+    <div class="modal-content">
+      <div class="modal-header wizard-ig-modal-header">
+        <div>
+          <div class="wizard-ig-modal-eyebrow">
+            {% if wizard_language|slice:":2" == "sv" %}Om testövervakning{% else %}About assessment monitoring{% endif %}
+          </div>
+          <h2 class="modal-title wizard-ig-modal-title" id="wizardIgInfoTitle">Integrity Guard</h2>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                aria-label="{% if wizard_language|slice:":2" == "sv" %}Stäng{% else %}Close{% endif %}"></button>
+      </div>
+      <div class="modal-body wizard-ig-modal-body">
+        {% if wizard_language|slice:":2" == "sv" %}
+          <p class="wizard-ig-modal-intro" id="wizardIgInfoIntro">
+            Integrity Guard visar tekniska signaler från tester som kan vara värda att följa upp.
+            Det kan till exempel handla om uppkoppling, enheter, byte av flik eller svarsmönster.
+          </p>
+          <div class="wizard-ig-modal-note">
+            <strong>En avvikelse är inte bevis på fusk.</strong>
+            Resultaten är ett stöd för uppföljning, inte ett facit. En flagga kan ha flera
+            naturliga förklaringar och behöver alltid bedömas i sitt sammanhang.
+          </div>
+          <h3 class="wizard-ig-modal-heading">Vad tittar Integrity Guard på?</h3>
+          <div class="wizard-ig-modal-checks">
+            <div><strong>IP-adresser</strong><p>Ovanliga IP-mönster. Byte mellan wifi och mobildata eller tester från olika platser kan vara naturliga förklaringar.</p></div>
+            <div><strong>Använda enheter</strong><p>Om flera enheter verkar ha använts. Exempelvis tekniska problem eller behov av ett annat hjälpmedel kan förklara detta.</p></div>
+            <div><strong>Flikar och webbläsare</strong><p>Upprepade eller längre byten. Det kan bero på avbrott eller tillåtna digitala hjälpmedel.</p></div>
+            <div><strong>Svarsmönster</strong><p>Ovanliga svarstider och mönster. Pauser, eftertanke och varierande svårighetsgrad kan påverka resultatet.</p></div>
+          </div>
+          <h3 class="wizard-ig-modal-heading">Så tolkar du resultatet</h3>
+          <p>
+            Integrity Guard utvecklas och valideras fortfarande. Granska endast de kontroller
+            som faktiskt rapporterats för respektive test. Personlighets- och motivationstester
+            kan innebära eftertanke och pauser. I numeriska tester kan tillåtna hjälpmedel som
+            miniräknare eller kladdpapper förklara flikbyten, och adaptiva färdighetstester kan
+            ge varierande svarstider.
+          </p>
+          <p class="mb-0">
+            Vid flera flaggor kan det vara motiverat att ställa följdfrågor. Diskutera
+            oklarheter sakligt och dra inga automatiska slutsatser om personen.
+          </p>
+        {% else %}
+          <p class="wizard-ig-modal-intro" id="wizardIgInfoIntro">
+            Integrity Guard highlights technical signals during assessments that may warrant
+            follow-up, such as connection patterns, devices, browser switching or response patterns.
+          </p>
+          <div class="wizard-ig-modal-note">
+            <strong>A flag is not proof of cheating.</strong>
+            These findings support follow-up, not a definitive judgment. A flag can have
+            several innocent explanations and should always be interpreted in context.
+          </div>
+          <h3 class="wizard-ig-modal-heading">What does Integrity Guard check?</h3>
+          <div class="wizard-ig-modal-checks">
+            <div><strong>IP addresses</strong><p>Unusual IP patterns, which may reflect changing networks or working from different locations.</p></div>
+            <div><strong>Devices</strong><p>Signs that multiple devices were used, potentially due to technical issues or assistive needs.</p></div>
+            <div><strong>Tabs and browsers</strong><p>Repeated or extended switching, which may have practical explanations, including permitted digital aids.</p></div>
+            <div><strong>Response patterns</strong><p>Unusual response timing or patterns, which can reflect pauses, reflection or differences in difficulty.</p></div>
+          </div>
+          <h3 class="wizard-ig-modal-heading">How to interpret the results</h3>
+          <p>
+            Integrity Guard is still being developed and validated. Review only the checks actually
+            reported for each assessment. Personality and motivation tests may involve pauses and
+            reflection. Permitted aids such as calculators or scrap paper can explain some
+            switching during numerical tests, while adaptive ability tests may produce variable
+            response times.
+          </p>
+          <p class="mb-0">When multiple flags appear, ask neutral follow-up questions and avoid drawing automatic conclusions about the person.</p>
+        {% endif %}
+      </div>
+      <div class="modal-footer wizard-ig-modal-footer">
+        <button type="button" class="btn btn-dark" data-bs-dismiss="modal">
+          {% if wizard_language|slice:":2" == "sv" %}Stäng{% else %}Close{% endif %}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 {{ purpose_recommended_tests|json_script:"purposeRecommendedTestsData" }}
 {{ process_purposes|json_script:"processPurposesData" }}
 {{ available_tests|json_script:"availableTestsData" }}
 
 <style>
-
 .wizard-progress {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1604,7 +1688,7 @@ showStep(currentStep);
 <script id="wizardInitialStep" type="application/json">
   {% if form.selected_tests.errors %}
     2
-  {% elif form.name.errors or form.labels_text.errors %}
+  {% elif form.name.errors or form.labels_text.errors or form.integrity_guard_visibility.errors %}
     3
   {% else %}
     1

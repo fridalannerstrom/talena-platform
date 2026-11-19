@@ -1372,7 +1372,7 @@ def admin_process_detail(request, pk):
     invitations = (
         TestInvitation.objects
         .filter(process=process, removed_from_process_at__isnull=True)
-        .select_related("candidate")
+        .select_related("candidate", "process__company")
         .prefetch_related("assessment_usages")
         .order_by("-created_at")
     )
@@ -1504,6 +1504,66 @@ def company_list(request):
         "sort": sort,
     })
 
+
+
+@login_required
+@admin_required
+@require_POST
+def company_integrity_guard_visibility(request, pk):
+    """Company-wide Talena-only visibility, writable by platform admins."""
+    # Staff permissions alone must not grant access to this setting.
+    if not (request.user.is_superuser or getattr(request.user, "role", "") == "admin"):
+        return HttpResponseForbidden("Not allowed")
+
+    company = get_object_or_404(Company, pk=pk)
+    value = request.POST.get("integrity_guard_visible")
+    if value not in ("0", "1"):
+        return HttpResponse("Invalid visibility value.", status=400)
+
+    visible = value == "1"
+    if company.integrity_guard_visible != visible:
+        company.integrity_guard_visible = visible
+        company.save(update_fields=["integrity_guard_visible"])
+
+    messages.success(
+        request,
+        "Integrity Guard is now shown in Talena for this company."
+        if visible else "Integrity Guard is now hidden in Talena for this company.",
+    )
+    return redirect("accounts:company_detail", pk=company.pk)
+
+
+@login_required
+@admin_required
+@require_POST
+def project_integrity_guard_visibility(request, pk):
+    """Change the Talena-only Integrity Guard visibility for one project."""
+    # Company customers and ordinary staff must never be able to write this.
+    if not (request.user.is_superuser or getattr(request.user, "role", "") == "admin"):
+        return HttpResponseForbidden("Not allowed")
+
+    process = get_object_or_404(
+        TestProcess.objects.select_related("company"),
+        pk=pk, company__isnull=False,
+    )
+    value = request.POST.get("integrity_guard_visible")
+    if value not in ("0", "1", "default"):
+        return HttpResponse("Invalid visibility value.", status=400)
+
+    override = None if value == "default" else value == "1"
+    if process.integrity_guard_visible_override != override:
+        process.integrity_guard_visible_override = override
+        process.save(update_fields=["integrity_guard_visible_override"])
+
+    if override is None:
+        messages.success(request, "Integrity Guard now follows the company setting.")
+    else:
+        messages.success(
+            request,
+            "Integrity Guard is now shown in Talena for this project."
+            if override else "Integrity Guard is now hidden in Talena for this project.",
+        )
+    return redirect("processes:process_detail", pk=process.pk)
 
 
 @login_required
@@ -2674,7 +2734,7 @@ def admin_process_invitation_statuses(request, pk):
     qs = (
         TestInvitation.objects
         .filter(process=process, removed_from_process_at__isnull=True)
-        .select_related("candidate")
+        .select_related("candidate", "process__company")
         .prefetch_related("assessment_usages")
         .order_by("created_at")
     )
@@ -2976,7 +3036,7 @@ def company_process_detail(request, company_pk, process_pk):
     invitations = (
         TestInvitation.objects
         .filter(process=process, removed_from_process_at__isnull=True)
-        .select_related("candidate")
+        .select_related("candidate", "process__company")
         .prefetch_related("assessment_usages")
         .order_by("-created_at")
     )

@@ -191,6 +191,13 @@
     {% include "customer/processes/_process_header.html" with process=process active=current_active %}
   {% endwith %}
 
+  {# The toggle belongs to the Talena admin workspace, never the customer UI. #}
+  {% if process_base_layout and process.company_id and not process.is_historical %}
+    {% if request.user.is_superuser or request.user.role == "admin" %}
+      {% include "admin/accounts/partials/_project_integrity_guard_setting.html" %}
+    {% endif %}
+  {% endif %}
+
   {% block process_content %}{% endblock %}
 
 </div>

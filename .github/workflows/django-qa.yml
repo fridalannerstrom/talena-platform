@@ -6,6 +6,32 @@ on:
       - main
 
 jobs:
+  integrity-guard-visibility:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Verify Integrity Guard visibility, customer wizard and Sova ingestion
+        env:
+          DJANGO_DEBUG: 'True'
+          DJANGO_SECRET_KEY: local-qa-only
+          USE_AZURE_STORAGE: '0'
+        run: python manage.py test apps.accounts.test_integrity_guard_visibility apps.processes.test_project_integrity_guard_wizard apps.core.test_sova_integrity_guard --noinput
+
+  customer-project-wizard-ui:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify project creation step and auto-invitation controls
+        run: |
+          node --check static/js/talena/automatic-invitation-setting.js
+          node scripts/test_customer_project_wizard_details_20261119.js
+
   report-package-checks:
     runs-on: ubuntu-latest
     steps:

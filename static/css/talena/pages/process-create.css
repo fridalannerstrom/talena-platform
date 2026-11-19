@@ -540,3 +540,593 @@ main .container-fluid:has(#processCreateWizardForm) > .d-flex:first-child > a {
     width: 100%;
   }
 }
+
+/* Split the final step: spacious project details and one compact settings card. */
+#processCreateWizardForm .wizard-details-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(330px, 0.95fr);
+  gap: clamp(1.3rem, 2.7vw, 2.25rem);
+  align-items: start;
+}
+
+#processCreateWizardForm .wizard-details-main,
+#processCreateWizardForm .wizard-details-aside {
+  min-width: 0;
+}
+
+#processCreateWizardForm .wizard-details-aside {
+  padding: 1.2rem 1.3rem 0.6rem;
+  border: 1px solid var(--talena-border);
+  border-radius: 16px;
+  background: #faf9f7;
+}
+
+#processCreateWizardForm .wizard-details-aside .wizard-details-settings {
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+
+#processCreateWizardForm .wizard-details-aside .wizard-section-title {
+  margin-bottom: 0.3rem;
+}
+
+#processCreateWizardForm .wizard-details-aside .wizard-section-heading {
+  margin-bottom: 0.6rem;
+}
+
+#processCreateWizardForm .wizard-details-aside .wizard-settings-list {
+  border-top: 0;
+}
+
+#processCreateWizardForm .wizard-details-aside .wizard-setting-row,
+#processCreateWizardForm .wizard-details-aside fieldset.wizard-setting-row {
+  gap: 0.8rem;
+  padding: 1.05rem 0;
+}
+
+#processCreateWizardForm .wizard-details-aside .wizard-setting-row:last-child,
+#processCreateWizardForm .wizard-details-aside fieldset.wizard-setting-row:last-child {
+  border-bottom: 0;
+}
+
+#processCreateWizardForm .wizard-details-aside .wizard-setting-copy {
+  flex: 1 1 auto;
+}
+
+#processCreateWizardForm .wizard-details-aside fieldset.wizard-ig-setting {
+  display: flex;
+  align-items: stretch;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+#processCreateWizardForm .wizard-details-aside .wizard-ig-options {
+  width: 100%;
+  justify-content: flex-start;
+  gap: 0.3rem;
+}
+
+#processCreateWizardForm .wizard-details-aside .wizard-ig-option span {
+  min-height: 32px;
+  padding: 0.35rem 0.65rem;
+  font-size: 0.7rem;
+}
+
+@media (max-width: 1099.98px) {
+  #processCreateWizardForm .wizard-details-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.5rem;
+  }
+
+  #processCreateWizardForm .wizard-details-aside {
+    padding: 1.1rem 1.2rem 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  #processCreateWizardForm .wizard-details-aside {
+    padding: 1rem 0.95rem 0.4rem;
+  }
+}
+
+/* Remove the native/bootstrap checkbox artwork and draw one stable switch.
+   Both the injected automatic-invitation control and Django results field
+   use this exact shared rule, including in their checked state. */
+#processCreateWizardForm .wizard-setting-switch input[type="checkbox"].form-check-input {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  position: relative;
+  display: block;
+  flex: 0 0 44px;
+  width: 44px !important;
+  height: 24px !important;
+  min-height: 24px;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 1px solid #c6c8ca !important;
+  border-radius: 999px !important;
+  background: #e2e3e5 !important;
+  background-image: none !important;
+  background-size: 0 !important;
+  background-position: initial !important;
+  box-shadow: none !important;
+  cursor: pointer;
+  vertical-align: middle;
+  transition: border-color .15s ease, background-color .15s ease;
+}
+
+#processCreateWizardForm .wizard-setting-switch input[type="checkbox"].form-check-input::before {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .15);
+  transform: translateX(0);
+  transition: transform .15s ease;
+  pointer-events: none;
+}
+
+#processCreateWizardForm .wizard-setting-switch input[type="checkbox"].form-check-input:checked {
+  border-color: #222 !important;
+  background: #222 !important;
+  background-image: none !important;
+}
+
+#processCreateWizardForm .wizard-setting-switch input[type="checkbox"].form-check-input:checked::before {
+  transform: translateX(20px);
+}
+
+#processCreateWizardForm .wizard-setting-switch input[type="checkbox"].form-check-input::after {
+  content: none !important;
+  display: none !important;
+}
+
+#processCreateWizardForm .wizard-setting-switch input[type="checkbox"].form-check-input:focus-visible {
+  outline: 3px solid rgba(255, 111, 97, .6);
+  outline-offset: 3px;
+}
+
+/* Unified final-step layout (2026-11-19)
+   One calm parent card, section dividers, and compact settings rows.
+   Intentionally scoped to the creation wizard, not the Settings edit page. */
+#processCreateWizardForm .wizard-details-intro {
+  margin-bottom: 1.65rem;
+}
+
+#processCreateWizardForm .wizard-details-section {
+  min-width: 0;
+}
+
+#processCreateWizardForm .wizard-details-section + .wizard-details-section {
+  border-top: 1px solid var(--talena-border);
+  margin-top: 1.55rem;
+  padding-top: 1.4rem;
+}
+
+#processCreateWizardForm .wizard-section-title {
+  margin: 0 0 0.9rem;
+  color: var(--talena-ink);
+  font-size: 0.98rem;
+  font-weight: 760;
+  letter-spacing: -0.015em;
+}
+
+#processCreateWizardForm .wizard-section-heading {
+  margin-bottom: 0.85rem;
+}
+
+#processCreateWizardForm .wizard-section-heading .wizard-section-title {
+  margin-bottom: 0.2rem;
+}
+
+#processCreateWizardForm .wizard-section-description {
+  margin: 0;
+  color: var(--talena-text-muted);
+  font-size: 0.76rem;
+  line-height: 1.55;
+}
+
+#processCreateWizardForm .wizard-account-field {
+  margin-bottom: 1.1rem;
+}
+
+#processCreateWizardForm .wizard-account-value {
+  padding: 0.7rem 0;
+  color: var(--talena-text);
+  font-size: 0.84rem;
+  font-weight: 650;
+}
+
+#processCreateWizardForm .wizard-details-basics .row.g-3 {
+  row-gap: 1rem;
+}
+
+#processCreateWizardForm .wizard-panel[data-step="3"] .candidate-language-section {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+#processCreateWizardForm .wizard-panel[data-step="3"] .candidate-language-grid {
+  max-width: 780px;
+}
+
+#processCreateWizardForm .wizard-panel[data-step="3"] .candidate-language-card-inner {
+  min-height: 64px;
+  padding: 0.65rem 0.8rem;
+}
+
+#processCreateWizardForm .candidate-language-card > input:focus-visible + .candidate-language-card-inner {
+  outline: 3px solid rgba(255, 111, 97, 0.65);
+  outline-offset: 3px;
+}
+
+#processCreateWizardForm .wizard-settings-list {
+  width: 100%;
+  border-top: 1px solid var(--talena-border);
+}
+
+#processCreateWizardForm .wizard-automatic-invitation-slot:empty {
+  display: none;
+}
+
+#processCreateWizardForm .wizard-setting-row,
+#processCreateWizardForm fieldset.wizard-setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem 1.6rem;
+  min-width: 0;
+  margin: 0;
+  padding: 1rem 0.15rem;
+  border: 0;
+  border-bottom: 1px solid var(--talena-border);
+  border-radius: 0;
+  background: transparent;
+}
+
+#processCreateWizardForm .wizard-setting-copy {
+  flex: 1 1 360px;
+  min-width: 0;
+}
+
+#processCreateWizardForm .wizard-setting-label {
+  display: block;
+  margin: 0;
+  color: var(--talena-ink);
+  font-size: 0.82rem;
+  line-height: 1.45;
+  font-weight: 740;
+  cursor: pointer;
+}
+
+#processCreateWizardForm .wizard-setting-description {
+  margin: 0.2rem 0 0;
+  color: var(--talena-text-muted);
+  font-size: 0.73rem;
+  line-height: 1.55;
+}
+
+#processCreateWizardForm .wizard-setting-switch {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  flex: 0 0 auto;
+  min-height: 28px;
+  margin: 0;
+  padding-left: 0;
+}
+
+#processCreateWizardForm .wizard-setting-switch .form-check-input {
+  width: 2.5rem;
+  height: 1.4rem;
+  margin: 0;
+  float: none;
+  cursor: pointer;
+  border: 1px solid #c4c7ca;
+  background-color: #e4e5e6;
+  box-shadow: none;
+}
+
+#processCreateWizardForm .wizard-setting-switch .form-check-input:checked {
+  border-color: var(--talena-ink);
+  background-color: var(--talena-ink);
+}
+
+#processCreateWizardForm .wizard-setting-switch .form-check-input:focus-visible {
+  outline: 3px solid rgba(255, 111, 97, .6);
+  outline-offset: 3px;
+}
+
+#processCreateWizardForm .wizard-ig-options {
+  display: inline-flex;
+  flex: 0 1 auto;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.25rem;
+}
+
+#processCreateWizardForm .wizard-ig-option {
+  position: relative;
+  display: inline-flex;
+  margin: 0;
+  cursor: pointer;
+}
+
+#processCreateWizardForm .wizard-ig-option input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+#processCreateWizardForm .wizard-ig-option span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 35px;
+  padding: 0.4rem 0.8rem;
+  border: 1px solid var(--talena-border);
+  border-radius: 9px;
+  background: var(--talena-surface);
+  color: var(--talena-text-muted);
+  font-size: 0.74rem;
+  font-weight: 680;
+  line-height: 1.3;
+  white-space: nowrap;
+  transition: background-color .15s ease, border-color .15s ease;
+}
+
+#processCreateWizardForm .wizard-ig-option:hover span {
+  border-color: var(--talena-border-strong);
+}
+
+#processCreateWizardForm .wizard-ig-option input:checked + span {
+  border-color: #b4b4b4;
+  background: #efefef;
+  color: var(--talena-ink);
+}
+
+#processCreateWizardForm .wizard-ig-option input:focus-visible + span {
+  outline: 3px solid rgba(255, 111, 97, .6);
+  outline-offset: 2px;
+}
+
+#processCreateWizardForm .wizard-details-actions {
+  margin-top: 1.5rem !important;
+  padding-top: 0.3rem;
+}
+
+@media (max-width: 700px) {
+  #processCreateWizardForm .wizard-setting-row,
+  #processCreateWizardForm fieldset.wizard-setting-row {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 0.7rem;
+  }
+
+  #processCreateWizardForm .wizard-setting-copy {
+    flex-basis: 100%;
+  }
+
+  #processCreateWizardForm .wizard-setting-switch {
+    margin-left: auto;
+  }
+
+  #processCreateWizardForm .wizard-ig-options {
+    justify-content: flex-start;
+    width: 100%;
+  }
+}
+
+
+/* Short help link inline with the Integrity Guard setting description. */
+#processCreateWizardForm .wizard-ig-explain-link {
+  display: inline;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--talena-coral-strong, #bc4b40);
+  font: inherit;
+  font-size: inherit;
+  font-weight: 700;
+  line-height: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+#processCreateWizardForm .wizard-ig-explain-link:hover {
+  color: var(--talena-ink, #171717);
+}
+
+#processCreateWizardForm .wizard-ig-explain-link:focus-visible {
+  outline: 2px solid var(--talena-coral-strong, #bc4b40);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* Contextual Integrity Guard explainer, outside the actual project form. */
+.wizard-ig-info-modal .modal-content {
+  border: 1px solid var(--talena-border, #e7e2de);
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 24px 75px rgba(25, 20, 18, .15);
+}
+
+.wizard-ig-info-modal .wizard-ig-modal-header {
+  padding: 1.35rem 1.6rem 1.05rem;
+  border-bottom: 1px solid var(--talena-border, #e7e2de);
+  align-items: flex-start;
+}
+
+.wizard-ig-info-modal .wizard-ig-modal-eyebrow {
+  margin-bottom: 0.25rem;
+  color: var(--talena-coral-strong, #bc4b40);
+  font-size: 0.67rem;
+  font-weight: 750;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+
+.wizard-ig-info-modal .wizard-ig-modal-title {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 780;
+  letter-spacing: -.025em;
+  color: var(--talena-ink, #171717);
+}
+
+.wizard-ig-info-modal .wizard-ig-modal-body {
+  padding: 1.3rem 1.6rem 1.45rem;
+  color: var(--talena-text, #302d2b);
+  font-size: 0.83rem;
+  line-height: 1.62;
+}
+
+.wizard-ig-info-modal .wizard-ig-modal-intro {
+  margin-bottom: 1rem;
+  color: var(--talena-text-muted, #615d59);
+  font-size: 0.87rem;
+}
+
+.wizard-ig-info-modal .wizard-ig-modal-note {
+  margin-bottom: 1.4rem;
+  padding: 0.9rem 1.05rem;
+  border: 1px solid #ebdfda;
+  border-radius: 12px;
+  background: #faf7f4;
+}
+
+.wizard-ig-info-modal .wizard-ig-modal-note strong {
+  display: block;
+  margin-bottom: .15rem;
+  font-weight: 750;
+  color: var(--talena-ink, #171717);
+}
+
+.wizard-ig-info-modal .wizard-ig-modal-heading {
+  margin: 1.25rem 0 0.7rem;
+  color: var(--talena-ink, #171717);
+  font-size: 0.95rem;
+  font-weight: 750;
+}
+
+.wizard-ig-info-modal .wizard-ig-modal-checks {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.7rem;
+  margin-bottom: 1.2rem;
+}
+
+.wizard-ig-info-modal .wizard-ig-modal-checks > div {
+  padding: 0.85rem 0.95rem;
+  border: 1px solid var(--talena-border, #e7e2de);
+  border-radius: 11px;
+  background: #fff;
+}
+
+.wizard-ig-info-modal .wizard-ig-modal-checks strong {
+  font-weight: 750;
+  color: var(--talena-ink, #171717);
+}
+
+.wizard-ig-info-modal .wizard-ig-modal-checks p {
+  margin: 0.2rem 0 0;
+  color: var(--talena-text-muted, #615d59);
+  font-size: 0.78rem;
+  line-height: 1.55;
+}
+
+.wizard-ig-info-modal .wizard-ig-modal-footer {
+  padding: 0.85rem 1.6rem;
+  border-top: 1px solid var(--talena-border, #e7e2de);
+}
+
+.wizard-ig-info-modal .wizard-ig-modal-footer .btn {
+  border-radius: 999px;
+  padding: 0.5rem 1.15rem;
+  font-size: 0.78rem;
+}
+
+@media (max-width: 600px) {
+  .wizard-ig-info-modal .wizard-ig-modal-header,
+  .wizard-ig-info-modal .wizard-ig-modal-body {
+    padding-inline: 1rem;
+  }
+  .wizard-ig-info-modal .wizard-ig-modal-checks {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* Final-step refinements: aligned form controls and clearly selectable IG pills. */
+#processCreateWizardForm .wizard-details-basics .wizard-account-field select.form-select,
+#processCreateWizardForm .wizard-details-basics #processNameInput.form-control,
+#processCreateWizardForm .wizard-details-basics #processLabelsInput.form-control {
+  box-sizing: border-box;
+  display: block;
+  width: 100%;
+  height: 48px !important;
+  min-height: 48px !important;
+  padding-top: 0.65rem;
+  padding-bottom: 0.65rem;
+  font-size: 0.86rem;
+  line-height: 1.3;
+}
+
+#processCreateWizardForm .wizard-details-basics .wizard-account-field select.form-select {
+  padding-right: 2.25rem;
+}
+
+#processCreateWizardForm .wizard-details-aside .wizard-ig-option > .wizard-ig-option-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 34px;
+  padding: 0.36rem 0.65rem;
+  border: 1px solid #d9d4d0;
+  border-radius: 9px;
+  background: #fff;
+  color: var(--talena-text, #383430);
+  font-weight: 650;
+  box-shadow: 0 1px 2px rgba(20, 17, 15, 0.04);
+  cursor: pointer;
+}
+
+#processCreateWizardForm .wizard-details-aside .wizard-ig-option:hover > .wizard-ig-option-label {
+  border-color: var(--talena-coral-strong, #bc4b40);
+  background: #fff9f7;
+}
+
+#processCreateWizardForm .wizard-details-aside .wizard-ig-option input:checked + .wizard-ig-option-label {
+  background: var(--talena-coral-soft, #fff0ed);
+  border-color: var(--talena-coral, #ff6f61);
+  color: var(--talena-ink, #171717);
+  box-shadow: inset 0 0 0 1px rgba(255, 111, 97, 0.14);
+}
+
+#processCreateWizardForm .wizard-details-aside .wizard-ig-option .wizard-ig-choice-check {
+  display: none;
+}
+
+#processCreateWizardForm .wizard-details-aside .wizard-ig-option input:checked + .wizard-ig-option-label .wizard-ig-choice-check {
+  display: inline-block;
+  color: var(--talena-coral-strong, #bc4b40);
+  font-size: 0.7rem;
+  flex: 0 0 auto;
+}
+
+#processCreateWizardForm .wizard-details-aside .wizard-ig-option input:focus-visible + .wizard-ig-option-label {
+  outline: 3px solid rgba(255, 111, 97, 0.6);
+  outline-offset: 3px;
+}
