@@ -1916,12 +1916,14 @@ def accept_invite_uuid(request, invite_id):
 def company_rename(request, company_pk):
     """Rename a company in Talena only; preserve IDs, organisation number and Sova links."""
     company = get_object_or_404(Company, pk=company_pk)
+    # ModelForm.is_valid() copies cleaned form values onto instance. Capture
+    # the previous name FIRST so the change check and audit log stay correct.
+    old_name = company.name
     form = CompanyNameForm(request.POST, instance=company)
     if not form.is_valid():
         messages.error(request, "Ange ett giltigt företagsnamn (max 255 tecken).")
         return redirect("accounts:company_detail", pk=company.pk)
 
-    old_name = company.name
     new_name = form.cleaned_data["name"]
     if old_name != new_name:
         company.name = new_name
@@ -1965,12 +1967,13 @@ def _orgunit_delete_blocker(unit):
 def orgunit_rename(request, company_pk, unit_pk):
     company = get_object_or_404(Company, pk=company_pk)
     unit = get_object_or_404(OrgUnit, company=company, pk=unit_pk)
+    # Preserve the old name before the ModelForm populates instance.
+    old_name = unit.name
     form = OrgUnitNameForm(request.POST, instance=unit)
     if not form.is_valid():
         messages.error(request, "Ange ett giltigt kontonamn (max 200 tecken).")
         return redirect("accounts:company_account_structure", pk=company.pk)
 
-    old_name = unit.name
     new_name = form.cleaned_data["name"]
     if new_name != old_name:
         unit.name = new_name
