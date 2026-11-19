@@ -22,13 +22,30 @@ assert.ok(packageAllowlist, "The #483 report package allowlist must exist");
 const allowedIds = [...packageAllowlist[1].matchAll(/"([^"]+)"/g)].map(match=>match[1]);
 assert.deepEqual(allowedIds, [
   "overview",
-  "personality-results", "personality-candidate-reflection",
+  "personality-detailed-results", "personality-quick-results",
+  "personality-summary-results", "personality-candidate-reflection",
   "motivation-results", "motivation-candidate-reflection",
   "cognitive-results", "cognitive-candidate-reflection",
   "team-report", "leadership-report", "derailment-report",
   "personality-response-styles", "combined-interview-questions"
 ], "Keep one combined question report, results, Svarsstilar and static reports without AI interpretations");
 assert.ok(!allowedIds.some(id=>/(interpretation|after-|manager-report)/.test(id)));
+assert.ok(!allowedIds.includes("personality-results"),
+  "A single personality result choice must not silently omit inactive tabs");
+const personalityIds = [
+  "personality-detailed-results", "personality-quick-results", "personality-summary-results"
+];
+assert.ok(personalityIds.every(id=>allowedIds.includes(id)));
+for (const [id, view] of [
+  ["personality-detailed-results", "personality-detailed-view"],
+  ["personality-quick-results", "personality-quick-view"],
+  ["personality-summary-results", "personality-descriptions-view"]
+]) {
+  assert.ok(registry.includes('id: "'+id+'", packageOnly: true') &&
+    registry.includes('selector: "#'+view+'"'),
+    "Every personality report must clone its own view independently of the active tab");
+}
+
 assert.ok(["personality-questions", "motivation-questions", "cognitive-questions"]
   .every(id => !allowedIds.includes(id)),
   "Per-assessment interview questions must be excluded from the package picker");
