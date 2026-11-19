@@ -1734,9 +1734,12 @@ def company_detail(request, pk):
 @require_POST
 def company_member_remove(request, company_pk, user_pk):
     """Remove one company membership, never the global user or their history."""
-    company = get_object_or_404(Company, pk=company_pk)
-
     with transaction.atomic():
+        # Serialize removals in the same company so concurrent requests
+        # cannot remove two administrators while each sees the other.
+        company = get_object_or_404(
+            Company.objects.select_for_update(), pk=company_pk,
+        )
         membership = get_object_or_404(
             CompanyMember.objects.select_for_update().select_related("user"),
             company=company,
