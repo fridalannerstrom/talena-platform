@@ -332,6 +332,49 @@
               </div>
             </div>
 
+            {# Talena-only display setting. Projects may follow the company, or override it. #}
+            <fieldset class="process-ig-setting mt-4" aria-labelledby="processIgSettingTitle">
+              <div class="process-ig-setting-copy">
+                <div class="process-ig-setting-title" id="processIgSettingTitle">Integrity Guard</div>
+                <p class="process-ig-setting-description" id="processIgSettingHelp">
+                  {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+                    Välj om Integrity Guard ska visas i projektet.
+                  {% else %}
+                    Choose whether to show Integrity Guard in this project.
+                  {% endif %}
+                </p>
+              </div>
+              <div class="process-ig-options" role="group" aria-describedby="processIgSettingHelp">
+                <label class="process-ig-option">
+                  <input type="radio" name="integrity_guard_visibility" value="default"
+                    {% if form.integrity_guard_visibility.value == "default" or not form.integrity_guard_visibility.value %}checked{% endif %}>
+                  <span class="process-ig-option-pill">
+                    {% if LANGUAGE_CODE|slice:":2" == "sv" %}Företagets inställning{% else %}Company setting{% endif %}
+                    <i class="fa-solid fa-check" aria-hidden="true"></i>
+                  </span>
+                </label>
+                <label class="process-ig-option">
+                  <input type="radio" name="integrity_guard_visibility" value="on"
+                    {% if form.integrity_guard_visibility.value == "on" %}checked{% endif %}>
+                  <span class="process-ig-option-pill">
+                    {% if LANGUAGE_CODE|slice:":2" == "sv" %}På{% else %}On{% endif %}
+                    <i class="fa-solid fa-check" aria-hidden="true"></i>
+                  </span>
+                </label>
+                <label class="process-ig-option">
+                  <input type="radio" name="integrity_guard_visibility" value="off"
+                    {% if form.integrity_guard_visibility.value == "off" %}checked{% endif %}>
+                  <span class="process-ig-option-pill">
+                    {% if LANGUAGE_CODE|slice:":2" == "sv" %}Av{% else %}Off{% endif %}
+                    <i class="fa-solid fa-check" aria-hidden="true"></i>
+                  </span>
+                </label>
+              </div>
+              {% if form.integrity_guard_visibility.errors %}
+                <div class="text-danger small mt-2">{{ form.integrity_guard_visibility.errors|striptags }}</div>
+              {% endif %}
+            </fieldset>
+
             <div class="d-flex align-items-center gap-2 mt-4">
               <button class="btn btn-primary" type="submit">
                 {% trans "Save changes" %}
