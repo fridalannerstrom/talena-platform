@@ -188,60 +188,128 @@ def get_process_test_keys(process, project_meta_by_key):
     return test_keys
 
 
+def _empty_test_overview():
+    """Start each project membership from a clean, independent test state."""
+    return {
+        definition["key"]: {
+            **definition,
+            "status": "not_sent",
+            "completed_count": 0,
+            "pending_count": 0,
+        }
+        for definition in TEST_DEFINITIONS
+    }
+
+
+def _live_membership_test_overview(invitation, project_meta_by_key):
+    """Show results for THIS invitation, never those from another project.
+
+    Individual Sova activity statuses take precedence over an invitation's
+    overall status. In particular, a pending activity must not be painted as
+    completed just because the invitation has an overall completed flag.
+    """
+    statuses = _empty_test_overview()
+    included_keys = get_process_test_keys(
+        invitation.process, project_meta_by_key,
+    )
+    raw_status = str(invitation.status or "").strip().lower()
+    if raw_status == "completed":
+        base_status = "completed"
+    elif raw_status in {"sent", "started", "expired"}:
+        base_status = "pending"
+    else:
+        base_status = "not_sent"
+
+    activity_status_by_key = {}
+    for activity in invitation.sova_activities or []:
+        if not isinstance(activity, dict):
+            continue
+        key = normalize_test_key(
+            activity.get("activity") or activity.get("name"),
+        )
+        if not key:
+            continue
+        status = normalize_activity_status(activity.get("status"))
+        existing = activity_status_by_key.get(key)
+        if existing is None or TEST_STATUS_RANK[status] > TEST_STATUS_RANK[existing]:
+            activity_status_by_key[key] = status
+
+    for key in included_keys | activity_status_by_key.keys():
+        if key not in statuses:
+            continue
+        status = activity_status_by_key.get(
+            key, base_status if key in included_keys else "not_sent",
+        )
+        update_test_status(statuses, key, status)
+        if status == "completed":
+            statuses[key]["completed_count"] = 1
+        elif status == "pending":
+            statuses[key]["pending_count"] = 1
+
+    return [statuses[definition["key"]] for definition in TEST_DEFINITIONS]
+
+
+def _historical_membership_test_overview(membership):
+    """Only the assessment results attached to this historical project count."""
+    statuses = _empty_test_overview()
+    completed_keys = set()
+    for result in membership.assessment_results.all():
+        key = normalize_test_key(result.assessment_type)
+        if key:
+            completed_keys.add(key)
+
+    for key in completed_keys:
+        update_test_status(statuses, key, "completed")
+        statuses[key]["completed_count"] = 1
+
+    return [statuses[definition["key"]] for definition in TEST_DEFINITIONS]
+
+
 @login_required
 def candidate_list(request):
     accessible_processes, company = get_accessible_processes_for_user(
         request.user,
         include_archived=True,
     )
-
     accessible_process_ids = list(
         accessible_processes.values_list("id", flat=True)
     )
 
-    # ---------------------------------------------------------
-    # Candidate memberships in live processes
-    # ---------------------------------------------------------
+    # Keep permission scopes at the project membership level. A Candidate is
+    # global (unique by email), but each TestInvitation / historical membership
+    # is a distinct assessment record and must have its own row and link.
     live_memberships = list(
         TestInvitation.objects
-        .filter(process_id__in=accessible_process_ids, removed_from_process_at__isnull=True)
-        .select_related("process")
+        .filter(
+            process_id__in=accessible_process_ids,
+            process__is_historical=False,
+            removed_from_process_at__isnull=True,
+        )
+        .select_related("process", "candidate")
     )
-
-    # ---------------------------------------------------------
-    # Candidate memberships in historical processes
-    # ---------------------------------------------------------
     historical_memberships = list(
         HistoricalProcessCandidate.objects
-        .filter(process_id__in=accessible_process_ids)
+        .filter(
+            process_id__in=accessible_process_ids,
+            process__is_historical=True,
+        )
         .select_related("process", "candidate")
-        .prefetch_related("assessment_results__scores")
+        .prefetch_related("assessment_results")
     )
 
-    live_candidate_ids = {
-        invitation.candidate_id
-        for invitation in live_memberships
-    }
-
-    historical_candidate_ids = {
+    candidate_ids = {
         membership.candidate_id
-        for membership in historical_memberships
+        for membership in live_memberships + historical_memberships
     }
 
-    candidate_ids = live_candidate_ids | historical_candidate_ids
-
-    # Team names/memberships must follow the same access scope as the Team
-    # section. This prevents own-only users from seeing colleagues' team names
-    # through candidate filters or badges.
+    # Team filtering and badges must stay constrained to visible teams, not
+    # all teams ever associated with a globally shared candidate.
     visible_teams = (
         _team_visibility_queryset(request.user, company)
         .filter(is_archived=False)
         .order_by("name")
     )
-    visible_team_ids = list(
-        visible_teams.values_list("id", flat=True)
-    )
-
+    visible_team_ids = list(visible_teams.values_list("id", flat=True))
     candidates = (
         Candidate.objects
         .filter(id__in=candidate_ids)
@@ -258,240 +326,13 @@ def candidate_list(request):
         .order_by("last_name", "first_name", "email")
     )
 
-    # ---------------------------------------------------------
-    # Count processes per candidate
-    # ---------------------------------------------------------
-    live_process_counts = {
-        row["candidate_id"]: row["process_count"]
-        for row in (
-            TestInvitation.objects
-            .filter(
-                process_id__in=accessible_process_ids,
-                candidate_id__in=candidate_ids,
-                removed_from_process_at__isnull=True,
-            )
-            .values("candidate_id")
-            .annotate(
-                process_count=Count(
-                    "process_id",
-                    distinct=True,
-                )
-            )
-        )
-    }
-
-    historical_process_counts = {
-        row["candidate_id"]: row["process_count"]
-        for row in (
-            HistoricalProcessCandidate.objects
-            .filter(
-                process_id__in=accessible_process_ids,
-                candidate_id__in=candidate_ids,
-            )
-            .values("candidate_id")
-            .annotate(
-                process_count=Count(
-                    "process_id",
-                    distinct=True,
-                )
-            )
-        )
-    }
-
-    # ---------------------------------------------------------
-    # Load ProjectMeta for the accessible live processes
-    # ---------------------------------------------------------
-    process_meta_keys = {
-        (
-            invitation.process.account_code,
-            invitation.process.project_code,
-        )
-        for invitation in live_memberships
-        if (
-            invitation.process.account_code
-            and invitation.process.project_code
-        )
-    }
-
-    project_meta_by_key = {}
-
-    if process_meta_keys:
-        meta_query = Q()
-
-        for account_code, project_code in process_meta_keys:
-            meta_query |= Q(
-                account_code=account_code,
-                project_code=project_code,
-            )
-
-        project_meta_by_key = {
-            (meta.account_code, meta.project_code): meta
-            for meta in ProjectMeta.objects.filter(meta_query)
-        }
-
-    # ---------------------------------------------------------
-    # Create empty test overview for every candidate
-    # ---------------------------------------------------------
-    test_statuses_by_candidate = {
-        candidate_id: {
-            definition["key"]: {
-                **definition,
-                "status": "not_sent",
-                "completed_count": 0,
-                "pending_count": 0,
-            }
-            for definition in TEST_DEFINITIONS
-        }
-        for candidate_id in candidate_ids
-    }
-
-    # ---------------------------------------------------------
-    # Build test overview from live processes
-    # ---------------------------------------------------------
-    for invitation in live_memberships:
-        candidate_statuses = test_statuses_by_candidate.get(
-            invitation.candidate_id
-        )
-
-        if not candidate_statuses:
-            continue
-
-        process_test_keys = get_process_test_keys(
-            invitation.process,
-            project_meta_by_key,
-        )
-
-        invitation_status = str(
-            invitation.status or ""
-        ).strip().lower()
-
-        if invitation_status == "completed":
-            process_base_status = "completed"
-
-        elif invitation_status in {
-            "sent",
-            "started",
-            "expired",
-        }:
-            process_base_status = "pending"
-
-        else:
-            process_base_status = "not_sent"
-
-        # Use the general invitation status for tests included in the process.
-        for test_key in process_test_keys:
-            update_test_status(
-                candidate_statuses,
-                test_key,
-                process_base_status,
-            )
-
-            if process_base_status == "completed":
-                candidate_statuses[test_key]["completed_count"] += 1
-
-            elif process_base_status == "pending":
-                candidate_statuses[test_key]["pending_count"] += 1
-
-        # Sova activity data is more precise than the invitation status.
-        for activity in invitation.sova_activities or []:
-            test_key = normalize_test_key(
-                activity.get("activity")
-            )
-
-            if not test_key:
-                continue
-
-            activity_status = normalize_activity_status(
-                activity.get("status")
-            )
-
-            update_test_status(
-                candidate_statuses,
-                test_key,
-                activity_status,
-            )
-
-            if activity_status == "completed":
-                candidate_statuses[test_key]["completed_count"] += 1
-
-            elif activity_status == "pending":
-                candidate_statuses[test_key]["pending_count"] += 1
-
-    # ---------------------------------------------------------
-    # Build test overview from historical assessment results
-    # ---------------------------------------------------------
-    for membership in historical_memberships:
-        candidate_statuses = test_statuses_by_candidate.get(
-            membership.candidate_id
-        )
-
-        if not candidate_statuses:
-            continue
-
-        completed_test_keys = set()
-
-        for assessment_result in membership.assessment_results.all():
-            test_key = normalize_test_key(
-                assessment_result.assessment_type
-            )
-
-            if test_key:
-                completed_test_keys.add(test_key)
-
-        for test_key in completed_test_keys:
-            update_test_status(
-                candidate_statuses,
-                test_key,
-                "completed",
-            )
-
-            candidate_statuses[test_key]["completed_count"] += 1
-
-    # ---------------------------------------------------------
-    # Find each candidate's most recent process membership
-    # ---------------------------------------------------------
-    latest_membership_by_candidate = {}
-
-    for invitation in live_memberships:
-        current_latest = latest_membership_by_candidate.get(
-            invitation.candidate_id
-        )
-
-        if (
-            current_latest is None
-            or invitation.created_at > current_latest["created_at"]
-        ):
-            latest_membership_by_candidate[invitation.candidate_id] = {
-                "process_id": invitation.process_id,
-                "created_at": invitation.created_at,
-            }
-
-    for membership in historical_memberships:
-        current_latest = latest_membership_by_candidate.get(
-            membership.candidate_id
-        )
-
-        if (
-            current_latest is None
-            or membership.created_at > current_latest["created_at"]
-        ):
-            latest_membership_by_candidate[membership.candidate_id] = {
-                "process_id": membership.process_id,
-                "created_at": membership.created_at,
-            }
-
-    # ---------------------------------------------------------
-    # Team filtering
-    # ---------------------------------------------------------
     teams = visible_teams
-
     selected_team_id = request.GET.get("team")
 
     if selected_team_id == "none":
         candidates = candidates.exclude(
             team_memberships__team_id__in=visible_team_ids
         )
-
     elif selected_team_id:
         try:
             selected_team_id_int = int(selected_team_id)
@@ -505,52 +346,73 @@ def candidate_list(request):
         else:
             candidates = candidates.none()
 
-    candidates = candidates.distinct()
+    candidate_by_id = {
+        candidate.id: candidate
+        for candidate in candidates.distinct()
+    }
 
-    # ---------------------------------------------------------
-    # Attach display/navigation values to candidates
-    # ---------------------------------------------------------
-    for candidate in candidates:
-        candidate.live_process_count = (
-            live_process_counts.get(candidate.id, 0)
-        )
+    process_meta_keys = {
+        (invitation.process.account_code, invitation.process.project_code)
+        for invitation in live_memberships
+        if invitation.process.account_code and invitation.process.project_code
+    }
+    project_meta_by_key = {}
+    if process_meta_keys:
+        meta_query = Q()
+        for account_code, project_code in process_meta_keys:
+            meta_query |= Q(
+                account_code=account_code,
+                project_code=project_code,
+            )
+        project_meta_by_key = {
+            (meta.account_code, meta.project_code): meta
+            for meta in ProjectMeta.objects.filter(meta_query)
+        }
 
-        candidate.historical_process_count = (
-            historical_process_counts.get(candidate.id, 0)
-        )
+    from types import SimpleNamespace
 
-        candidate.total_process_count = (
-            candidate.live_process_count
-            + candidate.historical_process_count
-        )
+    # One display row per accessible project membership, even when multiple
+    # projects share the same global Candidate ID/email.
+    candidate_entries = []
+    for invitation in live_memberships:
+        candidate = candidate_by_id.get(invitation.candidate_id)
+        if candidate is None:
+            continue
+        candidate_entries.append(SimpleNamespace(
+            candidate=candidate,
+            project=invitation.process,
+            test_overview=_live_membership_test_overview(
+                invitation, project_meta_by_key,
+            ),
+            latest_activity=invitation.created_at,
+        ))
 
-        latest_membership = latest_membership_by_candidate.get(
-            candidate.id
-        )
+    for membership in historical_memberships:
+        candidate = candidate_by_id.get(membership.candidate_id)
+        if candidate is None:
+            continue
+        candidate_entries.append(SimpleNamespace(
+            candidate=candidate,
+            project=membership.process,
+            test_overview=_historical_membership_test_overview(membership),
+            latest_activity=membership.created_at,
+        ))
 
-        candidate.latest_process_id = (
-            latest_membership["process_id"]
-            if latest_membership
-            else None
-        )
-
-        candidate.latest_activity = (
-            latest_membership["created_at"]
-            if latest_membership
-            else None
-        )
-
-        candidate.test_overview = [
-            test_statuses_by_candidate[candidate.id][definition["key"]]
-            for definition in TEST_DEFINITIONS
-        ]
+    candidate_entries.sort(key=lambda entry: (
+        (entry.candidate.last_name or "").casefold(),
+        (entry.candidate.first_name or "").casefold(),
+        (entry.candidate.email or "").casefold(),
+        -entry.latest_activity.timestamp(),
+        entry.project.pk,
+    ))
 
     return render(
         request,
         "customer/candidates/candidate_list.html",
         {
             "company": company,
-            "candidates": candidates,
+            "candidates": candidate_entries,
+            "unique_candidate_count": len(candidate_by_id),
             "teams": teams,
             "selected_team_id": selected_team_id,
         },
