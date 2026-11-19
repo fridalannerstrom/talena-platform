@@ -1,5 +1,5 @@
 "use strict";
-// Synthetic browser regression: preserve questions and response styles but
+// Synthetic browser regression: preserve questions and Personality response styles but
 // exclude interpretation/manager/post-interview AI reports in both formats.
 // Report failures must be attributed to the correct PDF, not the assembler.
 const assert=require("node:assert/strict");
@@ -83,7 +83,7 @@ async function run(format,failIndex,assembleFails=false){
     "motivation-interpretation",
     "cognitive-results", "cognitive-questions", "cognitive-candidate-reflection",
     "cognitive-interpretation", "team-report", "leadership-report", "derailment-report",
-    "prepare-interview", "manager-report", "after-overview", "after-interview"
+    "personality-response-styles", "prepare-interview", "manager-report", "after-overview", "after-interview"
   ];
   const reports=reportIds.map(id=>({
     id,title:id==="motivation-results"?"Motivation · Resultat":id,
@@ -171,7 +171,7 @@ async function run(format,failIndex,assembleFails=false){
       "motivation-results", "motivation-questions", "motivation-candidate-reflection",
       "cognitive-results", "cognitive-questions", "cognitive-candidate-reflection",
       "team-report", "leadership-report", "derailment-report",
-      "prepare-interview"
+      "personality-response-styles"
     ],"Keep all approved reports and questions; never include AI interpretations, manager or post-interview syntheses");
     assert.equal(success.assembled,1);
     assert.equal(success.downloaded,1);
