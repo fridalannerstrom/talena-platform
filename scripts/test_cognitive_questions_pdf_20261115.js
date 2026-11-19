@@ -189,7 +189,8 @@ vm.runInNewContext(code,{document,window,Blob,
     "PDF scripts and styles need fresh cache versions");
   assert.ok(core.includes("getMotivationQuestionsPageGuides"),
     "PDF pagination must protect complete question cards");
-  assert.ok(core.includes('(motivationQuestionsPdf || cognitiveQuestionsPdf || personalityQuestionsPdf)'),
+  assert.ok(core.includes('motivationQuestionsPdf || cognitiveQuestionsPdf || personalityQuestionsPdf ||') &&
+    core.includes('combinedInterviewQuestionsPdf'),
     "Färdighet and Motivation must share exactly the same protected page-break rules");
   // The full PDF-only design block is a direct copy of the approved Motivation
   // guide. Guard against visual drift between these two report types.
