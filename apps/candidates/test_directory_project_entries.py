@@ -211,6 +211,33 @@ class CandidateDirectoryProjectMembershipTests(TestCase):
         response = self.client.get(self.url + "?team=none")
         self.assertEqual(len(response.context["candidates"]), 0)
 
+    def test_archived_project_result_still_appears(self):
+        self.old_project.is_archived = True
+        self.old_project.save(update_fields=["is_archived"])
+        response = self.client.get(self.url)
+        rows = self.entries(response)
+        self.assertEqual(len(rows), 2)
+        self.assertEqual(
+            self.statuses(rows[self.old_project.pk])["personality"],
+            "completed",
+        )
+        self.assertContains(response, "Archived")
+
+    def test_second_project_with_no_assessments_does_not_inherit_old_results(self):
+        self.new_invitation.status = "created"
+        self.new_invitation.sova_activities = []
+        self.new_invitation.save(update_fields=["status", "sova_activities"])
+        response = self.client.get(self.url)
+        rows = self.entries(response)
+        self.assertTrue(all(
+            status == "not_sent"
+            for status in self.statuses(rows[self.new_project.pk]).values()
+        ))
+        self.assertTrue(all(
+            status == "completed"
+            for status in self.statuses(rows[self.old_project.pk]).values()
+        ))
+
     def test_multiple_projects_do_not_change_database_results(self):
         self.client.get(self.url)
         self.assertTrue(TestInvitation.objects.filter(pk=self.old_invitation.pk).exists())
