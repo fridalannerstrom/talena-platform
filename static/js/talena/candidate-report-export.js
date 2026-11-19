@@ -200,6 +200,22 @@
     clone.classList.remove("d-none");
     clone.style.display = "block";
 
+    if (reportId === "personality-response-styles") {
+      // #483: Svarsstilar must use the Personality > Results subtab.
+      // Append ONLY the already-rendered combined interview-question content
+      // from this same authorised candidate workspace, after Svarsstilar.
+      // Do not clone Before interview itself: it repeats response-style content
+      // under the different "Communication strategy" heading.
+      const questionSource = workspace?.querySelector(
+        "#candidate-insights-panel-prepare-interview [data-combined-questions-root]"
+      );
+      if (questionSource?.querySelector(".combined-question-sections")) {
+        const questions = questionSource.cloneNode(true);
+        questions.classList.add("talena-response-styles-interview-questions");
+        clone.append(questions);
+      }
+    }
+
     if (reportId === "personality-results") {
       // The web quick-profile colours its middle-to-score path with CSS
       // :has([data-score]). The PDF clone later strips data-* attributes,
@@ -224,7 +240,8 @@
       });
     }
 
-    if (["motivation-questions", "cognitive-questions", "personality-questions"].includes(reportId)) {
+    if (["motivation-questions", "cognitive-questions", "personality-questions",
+      "personality-response-styles"].includes(reportId)) {
       // Both question guides share the same print-only layout. The interview
       // note editor is interactive UI, not part of a printable
       // interview guide. Do not export its hints, privacy-field warnings or
