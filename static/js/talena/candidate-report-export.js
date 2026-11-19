@@ -30,6 +30,7 @@
     "candidate-reflection": "Kandidatens reflektioner",
     "team-report": "Individuell teamprofil",
     "leadership-report": "Ledarskapsrapport", "derailment-report": "Urspårningsrapport",
+    "personality-response-styles": "Svarsstilar",
     "prepare-interview": "Inför intervju", "after-overview": "Helhetsbild",
     "after-interview": "Intervjusammanfattning",
     "manager-report": "Chefsrapport"
@@ -40,6 +41,7 @@
     "candidate-reflection": "Candidate reflections",
     "team-report": "Individual team profile",
     "leadership-report": "Leadership report", "derailment-report": "Derailment report",
+    "personality-response-styles": "Response styles",
     "prepare-interview": "Prepare for interview", "after-overview": "Overall picture",
     "after-interview": "Interview summary",
     "manager-report": "Manager report"
@@ -67,6 +69,14 @@
       ready: element => !!element.querySelector(".leadership-report__score-overview") },
     { id: "derailment-report", selector: "#reports-subpanel-derailment-report",
       ready: element => !!element.querySelector(".derailment-report__overview") },
+    // #483: Export from Personality > Results > Response styles, NEVER from
+    // the separately rendered "Communication strategy" in Before interview.
+    // This preserves the page's "Response styles" heading, supporting guidance
+    // and "Possible nuances to explore" under the correct personality tab.
+    { id: "personality-response-styles",
+      selector: "#personality-response-styles-view",
+      ready: element => !!element.querySelector(".response-styles-header") &&
+        !element.querySelector("[data-response-styles-unavailable]") },
     { id: "prepare-interview",
       selector: "#candidate-insights-panel-prepare-interview [data-pre-interview-response-styles]",
       ready: element => !!element.querySelector(
