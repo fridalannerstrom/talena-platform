@@ -6,7 +6,7 @@ const fs=require("node:fs");
 const vm=require("node:vm");
 const code=fs.readFileSync("static/js/talena/pdf-export-core.js","utf8");
 const layout=fs.readFileSync("templates/customer/core/layouts/customer_base.html","utf8");
-assert.ok(layout.includes("20261115-personality-questions-parity-1"));
+assert.match(layout,/candidate-report-export\.css' %}\?v=[a-zA-Z0-9_-]+/, "PDF stylesheet must use a versioned asset URL");
 assert.ok(code.includes("getPersonalityDescriptionPageGuides"));
 assert.ok(code.includes(".personality-description-quick-row,"),
   "Rows also need their own natural breakpoints");
