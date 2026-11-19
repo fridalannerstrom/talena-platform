@@ -7,6 +7,7 @@ from apps.accounts.models import (
     Company, CompanyMember, OrgUnit, UserInvite, UserOrgUnitAccess,
 )
 from apps.activity.models import ActivityEvent
+from apps.processes.models import TestProcess
 
 
 User = get_user_model()
@@ -82,6 +83,29 @@ class CompanyMemberRemovalTests(TestCase):
         self.assertEqual(event.actor, self.admin)
         self.assertEqual(event.meta["user_id"], self.member.pk)
         self.assertEqual(event.meta["user_email"], self.member.email)
+
+    def test_projects_and_original_creator_are_preserved(self):
+        project = TestProcess.objects.create(
+            name="Existing recruitment",
+            company=self.company,
+            org_unit=self.unit,
+            account_code="A",
+            project_code="existing-1",
+            created_by=self.member,
+        )
+        self.client.post(self.url)
+        project.refresh_from_db()
+        self.assertEqual(project.company, self.company)
+        self.assertEqual(project.created_by, self.member)
+        self.assertEqual(project.org_unit, self.unit)
+
+    def test_company_user_detail_shows_remove_control(self):
+        response = self.client.get(reverse(
+            "accounts:company_user_detail",
+            args=[self.company.pk, self.member.pk],
+        ))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'data-member-removal-url=')
 
     def test_get_cannot_remove_a_member(self):
         self.assertEqual(self.client.get(self.url).status_code, 405)
