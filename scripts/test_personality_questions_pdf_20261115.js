@@ -201,7 +201,8 @@ vm.runInNewContext(code,{document,window,Blob,
     "PDF scripts and styles need fresh cache versions");
   assert.ok(core.includes("getMotivationQuestionsPageGuides"),
     "PDF pagination must protect complete question cards");
-  assert.ok(core.includes('(motivationQuestionsPdf || cognitiveQuestionsPdf || personalityQuestionsPdf)'),
+  assert.ok(core.includes('motivationQuestionsPdf || cognitiveQuestionsPdf || personalityQuestionsPdf ||') &&
+    core.includes('combinedInterviewQuestionsPdf'),
     "All three question PDFs share the same protected page-break rules");
   // Compare the entire approved Motivation stylesheet, not just the
   // headline font. Personality must not drift from the other question PDFs.
