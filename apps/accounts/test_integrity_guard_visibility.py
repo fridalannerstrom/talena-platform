@@ -166,6 +166,7 @@ class IntegrityGuardVisibilityTests(TestCase):
         # Once inherited again, later changes at company level apply.
         self.company.integrity_guard_visible = True
         self.company.save(update_fields=["integrity_guard_visible"])
+        self.invitation.refresh_from_db()
         self.assertTrue(self.invitation.integrity_guard_display["visible"])
 
     def test_project_override_is_isolated_to_its_own_project(self):
