@@ -6335,6 +6335,13 @@ def process_update(request, pk):
             obj.project_completion_notifications_enabled = bool(
                 form.cleaned_data.get("project_completion_notifications_enabled")
             )
+            # Mirror the project creation choice. Omitted values from older
+            # forms must not silently reset an existing project override.
+            if "integrity_guard_visibility" in request.POST:
+                obj.integrity_guard_visible_override = {
+                    "on": True,
+                    "off": False,
+                }.get(form.cleaned_data.get("integrity_guard_visibility"))
 
             if locked:
                 # Behåll befintliga tester och befintlig Sova-koppling.
@@ -6440,6 +6447,11 @@ def process_update(request, pk):
             ),
             "project_completion_notifications_enabled": (
                 obj.project_completion_notifications_enabled
+            ),
+            "integrity_guard_visibility": (
+                "default"
+                if obj.integrity_guard_visible_override is None
+                else "on" if obj.integrity_guard_visible_override else "off"
             ),
         })
 
