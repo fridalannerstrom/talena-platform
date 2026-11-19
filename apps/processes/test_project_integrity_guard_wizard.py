@@ -122,7 +122,13 @@ class CustomerProjectIntegrityGuardWizardTests(TestCase):
         self.assertIsNone(project.integrity_guard_visible_override)
 
         TestProcess.objects.all().delete()
-        response = self._post(integrity_guard_visibility="not-a-real-option")
+        response = self._post(
+            integrity_guard_visibility="not-a-real-option",
+            automatic_invitation_setting_present="1",
+            automatic_invitation_enabled="on",
+        )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "integrity_guard_visibility")
+        # The client-side switch is rebuilt from this attribute after form errors.
+        self.assertContains(response, 'data-initial-enabled="true"')
         self.assertFalse(TestProcess.objects.exists())
