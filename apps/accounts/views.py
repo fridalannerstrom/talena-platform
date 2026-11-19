@@ -1774,6 +1774,12 @@ def company_member_remove(request, company_pk, user_pk):
             user=user, company=company,
             accepted_at__isnull=True, revoked_at__isnull=True,
         ).update(revoked_at=timezone.now())
+        # Retain the projects and their creator history, but prevent future
+        # candidate-completion emails reaching someone who has left the company.
+        TestProcess.objects.filter(
+            company=company, created_by=user,
+            project_completion_notifications_enabled=True,
+        ).update(project_completion_notifications_enabled=False)
         membership.delete()
 
         log_event(
