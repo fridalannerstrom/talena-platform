@@ -1,5 +1,7 @@
 {% extends "admin/core/layouts/admin_base.html" %}
-{% block title %}Kund | Talena{% endblock %}
+{% block title %}Kund | Talena{% include "admin/accounts/companies/_company_member_remove_modal.html" %}
+
+{% endblock %}
 
 {% block content %}
 <div class="d-flex align-items-start justify-content-between gap-3 mb-3">
@@ -159,10 +161,13 @@
                       {% if m.company.org_number %}Org.nr: {{ m.company.org_number }}{% endif %}
                     </div>
                   </div>
-                  <a class="btn btn-sm btn-outline-primary"
-                     href="{% url 'accounts:company_detail' m.company.pk %}">
-                    Öppna
-                  </a>
+                  <div class="d-flex align-items-center gap-2 flex-wrap justify-content-end">
+                    <a class="btn btn-sm btn-outline-primary"
+                       href="{% url 'accounts:company_detail' m.company.pk %}">
+                      Öppna
+                    </a>
+                    {% include "admin/accounts/companies/_company_member_remove_button.html" with member=m %}
+                  </div>
                 </div>
               {% endfor %}
             </div>
