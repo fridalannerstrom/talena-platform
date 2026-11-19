@@ -42,7 +42,7 @@ assert(!finalStep.includes("candidate-results-setting mt-4 p-3 border rounded-3"
 assert(!finalStep.includes("wizard-ig-setting mt-4"));
 assert(finalStep.indexOf("wizardIgTitle") < finalStep.lastIndexOf('type="submit"'));
 
-assert(js.includes("function buildCreateSetting()"));
+assert(js.includes("function buildCreateSetting({ checked = false } = {})"));
 assert(js.includes('data.automaticInvitationSetting = "true"') ||
        js.includes('row.dataset.automaticInvitationSetting = "true"'));
 assert(js.includes('marker.name = "automatic_invitation_setting_present"'));
