@@ -1710,7 +1710,7 @@ showStep(currentStep);
 <script id="wizardInitialStep" type="application/json">
   {% if form.selected_tests.errors %}
     2
-  {% elif form.name.errors or form.labels_text.errors %}
+  {% elif form.name.errors or form.labels_text.errors or form.integrity_guard_visibility.errors %}
     3
   {% else %}
     1
