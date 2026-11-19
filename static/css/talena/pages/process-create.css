@@ -925,3 +925,145 @@ main .container-fluid:has(#processCreateWizardForm) > .d-flex:first-child > a {
     width: 100%;
   }
 }
+
+
+/* Short help link inline with the Integrity Guard setting description. */
+#processCreateWizardForm .wizard-ig-explain-link {
+  display: inline;
+  margin: 0 0 0 0.3rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--talena-coral-strong, #bc4b40);
+  font: inherit;
+  font-size: inherit;
+  font-weight: 700;
+  line-height: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+#processCreateWizardForm .wizard-ig-explain-link:hover {
+  color: var(--talena-ink, #171717);
+}
+
+#processCreateWizardForm .wizard-ig-explain-link:focus-visible {
+  outline: 2px solid var(--talena-coral-strong, #bc4b40);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* Contextual Integrity Guard explainer, outside the actual project form. */
+.wizard-ig-info-modal .modal-content {
+  border: 1px solid var(--talena-border, #e7e2de);
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 24px 75px rgba(25, 20, 18, .15);
+}
+
+.wizard-ig-info-modal .wizard-ig-modal-header {
+  padding: 1.35rem 1.6rem 1.05rem;
+  border-bottom: 1px solid var(--talena-border, #e7e2de);
+  align-items: flex-start;
+}
+
+.wizard-ig-info-modal .wizard-ig-modal-eyebrow {
+  margin-bottom: 0.25rem;
+  color: var(--talena-coral-strong, #bc4b40);
+  font-size: 0.67rem;
+  font-weight: 750;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+
+.wizard-ig-info-modal .wizard-ig-modal-title {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 780;
+  letter-spacing: -.025em;
+  color: var(--talena-ink, #171717);
+}
+
+.wizard-ig-info-modal .wizard-ig-modal-body {
+  padding: 1.3rem 1.6rem 1.45rem;
+  color: var(--talena-text, #302d2b);
+  font-size: 0.83rem;
+  line-height: 1.62;
+}
+
+.wizard-ig-info-modal .wizard-ig-modal-intro {
+  margin-bottom: 1rem;
+  color: var(--talena-text-muted, #615d59);
+  font-size: 0.87rem;
+}
+
+.wizard-ig-info-modal .wizard-ig-modal-note {
+  margin-bottom: 1.4rem;
+  padding: 0.9rem 1.05rem;
+  border: 1px solid #ebdfda;
+  border-radius: 12px;
+  background: #faf7f4;
+}
+
+.wizard-ig-info-modal .wizard-ig-modal-note strong {
+  display: block;
+  margin-bottom: .15rem;
+  font-weight: 750;
+  color: var(--talena-ink, #171717);
+}
+
+.wizard-ig-info-modal .wizard-ig-modal-heading {
+  margin: 1.25rem 0 0.7rem;
+  color: var(--talena-ink, #171717);
+  font-size: 0.95rem;
+  font-weight: 750;
+}
+
+.wizard-ig-info-modal .wizard-ig-modal-checks {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.7rem;
+  margin-bottom: 1.2rem;
+}
+
+.wizard-ig-info-modal .wizard-ig-modal-checks > div {
+  padding: 0.85rem 0.95rem;
+  border: 1px solid var(--talena-border, #e7e2de);
+  border-radius: 11px;
+  background: #fff;
+}
+
+.wizard-ig-info-modal .wizard-ig-modal-checks strong {
+  font-weight: 750;
+  color: var(--talena-ink, #171717);
+}
+
+.wizard-ig-info-modal .wizard-ig-modal-checks p {
+  margin: 0.2rem 0 0;
+  color: var(--talena-text-muted, #615d59);
+  font-size: 0.78rem;
+  line-height: 1.55;
+}
+
+.wizard-ig-info-modal .wizard-ig-modal-footer {
+  padding: 0.85rem 1.6rem;
+  border-top: 1px solid var(--talena-border, #e7e2de);
+}
+
+.wizard-ig-info-modal .wizard-ig-modal-footer .btn {
+  border-radius: 999px;
+  padding: 0.5rem 1.15rem;
+  font-size: 0.78rem;
+}
+
+@media (max-width: 600px) {
+  .wizard-ig-info-modal .wizard-ig-modal-header,
+  .wizard-ig-info-modal .wizard-ig-modal-body {
+    padding-inline: 1rem;
+  }
+  .wizard-ig-info-modal .wizard-ig-modal-checks {
+    grid-template-columns: 1fr;
+  }
+}
