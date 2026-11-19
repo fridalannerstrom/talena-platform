@@ -26,8 +26,8 @@ assert.deepEqual(allowedIds, [
   "motivation-results", "motivation-questions", "motivation-candidate-reflection",
   "cognitive-results", "cognitive-questions", "cognitive-candidate-reflection",
   "team-report", "leadership-report", "derailment-report",
-  "personality-response-styles"
-], "Keep question PDFs, results, Svarsstilar and static reports, excluding AI interpretation reports");
+  "personality-response-styles", "combined-interview-questions"
+], "Keep question PDFs, results, Svarsstilar, all interview questions and static reports without AI interpretations");
 assert.ok(!allowedIds.some(id=>/(interpretation|after-|manager-report)/.test(id)));
 assert.ok(js.includes('managerExcluded:"Chefsrapporten ingår inte i rapportpaketet. Ladda ner den separat."'));
 assert.ok(!allowedIds.includes("prepare-interview"),
@@ -43,6 +43,17 @@ assert.ok(personalityView.includes('id="personality-response-styles-view"') &&
 assert.ok(responseStyles.includes('{% trans "Response styles" %}') &&
   responseStyles.includes('Möjliga nyanser att utforska'),
   "The source tab must contain its own response-style heading and nuances");
+const allQuestions = file("templates/customer/processes/partials/candidate_insights/tabs/_questions.html");
+assert.ok(allQuestions.includes("data-combined-questions-root") &&
+  allQuestions.includes("combined-question-sections") &&
+  allQuestions.includes("_interview_static_questions.html") &&
+  allQuestions.includes("section.questions"),
+  "All questions includes opening questions, Personality, Motivation and Skills");
+assert.ok(registry.includes('id: "combined-interview-questions"') &&
+  registry.includes('selector: "#candidate-insights-panel-prepare-interview [data-combined-questions-root]"'),
+  "The separate report must be sourced from the combined questions, not the Communication strategy");
+assert.ok(!registry.includes('clone.append(questions)'),
+  "Keep Svarsstilar as an independent report, without duplicated questions");
 
 assert.ok(js.includes('api().exportReport(report.id,{returnBlob:true})'));
 assert.ok(js.includes('api().exportCover(t.cover)'));
