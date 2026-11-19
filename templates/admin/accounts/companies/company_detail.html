@@ -62,34 +62,27 @@
 
   {# Visibility is only controlled by Talena platform admins. Sova is unaffected. #}
   {% if request.user.is_superuser or request.user.role == "admin" %}
-    <section class="card mb-4" aria-labelledby="integrity-guard-visibility-title">
-      <div class="card-body d-flex align-items-center justify-content-between gap-3 flex-wrap py-4">
-        <div class="d-flex align-items-start gap-3">
-          <span class="d-flex align-items-center justify-content-center rounded-circle"
-                style="width:40px;height:40px;background:var(--bs-light, #f6f4f3);flex:0 0 auto"
-                aria-hidden="true"><i data-feather="shield" class="icon-18"></i></span>
-          <div>
-            <h2 class="h5 fw-semibold mb-1" id="integrity-guard-visibility-title">Integrity Guard</h2>
-            <div class="small mb-1">
-              {% if company.integrity_guard_visible %}
-                <span class="fw-semibold">Visible in Talena</span>
-              {% else %}
-                <span class="fw-semibold">Hidden in Talena</span>
-              {% endif %}
-              <span class="text-muted">for all projects belonging to this company</span>
-            </div>
-            <p class="small text-muted mb-0">This setting only hides or shows Integrity Guard in Talena.
-              Monitoring and saved results in Sova are not changed.</p>
-          </div>
-        </div>
-        <form method="post" action="{% url 'accounts:company_integrity_guard_visibility' company.pk %}">
+    <section class="card integrity-guard-setting mb-3" aria-labelledby="integrity-guard-visibility-title">
+      <div class="card-body d-flex align-items-center justify-content-between gap-3">
+        <h2 class="integrity-guard-setting-title mb-0" id="integrity-guard-visibility-title">Integrity Guard</h2>
+        <form method="post" action="{% url 'accounts:company_integrity_guard_visibility' company.pk %}" class="d-flex align-items-center gap-2 mb-0">
           {% csrf_token %}
           {% if company.integrity_guard_visible %}
             <input type="hidden" name="integrity_guard_visible" value="0">
-            <button class="btn btn-outline-secondary" type="submit">Hide Integrity Guard</button>
+            <span class="integrity-guard-setting-status" aria-hidden="true">On</span>
+            <button type="submit" class="integrity-guard-toggle is-on" role="switch"
+                    aria-label="Integrity Guard visibility in Talena" aria-checked="true"
+                    title="Hide Integrity Guard in Talena">
+              <span class="integrity-guard-toggle-thumb" aria-hidden="true"></span>
+            </button>
           {% else %}
             <input type="hidden" name="integrity_guard_visible" value="1">
-            <button class="btn btn-dark" type="submit">Show Integrity Guard</button>
+            <span class="integrity-guard-setting-status" aria-hidden="true">Off</span>
+            <button type="submit" class="integrity-guard-toggle" role="switch"
+                    aria-label="Integrity Guard visibility in Talena" aria-checked="false"
+                    title="Show Integrity Guard in Talena">
+              <span class="integrity-guard-toggle-thumb" aria-hidden="true"></span>
+            </button>
           {% endif %}
         </form>
       </div>
@@ -293,6 +286,63 @@
 </div>
 
 <style>
+  /* Compact, accessible company-wide Integrity Guard visibility switch. */
+  .integrity-guard-setting .card-body {
+    padding: 0.9rem 1.2rem;
+  }
+
+  .integrity-guard-setting-title {
+    font-size: 0.95rem;
+    font-weight: 650;
+    line-height: 1.4;
+  }
+
+  .integrity-guard-setting-status {
+    font-size: 0.78rem;
+    color: #69707b;
+    min-width: 1.5rem;
+    text-align: right;
+  }
+
+  .integrity-guard-setting .integrity-guard-toggle {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    width: 42px;
+    height: 24px;
+    flex: 0 0 auto;
+    padding: 2px;
+    border: 1px solid #cbd0d6;
+    border-radius: 999px;
+    background: #dfe2e6;
+    cursor: pointer;
+    transition: background-color .15s ease, border-color .15s ease;
+  }
+
+  .integrity-guard-setting .integrity-guard-toggle.is-on {
+    background: #222222;
+    border-color: #222222;
+  }
+
+  .integrity-guard-toggle-thumb {
+    display: block;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .16);
+    transition: transform .15s ease;
+  }
+
+  .integrity-guard-toggle.is-on .integrity-guard-toggle-thumb {
+    transform: translateX(18px);
+  }
+
+  .integrity-guard-setting .integrity-guard-toggle:focus-visible {
+    outline: 3px solid #e68171;
+    outline-offset: 3px;
+  }
+
   .company-summary-card {
     border-radius: 14px;
   }
