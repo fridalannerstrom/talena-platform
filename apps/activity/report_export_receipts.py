@@ -27,7 +27,7 @@ CANDIDATE_REPORT_TYPES = frozenset({
     "overview", "candidate-static-report",
     "personality-results", "personality-interpretation",
     "personality-questions", "personality-candidate-reflection",
-    "personality-response-styles",
+    "personality-response-styles", "combined-interview-questions",
     "motivation-results", "motivation-interpretation",
     "motivation-questions", "motivation-candidate-reflection",
     "cognitive-results", "cognitive-interpretation",
