@@ -1217,6 +1217,12 @@ def admin_user_detail(request, pk):
         CompanyMember.objects
         .filter(user=user_obj)
         .select_related("company")
+        .annotate(
+            company_admin_count=Count(
+                "company__memberships",
+                filter=Q(company__memberships__role=CompanyMember.ROLE_ADMIN),
+            )
+        )
         .order_by("company__name")
     )
 
@@ -1727,12 +1733,66 @@ def company_detail(request, pk):
 @admin_required
 @require_POST
 def company_member_remove(request, company_pk, user_pk):
+    """Remove one company membership, never the global user or their history."""
     company = get_object_or_404(Company, pk=company_pk)
-    membership = get_object_or_404(CompanyMember, company=company, user_id=user_pk)
-    email = membership.user.email
-    membership.delete()
-    messages.success(request, f"{email} togs bort från {company.name}.")
-    return redirect("accounts:company_detail", pk=company.pk)
+
+    with transaction.atomic():
+        membership = get_object_or_404(
+            CompanyMember.objects.select_for_update().select_related("user"),
+            company=company,
+            user_id=user_pk,
+        )
+        if membership.user_id == request.user.pk:
+            messages.error(request, "Du kan inte ta bort din egen företagskoppling.")
+            return redirect("accounts:company_users", pk=company.pk)
+
+        if (
+            membership.role == CompanyMember.ROLE_ADMIN
+            and not CompanyMember.objects.filter(
+                company=company, role=CompanyMember.ROLE_ADMIN
+            ).exclude(pk=membership.pk).exists()
+        ):
+            messages.error(
+                request,
+                "Det går inte att ta bort företagets sista administratör. "
+                "Tilldela först en annan användare administratörsrollen.",
+            )
+            return redirect("accounts:company_users", pk=company.pk)
+
+        user = membership.user
+        removed_role = membership.role
+        # Org-unit access is stored separately from CompanyMember; it must be
+        # removed as well, otherwise permissions can survive the membership.
+        UserOrgUnitAccess.objects.filter(
+            user=user, org_unit__company=company
+        ).delete()
+        # Old activation links must not remain usable after company removal.
+        UserInvite.objects.filter(
+            user=user, company=company,
+            accepted_at__isnull=True, revoked_at__isnull=True,
+        ).update(revoked_at=timezone.now())
+        membership.delete()
+
+        log_event(
+            company=company,
+            actor=request.user,
+            verb=ActivityEvent.Verb.COMPANY_MEMBER_REMOVED,
+            meta={
+                "company_id": company.pk,
+                "company_name": company.name,
+                "user_id": user.pk,
+                "user_email": user.email,
+                "user_name": user.get_full_name(),
+                "removed_role": removed_role,
+            },
+        )
+
+    messages.success(
+        request,
+        f"{user.email or user.username} togs bort från {company.name}. "
+        "Användarkontot och eventuella andra företagskopplingar finns kvar.",
+    )
+    return redirect("accounts:company_users", pk=company.pk)
 
 
 @login_required
@@ -2152,6 +2212,12 @@ def company_users(request, pk):
         CompanyMember.objects
         .filter(company=company)
         .select_related("user")
+        .annotate(
+            company_admin_count=Count(
+                "company__memberships",
+                filter=Q(company__memberships__role=CompanyMember.ROLE_ADMIN),
+            )
+        )
         .order_by("user__email")
     )
 
@@ -2948,7 +3014,13 @@ def company_user_detail(request, company_pk, user_pk):
     )
 
     membership = get_object_or_404(
-        CompanyMember.objects.select_related("company", "primary_org_unit"),
+        CompanyMember.objects.select_related("company", "primary_org_unit")
+        .annotate(
+            company_admin_count=Count(
+                "company__memberships",
+                filter=Q(company__memberships__role=CompanyMember.ROLE_ADMIN),
+            )
+        ),
         company=company,
         user=user_obj,
     )
