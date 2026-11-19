@@ -55,4 +55,76 @@ assert(css.includes("/* Unified final-step layout (2026-11-19)"));
 assert(css.includes(".wizard-setting-row"));
 assert(css.includes(".candidate-language-section"));
 
-console.log("Customer project wizard final-step structure and settings contract: OK");
+assert(finalStep.includes('class="wizard-details-grid"'), "Two-column layout wrapper missing");
+assert(finalStep.includes('class="wizard-details-main"'), "Main details column missing");
+assert(finalStep.includes('class="wizard-details-aside"'), "Right-hand settings card missing");
+assert(finalStep.indexOf('class="wizard-details-main"') < finalStep.indexOf('class="wizard-details-aside"'));
+assert(finalStep.indexOf('class="wizard-details-aside"') < finalStep.indexOf('wizardSettingsHeading'));
+assert(finalStep.indexOf('wizardLanguageHeading') < finalStep.indexOf('class="wizard-details-aside"'));
+assert(finalStep.includes('data-initial-enabled='), "Automatic invite selection must survive form errors");
+assert(css.includes("grid-template-columns: minmax(0, 1.7fr) minmax(330px, 0.95fr)"));
+assert(css.includes("@media (max-width: 1099.98px)"), "Settings must stack on narrow screens");
+assert(css.includes("appearance: none !important;"), "Native checkbox artwork must be disabled");
+assert(css.includes("background-image: none !important;"), "Bootstrap switch graphic must be removed");
+assert(css.includes('input[type="checkbox"].form-check-input:checked::before'), "Custom thumb must move when toggled");
+
+const vm = require("node:vm");
+
+function mountCreateSwitch(initialEnabled) {
+  const root = {
+    children: [],
+    dataset: {},
+    append(...children) { this.children.push(...children); },
+    appendChild(child) { this.children.push(child); },
+  };
+  const anchor = {
+    children: [],
+    dataset: { initialEnabled },
+    appendChild(child) { this.children.push(child); },
+  };
+  const form = {
+    querySelector(selector) {
+      if (selector === "[data-wizard-automatic-invitation]") return anchor;
+      if (selector === "[data-automatic-invitation-setting]") return anchor.children[0] || null;
+      return null;
+    },
+  };
+  const document = {
+    readyState: "complete",
+    documentElement: { lang: "sv" },
+    createElement() {
+      return {
+        dataset: {},
+        children: [],
+        append(...items) { this.children.push(...items); },
+        appendChild(item) { this.children.push(item); },
+      };
+    },
+    querySelector(selector) {
+      if (selector === "#processCreateWizardForm") return form;
+      return null;
+    },
+  };
+  vm.runInNewContext(js, { document, console }, { timeout: 3000 });
+  assert.equal(anchor.children.length, 1, "Only one auto-invite control may be mounted");
+  const row = anchor.children[0];
+  const find = (node, name) => {
+    if (node.name === name) return node;
+    for (const child of node.children || []) {
+      const match = find(child, name);
+      if (match) return match;
+    }
+    return null;
+  };
+  const checkbox = find(row, "automatic_invitation_enabled");
+  assert(checkbox, "Auto-invitation checkbox missing");
+  assert.equal(checkbox.role, "switch");
+  assert.equal(checkbox.checked, initialEnabled === "true");
+  assert(find(row, "automatic_invitation_setting_present"), "POST presence marker missing");
+  return checkbox;
+}
+
+assert.equal(mountCreateSwitch("true").checked, true, "Previous ON choice should be retained");
+assert.equal(mountCreateSwitch("false").checked, false, "Previous OFF choice should be retained");
+
+console.log("Customer project wizard layout, switches and persistence contract: OK");
