@@ -9003,6 +9003,12 @@ def process_create_v2(request):
                     form.cleaned_data.get("candidate_results_enabled")
                     or False
                 ),
+                # None means the project follows the company's display setting.
+                # Sova monitoring and stored findings are unaffected.
+                integrity_guard_visible_override={
+                    "on": True,
+                    "off": False,
+                }.get(form.cleaned_data.get("integrity_guard_visibility")),
             )
 
             # --------------------------------------------------
