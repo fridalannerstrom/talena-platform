@@ -30,6 +30,13 @@ assert(
 );
 assert(finalStep.includes('id="processNameInput"'));
 assert(finalStep.includes('id="processLabelsInput"'));
+assert(!finalStep.includes('class="col-12 col-lg-7"'), "Project name should be full width");
+assert(!finalStep.includes('class="col-12 col-lg-5"'), "Labels should be full width");
+assert.equal(
+  (finalStep.match(/class="col-12"/g) || []).length,
+  2,
+  "Project name and labels must occupy separate full-width rows",
+);
 assert(finalStep.includes('name="candidate_language"'));
 assert(finalStep.includes("form.candidate_results_enabled"));
 assert(finalStep.includes('data-wizard-automatic-invitation'));
@@ -52,6 +59,30 @@ assert(js.includes("function mountSettingsSetting()"), "Existing edit-page mount
 assert(js.includes("buildSetting({"), "Existing edit-page implementation must remain");
 
 assert(css.includes("/* Unified final-step layout (2026-11-19)"));
+const modal = html.slice(html.indexOf('id="wizardIgInfoModal"'));
+assert(finalStep.includes('type="button" class="wizard-ig-explain-link"'));
+assert(finalStep.includes('data-bs-toggle="modal" data-bs-target="#wizardIgInfoModal"'));
+assert(finalStep.includes('Vad är Integrity Guard?'));
+assert(finalStep.includes('What is Integrity Guard?'));
+assert(html.indexOf('id="wizardIgInfoModal"') > html.indexOf('</form>'),
+  "Info dialog must not be nested in the project form");
+assert(modal.includes('aria-labelledby="wizardIgInfoTitle"'));
+assert(modal.includes('aria-describedby="wizardIgInfoIntro"'));
+assert(modal.includes('data-bs-dismiss="modal"'));
+for (const phrase of [
+  "En avvikelse är inte bevis på fusk",
+  "IP-adresser",
+  "Använda enheter",
+  "Flikar och webbläsare",
+  "Svarsmönster",
+  "utvecklas och valideras fortfarande",
+  "A flag is not proof of cheating",
+]) {
+  assert(modal.includes(phrase), "Missing grounded explanation: " + phrase);
+}
+assert(css.includes(".wizard-ig-explain-link"));
+assert(css.includes(".wizard-ig-info-modal .wizard-ig-modal-checks"));
+
 assert(css.includes(".wizard-setting-row"));
 assert(css.includes(".candidate-language-section"));
 
