@@ -502,17 +502,17 @@
                     <label class="wizard-ig-option">
                       <input type="radio" name="integrity_guard_visibility" value="default"
                              {% if form.integrity_guard_visibility.value == "default" or not form.integrity_guard_visibility.value %}checked{% endif %}>
-                      <span>{% if wizard_language|slice:":2" == "sv" %}Företagets inställning{% else %}Company setting{% endif %}</span>
+                      <span class="wizard-ig-option-label"><span>{% if wizard_language|slice:":2" == "sv" %}Företagets inställning{% else %}Company setting{% endif %}</span><i class="fa-solid fa-check wizard-ig-choice-check" aria-hidden="true"></i></span>
                     </label>
                     <label class="wizard-ig-option">
                       <input type="radio" name="integrity_guard_visibility" value="on"
                              {% if form.integrity_guard_visibility.value == "on" %}checked{% endif %}>
-                      <span>{% if wizard_language|slice:":2" == "sv" %}På{% else %}On{% endif %}</span>
+                      <span class="wizard-ig-option-label"><span>{% if wizard_language|slice:":2" == "sv" %}På{% else %}On{% endif %}</span><i class="fa-solid fa-check wizard-ig-choice-check" aria-hidden="true"></i></span>
                     </label>
                     <label class="wizard-ig-option">
                       <input type="radio" name="integrity_guard_visibility" value="off"
                              {% if form.integrity_guard_visibility.value == "off" %}checked{% endif %}>
-                      <span>{% if wizard_language|slice:":2" == "sv" %}Av{% else %}Off{% endif %}</span>
+                      <span class="wizard-ig-option-label"><span>{% if wizard_language|slice:":2" == "sv" %}Av{% else %}Off{% endif %}</span><i class="fa-solid fa-check wizard-ig-choice-check" aria-hidden="true"></i></span>
                     </label>
                   </div>
                 </fieldset>
