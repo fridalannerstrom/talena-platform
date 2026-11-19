@@ -76,13 +76,13 @@
     // Unlike "personality-results" (the existing full-tab PDF action),
     // each entry clones only its own rendered subview and removes its hidden
     // attribute in copyContent without touching the live candidate page.
-    { id: "personality-detailed-results",
+    { id: "personality-detailed-results", packageOnly: true,
       selector: "#personality-detailed-view",
       ready: element => !!element.querySelector(".personality-trait-card") },
-    { id: "personality-quick-results",
+    { id: "personality-quick-results", packageOnly: true,
       selector: "#personality-quick-view",
       ready: element => !!element.querySelector(".personality-quick-row") },
-    { id: "personality-summary-results",
+    { id: "personality-summary-results", packageOnly: true,
       selector: "#personality-descriptions-view",
       ready: element => !!element.querySelector(".personality-description-quick-row") },
     { id: "team-report", selector: "#reports-subpanel-team-report",
@@ -555,7 +555,7 @@
   }
 
   function addToolbar(item) {
-    if (item.existingButton) return; // Chefsrapport keeps its own PDF button.
+    if (item.existingButton || item.packageOnly) return; // No extra toolbar in the Personality subtabs.
     const source = getSource(item);
     if (!source || source.querySelector("[data-candidate-pdf-toolbar]")) return;
     const toolbar = create("div", "talena-candidate-pdf-toolbar");
@@ -595,6 +595,7 @@
   function refresh() {
     queued = false;
     registry.forEach(item => {
+      if (item.packageOnly) return;
       addToolbar(item);
       const toolbar = getSource(item)?.querySelector("[data-candidate-pdf-toolbar]");
       if (!toolbar) return;
