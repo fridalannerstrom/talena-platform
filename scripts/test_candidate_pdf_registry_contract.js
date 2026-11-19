@@ -38,6 +38,34 @@ assert.ok(js.includes('"[data-after-interview-regenerate]"') &&
 assert.ok(!js.includes('["interview","after-interview"]'),
   "Retired Interview summary must not be offered as a PDF option");
 // #483: Svarsstilar is the dedicated Personality results subtab.
+// Regression: the three personality reports are sourced from the exact
+// subview nodes, including inactive [hidden] quick and summary panels.
+for (const [id, selector, marker] of [
+  ["personality-detailed-results", "#personality-detailed-view", ".personality-trait-card"],
+  ["personality-quick-results", "#personality-quick-view", ".personality-quick-row"],
+  ["personality-summary-results", "#personality-descriptions-view", ".personality-description-quick-row"]
+]) {
+  assert.ok(js.includes('id: "' + id + '", packageOnly: true') &&
+    js.includes('selector: "' + selector + '"'),
+    "The package needs three independent source selectors");
+  assert.ok(js.includes('element.querySelector("' + marker + '")'),
+    "Do not expose empty personality report: " + id);
+}
+assert.ok(js.includes('if (item.existingButton || item.packageOnly) return') &&
+  js.includes('if (item.packageOnly) return'),
+  "Package-only personality exports must not add stray buttons in candidate results");
+assert.ok(js.includes('["personality-results", "personality-quick-results"].includes(reportId)'),
+  "Both original and package-only quick charts need the correct midpoint-to-score colours");
+assert.ok(core.includes('"personality-detailed-results"') &&
+  core.includes('"personality-quick-results"') &&
+  core.includes('"personality-summary-results"'),
+  "Use the existing detailed, quick and summary paginators respectively");
+for (const id of [
+  "personality-detailed-results", "personality-quick-results", "personality-summary-results"
+]) {
+  assert.ok(css.includes('data-candidate-pdf-report="' + id + '"'),
+    "PDF styles must account for each personality result subtype");
+}
 const personalityPage = read("templates/customer/processes/partials/candidate_insights/personality/_results.html");
 const responseContent = read("templates/customer/processes/partials/candidate_insights/personality/_response_styles_content.html");
 assert.ok(personalityPage.includes('id="personality-response-styles-view"') &&
@@ -290,5 +318,44 @@ vm.runInNewContext(js, context, {timeout:1000});
   assert.deepEqual(Array.from(api.getAvailableReports()).map(report=>report.id),
     ["personality-response-styles"]);
   await assert.rejects(api.exportReport("combined-interview-questions", {returnBlob:true}));
-  console.log("Candidate PDF registry: AJAX isolation, independent Svarsstilar and All questions OK");
+  // Switching the visible Personality tab must never determine which PDF
+  // is exported. Each report clones only its own (potentially hidden) source.
+  const detailed = new FakeElement("section", "Karaktärsdrags- och indikatorprofil");
+  detailed.querySelector = selector => selector === ".personality-trait-card" ? {} : null;
+  const quick = new FakeElement("section", "Karaktärsdragsprofil");
+  quick.hidden = true;
+  quick.querySelector = selector => selector === ".personality-quick-row" ? {} : null;
+  const summary = new FakeElement("section", "Resultatsammanfattning");
+  summary.hidden = true;
+  summary.querySelector = selector => selector === ".personality-description-quick-row" ? {} : null;
+  const fourth = new FakeElement();
+  fourth.querySelector = selector => ({
+    "#personality-detailed-view": detailed,
+    "#personality-quick-view": quick,
+    "#personality-descriptions-view": summary
+  })[selector] || null;
+  currentWorkspace = fourth;
+  api.initialize(browserDocument);
+  assert.deepEqual(Array.from(api.getAvailableReports()).map(report=>report.id), [
+    "personality-detailed-results", "personality-quick-results",
+    "personality-summary-results"
+  ], "Inactive personality result tabs must still be selectable");
+  for (const [id, expected] of [
+    ["personality-detailed-results", detailed],
+    ["personality-quick-results", quick],
+    ["personality-summary-results", summary]
+  ]) {
+    await api.exportReport(id, {returnBlob:true});
+    assert.equal(exportedContent.textContent, expected.textContent,
+      "Only the requested Personality result view should be exported");
+    assert.equal(exportedContent.children.length, 0,
+      "Another result tab must never leak into a separate PDF");
+  }
+  assert.equal(quick.hidden, true, "Export must not activate the live quick tab");
+  assert.equal(summary.hidden, true, "Export must not activate the live summary tab");
+  summary.querySelector = () => null;
+  assert.ok(!api.getAvailableReports().some(report=>report.id==="personality-summary-results"),
+    "Empty result summary must not be selected");
+
+  console.log("Candidate PDF registry: candidate isolation, separate Personality views, Svarsstilar and questions OK");
 })().catch(error => { console.error(error); process.exitCode = 1; });
