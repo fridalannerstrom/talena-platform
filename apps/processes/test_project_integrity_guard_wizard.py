@@ -67,6 +67,15 @@ class CustomerProjectIntegrityGuardWizardTests(TestCase):
             self.assertIn('value="%s"' % value, markup)
         self.assertIn('id="wizardIgTitle"', markup)
         self.assertIn('data-step="3"', markup)
+        # The setting belongs in Details, not the preceding Tests step.
+        self.assertLess(
+            markup.index('data-step="3"'),
+            markup.index('id="wizardIgTitle"'),
+        )
+        self.assertLess(
+            markup.index('id="wizardIgTitle"'),
+            markup.index('type="submit"'),
+        )
 
     def test_wizard_defaults_to_company_setting(self):
         field = TestProcessWizardCreateForm.base_fields["integrity_guard_visibility"]
