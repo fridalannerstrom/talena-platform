@@ -1,4 +1,6 @@
 """Regression tests for Talena-admin company membership removal."""
+from unittest.mock import patch
+
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
@@ -59,6 +61,7 @@ class CompanyMemberRemovalTests(TestCase):
             response, reverse("accounts:company_users", args=[self.company.pk])
         )
         self.assertTrue(User.objects.filter(pk=self.member.pk).exists())
+        self.member.refresh_from_db()
         self.assertTrue(self.member.is_active)
         self.assertFalse(CompanyMember.objects.filter(
             company=self.company, user=self.member
@@ -83,6 +86,143 @@ class CompanyMemberRemovalTests(TestCase):
         self.assertEqual(event.actor, self.admin)
         self.assertEqual(event.meta["user_id"], self.member.pk)
         self.assertEqual(event.meta["user_email"], self.member.email)
+        self.assertFalse(event.meta["account_deactivated"])
+        self.assertEqual(event.meta["remaining_company_memberships"], 1)
+
+    def test_removing_last_company_deactivates_user_without_deleting_history(self):
+        """The account remains auditable, but is no longer usable for login."""
+        project = TestProcess.objects.create(
+            name="Legacy project", company=self.other_company,
+            org_unit=self.other_unit, created_by=self.member,
+            account_code="B", project_code="keep-history",
+        )
+        self.client.post(self.url)
+        self.member.refresh_from_db()
+        self.assertTrue(self.member.is_active)
+        self.assertEqual(self.member.company_memberships.count(), 1)
+
+        last_url = reverse(
+            "accounts:company_member_remove",
+            args=[self.other_company.pk, self.member.pk],
+        )
+        self.assertRedirects(
+            self.client.post(last_url),
+            reverse("accounts:company_users", args=[self.other_company.pk]),
+        )
+        self.member.refresh_from_db()
+        self.assertFalse(self.member.is_active)
+        self.assertTrue(User.objects.filter(pk=self.member.pk).exists())
+        self.assertEqual(self.member.company_memberships.count(), 0)
+        self.assertFalse(UserOrgUnitAccess.objects.filter(user=self.member).exists())
+        self.assertTrue(TestProcess.objects.filter(
+            pk=project.pk, created_by=self.member,
+        ).exists())
+        removal_event = ActivityEvent.objects.get(
+            company=self.other_company,
+            verb=ActivityEvent.Verb.COMPANY_MEMBER_REMOVED,
+        )
+        self.assertTrue(removal_event.meta["account_deactivated"])
+        self.assertEqual(removal_event.meta["remaining_company_memberships"], 0)
+        self.client.logout()
+        self.assertFalse(self.client.login(
+            username=self.member.username, password="test-password",
+        ))
+
+    def test_platform_admin_can_remain_active_without_company(self):
+        """Platform admin role is independent of company membership."""
+        platform_admin = User.objects.create_user(
+            username="platform-operator", email="operator@example.com",
+            password="test-password", role=User.Role.ADMIN,
+        )
+        CompanyMember.objects.create(
+            company=self.company, user=platform_admin,
+        )
+        url = reverse(
+            "accounts:company_member_remove",
+            args=[self.company.pk, platform_admin.pk],
+        )
+        self.assertEqual(self.client.post(url).status_code, 302)
+        platform_admin.refresh_from_db()
+        self.assertTrue(platform_admin.is_active)
+        self.assertFalse(platform_admin.company_memberships.exists())
+        event = ActivityEvent.objects.get(
+            company=self.company,
+            verb=ActivityEvent.Verb.COMPANY_MEMBER_REMOVED,
+        )
+        self.assertFalse(event.meta["account_deactivated"])
+
+    def test_reinvite_after_deactivation_reuses_account_and_allows_activation(self):
+        """A fresh invitation can restore access without losing audit history."""
+        self.client.post(self.url)
+        last_url = reverse(
+            "accounts:company_member_remove",
+            args=[self.other_company.pk, self.member.pk],
+        )
+        self.client.post(last_url)
+        self.member.refresh_from_db()
+        self.assertFalse(self.member.is_active)
+
+        with patch("apps.accounts.views.send_invite_email") as send_email:
+            response = self.client.post(
+                reverse("accounts:company_invite_member", args=[self.company.pk]),
+                {
+                    "email": self.member.email,
+                    "first_name": "Multi",
+                    "last_name": "Company",
+                    "invite_subject": "Welcome back",
+                    "invite_message": "Your access has been restored.",
+                    "invite_language": "en",
+                },
+            )
+        self.assertEqual(response.status_code, 302)
+        send_email.assert_called_once()
+        self.assertEqual(User.objects.filter(email=self.member.email).count(), 1)
+        self.member.refresh_from_db()
+        self.assertFalse(self.member.is_active)
+        self.assertTrue(CompanyMember.objects.filter(
+            user=self.member, company=self.company,
+        ).exists())
+        invite = UserInvite.objects.get(
+            user=self.member, company=self.company, revoked_at__isnull=True,
+            accepted_at__isnull=True,
+        )
+
+        password = "NewSecurePassword2026!Long"
+        response = self.client.post(
+            reverse("accounts:accept_invite_uuid", args=[invite.pk]),
+            {"new_password1": password, "new_password2": password},
+        )
+        self.assertEqual(response.status_code, 302)
+        self.member.refresh_from_db()
+        self.assertTrue(self.member.is_active)
+        invite.refresh_from_db()
+        self.assertIsNotNone(invite.accepted_at)
+        self.client.logout()
+        self.assertTrue(self.client.login(
+            username=self.member.username, password=password,
+        ))
+
+    def test_orphan_invitation_cannot_reactivate_removed_user(self):
+        self.client.post(self.url)
+        last_url = reverse(
+            "accounts:company_member_remove",
+            args=[self.other_company.pk, self.member.pk],
+        )
+        self.client.post(last_url)
+        # Even an erroneously unrevoked invitation must not activate
+        # an account which no longer belongs to the invite's company.
+        orphan = UserInvite.objects.create(
+            company=self.other_company, user=self.member,
+            created_by=self.admin,
+        )
+        invite_url = reverse("accounts:accept_invite_uuid", args=[orphan.pk])
+        self.assertEqual(self.client.get(invite_url).status_code, 400)
+        self.assertEqual(self.client.post(invite_url, {
+            "new_password1": "NewSecurePassword2026!Long",
+            "new_password2": "NewSecurePassword2026!Long",
+        }).status_code, 400)
+        self.member.refresh_from_db()
+        self.assertFalse(self.member.is_active)
 
     def test_projects_and_original_creator_are_preserved(self):
         project = TestProcess.objects.create(
