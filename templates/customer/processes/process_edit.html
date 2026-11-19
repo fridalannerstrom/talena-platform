@@ -299,81 +299,112 @@
               </div>
             </div>
 
-            <div class="candidate-results-setting mt-4 p-3 border rounded-3">
-              <div class="form-check">
-                {{ form.candidate_results_enabled }}
-                <label class="form-check-label" for="{{ form.candidate_results_enabled.id_for_label }}">
-                  {{ form.candidate_results_enabled.label }}
-                </label>
-              </div>
-              {% if form.candidate_results_enabled.help_text %}
-                <div class="form-text mt-1">
-                  {{ form.candidate_results_enabled.help_text }}
-                </div>
-              {% endif %}
-              {% if form.candidate_results_enabled.errors %}
-                <div class="text-danger small mt-2">
-                  {{ form.candidate_results_enabled.errors|striptags }}
-                </div>
-              {% endif %}
-            </div>
-
-            <div class="candidate-results-setting mt-3 p-3 border rounded-3">
-              <div class="form-check">
-                {{ form.project_completion_notifications_enabled }}
-                <label class="form-check-label" for="{{ form.project_completion_notifications_enabled.id_for_label }}">
-                  <span data-project-language="sv" {% if form.candidate_language.value == "en" %}hidden{% endif %}>Mejla projektägaren när en kandidat slutfört alla tester</span>
-                  <span data-project-language="en" {% if form.candidate_language.value != "en" %}hidden{% endif %}>Email the project creator when a candidate completes all tests</span>
-                </label>
-              </div>
-              <div class="form-text mt-1">
-                <span data-project-language="sv" {% if form.candidate_language.value == "en" %}hidden{% endif %}>Den som skapade projektet får ett mejl när kandidaten har slutfört alla tester. Du kan stänga av aviseringen när som helst.</span>
-                  <span data-project-language="en" {% if form.candidate_language.value != "en" %}hidden{% endif %}>The project creator receives an email when a candidate has completed all assessments. You can turn this off at any time.</span>
-              </div>
-            </div>
-
-            {# Talena-only display setting. Projects may follow the company, or override it. #}
-            <fieldset class="process-ig-setting mt-4" aria-labelledby="processIgSettingTitle">
-              <div class="process-ig-setting-copy">
-                <div class="process-ig-setting-title" id="processIgSettingTitle">Integrity Guard</div>
-                <p class="process-ig-setting-description" id="processIgSettingHelp">
-                  {% if LANGUAGE_CODE|slice:":2" == "sv" %}
-                    Välj om Integrity Guard ska visas i projektet.
-                  {% else %}
-                    Choose whether to show Integrity Guard in this project.
-                  {% endif %}
+            <!-- One cohesive group: four compact cards, common switch style. -->
+            <section class="process-preferences mt-4" aria-labelledby="processPreferencesTitle">
+              <div class="process-preferences-intro mb-3">
+                <h3 class="process-preferences-title" id="processPreferencesTitle">
+                  <span data-project-language="sv" {% if form.candidate_language.value == "en" %}hidden{% endif %}>Projektinställningar</span>
+                  <span data-project-language="en" {% if form.candidate_language.value != "en" %}hidden{% endif %}>Project settings</span>
+                </h3>
+                <p class="process-preferences-subtitle">
+                  <span data-project-language="sv" {% if form.candidate_language.value == "en" %}hidden{% endif %}>Välj hur testinbjudningar, resultat och uppföljning ska fungera.</span>
+                  <span data-project-language="en" {% if form.candidate_language.value != "en" %}hidden{% endif %}>Choose how invitations, results and monitoring work in this project.</span>
                 </p>
               </div>
-              <div class="process-ig-options" role="group" aria-describedby="processIgSettingHelp">
-                <label class="process-ig-option">
-                  <input type="radio" name="integrity_guard_visibility" value="default"
-                    {% if form.integrity_guard_visibility.value == "default" or not form.integrity_guard_visibility.value %}checked{% endif %}>
-                  <span class="process-ig-option-pill">
-                    {% if LANGUAGE_CODE|slice:":2" == "sv" %}Företagets inställning{% else %}Company setting{% endif %}
-                    <i class="fa-solid fa-check" aria-hidden="true"></i>
-                  </span>
-                </label>
-                <label class="process-ig-option">
-                  <input type="radio" name="integrity_guard_visibility" value="on"
-                    {% if form.integrity_guard_visibility.value == "on" %}checked{% endif %}>
-                  <span class="process-ig-option-pill">
-                    {% if LANGUAGE_CODE|slice:":2" == "sv" %}På{% else %}On{% endif %}
-                    <i class="fa-solid fa-check" aria-hidden="true"></i>
-                  </span>
-                </label>
-                <label class="process-ig-option">
-                  <input type="radio" name="integrity_guard_visibility" value="off"
-                    {% if form.integrity_guard_visibility.value == "off" %}checked{% endif %}>
-                  <span class="process-ig-option-pill">
-                    {% if LANGUAGE_CODE|slice:":2" == "sv" %}Av{% else %}Off{% endif %}
-                    <i class="fa-solid fa-check" aria-hidden="true"></i>
-                  </span>
-                </label>
+
+              <div class="process-preferences-list">
+                {# Filled after loading the existing setting. If the fetch fails, no field is posted. #}
+                <div data-process-automatic-invitation
+                     data-posted="{% if request.method == 'POST' and request.POST.automatic_invitation_setting_present %}true{% else %}false{% endif %}"
+                     data-posted-enabled="{% if request.method == 'POST' and request.POST.automatic_invitation_enabled %}true{% else %}false{% endif %}"></div>
+
+                <div class="process-preference-card candidate-results-setting">
+                  <div class="process-preference-copy">
+                    <label class="process-preference-title" for="{{ form.candidate_results_enabled.id_for_label }}">
+                      {{ form.candidate_results_enabled.label }}
+                    </label>
+                    <p class="process-preference-description">
+                      <span data-project-language="sv" {% if form.candidate_language.value == "en" %}hidden{% endif %}>Kandidaten kan se ett förenklat resultat när alla obligatoriska tester är genomförda. Om du stänger av detta återkallas befintliga resultatlänkar.</span>
+                      <span data-project-language="en" {% if form.candidate_language.value != "en" %}hidden{% endif %}>Candidates can view a simplified result after all required assessments. Turning this off revokes existing result links.</span>
+                    </p>
+                    {% if form.candidate_results_enabled.errors %}
+                      <div class="text-danger small mt-1">{{ form.candidate_results_enabled.errors|striptags }}</div>
+                    {% endif %}
+                  </div>
+                  <div class="process-preference-switch">
+                    <input type="checkbox" class="form-check-input"
+                           role="switch" name="{{ form.candidate_results_enabled.html_name }}"
+                           id="{{ form.candidate_results_enabled.id_for_label }}"
+                           {% if form.candidate_results_enabled.value %}checked{% endif %}>
+                  </div>
+                </div>
+
+                <div class="process-preference-card">
+                  <div class="process-preference-copy">
+                    <label class="process-preference-title" for="{{ form.project_completion_notifications_enabled.id_for_label }}">
+                      <span data-project-language="sv" {% if form.candidate_language.value == "en" %}hidden{% endif %}>Mejla projektägaren när en kandidat slutfört alla tester</span>
+                      <span data-project-language="en" {% if form.candidate_language.value != "en" %}hidden{% endif %}>Email the project creator when a candidate completes all tests</span>
+                    </label>
+                    <p class="process-preference-description">
+                      <span data-project-language="sv" {% if form.candidate_language.value == "en" %}hidden{% endif %}>Den som skapade projektet får ett mejl när kandidaten har slutfört alla tester. Du kan stänga av aviseringen när som helst.</span>
+                      <span data-project-language="en" {% if form.candidate_language.value != "en" %}hidden{% endif %}>The project creator receives an email when a candidate has completed all assessments. You can turn off this notification at any time.</span>
+                    </p>
+                    {% if form.project_completion_notifications_enabled.errors %}
+                      <div class="text-danger small mt-1">{{ form.project_completion_notifications_enabled.errors|striptags }}</div>
+                    {% endif %}
+                  </div>
+                  <div class="process-preference-switch">
+                    <input type="checkbox" class="form-check-input"
+                           role="switch" name="{{ form.project_completion_notifications_enabled.html_name }}"
+                           id="{{ form.project_completion_notifications_enabled.id_for_label }}"
+                           {% if form.project_completion_notifications_enabled.value %}checked{% endif %}>
+                  </div>
+                </div>
+
+                {# Three-state preference: inherit company, show or hide in Talena. #}
+                <fieldset class="process-preference-card process-ig-setting" aria-labelledby="processIgSettingTitle">
+                  <div class="process-preference-copy">
+                    <div class="process-preference-title" id="processIgSettingTitle">Integrity Guard</div>
+                    <p class="process-preference-description" id="processIgSettingHelp">
+                      <span data-project-language="sv" {% if form.candidate_language.value == "en" %}hidden{% endif %}>Välj om Integrity Guard ska visas i projektet.</span>
+                      <span data-project-language="en" {% if form.candidate_language.value != "en" %}hidden{% endif %}>Choose whether to show Integrity Guard in this project.</span>
+                    </p>
+                    {% if form.integrity_guard_visibility.errors %}
+                      <div class="text-danger small mt-1">{{ form.integrity_guard_visibility.errors|striptags }}</div>
+                    {% endif %}
+                  </div>
+                  <div class="process-ig-options" role="group" aria-describedby="processIgSettingHelp">
+                    <label class="process-ig-option">
+                      <input type="radio" name="integrity_guard_visibility" value="default"
+                        {% if form.integrity_guard_visibility.value == "default" or not form.integrity_guard_visibility.value %}checked{% endif %}>
+                      <span class="process-ig-option-pill">
+                        <span data-project-language="sv" {% if form.candidate_language.value == "en" %}hidden{% endif %}>Företagets inställning</span>
+                        <span data-project-language="en" {% if form.candidate_language.value != "en" %}hidden{% endif %}>Company setting</span>
+                        <i class="fa-solid fa-check" aria-hidden="true"></i>
+                      </span>
+                    </label>
+                    <label class="process-ig-option">
+                      <input type="radio" name="integrity_guard_visibility" value="on"
+                        {% if form.integrity_guard_visibility.value == "on" %}checked{% endif %}>
+                      <span class="process-ig-option-pill">
+                        <span data-project-language="sv" {% if form.candidate_language.value == "en" %}hidden{% endif %}>På</span>
+                        <span data-project-language="en" {% if form.candidate_language.value != "en" %}hidden{% endif %}>On</span>
+                        <i class="fa-solid fa-check" aria-hidden="true"></i>
+                      </span>
+                    </label>
+                    <label class="process-ig-option">
+                      <input type="radio" name="integrity_guard_visibility" value="off"
+                        {% if form.integrity_guard_visibility.value == "off" %}checked{% endif %}>
+                      <span class="process-ig-option-pill">
+                        <span data-project-language="sv" {% if form.candidate_language.value == "en" %}hidden{% endif %}>Av</span>
+                        <span data-project-language="en" {% if form.candidate_language.value != "en" %}hidden{% endif %}>Off</span>
+                        <i class="fa-solid fa-check" aria-hidden="true"></i>
+                      </span>
+                    </label>
+                  </div>
+                </fieldset>
               </div>
-              {% if form.integrity_guard_visibility.errors %}
-                <div class="text-danger small mt-2">{{ form.integrity_guard_visibility.errors|striptags }}</div>
-              {% endif %}
-            </fieldset>
+            </section>
 
             <div class="d-flex align-items-center gap-2 mt-4">
               <button class="btn btn-primary" type="submit">
