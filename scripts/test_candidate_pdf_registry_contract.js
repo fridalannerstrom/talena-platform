@@ -37,6 +37,20 @@ assert.ok(js.includes('"[data-after-interview-regenerate]"') &&
   "Active After interview reports must pair PDF and refresh in their title toolbar");
 assert.ok(!js.includes('["interview","after-interview"]'),
   "Retired Interview summary must not be offered as a PDF option");
+// #483: Svarsstilar is the dedicated Personality results subtab.
+const personalityPage = read("templates/customer/processes/partials/candidate_insights/personality/_results.html");
+const responseContent = read("templates/customer/processes/partials/candidate_insights/personality/_response_styles_content.html");
+assert.ok(personalityPage.includes('id="personality-response-styles-view"') &&
+  personalityPage.includes('personality/_response_styles_content.html'));
+assert.ok(js.includes('id: "personality-response-styles"') &&
+  js.includes('selector: "#personality-response-styles-view"'));
+assert.ok(js.includes('!element.querySelector("[data-response-styles-unavailable]")'),
+  "No empty Response styles report when no results exist");
+assert.ok(responseContent.includes('{% trans "Response styles" %}') &&
+  responseContent.includes('Möjliga nyanser att utforska'));
+assert.ok(css.includes('data-candidate-pdf-report="personality-response-styles"') &&
+  css.includes(".talena-candidate-pdf-heading"),
+  "Keep the real Svarsstilar heading, not an extra generic PDF heading");
 const afterInterviewCards = read("static/js/talena/after-interview-tabs.js");
 assert.ok(afterInterviewCards.includes('button.dataset.afterInterviewRegenerate = blockKey;') &&
   afterInterviewCards.includes('toolbar.appendChild(button);') &&
@@ -89,7 +103,7 @@ assert.ok(js.includes("workspace.querySelector(item.selector)"));
 assert.ok(js.includes("if (!item || !isReady(item)) throw Error(copy.unavailable)"));
 for (const id of [
   "overview", "personality", "motivation", "cognitive", "team-report",
-  "leadership-report", "derailment-report", "prepare-interview",
+  "leadership-report", "derailment-report", "personality-response-styles", "prepare-interview",
   "after-overview", "manager-report"
 ]) {
   assert.ok(js.includes(id), "Registry missing " + id);
