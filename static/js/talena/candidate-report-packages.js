@@ -4,8 +4,8 @@
   if (window.TalenaReportPackages) return;
   const sv = (document.documentElement.lang || "").startsWith("sv");
   const t = sv ? {
-    open:"Skapa rapportpaket",title:"Välj resultatrapporter",description:"Välj vilka testresultat som ska ingå och dra dem i önskad ordning. Du kan också använda pilarna.",
-    incomplete:"Endast rapporter med testresultat visas. AI-tolkningar och andra AI-insikter ingår inte.",all:"Välj alla",none:"Avmarkera alla",
+    open:"Skapa rapportpaket",title:"Välj rapporter",description:"Välj färdiga rapporter och dra dem i önskad ordning. Du kan också använda pilarna.",
+    incomplete:"AI-tolkningar och AI-insikter ingår inte. Intervjufrågor och Svarsstilar kan väljas.",managerExcluded:"Chefsrapporten ingår inte i rapportpaketet. Ladda ner den separat.",all:"Välj alla",none:"Avmarkera alla",
     up:"Flytta upp",down:"Flytta ned",pdf:"En sammanslagen PDF",zip:"Separata PDF:er i ZIP",
     generate:"Ladda ner",close:"Stäng",count:"Valda rapporter",empty:"Inga färdiga rapporter.",
     toc:"Innehåll",cover:"Rapportpaket",progress:"Skapar rapport",preparing:"Sammanställer filer...",
@@ -16,8 +16,8 @@
     managerHint:"Chefsrapportens PDF-underlag kunde inte förberedas. Prova rapportens egen PDF-knapp.",
     combineError:"De enskilda rapporterna skapades, men paketet kunde inte sättas ihop."
   } : {
-    open:"Create report package",title:"Select result reports",description:"Select which assessment results to include and drag to reorder, or use the arrow buttons.",
-    incomplete:"Only reports with assessment results are shown. AI interpretations and insights are not included.",all:"Select all",none:"Deselect all",
+    open:"Create report package",title:"Select reports",description:"Select completed reports and drag to reorder, or use the arrow buttons.",
+    incomplete:"AI interpretations and insights are excluded. Interview questions and Response styles can be included.",managerExcluded:"The Manager report is not part of the report package. Download it separately.",all:"Select all",none:"Deselect all",
     up:"Move up",down:"Move down",pdf:"One merged PDF",zip:"Separate PDFs in ZIP",
     generate:"Download",close:"Close",count:"Selected reports",empty:"No completed reports.",
     toc:"Contents",cover:"Report package",progress:"Creating report",preparing:"Combining files...",
@@ -29,11 +29,18 @@
     combineError:"The individual PDFs were created, but the package could not be assembled."
   };
   const MAX_REPORTS = 20, MAX_BYTES = 100 * 1024 * 1024, MAX_PAGES = 450, ROWS = 17;
-  // Only the three assessment RESULTS PDFs may be bundled. Never rely on
-  // titles, substrings or current UI tabs: future AI report types are denied
-  // by default. Individual PDF exports retain their full registry.
-  const PACKAGE_RESULT_REPORT_IDS = new Set([
-    "personality-results", "motivation-results", "cognitive-results"
+  // #483: Keep results, question guides, static profiles, candidate
+  // reflections and the static response-style PDF. Explicitly exclude
+  // standalone AI interpretations, post-interview AI and the manager report.
+  // This is deliberately an allowlist: newly added AI reports cannot slip in.
+  // Interview questions are explicitly allowed as a separate product decision.
+  const PACKAGE_ALLOWED_REPORT_IDS = new Set([
+    "overview",
+    "personality-results", "personality-questions", "personality-candidate-reflection",
+    "motivation-results", "motivation-questions", "motivation-candidate-reflection",
+    "cognitive-results", "cognitive-questions", "cognitive-candidate-reflection",
+    "team-report", "leadership-report", "derailment-report",
+    "prepare-interview"
   ]);
   let workspace=null, trigger=null, dialog=null, list=null, order=[], chosen=new Set(), busy=false, failedReportId=null;
   const element=(tag,cls,text)=>{
@@ -44,7 +51,9 @@
   const current=()=>workspace?.isConnected && document.querySelector("[data-candidate-insights-workspace]")===workspace;
   const available=()=>current()&&api()
     ? api().getAvailableReports().filter(r=>
-        PACKAGE_RESULT_REPORT_IDS.has(r.id) && /^[a-z0-9-]+$/.test(r.id)
+        PACKAGE_ALLOWED_REPORT_IDS.has(r.id) && /^[a-z0-9-]+$/.test(r.id)
+      ).map(r=>r.id==="prepare-interview"
+        ? {...r,title:sv?"Svarsstilar":"Response styles"} : r
       ).slice(0,MAX_REPORTS) : [];
   const status=(message,error=false)=>{
     const e=dialog?.querySelector("[data-package-status]");
@@ -125,7 +134,8 @@
     x.setAttribute("aria-label",t.close);x.addEventListener("click",close);
     head.append(h,x);
     dialog.append(head,element("p","talena-package-description",t.description),
-      element("p","talena-package-hint",t.incomplete));
+      element("p","talena-package-hint",t.incomplete),
+      element("p","talena-package-hint talena-package-manager-hint",t.managerExcluded));
     if(!reports.length)dialog.append(element("p","",t.empty));
     else{
       const buttons=element("div","talena-package-select");
