@@ -153,11 +153,13 @@ class IntegrityGuardVisibilityTests(TestCase):
 
         self.client.post(project_url, {"integrity_guard_visible": "0"})
         self.process.refresh_from_db()
+        self.invitation.refresh_from_db()
         self.assertIs(self.process.integrity_guard_visible_override, False)
         self.assertFalse(self.invitation.integrity_guard_display["visible"])
 
         self.client.post(project_url, {"integrity_guard_visible": "default"})
         self.process.refresh_from_db()
+        self.invitation.refresh_from_db()
         self.assertIsNone(self.process.integrity_guard_visible_override)
         self.assertFalse(self.invitation.integrity_guard_display["visible"])
 
@@ -183,6 +185,7 @@ class IntegrityGuardVisibilityTests(TestCase):
             "accounts:project_integrity_guard_visibility", args=[self.process.pk],
         )
         self.client.post(url, {"integrity_guard_visible": "0"})
+        self.invitation.refresh_from_db()
         self.assertFalse(self.invitation.integrity_guard_display["visible"])
         self.assertTrue(other_inv.integrity_guard_display["visible"])
         other_process.refresh_from_db()
