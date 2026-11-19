@@ -107,9 +107,7 @@ class CustomerProjectIntegrityGuardWizardTests(TestCase):
         self.assertTrue(self.company.integrity_guard_visible)
 
     def test_wizard_missing_choice_inherits_company_and_invalid_is_rejected(self):
-        data = dict(self.data)
-        data.pop("integrity_guard_visibility")
-        response = self._post(**data)
+        response = self._post(integrity_guard_visibility="")
         self.assertEqual(response.status_code, 302)
         project = TestProcess.objects.get(name=self.data["name"])
         self.assertIsNone(project.integrity_guard_visible_override)
