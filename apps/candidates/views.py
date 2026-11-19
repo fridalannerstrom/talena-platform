@@ -1,5 +1,7 @@
+from types import SimpleNamespace
+
 from django.contrib.auth.decorators import login_required
-from django.db.models import Count, Prefetch, Q
+from django.db.models import Prefetch, Q
 from django.shortcuts import render
 
 from apps.projects.models import ProjectMeta
@@ -234,7 +236,7 @@ def _live_membership_test_overview(invitation, project_meta_by_key):
         if existing is None or TEST_STATUS_RANK[status] > TEST_STATUS_RANK[existing]:
             activity_status_by_key[key] = status
 
-    for key in included_keys | activity_status_by_key.keys():
+    for key in included_keys | set(activity_status_by_key):
         if key not in statuses:
             continue
         status = activity_status_by_key.get(
@@ -368,8 +370,6 @@ def candidate_list(request):
             (meta.account_code, meta.project_code): meta
             for meta in ProjectMeta.objects.filter(meta_query)
         }
-
-    from types import SimpleNamespace
 
     # One display row per accessible project membership, even when multiple
     # projects share the same global Candidate ID/email.
