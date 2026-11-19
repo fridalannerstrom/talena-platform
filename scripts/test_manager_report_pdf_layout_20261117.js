@@ -48,6 +48,33 @@ for (const selector of [
 assert.ok(engine.includes("getManagerReportPageGuides(opts.node, source, maxHeight)"));
 assert.ok(engine.includes('".after-interview-manager-report__motivator, "'));
 assert.ok(engine.includes('".after-interview-manager-report__interview-comments, "'));
+// A4 design is exclusive to the offscreen PDF clone: dark headings, calm
+// section breaks, consistent card padding and no coral-tinted main headings.
+const pdfLayoutStart = manager.indexOf("/* Manager PDF polish only:");
+const pdfLayoutEnd = manager.indexOf("/* Live manager report:", pdfLayoutStart);
+assert.ok(pdfLayoutStart > 0 && pdfLayoutEnd > pdfLayoutStart,
+  "Manager PDF must have its own isolated typography and spacing rules");
+const print = manager.slice(pdfLayoutStart, pdfLayoutEnd);
+for (const selector of [
+  "__skills-title", "__motivation-title", "__personality-title",
+  "__wellbeing-title", "__personality-theme", "__interview-comments",
+  "__guide", "__guide-summary", "__personality-part-text"
+]) {
+  assert.ok(print.includes("after-interview-manager-report" + selector),
+    "Missing print-only hierarchy for " + selector);
+}
+assert.ok(print.includes("color: var(--manager-pdf-ink) !important") &&
+  print.includes("--manager-pdf-ink: #24211f"),
+  "Main headings must use dark neutral ink in the PDF");
+assert.ok(manager.includes('heading.style.setProperty("color", "#24211f", "important")'),
+  "Brand colours should never override dark PDF headings");
+assert.ok(print.includes("break-inside: avoid"),
+  "Card layouts must discourage internal page splits");
+assert.ok(engine.includes("protect(guide, guide, 0.95)"),
+  "Keep the entire expanded guide on one A4 page whenever it fits");
+assert.ok(engine.includes('".after-interview-manager-report__guide, .after-interview-manager-report__guide-level, "'),
+  "The PDF slicer needs a natural breakpoint before the guide");
+
 assert.ok(engine.includes("end - start <= maxHeight * maxPageFraction"),
   "Content larger than one page must be allowed to split rather than hang.");
 
@@ -77,6 +104,28 @@ for (const slice of slices) {
   }
 }
 assert.equal(cursor, 2670);
+
+// An expanded interpretation guide that straddles the A4 boundary should
+// move intact to the next sheet, not leave its border/title on the prior page.
+const guide = {start: 745, end: 1270};
+const guideSlices = calculatePageSlices(
+  2430, 1000, [190, 410, 745, 790, 910, 1120, 1270, 1490, 1650, 1940, 2170],
+  [guide, {start: 1490, end: 1650}]
+);
+let boundary = 0;
+for (const page of guideSlices) {
+  boundary += page.height;
+  if (boundary < 2430) {
+    assert.ok(boundary <= guide.start || boundary >= guide.end,
+      "A4 cut through the interpretation guide");
+    assert.ok(boundary <= 1490 || boundary >= 1650,
+      "A4 cut through a completed personality/theme card");
+  }
+}
+assert.equal(boundary, 2430);
+assert.equal(guideSlices[0].height, guide.start,
+  "Move the guide to the next page rather than strand its heading");
+
 
 // Visual hierarchy in Talena is deliberately separate from PDF layout.
 assert.ok(manager.includes("padding: clamp(1.65rem, 2.7vw, 2.15rem)"),
