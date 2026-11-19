@@ -30,6 +30,9 @@
     "candidate-reflection": "Kandidatens reflektioner",
     "team-report": "Individuell teamprofil",
     "leadership-report": "Ledarskapsrapport", "derailment-report": "Urspårningsrapport",
+    "personality-detailed-results": "Personlighet · Karaktärsdrags- och indikatorprofil",
+    "personality-quick-results": "Personlighet · Karaktärsdragsprofil",
+    "personality-summary-results": "Personlighet · Resultatsammanfattning",
     "personality-response-styles": "Svarsstilar",
     "combined-interview-questions": "Alla intervjufrågor",
     "prepare-interview": "Inför intervju", "after-overview": "Helhetsbild",
@@ -42,6 +45,9 @@
     "candidate-reflection": "Candidate reflections",
     "team-report": "Individual team profile",
     "leadership-report": "Leadership report", "derailment-report": "Derailment report",
+    "personality-detailed-results": "Personality · Trait and indicator profile",
+    "personality-quick-results": "Personality · Trait profile",
+    "personality-summary-results": "Personality · Results summary",
     "personality-response-styles": "Response styles",
     "combined-interview-questions": "All interview questions",
     "prepare-interview": "Prepare for interview", "after-overview": "Overall picture",
@@ -65,6 +71,20 @@
         outdated: element => !!element.querySelector('[data-has-result="true"][data-status="outdated"]')
       }))
     ),
+    // Report-package exports must be independent of which of the three
+    // Personality results tabs happens to be open on screen.
+    // Unlike "personality-results" (the existing full-tab PDF action),
+    // each entry clones only its own rendered subview and removes its hidden
+    // attribute in copyContent without touching the live candidate page.
+    { id: "personality-detailed-results",
+      selector: "#personality-detailed-view",
+      ready: element => !!element.querySelector(".personality-trait-card") },
+    { id: "personality-quick-results",
+      selector: "#personality-quick-view",
+      ready: element => !!element.querySelector(".personality-quick-row") },
+    { id: "personality-summary-results",
+      selector: "#personality-descriptions-view",
+      ready: element => !!element.querySelector(".personality-description-quick-row") },
     { id: "team-report", selector: "#reports-subpanel-team-report",
       ready: element => !!element.querySelector(".team-styles-section") },
     { id: "leadership-report", selector: "#reports-subpanel-leadership-report",
@@ -211,7 +231,7 @@
     // The combined question guide is its own selectable report. Svarsstilar
     // remains a clean standalone report and never embeds those questions.
 
-    if (reportId === "personality-results") {
+    if (["personality-results", "personality-quick-results"].includes(reportId)) {
       // The web quick-profile colours its middle-to-score path with CSS
       // :has([data-score]). The PDF clone later strips data-* attributes,
       // so those web selectors cannot work on the exported copy. Resolve
