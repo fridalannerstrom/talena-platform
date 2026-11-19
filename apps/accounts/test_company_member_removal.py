@@ -98,6 +98,7 @@ class CompanyMemberRemovalTests(TestCase):
         self.assertEqual(project.company, self.company)
         self.assertEqual(project.created_by, self.member)
         self.assertEqual(project.org_unit, self.unit)
+        self.assertFalse(project.project_completion_notifications_enabled)
 
     def test_company_user_detail_shows_remove_control(self):
         response = self.client.get(reverse(
