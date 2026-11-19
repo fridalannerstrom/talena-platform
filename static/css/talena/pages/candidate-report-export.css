@@ -1051,6 +1051,82 @@
 }
 
 
+/* Personality result package exports: each checkbox represents a real result
+   view, cloned independently even when its on-screen tab is inactive.
+   The original full Personality PDF styling remains untouched. */
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-detailed-results"]
+  .talena-candidate-pdf-body.candidate-insight-page,
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-quick-results"]
+  .talena-candidate-pdf-body.candidate-insight-page,
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-summary-results"]
+  .talena-candidate-pdf-body.candidate-insight-page {
+  border:0 !important;
+  border-radius:0 !important;
+  box-shadow:none !important;
+  padding:0 !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-detailed-results"]
+  .personality-trait-card__main,
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-detailed-results"]
+  .personality-trait-card__summary,
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-detailed-results"]
+  .personality-indicator-row,
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-summary-results"]
+  .personality-description-quick-row {
+  break-inside:avoid;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-quick-results"]
+  .personality-quick-view {
+  display:block !important;
+  margin-top:14px !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-quick-results"]
+  .personality-quick-section {
+  border:0 !important;
+  border-radius:0 !important;
+  box-shadow:none !important;
+  overflow:visible !important;
+  margin-bottom:19px !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-quick-results"]
+  .personality-quick-section__header {
+  border:0 !important;
+  border-radius:9px !important;
+  padding:11px 14px !important;
+  margin-bottom:5px !important;
+  background:#f7f5f3 !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-quick-results"]
+  .personality-quick-section__title,
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-quick-results"]
+  .personality-quick-row__title {
+  font-size:12px !important;
+  line-height:1.4 !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-quick-results"]
+  .personality-quick-row {
+  padding:12px 14px !important;
+  gap:13px !important;
+  border-color:#ece7e3 !important;
+  break-inside:avoid;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-quick-results"]
+  .personality-quick-row__pole p {
+  font-size:11px !important;
+  line-height:1.45 !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-quick-results"]
+  .personality-quick-scale__segment.talena-personality-pdf-path {
+  background:#ff8a7d !important;
+}
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-quick-results"]
+  .personality-quick-scale__segment.talena-personality-pdf-selected {
+  position:relative;
+  height:12px !important;
+  background:#f25549 !important;
+  box-shadow:0 0 0 2px #fff,0 0 0 3px rgba(242,85,73,.38) !important;
+}
+
 /* Personality interview PDF deliberately mirrors the approved Motivation and
    Cognitive designs. Preserve personality-specific selected-trait context. */
 /* Personality interview questions PDF: remove the screen's full-page frame
