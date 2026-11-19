@@ -83,6 +83,29 @@ for (const phrase of [
 assert(css.includes(".wizard-ig-explain-link"));
 assert(css.includes(".wizard-ig-info-modal .wizard-ig-modal-checks"));
 
+assert.equal(
+  (finalStep.match(/class="wizard-ig-option-label"/g) || []).length, 3,
+  "Three Integrity Guard choices must have pill labels",
+);
+assert.equal(
+  (finalStep.match(/class="fa-solid fa-check wizard-ig-choice-check"/g) || []).length, 3,
+  "Each Integrity Guard choice must show a check when selected",
+);
+assert(css.includes(".wizard-ig-option input:checked + .wizard-ig-option-label") ||
+       css.includes(".wizard-ig-option input:checked + .wizard-ig-option-label"),
+       "Checked choice must receive selected styling");
+assert(css.includes(".wizard-ig-choice-check"), "Selected checkmark style missing");
+assert(css.includes("height: 48px !important;"), "Account, name and labels must have equal height");
+assert(css.includes(".wizard-details-basics .wizard-account-field select.form-select"),
+       "Account select equal-height rule missing");
+assert(css.includes(".wizard-details-basics #processNameInput.form-control"),
+       "Project name equal-height rule missing");
+assert(css.includes(".wizard-details-basics #processLabelsInput.form-control"),
+       "Labels equal-height rule missing");
+const igLinkStyle = css.slice(css.lastIndexOf("#processCreateWizardForm .wizard-ig-explain-link {"));
+assert(igLinkStyle.includes("margin: 0;"), "Integrity Guard help link must have no left margin");
+assert(!igLinkStyle.includes("margin: 0 0 0 0.3rem;"), "Legacy left margin must be removed");
+
 assert(css.includes(".wizard-setting-row"));
 assert(css.includes(".candidate-language-section"));
 
