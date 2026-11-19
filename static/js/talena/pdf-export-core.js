@@ -477,7 +477,10 @@
     const cognitiveResultsPdf = opts.continuous &&
       opts.node?.closest?.('[data-candidate-pdf-report="cognitive-results"]');
     const personalityResultsPdf = opts.continuous &&
-      opts.node?.closest?.('[data-candidate-pdf-report="personality-results"]');
+      ["personality-results", "personality-detailed-results",
+       "personality-quick-results", "personality-summary-results"].some(
+        id => opts.node?.closest?.('[data-candidate-pdf-report="' + id + '"]')
+      );
     const personalityQuickPdf = personalityResultsPdf &&
       opts.node?.querySelector?.(".personality-quick-view");
     const personalityDescriptionsPdf = personalityResultsPdf &&
