@@ -63,6 +63,11 @@
 .talena-candidate-pdf-stage .talena-candidate-pdf-heading {
   font-size:23px; font-weight:700; margin:0 0 23px;
 }
+/* Response styles already has its own correct heading in the Personality
+   results subtab. Avoid printing a second generic "Svarsstilar" heading. */
+.talena-candidate-pdf-stage[data-candidate-pdf-report="personality-response-styles"] .talena-candidate-pdf-heading {
+  display:none !important;
+}
 /* PDF export inserts its own H1 above the cloned report.
    Hide the on-screen titles in exported Team, Leadership and Derailment
    reports to avoid duplicate headings. Keep the actual report content. */
