@@ -21,12 +21,12 @@
       </h1>
 
       <p class="candidate-directory__description">
-        {% trans "All candidates you have access to across projects and historical imports." %}
+        {% trans "Every project entry is shown separately, including previous test results for returning candidates." %}
       </p>
     </div>
 
     <div class="candidate-directory__count">
-      {% trans "Candidates" %}: {{ candidates|length }}
+      {% trans "Candidates" %}: {{ unique_candidate_count }} · {% trans "Project entries" %}: {{ candidates|length }}
     </div>
   </header>
 
@@ -98,7 +98,7 @@
           <tr>
             <th>{% trans "Candidate" %}</th>
             <th>{% trans "Teams" %}</th>
-            <th>{% trans "Projects" %}</th>
+            <th>{% trans "Project" %}</th>
             <th>{% trans "Assessments" %}</th>
             <th>{% trans "Latest activity" %}</th>
             <th class="text-end">{% trans "Actions" %}</th>
@@ -106,7 +106,8 @@
         </thead>
 
         <tbody>
-          {% for candidate in candidates %}
+          {% for entry in candidates %}
+            {% with candidate=entry.candidate %}
             <tr data-candidate-row>
 
               <td>
@@ -156,19 +157,18 @@
 
 
               <td>
-                <span>
-                  {% blocktrans count process_count=candidate.total_process_count|default:0 %}
-                    {{ process_count }} project
-                  {% plural %}
-                    {{ process_count }} projects
-                  {% endblocktrans %}
-                </span>
+                <span class="candidate-directory__project-name">{{ entry.project.name }}</span>
+                {% if entry.project.is_historical %}
+                  <span class="candidate-directory__project-type">{% trans "Historical" %}</span>
+                {% elif entry.project.is_archived %}
+                  <span class="candidate-directory__project-type">{% trans "Archived" %}</span>
+                {% endif %}
               </td>
 
 
               <td>
                 <div class="candidate-test-overview">
-                  {% for test in candidate.test_overview %}
+                  {% for test in entry.test_overview %}
                     <span
                       class="candidate-test-status is-{{ test.status }}"
                       title="{{ test.name }}: {% if test.status == 'completed' %}{% trans 'Completed' %}{% elif test.status == 'pending' %}{% trans 'Sent or started' %}{% else %}{% trans 'Not sent' %}{% endif %}"
@@ -193,8 +193,8 @@
 
 
               <td>
-                {% if candidate.latest_activity %}
-                  {{ candidate.latest_activity|date:"Y-m-d" }}
+                {% if entry.latest_activity %}
+                  {{ entry.latest_activity|date:"Y-m-d" }}
                 {% else %}
                   <span class="candidate-directory__muted">—</span>
                 {% endif %}
@@ -202,9 +202,9 @@
 
 
               <td class="text-end">
-                {% if candidate.latest_process_id %}
+                {% if entry.project.pk %}
                   <a
-                    href="{% url 'processes:process_detail' candidate.latest_process_id %}?open_candidate={{ candidate.id }}"
+                    href="{% url 'processes:process_detail' entry.project.pk %}?open_candidate={{ candidate.id }}"
                     class="candidate-directory__view"
                   >
                     {% trans "View" %}
@@ -221,6 +221,7 @@
               </td>
 
             </tr>
+            {% endwith %}
 
           {% empty %}
             <tr>
