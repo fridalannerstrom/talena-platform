@@ -367,7 +367,7 @@
               {% endif %}
 
               <div class="row g-3">
-                <div class="col-12 col-lg-7">
+                <div class="col-12">
                   <label class="form-label" for="processNameInput">{% trans "Project name" %}</label>
                   <input type="text" name="name" id="processNameInput"
                          class="form-control form-control-lg"
@@ -380,7 +380,7 @@
                     {% trans "This is only used internally. You can leave it empty and Talena will create a name." %}
                   </div>
                 </div>
-                <div class="col-12 col-lg-5">
+                <div class="col-12">
                   <label class="form-label" for="processLabelsInput">{% trans "Labels" %}</label>
                   <input type="text" name="labels_text" id="processLabelsInput"
                          class="form-control form-control-lg"
@@ -488,6 +488,11 @@
                       {% else %}
                         Choose whether to show Integrity Guard in this project.
                       {% endif %}
+                      <button type="button" class="wizard-ig-explain-link"
+                              data-bs-toggle="modal" data-bs-target="#wizardIgInfoModal"
+                              aria-haspopup="dialog">
+                        {% if wizard_language|slice:":2" == "sv" %}Vad är Integrity Guard?{% else %}What is Integrity Guard?{% endif %}
+                      </button>
                     </p>
                     {% if form.integrity_guard_visibility.errors %}
                       <div class="text-danger small mt-1">{{ form.integrity_guard_visibility.errors }}</div>
@@ -532,6 +537,88 @@
     </div>
   </form>
 
+</div>
+
+{# Project-creation help only. This dialog does not submit or change any settings. #}
+<div class="modal fade wizard-ig-info-modal" id="wizardIgInfoModal" tabindex="-1"
+     aria-labelledby="wizardIgInfoTitle" aria-describedby="wizardIgInfoIntro">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+    <div class="modal-content">
+      <div class="modal-header wizard-ig-modal-header">
+        <div>
+          <div class="wizard-ig-modal-eyebrow">
+            {% if wizard_language|slice:":2" == "sv" %}Om testövervakning{% else %}About assessment monitoring{% endif %}
+          </div>
+          <h2 class="modal-title wizard-ig-modal-title" id="wizardIgInfoTitle">Integrity Guard</h2>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                aria-label="{% if wizard_language|slice:":2" == "sv" %}Stäng{% else %}Close{% endif %}"></button>
+      </div>
+      <div class="modal-body wizard-ig-modal-body">
+        {% if wizard_language|slice:":2" == "sv" %}
+          <p class="wizard-ig-modal-intro" id="wizardIgInfoIntro">
+            Integrity Guard visar tekniska signaler från tester som kan vara värda att följa upp.
+            Det kan till exempel handla om uppkoppling, enheter, byte av flik eller svarsmönster.
+          </p>
+          <div class="wizard-ig-modal-note">
+            <strong>En avvikelse är inte bevis på fusk.</strong>
+            Resultaten är ett stöd för uppföljning, inte ett facit. En flagga kan ha flera
+            naturliga förklaringar och behöver alltid bedömas i sitt sammanhang.
+          </div>
+          <h3 class="wizard-ig-modal-heading">Vad tittar Integrity Guard på?</h3>
+          <div class="wizard-ig-modal-checks">
+            <div><strong>IP-adresser</strong><p>Ovanliga IP-mönster. Byte mellan wifi och mobildata eller tester från olika platser kan vara naturliga förklaringar.</p></div>
+            <div><strong>Använda enheter</strong><p>Om flera enheter verkar ha använts. Exempelvis tekniska problem eller behov av ett annat hjälpmedel kan förklara detta.</p></div>
+            <div><strong>Flikar och webbläsare</strong><p>Upprepade eller längre byten. Det kan bero på avbrott eller tillåtna digitala hjälpmedel.</p></div>
+            <div><strong>Svarsmönster</strong><p>Ovanliga svarstider och mönster. Pauser, eftertanke och varierande svårighetsgrad kan påverka resultatet.</p></div>
+          </div>
+          <h3 class="wizard-ig-modal-heading">Så tolkar du resultatet</h3>
+          <p>
+            Integrity Guard utvecklas och valideras fortfarande. Granska endast de kontroller
+            som faktiskt rapporterats för respektive test. Personlighets- och motivationstester
+            kan innebära eftertanke och pauser. I numeriska tester kan tillåtna hjälpmedel som
+            miniräknare eller kladdpapper förklara flikbyten, och adaptiva färdighetstester kan
+            ge varierande svarstider.
+          </p>
+          <p class="mb-0">
+            Vid flera flaggor kan det vara motiverat att ställa följdfrågor. Diskutera
+            oklarheter sakligt och dra inga automatiska slutsatser om personen.
+          </p>
+        {% else %}
+          <p class="wizard-ig-modal-intro" id="wizardIgInfoIntro">
+            Integrity Guard highlights technical signals during assessments that may warrant
+            follow-up, such as connection patterns, devices, browser switching or response patterns.
+          </p>
+          <div class="wizard-ig-modal-note">
+            <strong>A flag is not proof of cheating.</strong>
+            These findings support follow-up, not a definitive judgment. A flag can have
+            several innocent explanations and should always be interpreted in context.
+          </div>
+          <h3 class="wizard-ig-modal-heading">What does Integrity Guard check?</h3>
+          <div class="wizard-ig-modal-checks">
+            <div><strong>IP addresses</strong><p>Unusual IP patterns, which may reflect changing networks or working from different locations.</p></div>
+            <div><strong>Devices</strong><p>Signs that multiple devices were used, potentially due to technical issues or assistive needs.</p></div>
+            <div><strong>Tabs and browsers</strong><p>Repeated or extended switching, which may have practical explanations, including permitted digital aids.</p></div>
+            <div><strong>Response patterns</strong><p>Unusual response timing or patterns, which can reflect pauses, reflection or differences in difficulty.</p></div>
+          </div>
+          <h3 class="wizard-ig-modal-heading">How to interpret the results</h3>
+          <p>
+            Integrity Guard is still being developed and validated. Review only the checks actually
+            reported for each assessment. Personality and motivation tests may involve pauses and
+            reflection. Permitted aids such as calculators or scrap paper can explain some
+            switching during numerical tests, while adaptive ability tests may produce variable
+            response times.
+          </p>
+          <p class="mb-0">When multiple flags appear, ask neutral follow-up questions and avoid drawing automatic conclusions about the person.</p>
+        {% endif %}
+      </div>
+      <div class="modal-footer wizard-ig-modal-footer">
+        <button type="button" class="btn btn-dark" data-bs-dismiss="modal">
+          {% if wizard_language|slice:":2" == "sv" %}Stäng{% else %}Close{% endif %}
+        </button>
+      </div>
+    </div>
+  </div>
 </div>
 
 {{ purpose_recommended_tests|json_script:"purposeRecommendedTestsData" }}
