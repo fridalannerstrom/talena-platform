@@ -120,7 +120,7 @@ assert.ok(js.includes("await new Promise(resolve=>requestAnimationFrame(resolve)
   "Show updated progress before each expensive PDF rendering pass");
 assert.ok(css.includes(".talena-package-row.is-failed"),
   "Highlight the failed report so it can be excluded");
-assert.ok(base.includes("20261119-combined-questions-only-6"),
+assert.ok(base.includes("20261119-personality-result-views-7"),
   "Version asset URLs to avoid cached report picker code");
 assert.ok(js.includes('dialog.showModal()')&&js.includes('dialog.addEventListener("cancel"'));
 assert.ok(js.includes('role","status"')&&js.includes('aria-live","polite"'));
