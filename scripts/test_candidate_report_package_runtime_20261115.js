@@ -114,7 +114,7 @@ async function run(format,failIndex,assembleFails=false){
   const pack={
     async ensure(){},
     async zipFiles(entries){assembled++;assert.equal(entries.length,3);if(assembleFails)throw Error("zip failure");return new Blob(["zip"],{type:"application/zip"});},
-    async merge(entries){assembled++;assert.equal(entries.length,5);if(assembleFails)throw Error("pdf failure");return new Blob(["pdf"],{type:"application/pdf"});},
+    async merge(entries){assembled++;assert.equal(entries.length,3);if(assembleFails)throw Error("pdf failure");return new Blob(["pdf"],{type:"application/pdf"});},
     download(){downloaded++;}
   };
   const logs=[];
