@@ -380,16 +380,26 @@
       ? values.managerReportBrandDark : primary;
     const light = /^#[\da-f]{6}$/i.test(values.managerReportBrandLight || "")
       ? values.managerReportBrandLight : "#FFF0ED";
-    // PDF-only color overrides: never alter the live manager report.
+    // Keep brand tones in the cover and small accents. Headings in the
+    // PDF clone must have consistently dark ink, irrespective of brand hue.
     element.style.setProperty("--talena-coral", primary);
     element.style.setProperty("--talena-coral-strong", dark);
     element.style.setProperty("--talena-coral-soft", light);
-    element.style.borderTop = "6px solid " + primary;
+    element.style.setProperty("--manager-pdf-ink", "#24211f");
+    element.style.borderTop = "3px solid " + primary;
     element.querySelectorAll(
-      ".after-interview-tab-card__title, .after-interview-manager-report__skills-title, " +
+      ".after-interview-tab-card__title, " +
+      ".after-interview-manager-report__skills-title, " +
       ".after-interview-manager-report__motivation-title, " +
-      ".after-interview-manager-report__personality-title"
-    ).forEach((heading) => { heading.style.color = dark; });
+      ".after-interview-manager-report__personality-title, " +
+      ".after-interview-manager-report__wellbeing-title, " +
+      ".after-interview-manager-report__skill-title, " +
+      ".after-interview-manager-report__personality-theme-title, " +
+      ".after-interview-manager-report__guide-summary, " +
+      ".after-interview-manager-report__interview-comments-title"
+    ).forEach((heading) => {
+      heading.style.setProperty("color", "#24211f", "important");
+    });
     const cover = buildManagerReportCover(root);
     element.parentElement.insertBefore(cover, element);
     await window.TalenaPdfExport.exportSections(
@@ -2080,6 +2090,139 @@
       .after-interview-manager-report__interview-comments {
         margin-top: 1.3rem; break-inside: avoid;
       }
+      /* Manager PDF polish only: all selectors require the A4 clone class.
+         A dark text hierarchy, measured spacing and intact A4 card groups. */
+      __PANEL__ .after-interview-manager-report__pdf-layout {
+        --manager-pdf-ink: #24211f; color: var(--manager-pdf-ink);
+        font-size: .83rem; line-height: 1.62;
+      }
+      __PANEL__ .after-interview-manager-report__pdf-layout
+      .after-interview-tab-card__title {
+        color: var(--manager-pdf-ink) !important;
+        font-size: 1.82rem !important; line-height: 1.18;
+        font-weight: 800; letter-spacing: -.035em; margin-bottom: .9rem;
+      }
+      __PANEL__ .after-interview-manager-report__pdf-layout
+      .after-interview-manager-report__intro {
+        max-width: none; width: 100%; margin-top: .7rem;
+        color: #48423e; font-size: .81rem; line-height: 1.66;
+      }
+      __PANEL__ .after-interview-manager-report__pdf-layout
+      .after-interview-manager-report__intro-paragraph { margin: 0 0 .78rem; }
+      __PANEL__ .after-interview-manager-report__pdf-layout
+      .after-interview-manager-report__skills,
+      __PANEL__ .after-interview-manager-report__pdf-layout
+      .after-interview-manager-report__motivation,
+      __PANEL__ .after-interview-manager-report__pdf-layout
+      .after-interview-manager-report__personality,
+      __PANEL__ .after-interview-manager-report__pdf-layout
+      .after-interview-manager-report__wellbeing {
+        margin-top: 1.75rem; padding-top: 1.25rem; border-top: 1px solid #ddd8d3;
+      }
+      __PANEL__ .after-interview-manager-report__pdf-layout
+      .after-interview-manager-report__skills-title,
+      __PANEL__ .after-interview-manager-report__pdf-layout
+      .after-interview-manager-report__motivation-title,
+      __PANEL__ .after-interview-manager-report__pdf-layout
+      .after-interview-manager-report__personality-title,
+      __PANEL__ .after-interview-manager-report__pdf-layout
+      .after-interview-manager-report__wellbeing-title {
+        color: var(--manager-pdf-ink) !important;
+        font-size: 1.38rem; font-weight: 800; line-height: 1.25;
+        margin: 0 0 .7rem; letter-spacing: -.02em;
+      }
+      __PANEL__ .after-interview-manager-report__pdf-layout
+      .after-interview-manager-report__section-intro {
+        max-width: none; width: 100%; margin: 0 0 1.15rem;
+        color: #55504b; font-size: .81rem; line-height: 1.65;
+      }
+      __PANEL__ .after-interview-manager-report__pdf-layout
+      .after-interview-manager-report__skill { margin: 0 0 1.5rem; }
+      __PANEL__ .after-interview-manager-report__pdf-layout
+      .after-interview-manager-report__skill-title,
+      __PANEL__ .after-interview-manager-report__pdf-layout
+      .after-interview-manager-report__personality-theme-title {
+        color: var(--manager-pdf-ink) !important;
+        font-size: 1.06rem; font-weight: 800; line-height: 1.32;
+        margin-bottom: .55rem; letter-spacing: -.015em;
+      }
+      __PANEL__ .after-interview-manager-report__pdf-layout
+      .after-interview-manager-report__skill-description {
+        max-width: none; margin-bottom: .85rem;
+        color: #504a45; font-size: .8rem; line-height: 1.65;
+      }
+      __PANEL__ .after-interview-manager-report__pdf-layout
+      .after-interview-manager-report__guide {
+        margin-top: 1.15rem; padding: 1.05rem 1.2rem;
+        border-color: #ded9d4; border-radius: 12px; break-inside: avoid;
+      }
+      __PANEL__ .after-interview-manager-report__pdf-layout
+      .after-interview-manager-report__guide-summary {
+        color: var(--manager-pdf-ink) !important;
+        font-size: .93rem; font-weight: 800; line-height: 1.4;
+      }
+      __PANEL__ .after-interview-manager-report__pdf-layout
+      .after-interview-manager-report__guide-intro {
+        color: #514b46; font-size: .78rem; line-height: 1.55;
+      }
+      __PANEL__ .after-interview-manager-report__pdf-layout
+      .after-interview-manager-report__guide-levels { gap: .65rem; margin-top: .9rem; }
+      __PANEL__ .after-interview-manager-report__pdf-layout
+      .after-interview-manager-report__guide-level {
+        padding: .83rem; border-color: #e5e0db;
+      }
+      __PANEL__ .after-interview-manager-report__pdf-layout
+      .after-interview-manager-report__guide-level h5 {
+        color: var(--manager-pdf-ink); line-height: 1.38;
+      }
+      __PANEL__ .after-interview-manager-report__pdf-layout
+      .after-interview-manager-report__guide-level p,
+      __PANEL__ .after-interview-manager-report__pdf-layout
+      .after-interview-manager-report__guide-level ul {
+        color: #514b46; line-height: 1.5;
+      }
+      __PANEL__ .after-interview-manager-report__pdf-layout
+      .after-interview-manager-report__interview-comments {
+        margin-top: 1.3rem; padding: 1.05rem 1.2rem; border-color: #e4dfda;
+      }
+      __PANEL__ .after-interview-manager-report__pdf-layout
+      .after-interview-manager-report__interview-comments-title {
+        color: var(--manager-pdf-ink) !important;
+        font-size: .94rem; font-weight: 800;
+      }
+      __PANEL__ .after-interview-manager-report__pdf-layout
+      .after-interview-manager-report__interview-comments-text {
+        color: #47413c; font-size: .81rem; line-height: 1.65;
+      }
+      __PANEL__ .after-interview-manager-report__pdf-layout
+      .after-interview-manager-report__personality-theme {
+        margin: 0 0 1.05rem; padding: 1.18rem 1.2rem;
+        border-color: #e4dfda; border-radius: 12px; break-inside: avoid;
+      }
+      __PANEL__ .after-interview-manager-report__pdf-layout
+      .after-interview-manager-report__personality-parts { gap: 1.05rem; }
+      __PANEL__ .after-interview-manager-report__pdf-layout
+      .after-interview-manager-report__personality-part + .after-interview-manager-report__personality-part {
+        padding-left: 1.05rem; border-color: #e4dfda;
+      }
+      __PANEL__ .after-interview-manager-report__pdf-layout
+      .after-interview-manager-report__personality-part-title {
+        color: #69554b !important; font-size: .74rem;
+        font-weight: 800; letter-spacing: .055em; margin-bottom: .5rem;
+      }
+      __PANEL__ .after-interview-manager-report__pdf-layout
+      .after-interview-manager-report__personality-part-text {
+        color: #46403b; font-size: .81rem; line-height: 1.65;
+      }
+      __PANEL__ .after-interview-manager-report__pdf-layout
+      .after-interview-manager-report__wellbeing
+      .after-interview-manager-report__personality-advice-text {
+        color: #403a36; font-size: .83rem; line-height: 1.7;
+      }
+      __PANEL__ .after-interview-manager-report__pdf-layout
+      .after-interview-manager-report__wellbeing
+      .after-interview-rich-text__paragraph { margin: 0 0 .9rem; }
+
       /* Live manager report: a clear hierarchy, calm reading rhythm and
          full-width text. Scoped outside the cloned A4 PDF layout. */
       __PANEL__ .after-interview-manager-report:not(.after-interview-manager-report__pdf-layout) {
