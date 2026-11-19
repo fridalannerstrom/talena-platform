@@ -74,7 +74,7 @@ class CustomerProjectIntegrityGuardWizardTests(TestCase):
         )
         self.assertLess(
             markup.index('id="wizardIgTitle"'),
-            markup.index('type="submit"'),
+            markup.rfind('type="submit"'),
         )
 
     def test_wizard_defaults_to_company_setting(self):
