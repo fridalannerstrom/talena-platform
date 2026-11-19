@@ -298,6 +298,42 @@
   </div>
 </div>-->
 
+            {# Talena-only visibility; the customer may choose a project override. #}
+            <fieldset class="wizard-ig-setting mt-4">
+              <div class="wizard-ig-heading">
+                <div>
+                  <legend class="wizard-ig-title mb-1">Integrity Guard</legend>
+                  <p class="wizard-ig-description mb-0" id="wizardIgHelp">
+                    {% if wizard_language|slice:":2" == "sv" %}
+                      Välj om Integrity Guard ska visas i det här projektet i Talena. Övervakningen hos Sova påverkas inte.
+                    {% else %}
+                      Choose whether Integrity Guard is visible in this Talena project. Monitoring in Sova is unaffected.
+                    {% endif %}
+                  </p>
+                </div>
+                <div class="wizard-ig-options" role="group" aria-describedby="wizardIgHelp">
+                  <label class="wizard-ig-option">
+                    <input type="radio" name="integrity_guard_visibility" value="default"
+                      {% if form.integrity_guard_visibility.value == "default" or not form.integrity_guard_visibility.value %}checked{% endif %}>
+                    <span>{% if wizard_language|slice:":2" == "sv" %}Företagets inställning{% else %}Company setting{% endif %}</span>
+                  </label>
+                  <label class="wizard-ig-option">
+                    <input type="radio" name="integrity_guard_visibility" value="on"
+                      {% if form.integrity_guard_visibility.value == "on" %}checked{% endif %}>
+                    <span>{% if wizard_language|slice:":2" == "sv" %}På{% else %}On{% endif %}</span>
+                  </label>
+                  <label class="wizard-ig-option">
+                    <input type="radio" name="integrity_guard_visibility" value="off"
+                      {% if form.integrity_guard_visibility.value == "off" %}checked{% endif %}>
+                    <span>{% if wizard_language|slice:":2" == "sv" %}Av{% else %}Off{% endif %}</span>
+                  </label>
+                </div>
+              </div>
+              {% if form.integrity_guard_visibility.errors %}
+                <div class="text-danger small mt-2">{{ form.integrity_guard_visibility.errors }}</div>
+              {% endif %}
+            </fieldset>
+
             <div class="wizard-actions mt-4">
 <button
   type="button"
@@ -541,6 +577,79 @@
 {{ available_tests|json_script:"availableTestsData" }}
 
 <style>
+/* Compact Integrity Guard display choice in the final customer wizard step. */
+.wizard-ig-setting {
+  min-width: 0;
+  padding: 0.9rem 1.1rem;
+  border: 1px solid #e6e1dc;
+  border-radius: 14px;
+  background: #fff;
+}
+.wizard-ig-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.85rem 1.25rem;
+}
+.wizard-ig-title {
+  float: none;
+  width: auto;
+  padding: 0;
+  font-size: 0.92rem;
+  font-weight: 650;
+  color: #1e1b1a;
+}
+.wizard-ig-description {
+  font-size: 0.78rem;
+  color: #686868;
+  line-height: 1.55;
+}
+.wizard-ig-options {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+.wizard-ig-option {
+  position: relative;
+  margin: 0;
+  cursor: pointer;
+}
+.wizard-ig-option input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+.wizard-ig-option span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 0.38rem 0.75rem;
+  border: 1px solid #e6e1dc;
+  border-radius: 10px;
+  background: #faf9f8;
+  color: #524f4b;
+  font-size: 0.76rem;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: border-color .15s ease, background-color .15s ease;
+}
+.wizard-ig-option input:checked + span {
+  color: #1f1d1b;
+  border-color: #a3a09c;
+  background: #eeece9;
+}
+.wizard-ig-option input:focus-visible + span {
+  outline: 3px solid #e68171;
+  outline-offset: 2px;
+}
+.wizard-ig-option:hover span {
+  border-color: #b3aca6;
+}
+
 
 .wizard-progress {
   display: grid;
