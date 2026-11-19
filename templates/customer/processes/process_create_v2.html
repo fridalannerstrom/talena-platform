@@ -335,6 +335,9 @@
               </p>
             </div>
 
+            <div class="wizard-details-grid">
+              <div class="wizard-details-main">
+
             <!-- Basic details: no nested cards -->
             <section class="wizard-details-section wizard-details-basics" aria-labelledby="wizardBasicHeading">
               <h3 class="wizard-section-title" id="wizardBasicHeading">
@@ -432,6 +435,9 @@
               </div>
             </section>
 
+              </div>
+              <aside class="wizard-details-aside">
+
             <!-- One unified group for all project settings -->
             <section class="wizard-details-section wizard-details-settings" aria-labelledby="wizardSettingsHeading">
               <div class="wizard-section-heading">
@@ -449,7 +455,8 @@
 
               <div class="wizard-settings-list">
                 {# Populated by automatic-invitation-setting.js; preserves the existing POST contract. #}
-                <div class="wizard-automatic-invitation-slot" data-wizard-automatic-invitation></div>
+                <div class="wizard-automatic-invitation-slot" data-wizard-automatic-invitation
+                     data-initial-enabled="{% if request.method == 'POST' and request.POST.automatic_invitation_enabled %}true{% else %}false{% endif %}"></div>
 
                 <div class="candidate-results-setting wizard-setting-row">
                   <div class="wizard-setting-copy">
@@ -506,6 +513,9 @@
                 </fieldset>
               </div>
             </section>
+
+              </aside>
+            </div>
 
             <div class="wizard-actions wizard-details-actions mt-4">
               <button type="button" class="btn btn-outline-secondary" data-prev-step>
