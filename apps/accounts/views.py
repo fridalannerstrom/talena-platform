@@ -1735,7 +1735,7 @@ def company_detail(request, pk):
 @admin_required
 @require_POST
 def company_member_remove(request, company_pk, user_pk):
-    """Remove one company membership, never the global user or their history."""
+    """Remove company access; deactivate non-admins without remaining memberships."""
     with transaction.atomic():
         # Serialize removals in the same company so concurrent requests
         # cannot remove two administrators while each sees the other.
@@ -1743,9 +1743,15 @@ def company_member_remove(request, company_pk, user_pk):
             Company.objects.select_for_update(), pk=company_pk,
         )
         membership = get_object_or_404(
-            CompanyMember.objects.select_for_update().select_related("user"),
+            CompanyMember.objects.select_for_update(),
             company=company,
             user_id=user_pk,
+        )
+        # Serialize removals of memberships in different companies for the
+        # same global user, so only the removal of the FINAL membership
+        # deactivates the account. Project/history FKs still keep this user.
+        user = get_object_or_404(
+            User.objects.select_for_update(), pk=membership.user_id,
         )
         if membership.user_id == request.user.pk:
             messages.error(request, "Du kan inte ta bort din egen företagskoppling.")
@@ -1764,7 +1770,6 @@ def company_member_remove(request, company_pk, user_pk):
             )
             return redirect("accounts:company_users", pk=company.pk)
 
-        user = membership.user
         removed_role = membership.role
         # Org-unit access is stored separately from CompanyMember; it must be
         # removed as well, otherwise permissions can survive the membership.
@@ -1784,6 +1789,15 @@ def company_member_remove(request, company_pk, user_pk):
         ).update(project_completion_notifications_enabled=False)
         membership.delete()
 
+        # A user can work in multiple tenants. Removing one tenant must not
+        # affect the user's ability to use any other. Platform admins keep
+        # their own independent login even with zero company memberships.
+        remaining_companies = CompanyMember.objects.filter(user=user).exists()
+        deactivate_account = not remaining_companies and not is_admin(user)
+        if deactivate_account and user.is_active:
+            user.is_active = False
+            user.save(update_fields=["is_active"])
+
         log_event(
             company=company,
             actor=request.user,
@@ -1795,14 +1809,24 @@ def company_member_remove(request, company_pk, user_pk):
                 "user_email": user.email,
                 "user_name": user.get_full_name(),
                 "removed_role": removed_role,
+                "remaining_company_memberships": CompanyMember.objects.filter(user=user).count(),
+                "account_deactivated": deactivate_account,
             },
         )
 
-    messages.success(
-        request,
-        f"{user.email or user.username} togs bort från {company.name}. "
-        "Användarkontot och eventuella andra företagskopplingar finns kvar.",
-    )
+    if deactivate_account:
+        messages.success(
+            request,
+            f"{user.email or user.username} togs bort från {company.name}. "
+            "Det sista företagsmedlemskapet är borttaget och användarkontot "
+            "är nu inaktiverat. Tidigare projekt och historik finns kvar.",
+        )
+    else:
+        messages.success(
+            request,
+            f"{user.email or user.username} togs bort från {company.name}. "
+            "Kontot är fortfarande aktivt och andra företagskopplingar påverkas inte.",
+        )
     return redirect("accounts:company_users", pk=company.pk)
 
 
@@ -1874,6 +1898,12 @@ def accept_invite_uuid(request, invite_id):
     max_age = timedelta(days=max(1, int(getattr(settings, "TALENA_ACCOUNT_INVITE_EXPIRY_DAYS", 14))))
     expired = timezone.now() >= invite.created_at + max_age
     if invite.revoked_at is not None or invite.accepted_at is not None or expired:
+        return render(request, "accounts/invite_invalid.html", status=400)
+    # Never reactivate an account via an orphaned link after its company
+    # membership has been removed. A fresh admin invitation is required.
+    if not CompanyMember.objects.filter(
+        user_id=invite.user_id, company_id=invite.company_id,
+    ).exists():
         return render(request, "accounts/invite_invalid.html", status=400)
 
     user = invite.user

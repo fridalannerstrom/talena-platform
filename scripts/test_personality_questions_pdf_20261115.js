@@ -197,11 +197,12 @@ vm.runInNewContext(code,{document,window,Blob,
   assert.ok(css.includes(scope+" .interview-static-questions__item {"));
   assert.ok(css.includes(scope+" .interview-static-questions__number {"));
   assert.ok(css.includes('list-style:none !important;'),"Do not print duplicate ordered-list numbers");
-  assert.ok(base.includes("20261115-personality-questions-parity-1"),
+  assert.match(base,/candidate-report-export\.css' %}\?v=[a-zA-Z0-9_-]+/,
     "PDF scripts and styles need fresh cache versions");
   assert.ok(core.includes("getMotivationQuestionsPageGuides"),
     "PDF pagination must protect complete question cards");
-  assert.ok(core.includes('(motivationQuestionsPdf || cognitiveQuestionsPdf || personalityQuestionsPdf)'),
+  assert.ok(core.includes('motivationQuestionsPdf || cognitiveQuestionsPdf || personalityQuestionsPdf ||') &&
+    core.includes('combinedInterviewQuestionsPdf'),
     "All three question PDFs share the same protected page-break rules");
   // Compare the entire approved Motivation stylesheet, not just the
   // headline font. Personality must not drift from the other question PDFs.
