@@ -29,14 +29,16 @@
     combineError:"The individual PDFs were created, but the package could not be assembled."
   };
   const MAX_REPORTS = 20, MAX_BYTES = 100 * 1024 * 1024, MAX_PAGES = 450, ROWS = 17;
-  // #483: Keep results, static profiles, candidate reflections, Svarsstilar,
-  // and ONE combined interview-question report. The three per-assessment
-  // question PDFs stay available in their own tabs, but not in report packages.
+  // #483: Keep result reports, three independently selectable personality
+  // result views, static profiles, candidate reflections, Svarsstilar and
+  // ONE combined interview-question report. The per-assessment question PDFs
+  // stay available in their own tabs, but not in report packages.
   // Exclude AI interpretations, post-interview AI and the manager report.
   // The allowlist also prevents newly added AI reports from slipping in.
   const PACKAGE_ALLOWED_REPORT_IDS = new Set([
     "overview",
-    "personality-results", "personality-candidate-reflection",
+    "personality-detailed-results", "personality-quick-results",
+    "personality-summary-results", "personality-candidate-reflection",
     "motivation-results", "motivation-candidate-reflection",
     "cognitive-results", "cognitive-candidate-reflection",
     "team-report", "leadership-report", "derailment-report",
