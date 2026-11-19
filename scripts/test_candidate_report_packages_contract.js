@@ -26,12 +26,23 @@ assert.deepEqual(allowedIds, [
   "motivation-results", "motivation-questions", "motivation-candidate-reflection",
   "cognitive-results", "cognitive-questions", "cognitive-candidate-reflection",
   "team-report", "leadership-report", "derailment-report",
-  "prepare-interview"
+  "personality-response-styles"
 ], "Keep question PDFs, results, Svarsstilar and static reports, excluding AI interpretation reports");
 assert.ok(!allowedIds.some(id=>/(interpretation|after-|manager-report)/.test(id)));
 assert.ok(js.includes('managerExcluded:"Chefsrapporten ingår inte i rapportpaketet. Ladda ner den separat."'));
-assert.ok(js.includes('r.id==="prepare-interview"') && js.includes('Svarsstilar'),
-  "The response-style report must use the correct label in the picker");
+assert.ok(!allowedIds.includes("prepare-interview"),
+  "Before-interview must not be offered as Svarsstilar");
+assert.ok(registry.includes('id: "personality-response-styles"') &&
+  registry.includes('selector: "#personality-response-styles-view"'),
+  "Response styles must export the Personality results subtab, not Before interview");
+const personalityView = file("templates/customer/processes/partials/candidate_insights/personality/_results.html");
+const responseStyles = file("templates/customer/processes/partials/candidate_insights/personality/_response_styles_content.html");
+assert.ok(personalityView.includes('id="personality-response-styles-view"') &&
+  personalityView.includes('personality/_response_styles_content.html'),
+  "The selected report must reuse the actual Personality response styles content");
+assert.ok(responseStyles.includes('{% trans "Response styles" %}') &&
+  responseStyles.includes('Möjliga nyanser att utforska'),
+  "The source tab must contain its own response-style heading and nuances");
 
 assert.ok(js.includes('api().exportReport(report.id,{returnBlob:true})'));
 assert.ok(js.includes('api().exportCover(t.cover)'));
@@ -73,7 +84,7 @@ assert.ok(js.includes("await new Promise(resolve=>requestAnimationFrame(resolve)
   "Show updated progress before each expensive PDF rendering pass");
 assert.ok(css.includes(".talena-package-row.is-failed"),
   "Highlight the failed report so it can be excluded");
-assert.ok(base.includes("20261119-report-choices-2"),
+assert.ok(base.includes("20261119-response-styles-3"),
   "Version asset URLs to avoid cached report picker code");
 assert.ok(js.includes('dialog.showModal()')&&js.includes('dialog.addEventListener("cancel"'));
 assert.ok(js.includes('role","status"')&&js.includes('aria-live","polite"'));
