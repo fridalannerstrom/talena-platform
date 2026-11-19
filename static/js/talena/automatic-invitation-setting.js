@@ -73,19 +73,56 @@
     return section;
   }
 
+  function buildCreateSetting() {
+    // Use the same compact setting-row layout as Results and Integrity Guard.
+    // Preserve the hidden presence marker so missing JS cannot alter saved data.
+    const row = document.createElement("div");
+    row.className = "automatic-invitation-setting wizard-setting-row";
+    row.dataset.automaticInvitationSetting = "true";
+
+    const marker = document.createElement("input");
+    marker.type = "hidden";
+    marker.name = "automatic_invitation_setting_present";
+    marker.value = "1";
+
+    const copyWrap = document.createElement("div");
+    copyWrap.className = "wizard-setting-copy";
+
+    const label = document.createElement("label");
+    label.className = "wizard-setting-label";
+    label.htmlFor = "automaticInvitationEnabled";
+    label.textContent = copy.label;
+
+    const description = document.createElement("p");
+    description.className = "wizard-setting-description";
+    description.textContent = copy.description;
+    copyWrap.append(label, description);
+
+    const control = document.createElement("div");
+    control.className = "form-check form-switch wizard-setting-switch";
+
+    const input = document.createElement("input");
+    input.className = "form-check-input";
+    input.type = "checkbox";
+    input.role = "switch";
+    input.name = "automatic_invitation_enabled";
+    input.id = "automaticInvitationEnabled";
+    input.checked = false;
+
+    control.append(input);
+    row.append(marker, copyWrap, control);
+    return row;
+  }
+
   function mountCreateSetting() {
     const form = document.querySelector("#processCreateWizardForm");
-    const anchor = form?.querySelector(".candidate-language-section");
+    const anchor = form?.querySelector("[data-wizard-automatic-invitation]");
 
     if (!form || !anchor || form.querySelector("[data-automatic-invitation-setting]")) {
       return false;
     }
 
-    anchor.insertAdjacentElement(
-      "afterend",
-      buildSetting({ checked: false, helpText: copy.createHelp }),
-    );
-
+    anchor.appendChild(buildCreateSetting());
     return true;
   }
 
