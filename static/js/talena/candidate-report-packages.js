@@ -40,7 +40,7 @@
     "motivation-results", "motivation-questions", "motivation-candidate-reflection",
     "cognitive-results", "cognitive-questions", "cognitive-candidate-reflection",
     "team-report", "leadership-report", "derailment-report",
-    "personality-response-styles"
+    "personality-response-styles", "combined-interview-questions"
   ]);
   let workspace=null, trigger=null, dialog=null, list=null, order=[], chosen=new Set(), busy=false, failedReportId=null;
   const element=(tag,cls,text)=>{
