@@ -1,0 +1,133 @@
+{# One edit/delete modal pair for the whole recursive account tree. #}
+<div class="modal fade" id="renameOrgUnitModal" tabindex="-1"
+     aria-labelledby="renameOrgUnitModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form method="post" data-unit-rename-form>
+        {% csrf_token %}
+        <div class="modal-header">
+          <h2 class="modal-title fs-5" id="renameOrgUnitModalLabel">Rename account</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <label class="form-label fw-semibold" for="renameOrgUnitName">Account name</label>
+          <input type="text" id="renameOrgUnitName" name="name"
+                 class="form-control" maxlength="200" required>
+          <p class="form-text mb-0">
+            Account code <strong data-unit-code-label></strong> stays unchanged.
+            Projects, permissions and Sova mappings are unaffected.
+          </p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save name</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="deleteOrgUnitModal" tabindex="-1"
+     aria-labelledby="deleteOrgUnitModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title fs-5" id="deleteOrgUnitModalLabel">Delete account?</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p class="mb-2">
+          Delete <strong data-unit-delete-name></strong>
+          (<span data-unit-delete-code></span>) from this company?
+        </p>
+        <p class="text-muted small mb-0">
+          Only empty accounts can be deleted. The action cannot be undone.
+          If an account has projects, teams, subaccounts or user access, remove those
+          connections first. No Sova account will be deleted.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        <form method="post" data-unit-delete-form>
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger">Delete account</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const renameModal = document.getElementById("renameOrgUnitModal");
+  const deleteModal = document.getElementById("deleteOrgUnitModal");
+  if (renameModal) {
+    renameModal.addEventListener("show.bs.modal", function (event) {
+      const trigger = event.relatedTarget;
+      const url = trigger && trigger.dataset.unitRenameUrl;
+      if (!url) { event.preventDefault(); return; }
+      renameModal.querySelector("[data-unit-rename-form]").action = url;
+      renameModal.querySelector("[name='name']").value = trigger.dataset.unitName || "";
+      renameModal.querySelector("[data-unit-code-label]").textContent =
+        trigger.dataset.unitCode || "";
+    });
+    renameModal.addEventListener("shown.bs.modal", function () {
+      renameModal.querySelector("[name='name']").focus();
+    });
+  }
+  if (deleteModal) {
+    deleteModal.addEventListener("show.bs.modal", function (event) {
+      const trigger = event.relatedTarget;
+      const url = trigger && trigger.dataset.unitDeleteUrl;
+      if (!url) { event.preventDefault(); return; }
+      deleteModal.querySelector("[data-unit-delete-form]").action = url;
+      deleteModal.querySelector("[data-unit-delete-name]").textContent =
+        trigger.dataset.unitName || "";
+      deleteModal.querySelector("[data-unit-delete-code]").textContent =
+        trigger.dataset.unitCode || "";
+    });
+  }
+});
+</script>
+<style>
+  .org-node-actions {
+    opacity: 0.3;
+    transition: opacity 0.15s ease;
+  }
+  .org-node:hover .org-node-actions,
+  .org-node:focus-within .org-node-actions {
+    opacity: 1;
+  }
+  .org-node-action {
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background: transparent;
+    color: #707582;
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.78rem;
+    cursor: pointer;
+  }
+  .org-node-action:hover,
+  .org-node-action:focus-visible {
+    border-color: #e2e4e9;
+    background: #f4f5f8;
+    color: #343840;
+  }
+  .org-node-action--delete:hover,
+  .org-node-action--delete:focus-visible {
+    color: #b4232c;
+    border-color: #f2d4d5;
+    background: #fff2f2;
+  }
+  .org-node-action:disabled {
+    opacity: 0.42;
+    cursor: not-allowed;
+  }
+  @media (hover: none) {
+    .org-node-actions { opacity: 1; }
+  }
+</style>

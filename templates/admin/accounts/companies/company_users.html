@@ -26,6 +26,7 @@
           <th>Company</th>
           <th>Status</th>
           <th>Added</th>
+          <th class="text-end">Åtgärder</th>
         </tr>
       </thead>
 
@@ -113,12 +114,15 @@
                   —
                 {% endif %}
               </td>
+              <td class="text-end text-nowrap">
+                {% include "admin/accounts/companies/_company_member_remove_button.html" with member=m %}
+              </td>
             </tr>
           {% endwith %}
 
         {% empty %}
           <tr>
-            <td colspan="6" class="text-muted p-3">
+            <td colspan="7" class="text-muted p-3">
               No users have been added to this company yet.
             </td>
           </tr>
@@ -127,5 +131,7 @@
     </table>
   </div>
 </div>
+
+{% include "admin/accounts/companies/_company_member_remove_modal.html" %}
 
 {% endblock %}

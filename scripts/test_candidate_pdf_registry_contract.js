@@ -37,6 +37,70 @@ assert.ok(js.includes('"[data-after-interview-regenerate]"') &&
   "Active After interview reports must pair PDF and refresh in their title toolbar");
 assert.ok(!js.includes('["interview","after-interview"]'),
   "Retired Interview summary must not be offered as a PDF option");
+// #483: Svarsstilar is the dedicated Personality results subtab.
+// Regression: the three personality reports are sourced from the exact
+// subview nodes, including inactive [hidden] quick and summary panels.
+for (const [id, selector, marker] of [
+  ["personality-detailed-results", "#personality-detailed-view", ".personality-trait-card"],
+  ["personality-quick-results", "#personality-quick-view", ".personality-quick-row"],
+  ["personality-summary-results", "#personality-descriptions-view", ".personality-description-quick-row"]
+]) {
+  assert.ok(js.includes('id: "' + id + '", packageOnly: true') &&
+    js.includes('selector: "' + selector + '"'),
+    "The package needs three independent source selectors");
+  assert.ok(js.includes('element.querySelector("' + marker + '")'),
+    "Do not expose empty personality report: " + id);
+}
+assert.ok(js.includes('if (item.existingButton || item.packageOnly) return') &&
+  js.includes('if (item.packageOnly) return'),
+  "Package-only personality exports must not add stray buttons in candidate results");
+assert.ok(js.includes('["personality-results", "personality-quick-results"].includes(reportId)'),
+  "Both original and package-only quick charts need the correct midpoint-to-score colours");
+assert.ok(core.includes('"personality-detailed-results"') &&
+  core.includes('"personality-quick-results"') &&
+  core.includes('"personality-summary-results"'),
+  "Use the existing detailed, quick and summary paginators respectively");
+for (const id of [
+  "personality-detailed-results", "personality-quick-results", "personality-summary-results"
+]) {
+  assert.ok(css.includes('data-candidate-pdf-report="' + id + '"'),
+    "PDF styles must account for each personality result subtype");
+}
+const personalityPage = read("templates/customer/processes/partials/candidate_insights/personality/_results.html");
+const responseContent = read("templates/customer/processes/partials/candidate_insights/personality/_response_styles_content.html");
+assert.ok(personalityPage.includes('id="personality-response-styles-view"') &&
+  personalityPage.includes('personality/_response_styles_content.html'));
+assert.ok(js.includes('id: "personality-response-styles"') &&
+  js.includes('selector: "#personality-response-styles-view"'));
+assert.ok(js.includes('!element.querySelector("[data-response-styles-unavailable]")'),
+  "No empty Response styles report when no results exist");
+assert.ok(responseContent.includes('{% trans "Response styles" %}') &&
+  responseContent.includes('Möjliga nyanser att utforska'));
+const beforeInterviewQuestions = read("templates/customer/processes/partials/candidate_insights/tabs/_questions.html");
+assert.ok(beforeInterviewQuestions.includes("data-combined-questions-root") &&
+  beforeInterviewQuestions.includes("combined-question-sections") &&
+  beforeInterviewQuestions.includes("_interview_static_questions.html") &&
+  beforeInterviewQuestions.includes("section.questions"),
+  "All opening and saved Personality/Motivation/Skills interview questions share one source");
+assert.ok(js.includes('id: "combined-interview-questions"') &&
+  js.includes('selector: "#candidate-insights-panel-prepare-interview [data-combined-questions-root]"'),
+  "Combined questions must be an independent PDF entry sourced only from Before interview questions");
+assert.ok(js.indexOf('id: "combined-interview-questions"') >
+  js.indexOf('id: "personality-response-styles"'),
+  "All interview questions must follow Svarsstilar");
+assert.ok(js.includes('element.querySelector(".personality-question-card, .interview-static-questions__item")'),
+  "Do not offer the combined question PDF if no questions are present");
+assert.ok(!js.includes('clone.append(questions)') &&
+  !js.includes('talena-response-styles-interview-questions'),
+  "Svarsstilar must not duplicate all interview questions in its own PDF");
+assert.ok(js.includes('"combined-interview-questions"].includes(reportId)'),
+  "The separate question report must use the existing PDF cleanup for notes and labels");
+assert.ok(core.includes('combinedInterviewQuestionsPdf') &&
+  core.includes('getMotivationQuestionsPageGuides(opts.node, source)'),
+  "Interview question cards should remain intact across PDF page breaks");
+assert.ok(css.includes('data-candidate-pdf-report="combined-interview-questions"') &&
+  css.includes(".talena-candidate-pdf-heading"),
+  "Use the native combined interview questions heading in the PDF");
 const afterInterviewCards = read("static/js/talena/after-interview-tabs.js");
 assert.ok(afterInterviewCards.includes('button.dataset.afterInterviewRegenerate = blockKey;') &&
   afterInterviewCards.includes('toolbar.appendChild(button);') &&
@@ -89,7 +153,7 @@ assert.ok(js.includes("workspace.querySelector(item.selector)"));
 assert.ok(js.includes("if (!item || !isReady(item)) throw Error(copy.unavailable)"));
 for (const id of [
   "overview", "personality", "motivation", "cognitive", "team-report",
-  "leadership-report", "derailment-report", "prepare-interview",
+  "leadership-report", "derailment-report", "personality-response-styles", "prepare-interview",
   "after-overview", "manager-report"
 ]) {
   assert.ok(js.includes(id), "Registry missing " + id);
@@ -208,5 +272,90 @@ vm.runInNewContext(js, context, {timeout:1000});
   assert.equal(api.getAvailableReports().length, 0,
     "An incomplete second candidate must not inherit previous report exports");
   await assert.rejects(api.exportReport("overview", {returnBlob:true}));
-  console.log("Candidate PDF registry: AJAX sheet and candidate isolation OK");
+
+  // #483: two distinct report selections in the correct order. The PDF
+  // export must not combine them or leak a previous candidate's content.
+  const responseStyles = new FakeElement("section", "Svarsstilar: statiskt resultat");
+  responseStyles.querySelector = selector =>
+    selector === ".response-styles-header" ? {} : null;
+  const questions = new FakeElement("section",
+    "Alla intervjufrågor: inledande, personlighet, motivation, färdighet");
+  questions.querySelector = selector =>
+    [".combined-question-sections",
+      ".personality-question-card, .interview-static-questions__item"].includes(selector)
+      ? {} : null;
+  const third = new FakeElement();
+  third.querySelector = selector =>
+    selector === "#personality-response-styles-view" ? responseStyles
+    : selector === "#candidate-insights-panel-prepare-interview [data-combined-questions-root]"
+      ? questions : null;
+  let exportedContent;
+  browserWindow.TalenaPdfExport.exportSections = async (sections, options) => {
+    assert.equal(options.returnBlob, true);
+    exportedContent = sections[1].node.children[1];
+    rendered += 1;
+    return {type:"application/pdf", bytes:42};
+  };
+  currentWorkspace = third;
+  api.initialize(browserDocument);
+  assert.deepEqual(Array.from(api.getAvailableReports()).map(report => report.id),
+    ["personality-response-styles", "combined-interview-questions"]);
+  assert.equal(api.getAvailableReports()[1].title, "Alla intervjufrågor");
+
+  await api.exportReport("personality-response-styles", {returnBlob:true});
+  assert.equal(exportedContent.textContent, responseStyles.textContent);
+  assert.equal(exportedContent.children.length, 0,
+    "Svarsstilar must remain separate, without appended interview questions");
+
+  await api.exportReport("combined-interview-questions", {returnBlob:true});
+  assert.equal(exportedContent.textContent, questions.textContent);
+  assert.equal(exportedContent.children.length, 0,
+    "All interview questions PDF should contain only its own question root");
+
+  // The question option disappears if nothing has been generated or configured.
+  questions.querySelector = selector =>
+    selector === ".combined-question-sections" ? {} : null;
+  assert.deepEqual(Array.from(api.getAvailableReports()).map(report=>report.id),
+    ["personality-response-styles"]);
+  await assert.rejects(api.exportReport("combined-interview-questions", {returnBlob:true}));
+  // Switching the visible Personality tab must never determine which PDF
+  // is exported. Each report clones only its own (potentially hidden) source.
+  const detailed = new FakeElement("section", "Karaktärsdrags- och indikatorprofil");
+  detailed.querySelector = selector => selector === ".personality-trait-card" ? {} : null;
+  const quick = new FakeElement("section", "Karaktärsdragsprofil");
+  quick.hidden = true;
+  quick.querySelector = selector => selector === ".personality-quick-row" ? {} : null;
+  const summary = new FakeElement("section", "Resultatsammanfattning");
+  summary.hidden = true;
+  summary.querySelector = selector => selector === ".personality-description-quick-row" ? {} : null;
+  const fourth = new FakeElement();
+  fourth.querySelector = selector => ({
+    "#personality-detailed-view": detailed,
+    "#personality-quick-view": quick,
+    "#personality-descriptions-view": summary
+  })[selector] || null;
+  currentWorkspace = fourth;
+  api.initialize(browserDocument);
+  assert.deepEqual(Array.from(api.getAvailableReports()).map(report=>report.id), [
+    "personality-detailed-results", "personality-quick-results",
+    "personality-summary-results"
+  ], "Inactive personality result tabs must still be selectable");
+  for (const [id, expected] of [
+    ["personality-detailed-results", detailed],
+    ["personality-quick-results", quick],
+    ["personality-summary-results", summary]
+  ]) {
+    await api.exportReport(id, {returnBlob:true});
+    assert.equal(exportedContent.textContent, expected.textContent,
+      "Only the requested Personality result view should be exported");
+    assert.equal(exportedContent.children.length, 0,
+      "Another result tab must never leak into a separate PDF");
+  }
+  assert.equal(quick.hidden, true, "Export must not activate the live quick tab");
+  assert.equal(summary.hidden, true, "Export must not activate the live summary tab");
+  summary.querySelector = () => null;
+  assert.ok(!api.getAvailableReports().some(report=>report.id==="personality-summary-results"),
+    "Empty result summary must not be selected");
+
+  console.log("Candidate PDF registry: candidate isolation, separate Personality views, Svarsstilar and questions OK");
 })().catch(error => { console.error(error); process.exitCode = 1; });

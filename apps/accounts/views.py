@@ -97,9 +97,11 @@ from django.contrib.auth.views import PasswordChangeView
 from django.urls import reverse_lazy
 
 from .models import Company, CompanyMember, OrgUnit, UserOrgUnitAccess
-from .forms import CompanyMemberAddForm, CompanyForm, CompanyInviteMemberForm, OrgUnitAccessAddForm
+from .forms import (CompanyMemberAddForm, CompanyForm, CompanyInviteMemberForm,
+                    OrgUnitAccessAddForm, CompanyNameForm, OrgUnitNameForm)
 
 from django.db import transaction
+from django.db.models.deletion import ProtectedError
 
 from django.urls import reverse
 from django.utils.http import urlsafe_base64_encode
@@ -1217,6 +1219,12 @@ def admin_user_detail(request, pk):
         CompanyMember.objects
         .filter(user=user_obj)
         .select_related("company")
+        .annotate(
+            company_admin_count=Count(
+                "company__memberships",
+                filter=Q(company__memberships__role=CompanyMember.ROLE_ADMIN),
+            )
+        )
         .order_by("company__name")
     )
 
@@ -1727,12 +1735,75 @@ def company_detail(request, pk):
 @admin_required
 @require_POST
 def company_member_remove(request, company_pk, user_pk):
-    company = get_object_or_404(Company, pk=company_pk)
-    membership = get_object_or_404(CompanyMember, company=company, user_id=user_pk)
-    email = membership.user.email
-    membership.delete()
-    messages.success(request, f"{email} togs bort från {company.name}.")
-    return redirect("accounts:company_detail", pk=company.pk)
+    """Remove one company membership, never the global user or their history."""
+    with transaction.atomic():
+        # Serialize removals in the same company so concurrent requests
+        # cannot remove two administrators while each sees the other.
+        company = get_object_or_404(
+            Company.objects.select_for_update(), pk=company_pk,
+        )
+        membership = get_object_or_404(
+            CompanyMember.objects.select_for_update().select_related("user"),
+            company=company,
+            user_id=user_pk,
+        )
+        if membership.user_id == request.user.pk:
+            messages.error(request, "Du kan inte ta bort din egen företagskoppling.")
+            return redirect("accounts:company_users", pk=company.pk)
+
+        if (
+            membership.role == CompanyMember.ROLE_ADMIN
+            and not CompanyMember.objects.filter(
+                company=company, role=CompanyMember.ROLE_ADMIN
+            ).exclude(pk=membership.pk).exists()
+        ):
+            messages.error(
+                request,
+                "Det går inte att ta bort företagets sista administratör. "
+                "Tilldela först en annan användare administratörsrollen.",
+            )
+            return redirect("accounts:company_users", pk=company.pk)
+
+        user = membership.user
+        removed_role = membership.role
+        # Org-unit access is stored separately from CompanyMember; it must be
+        # removed as well, otherwise permissions can survive the membership.
+        UserOrgUnitAccess.objects.filter(
+            user=user, org_unit__company=company
+        ).delete()
+        # Old activation links must not remain usable after company removal.
+        UserInvite.objects.filter(
+            user=user, company=company,
+            accepted_at__isnull=True, revoked_at__isnull=True,
+        ).update(revoked_at=timezone.now())
+        # Retain the projects and their creator history, but prevent future
+        # candidate-completion emails reaching someone who has left the company.
+        TestProcess.objects.filter(
+            company=company, created_by=user,
+            project_completion_notifications_enabled=True,
+        ).update(project_completion_notifications_enabled=False)
+        membership.delete()
+
+        log_event(
+            company=company,
+            actor=request.user,
+            verb=ActivityEvent.Verb.COMPANY_MEMBER_REMOVED,
+            meta={
+                "company_id": company.pk,
+                "company_name": company.name,
+                "user_id": user.pk,
+                "user_email": user.email,
+                "user_name": user.get_full_name(),
+                "removed_role": removed_role,
+            },
+        )
+
+    messages.success(
+        request,
+        f"{user.email or user.username} togs bort från {company.name}. "
+        "Användarkontot och eventuella andra företagskopplingar finns kvar.",
+    )
+    return redirect("accounts:company_users", pk=company.pk)
 
 
 @login_required
@@ -1842,6 +1913,124 @@ def accept_invite_uuid(request, invite_id):
 @login_required
 @admin_required
 @require_POST
+def company_rename(request, company_pk):
+    """Rename a company in Talena only; preserve IDs, organisation number and Sova links."""
+    company = get_object_or_404(Company, pk=company_pk)
+    # ModelForm.is_valid() copies cleaned form values onto instance. Capture
+    # the previous name FIRST so the change check and audit log stay correct.
+    old_name = company.name
+    form = CompanyNameForm(request.POST, instance=company)
+    if not form.is_valid():
+        messages.error(request, "Ange ett giltigt företagsnamn (max 255 tecken).")
+        return redirect("accounts:company_detail", pk=company.pk)
+
+    new_name = form.cleaned_data["name"]
+    if old_name != new_name:
+        company.name = new_name
+        company.save(update_fields=["name", "updated_at"])
+        log_event(
+            company=company, actor=request.user,
+            verb=ActivityEvent.Verb.COMPANY_UPDATED,
+            meta={
+                "company_id": company.pk, "company_name": new_name,
+                "old_name": old_name, "new_name": new_name,
+            },
+        )
+        messages.success(request, f"Företagsnamnet har ändrats till {new_name}.")
+    else:
+        messages.info(request, "Företagsnamnet är oförändrat.")
+    return redirect("accounts:company_detail", pk=company.pk)
+
+
+def _orgunit_delete_blocker(unit):
+    """Require an unused leaf unit; deleting it must not cascade user access or history."""
+    if unit.unit_code == "MAIN":
+        return "Huvudkontot (MAIN) behövs i Talena och kan inte raderas."
+    if unit.children.exists():
+        return "Kontot har underkonton. Flytta eller ta bort dem först."
+    if unit.processes.exists():
+        return "Kontot används av rekryteringsprojekt och kan inte raderas."
+    if unit.teams.exists():
+        return "Kontot används av team och kan inte raderas."
+    if unit.assessment_usages.exists():
+        return "Kontot har testhistorik och kan inte raderas."
+    if unit.primary_members.exists():
+        return "Kontot är primärt konto för användare. Ändra deras åtkomst först."
+    if unit.user_accesses.exists():
+        return "Användare har åtkomst till kontot. Ta bort deras åtkomst först."
+    return ""
+
+
+@login_required
+@admin_required
+@require_POST
+def orgunit_rename(request, company_pk, unit_pk):
+    company = get_object_or_404(Company, pk=company_pk)
+    unit = get_object_or_404(OrgUnit, company=company, pk=unit_pk)
+    # Preserve the old name before the ModelForm populates instance.
+    old_name = unit.name
+    form = OrgUnitNameForm(request.POST, instance=unit)
+    if not form.is_valid():
+        messages.error(request, "Ange ett giltigt kontonamn (max 200 tecken).")
+        return redirect("accounts:company_account_structure", pk=company.pk)
+
+    new_name = form.cleaned_data["name"]
+    if new_name != old_name:
+        unit.name = new_name
+        unit.save(update_fields=["name", "updated_at"])
+        log_event(
+            company=company, actor=request.user,
+            verb=ActivityEvent.Verb.ORGUNIT_UPDATED,
+            meta={
+                "company_id": company.pk, "org_unit_id": unit.pk,
+                "org_unit_name": new_name, "unit_code": unit.unit_code,
+                "old_name": old_name, "new_name": new_name,
+            },
+        )
+        messages.success(request, f"Kontot har bytt namn till {new_name}.")
+    else:
+        messages.info(request, "Kontonamnet är oförändrat.")
+    return redirect("accounts:company_account_structure", pk=company.pk)
+
+
+@login_required
+@admin_required
+@require_POST
+def orgunit_delete(request, company_pk, unit_pk):
+    """Only remove unused units; never delete projects, teams or permissions."""
+    company = get_object_or_404(Company, pk=company_pk)
+    with transaction.atomic():
+        # Coordinate with other deletions in this company.
+        unit = get_object_or_404(
+            OrgUnit.objects.select_for_update(), pk=unit_pk, company=company,
+        )
+        blocker = _orgunit_delete_blocker(unit)
+        if blocker:
+            messages.error(request, blocker)
+            return redirect("accounts:company_account_structure", pk=company.pk)
+
+        unit_id, old_name, unit_code = unit.pk, unit.name, unit.unit_code
+        try:
+            unit.delete()
+        except ProtectedError:
+            messages.error(request, "Kontot används fortfarande och kan inte raderas.")
+            return redirect("accounts:company_account_structure", pk=company.pk)
+
+        log_event(
+            company=company, actor=request.user,
+            verb=ActivityEvent.Verb.ORGUNIT_DELETED,
+            meta={
+                "company_id": company.pk, "org_unit_id": unit_id,
+                "org_unit_name": old_name, "unit_code": unit_code,
+            },
+        )
+    messages.success(request, f"Kontot {old_name} har tagits bort.")
+    return redirect("accounts:company_account_structure", pk=company.pk)
+
+
+@login_required
+@admin_required
+@require_POST
 def orgunit_move(request, company_pk):
     """
     Tar emot JSON:
@@ -1902,6 +2091,10 @@ def company_account_structure(request, pk):
     for u in all_units:
         children_map.setdefault(u.parent_id, []).append(u)
     root_units = children_map.get(None, [])
+
+    # Explain disabled delete icons in the tree. Revalidate on POST.
+    for unit in all_units:
+        unit.delete_blocker = _orgunit_delete_blocker(unit)
 
     if request.method == "POST":
         action = request.POST.get("action")
@@ -2152,6 +2345,12 @@ def company_users(request, pk):
         CompanyMember.objects
         .filter(company=company)
         .select_related("user")
+        .annotate(
+            company_admin_count=Count(
+                "company__memberships",
+                filter=Q(company__memberships__role=CompanyMember.ROLE_ADMIN),
+            )
+        )
         .order_by("user__email")
     )
 
@@ -2948,7 +3147,13 @@ def company_user_detail(request, company_pk, user_pk):
     )
 
     membership = get_object_or_404(
-        CompanyMember.objects.select_related("company", "primary_org_unit"),
+        CompanyMember.objects.select_related("company", "primary_org_unit")
+        .annotate(
+            company_admin_count=Count(
+                "company__memberships",
+                filter=Q(company__memberships__role=CompanyMember.ROLE_ADMIN),
+            )
+        ),
         company=company,
         user=user_obj,
     )

@@ -5,7 +5,7 @@
   const sv = (document.documentElement.lang || "").startsWith("sv");
   const t = sv ? {
     open:"Skapa rapportpaket",title:"Välj rapporter",description:"Välj färdiga rapporter och dra dem i önskad ordning. Du kan också använda pilarna.",
-    incomplete:"Rapporter som ännu inte har genererats kan inte väljas.",all:"Välj alla",none:"Avmarkera alla",
+    incomplete:"AI-tolkningar och AI-insikter ingår inte. Alla intervjufrågor finns samlade i en rapport.",managerExcluded:"Chefsrapporten ingår inte i rapportpaketet. Ladda ner den separat.",all:"Välj alla",none:"Avmarkera alla",
     up:"Flytta upp",down:"Flytta ned",pdf:"En sammanslagen PDF",zip:"Separata PDF:er i ZIP",
     generate:"Ladda ner",close:"Stäng",count:"Valda rapporter",empty:"Inga färdiga rapporter.",
     toc:"Innehåll",cover:"Rapportpaket",progress:"Skapar rapport",preparing:"Sammanställer filer...",
@@ -17,7 +17,7 @@
     combineError:"De enskilda rapporterna skapades, men paketet kunde inte sättas ihop."
   } : {
     open:"Create report package",title:"Select reports",description:"Select completed reports and drag to reorder, or use the arrow buttons.",
-    incomplete:"Reports that have not been generated cannot be selected.",all:"Select all",none:"Deselect all",
+    incomplete:"AI interpretations and insights are excluded. All interview questions are combined in one report.",managerExcluded:"The Manager report is not part of the report package. Download it separately.",all:"Select all",none:"Deselect all",
     up:"Move up",down:"Move down",pdf:"One merged PDF",zip:"Separate PDFs in ZIP",
     generate:"Download",close:"Close",count:"Selected reports",empty:"No completed reports.",
     toc:"Contents",cover:"Report package",progress:"Creating report",preparing:"Combining files...",
@@ -29,6 +29,21 @@
     combineError:"The individual PDFs were created, but the package could not be assembled."
   };
   const MAX_REPORTS = 20, MAX_BYTES = 100 * 1024 * 1024, MAX_PAGES = 450, ROWS = 17;
+  // #483: Keep result reports, three independently selectable personality
+  // result views, static profiles, candidate reflections, Svarsstilar and
+  // ONE combined interview-question report. The per-assessment question PDFs
+  // stay available in their own tabs, but not in report packages.
+  // Exclude AI interpretations, post-interview AI and the manager report.
+  // The allowlist also prevents newly added AI reports from slipping in.
+  const PACKAGE_ALLOWED_REPORT_IDS = new Set([
+    "overview",
+    "personality-detailed-results", "personality-quick-results",
+    "personality-summary-results", "personality-candidate-reflection",
+    "motivation-results", "motivation-candidate-reflection",
+    "cognitive-results", "cognitive-candidate-reflection",
+    "team-report", "leadership-report", "derailment-report",
+    "personality-response-styles", "combined-interview-questions"
+  ]);
   let workspace=null, trigger=null, dialog=null, list=null, order=[], chosen=new Set(), busy=false, failedReportId=null;
   const element=(tag,cls,text)=>{
     const e=document.createElement(tag); if(cls)e.className=cls;
@@ -37,7 +52,9 @@
   const api=()=>window.TalenaCandidateReports;
   const current=()=>workspace?.isConnected && document.querySelector("[data-candidate-insights-workspace]")===workspace;
   const available=()=>current()&&api()
-    ? api().getAvailableReports().filter(r=>/^[a-z0-9-]+$/.test(r.id)).slice(0,MAX_REPORTS) : [];
+    ? api().getAvailableReports().filter(r=>
+        PACKAGE_ALLOWED_REPORT_IDS.has(r.id) && /^[a-z0-9-]+$/.test(r.id)
+      ).slice(0,MAX_REPORTS) : [];
   const status=(message,error=false)=>{
     const e=dialog?.querySelector("[data-package-status]");
     if(e){e.textContent=message;e.classList.toggle("is-error",error);}
@@ -117,7 +134,8 @@
     x.setAttribute("aria-label",t.close);x.addEventListener("click",close);
     head.append(h,x);
     dialog.append(head,element("p","talena-package-description",t.description),
-      element("p","talena-package-hint",t.incomplete));
+      element("p","talena-package-hint",t.incomplete),
+      element("p","talena-package-hint talena-package-manager-hint",t.managerExcluded));
     if(!reports.length)dialog.append(element("p","",t.empty));
     else{
       const buttons=element("div","talena-package-select");

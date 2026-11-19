@@ -1,6 +1,7 @@
 "use strict";
-// Synthetic browser regression: both formats use 5 PDFs, a failure in #4 is
-// attributed to that report, never to ZIP/PDF assembly or candidate identity.
+// Synthetic browser regression: preserve questions and Personality response styles but
+// exclude interpretation/manager/post-interview AI reports in both formats.
+// Report failures must be attributed to the correct PDF, not the assembler.
 const assert=require("node:assert/strict");
 const fs=require("node:fs");
 const vm=require("node:vm");
@@ -74,8 +75,22 @@ class Element {
 
 async function run(format,failIndex,assembleFails=false){
   let made=[], downloaded=0, assembled=0;
-  const reports=Array.from({length:5},(_,i)=>({
-    id:"report-"+(i+1),title:"Rapport "+(i+1),filename:"rapport-"+(i+1)+".pdf"
+  const reportIds=[
+    "overview",
+    "personality-results", "personality-detailed-results",
+    "personality-quick-results", "personality-summary-results",
+    "personality-questions", "personality-candidate-reflection",
+    "personality-interpretation",
+    "motivation-results", "motivation-questions", "motivation-candidate-reflection",
+    "motivation-interpretation",
+    "cognitive-results", "cognitive-questions", "cognitive-candidate-reflection",
+    "cognitive-interpretation", "team-report", "leadership-report", "derailment-report",
+    "personality-response-styles", "combined-interview-questions",
+    "prepare-interview", "manager-report", "after-overview", "after-interview"
+  ];
+  const reports=reportIds.map(id=>({
+    id,title:id==="motivation-results"?"Motivation · Resultat":id,
+    filename:id+".pdf"
   }));
   const body=new Element("body");
   const header=new Element("div");
@@ -100,15 +115,15 @@ async function run(format,failIndex,assembleFails=false){
     async exportReport(id,options){
       assert.equal(options.returnBlob,true);
       made.push(id);
-      if(id==="report-"+failIndex)throw Error("Do not expose private candidate data");
+      if(id===failIndex)throw Error("Do not expose private candidate data");
       return new Blob(["%PDF-1.7"],{type:"application/pdf"});
     },
     async exportCover(){return new Blob(["%PDF"],{type:"application/pdf"});}
   };
   const pack={
     async ensure(){},
-    async zipFiles(entries){assembled++;assert.equal(entries.length,5);if(assembleFails)throw Error("zip failure");return new Blob(["zip"],{type:"application/zip"});},
-    async merge(entries){assembled++;assert.equal(entries.length,5);if(assembleFails)throw Error("pdf failure");return new Blob(["pdf"],{type:"application/pdf"});},
+    async zipFiles(entries){assembled++;assert.equal(entries.length,14);if(assembleFails)throw Error("zip failure");return new Blob(["zip"],{type:"application/zip"});},
+    async merge(entries){assembled++;assert.equal(entries.length,14);if(assembleFails)throw Error("pdf failure");return new Blob(["pdf"],{type:"application/pdf"});},
     download(){downloaded++;}
   };
   const logs=[];
@@ -137,28 +152,42 @@ async function run(format,failIndex,assembleFails=false){
 
 (async()=>{
   for(const format of ["pdf","zip"]){
-    const failed=await run(format,4);
-    assert.deepEqual(failed.made,["report-1","report-2","report-3","report-4"]);
+    const failed=await run(format,"motivation-results");
+    assert.deepEqual(failed.made,[
+      "overview", "personality-detailed-results", "personality-quick-results",
+      "personality-summary-results", "personality-candidate-reflection",
+      "motivation-results"
+    ]);
     assert.equal(failed.downloaded,0);
     assert.equal(failed.assembled,0,"Do not assemble an incomplete package");
-    assert.match(failed.status,/Rapport 4/);
+    assert.match(failed.status,/Motivation · Resultat/);
     assert.match(failed.status,/ladda ner rapporten separat/);
     assert.ok(!failed.status.includes("private candidate"));
-    assert.ok(failed.rows[3].classList.contains("is-failed"));
-    assert.ok(!failed.rows[2].classList.contains("is-failed"));
-    assert.equal(failed.logs[0]?.[1]?.reportId,"report-4");
+    assert.equal(failed.rows.length,14,
+      "All three personality result views and only one combined question report must be selectable");
+    assert.ok(failed.rows[5].classList.contains("is-failed"));
+    assert.ok(!failed.rows[4].classList.contains("is-failed"));
+    assert.equal(failed.logs[0]?.[1]?.reportId,"motivation-results");
 
-    const success=await run(format,0);
-    assert.equal(success.made.length,5);
+    const success=await run(format,null);
+    assert.deepEqual(success.made,[
+      "overview",
+      "personality-detailed-results", "personality-quick-results",
+      "personality-summary-results", "personality-candidate-reflection",
+      "motivation-results", "motivation-candidate-reflection",
+      "cognitive-results", "cognitive-candidate-reflection",
+      "team-report", "leadership-report", "derailment-report",
+      "personality-response-styles", "combined-interview-questions"
+    ],"Keep one combined question report; exclude duplicate question PDFs and AI interpretations");
     assert.equal(success.assembled,1);
     assert.equal(success.downloaded,1);
     assert.match(success.status,/Nedladdningen har startat/);
 
-    const assembly=await run(format,0,true);
+    const assembly=await run(format,null,true);
     assert.equal(assembly.assembled,1);
     assert.equal(assembly.downloaded,0);
     assert.match(assembly.status,/paketet kunde inte sättas ihop/);
     assert.ok(assembly.rows.every(row=>!row.classList.contains("is-failed")));
   }
-  console.log("Candidate report package runtime: 5 PDFs, PDF+ZIP, individual failure and assembly failure OK");
+  console.log("Candidate report package runtime: #483 approved reports, PDF+ZIP, individual failure and assembly failure OK");
 })().catch(error=>{console.error(error);process.exitCode=1;});

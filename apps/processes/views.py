@@ -6776,15 +6776,13 @@ def process_role_context(request, pk):
                     ),
                 )
 
-            if url_has_allowed_host_and_scheme(
-                next_url,
-                allowed_hosts={request.get_host()},
-                require_https=request.is_secure(),
-            ):
-                return redirect(next_url)
-
+            # Stay on the same Role/Process context tab after either the
+            # regular save or the eight-trait modal save. A previous "next"
+            # parameter must not navigate away from the saved form.
+            # Reload with GET (Post/Redirect/Get) to show fresh saved
+            # role text and the latest manual/recommended trait selection.
             return redirect(
-                "processes:process_detail",
+                "processes:process_role_context",
                 pk=process.pk,
             )
 

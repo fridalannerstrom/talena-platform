@@ -15,6 +15,71 @@ assert.ok(base.indexOf("report-package-core.js")<base.indexOf("candidate-report-
 assert.ok(registry.includes("exportCover")&&registry.includes("returnBlob:true"));
 assert.ok(registry.includes("TalenaReportPackages?.initialize?.(current)"));
 assert.ok(js.includes('api().getAvailableReports()'));
+assert.ok(js.includes('PACKAGE_ALLOWED_REPORT_IDS.has(r.id)'),
+  "The picker must filter the PDF registry with an explicit #483 allowlist");
+const packageAllowlist = js.match(/const PACKAGE_ALLOWED_REPORT_IDS = new Set\(\[([\s\S]*?)\]\)/);
+assert.ok(packageAllowlist, "The #483 report package allowlist must exist");
+const allowedIds = [...packageAllowlist[1].matchAll(/"([^"]+)"/g)].map(match=>match[1]);
+assert.deepEqual(allowedIds, [
+  "overview",
+  "personality-detailed-results", "personality-quick-results",
+  "personality-summary-results", "personality-candidate-reflection",
+  "motivation-results", "motivation-candidate-reflection",
+  "cognitive-results", "cognitive-candidate-reflection",
+  "team-report", "leadership-report", "derailment-report",
+  "personality-response-styles", "combined-interview-questions"
+], "Keep one combined question report, results, Svarsstilar and static reports without AI interpretations");
+assert.ok(!allowedIds.some(id=>/(interpretation|after-|manager-report)/.test(id)));
+assert.ok(!allowedIds.includes("personality-results"),
+  "A single personality result choice must not silently omit inactive tabs");
+const personalityIds = [
+  "personality-detailed-results", "personality-quick-results", "personality-summary-results"
+];
+assert.ok(personalityIds.every(id=>allowedIds.includes(id)));
+for (const [id, view] of [
+  ["personality-detailed-results", "personality-detailed-view"],
+  ["personality-quick-results", "personality-quick-view"],
+  ["personality-summary-results", "personality-descriptions-view"]
+]) {
+  assert.ok(registry.includes('id: "'+id+'", packageOnly: true') &&
+    registry.includes('selector: "#'+view+'"'),
+    "Every personality report must clone its own view independently of the active tab");
+}
+
+assert.ok(["personality-questions", "motivation-questions", "cognitive-questions"]
+  .every(id => !allowedIds.includes(id)),
+  "Per-assessment interview questions must be excluded from the package picker");
+assert.equal(allowedIds.filter(id=>id==="combined-interview-questions").length,1,
+  "Only the single combined interview questions report may appear in the package");
+assert.ok(["personality-questions", "motivation-questions", "cognitive-questions"]
+  .every(id => registry.includes('id: area + "-" + part')),
+  "Do not remove individual question PDF capabilities from their assessment tabs");
+assert.ok(js.includes('managerExcluded:"Chefsrapporten ingår inte i rapportpaketet. Ladda ner den separat."'));
+assert.ok(!allowedIds.includes("prepare-interview"),
+  "Before-interview must not be offered as Svarsstilar");
+assert.ok(registry.includes('id: "personality-response-styles"') &&
+  registry.includes('selector: "#personality-response-styles-view"'),
+  "Response styles must export the Personality results subtab, not Before interview");
+const personalityView = file("templates/customer/processes/partials/candidate_insights/personality/_results.html");
+const responseStyles = file("templates/customer/processes/partials/candidate_insights/personality/_response_styles_content.html");
+assert.ok(personalityView.includes('id="personality-response-styles-view"') &&
+  personalityView.includes('personality/_response_styles_content.html'),
+  "The selected report must reuse the actual Personality response styles content");
+assert.ok(responseStyles.includes('{% trans "Response styles" %}') &&
+  responseStyles.includes('Möjliga nyanser att utforska'),
+  "The source tab must contain its own response-style heading and nuances");
+const allQuestions = file("templates/customer/processes/partials/candidate_insights/tabs/_questions.html");
+assert.ok(allQuestions.includes("data-combined-questions-root") &&
+  allQuestions.includes("combined-question-sections") &&
+  allQuestions.includes("_interview_static_questions.html") &&
+  allQuestions.includes("section.questions"),
+  "All questions includes opening questions, Personality, Motivation and Skills");
+assert.ok(registry.includes('id: "combined-interview-questions"') &&
+  registry.includes('selector: "#candidate-insights-panel-prepare-interview [data-combined-questions-root]"'),
+  "The separate report must be sourced from the combined questions, not the Communication strategy");
+assert.ok(!registry.includes('clone.append(questions)'),
+  "Keep Svarsstilar as an independent report, without duplicated questions");
+
 assert.ok(js.includes('api().exportReport(report.id,{returnBlob:true})'));
 assert.ok(js.includes('api().exportCover(t.cover)'));
 assert.ok(js.includes('api().getPackageFilename(format)') &&
@@ -55,7 +120,7 @@ assert.ok(js.includes("await new Promise(resolve=>requestAnimationFrame(resolve)
   "Show updated progress before each expensive PDF rendering pass");
 assert.ok(css.includes(".talena-package-row.is-failed"),
   "Highlight the failed report so it can be excluded");
-assert.ok(base.includes("20261115-package-diagnostics-1"),
+assert.ok(base.includes("20261119-personality-result-views-7"),
   "Version asset URLs to avoid cached report picker code");
 assert.ok(js.includes('dialog.showModal()')&&js.includes('dialog.addEventListener("cancel"'));
 assert.ok(js.includes('role","status"')&&js.includes('aria-live","polite"'));
@@ -71,6 +136,8 @@ assert.ok(css.includes(".candidate-profile-header .candidate-profile-actions .ta
   !css.includes("[data-candidate-insights-workspace] .candidate-insights-navigation {"),
   "Package button CSS must apply to candidate header, not navigation");
 assert.ok(css.includes(".talena-package-dialog")&&css.includes(".talena-package-row"));
+assert.ok(css.includes('.talena-package-row > input[type="checkbox"]') && css.includes("width:20px") &&
+  css.includes("height:20px"), "Package checkboxes must be comfortably sized");
 const sandbox={
   document:{documentElement:{lang:"sv"},querySelector:()=>null},
   window:{}

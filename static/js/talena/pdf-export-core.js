@@ -123,7 +123,8 @@
       ".team-insight-card, .team-style-rank-row, .team-style-rank-list, " +
       ".team-analytics-grid, .team-table tr, .card, .card-body, .team-goal-list, " +
       ".team-style-profile-card, .team-styles-section, .team-profile-pdf-heading, " +
-      ".after-interview-manager-report__skill, .after-interview-manager-report__guide-level, " +
+      ".after-interview-manager-report__skill, .after-interview-manager-report__level, " +
+      ".after-interview-manager-report__guide, .after-interview-manager-report__guide-level, " +
       ".after-interview-manager-report__motivator, .after-interview-manager-report__motivator-practical-box, " +
       ".after-interview-manager-report__personality-theme, .after-interview-manager-report__personality-part, " +
       ".after-interview-manager-report__personality-advice, .after-interview-manager-report__wellbeing, " +
@@ -420,8 +421,16 @@
       }
     }
 
+    // An expanded "How to interpret" box fits on A4 in most cases. Treat
+    // the entire bordered box as one piece so its top border and heading
+    // can never be stranded on the preceding page. Oversized boxes still
+    // fall back to their individual sub-cards via the max-height guard.
+    const guide = node.querySelector(".after-interview-manager-report__guide");
+    protect(guide, guide, 0.95);
+
     node.querySelectorAll(
       ".after-interview-manager-report__skill, " +
+      ".after-interview-manager-report__level, " +
       ".after-interview-manager-report__motivator, " +
       ".after-interview-manager-report__interview-comments, " +
       ".after-interview-manager-report__personality-theme, " +
@@ -472,10 +481,15 @@
       opts.node?.closest?.('[data-candidate-pdf-report="cognitive-questions"]');
     const personalityQuestionsPdf = opts.continuous &&
       opts.node?.closest?.('[data-candidate-pdf-report="personality-questions"]');
+    const combinedInterviewQuestionsPdf = opts.continuous &&
+      opts.node?.closest?.('[data-candidate-pdf-report="combined-interview-questions"]');
     const cognitiveResultsPdf = opts.continuous &&
       opts.node?.closest?.('[data-candidate-pdf-report="cognitive-results"]');
     const personalityResultsPdf = opts.continuous &&
-      opts.node?.closest?.('[data-candidate-pdf-report="personality-results"]');
+      ["personality-results", "personality-detailed-results",
+       "personality-quick-results", "personality-summary-results"].some(
+        id => opts.node?.closest?.('[data-candidate-pdf-report="' + id + '"]')
+      );
     const personalityQuickPdf = personalityResultsPdf &&
       opts.node?.querySelector?.(".personality-quick-view");
     const personalityDescriptionsPdf = personalityResultsPdf &&
@@ -486,7 +500,8 @@
       ? getManagerReportPageGuides(opts.node, source, maxHeight)
       : motivationPdf
       ? getMotivationPageGuides(opts.node, source)
-      : (motivationQuestionsPdf || cognitiveQuestionsPdf || personalityQuestionsPdf)
+      : (motivationQuestionsPdf || cognitiveQuestionsPdf || personalityQuestionsPdf ||
+         combinedInterviewQuestionsPdf)
         ? getMotivationQuestionsPageGuides(opts.node, source)
         : cognitiveResultsPdf
           ? getCognitiveResultsPageGuides(opts.node, source)

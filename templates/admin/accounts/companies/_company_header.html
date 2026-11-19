@@ -9,7 +9,14 @@
       </div>
 
       <div class="company-hero__meta">
-        <h1 class="company-hero__title mb-1">{{ company.name }}</h1>
+        <div class="d-flex align-items-center flex-wrap gap-2">
+          <h1 class="company-hero__title mb-1">{{ company.name }}</h1>
+          <button type="button" class="btn btn-sm btn-outline-secondary border-0"
+                  data-bs-toggle="modal" data-bs-target="#companyRenameModal"
+                  aria-label="Rename company" title="Rename company">
+            <i class="fa-solid fa-pen" aria-hidden="true"></i>
+          </button>
+        </div>
         <div class="company-hero__sub text-muted">
           Org. no: <span class="fw-semibold">{{ company.org_number|default:"-" }}</span>
         </div>
@@ -81,3 +88,4 @@
     </a>
   </div>
 </div>
+{% include "admin/accounts/companies/_company_rename_modal.html" %}

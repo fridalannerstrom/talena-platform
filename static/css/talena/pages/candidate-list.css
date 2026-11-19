@@ -233,6 +233,23 @@
   font-weight: 620;
 }
 
+.candidate-directory__project-name {
+  display: block;
+  color: var(--talena-ink);
+  font-weight: 650;
+  font-size: 0.67rem;
+  line-height: 1.35;
+  max-width: 230px;
+  overflow-wrap: anywhere;
+}
+
+.candidate-directory__project-type {
+  display: inline-block;
+  margin-top: 0.22rem;
+  color: var(--talena-text-subtle);
+  font-size: 0.58rem;
+}
+
 .candidate-directory__muted {
   color: var(--talena-text-subtle);
   font-size: 0.62rem;

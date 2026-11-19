@@ -11,6 +11,11 @@
   let isDragging = false;
 
   document.addEventListener("dragstart", (e) => {
+    // Action buttons must remain clickable rather than starting a drag.
+    if (e.target.closest(".org-node-actions")) {
+      e.preventDefault();
+      return;
+    }
     const node = e.target.closest(".org-node");
     if (!node) return;
 

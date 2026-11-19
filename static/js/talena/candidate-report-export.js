@@ -30,6 +30,11 @@
     "candidate-reflection": "Kandidatens reflektioner",
     "team-report": "Individuell teamprofil",
     "leadership-report": "Ledarskapsrapport", "derailment-report": "Urspårningsrapport",
+    "personality-detailed-results": "Personlighet · Karaktärsdrags- och indikatorprofil",
+    "personality-quick-results": "Personlighet · Karaktärsdragsprofil",
+    "personality-summary-results": "Personlighet · Resultatsammanfattning",
+    "personality-response-styles": "Svarsstilar",
+    "combined-interview-questions": "Alla intervjufrågor",
     "prepare-interview": "Inför intervju", "after-overview": "Helhetsbild",
     "after-interview": "Intervjusammanfattning",
     "manager-report": "Chefsrapport"
@@ -40,6 +45,11 @@
     "candidate-reflection": "Candidate reflections",
     "team-report": "Individual team profile",
     "leadership-report": "Leadership report", "derailment-report": "Derailment report",
+    "personality-detailed-results": "Personality · Trait and indicator profile",
+    "personality-quick-results": "Personality · Trait profile",
+    "personality-summary-results": "Personality · Results summary",
+    "personality-response-styles": "Response styles",
+    "combined-interview-questions": "All interview questions",
     "prepare-interview": "Prepare for interview", "after-overview": "Overall picture",
     "after-interview": "Interview summary",
     "manager-report": "Manager report"
@@ -61,12 +71,40 @@
         outdated: element => !!element.querySelector('[data-has-result="true"][data-status="outdated"]')
       }))
     ),
+    // Report-package exports must be independent of which of the three
+    // Personality results tabs happens to be open on screen.
+    // Unlike "personality-results" (the existing full-tab PDF action),
+    // each entry clones only its own rendered subview and removes its hidden
+    // attribute in copyContent without touching the live candidate page.
+    { id: "personality-detailed-results", packageOnly: true,
+      selector: "#personality-detailed-view",
+      ready: element => !!element.querySelector(".personality-trait-card") },
+    { id: "personality-quick-results", packageOnly: true,
+      selector: "#personality-quick-view",
+      ready: element => !!element.querySelector(".personality-quick-row") },
+    { id: "personality-summary-results", packageOnly: true,
+      selector: "#personality-descriptions-view",
+      ready: element => !!element.querySelector(".personality-description-quick-row") },
     { id: "team-report", selector: "#reports-subpanel-team-report",
       ready: element => !!element.querySelector(".team-styles-section") },
     { id: "leadership-report", selector: "#reports-subpanel-leadership-report",
       ready: element => !!element.querySelector(".leadership-report__score-overview") },
     { id: "derailment-report", selector: "#reports-subpanel-derailment-report",
       ready: element => !!element.querySelector(".derailment-report__overview") },
+    // #483: Export from Personality > Results > Response styles, NEVER from
+    // the separately rendered "Communication strategy" in Before interview.
+    // This preserves the page's "Response styles" heading, supporting guidance
+    // and "Possible nuances to explore" under the correct personality tab.
+    { id: "personality-response-styles",
+      selector: "#personality-response-styles-view",
+      ready: element => !!element.querySelector(".response-styles-header") &&
+        !element.querySelector("[data-response-styles-unavailable]") },
+    // Independent report: reuse the complete, already-rendered interview guide
+    // from this candidate only, without duplicating Communication strategy.
+    { id: "combined-interview-questions",
+      selector: "#candidate-insights-panel-prepare-interview [data-combined-questions-root]",
+      ready: element => !!element.querySelector(".combined-question-sections") &&
+        !!element.querySelector(".personality-question-card, .interview-static-questions__item") },
     { id: "prepare-interview",
       selector: "#candidate-insights-panel-prepare-interview [data-pre-interview-response-styles]",
       ready: element => !!element.querySelector(
@@ -190,7 +228,10 @@
     clone.classList.remove("d-none");
     clone.style.display = "block";
 
-    if (reportId === "personality-results") {
+    // The combined question guide is its own selectable report. Svarsstilar
+    // remains a clean standalone report and never embeds those questions.
+
+    if (["personality-results", "personality-quick-results"].includes(reportId)) {
       // The web quick-profile colours its middle-to-score path with CSS
       // :has([data-score]). The PDF clone later strips data-* attributes,
       // so those web selectors cannot work on the exported copy. Resolve
@@ -214,7 +255,8 @@
       });
     }
 
-    if (["motivation-questions", "cognitive-questions", "personality-questions"].includes(reportId)) {
+    if (["motivation-questions", "cognitive-questions", "personality-questions",
+      "combined-interview-questions"].includes(reportId)) {
       // Both question guides share the same print-only layout. The interview
       // note editor is interactive UI, not part of a printable
       // interview guide. Do not export its hints, privacy-field warnings or
@@ -513,7 +555,7 @@
   }
 
   function addToolbar(item) {
-    if (item.existingButton) return; // Chefsrapport keeps its own PDF button.
+    if (item.existingButton || item.packageOnly) return; // No extra toolbar in the Personality subtabs.
     const source = getSource(item);
     if (!source || source.querySelector("[data-candidate-pdf-toolbar]")) return;
     const toolbar = create("div", "talena-candidate-pdf-toolbar");
@@ -553,6 +595,7 @@
   function refresh() {
     queued = false;
     registry.forEach(item => {
+      if (item.packageOnly) return;
       addToolbar(item);
       const toolbar = getSource(item)?.querySelector("[data-candidate-pdf-toolbar]");
       if (!toolbar) return;

@@ -25,8 +25,11 @@ from apps.teams.models import Team
 
 CANDIDATE_REPORT_TYPES = frozenset({
     "overview", "candidate-static-report",
-    "personality-results", "personality-interpretation",
+    "personality-results", "personality-detailed-results",
+    "personality-quick-results", "personality-summary-results",
+    "personality-interpretation",
     "personality-questions", "personality-candidate-reflection",
+    "personality-response-styles", "combined-interview-questions",
     "motivation-results", "motivation-interpretation",
     "motivation-questions", "motivation-candidate-reflection",
     "cognitive-results", "cognitive-interpretation",

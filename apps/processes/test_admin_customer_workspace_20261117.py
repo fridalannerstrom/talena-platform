@@ -166,6 +166,122 @@ class AdminCustomerWorkspaceTests(TestCase):
         )
         self.assertTrue(response.context["can_edit"])
 
+    def test_saving_role_context_stays_on_role_tab_and_shows_saved_traits(self):
+        """Customer flow: save all eight, then save text without losing the choice."""
+        from apps.processes.models import ProcessRoleContext
+        from apps.processes.project_personality_trait_selection import (
+            get_project_personality_trait_options,
+        )
+
+        traits = [
+            item["name"] for item in get_project_personality_trait_options("sv")[:8]
+        ]
+        url = reverse(
+            "processes:process_role_context", args=[self.process.pk],
+        )
+        self.client.force_login(self.customer)
+        selection = self.client.post(url, {
+            "context_text": "Recruiter for customer service.",
+            "personality_question_traits": traits,
+            "save_personality_traits": "1",
+        })
+        self.assertRedirects(selection, url)
+        context = ProcessRoleContext.objects.get(process=self.process)
+        self.assertEqual(context.context_text, "Recruiter for customer service.")
+
+        page = self.client.get(url)
+        self.assertEqual(page.status_code, 200)
+        self.assertTemplateUsed(page, "customer/processes/process_role_context.html")
+        self.assertEqual(page.context["active"], "context")
+        self.assertEqual(set(page.context["selected_personality_traits"]), set(traits))
+        self.assertEqual(len(page.context["selected_project_trait_options"]), 8)
+
+        # The regular button must also return to the same tab and preserve
+        # the previously selected eight manual traits.
+        saved = self.client.post(url, {
+            "context_text": "Updated recruiter context and responsibilities.",
+        })
+        self.assertRedirects(saved, url)
+        context.refresh_from_db()
+        self.assertEqual(
+            context.get_current_context_text(),
+            "Updated recruiter context and responsibilities.",
+        )
+        reopened = self.client.get(url)
+        self.assertEqual(reopened.context["form"]["context_text"].value(),
+                         "Updated recruiter context and responsibilities.")
+        self.assertEqual(
+            set(reopened.context["selected_personality_traits"]), set(traits),
+        )
+        self.assertEqual(len(reopened.context["selected_project_trait_options"]), 8)
+
+    def test_saving_role_context_ignores_old_next_redirect(self):
+        """A candidate-page 'next' value must not navigate away after save."""
+        from apps.processes.project_personality_trait_selection import (
+            get_project_personality_trait_options,
+        )
+
+        url = reverse(
+            "processes:process_role_context", args=[self.process.pk],
+        )
+        traits = [
+            item["name"] for item in get_project_personality_trait_options("sv")[:8]
+        ]
+        self.client.force_login(self.customer)
+        # Candidate pages sometimes open this form with a next URL back to
+        # the candidate's project. Save should still stay in Role context.
+        response = self.client.post(url, {
+            "context_text": "Context from candidate workspace",
+            "personality_question_traits": traits,
+            "save_personality_traits": "1",
+            "next": self.detail_url + "?focus_candidate=" + str(self.candidate.pk),
+        })
+        self.assertRedirects(response, url)
+
+    def test_admin_save_role_context_stays_in_admin_work_mode(self):
+        from apps.processes.project_personality_trait_selection import (
+            get_project_personality_trait_options,
+        )
+
+        url = reverse(
+            "processes:process_role_context", args=[self.process.pk],
+        )
+        traits = [
+            item["name"] for item in get_project_personality_trait_options("sv")[:8]
+        ]
+        self.client.force_login(self.admin)
+        self.assertRedirects(self.client.post(url, {
+            "context_text": "Admin role context update.",
+            "personality_question_traits": traits,
+            "save_personality_traits": "1",
+        }), url)
+        page = self.client.get(url)
+        self.assertEqual(page.context["process_base_layout"],
+                         "admin/core/layouts/admin_base.html")
+        self.assertEqual(page.context["active"], "context")
+        self.assertEqual(len(page.context["selected_project_trait_options"]), 8)
+
+    def test_invalid_eight_trait_choice_does_not_redirect(self):
+        from apps.processes.project_personality_trait_selection import (
+            get_project_personality_trait_options,
+        )
+
+        url = reverse(
+            "processes:process_role_context", args=[self.process.pk],
+        )
+        traits = [
+            item["name"] for item in get_project_personality_trait_options("sv")[:7]
+        ]
+        self.client.force_login(self.customer)
+        response = self.client.post(url, {
+            "context_text": "Context with incomplete trait selection",
+            "personality_question_traits": traits,
+            "save_personality_traits": "1",
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "customer/processes/process_role_context.html")
+        self.assertIn("personality_question_traits", response.context["form"].errors)
+
     def test_admin_candidate_preview_links_to_edit_without_enabling_preview_writes(self):
         self.client.force_login(self.admin)
         response = self.client.get(

@@ -97,6 +97,34 @@ class OrgUnitForm(forms.ModelForm):
             )
 
 
+class CompanyNameForm(forms.ModelForm):
+    """Rename the Talena company label without changing any integrations."""
+
+    class Meta:
+        model = Company
+        fields = ["name"]
+
+    def clean_name(self):
+        name = (self.cleaned_data.get("name") or "").strip()
+        if not name:
+            raise forms.ValidationError("Ange ett företagsnamn.")
+        return name
+
+
+class OrgUnitNameForm(forms.ModelForm):
+    """Only the display name is editable; the unit code is immutable here."""
+
+    class Meta:
+        model = OrgUnit
+        fields = ["name"]
+
+    def clean_name(self):
+        name = (self.cleaned_data.get("name") or "").strip()
+        if not name:
+            raise forms.ValidationError("Ange ett namn på kontot.")
+        return name
+
+
 class UserOrgUnitAccessForm(forms.ModelForm):
     """Form för att koppla en User till en OrgUnit."""
 

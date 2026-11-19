@@ -116,7 +116,7 @@
 }
 .talena-package-row {
   display:grid;
-  grid-template-columns:18px 18px minmax(0,1fr) 70px;
+  grid-template-columns:18px 22px minmax(0,1fr) 70px;
   align-items:center;
   gap:12px;
   min-height:50px;
@@ -124,6 +124,22 @@
   background:#fff;
   border-bottom:1px solid #f0ecea;
   font-size:.82rem;
+}
+/* Larger, comfortably clickable checkboxes. Scoped to the candidate package
+   picker so other checkboxes and the PDF/ZIP radio controls are untouched. */
+.talena-package-dialog .talena-package-row > input[type="checkbox"] {
+  width:20px;
+  height:20px;
+  min-width:20px;
+  min-height:20px;
+  margin:0;
+  cursor:pointer;
+  justify-self:center;
+  flex-shrink:0;
+}
+.talena-package-dialog .talena-package-row > input[type="checkbox"]:focus-visible {
+  outline:2px solid #45413e;
+  outline-offset:3px;
 }
 .talena-package-row:last-child {
   border-bottom:0;
@@ -219,7 +235,7 @@
 @media(max-width:600px) {
   .talena-package-dialog {padding:16px;}
   .talena-package-row {
-    grid-template-columns:14px 16px minmax(0,1fr) 65px;
+    grid-template-columns:14px 22px minmax(0,1fr) 65px;
     gap:8px;
     padding:7px 9px;
   }

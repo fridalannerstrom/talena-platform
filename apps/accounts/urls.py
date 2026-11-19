@@ -47,6 +47,15 @@ urlpatterns = [
     path("companies/", views.company_list, name="company_list"),
     path("companies/create/", views.company_create, name="company_create"),
     path("companies/<int:pk>/", views.company_detail, name="company_detail"),
+    path("companies/<int:company_pk>/rename/", views.company_rename, name="company_rename"),
+    path(
+        "companies/<int:company_pk>/orgunits/<int:unit_pk>/rename/",
+        views.orgunit_rename, name="orgunit_rename",
+    ),
+    path(
+        "companies/<int:company_pk>/orgunits/<int:unit_pk>/delete/",
+        views.orgunit_delete, name="orgunit_delete",
+    ),
     path(
         "companies/<int:pk>/integrity-guard-visibility/",
         views.company_integrity_guard_visibility,
