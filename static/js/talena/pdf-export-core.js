@@ -472,6 +472,9 @@
       opts.node?.closest?.('[data-candidate-pdf-report="cognitive-questions"]');
     const personalityQuestionsPdf = opts.continuous &&
       opts.node?.closest?.('[data-candidate-pdf-report="personality-questions"]');
+    const responseStylesQuestionsPdf = opts.continuous &&
+      opts.node?.closest?.('[data-candidate-pdf-report="personality-response-styles"]') &&
+      opts.node?.querySelector?.(".talena-response-styles-interview-questions");
     const cognitiveResultsPdf = opts.continuous &&
       opts.node?.closest?.('[data-candidate-pdf-report="cognitive-results"]');
     const personalityResultsPdf = opts.continuous &&
@@ -486,7 +489,8 @@
       ? getManagerReportPageGuides(opts.node, source, maxHeight)
       : motivationPdf
       ? getMotivationPageGuides(opts.node, source)
-      : (motivationQuestionsPdf || cognitiveQuestionsPdf || personalityQuestionsPdf)
+      : (motivationQuestionsPdf || cognitiveQuestionsPdf || personalityQuestionsPdf ||
+         responseStylesQuestionsPdf)
         ? getMotivationQuestionsPageGuides(opts.node, source)
         : cognitiveResultsPdf
           ? getCognitiveResultsPageGuides(opts.node, source)
