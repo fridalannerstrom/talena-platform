@@ -90,6 +90,27 @@ class AdminCustomerWorkspaceTests(TestCase):
             "accounts:company_processes", args=[self.company.pk],
         ))
 
+    def test_integrity_guard_switch_is_only_shown_in_admin_project_workspace(self):
+        self.client.force_login(self.admin)
+        admin_page = self.client.get(self.detail_url)
+        self.assertEqual(admin_page.status_code, 200)
+        self.assertContains(admin_page, 'class="card admin-project-ig-card"')
+        self.assertContains(admin_page, 'aria-label="Integrity Guard visibility in Talena"')
+        self.assertContains(admin_page, reverse(
+            "accounts:project_integrity_guard_visibility", args=[self.process.pk],
+        ))
+        self.assertContains(admin_page, "Integrity Guard")
+
+        # The same real project is rendered to customers, without admin controls.
+        self.client.force_login(self.customer)
+        customer_page = self.client.get(self.detail_url)
+        self.assertEqual(customer_page.status_code, 200)
+        self.assertNotContains(customer_page, "admin-project-ig-card")
+        self.assertNotContains(customer_page, reverse(
+            "accounts:project_integrity_guard_visibility", args=[self.process.pk],
+        ))
+        self.assertNotContains(customer_page, "Company default")
+
     def test_admin_can_still_open_internal_project_tools(self):
         self.client.force_login(self.admin)
         admin_project_url = reverse(
