@@ -1,0 +1,17 @@
+{# Works both in the company views and on a user's global admin detail. #}
+{% if member.user_id == request.user.pk %}
+  <span class="text-muted small" title="Du kan inte ta bort din egen företagskoppling.">Ditt konto</span>
+{% elif member.role == "admin" and member.company_admin_count == 1 %}
+  <span class="text-muted small" title="Tilldela en annan användare administratörsrollen först.">Sista företagsadmin</span>
+{% else %}
+  <button type="button"
+          class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1"
+          data-bs-toggle="modal"
+          data-bs-target="#removeCompanyMemberModal"
+          data-member-removal-url="{% url 'accounts:company_member_remove' member.company_id member.user_id %}"
+          data-member-removal-name="{{ member.user.get_full_name|default:member.user.email|default:member.user.username }}"
+          data-member-removal-company="{{ member.company.name }}">
+    <i data-feather="user-minus" aria-hidden="true"></i>
+    Ta bort
+  </button>
+{% endif %}
