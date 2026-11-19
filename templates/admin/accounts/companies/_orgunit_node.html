@@ -1,25 +1,53 @@
 {% load org_extras %}
-
 <li class="mb-1">
+  <div class="org-node org-row d-flex align-items-center gap-2 px-2 py-2 rounded
+              {% if selected_unit and unit.id == selected_unit.id %}org-active{% endif %}"
+       draggable="true"
+       data-unit-id="{{ unit.id }}"
+       data-drop-parent-id="{{ unit.id }}">
 
-  {# Rad / klickyta #}
-<div class="org-node org-row d-flex align-items-center gap-2 px-2 py-2 rounded
-            {% if selected_unit and unit.id == selected_unit.id %}org-active{% endif %}"
-     draggable="true"
-     data-unit-id="{{ unit.id }}"
-     data-drop-parent-id="{{ unit.id }}">
-
-    <i class="fa-solid fa-grip-vertical text-muted"></i>
+    <i class="fa-solid fa-grip-vertical text-muted" aria-hidden="true"></i>
 
     <a class="org-link {% if selected_unit and unit.id == selected_unit.id %}active{% endif %}"
-   href="?tab=accounts&org_unit={{ unit.id }}"
-   draggable="false">
+       href="?tab=accounts&org_unit={{ unit.id }}" draggable="false">
       <span class="fw-semibold">{{ unit.name }}</span>
       <span class="text-muted">({{ unit.unit_code }})</span>
     </a>
+
+    <div class="org-node-actions d-flex align-items-center gap-1 ms-auto">
+      <button type="button" draggable="false"
+              class="org-node-action"
+              aria-label="Rename {{ unit.name }}"
+              title="Rename unit"
+              data-bs-toggle="modal" data-bs-target="#renameOrgUnitModal"
+              data-unit-name="{{ unit.name }}"
+              data-unit-code="{{ unit.unit_code }}"
+              data-unit-rename-url="{% url 'accounts:orgunit_rename' company.pk unit.pk %}">
+        <i class="fa-solid fa-pen" aria-hidden="true"></i>
+      </button>
+
+      {% if unit.delete_blocker %}
+        <span title="{{ unit.delete_blocker }}">
+          <button type="button" draggable="false" class="org-node-action org-node-action--delete"
+                  aria-label="Cannot delete {{ unit.name }}" disabled>
+            <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
+          </button>
+        </span>
+      {% else %}
+        <button type="button" draggable="false"
+                class="org-node-action org-node-action--delete"
+                aria-label="Delete {{ unit.name }}"
+                title="Delete unit"
+                data-bs-toggle="modal" data-bs-target="#deleteOrgUnitModal"
+                data-unit-name="{{ unit.name }}"
+                data-unit-code="{{ unit.unit_code }}"
+                data-unit-delete-url="{% url 'accounts:orgunit_delete' company.pk unit.pk %}">
+          <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
+        </button>
+      {% endif %}
+    </div>
   </div>
 
-  {# Barn #}
   {% with kids=children_map|get_item:unit.id %}
     {% if kids %}
       <ul class="list-unstyled ms-4 mt-1">
@@ -29,5 +57,4 @@
       </ul>
     {% endif %}
   {% endwith %}
-
 </li>
