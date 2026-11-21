@@ -1,7 +1,24 @@
 <div class="static-communication-guidance" data-static-communication-guidance>
   {% if static_communication_guidance.profile_title %}
     <section class="purpose-fit-section mb-4" data-static-profile-status="{{ static_communication_guidance.profile_status }}">
-      <h3 class="purpose-fit-section-title fs-4 fw-bold mb-2">{{ static_communication_guidance.profile_title }}</h3>
+      <h3 class="purpose-fit-section-title fs-4 fw-bold mb-2 response-style-result-heading">
+        <span class="response-style-result-icon response-style-result-icon--{{ static_communication_guidance.profile_status }}" aria-hidden="true">
+          {% if static_communication_guidance.profile_status == "clear" %}
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" focusable="false">
+              <circle cx="12" cy="12" r="9"></circle>
+              <circle cx="12" cy="12" r="5"></circle>
+              <circle cx="12" cy="12" r="1"></circle>
+            </svg>
+          {% else %}
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" focusable="false">
+              <path d="m12 3 9 5-9 5-9-5 9-5z"></path>
+              <path d="m3 12 9 5 9-5"></path>
+              <path d="m3 17 9 5 9-5"></path>
+            </svg>
+          {% endif %}
+        </span>
+        <span>{{ static_communication_guidance.profile_title }}</span>
+      </h3>
       <p class="mb-4">{{ static_communication_guidance.profile_interpretation }}</p>
 
       <h4 class="purpose-fit-section-title fs-6 fw-semibold mb-3">{% if static_communication_guidance.language == "sv" %}Att utforska i intervjun{% else %}Explore in the interview{% endif %}</h4>
@@ -28,7 +45,22 @@
 
   {% if static_communication_guidance.social_desirability_available %}
     <section class="purpose-fit-section" data-static-social-desirability>
-      <h3 class="purpose-fit-section-title fs-4 fw-bold mb-2">{% if static_communication_guidance.language == "sv" %}Social önskvärdhet{% else %}Social desirability{% endif %}</h3>
+      <div class="response-style-result-topline mb-2">
+        <h3 class="purpose-fit-section-title fs-4 fw-bold mb-0 response-style-result-heading">
+          <span class="response-style-result-icon response-style-result-icon--social" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" focusable="false">
+              <path d="M4 6h16M4 12h16M4 18h16"></path>
+              <circle cx="9" cy="6" r="2" fill="currentColor" stroke="none"></circle>
+              <circle cx="16" cy="12" r="2" fill="currentColor" stroke="none"></circle>
+              <circle cx="8" cy="18" r="2" fill="currentColor" stroke="none"></circle>
+            </svg>
+          </span>
+          <span>{% if static_communication_guidance.language == "sv" %}Social önskvärdhet{% else %}Social desirability{% endif %}</span>
+        </h3>
+        {% if static_communication_guidance.social_desirability_visual_label %}
+          <span class="response-style-result-tag" data-social-desirability-band="{{ static_communication_guidance.social_desirability_visual_band }}">{{ static_communication_guidance.social_desirability_visual_label }}</span>
+        {% endif %}
+      </div>
 
       <div class="mb-4">
         <p class="mb-0">{{ static_communication_guidance.social_desirability_guidance.interpretation }}</p>
