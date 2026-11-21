@@ -134,6 +134,35 @@ class PasswordResetFlowTests(TestCase):
         self.assertContains(response, "This link is no longer valid")
         self.assertNotContains(response, 'name="new_password1"')
 
+    def test_reset_form_referrer_policy_allows_same_origin_csrf(self):
+        # Chromium can send Origin: null for form POSTs under no-referrer.
+        # Keep referrers on our own origin but never send them off-site.
+        response = self.client.get(self.reset_url)
+        self.assertContains(response, '<meta name="referrer" content="same-origin">')
+        self.assertNotContains(response, '<meta name="referrer" content="no-referrer">')
+
+    def test_csrf_protection_stays_enabled(self):
+        from django.test import Client
+
+        client = Client(enforce_csrf_checks=True)
+        initial = client.get(self.reset_url)
+        self.assertEqual(initial.status_code, 200)
+        token = client.cookies["csrftoken"].value
+        sent = client.post(
+            self.reset_url,
+            {"email": self.user.email, "csrfmiddlewaretoken": token},
+            HTTP_ORIGIN="http://testserver",
+        )
+        self.assertRedirects(sent, reverse("core:password_reset_done"))
+        self.assertEqual(len(mail.outbox), 1)
+        refused = client.post(
+            self.reset_url,
+            {"email": self.user.email, "csrfmiddlewaretoken": token},
+            HTTP_ORIGIN="null",
+        )
+        self.assertEqual(refused.status_code, 403)
+        self.assertEqual(len(mail.outbox), 1)
+
     def test_swedish_recovery_form(self):
         response = self.client.get(self.reset_url, HTTP_ACCEPT_LANGUAGE="sv")
         self.assertContains(response, "Glömt lösenord?")
