@@ -621,11 +621,44 @@
   background: var(--talena-coral);
 }
 
-/* Password recovery link on the login form. */
-.talena-login .login-forgot-password {
+/* Secondary recovery action: right-aligned under the password field. */
+.talena-login .auth-form .login-forgot-password {
   display: flex;
   justify-content: flex-end;
-  margin: -4px 0 17px;
-  font-size: 0.77rem;
+  align-items: center;
+  margin: -7px 0 22px;
 }
-.talena-login .login-forgot-password .link { text-underline-offset: 3px; }
+
+.talena-login .auth-form .login-forgot-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 0;
+  border-radius: 4px;
+  color: var(--talena-text-muted);
+  font-size: 0.76rem;
+  font-weight: 550;
+  line-height: 1.4;
+  text-decoration: none;
+  transition: color var(--talena-transition-fast);
+}
+
+.talena-login .auth-form .login-forgot-link svg {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  transition: transform var(--talena-transition-fast);
+}
+
+.talena-login .auth-form .login-forgot-link:hover {
+  color: var(--talena-coral-dark);
+}
+
+.talena-login .auth-form .login-forgot-link:hover svg {
+  transform: translate(2px, -2px);
+}
+
+.talena-login .auth-form .login-forgot-link:focus-visible {
+  outline: 2px solid var(--talena-coral);
+  outline-offset: 5px;
+}
