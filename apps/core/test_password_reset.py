@@ -36,6 +36,35 @@ class PasswordResetFlowTests(TestCase):
     def test_login_links_to_password_recovery(self):
         response = self.client.get(reverse("core:login"))
         self.assertContains(response, 'href="' + self.reset_url + '"')
+        self.assertContains(response, 'class="login-forgot-link"')
+        self.assertContains(response, "Forgot password?")
+
+    def test_manual_language_switch_updates_login_reset_pages_and_email(self):
+        language_url = reverse("set_language")
+        cases = (
+            ("sv", "Glömt lösenord?", "Skicka återställningslänk",
+             "Återställ ditt lösenord", "Välj nytt lösenord"),
+            ("en", "Forgot password?", "Send reset link",
+             "Reset your Talena password", "Choose a new password"),
+        )
+
+        for lang, login_label, reset_button, subject, email_button in cases:
+            with self.subTest(language=lang):
+                change = self.client.post(
+                    language_url,
+                    {"language": lang, "next": reverse("core:login")},
+                )
+                self.assertEqual(change.status_code, 302)
+                self.assertContains(self.client.get(reverse("core:login")), login_label)
+                self.assertContains(self.client.get(self.reset_url), reset_button)
+
+                count_before = len(mail.outbox)
+                response = self.client.post(self.reset_url, {"email": self.user.email})
+                self.assertRedirects(response, reverse("core:password_reset_done"))
+                self.assertEqual(len(mail.outbox), count_before + 1)
+                sent = mail.outbox[-1]
+                self.assertIn(subject, sent.subject)
+                self.assertIn(email_button, sent.alternatives[0][0])
 
     def test_recovery_and_confirmation_pages_render(self):
         self.assertContains(self.client.get(self.reset_url), "Forgot your password?")
