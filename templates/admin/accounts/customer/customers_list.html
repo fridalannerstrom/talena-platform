@@ -78,6 +78,7 @@
             <th>Role</th>
             <th>Company</th>
             <th>Status</th>
+            <th>Språk</th>
             <th>Joined</th>
           </tr>
         </thead>
@@ -146,12 +147,18 @@
       {% endif %}
     </td>
 
+    <td class="text-nowrap small">
+      {% if u.preferred_language == "sv" %}Svenska
+      {% elif u.preferred_language == "en" %}English
+      {% else %}<span class="text-muted">Automatiskt</span>{% endif %}
+    </td>
+
     <td class="text-muted">{{ u.date_joined|date:"Y-m-d H:i" }}</td>
   </tr>
 
   {% empty %}
   <tr>
-    <td colspan="6" class="text-muted p-3">No users match your filters.</td>
+    <td colspan="7" class="text-muted p-3">No users match your filters.</td>
   </tr>
   {% endfor %}
 </tbody>
