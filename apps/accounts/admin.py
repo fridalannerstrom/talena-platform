@@ -52,6 +52,7 @@ class CustomUserAdmin(BaseUserAdmin):
         "first_name",
         "last_name",
         "role",
+        "preferred_language",
         "is_staff",
         "is_active",
         "orgunit_info",
@@ -59,6 +60,7 @@ class CustomUserAdmin(BaseUserAdmin):
 
     list_filter = (
         "role",
+        "preferred_language",
         "is_staff",
         "is_active",
     )
@@ -69,6 +71,7 @@ class CustomUserAdmin(BaseUserAdmin):
             {
                 "fields": (
                     "role",
+                    "preferred_language",
                 ),
             },
         ),
