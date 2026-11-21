@@ -71,6 +71,21 @@ class User(AbstractUser):
         verbose_name="Plattformsroll",
     )
 
+    # Empty = use Django's existing browser/cookie language choice for older accounts.
+    # Once explicitly chosen (by the user or Talena admin), this follows the
+    # user across browsers and overrides any stale language cookie.
+    preferred_language = models.CharField(
+        max_length=2,
+        choices=(
+            ("", "Automatiskt (webbläsare)"),
+            ("sv", "Svenska"),
+            ("en", "English"),
+        ),
+        blank=True,
+        default="",
+        verbose_name="Språk i Talena",
+    )
+
     
 # ============================================================================
 # COMPANY + MEMBERS
