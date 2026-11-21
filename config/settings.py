@@ -299,6 +299,9 @@ LOGIN_URL = "core:login"
 LOGIN_REDIRECT_URL = "core:post_login_redirect"
 LOGOUT_REDIRECT_URL = "core:login"
 
+# Reset links expire after one hour. Tokens are invalidated on password change.
+PASSWORD_RESET_TIMEOUT = int(os.getenv("PASSWORD_RESET_TIMEOUT", "3600"))
+
     
 # --- Email --- #
 
