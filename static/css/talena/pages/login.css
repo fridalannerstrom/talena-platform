@@ -620,3 +620,12 @@
   border-radius: 50%;
   background: var(--talena-coral);
 }
+
+/* Password recovery link on the login form. */
+.talena-login .login-forgot-password {
+  display: flex;
+  justify-content: flex-end;
+  margin: -4px 0 17px;
+  font-size: 0.77rem;
+}
+.talena-login .login-forgot-password .link { text-underline-offset: 3px; }
