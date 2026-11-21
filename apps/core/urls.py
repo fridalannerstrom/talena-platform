@@ -1,5 +1,10 @@
 from django.urls import path
-from django.contrib.auth.views import LoginView, LogoutView
+from django.contrib.auth.views import (
+    LoginView, LogoutView, PasswordResetView, PasswordResetDoneView,
+    PasswordResetConfirmView, PasswordResetCompleteView,
+)
+from django.urls import reverse_lazy
+from .forms import TalenaPasswordResetForm, TalenaSetPasswordForm
 from . import views
 from apps.core import webhooks
 from apps.activity import admin_views as activity_admin_views
@@ -22,6 +27,37 @@ urlpatterns = [
 
     path("login/", LoginView.as_view(template_name="accounts/login.html"), name="login"),
     path("logout/", LogoutView.as_view(), name="logout"),
+    path(
+        "password-reset/",
+        PasswordResetView.as_view(
+            template_name="accounts/password_reset_form.html",
+            form_class=TalenaPasswordResetForm,
+            email_template_name="accounts/emails/password_reset_email.txt",
+            html_email_template_name="accounts/emails/password_reset_email.html",
+            subject_template_name="accounts/emails/password_reset_subject.txt",
+            success_url=reverse_lazy("core:password_reset_done"),
+        ),
+        name="password_reset",
+    ),
+    path(
+        "password-reset/sent/",
+        PasswordResetDoneView.as_view(template_name="accounts/password_reset_done.html"),
+        name="password_reset_done",
+    ),
+    path(
+        "password-reset/confirm/<uidb64>/<token>/",
+        PasswordResetConfirmView.as_view(
+            template_name="accounts/password_reset_confirm.html",
+            form_class=TalenaSetPasswordForm,
+            success_url=reverse_lazy("core:password_reset_complete"),
+        ),
+        name="password_reset_confirm",
+    ),
+    path(
+        "password-reset/complete/",
+        PasswordResetCompleteView.as_view(template_name="accounts/password_reset_complete.html"),
+        name="password_reset_complete",
+    ),
     path("go/", post_login_redirect, name="post_login_redirect"),
 
     path("dashboard/", customer_dashboard, name="customer_dashboard"),

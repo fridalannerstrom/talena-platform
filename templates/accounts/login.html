@@ -26,7 +26,7 @@
 
   <link
     rel="stylesheet"
-    href="{% static 'css/talena/pages/login.css' %}"
+    href="{% static 'css/talena/pages/login.css' %}?v=20261121-forgot-link-v2"
   >
 </head>
 
@@ -285,6 +285,15 @@
             {% endif %}
           </div>
 
+          <div class="login-forgot-password">
+            <a class="login-forgot-link" href="{% url 'core:password_reset' %}">
+              {% if CURRENT_LANGUAGE == "sv" %}Glömt lösenord?{% else %}Forgot password?{% endif %}
+              <svg viewBox="0 0 16 16" fill="none" aria-hidden="true" focusable="false">
+                <path d="M4 12L12 4M6.5 4H12V9.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </a>
+          </div>
+
           <button
             class="btn"
             type="submit"
@@ -295,7 +304,7 @@
           <p class="auth-foot">
             {% trans "Don't have a Talena account?" %}
 
-            <a class="link" href="">
+            <a class="link" href="https://talena.io/">
               {% trans "Get started here" %}
             </a>
           </p>
