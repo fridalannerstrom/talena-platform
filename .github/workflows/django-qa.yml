@@ -92,6 +92,12 @@ jobs:
           DJANGO_SECRET_KEY: local-qa-only
           USE_AZURE_STORAGE: '0'
         run: python manage.py makemigrations processes candidate_results emails accounts activity --check --dry-run
+      - name: Verify persistent customer language and platform admin overrides
+        env:
+          DJANGO_DEBUG: 'True'
+          DJANGO_SECRET_KEY: local-qa-only
+          USE_AZURE_STORAGE: '0'
+        run: python manage.py test apps.accounts.test_user_language_preference --noinput
       - name: Verify bilingual password recovery and CSRF protection
         env:
           DJANGO_DEBUG: 'True'
