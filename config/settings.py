@@ -224,6 +224,8 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    # Must run after AuthenticationMiddleware to read saved per-user language.
+    "apps.core.user_language.UserLanguagePreferenceMiddleware",
     "apps.core.middleware.AuthTraceMiddleware",
     "apps.core.middleware.AIPiiMaskingNoticeMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
