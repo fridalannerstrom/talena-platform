@@ -6,6 +6,7 @@ browser/cookie selection. Existing {% url 'set_language' %} forms keep their
 original Django path and response while authenticated selections are saved.
 """
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.utils import translation
 from django.views.i18n import set_language as django_set_language
 from django.utils.deprecation import MiddlewareMixin
@@ -35,7 +36,7 @@ def talena_set_language(request):
         if language in TALENA_UI_LANGUAGES and language in allowed:
             if request.user.preferred_language != language:
                 # Only the logged-in account can be changed by this public form.
-                type(request.user).objects.filter(pk=request.user.pk).update(
+                get_user_model().objects.filter(pk=request.user.pk).update(
                     preferred_language=language
                 )
                 request.user.preferred_language = language
