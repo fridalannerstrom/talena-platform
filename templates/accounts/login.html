@@ -285,6 +285,12 @@
             {% endif %}
           </div>
 
+          <div class="login-forgot-password">
+            <a class="link" href="{% url 'core:password_reset' %}">
+              {% if CURRENT_LANGUAGE == "sv" %}Glömt lösenord?{% else %}Forgot password?{% endif %}
+            </a>
+          </div>
+
           <button
             class="btn"
             type="submit"
