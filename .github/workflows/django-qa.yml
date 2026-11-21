@@ -210,7 +210,7 @@ jobs:
           DJANGO_DEBUG: 'True'
           DJANGO_SECRET_KEY: local-qa-only
           USE_AZURE_STORAGE: '0'
-        run: python manage.py test apps.processes.test_pre_interview_response_styles_504 apps.reports.test_response_style_selected_eight_20261118 --noinput
+        run: python manage.py test apps.processes.test_pre_interview_response_styles_504 apps.reports.test_response_style_selected_eight_20261118 apps.reports.test_response_style_visual_cues --noinput
       - name: Verify motivation rose highlights match precise STIVE ordering
         env:
           DJANGO_DEBUG: 'True'
