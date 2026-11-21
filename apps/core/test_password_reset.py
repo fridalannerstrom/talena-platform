@@ -78,7 +78,7 @@ class PasswordResetFlowTests(TestCase):
         self.assertTrue(link.startswith("http://testserver/"))
         message = mail.outbox[0]
         self.assertIn("Återställ ditt lösenord", message.subject)
-        self.assertIn("Återställ", message.body)
+        self.assertIn("återställa lösenordet", message.body)
         self.assertEqual(len(message.alternatives), 1)
         self.assertEqual(message.alternatives[0][1], "text/html")
         self.assertIn("Välj nytt lösenord", message.alternatives[0][0])
