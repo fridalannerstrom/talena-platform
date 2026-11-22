@@ -113,6 +113,20 @@
   padding: 1.25rem 1.5rem 1.5rem;
 }
 
+/* Candidate reflections share the panel's inset with Results and Interpretation.
+   Do not stack the reflection component's legacy padding on top of the tab.
+   Keep the component's own spacing outside these insight pages (e.g. PDF). */
+.process-page .candidate-insight-page
+.candidate-insights-subpanel[data-insights-subpanel="candidate-reflection"] > .candidate-reflection {
+  padding: 0;
+}
+
+.process-page .candidate-insight-page .candidate-reflection__intro {
+  max-width: none;
+  margin-bottom: 1.3rem;
+}
+
+
 /* #441: Report tabs stay flush with the outer page, while their panel
    content uses the same inset as other candidate-insight subtabs. */
 
