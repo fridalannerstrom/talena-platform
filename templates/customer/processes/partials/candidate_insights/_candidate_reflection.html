@@ -3,19 +3,21 @@
 
 <section class="candidate-reflection">
   <div class="candidate-reflection__intro">
-    <div class="candidate-reflection__eyebrow insight-summary-kicker">
-      {% if LANGUAGE_CODE|slice:":2" == "sv" %}Kandidatens perspektiv{% else %}Candidate perspective{% endif %}
+    <div class="candidate-reflection__heading-copy">
+      <div class="candidate-reflection__eyebrow insight-summary-kicker">
+        {% if LANGUAGE_CODE|slice:":2" == "sv" %}Kandidatens perspektiv{% else %}Candidate perspective{% endif %}
+      </div>
+      <h2 class="candidate-reflection__title insight-summary-title">
+        {% if LANGUAGE_CODE|slice:":2" == "sv" %}Kandidatens reflektion{% else %}Candidate reflection{% endif %}
+      </h2>
+      <p>
+        {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+          Här ser du hur kandidaten reagerade på den sammanfattning som visades i kandidatens egen resultatvy.
+        {% else %}
+          This shows how the candidate responded to the summary shown in their own result view.
+        {% endif %}
+      </p>
     </div>
-    <h2 class="candidate-reflection__title insight-summary-title">
-      {% if LANGUAGE_CODE|slice:":2" == "sv" %}Kandidatens reflektion{% else %}Candidate reflection{% endif %}
-    </h2>
-    <p>
-      {% if LANGUAGE_CODE|slice:":2" == "sv" %}
-        Här ser du hur kandidaten reagerade på den sammanfattning som visades i kandidatens egen resultatvy.
-      {% else %}
-        This shows how the candidate responded to the summary shown in their own result view.
-      {% endif %}
-    </p>
   </div>
 
   <div class="candidate-reflection__status">
