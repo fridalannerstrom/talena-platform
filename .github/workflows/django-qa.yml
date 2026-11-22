@@ -211,6 +211,12 @@ jobs:
           DJANGO_SECRET_KEY: local-qa-only
           USE_AZURE_STORAGE: '0'
         run: python manage.py test apps.activity.test_candidate_journey_timeline --noinput
+      - name: Verify personality question trait labels in Prepare for interview
+        env:
+          DJANGO_DEBUG: 'True'
+          DJANGO_SECRET_KEY: local-qa-only
+          USE_AZURE_STORAGE: '0'
+        run: python manage.py test apps.processes.test_pre_interview_personality_trait_tags --noinput
       - name: Verify shared pre-interview response styles (#504)
         env:
           DJANGO_DEBUG: 'True'
