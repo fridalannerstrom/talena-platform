@@ -66,6 +66,15 @@
   white-space: normal;
 }
 
+/* A soft lavender tone makes the self-critical outcome visibly active
+   without making a response style look like a warning or a pass/fail status. */
+.process-page .static-communication-guidance
+.response-style-result-tag[data-social-desirability-band="low"] {
+  background: #f1ebfa;
+  border-color: #dbcfed;
+  color: #624b85;
+}
+
 @media (max-width: 575px) {
   .process-page .static-communication-guidance .response-style-result-topline {
     align-items: flex-start;
