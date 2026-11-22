@@ -79,7 +79,7 @@ class InterviewQuestionNavigationTests(SimpleTestCase):
             },
         )
         self.assertEqual(result["total_count"], 3)
-        self.assertEqual(result["sections"][-1]["questions"][0]["traits"], [])
+        self.assertEqual(next(section for section in result["sections"] if section["key"] == "cognitive")["questions"][0]["traits"], [])
 
         prepare = self._source("_questions.html")
         self.assertIn("interview_combined_sections", prepare)
