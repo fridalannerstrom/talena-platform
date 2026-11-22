@@ -5390,6 +5390,15 @@ def process_candidate_final_output(
             "candidate": invitation.candidate,
             "invitation": invitation,
             "is_historical": process.is_historical,
+            # The nested Prepare for interview toolbar must keep the same
+            # editor permissions when this whole section refreshes via AJAX.
+            # Without this flag the refresh button disappears after a reload.
+            "can_manage_candidate_results": (
+                not process.is_historical
+                and user_can_edit_process(
+                    request.user, process.company, process
+                )
+            ),
 
             # Combined assessment questions used by the embedded
             # Prepare for interview question section.
