@@ -1,4 +1,4 @@
-{% load i18n interview_config %}
+{% load i18n interview_config personality_question_competencies %}
 {% get_current_language as LANGUAGE_CODE %}
 {% interview_combined_sections as displayed_interview_sections %}
 {% interview_total_minutes displayed_interview_sections as total_interview_minutes %}
@@ -355,6 +355,15 @@
                     <div class="personality-question-card__text">
                       {{ item.question }}
                     </div>
+
+                    {# Same construct labels as Personality > Interview questions. #}
+                    {% if section.key == "personality" and item.traits %}
+                      <div class="personality-question-card__traits">
+                        {% for trait in item.traits %}
+                          <span>{{ trait|personality_question_focus_label }}</span>
+                        {% endfor %}
+                      </div>
+                    {% endif %}
 
                   </div>
 
