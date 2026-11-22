@@ -5157,8 +5157,10 @@ async function refreshCandidateCombinedQuestions(
     template.innerHTML =
       html.trim();
 
+    // The response includes a <style> block before the actual questions.
+    // Never replace the question panel with the stylesheet by accident.
     const newRoot =
-      template.content.firstElementChild;
+      template.content.querySelector("[data-combined-questions-root]");
 
     if (!newRoot) {
       throw new Error(
