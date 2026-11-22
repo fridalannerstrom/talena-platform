@@ -71,7 +71,7 @@
       {% if LANGUAGE_CODE|slice:":2" == "sv" %}Texten kandidaten fick läsa{% else %}Text shown to the candidate{% endif %}
     </div>
     {% if candidate_reflection.title %}
-      <div class="candidate-reflection__source-title">{{ candidate_reflection.title }}</div>
+      <h3 class="candidate-reflection__source-title">{{ candidate_reflection.title }}</h3>
     {% endif %}
     {% if candidate_reflection.body %}
       <p class="candidate-reflection__source-body">{{ candidate_reflection.body }}</p>
@@ -84,15 +84,19 @@
       </ul>
     {% endif %}
     {% for group in candidate_reflection.groups %}
-      <div class="candidate-reflection__group">
-        {% if group.title %}<div class="candidate-reflection__source-title">{{ group.title }}</div>{% endif %}
+      <section class="candidate-reflection__group">
+        {% if group.title %}
+          <h4 class="candidate-reflection__group-title">{{ group.title }}</h4>
+        {% endif %}
         {% for item in group.items %}
           <div class="candidate-reflection__source-item">
-            {% if item.label %}<strong>{{ item.label }}</strong>{% endif %}
+            {% if item.label %}
+              <h5 class="candidate-reflection__item-title">{{ item.label }}</h5>
+            {% endif %}
             {% if item.text %}<p class="candidate-reflection__source-body">{{ item.text }}</p>{% endif %}
           </div>
         {% endfor %}
-      </div>
+      </section>
     {% endfor %}
   </div>
 </section>
