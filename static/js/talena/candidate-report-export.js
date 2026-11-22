@@ -505,7 +505,7 @@
       ".response-styles-header, .team-styles-header, " +
       ".personality-questions-header, .team-report__page-header, " +
       ".leadership-report__page-header, .derailment-report__page-header, " +
-      ".candidate-insight-page-header"
+      ".candidate-insight-page-header, .candidate-reflection__intro"
     );
   }
 
