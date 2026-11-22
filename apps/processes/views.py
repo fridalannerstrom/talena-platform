@@ -5631,6 +5631,13 @@ def process_candidate_combined_questions(
             "combined_questions_refresh_url": (
                 refresh_url
             ),
+            "is_historical": process.is_historical,
+            "can_manage_candidate_results": (
+                not process.is_historical
+                and user_can_edit_process(
+                    request.user, process.company, process
+                )
+            ),
         },
     )
 
