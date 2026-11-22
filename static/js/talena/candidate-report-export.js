@@ -510,6 +510,16 @@
   }
 
   function placeToolbar(source, item, toolbar) {
+    // Prepare for interview is now the only place for assessment questions.
+    // Keep its Refresh and PDF actions adjacent in the main header.
+    if (item.id === "combined-interview-questions") {
+      const actions = source.querySelector(".pre-interview-question-actions");
+      if (actions) {
+        actions.append(toolbar);
+        toolbar.classList.add("talena-candidate-pdf-toolbar--inline");
+        return;
+      }
+    }
     const generate = source.querySelector(generateSelector);
     const actions = item.id === "overview"
       ? source.querySelector(".ai-overview-header__actions")
