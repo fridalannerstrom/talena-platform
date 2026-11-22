@@ -4,7 +4,6 @@ The button is visible to editors, hidden from viewers/historical candidates,
 and reuses the existing per-assessment generation and derived-view sync.
 """
 from pathlib import Path
-from types import SimpleNamespace
 
 from django.conf import settings
 from django.template.loader import render_to_string
@@ -50,37 +49,10 @@ class PreInterviewQuestionRefreshUITests(SimpleTestCase):
                 )
                 self.assertNotIn("data-pre-interview-questions-regenerate", html)
 
-    def test_admin_preview_has_editable_workspace_shortcut_not_a_write_button(self):
-        for language, label in (
-            ("sv", "Öppna projektvyn för att uppdatera intervjufrågor"),
-            ("en", "Open the project workspace to regenerate interview questions"),
-        ):
-            with self.subTest(language=language), override(language):
-                html = render_to_string(
-                    "customer/processes/partials/candidate_insights/tabs/_questions.html",
-                    {
-                        "combined_question_sections": [],
-                        "combined_question_count": 0,
-                        "has_combined_questions": False,
-                        "combined_questions_refresh_url": "/test/combined/",
-                        "can_manage_candidate_results": False,
-                        "is_admin_candidate_mirror": True,
-                        "is_historical": False,
-                        "process": SimpleNamespace(id=42),
-                        "candidate": SimpleNamespace(id=17),
-                    },
-                )
-                self.assertIn("data-pre-interview-questions-edit-link", html)
-                self.assertIn("focus_candidate=17", html)
-                self.assertIn(label, html)
-                self.assertNotIn("data-pre-interview-questions-regenerate", html)
-
-        admin_preview = self.source(
-            "templates/admin/accounts/companies/company_candidate_sheet.html"
-        )
-        self.assertIn('data-read-only="true"', admin_preview)
-        readonly_js = self.source("static/js/talena/admin-candidate-mirror-353.js")
-        self.assertIn('if (control.tagName === "A"', readonly_js)
+    def test_admin_mirror_stays_read_only_without_customer_refresh_controls(self):
+        html = self.render_questions("sv", can_edit=False)
+        self.assertNotIn("data-pre-interview-questions-regenerate", html)
+        self.assertNotIn("data-pre-interview-questions-edit-link", html)
 
     def test_pdf_button_is_inserted_alongside_refresh_action(self):
         script = self.source("static/js/talena/candidate-report-export.js")
@@ -108,6 +80,16 @@ class PreInterviewQuestionRefreshUITests(SimpleTestCase):
         self.assertIn('"can_manage_candidate_results": (', section)
         self.assertIn("user_can_edit_process(", section)
         self.assertIn('"is_historical": process.is_historical,', section)
+
+        # This is the actual candidate-card bug: the parent interview panel
+        # refreshes independently from the combined questions endpoint.
+        # Both endpoints must pass the edit permission into _questions.html.
+        final_start = view.index("def process_candidate_final_output(")
+        final_end = view.index("\\n\\n@login_required", final_start)
+        final_section = view[final_start:final_end]
+        self.assertIn('"can_manage_candidate_results": (', final_section)
+        self.assertIn("user_can_edit_process(", final_section)
+        self.assertIn('"is_historical": process.is_historical,', final_section)
 
         base = self.source("templates/customer/processes/process_base.html")
         start = base.index("async function refreshCandidateCombinedQuestions(")
