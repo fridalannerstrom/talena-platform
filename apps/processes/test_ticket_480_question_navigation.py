@@ -52,6 +52,25 @@ class InterviewQuestionNavigationTests(SimpleTestCase):
                     self.assertIn(hook, source)
                 self.assertNotIn(f'id="{area}-subpanel-questions"', source)
 
+    def test_internal_template_comments_do_not_leak_into_candidate_ui(self):
+        # Django's {# ... #} form is single-line only. The previous
+        # multi-line form leaked literally into the candidate view.
+        from django.template import Engine
+
+        for name in ("_personality.html", "_motivation.html", "_cognitive.html"):
+            with self.subTest(template=name):
+                source = self._source(name)
+                self.assertNotIn("{# #480:", source)
+                self.assertIn("{% comment %}", source)
+                self.assertIn("{% endcomment %}", source)
+                comment = source.split("{% comment %}", 1)[1].split(
+                    "{% endcomment %}", 1
+                )[0]
+                rendered = Engine().from_string(
+                    "{% comment %}" + comment + "{% endcomment %}"
+                ).render()
+                self.assertEqual(rendered, "")
+
     def test_saved_questions_still_feed_prepare_for_interview(self):
         owner = SimpleNamespace(
             ai_personality_questions={
