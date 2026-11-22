@@ -77,7 +77,7 @@ class CandidateReflectionLayoutTests(SimpleTestCase):
             "templates/admin/accounts/partials/_candidate_customer_styles.html",
         ):
             self.assertIn(
-                "candidate-insight-tabs.css' %}?v=20261122-reflection-layout-v2",
+                "candidate-insight-tabs.css' %}?v=20261122-questions-refresh-v3",
                 self._read(path),
             )
         for path in (
