@@ -211,7 +211,7 @@ jobs:
           DJANGO_SECRET_KEY: local-qa-only
           USE_AZURE_STORAGE: '0'
         run: python manage.py test apps.activity.test_candidate_journey_timeline --noinput
-      - name: Verify #480 interview questions only have one visible home
+      - name: Verify ticket 480 interview questions only have one visible home
         env:
           DJANGO_DEBUG: 'True'
           DJANGO_SECRET_KEY: local-qa-only
