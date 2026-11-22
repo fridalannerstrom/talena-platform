@@ -198,7 +198,7 @@ from apps.accounts.models import Company, CompanyMember, OrgUnit
 from apps.projects.models import ProjectMeta
 
 from apps.activity.models import ActivityEvent
-from apps.activity.services import log_event, customer_visible_activity
+from apps.activity.services import log_event, customer_visible_activity, candidate_journey_activity
 
 from apps.reports.libraries.motivation.builder import (
     build_scores_by_competency,
@@ -2732,10 +2732,19 @@ def build_candidate_detail_context(
         for key in ("verbal", "logical", "numerical")
     )
 
-    activity_events = (
-        ActivityEvent.objects
-        .filter(company=process.company, process=process, candidate=candidate)
-        .select_related("actor", "candidate", "invitation")[:50]
+    # The candidate card follows the candidate's journey. Internal report
+    # exports and admin actions remain in the full audit log, not this tab.
+    # Filter BEFORE the 50-event limit so repeated PDFs cannot hide tests.
+    activity_events = list(
+        candidate_journey_activity(
+            ActivityEvent.objects.filter(
+                company=process.company,
+                process=process,
+                candidate=candidate,
+            )
+        )
+        .select_related("actor", "candidate", "invitation")
+        .order_by("-created_at", "-pk")[:50]
     )
 
     from apps.emails.models import EmailLog
