@@ -97,8 +97,7 @@
         {% include "customer/processes/partials/candidate_insights/motivation/_interpretation.html" %}
       </div>
 
-      {# #480: Only Prepare for interview displays these questions.
-         Preserve hidden generation hooks for updates to the shared plan. #}
+      {% comment %}#480: Questions display only under Prepare for interview. Keep hidden generation hooks for refresh.{% endcomment %}
       <div class="d-none" hidden aria-hidden="true" data-interview-questions-generator="motivation">
 
         <section
