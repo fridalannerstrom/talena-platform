@@ -437,6 +437,8 @@ html[lang^="sv"] #layoutSidenav_content main .process-page
 }
 
 #layoutSidenav_content main .process-page [data-personality-questions-root]
+.personality-question-card__traits,
+#layoutSidenav_content main .process-page [data-combined-questions-root]
 .personality-question-card__traits {
   display: flex !important;
   flex-wrap: wrap !important;
@@ -444,6 +446,8 @@ html[lang^="sv"] #layoutSidenav_content main .process-page
 }
 
 #layoutSidenav_content main .process-page [data-personality-questions-root]
+.personality-question-card__traits span,
+#layoutSidenav_content main .process-page [data-combined-questions-root]
 .personality-question-card__traits span {
   display: inline-flex !important;
   align-items: center !important;
