@@ -85,7 +85,7 @@ class PreInterviewQuestionRefreshUITests(SimpleTestCase):
         # refreshes independently from the combined questions endpoint.
         # Both endpoints must pass the edit permission into _questions.html.
         final_start = view.index("def process_candidate_final_output(")
-        final_end = view.index("\\n\\n@login_required", final_start)
+        final_end = view.index("\n\n@login_required", final_start)
         final_section = view[final_start:final_end]
         self.assertIn('"can_manage_candidate_results": (', final_section)
         self.assertIn("user_can_edit_process(", final_section)
