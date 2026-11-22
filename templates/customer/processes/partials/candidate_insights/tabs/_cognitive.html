@@ -59,19 +59,6 @@
         </button>
 
 
-<button
-  type="button"
-  id="cognitive-tab-questions"
-  aria-labelledby="cognitive-tab-questions"
-  class="candidate-insights-view-option"
-  role="tab"
-  aria-selected="false"
-  aria-controls="cognitive-subpanel-questions"
-  data-insights-subtab="questions"
->
-          <i data-feather="help-circle"></i>
-          <span>{% trans "Questions" %}</span>
-        </button>
 
       {% endif %}
 
@@ -236,15 +223,9 @@
   </div>
 
 
-  <!-- QUESTIONS -->
-  <div
-    id="cognitive-subpanel-questions"
-    class="candidate-insights-subpanel"
-    role="tabpanel"
-    aria-labelledby="cognitive-tab-questions"
-    data-insights-subpanel="questions"
-    hidden
-  >
+  {# #480: Display questions only in Prepare for interview.
+     Keep these hidden hooks so existing streaming/generation still works. #}
+  <div class="d-none" hidden aria-hidden="true" data-interview-questions-generator="cognitive">
 
 <section
   data-cognitive-questions-root
