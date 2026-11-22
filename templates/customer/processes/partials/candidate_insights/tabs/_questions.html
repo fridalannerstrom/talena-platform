@@ -243,14 +243,14 @@
 </h2>
 
 <p class="text-muted small mb-0">
-  {% if LANGUAGE_CODE|slice:":2" == "sv" %}Här samlas inledande frågor och sparade intervjufrågor för Personlighet, Motivation och Färdighet. Frågorna finns också i respektive testområde.{% else %}This page brings together opening questions and saved interview questions for Personality, Motivation and Skills. The questions are also available within each assessment area.{% endif %}
+  {% if LANGUAGE_CODE|slice:":2" == "sv" %}Här samlas inledande frågor och sparade intervjufrågor för Personlighet, Motivation och Färdighet. Du kan uppdatera frågorna här när projektets förutsättningar ändras.{% else %}This page brings together opening questions and saved interview questions for Personality, Motivation and Skills. You can regenerate questions here when the project's requirements change.{% endif %}
 </p>
 
     </div>
 
 
     {% if has_combined_questions or displayed_interview_sections %}
-      <div class="d-flex align-items-center justify-content-end flex-wrap gap-2">
+      <div class="pre-interview-question-actions d-flex align-items-center justify-content-end flex-wrap gap-2">
         {% if has_combined_questions %}
           <span class="personality-trait-pill text-nowrap">
             {% if LANGUAGE_CODE|slice:":2" == "sv" %}
@@ -274,8 +274,22 @@
       </div>
     {% endif %}
 
-  </div>
+    {# Keep the refresh action in the main header, next to the PDF action. #}
+    {% if can_manage_candidate_results and not is_historical %}
+      <button
+        type="button"
+        class="btn btn-icon btn-light pre-interview-questions-refresh"
+        data-pre-interview-questions-regenerate
+        title="{% if LANGUAGE_CODE|slice:':2' == 'sv' %}Uppdatera intervjufrågor{% else %}Regenerate interview questions{% endif %}"
+        aria-label="{% if LANGUAGE_CODE|slice:':2' == 'sv' %}Uppdatera intervjufrågor{% else %}Regenerate interview questions{% endif %}"
+      >
+        <i data-feather="refresh-cw" aria-hidden="true"></i>
+      </button>
+    {% endif %}
 
+  </div>
+  <p class="pre-interview-questions-refresh-status visually-hidden"
+     data-pre-interview-questions-refresh-status role="status" aria-live="polite"></p>
 
   {% if displayed_interview_sections %}
 
@@ -468,7 +482,7 @@
       </h3>
 
       <p class="text-muted small mb-0">
-        {% blocktrans %}This page brings together the candidate’s currently saved questions from Personality, Motivation and Cognitive abilities. Questions can be changed or regenerated within each assessment category.{% endblocktrans %}
+        {% blocktrans %}This page brings together the candidate’s currently saved questions from Personality, Motivation and Cognitive abilities. Use the refresh button above to generate updated questions when assessments are available.{% endblocktrans %}
       </p>
 
     </div>
