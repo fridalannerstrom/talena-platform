@@ -148,6 +148,40 @@
 }
 
 
+/* Interview question refresh lives alongside the PDF action at the top. */
+.process-page #candidate-insights-panel-prepare-interview .pre-interview-question-actions {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+.process-page #candidate-insights-panel-prepare-interview
+.pre-interview-questions-refresh-status {
+  margin: 0.5rem 0 0;
+  font-size: 0.73rem;
+  line-height: 1.5;
+}
+
+.process-page #candidate-insights-panel-prepare-interview
+.pre-interview-questions-refresh-status[hidden] {
+  display: none !important;
+}
+
+.process-page #candidate-insights-panel-prepare-interview
+.pre-interview-questions-refresh[aria-busy="true"] svg {
+  animation: talena-interview-question-refresh-spin 1.1s linear infinite;
+}
+
+@keyframes talena-interview-question-refresh-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .process-page #candidate-insights-panel-prepare-interview
+  .pre-interview-questions-refresh[aria-busy="true"] svg {
+    animation: none;
+  }
+}
+
 /* ---------------------------------------------------------
    TEAM STYLES
    The page header now lives above the existing team content.
