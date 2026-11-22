@@ -126,6 +126,17 @@
   margin-bottom: 1.3rem;
 }
 
+/* Keep the PDF download action beside the reflection heading even on
+   narrow screens, instead of creating a second empty-looking action row. */
+.process-page .candidate-insight-page .candidate-reflection__intro.talena-candidate-report-heading-row {
+  flex-wrap: nowrap;
+}
+
+.process-page .candidate-insight-page .candidate-reflection__heading-copy {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
 
 /* #441: Report tabs stay flush with the outer page, while their panel
    content uses the same inset as other candidate-insight subtabs. */
