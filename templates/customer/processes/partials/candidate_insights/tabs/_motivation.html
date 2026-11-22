@@ -50,19 +50,6 @@
             <span>{% if LANGUAGE_CODE|slice:":2" == "sv" %}Tolkning{% else %}Interpretation{% endif %}</span>
           </button>
 
-          <!-- QUESTIONS -->
-          <button
-            type="button"
-            id="motivation-tab-questions"
-            class="candidate-insights-view-option"
-            role="tab"
-            aria-selected="false"
-            aria-controls="motivation-subpanel-questions"
-            data-insights-subtab="questions"
-          >
-            <i data-feather="help-circle"></i>
-            <span>{% trans "Questions" %}</span>
-          </button>
 
           {% if candidate_result_reflections_enabled and candidate_result_reflections.motivation %}
           <button
@@ -110,15 +97,9 @@
         {% include "customer/processes/partials/candidate_insights/motivation/_interpretation.html" %}
       </div>
 
-      <!-- QUESTIONS -->
-      <div
-        id="motivation-subpanel-questions"
-        class="candidate-insights-subpanel"
-        role="tabpanel"
-        aria-labelledby="motivation-tab-questions"
-        data-insights-subpanel="questions"
-        hidden
-      >
+      {# #480: Only Prepare for interview displays these questions.
+         Preserve hidden generation hooks for updates to the shared plan. #}
+      <div class="d-none" hidden aria-hidden="true" data-interview-questions-generator="motivation">
 
         <section
           data-motivation-questions-root
