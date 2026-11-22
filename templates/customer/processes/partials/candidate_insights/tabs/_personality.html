@@ -93,9 +93,7 @@
       </div>
 
 
-      {# #480: Questions live under Prepare for interview only.
-         Keep the generator root mounted but inaccessible for existing
-         background question updates and the combined questions refresh. #}
+      {% comment %}#480: Questions live only under Prepare for interview. Keep generation hooks mounted for background updates.{% endcomment %}
       <div class="d-none" hidden aria-hidden="true" data-interview-questions-generator="personality">
         {% include "customer/processes/partials/candidate_insights/personality/_questions.html" %}
       </div>
