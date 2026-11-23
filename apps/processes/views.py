@@ -6786,6 +6786,13 @@ def process_role_context(request, pk):
                 role_context.purpose_data = purpose_data
                 role_context.save(update_fields=["purpose_data"])
 
+            # This request already resolved process.role_context when it
+            # displayed the previous selection. That reverse relation is
+            # cached on process as a *different* model instance from the form.
+            # Point it at the freshly saved instance before regeneration, or
+            # the selector will wrongly reuse the old manual eight traits.
+            process._state.fields_cache["role_context"] = role_context
+
             if context_changed:
                 mark_candidate_ai_content_outdated(process)
             elif selection_changed:
