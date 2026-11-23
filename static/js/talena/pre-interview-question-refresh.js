@@ -101,6 +101,49 @@
     });
   }
 
+  // Native <dialog> provides focus management, Escape-to-cancel and an
+  // accessible backdrop, without the browser's unstyled confirm alert.
+  // The dialog lives inside the candidate sheet so Bootstrap's offcanvas
+  // focus trap can still recognize the focused controls.
+  function confirmQuestionReplacement(workspace, trigger) {
+    const dialog = workspace.querySelector("[data-pre-interview-refresh-dialog]");
+    if (!dialog || typeof dialog.showModal !== "function") {
+      // Do not regenerate without informed consent if the dialog is absent.
+      return Promise.resolve(false);
+    }
+
+    const accept = dialog.querySelector("[data-pre-interview-refresh-confirm]");
+    const cancel = dialog.querySelector("[data-pre-interview-refresh-cancel]");
+    if (!accept || !cancel) return Promise.resolve(false);
+
+    return new Promise(resolve => {
+      const onAccept = () => dialog.close("confirm");
+      const onCancel = () => dialog.close("cancel");
+      const onBackdropClick = event => {
+        if (event.target !== dialog) return;
+        const bounds = dialog.getBoundingClientRect();
+        if (event.clientX < bounds.left || event.clientX > bounds.right ||
+            event.clientY < bounds.top || event.clientY > bounds.bottom) {
+          dialog.close("cancel");
+        }
+      };
+      const onClose = () => {
+        accept.removeEventListener("click", onAccept);
+        cancel.removeEventListener("click", onCancel);
+        dialog.removeEventListener("click", onBackdropClick);
+        // The original button still exists until generation begins.
+        if (trigger.isConnected) trigger.focus({ preventScroll: true });
+        resolve(dialog.returnValue === "confirm");
+      };
+      dialog.addEventListener("close", onClose, { once: true });
+      accept.addEventListener("click", onAccept);
+      cancel.addEventListener("click", onCancel);
+      dialog.addEventListener("click", onBackdropClick);
+      dialog.returnValue = "cancel";
+      dialog.showModal();
+    });
+  }
+
   document.addEventListener("click", async event => {
     const trigger = event.target.closest?.("[data-pre-interview-questions-regenerate]");
     if (!trigger || trigger.disabled) return;
@@ -112,14 +155,12 @@
     const sv = swedish();
     const copy = sv ? {
       none: "Inga tillgängliga testfrågor att uppdatera. Kontrollera att testresultat och rollkontext finns.",
-      confirm: "Skapa nya frågor för tillgängliga testområden? Sparade intervjusvar och anteckningar finns kvar, men är kopplade till de ursprungliga frågorna.",
       unsaved: "Spara först dina ändringar i intervjuanteckningarna innan du uppdaterar frågorna.",
       progress: "Uppdaterar intervjufrågor…",
       success: "Intervjufrågorna har uppdaterats.",
       partial: "Vissa intervjufrågor kunde inte uppdateras:",
     } : {
       none: "No available assessment questions to regenerate. Check that results and role context are present.",
-      confirm: "Create new questions for the available assessment areas? Saved interview answers and notes are retained, but stay attached to their original questions.",
       unsaved: "Save any unsaved changes to interview notes before regenerating the questions.",
       progress: "Regenerating interview questions…",
       success: "Interview questions have been updated.",
@@ -139,8 +180,10 @@
       renderState(workspace, false, copy.none, true);
       return;
     }
-    if (items.some(item => item.root.dataset.hasResult === "true") &&
-        !window.confirm(copy.confirm)) return;
+    if (items.some(item => item.root.dataset.hasResult === "true")) {
+      const confirmed = await confirmQuestionReplacement(workspace, trigger);
+      if (!confirmed) return;
+    }
 
     workspace.dataset.preInterviewQuestionsUpdating = "true";
     let label = copy.progress;
