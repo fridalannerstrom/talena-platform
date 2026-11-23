@@ -289,6 +289,64 @@
   <p class="pre-interview-questions-refresh-status small"
      data-pre-interview-questions-refresh-status role="status" aria-live="polite" hidden></p>
 
+  {# Native dialog works inside the dynamically loaded candidate offcanvas.
+     Keep the decision UI in the same partial as the question refresh control. #}
+  {% if can_manage_candidate_results and not is_historical %}
+    <dialog
+      class="talena-question-refresh-dialog"
+      data-pre-interview-refresh-dialog
+      aria-label="{% if LANGUAGE_CODE|slice:':2' == 'sv' %}Bekräfta uppdatering av intervjufrågor{% else %}Confirm interview question regeneration{% endif %}"
+    >
+      <div class="talena-question-refresh-dialog__inner">
+        <div class="talena-question-refresh-dialog__top">
+          <span class="talena-question-refresh-dialog__icon" aria-hidden="true">
+            <i data-feather="refresh-cw"></i>
+          </span>
+          <div>
+            <h3 class="talena-question-refresh-dialog__title">
+              {% if LANGUAGE_CODE|slice:":2" == "sv" %}Uppdatera intervjufrågorna?{% else %}Regenerate interview questions?{% endif %}
+            </h3>
+            <p class="talena-question-refresh-dialog__intro">
+              {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+                Talena skapar nya frågor utifrån aktuella testresultat och projektets rollkontext. Frågorna som visas idag ersätts.
+              {% else %}
+                Talena will create new questions from the current assessment results and role context. The questions currently shown will be replaced.
+              {% endif %}
+            </p>
+          </div>
+        </div>
+
+        <div class="talena-question-refresh-dialog__notice">
+          <span class="talena-question-refresh-dialog__notice-icon" aria-hidden="true">
+            <i data-feather="check-circle"></i>
+          </span>
+          <div>
+            <strong>
+              {% if LANGUAGE_CODE|slice:":2" == "sv" %}Dina sparade svar och anteckningar behålls{% else %}Your saved answers and notes are kept{% endif %}
+            </strong>
+            <p>
+              {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+                De finns kvar under Efter intervju → Underlag, kopplade till sina ursprungliga frågor. De förs inte över till de nya frågorna.
+              {% else %}
+                Find them under After interview → Evidence, still linked to their original questions. They are not transferred to the new questions.
+              {% endif %}
+            </p>
+          </div>
+        </div>
+
+        <div class="talena-question-refresh-dialog__actions">
+          <button type="button" class="talena-question-refresh-dialog__cancel" data-pre-interview-refresh-cancel>
+            {% if LANGUAGE_CODE|slice:":2" == "sv" %}Avbryt{% else %}Cancel{% endif %}
+          </button>
+          <button type="button" class="talena-question-refresh-dialog__confirm" data-pre-interview-refresh-confirm>
+            <i data-feather="refresh-cw" aria-hidden="true"></i>
+            {% if LANGUAGE_CODE|slice:":2" == "sv" %}Uppdatera frågor{% else %}Regenerate questions{% endif %}
+          </button>
+        </div>
+      </div>
+    </dialog>
+  {% endif %}
+
   {% if displayed_interview_sections %}
 
     <!-- QUESTION SECTIONS -->
