@@ -55,7 +55,7 @@ class InterviewQuestionNavigationTests(SimpleTestCase):
     def test_internal_template_comments_do_not_leak_into_candidate_ui(self):
         # Django's {# ... #} form is single-line only. The previous
         # multi-line form leaked literally into the candidate view.
-        from django.template import Engine
+        from django.template import Context, Engine
 
         for name in ("_personality.html", "_motivation.html", "_cognitive.html"):
             with self.subTest(template=name):
@@ -68,7 +68,7 @@ class InterviewQuestionNavigationTests(SimpleTestCase):
                 )[0]
                 rendered = Engine().from_string(
                     "{% comment %}" + comment + "{% endcomment %}"
-                ).render()
+                ).render(Context({}))
                 self.assertEqual(rendered, "")
 
     def test_saved_questions_still_feed_prepare_for_interview(self):
