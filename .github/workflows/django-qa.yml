@@ -110,6 +110,14 @@ jobs:
           DJANGO_SECRET_KEY: local-qa-only
           USE_AZURE_STORAGE: '0'
         run: python manage.py test apps.reports.test_report_ui_441 apps.reports.test_leadership_intro_374 --noinput
+      - name: Verify role-context personality selection loading overlay
+        env:
+          DJANGO_DEBUG: 'True'
+          DJANGO_SECRET_KEY: local-qa-only
+          USE_AZURE_STORAGE: '0'
+        run: |
+          node --check static/js/talena/role-context-saving.js
+          node scripts/test_role_context_saving_progress.js
       - name: Verify admin candidate/customer mirror (#353)
         env:
           DJANGO_DEBUG: 'True'
