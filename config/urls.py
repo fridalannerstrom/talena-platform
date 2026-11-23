@@ -17,12 +17,14 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from apps.processes import views as process_views
+from apps.core.user_language import talena_set_language
 from django.conf import settings
 from django.conf.urls.static import static
 
 
 urlpatterns = [
-    path("i18n/", include("django.conf.urls.i18n")),
+    # Preserve {% url 'set_language' %} used by login and both headers.
+    path("i18n/setlang/", talena_set_language, name="set_language"),
     # Django admin (om du behöver den)
     path("django-admin/", admin.site.urls),
 

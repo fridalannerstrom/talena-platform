@@ -394,6 +394,17 @@
     if (!item || !isReady(item)) throw Error(copy.unavailable);
     if (exporting) throw Error(copy.busy);
     if (!window.TalenaPdfExport?.exportSections) throw Error(copy.error);
+    if (id === "manager-report") {
+      // Public exportReport API may also be called without the inline report
+      // button. Both routes need the same human-review checkpoint.
+      if (!window.TalenaManagerReportReview?.confirm) throw Error(copy.error);
+      const originalReport = getSource(item);
+      const approved = await window.TalenaManagerReportReview.confirm(originalReport);
+      if (!approved) return null; // Review chosen: no PDF, audit or success notice.
+      // An AJAX candidate switch while reviewing must not export another person.
+      if (!originalReport?.isConnected || getSource(item) !== originalReport)
+        throw Error(copy.unavailable);
+    }
     const downloadName = reportFilename(item); // freeze identity before async work
     exporting = true;
     let stage;
@@ -505,11 +516,21 @@
       ".response-styles-header, .team-styles-header, " +
       ".personality-questions-header, .team-report__page-header, " +
       ".leadership-report__page-header, .derailment-report__page-header, " +
-      ".candidate-insight-page-header"
+      ".candidate-insight-page-header, .candidate-reflection__intro"
     );
   }
 
   function placeToolbar(source, item, toolbar) {
+    // Prepare for interview is now the only place for assessment questions.
+    // Keep its Refresh and PDF actions adjacent in the main header.
+    if (item.id === "combined-interview-questions") {
+      const actions = source.querySelector(".pre-interview-question-actions");
+      if (actions) {
+        actions.append(toolbar);
+        toolbar.classList.add("talena-candidate-pdf-toolbar--inline");
+        return;
+      }
+    }
     const generate = source.querySelector(generateSelector);
     const actions = item.id === "overview"
       ? source.querySelector(".ai-overview-header__actions")
@@ -580,8 +601,8 @@
       message.textContent = "";
       message.classList.remove("is-error");
       try {
-        await exportReport(item.id);
-        message.textContent = copy.success;
+        const generated = await exportReport(item.id);
+        if (generated != null) message.textContent = copy.success;
       } catch (_) {
         message.textContent = copy.error;
         message.classList.add("is-error");

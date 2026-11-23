@@ -267,6 +267,44 @@ def _social_desirability_text(
 
 
 
+def _social_desirability_visual_band(
+    response_styles: list[dict[str, Any]] | None,
+    language: str = "sv",
+) -> dict[str, str]:
+    """A neutral display label, derived from the same STEN bands as guidance.
+
+    This is a visual summary only. The full assessment interpretation and
+    thresholds remain unchanged and there is no good/bad classification.
+    """
+    style = next(
+        (
+            item for item in (response_styles or [])
+            if item.get("key") == "social_desirability"
+        ),
+        None,
+    )
+    if not style or not style.get("available"):
+        return {}
+    score = _valid_sten(style.get("value"))
+    if score is None:
+        return {}
+
+    band = "low" if score <= 3 else "middle" if score <= 7 else "high"
+    labels = {
+        "sv": {
+            "low": "Mer självkritisk",
+            "middle": "Balanserad",
+            "high": "Mer positiv självpresentation",
+        },
+        "en": {
+            "low": "More self-critical",
+            "middle": "Balanced",
+            "high": "More positive self-presentation",
+        },
+    }
+    return {"band": band, "label": labels[language][band]}
+
+
 def _format_social_desirability(
     paragraphs: tuple[str, ...],
     language: str = "sv",
@@ -374,6 +412,7 @@ def build_static_communication_guidance(
         profile_tips = [clear_profile_text[1]]
 
     social_text = _social_desirability_text(response_styles, language_key)
+    social_visual_band = _social_desirability_visual_band(response_styles, language_key)
     return {
         "localized": True,
         "language": language_key,
@@ -382,6 +421,8 @@ def build_static_communication_guidance(
         "profile_interpretation": profile_interpretation,
         "profile_tips": profile_tips,
         "social_desirability_available": bool(social_text),
+        "social_desirability_visual_band": social_visual_band.get("band", ""),
+        "social_desirability_visual_label": social_visual_band.get("label", ""),
         "social_desirability_guidance": _format_social_desirability(
             social_text,
             language_key,

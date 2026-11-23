@@ -25,6 +25,7 @@
           <th>Role</th>
           <th>Company</th>
           <th>Status</th>
+          <th>Språk</th>
           <th>Added</th>
           <th class="text-end">Åtgärder</th>
         </tr>
@@ -107,6 +108,12 @@
                 {% endif %}
               </td>
 
+              <td class="text-nowrap small">
+                {% if u.preferred_language == "sv" %}Svenska
+                {% elif u.preferred_language == "en" %}English
+                {% else %}<span class="text-muted">Automatiskt</span>{% endif %}
+              </td>
+
               <td class="text-muted text-nowrap">
                 {% if m.created_at %}
                   {{ m.created_at|date:"Y-m-d H:i" }}
@@ -122,7 +129,7 @@
 
         {% empty %}
           <tr>
-            <td colspan="7" class="text-muted p-3">
+            <td colspan="8" class="text-muted p-3">
               No users have been added to this company yet.
             </td>
           </tr>

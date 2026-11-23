@@ -1,0 +1,87 @@
+/* Visual cues for the shared response-style and communication strategy cards.
+   Neutral icons identify the type of result, not candidate suitability.
+   The same partial is rendered in Personality, Before interview and PDFs. */
+.process-page .static-communication-guidance .response-style-result-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  min-width: 0;
+  line-height: 1.35;
+}
+
+.process-page .static-communication-guidance .response-style-result-icon {
+  display: inline-flex;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: #eff1f3;
+  color: #546675;
+}
+
+.process-page .static-communication-guidance .response-style-result-icon--middle {
+  background: #f0eef5;
+  color: #70667e;
+}
+
+.process-page .static-communication-guidance .response-style-result-icon--clear {
+  background: #eaf0f3;
+  color: #536b78;
+}
+
+.process-page .static-communication-guidance .response-style-result-icon--social {
+  background: #f4f0eb;
+  color: #74675d;
+}
+
+.process-page .static-communication-guidance .response-style-result-icon svg {
+  display: block;
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+}
+
+.process-page .static-communication-guidance .response-style-result-topline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 1rem;
+  row-gap: 0.55rem;
+}
+
+.process-page .static-communication-guidance .response-style-result-tag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 25px;
+  padding: 0.25rem 0.75rem;
+  border: 1px solid #e8e3dd;
+  border-radius: 999px;
+  background: #f7f5f2;
+  color: #625b55;
+  font-size: 0.68rem;
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: normal;
+}
+
+/* A soft lavender tone makes the self-critical outcome visibly active
+   without making a response style look like a warning or a pass/fail status. */
+.process-page .static-communication-guidance
+.response-style-result-tag[data-social-desirability-band="low"] {
+  background: #f1ebfa;
+  border-color: #dbcfed;
+  color: #624b85;
+}
+
+@media (max-width: 575px) {
+  .process-page .static-communication-guidance .response-style-result-topline {
+    align-items: flex-start;
+  }
+  .process-page .static-communication-guidance .response-style-result-icon {
+    width: 30px;
+    height: 30px;
+    flex-basis: 30px;
+  }
+}

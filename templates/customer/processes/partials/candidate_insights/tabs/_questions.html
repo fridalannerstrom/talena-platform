@@ -1,4 +1,4 @@
-{% load i18n interview_config %}
+{% load i18n interview_config personality_question_competencies %}
 {% get_current_language as LANGUAGE_CODE %}
 {% interview_combined_sections as displayed_interview_sections %}
 {% interview_total_minutes displayed_interview_sections as total_interview_minutes %}
@@ -243,14 +243,13 @@
 </h2>
 
 <p class="text-muted small mb-0">
-  {% if LANGUAGE_CODE|slice:":2" == "sv" %}Här samlas inledande frågor och sparade intervjufrågor för Personlighet, Motivation och Färdighet. Frågorna finns också i respektive testområde.{% else %}This page brings together opening questions and saved interview questions for Personality, Motivation and Skills. The questions are also available within each assessment area.{% endif %}
+  {% if LANGUAGE_CODE|slice:":2" == "sv" %}Här samlas inledande frågor och sparade intervjufrågor för Personlighet, Motivation och Färdighet. Du kan uppdatera frågorna här när projektets förutsättningar ändras.{% else %}This page brings together opening questions and saved interview questions for Personality, Motivation and Skills. You can regenerate questions here when the project's requirements change.{% endif %}
 </p>
 
     </div>
 
 
-    {% if has_combined_questions or displayed_interview_sections %}
-      <div class="d-flex align-items-center justify-content-end flex-wrap gap-2">
+    <div class="pre-interview-question-actions d-flex align-items-center justify-content-end flex-wrap gap-2">
         {% if has_combined_questions %}
           <span class="personality-trait-pill text-nowrap">
             {% if LANGUAGE_CODE|slice:":2" == "sv" %}
@@ -271,11 +270,81 @@
             {% if LANGUAGE_CODE|slice:":2" == "sv" %}Totalt ~{{ total_interview_minutes }} min{% else %}Total ~{{ total_interview_minutes }} min{% endif %}
           </span>
         {% endif %}
+
+        {% if can_manage_candidate_results and not is_historical %}
+          <button
+            type="button"
+            class="btn btn-icon btn-light talena-report-action-button pre-interview-questions-refresh"
+            data-pre-interview-questions-regenerate
+            title="{% if LANGUAGE_CODE|slice:':2' == 'sv' %}Uppdatera intervjufrågor{% else %}Regenerate interview questions{% endif %}"
+            aria-label="{% if LANGUAGE_CODE|slice:':2' == 'sv' %}Uppdatera intervjufrågor{% else %}Regenerate interview questions{% endif %}"
+          >
+            <i data-feather="refresh-cw" aria-hidden="true"></i>
+          </button>
+
+        {% endif %}
       </div>
-    {% endif %}
 
   </div>
+  <p class="pre-interview-questions-refresh-status small"
+     data-pre-interview-questions-refresh-status role="status" aria-live="polite" hidden></p>
 
+  {% comment %}Native dialog lives inside the dynamically loaded candidate offcanvas, alongside the refresh control.{% endcomment %}
+  {% if can_manage_candidate_results and not is_historical %}
+    <dialog
+      class="talena-question-refresh-dialog"
+      data-pre-interview-refresh-dialog
+      aria-label="{% if LANGUAGE_CODE|slice:':2' == 'sv' %}Bekräfta uppdatering av intervjufrågor{% else %}Confirm interview question regeneration{% endif %}"
+    >
+      <div class="talena-question-refresh-dialog__inner">
+        <div class="talena-question-refresh-dialog__top">
+          <span class="talena-question-refresh-dialog__icon" aria-hidden="true">
+            <i data-feather="refresh-cw"></i>
+          </span>
+          <div>
+            <h3 class="talena-question-refresh-dialog__title">
+              {% if LANGUAGE_CODE|slice:":2" == "sv" %}Uppdatera intervjufrågorna?{% else %}Regenerate interview questions?{% endif %}
+            </h3>
+            <p class="talena-question-refresh-dialog__intro">
+              {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+                Talena skapar nya frågor utifrån aktuella testresultat och projektets rollkontext. Frågorna som visas idag ersätts.
+              {% else %}
+                Talena will create new questions from the current assessment results and role context. The questions currently shown will be replaced.
+              {% endif %}
+            </p>
+          </div>
+        </div>
+
+        <div class="talena-question-refresh-dialog__notice">
+          <span class="talena-question-refresh-dialog__notice-icon" aria-hidden="true">
+            <i data-feather="check-circle"></i>
+          </span>
+          <div>
+            <strong>
+              {% if LANGUAGE_CODE|slice:":2" == "sv" %}Dina sparade svar och anteckningar behålls{% else %}Your saved answers and notes are kept{% endif %}
+            </strong>
+            <p>
+              {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+                De finns kvar under Efter intervju → Underlag, kopplade till sina ursprungliga frågor. De förs inte över till de nya frågorna.
+              {% else %}
+                Find them under After interview → Evidence, still linked to their original questions. They are not transferred to the new questions.
+              {% endif %}
+            </p>
+          </div>
+        </div>
+
+        <div class="talena-question-refresh-dialog__actions">
+          <button type="button" class="talena-question-refresh-dialog__cancel" data-pre-interview-refresh-cancel>
+            {% if LANGUAGE_CODE|slice:":2" == "sv" %}Avbryt{% else %}Cancel{% endif %}
+          </button>
+          <button type="button" class="talena-question-refresh-dialog__confirm" data-pre-interview-refresh-confirm>
+            <i data-feather="refresh-cw" aria-hidden="true"></i>
+            {% if LANGUAGE_CODE|slice:":2" == "sv" %}Uppdatera frågor{% else %}Regenerate questions{% endif %}
+          </button>
+        </div>
+      </div>
+    </dialog>
+  {% endif %}
 
   {% if displayed_interview_sections %}
 
@@ -355,6 +424,15 @@
                     <div class="personality-question-card__text">
                       {{ item.question }}
                     </div>
+
+                    {# Same construct labels as Personality > Interview questions. #}
+                    {% if section.key == "personality" and item.traits %}
+                      <div class="personality-question-card__traits">
+                        {% for trait in item.traits %}
+                          <span>{{ trait|personality_question_focus_label }}</span>
+                        {% endfor %}
+                      </div>
+                    {% endif %}
 
                   </div>
 
@@ -459,7 +537,11 @@
       </h3>
 
       <p class="text-muted small mb-0">
-        {% blocktrans %}This page brings together the candidate’s currently saved questions from Personality, Motivation and Cognitive abilities. Questions can be changed or regenerated within each assessment category.{% endblocktrans %}
+        {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+          Här samlas kandidatens sparade frågor från Personlighet, Motivation och Färdighet. När testresultat finns kan du skapa nya frågor med uppdateringsknappen ovan.
+        {% else %}
+          This page brings together saved interview questions from Personality, Motivation and Skills. When assessments are available, use the refresh button above to create new questions.
+        {% endif %}
       </p>
 
     </div>

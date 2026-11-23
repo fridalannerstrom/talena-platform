@@ -1319,6 +1319,8 @@ def admin_customers_create(request):
         form = InviteUserForm(request.POST)
         if form.is_valid():
             user = form.save(commit=False)
+            # Match the account's first UI language to the invitation language.
+            user.preferred_language = form.cleaned_data.get("invite_language") or "en"
             user.set_unusable_password()
             user.is_active = False
             user.save()
@@ -4154,6 +4156,7 @@ def company_invite_member(request, company_pk):
                     "first_name": first_name,
                     "last_name": last_name,
                     "is_active": False,
+                    "preferred_language": invite_form.cleaned_data.get("invite_language") or "en",
                 }
             )
 

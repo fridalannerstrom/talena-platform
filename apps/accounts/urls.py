@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views, branding_views
+from . import user_language_views
 from apps.processes.automatic_invitations import (
     capture_automatic_candidate_invitations,
 )
@@ -15,6 +16,7 @@ urlpatterns = [
 
     # User detail (admin)
     path("users/<int:pk>/", views.admin_user_detail, name="admin_user_detail"),
+    path("users/<int:user_pk>/language/", user_language_views.set_user_language, name="admin_user_language"),
 
     # =========================================================================
     # PROCESSES & CANDIDATES (ADMIN)

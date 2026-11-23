@@ -3,19 +3,21 @@
 
 <section class="candidate-reflection">
   <div class="candidate-reflection__intro">
-    <div class="candidate-reflection__eyebrow">
-      {% if LANGUAGE_CODE|slice:":2" == "sv" %}Kandidatens perspektiv{% else %}Candidate perspective{% endif %}
+    <div class="candidate-reflection__heading-copy">
+      <div class="candidate-reflection__eyebrow insight-summary-kicker">
+        {% if LANGUAGE_CODE|slice:":2" == "sv" %}Kandidatens perspektiv{% else %}Candidate perspective{% endif %}
+      </div>
+      <h2 class="candidate-reflection__title insight-summary-title">
+        {% if LANGUAGE_CODE|slice:":2" == "sv" %}Kandidatens reflektion{% else %}Candidate reflection{% endif %}
+      </h2>
+      <p>
+        {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+          Här ser du hur kandidaten reagerade på den sammanfattning som visades i kandidatens egen resultatvy.
+        {% else %}
+          This shows how the candidate responded to the summary shown in their own result view.
+        {% endif %}
+      </p>
     </div>
-    <h2 class="candidate-reflection__title">
-      {% if LANGUAGE_CODE|slice:":2" == "sv" %}Kandidatens reflektion{% else %}Candidate reflection{% endif %}
-    </h2>
-    <p>
-      {% if LANGUAGE_CODE|slice:":2" == "sv" %}
-        Här ser du hur kandidaten reagerade på den sammanfattning som visades i kandidatens egen resultatvy.
-      {% else %}
-        This shows how the candidate responded to the summary shown in their own result view.
-      {% endif %}
-    </p>
   </div>
 
   <div class="candidate-reflection__status">
@@ -69,7 +71,7 @@
       {% if LANGUAGE_CODE|slice:":2" == "sv" %}Texten kandidaten fick läsa{% else %}Text shown to the candidate{% endif %}
     </div>
     {% if candidate_reflection.title %}
-      <div class="candidate-reflection__source-title">{{ candidate_reflection.title }}</div>
+      <h3 class="candidate-reflection__source-title">{{ candidate_reflection.title }}</h3>
     {% endif %}
     {% if candidate_reflection.body %}
       <p class="candidate-reflection__source-body">{{ candidate_reflection.body }}</p>
@@ -82,15 +84,19 @@
       </ul>
     {% endif %}
     {% for group in candidate_reflection.groups %}
-      <div class="candidate-reflection__group">
-        {% if group.title %}<div class="candidate-reflection__source-title">{{ group.title }}</div>{% endif %}
+      <section class="candidate-reflection__group">
+        {% if group.title %}
+          <h4 class="candidate-reflection__group-title">{{ group.title }}</h4>
+        {% endif %}
         {% for item in group.items %}
           <div class="candidate-reflection__source-item">
-            {% if item.label %}<strong>{{ item.label }}</strong>{% endif %}
+            {% if item.label %}
+              <h5 class="candidate-reflection__item-title">{{ item.label }}</h5>
+            {% endif %}
             {% if item.text %}<p class="candidate-reflection__source-body">{{ item.text }}</p>{% endif %}
           </div>
         {% endfor %}
-      </div>
+      </section>
     {% endfor %}
   </div>
 </section>

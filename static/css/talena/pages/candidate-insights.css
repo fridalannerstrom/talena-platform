@@ -1028,37 +1028,91 @@
   white-space: pre-wrap;
 }
 
+/* The candidate-facing text has three levels: assessment, theme and
+   individual area. Keep those levels distinct without turning the long
+   summary into a stack of nested cards. Shared by all reflection tabs. */
 .process-page .candidate-reflection__source {
   margin-top: 0.8rem;
-  padding: 1.05rem 1.1rem;
+  padding: 1.35rem 1.45rem 1.5rem;
+}
+
+.process-page .candidate-reflection__source > .candidate-reflection__label {
+  display: block;
+  margin-bottom: 0.7rem;
 }
 
 .process-page .candidate-reflection__source-title {
-  margin: 0.35rem 0 0;
+  margin: 0 0 1.15rem;
   color: var(--talena-ink);
-  font-size: 0.86rem;
-  font-weight: 680;
+  font-size: 1.08rem;
+  font-weight: 750;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+}
+
+.process-page .candidate-reflection__group {
+  margin: 0;
+}
+
+.process-page .candidate-reflection__group + .candidate-reflection__group {
+  margin-top: 1.55rem;
+  padding-top: 1.45rem;
+  border-top: 1px solid var(--talena-border);
+}
+
+.process-page .candidate-reflection__group-title {
+  margin: 0 0 0.9rem;
+  color: var(--talena-ink);
+  font-size: 1rem;
+  font-weight: 730;
+  line-height: 1.35;
+  letter-spacing: -0.015em;
+}
+
+.process-page .candidate-reflection__source-item + .candidate-reflection__source-item {
+  margin-top: 1.1rem;
+}
+
+.process-page .candidate-reflection__item-title {
+  margin: 0 0 0.35rem;
+  color: var(--talena-ink);
+  font-size: 0.85rem;
+  font-weight: 700;
+  line-height: 1.45;
 }
 
 .process-page .candidate-reflection__source-body {
-  margin: 0.55rem 0 0;
-  max-width: 900px;
+  margin: 0;
+  max-width: none;
+  color: var(--talena-text);
+  font-size: 0.78rem;
+  line-height: 1.72;
+}
+
+.process-page .candidate-reflection__source > .candidate-reflection__source-body {
+  margin-bottom: 0.9rem;
+}
+
+.process-page .candidate-reflection__source ul {
+  margin: 0.7rem 0 0.9rem;
+  padding-left: 1.1rem;
   color: var(--talena-text);
   font-size: 0.78rem;
   line-height: 1.68;
 }
 
-.process-page .candidate-reflection__source ul {
-  margin: 0.65rem 0 0;
-  padding-left: 1.1rem;
-  color: var(--talena-text);
-  font-size: 0.76rem;
-  line-height: 1.62;
-}
-
 @media (max-width: 620px) {
   .process-page .candidate-reflection {
     padding: 1.1rem 1rem 1.25rem;
+  }
+
+  .process-page .candidate-reflection__source {
+    padding: 1.05rem 1rem 1.2rem;
+  }
+
+  .process-page .candidate-reflection__group + .candidate-reflection__group {
+    margin-top: 1.25rem;
+    padding-top: 1.2rem;
   }
 
   .process-page .candidate-reflection__status {

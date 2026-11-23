@@ -2611,8 +2611,23 @@
     const managerReportPdfError = document.createElement("div");
     managerReportPdfError.className = "alert alert-danger d-none mt-3 mb-0";
     managerReportPdfError.setAttribute("role", "alert");
-    pdfButton.addEventListener("click", () => {
-      if (pdfButton.disabled) return;
+    let managerPdfAwaitingReview = false;
+    pdfButton.addEventListener("click", async () => {
+      if (pdfButton.disabled || managerPdfAwaitingReview) return;
+      // Never prepare, audit or render a PDF before explicit human review.
+      if (!window.TalenaManagerReportReview?.confirm) {
+        managerReportPdfError.textContent = copy().pdfGenerationFailed;
+        managerReportPdfError.classList.remove("d-none");
+        return;
+      }
+      managerPdfAwaitingReview = true;
+      let approved = false;
+      try {
+        approved = await window.TalenaManagerReportReview.confirm(managerReportCard);
+      } finally {
+        managerPdfAwaitingReview = false;
+      }
+      if (!approved || pdfButton.disabled || !managerReportCard.isConnected) return;
       managerReportPdfError.classList.add("d-none");
       pdfButton.disabled = true;
       pdfButton.setAttribute("aria-busy", "true");

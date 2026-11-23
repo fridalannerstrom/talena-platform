@@ -4984,9 +4984,15 @@ async function refreshCandidateFinalOutput(
       newRoot
     );
 
-    // Only reactivate After interview if it is still the active area.
-    // Never reset a newly selected Skills, Personality or other tab.
-    if (activeInsightsTabKey === "after-interview" && insightsWorkspace) {
+    // The server-rendered fragment defaults both interview panels to hidden.
+    // Restore whichever interview tab is active after replacing the fragment,
+    // including Prepare for interview while questions regenerate. Do not
+    // switch tabs if the user navigated elsewhere during the fetch.
+    if (
+      insightsWorkspace &&
+      (activeInsightsTabKey === "after-interview" ||
+       activeInsightsTabKey === "prepare-interview")
+    ) {
       const refreshedInsightsTab = [
         ...insightsWorkspace.querySelectorAll(
           ".candidate-profile-tabs [data-insights-tab]"
@@ -5157,8 +5163,10 @@ async function refreshCandidateCombinedQuestions(
     template.innerHTML =
       html.trim();
 
+    // The response includes a <style> block before the actual questions.
+    // Never replace the question panel with the stylesheet by accident.
     const newRoot =
-      template.content.firstElementChild;
+      template.content.querySelector("[data-combined-questions-root]");
 
     if (!newRoot) {
       throw new Error(
@@ -11202,9 +11210,11 @@ if (postGenerateButton) {
     <script src="{% static 'js/talena/candidate-result-internal-pdf.js' %}?v=20261116-ticket-475-1"></script>
     <script src="{% static 'js/talena/structured-overall-picture.js' %}?v=20261107-three-ai-headings-v2"></script>
     <script src="{% static 'js/talena/manager-report-pdf-metadata.js' %}?v=20261107-430-v2"></script>
+    <script src="{% static 'js/talena/manager-report-review.js' %}?v=20261123-review-v1"></script>
     <script src="{% static 'js/talena/after-interview-tabs.js' %}?v=20261119-manager-pdf-polish-8"></script>
     <script src="{% static 'js/talena/report-export-activity.js' %}?v=20261118-435-1"></script>
-    <script src="{% static 'js/talena/candidate-report-export.js' %}?v=20261119-personality-result-views-7"></script>
+    <script src="{% static 'js/talena/candidate-report-export.js' %}?v=20261122-questions-refresh-header-v3"></script>
+    <script src="{% static 'js/talena/pre-interview-question-refresh.js' %}?v=20261123-confirm-dialog-v2"></script>
     <script src="{% static 'js/talena/report-package-core.js' %}?v=20261104-449-1"></script>
     <script src="{% static 'js/talena/candidate-report-packages.js' %}?v=20261119-personality-result-views-7"></script>
     <script src="{% static 'js/talena/team-style-hover-fix.js' %}"></script>

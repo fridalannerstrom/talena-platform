@@ -166,23 +166,30 @@ class AdminCustomerWorkspaceTests(TestCase):
         )
         self.assertTrue(response.context["can_edit"])
 
-    def test_saving_role_context_stays_on_role_tab_and_shows_saved_traits(self):
-        """Customer flow: save all eight, then save text without losing the choice."""
+    def test_saving_role_context_stays_on_role_tab_and_reselects_all_eight_traits(self):
+        """Editing role context replaces prior manual picks with new project AI picks."""
+        from unittest.mock import Mock
         from apps.processes.models import ProcessRoleContext
+        from apps.processes.purpose_context_config import normalize_purpose_key
         from apps.processes.project_personality_trait_selection import (
+            CACHE_KEY,
             get_project_personality_trait_options,
+            get_project_personality_trait_selection,
         )
 
-        traits = [
-            item["name"] for item in get_project_personality_trait_options("sv")[:8]
+        available = [
+            item["name"] for item in get_project_personality_trait_options("sv")
         ]
+        original = available[:8]
+        recommended = available[8:16]
+        purpose_key = normalize_purpose_key(self.process.purpose)
         url = reverse(
             "processes:process_role_context", args=[self.process.pk],
         )
         self.client.force_login(self.customer)
         selection = self.client.post(url, {
             "context_text": "Recruiter for customer service.",
-            "personality_question_traits": traits,
+            "personality_question_traits": original,
             "save_personality_traits": "1",
         })
         self.assertRedirects(selection, url)
@@ -193,27 +200,133 @@ class AdminCustomerWorkspaceTests(TestCase):
         self.assertEqual(page.status_code, 200)
         self.assertTemplateUsed(page, "customer/processes/process_role_context.html")
         self.assertEqual(page.context["active"], "context")
-        self.assertEqual(set(page.context["selected_personality_traits"]), set(traits))
+        self.assertEqual(set(page.context["selected_personality_traits"]), set(original))
         self.assertEqual(len(page.context["selected_project_trait_options"]), 8)
 
-        # The regular button must also return to the same tab and preserve
-        # the previously selected eight manual traits.
-        saved = self.client.post(url, {
-            "context_text": "Updated recruiter context and responsibilities.",
-        })
+        # Previously generated candidate questions must remain available
+        # while the new project selection makes them eligible for refresh.
+        old_questions = {"questions": [{"question": "Earlier interview example"}]}
+        self.invitation.ai_personality_questions = old_questions
+        self.invitation.ai_personality_questions_status = "completed"
+        self.invitation.save(
+            update_fields=[
+                "ai_personality_questions",
+                "ai_personality_questions_status",
+            ]
+        )
+
+        client = Mock()
+        client.chat.completions.create.return_value = Mock(
+            choices=[Mock(message=Mock(content=json.dumps({
+                "items": [
+                    {"name": name, "reason_sv": "Relevant för rollen",
+                     "reason_en": "Relevant for the role"}
+                    for name in recommended
+                ],
+            })))],
+        )
+
+        # Changing the role context must discard earlier manual picks and
+        # regenerate a shared set, rather than carrying old traits forward.
+        with (
+            patch(
+                "apps.processes.project_personality_trait_selection.get_openai_client",
+                return_value=client,
+            ),
+            patch(
+                "apps.processes.project_personality_trait_selection.get_chat_model",
+                return_value="synthetic-model",
+            ),
+            patch(
+                "apps.processes.project_personality_trait_selection.get_ai_feature_prompt_instructions",
+                return_value="",
+            ),
+        ):
+            saved = self.client.post(url, {
+                "context_text": "Updated recruiter context and responsibilities.",
+            })
         self.assertRedirects(saved, url)
+        client.chat.completions.create.assert_called_once()
+        self.invitation.refresh_from_db()
+        self.assertEqual(self.invitation.ai_personality_questions, old_questions)
+        self.assertEqual(self.invitation.ai_personality_questions_status, "outdated")
         context.refresh_from_db()
         self.assertEqual(
             context.get_current_context_text(),
             "Updated recruiter context and responsibilities.",
         )
+        self.assertEqual(context.purpose_data[purpose_key]["personality_question_traits"], [])
+        self.assertEqual(
+            set(item["name"] for item in context.purpose_data[purpose_key][CACHE_KEY]["items"]),
+            set(recommended),
+        )
         reopened = self.client.get(url)
         self.assertEqual(reopened.context["form"]["context_text"].value(),
                          "Updated recruiter context and responsibilities.")
         self.assertEqual(
-            set(reopened.context["selected_personality_traits"]), set(traits),
+            set(reopened.context["selected_personality_traits"]), set(recommended),
         )
         self.assertEqual(len(reopened.context["selected_project_trait_options"]), 8)
+        self.assertEqual(
+            reopened.context["personality_trait_selection_source"], "recommended",
+        )
+        self.assertEqual(
+            set(item["name"] for item in get_project_personality_trait_selection(
+                self.process, generate=False
+            )), set(recommended),
+        )
+
+        # A second actual role-context edit must also recompute the project's
+        # automatic selection, not reuse the just-generated cached eight.
+        second_recommendation = available[1:9]
+        client.chat.completions.create.reset_mock()
+        client.chat.completions.create.return_value.choices[0].message.content = (
+            json.dumps({"items": [
+                {"name": name, "reason_sv": "Andra rollen",
+                 "reason_en": "Second role"}
+                for name in second_recommendation
+            ]})
+        )
+        with (
+            patch(
+                "apps.processes.project_personality_trait_selection.get_openai_client",
+                return_value=client,
+            ),
+            patch(
+                "apps.processes.project_personality_trait_selection.get_chat_model",
+                return_value="synthetic-model",
+            ),
+            patch(
+                "apps.processes.project_personality_trait_selection.get_ai_feature_prompt_instructions",
+                return_value="",
+            ),
+        ):
+            second_save = self.client.post(url, {
+                "context_text": "Second updated recruiter role with different requirements.",
+            })
+        self.assertRedirects(second_save, url)
+        client.chat.completions.create.assert_called_once()
+        context.refresh_from_db()
+        self.assertEqual(
+            set(item["name"] for item in context.purpose_data[purpose_key][CACHE_KEY]["items"]),
+            set(second_recommendation),
+        )
+
+        # Re-saving the SAME text is not an update; preserve the selection
+        # and avoid another paid AI call.
+        with patch(
+            "apps.processes.project_personality_trait_selection.get_openai_client",
+            side_effect=AssertionError("Unexpected OpenAI call for unchanged context"),
+        ):
+            unchanged = self.client.post(url, {
+                "context_text": "Second updated recruiter role with different requirements.",
+            })
+            self.assertRedirects(unchanged, url)
+        context.refresh_from_db()
+        self.assertEqual(
+            set(item["name"] for item in context.purpose_data[purpose_key][CACHE_KEY]["items"]),
+            set(second_recommendation),
+        )
 
     def test_saving_role_context_ignores_old_next_redirect(self):
         """A candidate-page 'next' value must not navigate away after save."""

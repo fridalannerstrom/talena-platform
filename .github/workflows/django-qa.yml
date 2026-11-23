@@ -92,6 +92,12 @@ jobs:
           DJANGO_SECRET_KEY: local-qa-only
           USE_AZURE_STORAGE: '0'
         run: python manage.py makemigrations processes candidate_results emails accounts activity --check --dry-run
+      - name: Verify persistent customer language and platform admin overrides
+        env:
+          DJANGO_DEBUG: 'True'
+          DJANGO_SECRET_KEY: local-qa-only
+          USE_AZURE_STORAGE: '0'
+        run: python manage.py test apps.accounts.test_user_language_preference --noinput
       - name: Verify bilingual password recovery and CSRF protection
         env:
           DJANGO_DEBUG: 'True'
@@ -104,6 +110,14 @@ jobs:
           DJANGO_SECRET_KEY: local-qa-only
           USE_AZURE_STORAGE: '0'
         run: python manage.py test apps.reports.test_report_ui_441 apps.reports.test_leadership_intro_374 --noinput
+      - name: Verify role-context personality selection loading overlay
+        env:
+          DJANGO_DEBUG: 'True'
+          DJANGO_SECRET_KEY: local-qa-only
+          USE_AZURE_STORAGE: '0'
+        run: |
+          node --check static/js/talena/role-context-saving.js
+          node scripts/test_role_context_saving_progress.js
       - name: Verify admin candidate/customer mirror (#353)
         env:
           DJANGO_DEBUG: 'True'
@@ -199,12 +213,44 @@ jobs:
           DJANGO_SECRET_KEY: local-qa-only
           USE_AZURE_STORAGE: '0'
         run: python manage.py test apps.candidate_results.test_feedback_acknowledgement_478 --noinput
+      - name: Verify candidate activity timeline excludes internal report exports
+        env:
+          DJANGO_DEBUG: 'True'
+          DJANGO_SECRET_KEY: local-qa-only
+          USE_AZURE_STORAGE: '0'
+        run: python manage.py test apps.activity.test_candidate_journey_timeline --noinput
+      - name: Verify candidate reflections match shared tab layout
+        env:
+          DJANGO_DEBUG: 'True'
+          DJANGO_SECRET_KEY: local-qa-only
+          USE_AZURE_STORAGE: '0'
+        run: python manage.py test apps.processes.test_candidate_reflection_layout --noinput
+      - name: Verify interview question refresh button and permissions
+        env:
+          DJANGO_DEBUG: 'True'
+          DJANGO_SECRET_KEY: local-qa-only
+          USE_AZURE_STORAGE: '0'
+        run: |
+          python manage.py test apps.processes.test_pre_interview_question_refresh_ui --noinput
+          node --check static/js/talena/pre-interview-question-refresh.js
+      - name: Verify ticket 480 interview questions only have one visible home
+        env:
+          DJANGO_DEBUG: 'True'
+          DJANGO_SECRET_KEY: local-qa-only
+          USE_AZURE_STORAGE: '0'
+        run: python manage.py test apps.processes.test_ticket_480_question_navigation --noinput
+      - name: Verify personality question trait labels in Prepare for interview
+        env:
+          DJANGO_DEBUG: 'True'
+          DJANGO_SECRET_KEY: local-qa-only
+          USE_AZURE_STORAGE: '0'
+        run: python manage.py test apps.processes.test_pre_interview_personality_trait_tags --noinput
       - name: Verify shared pre-interview response styles (#504)
         env:
           DJANGO_DEBUG: 'True'
           DJANGO_SECRET_KEY: local-qa-only
           USE_AZURE_STORAGE: '0'
-        run: python manage.py test apps.processes.test_pre_interview_response_styles_504 apps.reports.test_response_style_selected_eight_20261118 --noinput
+        run: python manage.py test apps.processes.test_pre_interview_response_styles_504 apps.reports.test_response_style_selected_eight_20261118 apps.reports.test_response_style_visual_cues --noinput
       - name: Verify motivation rose highlights match precise STIVE ordering
         env:
           DJANGO_DEBUG: 'True'
@@ -246,6 +292,8 @@ jobs:
           node scripts/test_manager_report_branding_contract.js
           node --check static/js/talena/manager-report-pdf-metadata.js
           node scripts/test_manager_report_pdf_metadata_429.js
+          node --check static/js/talena/manager-report-review.js
+          node scripts/test_manager_report_ai_review_dialog.js
           node --check static/js/talena/manager-report-activity.js
           node scripts/test_manager_report_activity_430.js
           node --check static/js/talena/structured-overall-picture.js

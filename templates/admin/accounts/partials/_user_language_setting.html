@@ -1,0 +1,33 @@
+{# Shared setting shown only on Talena administrator's user-detail pages. #}
+<div class="mt-3 p-3 rounded-3 border" style="background:#faf9f7;">
+  <div class="d-flex align-items-center gap-2 mb-1">
+    <i data-feather="globe" style="width:17px;height:17px;color:#a55a50;" aria-hidden="true"></i>
+    <div class="fw-semibold">Språk i Talena</div>
+  </div>
+  <div class="text-muted small mb-3">
+    Sparat språk för användarens gränssnitt. Gäller vid nästa sidladdning eller inloggning.
+  </div>
+  <form method="post"
+        action="{% url 'accounts:admin_user_language' user_obj.pk %}"
+        class="d-flex flex-wrap align-items-end gap-2">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+    <div class="flex-grow-1">
+      <label class="form-label small fw-semibold" for="userLanguage-{{ user_obj.pk }}">Valt språk</label>
+      <select id="userLanguage-{{ user_obj.pk }}" name="preferred_language"
+              class="form-select form-select-sm" aria-label="Språk för användaren">
+        <option value="" {% if not user_obj.preferred_language %}selected{% endif %}>Automatiskt (webbläsare)</option>
+        <option value="sv" {% if user_obj.preferred_language == 'sv' %}selected{% endif %}>Svenska</option>
+        <option value="en" {% if user_obj.preferred_language == 'en' %}selected{% endif %}>English</option>
+      </select>
+    </div>
+    <button type="submit" class="btn btn-sm btn-dark px-3">Spara språk</button>
+  </form>
+  <div class="text-muted mt-2" style="font-size:0.73rem;line-height:1.5;">
+    {% if not user_obj.preferred_language %}
+      Inget språk har sparats för kontot ännu. Användarens webbläsarval gäller tills ett språk väljs.
+    {% else %}
+      Användaren kan själv ändra språket via språkvalet i Talena.
+    {% endif %}
+  </div>
+</div>

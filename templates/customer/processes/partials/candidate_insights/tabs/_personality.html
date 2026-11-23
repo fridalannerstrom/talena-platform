@@ -46,17 +46,6 @@
         <span>{% if LANGUAGE_CODE|slice:":2" == "sv" %}AI-tolkning{% else %}AI interpretation{% endif %}</span>
       </button>
 
-      <button
-        type="button"
-        class="candidate-insights-view-option"
-        role="tab"
-        aria-selected="false"
-        aria-controls="personality-subpanel-questions"
-        data-insights-subtab="questions"
-      >
-        <i data-feather="help-circle"></i>
-        <span>{% trans "Questions" %}</span>
-      </button>
 
 
       {% if candidate_result_reflections_enabled and candidate_result_reflections.personality %}
@@ -104,13 +93,8 @@
       </div>
 
 
-      <div
-        id="personality-subpanel-questions"
-        class="candidate-insights-subpanel"
-        role="tabpanel"
-        data-insights-subpanel="questions"
-        hidden
-      >
+      {% comment %}#480: Questions live only under Prepare for interview. Keep generation hooks mounted for background updates.{% endcomment %}
+      <div class="d-none" hidden aria-hidden="true" data-interview-questions-generator="personality">
         {% include "customer/processes/partials/candidate_insights/personality/_questions.html" %}
       </div>
 
