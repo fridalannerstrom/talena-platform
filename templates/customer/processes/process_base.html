@@ -4984,9 +4984,15 @@ async function refreshCandidateFinalOutput(
       newRoot
     );
 
-    // Only reactivate After interview if it is still the active area.
-    // Never reset a newly selected Skills, Personality or other tab.
-    if (activeInsightsTabKey === "after-interview" && insightsWorkspace) {
+    // The server-rendered fragment defaults both interview panels to hidden.
+    // Restore whichever interview tab is active after replacing the fragment,
+    // including Prepare for interview while questions regenerate. Do not
+    // switch tabs if the user navigated elsewhere during the fetch.
+    if (
+      insightsWorkspace &&
+      (activeInsightsTabKey === "after-interview" ||
+       activeInsightsTabKey === "prepare-interview")
+    ) {
       const refreshedInsightsTab = [
         ...insightsWorkspace.querySelectorAll(
           ".candidate-profile-tabs [data-insights-tab]"
