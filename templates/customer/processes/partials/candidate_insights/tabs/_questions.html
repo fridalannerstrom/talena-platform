@@ -289,8 +289,7 @@
   <p class="pre-interview-questions-refresh-status small"
      data-pre-interview-questions-refresh-status role="status" aria-live="polite" hidden></p>
 
-  {# Native dialog works inside the dynamically loaded candidate offcanvas.
-     Keep the decision UI in the same partial as the question refresh control. #}
+  {% comment %}Native dialog lives inside the dynamically loaded candidate offcanvas, alongside the refresh control.{% endcomment %}
   {% if can_manage_candidate_results and not is_historical %}
     <dialog
       class="talena-question-refresh-dialog"
