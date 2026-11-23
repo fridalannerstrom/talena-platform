@@ -67,10 +67,64 @@ class PreInterviewQuestionRefreshUITests(SimpleTestCase):
         self.assertIn("data-cognitive-questions-regenerate", script)
         self.assertIn('action.click()', script)
         self.assertIn("candidate-ai-content-updated", script)
-        self.assertIn("window.confirm(copy.confirm)", script)
+        self.assertIn("confirmQuestionReplacement(workspace, trigger)", script)
+        self.assertIn('dialog.showModal()', script)
+        self.assertIn('dialog.close("confirm")', script)
+        self.assertIn('dialog.close("cancel")', script)
+        self.assertIn('resolve(dialog.returnValue === "confirm")', script)
+        self.assertNotIn("window.confirm(", script)
         self.assertIn("data-interview-question-note-field", script)
         self.assertNotIn('method: "POST"', script)
         self.assertIn("dataset.preInterviewQuestionsUpdating", script)
+
+    def test_confirm_modal_explains_notes_and_new_questions_in_both_languages(self):
+        for language, title, retained, location, action in (
+            (
+                "sv",
+                "Uppdatera intervjufrågorna?",
+                "Dina sparade svar och anteckningar behålls",
+                "Efter intervju",
+                "Uppdatera frågor",
+            ),
+            (
+                "en",
+                "Regenerate interview questions?",
+                "Your saved answers and notes are kept",
+                "After interview",
+                "Regenerate questions",
+            ),
+        ):
+            with self.subTest(language=language):
+                html = self.render_questions(language)
+                self.assertIn("data-pre-interview-refresh-dialog", html)
+                self.assertIn('class="talena-question-refresh-dialog"', html)
+                self.assertIn("data-pre-interview-refresh-confirm", html)
+                self.assertIn("data-pre-interview-refresh-cancel", html)
+                self.assertIn(title, html)
+                self.assertIn(retained, html)
+                self.assertIn(location, html)
+                self.assertIn(action, html)
+
+        # Viewers and archived projects do not get a confirmation action.
+        for can_edit, historical in ((False, False), (True, True)):
+            html = self.render_questions("sv", can_edit=can_edit, historical=historical)
+            self.assertNotIn("data-pre-interview-refresh-dialog", html)
+
+    def test_dialog_styles_and_cache_busting_are_loaded(self):
+        css = self.source("static/css/talena/pages/candidate-insight-tabs.css")
+        self.assertIn(".talena-question-refresh-dialog::backdrop", css)
+        self.assertIn(".talena-question-refresh-dialog__notice", css)
+        self.assertIn(".talena-question-refresh-dialog__actions", css)
+        for path in (
+            "templates/customer/processes/_process_header.html",
+            "templates/admin/accounts/partials/_candidate_customer_styles.html",
+        ):
+            self.assertIn("20261123-confirm-dialog-v4", self.source(path))
+        for path in (
+            "templates/customer/processes/process_base.html",
+            "templates/customer/core/layouts/customer_base.html",
+        ):
+            self.assertIn("20261123-confirm-dialog-v2", self.source(path))
 
     def test_ajax_refreshed_html_preserves_permissions_and_correct_root(self):
         view = self.source("apps/processes/views.py")
