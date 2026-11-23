@@ -166,23 +166,28 @@ class AdminCustomerWorkspaceTests(TestCase):
         )
         self.assertTrue(response.context["can_edit"])
 
-    def test_saving_role_context_stays_on_role_tab_and_shows_saved_traits(self):
-        """Customer flow: save all eight, then save text without losing the choice."""
+    def test_saving_role_context_stays_on_role_tab_and_reselects_all_eight_traits(self):
+        """Editing role context replaces prior manual picks with new project AI picks."""
+        from unittest.mock import Mock
         from apps.processes.models import ProcessRoleContext
         from apps.processes.project_personality_trait_selection import (
+            CACHE_KEY,
             get_project_personality_trait_options,
+            get_project_personality_trait_selection,
         )
 
-        traits = [
-            item["name"] for item in get_project_personality_trait_options("sv")[:8]
+        available = [
+            item["name"] for item in get_project_personality_trait_options("sv")
         ]
+        original = available[:8]
+        recommended = available[8:16]
         url = reverse(
             "processes:process_role_context", args=[self.process.pk],
         )
         self.client.force_login(self.customer)
         selection = self.client.post(url, {
             "context_text": "Recruiter for customer service.",
-            "personality_question_traits": traits,
+            "personality_question_traits": original,
             "save_personality_traits": "1",
         })
         self.assertRedirects(selection, url)
@@ -193,27 +198,82 @@ class AdminCustomerWorkspaceTests(TestCase):
         self.assertEqual(page.status_code, 200)
         self.assertTemplateUsed(page, "customer/processes/process_role_context.html")
         self.assertEqual(page.context["active"], "context")
-        self.assertEqual(set(page.context["selected_personality_traits"]), set(traits))
+        self.assertEqual(set(page.context["selected_personality_traits"]), set(original))
         self.assertEqual(len(page.context["selected_project_trait_options"]), 8)
 
-        # The regular button must also return to the same tab and preserve
-        # the previously selected eight manual traits.
-        saved = self.client.post(url, {
-            "context_text": "Updated recruiter context and responsibilities.",
-        })
+        client = Mock()
+        client.chat.completions.create.return_value = Mock(
+            choices=[Mock(message=Mock(content=json.dumps({
+                "items": [
+                    {"name": name, "reason_sv": "Relevant för rollen",
+                     "reason_en": "Relevant for the role"}
+                    for name in recommended
+                ],
+            })))],
+        )
+
+        # Changing the role context must discard earlier manual picks and
+        # regenerate a shared set, rather than carrying old traits forward.
+        with (
+            patch(
+                "apps.processes.project_personality_trait_selection.get_openai_client",
+                return_value=client,
+            ),
+            patch(
+                "apps.processes.project_personality_trait_selection.get_chat_model",
+                return_value="synthetic-model",
+            ),
+            patch(
+                "apps.processes.project_personality_trait_selection.get_ai_feature_prompt_instructions",
+                return_value="",
+            ),
+        ):
+            saved = self.client.post(url, {
+                "context_text": "Updated recruiter context and responsibilities.",
+            })
         self.assertRedirects(saved, url)
+        client.chat.completions.create.assert_called_once()
         context.refresh_from_db()
         self.assertEqual(
             context.get_current_context_text(),
             "Updated recruiter context and responsibilities.",
         )
+        self.assertEqual(context.purpose_data["hiring"]["personality_question_traits"], [])
+        self.assertEqual(
+            set(item["name"] for item in context.purpose_data["hiring"][CACHE_KEY]["items"]),
+            set(recommended),
+        )
         reopened = self.client.get(url)
         self.assertEqual(reopened.context["form"]["context_text"].value(),
                          "Updated recruiter context and responsibilities.")
         self.assertEqual(
-            set(reopened.context["selected_personality_traits"]), set(traits),
+            set(reopened.context["selected_personality_traits"]), set(recommended),
         )
         self.assertEqual(len(reopened.context["selected_project_trait_options"]), 8)
+        self.assertEqual(
+            reopened.context["personality_trait_selection_source"], "recommended",
+        )
+        self.assertEqual(
+            set(item["name"] for item in get_project_personality_trait_selection(
+                self.process, generate=False
+            )), set(recommended),
+        )
+
+        # Re-saving the SAME text is not an update; preserve the selection
+        # and avoid another paid AI call.
+        with patch(
+            "apps.processes.project_personality_trait_selection.get_openai_client",
+            side_effect=AssertionError("Unexpected OpenAI call for unchanged context"),
+        ):
+            unchanged = self.client.post(url, {
+                "context_text": "Updated recruiter context and responsibilities.",
+            })
+            self.assertRedirects(unchanged, url)
+        context.refresh_from_db()
+        self.assertEqual(
+            set(item["name"] for item in context.purpose_data["hiring"][CACHE_KEY]["items"]),
+            set(recommended),
+        )
 
     def test_saving_role_context_ignores_old_next_redirect(self):
         """A candidate-page 'next' value must not navigate away after save."""
