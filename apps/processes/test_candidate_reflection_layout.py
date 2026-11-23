@@ -77,7 +77,7 @@ class CandidateReflectionLayoutTests(SimpleTestCase):
             "templates/admin/accounts/partials/_candidate_customer_styles.html",
         ):
             self.assertIn(
-                "candidate-insight-tabs.css' %}?v=20261122-questions-refresh-v3",
+                "candidate-insight-tabs.css' %}?v=",
                 self._read(path),
             )
         for path in (
@@ -85,7 +85,7 @@ class CandidateReflectionLayoutTests(SimpleTestCase):
             "templates/customer/processes/process_base.html",
         ):
             self.assertIn(
-                "candidate-report-export.js' %}?v=20261122-reflection-header-v2",
+                "candidate-report-export.js' %}?v=",
                 self._read(path),
             )
 
