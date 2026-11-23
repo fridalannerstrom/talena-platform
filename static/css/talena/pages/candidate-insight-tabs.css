@@ -182,6 +182,180 @@
   }
 }
 
+/* Native confirmation dialog for assessment question regeneration.
+   It enters the browser top layer and stays accessible inside Bootstrap's
+   candidate offcanvas, without the native browser confirm popup. */
+.process-page .talena-question-refresh-dialog {
+  width: min(490px, calc(100vw - 2rem));
+  max-width: 490px;
+  max-height: min(85vh, 680px);
+  margin: auto;
+  padding: 0;
+  overflow-y: auto;
+  border: 1px solid #e9e2dc;
+  border-radius: 18px;
+  background: #fff;
+  color: var(--talena-ink, #1a1717);
+  box-shadow: 0 22px 75px rgba(28, 20, 17, 0.2);
+}
+
+.process-page .talena-question-refresh-dialog::backdrop {
+  background: rgba(24, 19, 21, 0.42);
+}
+
+.process-page .talena-question-refresh-dialog__inner {
+  padding: 1.65rem 1.8rem 1.45rem;
+}
+
+.process-page .talena-question-refresh-dialog__top {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.95rem;
+}
+
+.process-page .talena-question-refresh-dialog__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 42px;
+  width: 42px;
+  height: 42px;
+  border: 1px solid #ffd8d2;
+  border-radius: 12px;
+  background: #fff2ef;
+  color: #eb6254;
+}
+
+.process-page .talena-question-refresh-dialog__icon svg {
+  width: 19px;
+  height: 19px;
+}
+
+.process-page .talena-question-refresh-dialog__title {
+  margin: 0.1rem 0 0.55rem;
+  font-size: 1.2rem;
+  font-weight: 750;
+  line-height: 1.25;
+  letter-spacing: -0.025em;
+}
+
+.process-page .talena-question-refresh-dialog__intro {
+  margin: 0;
+  color: #5e5957;
+  font-size: 0.84rem;
+  line-height: 1.65;
+}
+
+.process-page .talena-question-refresh-dialog__notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  margin-top: 1.5rem;
+  padding: 0.95rem 1rem;
+  border: 1px solid #dbe9e0;
+  border-radius: 11px;
+  background: #f5f9f6;
+  color: #354c40;
+}
+
+.process-page .talena-question-refresh-dialog__notice-icon {
+  flex: 0 0 18px;
+  margin-top: 0.1rem;
+  color: #698d78;
+}
+
+.process-page .talena-question-refresh-dialog__notice-icon svg {
+  width: 17px;
+  height: 17px;
+}
+
+.process-page .talena-question-refresh-dialog__notice strong {
+  display: block;
+  margin-bottom: 0.2rem;
+  font-size: 0.79rem;
+  line-height: 1.45;
+  font-weight: 700;
+}
+
+.process-page .talena-question-refresh-dialog__notice p {
+  margin: 0;
+  color: #567064;
+  font-size: 0.77rem;
+  line-height: 1.6;
+}
+
+.process-page .talena-question-refresh-dialog__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.7rem;
+  margin-top: 1.6rem;
+}
+
+.process-page .talena-question-refresh-dialog__cancel,
+.process-page .talena-question-refresh-dialog__confirm {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.65rem 1.05rem;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  font-weight: 650;
+  line-height: 1.35;
+  cursor: pointer;
+}
+
+.process-page .talena-question-refresh-dialog__cancel {
+  border: 1px solid #e6e0dc;
+  background: #fff;
+  color: #514b49;
+}
+
+.process-page .talena-question-refresh-dialog__cancel:hover {
+  background: #f8f6f4;
+}
+
+.process-page .talena-question-refresh-dialog__confirm {
+  border: 1px solid #1b1717;
+  background: #1b1717;
+  color: #fff;
+}
+
+.process-page .talena-question-refresh-dialog__confirm:hover {
+  background: #34302f;
+}
+
+.process-page .talena-question-refresh-dialog__confirm svg {
+  width: 15px;
+  height: 15px;
+}
+
+.process-page .talena-question-refresh-dialog__cancel:focus-visible,
+.process-page .talena-question-refresh-dialog__confirm:focus-visible {
+  outline: 3px solid rgba(255, 111, 97, 0.45);
+  outline-offset: 2px;
+}
+
+@media (max-width: 480px) {
+  .process-page .talena-question-refresh-dialog__inner {
+    padding: 1.3rem 1rem 1.1rem;
+  }
+
+  .process-page .talena-question-refresh-dialog__top {
+    gap: 0.7rem;
+  }
+
+  .process-page .talena-question-refresh-dialog__actions {
+    flex-wrap: wrap;
+  }
+
+  .process-page .talena-question-refresh-dialog__actions > button {
+    flex: 1 1 auto;
+  }
+}
+
 /* ---------------------------------------------------------
    TEAM STYLES
    The page header now lives above the existing team content.
