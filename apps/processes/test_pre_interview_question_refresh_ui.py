@@ -155,6 +155,29 @@ class PreInterviewQuestionRefreshUITests(SimpleTestCase):
         )
         self.assertNotIn("template.content.firstElementChild", section)
 
+    def test_final_output_refresh_keeps_prepare_for_interview_tab_open(self):
+        # The final-output endpoint replaces both the Prepare for interview
+        # and After interview panels. Fresh HTML defaults both to hidden, so
+        # the active interview tab must be reactivated after every refresh.
+        source = self.source("templates/customer/processes/process_base.html")
+        start = source.index("async function refreshCandidateFinalOutput(")
+        end = source.index("</script>", start)
+        refresh = source[start:end]
+
+        self.assertIn('activeInsightsTabKey === "prepare-interview"', refresh)
+        self.assertIn('activeInsightsTabKey === "after-interview"', refresh)
+        self.assertIn("currentRoot.replaceWith(", refresh)
+        self.assertIn("refreshedInsightsTab?.click()", refresh)
+        self.assertLess(
+            refresh.index("currentRoot.replaceWith("),
+            refresh.index("refreshedInsightsTab?.click()"),
+        )
+        # Do not reopen a tab the user left during an async network request.
+        self.assertLess(
+            refresh.index("await response.text()"),
+            refresh.index("const activeInsightsTabKey ="),
+        )
+
     def test_script_and_styles_are_loaded_in_both_candidate_views(self):
         for path in (
             "templates/customer/core/layouts/customer_base.html",
