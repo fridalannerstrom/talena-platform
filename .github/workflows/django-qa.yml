@@ -284,6 +284,8 @@ jobs:
           node scripts/test_manager_report_branding_contract.js
           node --check static/js/talena/manager-report-pdf-metadata.js
           node scripts/test_manager_report_pdf_metadata_429.js
+          node --check static/js/talena/manager-report-review.js
+          node scripts/test_manager_report_ai_review_dialog.js
           node --check static/js/talena/manager-report-activity.js
           node scripts/test_manager_report_activity_430.js
           node --check static/js/talena/structured-overall-picture.js
