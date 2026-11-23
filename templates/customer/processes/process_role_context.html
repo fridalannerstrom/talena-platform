@@ -132,6 +132,7 @@
       <form
         method="post"
         class="card process-section-card"
+        data-role-context-form
         novalidate
       >
         {% csrf_token %}
@@ -484,5 +485,48 @@
   </div>
 
 </div>
+
+{% comment %}
+  This overlay is only a progress message. Saving still uses the existing
+  synchronous, CSRF-protected form and the server's real success/error flow.
+{% endcomment %}
+<div
+  class="role-context-saving-overlay"
+  data-role-context-saving-overlay
+  hidden
+>
+  <div class="role-context-saving-card" role="status" aria-live="polite" aria-atomic="true" tabindex="-1" data-role-context-saving-card>
+    <div class="role-context-saving-orb" aria-hidden="true">
+      <span class="role-context-saving-orb__ring"></span>
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <path d="m12 3 1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3Z"/>
+        <path d="m19 17 .75 2.25L22 20l-2.25.75L19 23l-.75-2.25L16 20l2.25-.75L19 17ZM4 16l.5 1.5L6 18l-1.5.5L4 20l-.5-1.5L2 18l1.5-.5L4 16Z"/>
+      </svg>
+    </div>
+    <div class="role-context-saving-eyebrow">
+      <span class="role-context-saving-eyebrow__dot" aria-hidden="true"></span>
+      TALENA
+    </div>
+    <h2 class="role-context-saving-title">
+      {% if language_code == "sv" %}Talena väljer personlighetsdrag…{% else %}Talena is selecting personality traits…{% endif %}
+    </h2>
+    <p class="role-context-saving-description">
+      {% if language_code == "sv" %}
+        Vi analyserar rollkontexten och tar fram åtta rekommenderade personlighetsdrag för projektet.
+      {% else %}
+        We're analysing the role context and selecting eight recommended personality traits for the project.
+      {% endif %}
+    </p>
+    <div class="role-context-saving-progress" aria-hidden="true"><span></span></div>
+    <p class="role-context-saving-hint" data-role-context-saving-hint>
+      {% if language_code == "sv" %}Det kan ta en liten stund. Låt sidan vara öppen.{% else %}This may take a moment. Please keep this page open.{% endif %}
+    </p>
+    <p class="role-context-saving-hint" data-role-context-saving-long-hint hidden>
+      {% if language_code == "sv" %}Talena arbetar fortfarande. Tack för tålamodet!{% else %}Talena is still working. Thanks for your patience!{% endif %}
+    </p>
+  </div>
+</div>
+<script src="{% static 'js/talena/role-context-saving.js' %}?v=20261123-trait-progress-v1" defer></script>
 
 {% endblock %}
