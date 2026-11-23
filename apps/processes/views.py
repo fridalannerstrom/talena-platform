@@ -6693,6 +6693,13 @@ def process_role_context(request, pk):
             role_context,
             purpose_key,
         )
+        # A context-only save with no actual text changes should preserve its
+        # existing recommendation/cache rather than make an unnecessary AI call.
+        previous_purpose_entry = (role_context.purpose_data or {}).get(purpose_key)
+        previous_purpose_entry = (
+            dict(previous_purpose_entry)
+            if isinstance(previous_purpose_entry, dict) else None
+        )
 
         form = ProcessRoleContextForm(
             request.POST,
@@ -6715,9 +6722,18 @@ def process_role_context(request, pk):
             project_traits_submitted = (
                 "save_personality_traits" in request.POST
             )
+            # Updating the role context starts a fresh Talena selection for
+            # the *whole project*, even if eight traits were manually picked
+            # earlier. Explicitly saving the trait modal still counts as a
+            # deliberate manual selection and is not overridden.
+            reset_to_talena_selection = (
+                context_changed and not project_traits_submitted
+            )
             effective_project_traits = (
                 submitted_project_traits
                 if project_traits_submitted
+                else []
+                if reset_to_talena_selection
                 else previous_project_traits
             )
             selection_changed = (
@@ -6733,12 +6749,26 @@ def process_role_context(request, pk):
 
             role_context.apply_context_data(submitted_data)
             role_context.save()
-            # Do not break context-only saves for older projects that
-            # previously stored fewer than eight manually selected traits.
-            # Their legacy choice remains visible until an editor replaces
-            # it with exactly eight, but cannot be used to classify the
-            # response-style profile in the meantime.
-            if project_traits_submitted or len(effective_project_traits) in (0, 8):
+            # Preserve the existing choice and its AI fingerprint if the
+            # user only pressed Save without changing the role context.
+            # save_context_for_purpose() otherwise drops the cached selection.
+            if (
+                not context_changed
+                and not project_traits_submitted
+                and previous_purpose_entry is not None
+            ):
+                purpose_data = dict(role_context.purpose_data or {})
+                purpose_data[purpose_key] = {
+                    **previous_purpose_entry,
+                    "context_text": submitted_data.get("context_text", "").strip(),
+                }
+                role_context.purpose_data = purpose_data
+                role_context.save(update_fields=["purpose_data"])
+            # A new role context clears manual overrides as well as the
+            # previous cached AI selection, then generates eight new traits.
+            # Older partial manual selections survive unchanged-text saves,
+            # but are cleared by genuine role-context edits.
+            elif project_traits_submitted or len(effective_project_traits) in (0, 8):
                 save_project_personality_trait_overrides(
                     role_context,
                     purpose_key=purpose_key,
