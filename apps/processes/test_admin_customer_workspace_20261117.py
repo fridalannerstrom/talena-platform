@@ -201,6 +201,18 @@ class AdminCustomerWorkspaceTests(TestCase):
         self.assertEqual(set(page.context["selected_personality_traits"]), set(original))
         self.assertEqual(len(page.context["selected_project_trait_options"]), 8)
 
+        # Previously generated candidate questions must remain available
+        # while the new project selection makes them eligible for refresh.
+        old_questions = {"questions": [{"question": "Earlier interview example"}]}
+        self.invitation.ai_personality_questions = old_questions
+        self.invitation.ai_personality_questions_status = "completed"
+        self.invitation.save(
+            update_fields=[
+                "ai_personality_questions",
+                "ai_personality_questions_status",
+            ]
+        )
+
         client = Mock()
         client.chat.completions.create.return_value = Mock(
             choices=[Mock(message=Mock(content=json.dumps({
@@ -233,6 +245,9 @@ class AdminCustomerWorkspaceTests(TestCase):
             })
         self.assertRedirects(saved, url)
         client.chat.completions.create.assert_called_once()
+        self.invitation.refresh_from_db()
+        self.assertEqual(self.invitation.ai_personality_questions, old_questions)
+        self.assertEqual(self.invitation.ai_personality_questions_status, "outdated")
         context.refresh_from_db()
         self.assertEqual(
             context.get_current_context_text(),
