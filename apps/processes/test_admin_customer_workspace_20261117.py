@@ -276,6 +276,42 @@ class AdminCustomerWorkspaceTests(TestCase):
             )), set(recommended),
         )
 
+        # A second actual role-context edit must also recompute the project's
+        # automatic selection, not reuse the just-generated cached eight.
+        second_recommendation = available[1:9]
+        client.chat.completions.create.reset_mock()
+        client.chat.completions.create.return_value.choices[0].message.content = (
+            json.dumps({"items": [
+                {"name": name, "reason_sv": "Andra rollen",
+                 "reason_en": "Second role"}
+                for name in second_recommendation
+            ]})
+        )
+        with (
+            patch(
+                "apps.processes.project_personality_trait_selection.get_openai_client",
+                return_value=client,
+            ),
+            patch(
+                "apps.processes.project_personality_trait_selection.get_chat_model",
+                return_value="synthetic-model",
+            ),
+            patch(
+                "apps.processes.project_personality_trait_selection.get_ai_feature_prompt_instructions",
+                return_value="",
+            ),
+        ):
+            second_save = self.client.post(url, {
+                "context_text": "Second updated recruiter role with different requirements.",
+            })
+        self.assertRedirects(second_save, url)
+        client.chat.completions.create.assert_called_once()
+        context.refresh_from_db()
+        self.assertEqual(
+            set(item["name"] for item in context.purpose_data[purpose_key][CACHE_KEY]["items"]),
+            set(second_recommendation),
+        )
+
         # Re-saving the SAME text is not an update; preserve the selection
         # and avoid another paid AI call.
         with patch(
@@ -283,13 +319,13 @@ class AdminCustomerWorkspaceTests(TestCase):
             side_effect=AssertionError("Unexpected OpenAI call for unchanged context"),
         ):
             unchanged = self.client.post(url, {
-                "context_text": "Updated recruiter context and responsibilities.",
+                "context_text": "Second updated recruiter role with different requirements.",
             })
             self.assertRedirects(unchanged, url)
         context.refresh_from_db()
         self.assertEqual(
             set(item["name"] for item in context.purpose_data[purpose_key][CACHE_KEY]["items"]),
-            set(recommended),
+            set(second_recommendation),
         )
 
     def test_saving_role_context_ignores_old_next_redirect(self):
