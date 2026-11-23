@@ -1,0 +1,130 @@
+/* Deliberate human review checkpoint, scoped to Chefsrapport exports.
+   Native dialog keeps its focus trap, Escape behavior and modal backdrop. */
+.talena-manager-ai-review-dialog {
+  width: min(520px, calc(100vw - 2rem));
+  max-height: min(86vh, 720px);
+  max-width: 520px;
+  margin: auto;
+  padding: 0;
+  overflow-y: auto;
+  border: 1px solid #e9e1dc;
+  border-radius: 18px;
+  background: #fff;
+  color: #24201e;
+  box-shadow: 0 25px 80px rgba(25, 18, 15, .2);
+}
+.talena-manager-ai-review-dialog::backdrop {
+  background: rgba(24, 20, 21, .47);
+}
+.talena-manager-ai-review-dialog__content {
+  padding: 1.6rem 1.7rem 1.4rem;
+}
+.talena-manager-ai-review-dialog__header {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+.talena-manager-ai-review-dialog__heading {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.talena-manager-ai-review-dialog__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 43px;
+  width: 43px;
+  height: 43px;
+  border-radius: 12px;
+  border: 1px solid #ffd8d1;
+  background: #fff0ed;
+  color: #d95b50;
+}
+.talena-manager-ai-review-dialog__icon svg {
+  width: 21px;
+  height: 21px;
+}
+.talena-manager-ai-review-dialog__heading h3 {
+  margin: 0 0 .6rem;
+  color: #221e1c;
+  font-size: 1.22rem;
+  font-weight: 750;
+  letter-spacing: -.02em;
+  line-height: 1.3;
+}
+.talena-manager-ai-review-dialog__heading p {
+  margin: 0;
+  color: #625c58;
+  font-size: .84rem;
+  line-height: 1.65;
+}
+.talena-manager-ai-review-dialog__notice {
+  margin-top: 1.4rem;
+  padding: .95rem 1.05rem;
+  border: 1px solid #e9e1d7;
+  border-radius: 11px;
+  background: #faf8f5;
+}
+.talena-manager-ai-review-dialog__notice strong {
+  display: block;
+  margin-bottom: .3rem;
+  font-size: .8rem;
+  font-weight: 730;
+}
+.talena-manager-ai-review-dialog__notice p {
+  margin: 0;
+  color: #675f58;
+  font-size: .77rem;
+  line-height: 1.6;
+}
+.talena-manager-ai-review-dialog__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: .7rem;
+  margin-top: 1.5rem;
+}
+.talena-manager-ai-review-dialog__actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 43px;
+  padding: .7rem 1rem;
+  border-radius: 10px;
+  font-size: .8rem;
+  font-weight: 700;
+  line-height: 1.35;
+  cursor: pointer;
+}
+.talena-manager-ai-review-dialog__review {
+  background: #fff;
+  border: 1px solid #e6dfda;
+  color: #4f4741;
+}
+.talena-manager-ai-review-dialog__review:hover {
+  background: #f8f6f4;
+}
+.talena-manager-ai-review-dialog__approve {
+  background: #1c1717;
+  color: #fff;
+  border: 1px solid #1c1717;
+}
+.talena-manager-ai-review-dialog__approve:hover {
+  background: #37302f;
+}
+.talena-manager-ai-review-dialog__actions button:focus-visible {
+  outline: 3px solid rgba(255, 111, 97, .4);
+  outline-offset: 2px;
+}
+@media (max-width: 480px) {
+  .talena-manager-ai-review-dialog__content {
+    padding: 1.2rem 1rem 1.05rem;
+  }
+  .talena-manager-ai-review-dialog__header {
+    gap: .7rem;
+  }
+  .talena-manager-ai-review-dialog__actions button {
+    flex: 1 1 auto;
+  }
+}
