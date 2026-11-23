@@ -170,6 +170,7 @@ class AdminCustomerWorkspaceTests(TestCase):
         """Editing role context replaces prior manual picks with new project AI picks."""
         from unittest.mock import Mock
         from apps.processes.models import ProcessRoleContext
+        from apps.processes.purpose_context_config import normalize_purpose_key
         from apps.processes.project_personality_trait_selection import (
             CACHE_KEY,
             get_project_personality_trait_options,
@@ -181,6 +182,7 @@ class AdminCustomerWorkspaceTests(TestCase):
         ]
         original = available[:8]
         recommended = available[8:16]
+        purpose_key = normalize_purpose_key(self.process.purpose)
         url = reverse(
             "processes:process_role_context", args=[self.process.pk],
         )
@@ -253,9 +255,9 @@ class AdminCustomerWorkspaceTests(TestCase):
             context.get_current_context_text(),
             "Updated recruiter context and responsibilities.",
         )
-        self.assertEqual(context.purpose_data["hiring"]["personality_question_traits"], [])
+        self.assertEqual(context.purpose_data[purpose_key]["personality_question_traits"], [])
         self.assertEqual(
-            set(item["name"] for item in context.purpose_data["hiring"][CACHE_KEY]["items"]),
+            set(item["name"] for item in context.purpose_data[purpose_key][CACHE_KEY]["items"]),
             set(recommended),
         )
         reopened = self.client.get(url)
@@ -286,7 +288,7 @@ class AdminCustomerWorkspaceTests(TestCase):
             self.assertRedirects(unchanged, url)
         context.refresh_from_db()
         self.assertEqual(
-            set(item["name"] for item in context.purpose_data["hiring"][CACHE_KEY]["items"]),
+            set(item["name"] for item in context.purpose_data[purpose_key][CACHE_KEY]["items"]),
             set(recommended),
         )
 
