@@ -6818,10 +6818,29 @@ def process_role_context(request, pk):
                 except Exception:
                     recommendation_error = True
 
-            messages.success(
-                request,
-                "The project context was saved."
-            )
+            if (
+                reset_to_talena_selection
+                and not recommendation_error
+                and submitted_data.get("context_text", "").strip()
+            ):
+                success_message = (
+                    "Rollkontexten sparades och Talena valde åtta nya "
+                    "personlighetsdrag för projektet. Redan genererade "
+                    "intervjufrågor kan behöva uppdateras."
+                    if str(language_code or "").lower().startswith("sv")
+                    else (
+                        "Role context saved. Talena selected eight new "
+                        "personality traits for the project. Previously "
+                        "generated interview questions may need refreshing."
+                    )
+                )
+            else:
+                success_message = (
+                    "Rollkontexten sparades."
+                    if str(language_code or "").lower().startswith("sv")
+                    else "The project context was saved."
+                )
+            messages.success(request, success_message)
             if recommendation_error:
                 messages.warning(
                     request,
