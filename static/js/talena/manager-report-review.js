@@ -133,8 +133,8 @@
       } catch (error) {
         // Fail closed if the candidate sheet is removed or dialog cannot open.
         console.error("Could not open manager report review dialog:", error);
-        dialog.close?.("review");
         if (dialog.isConnected) dialog.remove();
+        returnToReport(report);
         resolve(false);
       }
     });
