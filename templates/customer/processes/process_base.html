@@ -1403,15 +1403,9 @@ completeText.textContent =
   // ------------------------------------------------------------
 
   function initSelfRegistrationModal() {
-  const buttons =
-    document.querySelectorAll(".js-selfreg");
-
-  if (!buttons.length) {
-    return;
-  }
-
-  buttons.forEach((btn) => {
-    btn.addEventListener("click", () => {
+    document.addEventListener("click", (event) => {
+      const button = event.target.closest?.(".js-selfreg");
+      if (!button) return;
       openAppModal({
         title:
           PROCESS_I18N.selfRegistration,
@@ -1497,8 +1491,7 @@ completeText.textContent =
         );
       }, 0);
     });
-  });
-}
+  }
 
   // ------------------------------------------------------------
   // Candidate sheet / offcanvas
