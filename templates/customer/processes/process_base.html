@@ -222,6 +222,34 @@
   </div>
 </div>
 
+<div class="modal fade" id="selfRegistrationModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="selfRegistrationModalLabel">{{ js_self_registration }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ js_close }}"></button>
+      </div>
+
+      <div class="modal-body">
+        <p class="mb-2 text-muted">{{ js_self_registration_help }}</p>
+        <label class="form-label" for="selfRegistrationUrl">{{ js_self_registration_link }}</label>
+        <input id="selfRegistrationUrl" type="text" class="form-control" value="{{ self_reg_url }}" readonly>
+
+        <div class="d-flex align-items-center gap-3 mt-2">
+          <button id="copySelfRegistrationUrl" class="btn btn-primary" type="button">
+            {{ js_copy_link }}
+          </button>
+          <span id="selfRegistrationCopyStatus" class="small text-muted" aria-live="polite"></span>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">{{ js_close }}</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script type="module">
   import { Chart } from "https://cdn.jsdelivr.net/npm/chart.js@4.4.7/auto/+esm";
   window.TeamStyleChartJS = Chart;
@@ -1403,102 +1431,42 @@ completeText.textContent =
   // ------------------------------------------------------------
 
   function initSelfRegistrationModal() {
-  const buttons =
-    document.querySelectorAll(".js-selfreg");
+    const modalElement = document.getElementById("selfRegistrationModal");
+    const input = document.getElementById("selfRegistrationUrl");
+    const copyButton = document.getElementById("copySelfRegistrationUrl");
+    const status = document.getElementById("selfRegistrationCopyStatus");
 
-  if (!buttons.length) {
-    return;
-  }
+    if (!modalElement || !input || !window.bootstrap) return;
 
-  buttons.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      openAppModal({
-        title:
-          PROCESS_I18N.selfRegistration,
+    const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+    let triggerButton = null;
 
-        bodyHtml: `
-          <p class="mb-2">
-            ${PROCESS_I18N.selfRegistrationHelp}
-          </p>
+    modalElement.addEventListener("hide.bs.modal", () => {
+      const buttonToRestore = triggerButton;
+      if (!buttonToRestore?.isConnected) return;
 
-          <label class="form-label">
-            ${PROCESS_I18N.selfRegistrationLink}
-          </label>
-
-          <input
-            type="text"
-            class="form-control"
-            value="${SELF_REG_URL}"
-            readonly
-          >
-
-          <div class="d-flex align-items-center gap-3 mt-2">
-            <button
-              class="btn btn-primary"
-              type="button"
-              id="copySelfRegLinkBtn"
-            >
-              ${PROCESS_I18N.copyLink}
-            </button>
-
-            <span
-              id="copyStatus"
-              class="small text-muted"
-            ></span>
-          </div>
-        `,
-
-        footerHtml: `
-          <button
-            type="button"
-            class="btn btn-light"
-            data-bs-dismiss="modal"
-          >
-            ${PROCESS_I18N.close}
-          </button>
-        `,
-      });
-
-      setTimeout(() => {
-        const copyBtn =
-          document.getElementById(
-            "copySelfRegLinkBtn"
-          );
-
-        const status =
-          document.getElementById(
-            "copyStatus"
-          );
-
-        if (!copyBtn) {
-          return;
-        }
-
-        copyBtn.addEventListener(
-          "click",
-          async () => {
-            try {
-              await copyText(
-                SELF_REG_URL
-              );
-
-              if (status) {
-                status.textContent =
-                  PROCESS_I18N.copied;
-              }
-
-            } catch (error) {
-              if (status) {
-                status.textContent =
-                  PROCESS_I18N.couldNotCopy;
-              }
-            }
-          }
-        );
-      }, 0);
+      // Let Bootstrap deactivate its focus trap before returning focus.
+      window.setTimeout(() => buttonToRestore.focus(), 0);
     });
-  });
-}
+
+    document.addEventListener("click", (event) => {
+      const button = event.target.closest?.(".js-selfreg");
+      if (!button) return;
+
+      triggerButton = button;
+      if (status) status.textContent = "";
+      modal.show();
+    });
+
+    copyButton?.addEventListener("click", async () => {
+      try {
+        await copyText(input.value || SELF_REG_URL);
+        if (status) status.textContent = PROCESS_I18N.copied;
+      } catch (error) {
+        if (status) status.textContent = PROCESS_I18N.couldNotCopy;
+      }
+    });
+  }
 
   // ------------------------------------------------------------
   // Candidate sheet / offcanvas
