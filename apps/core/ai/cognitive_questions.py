@@ -89,14 +89,22 @@ PROCESS CONTEXT
 ROLE AND PROJECT CONTEXT
 
 Use the process context to ground questions in actual tasks, information
-or situations stated there, and connect each example to the verbal,
-numerical or logical skill being explored.
+or situations stated there, and connect each example to the specific
+cognitive skill indicated by the assessment evidence.
 
-Keep every question focused on how the candidate processes written
-information, numerical information, relationships or problems. Do not
-turn a cognitive question into a general question about customer service,
-teamwork or another competency unless that competency is directly
-relevant to the cognitive skill and stated in the context.
+Keep each skill distinct:
+- Verbal skill concerns using written information to understand, judge
+  whether evidence is sufficient, and draw conclusions. Do not treat
+  spoken customer interaction as verbal skill.
+- Numerical skill concerns processing numerical information or data.
+  Do not invent numerical materials that are absent from the context.
+- Logical skill concerns identifying relationships and solving new,
+  abstract or unclear problems. Do not equate it with routine compliance.
+
+Do not turn a cognitive question into a general question about customer
+service, teamwork or another competency. If the context does not describe
+a task that clearly uses the assessed skill, ask about a comparable
+situation without inventing role details.
 
 Let the available assessment results guide which skill and level of
 complexity to explore. Do not invent role tasks, information sources,
