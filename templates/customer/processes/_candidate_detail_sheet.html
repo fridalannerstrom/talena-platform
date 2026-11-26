@@ -74,6 +74,8 @@
                           <span class="candidate-status-badge is-warning">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Skickat · inväntar leveransbekräftelse{% else %}Sent · awaiting delivery confirmation{% endif %}</span>
                         {% elif latest_email.status == "failed" %}
                           <span class="candidate-status-badge is-warning">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Kunde inte skickas{% else %}Could not be sent{% endif %}</span>
+                        {% elif latest_email.status == "sent" %}
+                          <span class="candidate-status-badge is-muted">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Skickat · leveransstatus okänd{% else %}Sent · delivery status unknown{% endif %}</span>
                         {% else %}
                           <span class="candidate-status-badge is-muted">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Leveransstatus okänd{% else %}Delivery status unknown{% endif %}</span>
                         {% endif %}
@@ -307,6 +309,8 @@
                             {% if LANGUAGE_CODE|slice:":2" == "sv" %}Skickat · inväntar leveransbekräftelse{% else %}Sent · awaiting delivery confirmation{% endif %}
                           {% elif email_log.status == "failed" %}
                             {% if LANGUAGE_CODE|slice:":2" == "sv" %}Kunde inte skickas{% else %}Could not be sent{% endif %}
+                          {% elif email_log.status == "sent" %}
+                            {% if LANGUAGE_CODE|slice:":2" == "sv" %}Skickat · leveransstatus okänd{% else %}Sent · delivery status unknown{% endif %}
                           {% else %}
                             {% if LANGUAGE_CODE|slice:":2" == "sv" %}Leveransstatus okänd{% else %}Delivery status unknown{% endif %}
                           {% endif %}
