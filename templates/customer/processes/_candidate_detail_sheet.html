@@ -51,6 +51,12 @@
                       <span class="candidate-status-badge is-warning">{% trans "Sent" %}</span>
                     {% elif invitation.status == "created" %}
                       <span class="candidate-status-badge is-muted">{% trans "Not sent" %}</span>
+                    {% elif invitation.status == "failed" %}
+                      {% if email_delivery_logs and email_delivery_logs.0.delivery_status == "failed" %}
+                        <span class="candidate-status-badge is-warning">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Kunde inte levereras{% else %}Could not be delivered{% endif %}</span>
+                      {% else %}
+                        <span class="candidate-status-badge is-warning">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Kunde inte skickas{% else %}Could not be sent{% endif %}</span>
+                      {% endif %}
                     {% else %}
                       <span class="candidate-status-badge is-muted">
                         {{ invitation.status|default:"—" }}
