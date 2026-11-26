@@ -67,6 +67,9 @@ assert.ok(badges.includes('".after-interview-manager-report__personality-title"'
   "Single AI provenance badge covers Personality and Wellbeing; preserve manual-edit provenance");
 assert.ok(!badges.includes('field.parentNode.insertBefore(badge, field)'),
   "Do not repeat an AI badge for every manager personality paragraph");
-assert.ok(shell.includes("after-interview-tabs.js") && shell.includes("20261113-evidence-recompile-v3"));
+assert.ok(
+  /after-interview-tabs\\.js' %\\}\\?v=[^'"]+/.test(shell),
+  "After interview tabs script must use a versioned asset URL."
+);
 assert.ok(header.includes("rolecontext-v6") && header.includes("ai-generated-only-v4"));
 console.log("Ticket #442: retired report tabs, legacy preservation, approved copy and quieter AI badges passed.");
