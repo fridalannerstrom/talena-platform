@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import timezone as dt_timezone
 from django.db import transaction
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
@@ -29,7 +29,7 @@ def _event_time(value):
         return None
     parsed = parse_datetime(str(value))
     if parsed and timezone.is_naive(parsed):
-        parsed = timezone.make_aware(parsed, timezone=timezone.utc)
+        parsed = timezone.make_aware(parsed, timezone=dt_timezone.utc)
     return parsed
 
 
