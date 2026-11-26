@@ -59,8 +59,39 @@
                   </div>
 
                   <div class="candidate-profile-email">
-                    {{ candidate.email|default:"—" }}
+                    {% if is_historical %}{{ candidate.email|default:"—" }}{% else %}{{ invitation.delivery_email|default:"—" }}{% endif %}
                   </div>
+                  {% if not is_historical and email_delivery_logs %}
+                    {% with latest_email=email_delivery_logs.0 %}
+                      <div class="small mt-1">
+                        {% if latest_email.status == "queued" %}
+                          <span class="candidate-status-badge is-muted">{% trans "Sending / waiting" %}</span>
+                        {% elif latest_email.delivery_status == "delivered" %}
+                          <span class="candidate-status-badge is-success">{% trans "Delivered" %}</span>
+                        {% elif latest_email.delivery_status == "failed" %}
+                          <span class="candidate-status-badge is-danger">{% trans "Could not be delivered" %}</span>
+                        {% elif latest_email.delivery_status == "pending" %}
+                          <span class="candidate-status-badge is-warning">{% trans "Sent · awaiting delivery confirmation" %}</span>
+                        {% elif latest_email.status == "failed" %}
+                          <span class="candidate-status-badge is-danger">{% trans "Could not be sent" %}</span>
+                        {% else %}
+                          <span class="candidate-status-badge is-muted">{% trans "Delivery status unknown" %}</span>
+                        {% endif %}
+                      </div>
+                    {% endwith %}
+                  {% endif %}
+                  {% if not is_historical and invitation.status == "failed" and not process.is_historical %}
+                    <form method="post" action="{% url 'processes:process_send_tests' process.id %}" class="mt-2">
+                      {% csrf_token %}
+                      <input type="hidden" name="invitation_ids" value="{{ invitation.id }}">
+                      <input type="hidden" name="next" value="{% url 'processes:process_candidate_detail' process.id candidate.id %}">
+                      <label class="small" for="correct-recipient-{{ invitation.id }}">{% trans "Correct email address and resend" %}</label>
+                      <div class="d-flex gap-2 mt-1">
+                        <input class="form-control form-control-sm" id="correct-recipient-{{ invitation.id }}" type="email" name="recipient_email" value="{{ invitation.delivery_email }}" required>
+                        <button class="btn btn-sm btn-primary" type="submit">{% trans "Save and resend" %}</button>
+                      </div>
+                    </form>
+                  {% endif %}
                 </div>
               </div>
 
@@ -258,6 +289,32 @@
                 role="tabpanel"
               >
                 <div class="activity-timeline">
+                  {% for email_log in email_delivery_logs %}
+                    <div class="activity-item">
+                      <div class="activity-dot is-invite"></div>
+                      <div class="activity-card">
+                        <div class="candidate-inline-title">
+                          {% trans "Invitation email" %} · {{ email_log.to_email }}
+                        </div>
+                        <div class="candidate-inline-meta">{{ email_log.created_at|date:"Y-m-d H:i" }}</div>
+                        <div class="small mt-1">
+                          {% if email_log.status == "queued" %}
+                            {% trans "Sending / waiting" %}
+                          {% elif email_log.delivery_status == "delivered" %}
+                            {% trans "Delivered" %}
+                          {% elif email_log.delivery_status == "failed" %}
+                            {% trans "Could not be delivered" %}
+                          {% elif email_log.delivery_status == "pending" %}
+                            {% trans "Sent · awaiting delivery confirmation" %}
+                          {% elif email_log.status == "failed" %}
+                            {% trans "Could not be sent" %}
+                          {% else %}
+                            {% trans "Delivery status unknown" %}
+                          {% endif %}
+                        </div>
+                      </div>
+                    </div>
+                  {% endfor %}
                   {% for event in activity_events %}
                     <div class="activity-item">
                       <div class="activity-line"></div>
