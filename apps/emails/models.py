@@ -79,8 +79,28 @@ class EmailLog(models.Model):
     subject = models.CharField(max_length=255)
     body_snapshot = models.TextField()
 
-    status = models.CharField(max_length=30, default="queued")  # queued/sent/failed
+    STATUS_CHOICES = [
+        ("queued", "Queued"),
+        ("sent", "Accepted by email service"),
+        ("failed", "Send failed"),
+    ]
+    DELIVERY_STATUS_CHOICES = [
+        ("unknown", "Unknown"),
+        ("pending", "Pending"),
+        ("delivered", "Delivered"),
+        ("failed", "Could not be delivered"),
+    ]
+
+    status = models.CharField(max_length=30, choices=STATUS_CHOICES, default="queued")
     provider_message_id = models.CharField(max_length=255, blank=True, null=True)
+    internet_message_id = models.CharField(max_length=255, blank=True, null=True, unique=True)
+    delivery_status = models.CharField(
+        max_length=20,
+        choices=DELIVERY_STATUS_CHOICES,
+        default="unknown",
+    )
+    delivery_status_updated_at = models.DateTimeField(blank=True, null=True)
+    delivery_error_code = models.CharField(max_length=60, blank=True, default="")
     error = models.TextField(blank=True, null=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -91,9 +111,30 @@ class EmailLog(models.Model):
         self.sent_at = timezone.now()
         if provider_message_id:
             self.provider_message_id = provider_message_id
-        self.save(update_fields=["status", "sent_at", "provider_message_id"])
+        if self.delivery_status == "unknown":
+            from django.conf import settings
+            if getattr(settings, "EMAIL_DELIVERY_TRACKING_ENABLED", False):
+                self.delivery_status = "pending"
+                self.delivery_status_updated_at = self.sent_at
+        self.save(update_fields=[
+            "status",
+            "sent_at",
+            "provider_message_id",
+            "delivery_status",
+            "delivery_status_updated_at",
+        ])
 
     def mark_failed(self, error: str):
         self.status = "failed"
         self.error = error
-        self.save(update_fields=["status", "error"])
+        self.delivery_status = "failed"
+        self.delivery_status_updated_at = timezone.now()
+        if not self.delivery_error_code:
+            self.delivery_error_code = "send_failed"
+        self.save(update_fields=[
+            "status",
+            "error",
+            "delivery_status",
+            "delivery_status_updated_at",
+            "delivery_error_code",
+        ])
