@@ -21,7 +21,12 @@ DELIVERY_STATUS_MAP = {
 
 
 def map_delivery_status(provider_status):
-    return DELIVERY_STATUS_MAP.get(str(provider_status or "").strip(), "unknown")
+    status = str(provider_status or "").strip()
+    return next(
+        (mapped for provider_value, mapped in DELIVERY_STATUS_MAP.items()
+         if provider_value.casefold() == status.casefold()),
+        "unknown",
+    )
 
 
 def _event_time(value):
@@ -39,6 +44,8 @@ def process_delivery_event(event):
         return "ignored"
     event_id = str(event.get("id") or "").strip()
     data = event.get("data") or {}
+    if not isinstance(data, dict):
+        return "ignored"
     internet_message_id = str(data.get("internetMessageId") or "").strip()
     recipient = str(data.get("recipient") or "").strip()
     provider_status = str(data.get("deliveryStatus") or "").strip()
