@@ -16,7 +16,8 @@ class EmailDeliveryStatusTests(SimpleTestCase):
             "data": {
                 "internetMessageId": "<mail-1@example.test>",
                 "recipient": recipient,
-                "deliveryStatus": status,
+                "status": status,
+                "deliveryAttemptTimestamp": "2026-11-26T09:00:00Z",
             },
         }
 
