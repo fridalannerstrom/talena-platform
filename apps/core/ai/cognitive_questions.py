@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from .candidate_name_privacy import redact_candidate_name
 
+import hashlib
 import json
 from typing import Any, Iterable
 
@@ -169,6 +170,41 @@ Finish with:
 
 {{"type":"done"}}
 """.strip()
+
+
+def build_cognitive_questions_source_fingerprint(
+    *,
+    owner,
+    cognitive_results: list[dict[str, Any]],
+    language_code: str = "en",
+) -> str:
+    """
+    Identify the source material that makes saved questions current.
+
+    A result must be regenerated when its assessment evidence, process
+    purpose/context, or effective administrator guidance changes.
+    """
+    language_code = normalize_ai_language(language_code)
+    shared_context = build_shared_ai_context(owner)
+    source = {
+        "language": language_code,
+        "purpose_key": shared_context["purpose_key"],
+        "purpose_label": shared_context["purpose_label"],
+        "process_context": shared_context["context_text"],
+        "assessment_evidence": build_cognitive_evidence_text(cognitive_results),
+        "administrator_guidance": get_ai_prompt_instructions(
+            key="cognitive_questions",
+            language=language_code,
+        ),
+    }
+    serialized = json.dumps(
+        source,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+    return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
+
 
 def create_empty_cognitive_questions(
     owner,
@@ -873,6 +909,7 @@ def save_cognitive_questions(
     owner,
     result: dict[str, Any],
     language_code: str = "en",
+    source_fingerprint: str | None = None,
 ):
     """
     Save completed cognitive questions independently from
@@ -883,6 +920,7 @@ def save_cognitive_questions(
         language_code
     )
     result["_language"] = language_code
+    result["_source_fingerprint"] = source_fingerprint or ""
 
     set_ai_content_language(
         owner,
