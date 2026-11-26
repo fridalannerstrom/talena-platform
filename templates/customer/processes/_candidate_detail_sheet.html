@@ -67,27 +67,6 @@
                   <div class="candidate-profile-email">
                     {% if is_historical %}{{ candidate.email|default:"—" }}{% else %}{{ invitation.delivery_email|default:"—" }}{% endif %}
                   </div>
-                  {% if not is_historical and email_delivery_logs %}
-                    {% with latest_email=email_delivery_logs.0 %}
-                      <div class="small mt-1">
-                        {% if latest_email.status == "queued" %}
-                          <span class="candidate-status-badge is-muted">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Skickas / väntar{% else %}Sending / waiting{% endif %}</span>
-                        {% elif latest_email.delivery_status == "delivered" %}
-                          <span class="candidate-status-badge is-success">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Levererat{% else %}Delivered{% endif %}</span>
-                        {% elif latest_email.delivery_status == "failed" %}
-                          <span class="candidate-status-badge is-warning">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Kunde inte levereras{% else %}Could not be delivered{% endif %}</span>
-                        {% elif latest_email.delivery_status == "pending" %}
-                          <span class="candidate-status-badge is-warning">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Skickat · inväntar leveransbekräftelse{% else %}Sent · awaiting delivery confirmation{% endif %}</span>
-                        {% elif latest_email.status == "failed" %}
-                          <span class="candidate-status-badge is-warning">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Kunde inte skickas{% else %}Could not be sent{% endif %}</span>
-                        {% elif latest_email.status == "sent" %}
-                          <span class="candidate-status-badge is-muted">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Skickat · leveransstatus okänd{% else %}Sent · delivery status unknown{% endif %}</span>
-                        {% else %}
-                          <span class="candidate-status-badge is-muted">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Leveransstatus okänd{% else %}Delivery status unknown{% endif %}</span>
-                        {% endif %}
-                      </div>
-                    {% endwith %}
-                  {% endif %}
                   {% if not is_historical and invitation.status == "failed" and not process.is_historical %}
                     <form method="post" action="{% url 'processes:process_send_tests' process.id %}" class="mt-2">
                       {% csrf_token %}
@@ -296,34 +275,6 @@
                 role="tabpanel"
               >
                 <div class="activity-timeline">
-                  {% for email_log in email_delivery_logs %}
-                    <div class="activity-item">
-                      <div class="activity-dot is-invite"></div>
-                      <div class="activity-card">
-                        <div class="candidate-inline-title">
-                          {% if LANGUAGE_CODE|slice:":2" == "sv" %}Inbjudningsmejl{% else %}Invitation email{% endif %} · {{ email_log.to_email }}
-                        </div>
-                        <div class="candidate-inline-meta">{{ email_log.created_at|date:"Y-m-d H:i" }}</div>
-                        <div class="small mt-1">
-                          {% if email_log.status == "queued" %}
-                            {% if LANGUAGE_CODE|slice:":2" == "sv" %}Skickas / väntar{% else %}Sending / waiting{% endif %}
-                          {% elif email_log.delivery_status == "delivered" %}
-                            {% if LANGUAGE_CODE|slice:":2" == "sv" %}Levererat{% else %}Delivered{% endif %}
-                          {% elif email_log.delivery_status == "failed" %}
-                            {% if LANGUAGE_CODE|slice:":2" == "sv" %}Kunde inte levereras{% else %}Could not be delivered{% endif %}
-                          {% elif email_log.delivery_status == "pending" %}
-                            {% if LANGUAGE_CODE|slice:":2" == "sv" %}Skickat · inväntar leveransbekräftelse{% else %}Sent · awaiting delivery confirmation{% endif %}
-                          {% elif email_log.status == "failed" %}
-                            {% if LANGUAGE_CODE|slice:":2" == "sv" %}Kunde inte skickas{% else %}Could not be sent{% endif %}
-                          {% elif email_log.status == "sent" %}
-                            {% if LANGUAGE_CODE|slice:":2" == "sv" %}Skickat · leveransstatus okänd{% else %}Sent · delivery status unknown{% endif %}
-                          {% else %}
-                            {% if LANGUAGE_CODE|slice:":2" == "sv" %}Leveransstatus okänd{% else %}Delivery status unknown{% endif %}
-                          {% endif %}
-                        </div>
-                      </div>
-                    </div>
-                  {% endfor %}
                   {% for event in activity_events %}
                     <div class="activity-item">
                       <div class="activity-line"></div>
@@ -340,6 +291,25 @@
                           <div class="activity-main">
                             <div class="candidate-inline-title">{{ event.message }}</div>
                             <div class="candidate-inline-meta">{{ event.created_at|date:"Y-m-d H:i" }}</div>
+                            {% if event.verb == "invite_sent" and event.email_log %}
+                              <div class="small mt-2">
+                                {% if event.email_log.status == "queued" %}
+                                  <span class="candidate-status-badge is-muted">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Skickas / väntar{% else %}Sending / waiting{% endif %}</span>
+                                {% elif event.email_log.delivery_status == "delivered" %}
+                                  <span class="candidate-status-badge is-success">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Levererat{% else %}Delivered{% endif %}</span>
+                                {% elif event.email_log.delivery_status == "failed" %}
+                                  <span class="candidate-status-badge is-warning">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Kunde inte levereras{% else %}Could not be delivered{% endif %}</span>
+                                {% elif event.email_log.delivery_status == "pending" %}
+                                  <span class="candidate-status-badge is-warning">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Skickat · inväntar leveransbekräftelse{% else %}Sent · awaiting delivery confirmation{% endif %}</span>
+                                {% elif event.email_log.status == "failed" %}
+                                  <span class="candidate-status-badge is-warning">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Kunde inte skickas{% else %}Could not be sent{% endif %}</span>
+                                {% elif event.email_log.status == "sent" %}
+                                  <span class="candidate-status-badge is-muted">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Skickat · leveransstatus okänd{% else %}Sent · delivery status unknown{% endif %}</span>
+                                {% else %}
+                                  <span class="candidate-status-badge is-muted">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Leveransstatus okänd{% else %}Delivery status unknown{% endif %}</span>
+                                {% endif %}
+                              </div>
+                            {% endif %}
                           </div>
                         </div>
 
@@ -351,6 +321,8 @@
                               data-email-to="{{ event.email_log.to_email|escape }}"
                               data-email-subject="{{ event.email_log.subject|escape }}"
                               data-email-body="{{ event.email_log.body_snapshot|escape }}"
+                              data-email-from="donotreply@mail.talena.com"
+                              data-email-delivery-status="{% if event.email_log.status == 'queued' %}{% if LANGUAGE_CODE|slice:':2' == 'sv' %}Skickas / väntar{% else %}Sending / waiting{% endif %}{% elif event.email_log.delivery_status == 'delivered' %}{% if LANGUAGE_CODE|slice:':2' == 'sv' %}Levererat{% else %}Delivered{% endif %}{% elif event.email_log.delivery_status == 'failed' %}{% if LANGUAGE_CODE|slice:':2' == 'sv' %}Kunde inte levereras{% else %}Could not be delivered{% endif %}{% elif event.email_log.delivery_status == 'pending' %}{% if LANGUAGE_CODE|slice:':2' == 'sv' %}Skickat · inväntar leveransbekräftelse{% else %}Sent · awaiting delivery confirmation{% endif %}{% elif event.email_log.status == 'failed' %}{% if LANGUAGE_CODE|slice:':2' == 'sv' %}Kunde inte skickas{% else %}Could not be sent{% endif %}{% elif event.email_log.status == 'sent' %}{% if LANGUAGE_CODE|slice:':2' == 'sv' %}Skickat · leveransstatus okänd{% else %}Sent · delivery status unknown{% endif %}{% else %}{% if LANGUAGE_CODE|slice:':2' == 'sv' %}Leveransstatus okänd{% else %}Delivery status unknown{% endif %}{% endif %}"
                             >
                               {% trans "View email" %}
                             </button>
