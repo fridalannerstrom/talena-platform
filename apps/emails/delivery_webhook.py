@@ -27,7 +27,7 @@ def azure_email_delivery_webhook(request):
     if not isinstance(events, list):
         return HttpResponse(status=400)
 
-    if events and events[0].get("eventType") == "Microsoft.EventGrid.SubscriptionValidationEvent":
+    if events and isinstance(events[0], dict) and events[0].get("eventType") == "Microsoft.EventGrid.SubscriptionValidationEvent":
         code = ((events[0].get("data") or {}).get("validationCode") or "")
         return JsonResponse({"validationResponse": code}) if code else HttpResponse(status=400)
 
