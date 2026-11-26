@@ -69,11 +69,11 @@
                         {% elif latest_email.delivery_status == "delivered" %}
                           <span class="candidate-status-badge is-success">{% trans "Delivered" %}</span>
                         {% elif latest_email.delivery_status == "failed" %}
-                          <span class="candidate-status-badge is-danger">{% trans "Could not be delivered" %}</span>
+                          <span class="candidate-status-badge is-warning">{% trans "Could not be delivered" %}</span>
                         {% elif latest_email.delivery_status == "pending" %}
                           <span class="candidate-status-badge is-warning">{% trans "Sent · awaiting delivery confirmation" %}</span>
                         {% elif latest_email.status == "failed" %}
-                          <span class="candidate-status-badge is-danger">{% trans "Could not be sent" %}</span>
+                          <span class="candidate-status-badge is-warning">{% trans "Could not be sent" %}</span>
                         {% else %}
                           <span class="candidate-status-badge is-muted">{% trans "Delivery status unknown" %}</span>
                         {% endif %}
