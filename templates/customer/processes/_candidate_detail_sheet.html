@@ -84,7 +84,6 @@
                     <form method="post" action="{% url 'processes:process_send_tests' process.id %}" class="mt-2">
                       {% csrf_token %}
                       <input type="hidden" name="invitation_ids" value="{{ invitation.id }}">
-                      <input type="hidden" name="next" value="{% url 'processes:process_candidate_detail' process.id candidate.id %}">
                       <label class="small" for="correct-recipient-{{ invitation.id }}">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Rätta e-postadressen och skicka igen{% else %}Correct email address and resend{% endif %}</label>
                       <div class="d-flex gap-2 mt-1">
                         <input class="form-control form-control-sm" id="correct-recipient-{{ invitation.id }}" type="email" name="recipient_email" value="{{ invitation.delivery_email }}" required>
