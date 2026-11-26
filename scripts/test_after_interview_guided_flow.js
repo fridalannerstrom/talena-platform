@@ -93,7 +93,10 @@ assert.ok(view.includes('data-interview-notes-area="personality"') &&
   view.includes('data-interview-notes-area="skills"') &&
   view.includes("data-interview-notes-input"),
   "Three visible note areas must retain the native combined save input.");
-assert.ok(shell.includes("after-interview-tabs.js") && shell.includes("20261113-evidence-recompile-v3"));
+assert.ok(
+  /after-interview-tabs\\.js' %\\}\\?v=[^'"]+/.test(shell),
+  "After interview tabs script must use a versioned asset URL."
+);
 assert.ok(header.includes("candidate-eyebrows.js") && header.includes("rolecontext-v6"));
 
 // A compiled candidate sees only the single regenerate row on Evidence.
