@@ -275,6 +275,26 @@
                 role="tabpanel"
               >
                 <div class="activity-timeline">
+                  {% for email_log in email_delivery_logs %}
+                    {% if email_log.status == "queued" or email_log.status == "failed" %}
+                      <div class="activity-item">
+                        <div class="activity-dot is-invite"></div>
+                        <div class="activity-card">
+                          <div class="candidate-inline-title">
+                            {% if LANGUAGE_CODE|slice:":2" == "sv" %}Inbjudningsmejl{% else %}Invitation email{% endif %} · {{ email_log.to_email }}
+                          </div>
+                          <div class="candidate-inline-meta">{{ email_log.created_at|date:"Y-m-d H:i" }}</div>
+                          <div class="small mt-1">
+                            {% if email_log.status == "queued" %}
+                              {% if LANGUAGE_CODE|slice:":2" == "sv" %}Skickas / väntar{% else %}Sending / waiting{% endif %}
+                            {% else %}
+                              {% if LANGUAGE_CODE|slice:":2" == "sv" %}Kunde inte skickas{% else %}Could not be sent{% endif %}
+                            {% endif %}
+                          </div>
+                        </div>
+                      </div>
+                    {% endif %}
+                  {% endfor %}
                   {% for event in activity_events %}
                     <div class="activity-item">
                       <div class="activity-line"></div>
