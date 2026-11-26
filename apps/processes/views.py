@@ -3452,7 +3452,7 @@ def build_candidate_detail_context(
         "report_branding": get_report_branding(process.company),
         "process": process,
         "invitation": invitation,
-        "email_delivery_logs": invitation.email_logs.order_by("-created_at", "-pk")[:10],
+        "email_delivery_logs": invitation.email_logs.filter(template_type="invitation").order_by("-created_at", "-pk")[:10],
         "inv": invitation,
         "candidate": candidate,
         **candidate_result_context,
