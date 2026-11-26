@@ -94,7 +94,7 @@ assert.ok(view.includes('data-interview-notes-area="personality"') &&
   view.includes("data-interview-notes-input"),
   "Three visible note areas must retain the native combined save input.");
 assert.ok(
-  /after-interview-tabs\\.js' %\\}\\?v=[^'"]+/.test(shell),
+  shell.includes("after-interview-tabs.js' %}?v="),
   "After interview tabs script must use a versioned asset URL."
 );
 assert.ok(header.includes("candidate-eyebrows.js") && header.includes("rolecontext-v6"));
