@@ -4,6 +4,7 @@ from . import views
 app_name = "emails"
 
 urlpatterns = [
+    path("webhooks/acs-email-delivery/", views.azure_email_delivery_webhook, name="azure_email_delivery_webhook"),
     path(
         "admin/companies/<int:company_pk>/email-template/invitation/",
         views.admin_edit_company_invitation_template,

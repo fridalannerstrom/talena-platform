@@ -287,7 +287,16 @@ class TestInvitation(models.Model):
 
     process = models.ForeignKey("processes.TestProcess", on_delete=models.CASCADE, related_name="invitations")
     candidate = models.ForeignKey("processes.Candidate", on_delete=models.CASCADE, related_name="invitations")
+    email_override = models.EmailField(
+        blank=True,
+        default="",
+        help_text="Project-specific recipient address; does not change the shared candidate email.",
+    )
     source = models.CharField(max_length=20, choices=SOURCE_CHOICES, default="invited")
+
+    @property
+    def delivery_email(self):
+        return (self.email_override or self.candidate.email or "").strip()
     request_id = models.CharField(max_length=512, null=True, blank=True) 
     sova_project_id = models.IntegerField(null=True, blank=True)   
     overall_score = models.FloatField(null=True, blank=True)

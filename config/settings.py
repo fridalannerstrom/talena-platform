@@ -307,6 +307,9 @@ PASSWORD_RESET_TIMEOUT = int(os.getenv("PASSWORD_RESET_TIMEOUT", "3600"))
     
 # --- Email --- #
 
+EMAIL_DELIVERY_TRACKING_ENABLED = env_bool("EMAIL_DELIVERY_TRACKING_ENABLED", "False")
+ACS_EMAIL_EVENTGRID_SECRET = os.getenv("ACS_EMAIL_EVENTGRID_SECRET", "").strip()
+
 EMAIL_BACKEND = os.getenv(
     "EMAIL_BACKEND",
     "django.core.mail.backends.console.EmailBackend",

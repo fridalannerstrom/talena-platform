@@ -167,6 +167,8 @@ from apps.processes.interview_config import (
     get_interview_section_config,
 )
 from django.views.decorators.http import require_POST
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
 from django.core.mail import EmailMultiAlternatives
 from apps.emails.models import EmailTemplate, EmailLog
 from apps.emails.utils import render_placeholders
@@ -3450,6 +3452,7 @@ def build_candidate_detail_context(
         "report_branding": get_report_branding(process.company),
         "process": process,
         "invitation": invitation,
+        "email_delivery_logs": invitation.email_logs.filter(template_type="invitation").order_by("-created_at", "-pk")[:10],
         "inv": invitation,
         "candidate": candidate,
         **candidate_result_context,
@@ -7680,6 +7683,28 @@ def process_send_tests(request, pk):
     if not invitation_ids:
         messages.warning(request, "Välj minst en kandidat.")
         return redirect("processes:process_detail", pk=process.pk)
+
+    if "recipient_email" in request.POST:
+        if len(invitation_ids) != 1:
+            messages.error(request, "Välj en kandidat när du ändrar mottagaradress.")
+            return redirect("processes:process_detail", pk=process.pk)
+        recipient_email = (request.POST.get("recipient_email") or "").strip()
+        try:
+            validate_email(recipient_email)
+        except ValidationError:
+            messages.error(request, "E-postadressen verkar inte vara giltig. Kontrollera adressen och försök igen.")
+            return redirect("processes:process_detail", pk=process.pk)
+        invitation = get_object_or_404(
+            TestInvitation.objects.select_related("candidate"),
+            process=process,
+            id=invitation_ids[0],
+            removed_from_process_at__isnull=True,
+        )
+        invitation.email_override = (
+            "" if recipient_email.casefold() == invitation.candidate.email.casefold()
+            else recipient_email
+        )
+        invitation.save(update_fields=["email_override"])
 
     invitations = (
         TestInvitation.objects
