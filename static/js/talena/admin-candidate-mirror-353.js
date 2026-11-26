@@ -23,7 +23,9 @@
     "[data-bs-toggle='dropdown']",
     "button[aria-expanded][aria-controls]",
     ".js-open-email-modal",
-    "[data-copy-candidate-url]"
+    "[data-copy-candidate-url]",
+    // Admins may fill in missing AI interview questions for customers.
+    "[data-pre-interview-questions-regenerate]"
   ].join(", ");
 
   function activateItems(root, button, tabKey, panelKey) {
