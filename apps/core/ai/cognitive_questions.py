@@ -115,6 +115,7 @@ In "why" and "listen_for", explain the connection between the assessed
 skill and the role situation. Focus on observable reasoning, information
 used, strategies, checks and decisions; do not claim that a test result
 proves a capability or limitation.
+
 COGNITIVE ASSESSMENT DATA
 {evidence_text}
 
