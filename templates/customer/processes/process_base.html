@@ -3070,12 +3070,26 @@ function initCandidateSheetInteractions(container) {
     }
 
     const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+    const fromEl = document.getElementById("globalEmailFrom");
     const toEl = document.getElementById("globalEmailTo");
     const subjectEl = document.getElementById("globalEmailSubject");
+    const deliveryStatusEl = document.getElementById("globalEmailDeliveryStatus");
     const bodyEl = document.getElementById("globalEmailBody");
 
     container.querySelectorAll(".js-open-email-modal").forEach((btn) => {
       btn.addEventListener("click", () => {
+        if (fromEl) {
+          fromEl.textContent =
+            btn.dataset.emailFrom ||
+            PROCESS_I18N.notSpecified;
+        }
+
+        if (deliveryStatusEl) {
+          deliveryStatusEl.textContent =
+            btn.dataset.emailDeliveryStatus ||
+            PROCESS_I18N.notSpecified;
+        }
+
         if (toEl) {
           toEl.textContent =
   btn.dataset.emailTo ||
