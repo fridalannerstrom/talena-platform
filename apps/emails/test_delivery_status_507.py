@@ -1,5 +1,4 @@
 from contextlib import nullcontext
-from datetime import datetime, timezone as dt_timezone
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
@@ -48,6 +47,7 @@ class EmailDeliveryStatusTests(SimpleTestCase):
     def test_maps_confirmed_delivery_and_provider_failures(self):
         self.assertEqual(map_delivery_status("Delivered"), "delivered")
         self.assertEqual(map_delivery_status("Bounced"), "failed")
+        self.assertEqual(map_delivery_status("bounced"), "failed")
         self.assertEqual(map_delivery_status("Queued"), "pending")
         self.assertEqual(map_delivery_status("Unrecognized"), "unknown")
 
