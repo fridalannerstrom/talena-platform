@@ -82,8 +82,7 @@ def send_assessments_and_emails(*, process, invitations, actor_user, context="cu
                 subject="Invitation email",
                 body_snapshot="",
                 status="failed",
-                delivery_status="failed",
-                delivery_status_updated_at=timezone.now(),
+                delivery_status="unknown",
                 delivery_error_code="invalid_recipient",
                 error="Recipient address is invalid.",
             )
