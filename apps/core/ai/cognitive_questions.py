@@ -111,6 +111,15 @@ complexity to explore. Do not invent role tasks, information sources,
 time pressure or other conditions. If the candidate may not have
 experience in this exact role, invite a comparable example.
 
+Across the set, make questions distinct: each should explore a
+different, assessment-relevant way the candidate uses information or
+solves problems. Avoid asking the same thing twice in different words.
+
+A question about following a routine is useful only when it explores how
+the candidate interpreted relevant information, checked what applied or
+reasoned through an exception. Do not ask only whether the candidate
+follows rules correctly.
+
 In "why" and "listen_for", explain the connection between the assessed
 skill and the role situation. Focus on observable reasoning, information
 used, strategies, checks and decisions; do not claim that a test result
@@ -670,8 +679,9 @@ def stream_cognitive_questions(
         "interpretation and communication decisions. Use supplied "
         "process context to ground questions in stated tasks or "
         "situations and connect them to the cognitive skill being "
-        "explored; do not turn them into general competency questions "
-        "or invent role details. "
+        "explored. Keep questions distinct; do not reduce them to general "
+        "communication, customer-service or routine-compliance questions, "
+        "and never invent role details. "
         "Follow Talena's technical output contract exactly, "
         "including required JSON field names and event structure. "
         f"{system_language_instruction}"
