@@ -74,7 +74,6 @@ def send_assessments_and_emails(*, process, invitations, actor_user, context="cu
         try:
             validate_email(recipient_email)
         except ValidationError:
-            from apps.emails.models import EmailLog
             email_log = EmailLog.objects.create(
                 invitation=inv,
                 template_type="invitation",
