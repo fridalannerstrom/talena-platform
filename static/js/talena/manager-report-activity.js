@@ -38,7 +38,9 @@
 
   const getBlockLabel = key => {
     if (!key) return "";
-    if (key === "wellbeing_tips") return isSwedish() ? "Tips för trivsel" : "Wellbeing tips";
+    if (key === "wellbeing_tips") return isSwedish()
+      ? "Tips på hur du leder och motiverar personen"
+      : "Tips on how to lead and motivate the person";
     const names = {
       leading_and_working_with_others: isSwedish() ? "Ledarskap och samarbete" : "Leadership and teamwork",
       organising_and_thinking_patterns: isSwedish() ? "Organisation och tankemönster" : "Organisation and thinking",

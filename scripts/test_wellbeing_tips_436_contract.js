@@ -26,8 +26,8 @@ assert.ok(tabs.includes('getMotivationPracticalAdvice(panel)'));
 assert.ok(tabs.includes('JSON.parse(source.textContent || "{}")'));
 assert.ok(!tabs.includes("const MOTIVATION_PRACTICAL_ADVICE = {"),
   "JS must not retain a second copy of approved advice.");
-assert.ok(tabs.includes('managerPersonalityAdviceTitle: "Tips för trivsel"'));
-assert.ok(tabs.includes('managerPersonalityAdviceTitle: "Wellbeing tips"'));
+assert.ok(tabs.includes('managerPersonalityAdviceTitle: "Tips på hur du leder och motiverar personen"'));
+assert.ok(tabs.includes('managerPersonalityAdviceTitle: "Tips on how to lead and motivate the person"'));
 assert.ok(tabs.includes('managerAdvice.className = "after-interview-manager-report__wellbeing"'));
 assert.ok(tabs.includes('managerAdviceBody,\n      "wellbeing_tips"'));
 assert.ok(tabs.includes('managerReportCard.appendChild(managerAdvice)'));

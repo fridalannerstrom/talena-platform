@@ -61,7 +61,7 @@
       ],
       managerPersonalityTestbild: "Testbild",
       managerPersonalityCandidateDescribes: "Kandidaten beskriver",
-      managerPersonalityAdviceTitle: "Tips för trivsel",
+      managerPersonalityAdviceTitle: "Tips på hur du leder och motiverar personen",
       managerPersonalityTestMissing: "Ingen testtolkning är tillgänglig ännu.",
       managerPersonalityInterviewMissing: "Intervjuanteckningarna innehåller inget tillräckligt underlag om det här temat.",
       managerSkillNames: { numerical: "Numerisk förmåga", logical: "Logisk förmåga", verbal: "Verbal förmåga" },
@@ -218,7 +218,7 @@
       ],
       managerPersonalityTestbild: "Test profile",
       managerPersonalityCandidateDescribes: "The candidate describes",
-      managerPersonalityAdviceTitle: "Wellbeing tips",
+      managerPersonalityAdviceTitle: "Tips on how to lead and motivate the person",
       managerPersonalityTestMissing: "No test interpretation is available yet.",
       managerPersonalityInterviewMissing: "The interview notes do not contain enough information about this theme.",
       managerSkillNames: { numerical: "Numerical ability", logical: "Logical ability", verbal: "Verbal ability" },
@@ -1870,7 +1870,7 @@
       __PANEL__ .after-interview-manager-report__personality-advice-text {
         margin-top: .55rem; color: var(--talena-text-muted, #766e68); font-size: .78rem; line-height: 1.65;
       }
-      /* Tips för trivsel is a report section, not subdued helper text. */
+      /* Manager advice is a report section, not subdued helper text. */
       __PANEL__ .after-interview-manager-report__wellbeing
       .after-interview-manager-report__personality-advice-text {
         color: #3d3834; font-size: .85rem; line-height: 1.72;

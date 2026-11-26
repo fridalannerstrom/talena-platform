@@ -25,7 +25,7 @@ const doc = {
 const render = new Function(
   "document", "copy", src.slice(begin, end) + "\nreturn renderGeneratedMarkdown;"
 )(doc, () => ({
-  managerPersonalityAdviceTitle: "Tips för trivsel",
+  managerPersonalityAdviceTitle: "Tips på hur du leder och motiverar personen",
   tabs: {
     overview: "Helhetsbild", interview: "Intervjusammanfattning",
     explore: "Undersök vidare",
@@ -93,6 +93,14 @@ assert.equal(edited.children.length, 1, "Manually edited heading should be dedup
 assert.equal(edited.children[0].type, "p");
 const english = renderText("# Wellbeing tips\n\nOne recommendation.", { key: "wellbeing_tips" });
 assert.equal(english.children.length, 1, "English report heading should be deduplicated");
+const newSwedish = renderText("## Tips på hur du leder och motiverar personen\n\nEtt konkret råd.", {
+  key: "wellbeing_tips",
+});
+assert.equal(newSwedish.children.length, 1, "New Swedish report heading should be deduplicated");
+const newEnglish = renderText("## Tips on how to lead and motivate the person\n\nOne recommendation.", {
+  key: "wellbeing_tips",
+});
+assert.equal(newEnglish.children.length, 1, "New English report heading should be deduplicated");
 const other = renderText("## Tips för trivsel\n\nAndra rubriker.", {});
 assert.equal(other.children[0].type, "h3", "Other AI blocks must keep their headings");
 const custom = renderText("## Viktiga rekommendationer\n\nText.", { key: "wellbeing_tips" });
