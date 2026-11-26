@@ -1,5 +1,9 @@
 # apps/processes/services/send_tests.py
 import uuid
+from email.utils import make_msgid
+
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
 
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
@@ -66,6 +70,31 @@ def send_assessments_and_emails(*, process, invitations, actor_user, context="cu
 
     for inv in invitations:
         candidate = inv.candidate
+        recipient_email = getattr(inv, "delivery_email", candidate.email).strip()
+        try:
+            validate_email(recipient_email)
+        except ValidationError:
+            from apps.emails.models import EmailLog
+            email_log = EmailLog.objects.create(
+                invitation=inv,
+                template_type="invitation",
+                to_email=recipient_email or candidate.email,
+                subject="Invitation email",
+                body_snapshot="",
+                status="failed",
+                delivery_status="failed",
+                delivery_status_updated_at=timezone.now(),
+                delivery_error_code="invalid_recipient",
+                error="Recipient address is invalid.",
+            )
+            inv.status = "failed"
+            inv.save(update_fields=["status"])
+            errors.append({
+                "invitation_id": inv.id,
+                "email": recipient_email or candidate.email,
+                "error": "E-postadressen verkar inte vara giltig. Rätta adressen och försök igen.",
+            })
+            continue
 
         lang = (
             getattr(process, "candidate_language", "sv")
@@ -140,7 +169,7 @@ def send_assessments_and_emails(*, process, invitations, actor_user, context="cu
                     "candidate_id": str(candidate.id),
                     "first_name": candidate.first_name,
                     "last_name": candidate.last_name,
-                    "email": candidate.email,
+                    "email": recipient_email,
                     "language": lang,
                     "job_title": process.job_title or "Assessment",
                     "job_number": f"talena-{process.id}",
@@ -239,7 +268,7 @@ def send_assessments_and_emails(*, process, invitations, actor_user, context="cu
             ctx = {
                 "first_name": candidate.first_name or "",
                 "last_name": candidate.last_name or "",
-                "email": candidate.email or "",
+                "email": recipient_email,
                 "process_name": process.name or "",
                 "company_name": getattr(process.company, "name", "") or "",
                 "assessments": format_assessment_names(
@@ -259,26 +288,30 @@ def send_assessments_and_emails(*, process, invitations, actor_user, context="cu
             email_log = EmailLog.objects.create(
                 invitation=inv,
                 template_type="invitation",
-                to_email=candidate.email,
+                to_email=recipient_email,
                 subject=subject,
                 body_snapshot=body,
                 status="queued",
+                internet_message_id=make_msgid(),
             )
 
             msg = EmailMultiAlternatives(
                 subject=subject,
                 body=body,
                 from_email=settings.DEFAULT_FROM_EMAIL,
-                to=[candidate.email],
+                to=[recipient_email],
                 reply_to=[actor_user.email],
+                headers={"Message-ID": email_log.internet_message_id},
             )
 
             try:
-                msg.send()
+                accepted = msg.send()
+                if accepted != 1:
+                    raise RuntimeError("email_not_accepted")
                 email_log.mark_sent()
             except Exception as exc:
-                email_log.mark_failed(str(exc))
-                raise
+                email_log.mark_failed("Email service did not accept the message.")
+                raise RuntimeError("email_send_failed") from exc
 
             # ---------------------------------------------------------
             # 3. Mark the Talena invitation as sent only after email.
@@ -329,8 +362,8 @@ def send_assessments_and_emails(*, process, invitations, actor_user, context="cu
             errors.append(
                 {
                     "invitation_id": inv.id,
-                    "email": inv.candidate.email,
-                    "error": str(exc),
+                    "email": getattr(inv, "delivery_email", inv.candidate.email),
+                    "error": "Kunde inte skicka inbjudan. Försök igen eller kontakta support om problemet kvarstår.",
                 }
             )
 
