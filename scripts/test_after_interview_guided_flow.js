@@ -93,7 +93,10 @@ assert.ok(view.includes('data-interview-notes-area="personality"') &&
   view.includes('data-interview-notes-area="skills"') &&
   view.includes("data-interview-notes-input"),
   "Three visible note areas must retain the native combined save input.");
-assert.ok(shell.includes("after-interview-tabs.js") && shell.includes("20261113-evidence-recompile-v3"));
+assert.ok(
+  shell.includes("after-interview-tabs.js' %}?v="),
+  "After interview tabs script must use a versioned asset URL."
+);
 assert.ok(header.includes("candidate-eyebrows.js") && header.includes("rolecontext-v6"));
 
 // A compiled candidate sees only the single regenerate row on Evidence.
@@ -178,8 +181,10 @@ assert.ok(/#candidate-insights-panel-after-interview\s*>\s*\.final-output-card\s
 assert.ok(insightTabsCss.includes('#candidate-insights-panel-after-interview > .final-output-card > div:first-child {') &&
   insightTabsCss.includes('margin: 0 !important;'),
   "After interview header must reset the legacy negative margin.");
-assert.ok(header.includes('candidate-insight-tabs.css') &&
-  header.includes('after-interview-flush-padding'), "New scoped CSS must bypass old browser cache.");
+assert.ok(
+  header.includes("candidate-insight-tabs.css' %}?v="),
+  "New scoped CSS must use a versioned asset URL to bypass old browser cache."
+);
 
 // The outer card is now flush. Its decision-support footer still needs
 // its own horizontal padding, without restoring padding to the whole card.
