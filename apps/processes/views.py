@@ -57,6 +57,7 @@ from apps.core.ai.cognitive_questions import (
     apply_cognitive_questions_event,
     stream_cognitive_questions,
     save_cognitive_questions,
+    build_cognitive_questions_source_fingerprint,
 )
 
 from apps.core.ai.motivation_interpretation import (
@@ -11115,6 +11116,12 @@ def process_candidate_cognitive_questions_stream(
         or {}
     )
 
+    current_source_fingerprint = build_cognitive_questions_source_fingerprint(
+        owner=invitation,
+        cognitive_results=cognitive_results,
+        language_code=language_code,
+    )
+
     current_purpose = (
         process.purpose
         or ""
@@ -11124,6 +11131,17 @@ def process_candidate_cognitive_questions_stream(
         invitation.ai_cognitive_questions_purpose
         or ""
     ).strip().lower()
+
+    # Rebuild saved questions when the source evidence, process context,
+    # purpose, or effective administrator guidance has changed.
+    if (
+        saved_result
+        and current_status == "completed"
+        and saved_result.get("_source_fingerprint") != current_source_fingerprint
+    ):
+        current_status = "outdated"
+        invitation.ai_cognitive_questions_status = "outdated"
+        invitation.save(update_fields=["ai_cognitive_questions_status"])
 
     # Safety check if the process purpose has changed.
     if (
@@ -11248,6 +11266,7 @@ def process_candidate_cognitive_questions_stream(
                 owner=invitation,
                 result=result,
                 language_code=language_code,
+                source_fingerprint=current_source_fingerprint,
             )
 
         except Exception as error:
