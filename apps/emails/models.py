@@ -138,3 +138,23 @@ class EmailLog(models.Model):
             "delivery_status_updated_at",
             "delivery_error_code",
         ])
+
+class EmailDeliveryUpdate(models.Model):
+    """One idempotent delivery event received from the outbound email provider."""
+
+    email_log = models.ForeignKey(
+        EmailLog,
+        on_delete=models.CASCADE,
+        related_name="delivery_updates",
+    )
+    provider_event_id = models.CharField(max_length=255, unique=True)
+    provider_status = models.CharField(max_length=40)
+    delivery_status = models.CharField(
+        max_length=20,
+        choices=EmailLog.DELIVERY_STATUS_CHOICES,
+    )
+    provider_occurred_at = models.DateTimeField(blank=True, null=True)
+    received_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["received_at", "pk"]
