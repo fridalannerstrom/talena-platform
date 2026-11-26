@@ -376,13 +376,23 @@
         <div class="modal-body">
           <div class="activity-email-meta mb-3">
             <p class="mb-1">
+              <strong>{% trans "From:" %}</strong>
+              <span id="globalEmailFrom"></span>
+            </p>
+
+            <p class="mb-1">
               <strong>{% trans "To:" %}</strong>
               <span id="globalEmailTo"></span>
             </p>
 
-            <p class="mb-0">
+            <p class="mb-1">
               <strong>{% trans "Subject:" %}</strong>
               <span id="globalEmailSubject"></span>
+            </p>
+
+            <p class="mb-0">
+              <strong>{% trans "Delivery status:" %}</strong>
+              <span id="globalEmailDeliveryStatus"></span>
             </p>
           </div>
           <div class="activity-email-body" id="globalEmailBody"></div>
