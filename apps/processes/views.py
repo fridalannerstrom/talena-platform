@@ -7693,7 +7693,10 @@ def process_send_tests(request, pk):
             validate_email(recipient_email)
         except ValidationError:
             messages.error(request, "E-postadressen verkar inte vara giltig. Kontrollera adressen och försök igen.")
-            return redirect(request.POST.get("next") or "processes:process_detail", pk=process.pk)
+            next_url = request.POST.get("next", "")
+            if next_url and url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}):
+                return redirect(next_url)
+            return redirect("processes:process_detail", pk=process.pk)
         invitation = get_object_or_404(
             TestInvitation.objects.select_related("candidate"),
             process=process,
