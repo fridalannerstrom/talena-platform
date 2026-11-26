@@ -48,13 +48,17 @@ def process_delivery_event(event):
         return "ignored"
     internet_message_id = str(data.get("internetMessageId") or "").strip()
     recipient = str(data.get("recipient") or "").strip()
-    provider_status = str(data.get("deliveryStatus") or "").strip()
+    provider_status = str(data.get("status") or data.get("deliveryStatus") or "").strip()
     delivery_status = map_delivery_status(provider_status)
 
     if not event_id or not internet_message_id or not recipient or delivery_status == "unknown":
         return "ignored"
 
-    occurred_at = _event_time(event.get("eventTime"))
+    occurred_at = _event_time(
+        data.get("deliveryAttemptTimestamp")
+        or data.get("deliveryAttemptTimeStamp")
+        or event.get("eventTime")
+    )
     with transaction.atomic():
         email_log = (
             EmailLog.objects.select_for_update()
