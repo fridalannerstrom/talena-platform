@@ -86,7 +86,7 @@ def process_delivery_event(event):
 
         if delivery_status == "failed":
             invitation = email_log.invitation
-            latest_log = invitation.email_logs.order_by("-created_at", "-pk").first()
+            latest_log = invitation.email_logs.filter(template_type="invitation").order_by("-created_at", "-pk").first()
             if (
                 latest_log and latest_log.pk == email_log.pk
                 and invitation.status == "sent"
