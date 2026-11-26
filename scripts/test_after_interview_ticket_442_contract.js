@@ -68,7 +68,7 @@ assert.ok(badges.includes('".after-interview-manager-report__personality-title"'
 assert.ok(!badges.includes('field.parentNode.insertBefore(badge, field)'),
   "Do not repeat an AI badge for every manager personality paragraph");
 assert.ok(
-  /after-interview-tabs\\.js' %\\}\\?v=[^'"]+/.test(shell),
+  shell.includes("after-interview-tabs.js' %}?v="),
   "After interview tabs script must use a versioned asset URL."
 );
 assert.ok(header.includes("rolecontext-v6") && header.includes("ai-generated-only-v4"));
