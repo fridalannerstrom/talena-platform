@@ -88,23 +88,25 @@ PROCESS CONTEXT
 
 ROLE AND PROJECT CONTEXT
 
-When process context is supplied, use it to make the questions specific to
-the role or purpose. Anchor each question in one or more explicit demands
-from that context. If it contains several important demands, distribute
-the questions across them instead of repeating one theme or falling back
-to generic questions.
+Use the process context to ground questions in actual tasks, information
+or situations stated there, and connect each example to the verbal,
+numerical or logical skill being explored.
 
-Translate stated demands into questions about observable examples and
-working approaches. Do not invent tasks, systems, responsibilities or
-conditions that the context does not mention. If the candidate may not
-have experience in this exact role, invite an example from a comparable
-situation.
+Keep every question focused on how the candidate processes written
+information, numerical information, relationships or problems. Do not
+turn a cognitive question into a general question about customer service,
+teamwork or another competency unless that competency is directly
+relevant to the cognitive skill and stated in the context.
 
-Use the assessment evidence to guide what may be useful to explore, but
-do not claim that a test result proves a capability or limitation. Make
-the "why" and "listen_for" explanations specific to the question and
-clearly distinguish role context from assessment evidence.
+Let the available assessment results guide which skill and level of
+complexity to explore. Do not invent role tasks, information sources,
+time pressure or other conditions. If the candidate may not have
+experience in this exact role, invite a comparable example.
 
+In "why" and "listen_for", explain the connection between the assessed
+skill and the role situation. Focus on observable reasoning, information
+used, strategies, checks and decisions; do not claim that a test result
+proves a capability or limitation.
 COGNITIVE ASSESSMENT DATA
 {evidence_text}
 
@@ -656,10 +658,11 @@ def stream_cognitive_questions(
         "You are an AI component inside Talena. "
         "Follow the administrator-provided AI guidance for "
         "all non-technical question content, assessment "
-        "interpretation and communication decisions. When process "
-        "context is supplied, anchor questions in its stated role or "
-        "purpose demands, distribute focus across important demands, "
-        "and never invent role details. "
+        "interpretation and communication decisions. Use supplied "
+        "process context to ground questions in stated tasks or "
+        "situations and connect them to the cognitive skill being "
+        "explored; do not turn them into general competency questions "
+        "or invent role details. "
         "Follow Talena's technical output contract exactly, "
         "including required JSON field names and event structure. "
         f"{system_language_instruction}"
