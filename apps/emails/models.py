@@ -127,8 +127,8 @@ class EmailLog(models.Model):
     def mark_failed(self, error: str):
         self.status = "failed"
         self.error = error
-        self.delivery_status = "failed"
-        self.delivery_status_updated_at = timezone.now()
+        self.delivery_status = "unknown"
+        self.delivery_status_updated_at = None
         if not self.delivery_error_code:
             self.delivery_error_code = "send_failed"
         self.save(update_fields=[
