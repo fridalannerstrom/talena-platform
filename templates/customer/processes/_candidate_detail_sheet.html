@@ -341,7 +341,7 @@
                               data-email-to="{{ event.email_log.to_email|escape }}"
                               data-email-subject="{{ event.email_log.subject|escape }}"
                               data-email-body="{{ event.email_log.body_snapshot|escape }}"
-                              data-email-from="donotreply@mail.talena.com"
+                              data-email-from="donotreply@mail.talena.io"
                               data-email-delivery-status="{% if event.email_log.status == 'queued' %}{% if LANGUAGE_CODE|slice:':2' == 'sv' %}Skickas / väntar{% else %}Sending / waiting{% endif %}{% elif event.email_log.delivery_status == 'delivered' %}{% if LANGUAGE_CODE|slice:':2' == 'sv' %}Levererat{% else %}Delivered{% endif %}{% elif event.email_log.delivery_status == 'failed' %}{% if LANGUAGE_CODE|slice:':2' == 'sv' %}Kunde inte levereras{% else %}Could not be delivered{% endif %}{% elif event.email_log.delivery_status == 'pending' %}{% if LANGUAGE_CODE|slice:':2' == 'sv' %}Skickat · inväntar leveransbekräftelse{% else %}Sent · awaiting delivery confirmation{% endif %}{% elif event.email_log.status == 'failed' %}{% if LANGUAGE_CODE|slice:':2' == 'sv' %}Kunde inte skickas{% else %}Could not be sent{% endif %}{% elif event.email_log.status == 'sent' %}{% if LANGUAGE_CODE|slice:':2' == 'sv' %}Skickat · leveransstatus okänd{% else %}Sent · delivery status unknown{% endif %}{% else %}{% if LANGUAGE_CODE|slice:':2' == 'sv' %}Leveransstatus okänd{% else %}Delivery status unknown{% endif %}{% endif %}"
                             >
                               {% trans "View email" %}
