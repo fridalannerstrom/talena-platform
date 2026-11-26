@@ -376,7 +376,7 @@
         <div class="modal-body">
           <div class="activity-email-meta mb-3">
             <p class="mb-1">
-              <strong>{% trans "From:" %}</strong>
+              <strong>{% if detail_language|slice:":2" == "sv" %}Från:{% else %}From:{% endif %}</strong>
               <span id="globalEmailFrom"></span>
             </p>
 
@@ -391,7 +391,7 @@
             </p>
 
             <p class="mb-0">
-              <strong>{% trans "Delivery status:" %}</strong>
+              <strong>{% if detail_language|slice:":2" == "sv" %}Leveransstatus:{% else %}Delivery status:{% endif %}</strong>
               <span id="globalEmailDeliveryStatus"></span>
             </p>
           </div>
