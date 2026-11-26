@@ -318,6 +318,22 @@ def sova_ingest(request):
         activities=activities,
         observed_at=observed_at,
     )
+
+    # Generate each interview-question section as soon as its own test
+    # has completed; do not wait for the candidate's entire battery or
+    # for a customer/admin to open the candidate sheet.
+    try:
+        from apps.processes.services.automatic_interview_questions import (
+            generate_ready_interview_questions,
+        )
+
+        generate_ready_interview_questions(invitation)
+    except Exception:
+        logger.exception(
+            "Automatic interview-question generation failed for invitation %s",
+            invitation.pk,
+        )
+
     # ✅ Spara overall_status och andra SOVA-fält
     if overall_raw:
         invitation.sova_overall_status = overall_raw.strip()

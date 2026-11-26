@@ -1448,6 +1448,14 @@ def admin_candidate_detail(request, process_pk, candidate_pk):
             process=process, candidate_id=candidate_pk,
             removed_from_process_at__isnull=True,
         )
+        from apps.processes.services.automatic_interview_questions import (
+            generate_ready_interview_questions,
+        )
+
+        # Backfill question sets for completed tests that predate automatic
+        # Sova-callback generation, so the admin mirror can show them too.
+        generate_ready_interview_questions(invitation)
+        invitation.refresh_from_db()
         ctx = build_candidate_detail_context(
             process=process, invitation=invitation, language=language_code,
         )
@@ -3399,6 +3407,14 @@ def company_process_candidate_detail(request, company_pk, process_pk, candidate_
             process=process, candidate_id=candidate_pk,
             removed_from_process_at__isnull=True,
         )
+        from apps.processes.services.automatic_interview_questions import (
+            generate_ready_interview_questions,
+        )
+
+        # Backfill question sets for completed tests that predate automatic
+        # Sova-callback generation, so the admin mirror can show them too.
+        generate_ready_interview_questions(invitation)
+        invitation.refresh_from_db()
         ctx = build_candidate_detail_context(
             process=process, invitation=invitation, language=language_code,
         )
