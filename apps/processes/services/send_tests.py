@@ -1,4 +1,5 @@
 # apps/processes/services/send_tests.py
+import logging
 import uuid
 from email.utils import make_msgid
 
@@ -22,6 +23,9 @@ from apps.emails.utils import (
 from apps.processes.services.assessment_usage import (
     register_sent_assessments,
 )
+
+
+logger = logging.getLogger(__name__)
 
 
 def send_assessments_and_emails(*, process, invitations, actor_user, context="customer"):
@@ -71,6 +75,8 @@ def send_assessments_and_emails(*, process, invitations, actor_user, context="cu
     for inv in invitations:
         candidate = inv.candidate
         recipient_email = getattr(inv, "delivery_email", candidate.email).strip()
+        failure_stage = "validate_recipient"
+        failure_error_type = ""
         try:
             validate_email(recipient_email)
         except ValidationError:
@@ -117,6 +123,7 @@ def send_assessments_and_emails(*, process, invitations, actor_user, context="cu
             skipped_count += 1
             continue
 
+        failure_stage = "prepare_sova_order"
         try:
             # ---------------------------------------------------------
             # 1. Reuse an already-created SOVA order when possible.
@@ -129,6 +136,7 @@ def send_assessments_and_emails(*, process, invitations, actor_user, context="cu
             ).strip()
 
             if existing_test_url:
+                failure_stage = "reuse_sova_order"
                 test_url = existing_test_url
                 request_id = (
                     getattr(inv, "request_id", None)
@@ -159,6 +167,7 @@ def send_assessments_and_emails(*, process, invitations, actor_user, context="cu
                 )
 
             else:
+                failure_stage = "create_sova_order"
                 request_id = (
                     f"talena-{process.id}-{candidate.id}-{uuid.uuid4().hex}"
                 )
@@ -181,6 +190,7 @@ def send_assessments_and_emails(*, process, invitations, actor_user, context="cu
                     },
                 }
 
+                failure_stage = "sova_order_request"
                 resp = client.order_assessment(
                     process.project_code,
                     payload,
@@ -190,6 +200,7 @@ def send_assessments_and_emails(*, process, invitations, actor_user, context="cu
                 if not test_url:
                     raise ValueError("SOVA returned no assessment URL")
 
+                failure_stage = "persist_sova_order"
                 # Persist the successful SOVA order BEFORE email delivery.
                 # If email fails, a retry can safely reuse this exact order.
                 inv.sova_payload = resp
@@ -214,6 +225,7 @@ def send_assessments_and_emails(*, process, invitations, actor_user, context="cu
 
             # A SOVA order is billable/trackable even if the invitation email
             # subsequently fails. This helper is safe to call repeatedly.
+            failure_stage = "register_assessment_usage"
             register_sent_assessments(
                 invitation=inv,
                 sent_by=actor_user,
@@ -236,6 +248,7 @@ def send_assessments_and_emails(*, process, invitations, actor_user, context="cu
             # ---------------------------------------------------------
             # 2. Build and send invitation email.
             # ---------------------------------------------------------
+            failure_stage = "resolve_email_template"
             template = (
                 EmailTemplate.objects
                 .filter(
@@ -284,6 +297,7 @@ def send_assessments_and_emails(*, process, invitations, actor_user, context="cu
             subject = render_placeholders(subject_tpl, ctx)
             body = render_placeholders(body_tpl, ctx)
 
+            failure_stage = "create_email_log"
             email_log = EmailLog.objects.create(
                 invitation=inv,
                 template_type="invitation",
@@ -304,17 +318,20 @@ def send_assessments_and_emails(*, process, invitations, actor_user, context="cu
             )
 
             try:
+                failure_stage = "send_email"
                 accepted = msg.send()
                 if accepted != 1:
                     raise RuntimeError("email_not_accepted")
                 email_log.mark_sent()
             except Exception as exc:
+                failure_error_type = type(exc).__name__
                 email_log.mark_failed("Email service did not accept the message.")
                 raise RuntimeError("email_send_failed") from exc
 
             # ---------------------------------------------------------
             # 3. Mark the Talena invitation as sent only after email.
             # ---------------------------------------------------------
+            failure_stage = "mark_invitation_sent"
             sent_at = timezone.now()
 
             inv.status = "sent"
@@ -349,6 +366,13 @@ def send_assessments_and_emails(*, process, invitations, actor_user, context="cu
             sent_count += 1
 
         except Exception as exc:
+            logger.error(
+                "Invitation send failed (stage=%s, invitation_id=%s, process_id=%s, error_type=%s)",
+                failure_stage,
+                getattr(inv, "pk", None),
+                getattr(process, "pk", None),
+                failure_error_type or type(exc).__name__,
+            )
             # Keep the persisted SOVA order, but expose that delivery failed.
             # A later retry will reuse assessment_url/request_id above.
             if inv.status not in ("sent", "started", "completed"):
