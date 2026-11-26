@@ -181,8 +181,10 @@ assert.ok(/#candidate-insights-panel-after-interview\s*>\s*\.final-output-card\s
 assert.ok(insightTabsCss.includes('#candidate-insights-panel-after-interview > .final-output-card > div:first-child {') &&
   insightTabsCss.includes('margin: 0 !important;'),
   "After interview header must reset the legacy negative margin.");
-assert.ok(header.includes('candidate-insight-tabs.css') &&
-  header.includes('after-interview-flush-padding'), "New scoped CSS must bypass old browser cache.");
+assert.ok(
+  header.includes("candidate-insight-tabs.css' %}?v="),
+  "New scoped CSS must use a versioned asset URL to bypass old browser cache."
+);
 
 // The outer card is now flush. Its decision-support footer still needs
 // its own horizontal padding, without restoring padding to the whole card.
