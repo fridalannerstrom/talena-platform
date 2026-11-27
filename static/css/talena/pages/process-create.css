@@ -1274,6 +1274,37 @@ main .container-fluid:has(#processCreateWizardForm) > .d-flex:first-child > a {
   background: rgba(255, 255, 255, 0.84);
 }
 
+.wizard-deadline-date-time {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  gap: 0.85rem;
+}
+
+.wizard-deadline-date-time > div {
+  min-width: 0;
+}
+
+.wizard-deadline-date-time input[type="date"],
+.wizard-deadline-date-time input[type="time"] {
+  width: 100%;
+  min-width: 0;
+  height: 46px;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid var(--talena-border, #e5ddd8);
+  border-radius: 10px;
+  background-color: #fff;
+  color: var(--talena-ink, #171717);
+  font: inherit;
+  font-size: 0.84rem;
+  cursor: pointer;
+}
+
+.wizard-deadline-date-time input:focus {
+  border-color: var(--talena-coral, #ff6d61);
+  box-shadow: 0 0 0 3px rgba(255, 109, 97, 0.15);
+  outline: 0;
+}
+
 .wizard-deadline-value[hidden] {
   display: none !important;
 }
@@ -1312,6 +1343,12 @@ main .container-fluid:has(#processCreateWizardForm) > .d-flex:first-child > a {
 .wizard-deadline-note code {
   color: var(--talena-coral-strong, #bc4b40);
   font-size: 0.68rem;
+}
+
+@media (max-width: 575.98px) {
+  .wizard-deadline-date-time {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 767.98px) {
