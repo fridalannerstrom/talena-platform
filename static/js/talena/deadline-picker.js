@@ -28,6 +28,15 @@
       display.classList.remove("is-placeholder");
     }
 
+    input.addEventListener("click", function () {
+      if (typeof input.showPicker === "function") {
+        try {
+          input.showPicker();
+        } catch (error) {
+          // The browser's own input interaction remains available as fallback.
+        }
+      }
+    });
     input.addEventListener("input", renderValue);
     input.addEventListener("change", renderValue);
     renderValue();
