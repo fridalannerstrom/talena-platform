@@ -604,24 +604,38 @@
   }
 }
 
-/* Keep the deadline summary compact alongside the other project facts. */
-.process-page .process-mini-info--deadline {
-  flex: 0 0 auto !important;
-  width: max-content !important;
-  max-width: 100%;
-  align-self: flex-start;
+/* Use the free area on the right side of the project header for the deadline. */
+.process-page .process-hero__right {
+  display: flex !important;
+  flex: 0 0 330px !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  width: min(100%, 330px);
+  gap: 0.7rem !important;
+  padding-top: 0 !important;
 }
 
-.process-page .process-mini-info--deadline .process-mini-info__value {
-  white-space: nowrap;
+.process-page .process-hero__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.process-page .process-mini-info--deadline {
+  width: 100% !important;
+  min-width: 0 !important;
+  margin: 0;
 }
 
 @media (max-width: 700px) {
-  .process-page .process-mini-info--deadline {
-    width: 100% !important;
+  .process-page .process-hero__right {
+    flex: 1 1 100% !important;
+    width: 100%;
   }
 
-  .process-page .process-mini-info--deadline .process-mini-info__value {
-    white-space: normal;
+  .process-page .process-hero__actions {
+    justify-content: flex-start;
   }
 }
