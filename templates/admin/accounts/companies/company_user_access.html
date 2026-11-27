@@ -145,9 +145,9 @@
             </div>
 
             <style>
-              #accessTree .orgunit-access-row { position: relative; }
-              #accessTree .project-access-details[open] { z-index: 10; }
-              #accessTree .project-access-details { position: relative; }
+              #accessTree .project-access-details { display: block; padding: .1rem .5rem .45rem 2rem; border-bottom: 1px solid #ece8e5; }
+              #accessTree .project-access-details[open] { background: #fbfaf9; }
+              #accessTree .project-access-details > summary { width: fit-content; }
               #accessTree .project-access-summary {
                 cursor: pointer;
                 list-style: none;
@@ -173,13 +173,11 @@
               }
               #accessTree .project-access-state.is-restricted { color: #93580a; background: #fff3dc; }
               #accessTree .project-access-panel {
-                position: absolute;
-                top: calc(100% + .35rem);
-                left: 0;
-                z-index: 10;
-                width: min(460px, calc(100vw - 110px));
-                max-height: 340px;
-                overflow: auto;
+                position: static;
+                width: 100%;
+                max-width: 100%;
+                box-sizing: border-box;
+                margin-top: .5rem;
               }
               #accessTree .project-scope-option { cursor: pointer; background: #fff; }
               #accessTree .project-scope-option:hover { background: #f8f7f6; }
@@ -188,7 +186,7 @@
               @media (max-width: 700px) {
                 #accessTree .orgunit-access-row { align-items: flex-start !important; flex-direction: column; }
                 #accessTree .orgunit-access-row > div:last-child { width: 100%; justify-content: space-between !important; }
-                #accessTree .project-access-panel { width: min(420px, calc(100vw - 80px)); }
+                #accessTree .project-access-details { padding-left: 1rem; }
               }
             </style>
 
