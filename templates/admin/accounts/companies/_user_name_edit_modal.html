@@ -1,0 +1,59 @@
+<div class="modal fade" id="userNameEditModal" tabindex="-1"
+     aria-labelledby="userNameEditModalLabel" aria-hidden="true"
+     data-open-on-load="{% if name_form_open %}true{% else %}false{% endif %}">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title fs-5" id="userNameEditModalLabel">Redigera namn</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Stäng"></button>
+      </div>
+      <form method="post" data-user-name-edit-form>
+        {% csrf_token %}
+        <input type="hidden" name="action" value="update_user_name">
+        <input type="hidden" name="next" value="">
+        <div class="modal-body">
+          <p class="text-muted small mb-3">Ändra användarens för- eller efternamn. E-postadressen påverkas inte.</p>
+          <div class="mb-3">
+            <label class="form-label" for="{{ name_form.first_name.id_for_label }}">Förnamn</label>
+            {{ name_form.first_name }}
+            {% for error in name_form.first_name.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+          </div>
+          <div class="mb-2">
+            <label class="form-label" for="{{ name_form.last_name.id_for_label }}">Efternamn</label>
+            {{ name_form.last_name }}
+            {% for error in name_form.last_name.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Avbryt</button>
+          <button type="submit" class="btn btn-primary">
+            <i class="fa-solid fa-floppy-disk me-1"></i> Spara namn
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const modal = document.getElementById("userNameEditModal");
+  if (!modal) return;
+  const form = modal.querySelector("[data-user-name-edit-form]");
+  const firstName = modal.querySelector("#id_first_name");
+  const lastName = modal.querySelector("#id_last_name");
+  const nextField = form.querySelector('input[name="next"]');
+
+  modal.addEventListener("show.bs.modal", function (event) {
+    const trigger = event.relatedTarget;
+    if (!trigger) return;
+    form.action = trigger.dataset.userNameEditUrl || "";
+    nextField.value = trigger.dataset.userNameEditNext || "";
+    firstName.value = trigger.dataset.userFirstName || "";
+    lastName.value = trigger.dataset.userLastName || "";
+  });
+
+  if (modal.dataset.openOnLoad === "true" && window.bootstrap) {
+    bootstrap.Modal.getOrCreateInstance(modal).show();
+  }
+});
+</script>
