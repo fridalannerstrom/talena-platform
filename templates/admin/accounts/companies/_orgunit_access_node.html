@@ -40,34 +40,34 @@
   {% with unit_projects=projects_by_unit|get_item:unit.id selected_project_ids=project_scopes|get_item:unit.id %}
     <details class="project-access-details mx-2 my-2" data-project-scope-row data-unit-id="{{ unit.id }}">
       <summary class="d-flex align-items-center gap-2 py-2 px-3 rounded-2">
-        <span class="fw-semibold">Project access</span>
-        {% if selected_project_ids != None %}
-          <span class="badge bg-label-warning">Restricted</span>
+        <span class="fw-semibold">Projects</span>
+        {% if unit.id in restricted_unit_ids %}
+          <span class="badge bg-label-warning">Only selected · {{ selected_project_ids|length }} of {{ unit_projects|length }}</span>
         {% else %}
-          <span class="badge bg-label-success">All projects</span>
+          <span class="badge bg-label-success">All {{ unit_projects|length }} projects</span>
         {% endif %}
-        <span class="text-muted small ms-auto">{{ unit_projects|length }} project{{ unit_projects|length|pluralize }}</span>
+        <span class="text-muted small ms-auto">Change <i class="fa-solid fa-chevron-down ms-1"></i></span>
       </summary>
       <div class="border rounded-2 p-3 mt-2">
         <div class="d-flex flex-wrap gap-3 mb-2">
           <label class="form-check">
-            <input class="form-check-input" type="radio" name="project-scope-{{ unit.id }}" value="all" data-project-scope {% if selected_project_ids == None %}checked{% endif %}>
+            <input class="form-check-input" type="radio" name="project-scope-{{ unit.id }}" value="all" data-project-scope {% if unit.id not in restricted_unit_ids %}checked{% endif %}>
             <span class="form-check-label">All projects, including future ones</span>
           </label>
           <label class="form-check">
-            <input class="form-check-input" type="radio" name="project-scope-{{ unit.id }}" value="selected" data-project-scope {% if selected_project_ids != None %}checked{% endif %}>
+            <input class="form-check-input" type="radio" name="project-scope-{{ unit.id }}" value="selected" data-project-scope {% if unit.id in restricted_unit_ids %}checked{% endif %}>
             <span class="form-check-label">Only selected projects</span>
           </label>
         </div>
-        <div class="small text-muted mb-2">Expanding this list does not change access. Choose “Only selected projects” to apply a restriction.</div>
-        <div class="project-picker-list {% if selected_project_ids == None %}d-none{% endif %}" data-project-list>
+        <div class="small text-muted mb-2">All projects are visible by default, including new projects added later. Select “Only selected projects” to limit this unit.</div>
+        <div class="project-picker-list {% if unit.id not in restricted_unit_ids %}d-none{% endif %}" data-project-list>
           {% for project in unit_projects %}
             <label class="form-check py-1">
               <input class="form-check-input" type="checkbox" data-project-checkbox data-unit-id="{{ unit.id }}" value="{{ project.id }}" {% if selected_project_ids and project.id in selected_project_ids %}checked{% endif %}>
               <span class="form-check-label">{{ project.name }}</span>
             </label>
           {% empty %}
-            <div class="small text-muted">No projects in this unit yet. The restriction will hide future projects until selected.</div>
+            <div class="small text-muted">No projects yet. With “Only selected projects”, future projects stay hidden until selected.</div>
           {% endfor %}
         </div>
       </div>
