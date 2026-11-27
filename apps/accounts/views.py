@@ -96,7 +96,7 @@ from .utils.permissions import get_user_accessible_accounts
 from django.contrib.auth.views import PasswordChangeView
 from django.urls import reverse_lazy
 
-from .models import Company, CompanyMember, OrgUnit, UserOrgUnitAccess
+from .models import Company, CompanyMember, OrgUnit, UserOrgUnitAccess, UserOrgUnitProjectAccess
 from .forms import (CompanyMemberAddForm, CompanyForm, CompanyInviteMemberForm,
                     OrgUnitAccessAddForm, CompanyNameForm, OrgUnitNameForm)
 
@@ -2223,8 +2223,26 @@ def company_user_access(request, pk):
             .values_list("org_unit_id", "permission")  # byt till permission_level om ditt fältnamn heter så
         )
 
+    project_scopes = {}
+    projects_by_unit = {}
+    if selected_user:
+        for scope in UserOrgUnitProjectAccess.objects.filter(
+            user=selected_user,
+            org_unit__company=company,
+        ).prefetch_related("projects"):
+            project_scopes[scope.org_unit_id] = set(
+                scope.projects.values_list("id", flat=True)
+            )
+    for process in TestProcess.objects.filter(
+        company=company,
+        org_unit__isnull=False,
+    ).only("id", "name", "org_unit_id").order_by("name"):
+        projects_by_unit.setdefault(process.org_unit_id, []).append(process)
+
     return render(request, "admin/accounts/companies/company_user_access.html", {
         "company": company,
+        "project_scopes": project_scopes,
+        "projects_by_unit": projects_by_unit,
         "users": users,
         "selected_user": selected_user,
         "root_units": root_units,
@@ -2302,6 +2320,9 @@ def company_user_access_set(request, company_pk):
     mode = payload.get("mode")
     access = payload.get("access", [])  # <-- NEW
     primary_org_unit_id = payload.get("primary_org_unit_id")  # <-- NEW
+    project_scopes = payload.get("project_scopes", [])
+    if not isinstance(project_scopes, list):
+        return JsonResponse({"ok": False, "error": "project_scopes must be a list"}, status=400)
 
     if not user_id or mode != "replace" or not isinstance(access, list):
         return JsonResponse({"ok": False, "error": "user_id + mode='replace' + access[] required"}, status=400)
@@ -2353,21 +2374,64 @@ def company_user_access_set(request, company_pk):
         if primary_unit.id not in set(requested_ids):
             return JsonResponse({"ok": False, "error": "Primary org unit must be selected for the user"}, status=400)
 
+    all_units_by_id = {
+        unit.id: unit
+        for unit in OrgUnit.objects.filter(company=company)
+    }
+    seen_scope_ids = set()
+    scopes_to_create = []
+    for row in project_scopes:
+        try:
+            unit_id = int(row.get("org_unit_id"))
+        except (TypeError, ValueError):
+            return JsonResponse({"ok": False, "error": "Invalid project scope unit"}, status=400)
+        restricted = row.get("restricted") is True
+        if not restricted:
+            continue
+        if unit_id in seen_scope_ids or unit_id not in all_units_by_id:
+            return JsonResponse({"ok": False, "error": "Invalid or duplicate project scope unit"}, status=400)
+        seen_scope_ids.add(unit_id)
+        raw_project_ids = row.get("project_ids", [])
+        if not isinstance(raw_project_ids, list):
+            return JsonResponse({"ok": False, "error": "project_ids must be a list"}, status=400)
+        try:
+            project_ids = {int(value) for value in raw_project_ids}
+        except (TypeError, ValueError):
+            return JsonResponse({"ok": False, "error": "Invalid project id"}, status=400)
+        unit = all_units_by_id[unit_id]
+        valid_ids = set(TestProcess.objects.filter(
+            company=company,
+            org_unit=unit,
+            id__in=project_ids,
+        ).values_list("id", flat=True))
+        if project_ids != valid_ids:
+            return JsonResponse({"ok": False, "error": "Selected projects must belong to their unit"}, status=400)
+        scopes_to_create.append((unit, project_ids))
+
     with transaction.atomic():
-        # Replace access rows
+        # Replace unit access rows.
         UserOrgUnitAccess.objects.filter(user=user, org_unit__company=company).delete()
 
-        objs = []
-        for u in units:
-            objs.append(UserOrgUnitAccess(
+        objs = [
+            UserOrgUnitAccess(
                 user=user,
-                org_unit=u,
-                permission=perm_by_id[u.id],
-            ))
+                org_unit=unit,
+                permission=perm_by_id[unit.id],
+            )
+            for unit in units
+        ]
         if objs:
             UserOrgUnitAccess.objects.bulk_create(objs)
 
-        # Save primary on CompanyMember
+        # No scope row means all projects. A row with an empty selection means none.
+        UserOrgUnitProjectAccess.objects.filter(
+            user=user,
+            org_unit__company=company,
+        ).delete()
+        for unit, project_ids in scopes_to_create:
+            scope = UserOrgUnitProjectAccess.objects.create(user=user, org_unit=unit)
+            scope.projects.set(project_ids)
+
         membership = CompanyMember.objects.get(company=company, user=user)
         membership.primary_org_unit = primary_unit
         membership.save(update_fields=["primary_org_unit"])
