@@ -130,8 +130,10 @@
 
             <!-- Instructions + quick actions -->
             <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap mb-3">
-              <div class="text-muted small">
-                Choose units and permissions. Open <strong>Project access</strong> inside a unit to limit visibility to selected projects. The default is all current and future projects. Save when you are done.
+              <div class="alert alert-light border small mb-0 flex-grow-1">
+                <strong>1.</strong> Choose the units and role this person needs.
+                <span class="mx-2 text-muted">·</span>
+                <strong>2.</strong> Optionally limit projects inside a unit. By default, all current and future projects are visible.
               </div>
 
               <div role="group" aria-label="Bulk actions">
@@ -158,7 +160,7 @@
                 <div id="accessTree">
                   <ul class="list-unstyled m-0">
                     {% for unit in root_units %}
-                      {% include "admin/accounts/companies/_orgunit_access_node.html" with unit=unit company=company children_map=children_map checked_ids=checked_ids projects_by_unit=projects_by_unit project_scopes=project_scopes %}
+                      {% include "admin/accounts/companies/_orgunit_access_node.html" with unit=unit company=company children_map=children_map checked_ids=checked_ids projects_by_unit=projects_by_unit project_scopes=project_scopes restricted_unit_ids=restricted_unit_ids %}
                     {% empty %}
                       <li class="text-muted px-2 py-3">
                         No accounts yet. Create the account structure first.
