@@ -1,3 +1,6 @@
+from datetime import timedelta
+
+from django.utils import formats, timezone
 from django.utils.translation import (
     gettext as _,
     override,
@@ -190,7 +193,58 @@ INVITATION_PLACEHOLDERS = (
     "process_name", "assessments", "assessment_url",
     "job_title", "job_location",
     "sender_first_name", "sender_last_name", "sender_full_name",
+    "deadline",
 )
+
+
+def get_invitation_deadline_text(
+    process,
+    invitation,
+    *,
+    sent_at=None,
+    language="sv",
+):
+    """Return the latest configured deadline for an invitation email.
+
+    A project deadline is fixed. A candidate deadline is calculated from the
+    invitation time for this candidate. If both are configured, the later date
+    is used. The value is informational and does not control candidate access.
+    """
+    deadlines = []
+
+    project_deadline = getattr(process, "project_deadline", None)
+    if project_deadline:
+        deadlines.append(project_deadline)
+
+    try:
+        days = int(getattr(process, "candidate_deadline_days", None) or 0)
+    except (TypeError, ValueError):
+        days = 0
+
+    if days > 0:
+        invitation_time = (
+            getattr(invitation, "invited_at", None)
+            or sent_at
+            or timezone.now()
+        )
+        deadlines.append(invitation_time + timedelta(days=days))
+
+    if not deadlines:
+        return ""
+
+    current_tz = timezone.get_current_timezone()
+    normalized_deadlines = [
+        timezone.make_aware(deadline, current_tz)
+        if timezone.is_naive(deadline)
+        else deadline
+        for deadline in deadlines
+    ]
+    deadline = max(normalized_deadlines)
+    if timezone.is_aware(deadline):
+        deadline = timezone.localtime(deadline)
+
+    with override(language or "sv"):
+        return formats.date_format(deadline, "DATETIME_FORMAT")
 
 
 def is_unchanged_process_default(template):
