@@ -22,7 +22,7 @@ class Migration(migrations.Migration):
             name="candidate_deadline_days",
             field=models.PositiveIntegerField(
                 blank=True,
-                help_text="Optional number of days from sending the invitation.",
+                help_text="Optional number of days from when a candidate is added to the project.",
                 null=True,
             ),
         ),
