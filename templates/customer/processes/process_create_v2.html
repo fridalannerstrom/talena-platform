@@ -387,6 +387,50 @@
               </div>
             </section>
 
+            <section class="wizard-details-section wizard-deadline-section" aria-labelledby="wizardDeadlineHeading">
+              <div class="wizard-section-heading">
+                <h3 class="wizard-section-title" id="wizardDeadlineHeading">
+                  {% if wizard_language|slice:":2" == "sv" %}Deadline (valfritt){% else %}Deadlines (optional){% endif %}
+                </h3>
+                <p class="wizard-section-description">
+                  {% if wizard_language|slice:":2" == "sv" %}
+                    Lägg till en fast deadline eller antal dagar från att inbjudan skickas.
+                  {% else %}
+                    Set a fixed deadline or a number of days from when the invitation is sent.
+                  {% endif %}
+                </p>
+              </div>
+
+              <div class="row g-3">
+                <div class="col-12 col-md-6">
+                  <label class="form-label" for="{{ form.project_deadline.id_for_label }}">
+                    {% if wizard_language|slice:":2" == "sv" %}Fast datum och tid{% else %}Fixed date and time{% endif %}
+                  </label>
+                  {{ form.project_deadline }}
+                  {% if form.project_deadline.errors %}
+                    <div class="text-danger small mt-1">{{ form.project_deadline.errors }}</div>
+                  {% endif %}
+                </div>
+                <div class="col-12 col-md-6">
+                  <label class="form-label" for="{{ form.candidate_deadline_days.id_for_label }}">
+                    {% if wizard_language|slice:":2" == "sv" %}Antal dagar efter inbjudan{% else %}Days after invitation{% endif %}
+                  </label>
+                  {{ form.candidate_deadline_days }}
+                  {% if form.candidate_deadline_days.errors %}
+                    <div class="text-danger small mt-1">{{ form.candidate_deadline_days.errors }}</div>
+                  {% endif %}
+                </div>
+              </div>
+
+              <p class="small text-muted mt-3 mb-0">
+                {% if wizard_language|slice:":2" == "sv" %}
+                  Den senare av datumen används av <code>{deadline}</code> i mejlmallen. Taggen informerar kandidaten men stänger inte åtkomsten.
+                {% else %}
+                  The later date is used by <code>{deadline}</code> in the invitation template. It informs the candidate but does not block access.
+                {% endif %}
+              </p>
+            </section>
+
             <!-- Language cards, without a second outer box -->
             <section class="wizard-details-section wizard-details-language" aria-labelledby="wizardLanguageHeading">
               <div class="candidate-language-section">
