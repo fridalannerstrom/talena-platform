@@ -604,17 +604,7 @@
   }
 }
 
-/* Use the free area on the right side of the project header for the deadline. */
-.process-page .process-hero__right.has-deadline {
-  display: flex !important;
-  flex: 0 0 330px !important;
-  flex-direction: column !important;
-  align-items: stretch !important;
-  width: min(100%, 330px);
-  gap: 0.7rem !important;
-  padding-top: 0 !important;
-}
-
+/* Keep the deadline card compact beside the candidate language card. */
 .process-page .process-hero__actions {
   display: flex;
   align-items: center;
@@ -624,18 +614,16 @@
 }
 
 .process-page .process-mini-info--deadline {
-  width: 100% !important;
+  flex: 0 0 156px !important;
+  width: 156px !important;
   min-width: 0 !important;
+  max-width: 100%;
   margin: 0;
 }
 
 @media (max-width: 700px) {
-  .process-page .process-hero__right.has-deadline {
-    flex: 1 1 100% !important;
-    width: 100%;
-  }
-
-  .process-page .process-hero__right.has-deadline .process-hero__actions {
-    justify-content: flex-start;
+  .process-page .process-mini-info--deadline {
+    flex-basis: auto !important;
+    width: 100% !important;
   }
 }
