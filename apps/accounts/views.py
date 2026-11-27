@@ -4020,6 +4020,8 @@ def company_process_create(request, company_pk):
                 selected_tests=selected_tests,
                 candidate_language=form.cleaned_data["candidate_language"],
                 candidate_results_enabled=form.cleaned_data.get("candidate_results_enabled", False),
+                project_deadline=form.cleaned_data.get("project_deadline"),
+                candidate_deadline_days=form.cleaned_data.get("candidate_deadline_days") or None,
                 project_completion_notifications_enabled=form.cleaned_data.get("project_completion_notifications_enabled", True),
                 source="talena",
                 is_historical=False,
