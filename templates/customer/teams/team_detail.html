@@ -253,58 +253,38 @@
   {% endif %}
 
   {% if team_style_stats.members_with_scores %}
-    <div class="team-summary-strip" data-team-report-summary>
-      <div class="team-summary-item">
-        <div class="team-summary-label">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Medlemmar med data{% else %}{% trans "Members with data" %}{% endif %}</div>
-        <div class="team-summary-value">{{ team_style_stats.members_with_scores }}</div>
-        <div class="team-summary-meta">
-          {% blocktrans trimmed with total=team_style_stats.members_total %}
-            out of {{ total }} team members
-          {% endblocktrans %}
+    <section class="team-ranked-overview" aria-labelledby="teamRankedOverviewTitle" data-team-report-ranked data-team-report-summary>
+      <div class="team-ranked-overview__header">
+        <div>
+          <p class="team-page-eyebrow mb-1">{% if LANGUAGE_CODE|slice:":2" == "sv" %}ÖVERBLICK{% else %}OVERVIEW{% endif %}</p>
+          <h2 class="team-section-title mb-1" id="teamRankedOverviewTitle">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Rangordnade teamstilar{% else %}Ranked team styles{% endif %}</h2>
+          <p class="team-section-copy mb-0">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Teamstilarna sorterade efter medelvärde. Det ger en snabb överblick innan du tittar närmare på teamets profil och individuella mönster.{% else %}Styles ranked by average score, giving a quick overview before exploring the team profile and individual patterns.{% endif %}</p>
         </div>
+        <span class="team-data-badge">{% blocktrans trimmed with available=team_style_stats.members_with_scores total=team_style_stats.members_total %}{{ available }} / {{ total }} with data{% endblocktrans %}</span>
       </div>
-
-      <div class="team-summary-item">
-        <div class="team-summary-label">{% trans "Strongest average style" %}</div>
-        {% if team_style_stats.strongest_average %}
-          <div class="team-summary-value">{% trans team_style_stats.strongest_average.style %}</div>
-          <div class="team-summary-meta">
-            {% trans "Average" %} {{ team_style_stats.strongest_average.average }} / 5
+      <div class="team-ranked-overview__list" role="list">
+        {% for row in team_style_stats.ranked_averages %}
+          <div class="team-ranked-overview__row" role="listitem">
+            <span class="team-ranked-overview__position">{{ forloop.counter }}</span>
+            <div class="team-ranked-overview__label"><span class="fw-semibold">{% trans row.style %}</span><span class="text-muted">{% trans row.quadrant %}</span></div>
+            <div class="team-ranked-overview__bar" aria-hidden="true"><span style="width: {{ row.average_percent }}%"></span></div>
+            <span class="team-ranked-overview__score">{% if row.average is not None %}{{ row.average }} / 5{% else %}—{% endif %}</span>
           </div>
-        {% else %}
-          <div class="team-summary-value">—</div>
-        {% endif %}
+        {% endfor %}
       </div>
-
-      <div class="team-summary-item">
-        <div class="team-summary-label">{% trans "Lowest average style" %}</div>
-        {% if team_style_stats.lowest_average %}
-          <div class="team-summary-value">{% trans team_style_stats.lowest_average.style %}</div>
-          <div class="team-summary-meta">
-            {% trans "Average" %} {{ team_style_stats.lowest_average.average }} / 5
-          </div>
-        {% else %}
-          <div class="team-summary-value">—</div>
-        {% endif %}
-      </div>
-    </div>
+    </section>
   {% endif %}
 
   <div class="card mb-4" data-team-report-composite>
     <div class="card-header d-flex justify-content-between align-items-start gap-3 flex-wrap">
       <div>
         <p class="team-page-eyebrow mb-1">{% trans "Team styles" %}</p>
-        <h2 class="team-section-title">{% trans "Composite team style profile" %}</h2>
+        <h2 class="team-section-title">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Teamets teamstilsprofil{% else %}The team style profile{% endif %}</h2>
         <p class="team-section-copy">
           {% trans "Aggregated team style scores based on imported SOVA personality data." %}
         </p>
       </div>
 
-      <span class="team-data-badge">
-        {% blocktrans trimmed with available=team_style_stats.members_with_scores total=team_style_stats.members_total %}
-          {{ available }} / {{ total }} with data
-        {% endblocktrans %}
-      </span>
     </div>
 
     <div class="card-body">
@@ -341,6 +321,10 @@
                 {% if LANGUAGE_CODE|slice:":2" == "sv" %}Ringarna visar skalan 1–5. Ju längre ut sektorn når, desto högre är värdet.{% else %}The rings show the 1–5 scale. The farther a segment reaches, the higher its score.{% endif %}
               </p>
             </section>
+
+            <div class="team-chart-transition" aria-hidden="true">
+              <span>{% if LANGUAGE_CODE|slice:":2" == "sv" %}Från teamets helhetsbild till individuella mönster{% else %}From the team overview to individual patterns{% endif %}</span>
+            </div>
 
             <section class="team-preference-wheel-card" aria-labelledby="teamPreferenceWheelTitle">
             <div class="team-composite-chart-header">
@@ -501,104 +485,6 @@
   </section>
 
   {% if team_style_stats.members_with_scores %}
-    <div class="row g-4 mb-4" data-team-report-maximum>
-      <div class="col-lg-6" data-team-report-maximum-numeric>
-        <div class="card h-100">
-          <div class="card-header">
-            <div class="fw-semibold">{% trans "Composite team styles · Maximum" %}</div>
-            <div class="text-muted small">
-              {% trans "Highest score found in the team for each style." %}
-            </div>
-          </div>
-
-          <div class="card-body">
-            <div class="team-style-rank-list mt-0">
-              {% for row in team_style_stats.ranked_maximums %}
-                <div class="team-style-rank-row">
-                  <div class="team-style-rank-label">
-                    <div class="fw-semibold">{% trans row.style %}</div>
-                    <div class="text-muted small">{% trans row.quadrant %}</div>
-                  </div>
-
-                  <div class="team-style-bar-wrap">
-                    <div class="team-style-bar">
-                      <div class="team-style-bar-fill team-style-bar-fill-max" style="width: {{ row.maximum_percent }}%;"></div>
-                    </div>
-                  </div>
-
-                  <div class="team-style-rank-score">
-                    {% if row.maximum is not None %}{{ row.maximum }} / 5{% else %}—{% endif %}
-                  </div>
-                </div>
-              {% endfor %}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-lg-6">
-        <div class="card h-100">
-          <div class="card-header">
-            <div class="fw-semibold">{% trans "Most and least preferred styles" %}</div>
-            <div class="text-muted small">
-              {% trans "Team members with the highest and lowest score for each style." %}
-            </div>
-          </div>
-
-          <div class="card-body p-0">
-            <div class="table-responsive">
-              <table class="table table-sm align-middle mb-0 team-table">
-                <thead>
-                  <tr>
-                    <th>{% trans "Team style" %}</th>
-                    <th>{% trans "Most preferred" %}</th>
-                    <th>{% trans "Least preferred" %}</th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {% for row in team_style_stats.most_least_rows %}
-                    <tr>
-                      <td>
-                        <div class="fw-semibold">{% trans row.style %}</div>
-                        <div class="text-muted small">{% trans row.quadrant %}</div>
-                      </td>
-
-                      <td>
-                        {% if row.most %}
-                          <div class="d-flex flex-wrap gap-1">
-                            {% for person in row.most %}
-                              <span class="team-score-badge" title="{{ person.name }}">{{ person.initials }}</span>
-                            {% endfor %}
-                          </div>
-                          <div class="text-muted small mt-1">{{ row.max }} / 5</div>
-                        {% else %}
-                          <span class="text-muted small">—</span>
-                        {% endif %}
-                      </td>
-
-                      <td>
-                        {% if row.least %}
-                          <div class="d-flex flex-wrap gap-1">
-                            {% for person in row.least %}
-                              <span class="team-score-badge" title="{{ person.name }}">{{ person.initials }}</span>
-                            {% endfor %}
-                          </div>
-                          <div class="text-muted small mt-1">{{ row.min }} / 5</div>
-                        {% else %}
-                          <span class="text-muted small">—</span>
-                        {% endif %}
-                      </td>
-                    </tr>
-                  {% endfor %}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <div class="card mb-4" data-team-profile-section data-team-name="{{ team.name }}">
       <div class="card-header d-flex justify-content-between align-items-center gap-3 flex-wrap">
         <div>

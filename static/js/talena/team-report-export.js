@@ -109,8 +109,7 @@
       // arbitrary context are excluded ENTIRELY in anonymised exports.
       if (anonymous) return [
         "[data-team-report-summary]",
-        "[data-team-report-composite]",
-        "[data-team-report-maximum-numeric]"
+        "[data-team-report-composite]"
       ];
       return [
         "[data-team-report-context]",

@@ -13,8 +13,7 @@ assert.ok(block, "anonymous export must use an explicit allowlist");
 const anonymous = block[1];
 for (const token of [
   "[data-team-report-summary]",
-  "[data-team-report-composite]",
-  "[data-team-report-maximum-numeric]"
+  "[data-team-report-composite]"
 ]) assert.ok(anonymous.includes(token), "missing allowed aggregate section: " + token);
 
 for (const sensitive of [
@@ -32,7 +31,7 @@ for (const guard of ["assertAnonymousSafe(stage)", "sourceSelectors(anonymous)",
 assert.ok(js.includes("profile.dataset.reportName"), "no candidate-name privacy check");
 
 for (const marker of [
-  "data-team-report-summary", "data-team-report-composite", "data-team-report-maximum-numeric",
+  "data-team-report-summary", "data-team-report-composite",
   "data-team-report-insights", "data-team-report-members", "data-team-report-download",
   "data-team-report-brand-primary", "data-team-report-brand-logo", "data-team-report-brand-cover"
 ]) assert.ok(tpl.includes(marker), "team template missing: " + marker);

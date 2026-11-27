@@ -28,8 +28,7 @@ function loadFunction(name, context) {
 const selectors = loadFunction("sourceSelectors", {});
 assert.deepEqual(Array.from(selectors(true)), [
   "[data-team-report-summary]",
-  "[data-team-report-composite]",
-  "[data-team-report-maximum-numeric]"
+  "[data-team-report-composite]"
 ]);
 assert.ok(selectors(false).includes("[data-team-report-members]"));
 assert.ok(selectors(false).includes("[data-team-report-insights]"));

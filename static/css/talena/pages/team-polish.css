@@ -859,8 +859,8 @@
 
 .talena-team-page .team-report-chart-layout {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: clamp(1.25rem, 2.3vw, 2rem);
+  grid-template-columns: minmax(0, 1fr);
+  gap: clamp(1.75rem, 3.8vw, 3.25rem);
 }
 
 .talena-team-page .team-summary-wheel-card,
@@ -874,8 +874,97 @@
 }
 
 .talena-team-page .team-preference-wheel-card {
-  padding-left: clamp(1rem, 2vw, 1.75rem);
-  border-left: 1px solid #eee8e4;
+  padding-top: clamp(1.5rem, 3vw, 2.5rem);
+  border-top: 1px solid #eee8e4;
+}
+
+.talena-team-page .team-chart-transition {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  color: var(--talena-text-muted);
+  font-size: 0.7rem;
+  font-weight: 650;
+  letter-spacing: 0.015em;
+}
+
+.talena-team-page .team-chart-transition::before,
+.talena-team-page .team-chart-transition::after {
+  content: "";
+  height: 1px;
+  flex: 1 1 auto;
+  background: #eee8e4;
+}
+
+.talena-team-page .team-ranked-overview {
+  margin: 0 0 1.25rem;
+  padding: 1.25rem clamp(1rem, 2vw, 1.65rem);
+  border: 1px solid var(--talena-border);
+  border-radius: 16px;
+  background: #fff;
+}
+
+.talena-team-page .team-ranked-overview__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.talena-team-page .team-ranked-overview__list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: clamp(1rem, 3vw, 2.75rem);
+  row-gap: 0.65rem;
+}
+
+.talena-team-page .team-ranked-overview__row {
+  display: grid;
+  grid-template-columns: 1.5rem minmax(7rem, 10rem) minmax(3rem, 1fr) 3.5rem;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 0;
+}
+
+.talena-team-page .team-ranked-overview__position {
+  color: var(--talena-text-muted);
+  font-size: 0.68rem;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.talena-team-page .team-ranked-overview__label {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  line-height: 1.3;
+}
+
+.talena-team-page .team-ranked-overview__label .fw-semibold { font-size: 0.7rem; }
+.talena-team-page .team-ranked-overview__label .text-muted { font-size: 0.59rem; }
+
+.talena-team-page .team-ranked-overview__bar {
+  height: 7px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #eeeae7;
+}
+
+.talena-team-page .team-ranked-overview__bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #f3b0a9 0%, var(--talena-coral) 100%);
+}
+
+.talena-team-page .team-ranked-overview__score {
+  color: var(--talena-text);
+  font-size: 0.67rem;
+  font-weight: 700;
+  text-align: right;
+  white-space: nowrap;
 }
 
 .talena-team-page .team-composite-chart-header {
@@ -889,14 +978,13 @@
   width: 100%;
   max-width: none;
   margin: 0.35rem auto 0;
-  overflow-x: auto;
-  scrollbar-width: thin;
+  overflow: visible;
 }
 
 .talena-team-page .team-summary-wheel-svg {
   display: block;
   width: 100%;
-  min-width: 570px;
+  min-width: 0;
   height: auto;
   overflow: visible;
   font-family: inherit;
@@ -929,6 +1017,9 @@
 
 .talena-team-page .team-composite-wheel {
   min-width: 570px;
+  max-width: 1120px;
+  margin-right: auto;
+  margin-left: auto;
 }
 
 .talena-team-page .team-composite-wheel-details {
@@ -989,15 +1080,12 @@
 }
 
 @media (max-width: 1050px) {
-  .talena-team-page .team-report-chart-layout {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 1.5rem;
+  .talena-team-page .team-preference-wheel-card {
+    padding-top: 1.5rem;
   }
 
-  .talena-team-page .team-preference-wheel-card {
-    padding: 1.35rem 0 0;
-    border-top: 1px solid #eee8e4;
-    border-left: 0;
+  .talena-team-page .team-ranked-overview__list {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -1112,14 +1200,13 @@
   min-height: 0;
   margin: 0.35rem 0 0;
   padding: 0.2rem 0.25rem 0.8rem;
-  overflow-x: auto;
-  scrollbar-width: thin;
+  overflow: visible;
 }
 
 .talena-team-page .team-composite-wheel {
   width: 100%;
-  max-width: 900px;
-  min-width: 570px;
+  max-width: none;
+  min-width: 0;
   margin: 0 auto;
 }
 
