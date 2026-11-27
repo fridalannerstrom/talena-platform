@@ -175,6 +175,7 @@
 
       const highSegment = node("path", {
         d: sector(185, 283, start, end), fill: highFill,
+        stroke: "#ffffff", "stroke-width": 1.5, "stroke-linejoin": "round",
         "data-team-wheel-sector": style, "data-wheel-preference": "most"
       });
       highSegment.appendChild(node("title", {},
@@ -184,6 +185,7 @@
 
       const lowSegment = node("path", {
         d: sector(88, 180, start, end), fill: lowFill,
+        stroke: "#ffffff", "stroke-width": 1.5, "stroke-linejoin": "round",
         "data-team-wheel-sector": style, "data-wheel-preference": "least"
       });
       lowSegment.appendChild(node("title", {},

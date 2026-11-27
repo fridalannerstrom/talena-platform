@@ -1205,7 +1205,7 @@
 
 .talena-team-page .team-composite-wheel {
   width: 100%;
-  max-width: none;
+  max-width: 900px;
   min-width: 0;
   margin: 0 auto;
 }
