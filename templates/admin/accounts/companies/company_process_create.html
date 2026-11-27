@@ -144,10 +144,19 @@
   {% if form.deadline_mode.errors %}<div class="text-danger small mt-2">{{ form.deadline_mode.errors }}</div>{% endif %}
   {% with selected_deadline_mode=form.deadline_mode.value|default:"none" %}
   <div class="wizard-deadline-value" data-deadline-fields="fixed" {% if selected_deadline_mode != "fixed" %}hidden{% endif %}>
-    <label class="form-label fw-semibold" for="{{ form.project_deadline.id_for_label }}">Fixed date and time</label>
-    {{ form.project_deadline }}
-    <div class="form-text">This date applies to all candidates.</div>
-    {% for error in form.project_deadline.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+    <div class="wizard-deadline-date-time">
+      <div>
+        <label class="form-label fw-semibold" for="{{ form.project_deadline_date.id_for_label }}">Date</label>
+        {{ form.project_deadline_date }}
+        {% for error in form.project_deadline_date.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+      </div>
+      <div>
+        <label class="form-label fw-semibold" for="{{ form.project_deadline_time.id_for_label }}">Time</label>
+        {{ form.project_deadline_time }}
+        {% for error in form.project_deadline_time.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+      </div>
+    </div>
+    <div class="form-text">The same date and time applies to all candidates.</div>
   </div>
   <div class="wizard-deadline-value" data-deadline-fields="relative" {% if selected_deadline_mode != "relative" %}hidden{% endif %}>
     <label class="form-label fw-semibold" for="{{ form.candidate_deadline_days.id_for_label }}">Days from when the candidate is added</label>
