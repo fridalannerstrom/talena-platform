@@ -81,8 +81,16 @@
 
         </div>
 
-        <!-- Process details -->
-        <div class="process-hero__details mt-3">
+
+
+      </div>
+      <!-- /process-hero__meta -->
+
+    </div>
+    <!-- /process-hero__left -->
+
+    <!-- Process details -->
+        <div class="process-hero__details mt-3{% if process.project_deadline or process.candidate_deadline_days %} has-deadline{% endif %}{% if process.is_historical %} is-historical{% endif %}">
 
           <!-- Purpose -->
           {% if not process.is_historical %}
@@ -161,9 +169,6 @@
             </div>
           {% endif %}
 
-        </div>
-
-
           <!-- Deadline -->
           {% if process.project_deadline or process.candidate_deadline_days %}
             {% get_current_language as header_language %}
@@ -194,13 +199,9 @@
             </div>
           {% endif %}
 
+        </div>
         <!-- /process-hero__details -->
 
-      </div>
-      <!-- /process-hero__meta -->
-
-    </div>
-    <!-- /process-hero__left -->
 
     <!-- RIGHT ACTIONS -->
     <div class="process-hero__right">
