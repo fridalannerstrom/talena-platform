@@ -177,6 +177,33 @@ class TestProcessWizardCreateForm(forms.Form):
         widget=forms.Select(attrs={"class": "form-select form-select-lg"}),
     )
 
+    project_deadline = forms.DateTimeField(
+        required=False,
+        label=_("Project deadline"),
+        input_formats=["%Y-%m-%dT%H:%M"],
+        widget=forms.DateTimeInput(
+            format="%Y-%m-%dT%H:%M",
+            attrs={
+                "type": "datetime-local",
+                "class": "form-control form-control-lg",
+            },
+        ),
+    )
+
+    candidate_deadline_days = forms.IntegerField(
+        required=False,
+        min_value=1,
+        label=_("Candidate deadline in days"),
+        widget=forms.NumberInput(
+            attrs={
+                "class": "form-control form-control-lg",
+                "min": "1",
+                "step": "1",
+                "inputmode": "numeric",
+            },
+        ),
+    )
+
     purpose = forms.CharField(
         max_length=80,
         widget=forms.HiddenInput(),
