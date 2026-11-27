@@ -8,7 +8,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.http import HttpResponse, HttpResponseForbidden
 from django.shortcuts import redirect, render, get_object_or_404
 from django.utils.encoding import force_str
-from django.utils.http import urlsafe_base64_decode
+from django.utils.http import urlsafe_base64_decode, url_has_allowed_host_and_scheme
 from django.db.models import Count
 from django.views.decorators.http import require_POST
 from apps.core.integrations.sova import SovaClient
@@ -1156,21 +1156,11 @@ def admin_user_detail(request, pk):
     open_invite_modal = False
 
     company = Company.objects.filter(memberships__user=user_obj).first()
-    name_form = AdminUserNameForm(instance=user_obj)
-    name_form_open = False
 
-    # --- POST actions ---
+    # --- POST invite actions ---
     if request.method == "POST":
         action = request.POST.get("action")
-        if action == "update_user_name":
-            name_form = AdminUserNameForm(request.POST, instance=user_obj)
-            if name_form.is_valid():
-                name_form.save()
-                messages.success(request, "Användarens namn har uppdaterats.")
-                return redirect("accounts:admin_user_detail", pk=user_obj.pk)
-            name_form_open = True
-
-        elif action in ("resend_invite_email", "generate_invite_link"):
+        if action in ("resend_invite_email", "generate_invite_link"):
             if not pending_invite:
                 messages.info(request, "Användaren är redan aktiv. Ingen invite behövs.")
                 return redirect("accounts:admin_user_detail", pk=user_obj.pk)
@@ -1266,8 +1256,6 @@ def admin_user_detail(request, pk):
         "pending_invite": pending_invite,
         "invite_link": invite_link,
         "open_invite_modal": open_invite_modal,
-        "name_form": name_form,
-        "name_form_open": name_form_open,
 
         "orgunit_accesses": orgunit_accesses,
     })
@@ -2485,6 +2473,7 @@ def company_users(request, pk):
     return render(request, "admin/accounts/companies/company_users.html", {
         "company": company,
         "memberships": memberships,
+        "name_form": AdminUserNameForm(),
         "active": "users",
         "show_invite_button": True,  # så knappen syns uppe i headern
         "invite_form": invite_form,  # ✅
@@ -3284,6 +3273,26 @@ def company_user_detail(request, company_pk, user_pk):
         user=user_obj,
     )
 
+    name_form = AdminUserNameForm(instance=user_obj)
+    name_form_open = False
+    if request.method == "POST" and request.POST.get("action") == "update_user_name":
+        name_form = AdminUserNameForm(request.POST, instance=user_obj)
+        if name_form.is_valid():
+            name_form.save()
+            messages.success(request, "Användarens namn har uppdaterats.")
+            next_url = request.POST.get("next")
+            if next_url and url_has_allowed_host_and_scheme(
+                next_url,
+                allowed_hosts={request.get_host()},
+            ):
+                return redirect(next_url)
+            return redirect(
+                "accounts:company_user_detail",
+                company_pk=company.pk,
+                user_pk=user_obj.pk,
+            )
+        name_form_open = True
+
     pending_invite = not user_obj.is_active
 
     processes = (
@@ -3338,6 +3347,8 @@ def company_user_detail(request, company_pk, user_pk):
 
         "pending_invite": pending_invite,
         "orgunit_accesses": orgunit_accesses,
+        "name_form": name_form,
+        "name_form_open": name_form_open,
 
         "active": "users",
         "show_invite_button": True,
