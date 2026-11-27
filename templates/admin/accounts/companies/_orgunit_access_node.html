@@ -39,35 +39,36 @@
 
   {% with unit_projects=projects_by_unit|get_item:unit.id selected_project_ids=project_scopes|get_item:unit.id %}
     <details class="project-access-details mx-2 my-2" data-project-scope-row data-unit-id="{{ unit.id }}">
-      <summary class="d-flex align-items-center gap-2 py-2 px-3 rounded-2">
-        <span class="fw-semibold">Projects</span>
+      <summary class="project-access-summary d-flex align-items-center gap-2 px-2 py-1 rounded-2">
+        <i class="fa-regular fa-folder-open text-muted"></i>
         {% if unit.id in restricted_unit_ids %}
-          <span class="badge bg-label-warning">Only selected · {{ selected_project_ids|length }} of {{ unit_projects|length }}</span>
+          <span class="badge bg-label-warning" data-project-summary-state>{{ selected_project_ids|length }} of {{ unit_projects|length }} selected</span>
         {% else %}
-          <span class="badge bg-label-success">All {{ unit_projects|length }} projects</span>
+          <span class="badge bg-label-success" data-project-summary-state>All {{ unit_projects|length }} projects</span>
         {% endif %}
-        <span class="text-muted small ms-auto">Change <i class="fa-solid fa-chevron-down ms-1"></i></span>
+        <i class="fa-solid fa-chevron-down text-muted small ms-1"></i>
       </summary>
-      <div class="border rounded-2 p-3 mt-2">
-        <div class="d-flex flex-wrap gap-3 mb-2">
-          <label class="form-check">
-            <input class="form-check-input" type="radio" name="project-scope-{{ unit.id }}" value="all" data-project-scope {% if unit.id not in restricted_unit_ids %}checked{% endif %}>
-            <span class="form-check-label">All projects, including future ones</span>
+      <div class="project-access-panel border rounded-3 p-3 mt-2 bg-white">
+        <div class="small fw-semibold mb-2">Who can see projects in this unit?</div>
+        <div class="d-flex flex-wrap gap-2 mb-2">
+          <label class="project-scope-option border rounded-2 px-2 py-1">
+            <input class="form-check-input me-1" type="radio" name="project-scope-{{ unit.id }}" value="all" data-project-scope {% if unit.id not in restricted_unit_ids %}checked{% endif %}>
+            <span class="small">All projects</span>
           </label>
-          <label class="form-check">
-            <input class="form-check-input" type="radio" name="project-scope-{{ unit.id }}" value="selected" data-project-scope {% if unit.id in restricted_unit_ids %}checked{% endif %}>
-            <span class="form-check-label">Only selected projects</span>
+          <label class="project-scope-option border rounded-2 px-2 py-1">
+            <input class="form-check-input me-1" type="radio" name="project-scope-{{ unit.id }}" value="selected" data-project-scope {% if unit.id in restricted_unit_ids %}checked{% endif %}>
+            <span class="small">Only selected</span>
           </label>
         </div>
-        <div class="small text-muted mb-2">All projects are visible by default, including new projects added later. Select “Only selected projects” to limit this unit.</div>
-        <div class="project-picker-list {% if unit.id not in restricted_unit_ids %}d-none{% endif %}" data-project-list>
+        <div class="small text-muted mb-2">“All projects” also includes projects added later.</div>
+        <div class="project-picker-list row row-cols-1 row-cols-md-2 g-1 {% if unit.id not in restricted_unit_ids %}d-none{% endif %}" data-project-list style="max-height: 240px; overflow-y: auto;">
           {% for project in unit_projects %}
-            <label class="form-check py-1">
+            <label class="form-check col py-1">
               <input class="form-check-input" type="checkbox" data-project-checkbox data-unit-id="{{ unit.id }}" value="{{ project.id }}" {% if selected_project_ids and project.id in selected_project_ids %}checked{% endif %}>
               <span class="form-check-label">{{ project.name }}</span>
             </label>
           {% empty %}
-            <div class="small text-muted">No projects yet. With “Only selected projects”, future projects stay hidden until selected.</div>
+            <div class="small text-muted col py-2">No projects yet. New projects will stay hidden until selected.</div>
           {% endfor %}
         </div>
       </div>
