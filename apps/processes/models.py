@@ -76,7 +76,7 @@ class TestProcess(models.Model):
     candidate_deadline_days = models.PositiveIntegerField(
         null=True,
         blank=True,
-        help_text="Optional number of days from sending the invitation.",
+        help_text="Optional number of days from when a candidate is added to the project.",
     )
 
     # #466: notify the project creator when the candidate finishes all tests.
