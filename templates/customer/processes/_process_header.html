@@ -162,6 +162,36 @@
           {% endif %}
 
         </div>
+          <!-- Deadline -->
+          {% if process.project_deadline or process.candidate_deadline_days %}
+            {% get_current_language as header_language %}
+            <div class="process-mini-info process-mini-info--deadline">
+              <div class="text-muted small mb-1">
+                {% trans "Deadline" %}
+              </div>
+              <div class="process-mini-info__value">
+                {% if process.project_deadline %}
+                  {% if process.candidate_deadline_days %}
+                    {% if header_language|slice:":2" == "sv" %}Fast datum: {% else %}Fixed date: {% endif %}
+                  {% endif %}
+                  {{ process.project_deadline|date:"Y-m-d H:i" }}
+                {% endif %}
+                {% if process.project_deadline and process.candidate_deadline_days %}<br>{% endif %}
+                {% if process.candidate_deadline_days %}
+                  {% if process.project_deadline %}
+                    {% if header_language|slice:":2" == "sv" %}Efter att kandidaten lagts till: {% else %}After candidate is added: {% endif %}
+                  {% endif %}
+                  {{ process.candidate_deadline_days }}
+                  {% if header_language|slice:":2" == "sv" %}
+                    {% if process.candidate_deadline_days == 1 %}dag{% else %}dagar{% endif %} från att kandidaten läggs till
+                  {% else %}
+                    {% if process.candidate_deadline_days == 1 %}day{% else %}days{% endif %} after candidate is added
+                  {% endif %}
+                {% endif %}
+              </div>
+            </div>
+          {% endif %}
+
         <!-- /process-hero__details -->
 
       </div>
