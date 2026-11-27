@@ -1,9 +1,15 @@
 {% extends "customer/core/layouts/customer_base.html" %}
 {% load static i18n %}
 
+{% block extra_css %}
+  <link href="{% static 'css/talena/pages/process-create.css' %}" rel="stylesheet" />
+{% endblock %}
+
+{% block extra_js %}
+  <script src="{% static 'js/talena/deadline-picker.js' %}" defer></script>
+{% endblock %}
+
 {% block content %}
-<link href="{% static 'css/talena/pages/process-create.css' %}" rel="stylesheet" />
-<script src="{% static 'js/talena/deadline-picker.js' %}" defer></script>
 {% get_current_language as wizard_language %}
 
 {% trans "Recommended" as js_recommended %}
