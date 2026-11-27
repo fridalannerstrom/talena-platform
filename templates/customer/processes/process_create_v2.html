@@ -389,20 +389,17 @@
 
             <section class="wizard-details-section wizard-deadline-picker" aria-labelledby="wizardDeadlineHeading" data-deadline-picker>
               <div class="wizard-deadline-heading">
-                <div class="wizard-deadline-title">
-                  <span class="wizard-deadline-icon" aria-hidden="true"><i class="fa-regular fa-clock"></i></span>
-                  <div>
-                    <h3 class="wizard-deadline-heading-title" id="wizardDeadlineHeading">
-                      {% if wizard_language|slice:":2" == "sv" %}Deadline{% else %}Deadline{% endif %}
-                    </h3>
-                    <p class="wizard-deadline-description">
-                      {% if wizard_language|slice:":2" == "sv" %}
-                        Välj en fast tidpunkt eller ett antal dagar från att varje kandidat läggs till.
-                      {% else %}
-                        Choose a fixed date or a number of days from when each candidate is added.
-                      {% endif %}
-                    </p>
-                  </div>
+                <div class="wizard-deadline-title-copy">
+                  <h3 class="wizard-deadline-heading-title" id="wizardDeadlineHeading">
+                    {% if wizard_language|slice:":2" == "sv" %}Deadline{% else %}Deadline{% endif %}
+                  </h3>
+                  <p class="wizard-deadline-description">
+                    {% if wizard_language|slice:":2" == "sv" %}
+                      Välj en fast tidpunkt eller ett antal dagar från att varje kandidat läggs till.
+                    {% else %}
+                      Choose a fixed date or a number of days from when each candidate is added.
+                    {% endif %}
+                  </p>
                 </div>
                 <span class="wizard-deadline-optional">{% if wizard_language|slice:":2" == "sv" %}Valfritt{% else %}Optional{% endif %}</span>
               </div>
@@ -463,7 +460,6 @@
               {% endwith %}
 
               <div class="wizard-deadline-note">
-                <i class="fa-regular fa-envelope" aria-hidden="true"></i>
                 <span>
                   {% if wizard_language|slice:":2" == "sv" %}
                     Deadline visas i mejlet om du använder <code>{deadline}</code>. Den påverkar inte kandidatens åtkomst.
