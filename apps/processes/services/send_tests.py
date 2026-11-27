@@ -15,6 +15,7 @@ from apps.emails.models import EmailLog, EmailTemplate
 from apps.emails.utils import (
     format_assessment_names,
     get_default_invitation_template,
+    get_invitation_deadline_text,
     upgrade_legacy_default_invitation_template,
     render_placeholders,
     resolve_invitation_template,
@@ -263,8 +264,15 @@ def send_assessments_and_emails(*, process, invitations, actor_user, context="cu
                 or actor_user.email
             )
 
+            deadline_reference = getattr(inv, "invited_at", None) or timezone.now()
             ctx = {
                 "first_name": candidate.first_name or "",
+                "deadline": get_invitation_deadline_text(
+                    process,
+                    inv,
+                    sent_at=deadline_reference,
+                    language=lang,
+                ),
                 "last_name": candidate.last_name or "",
                 "email": recipient_email,
                 "process_name": process.name or "",
