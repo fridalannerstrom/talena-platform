@@ -625,6 +625,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!sheetEl || !sheetBody || !sheetTitle || !window.bootstrap) return;
 
     const sheet = bootstrap.Offcanvas.getOrCreateInstance(sheetEl);
+    window.refreshAdminCandidateSheetContent = () => refreshDynamicCandidateSheetContent(sheetBody, sheetEl);
     const links = Array.from(document.querySelectorAll(".js-open-candidate"));
 
     if (!links.length) return;
@@ -638,6 +639,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const link = links[currentIndex];
       const url = link.dataset.sheetUrl || link.getAttribute("href");
+      sheetBody.dataset.currentCandidateUrl = url;
       const name = link.dataset.candidateName || "Candidate";
 
       sheetTitle.textContent = name;
