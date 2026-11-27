@@ -1215,7 +1215,7 @@
   height: auto;
   display: block;
   overflow: visible;
-  font-family: inherit;
+  font-family: Inter, system-ui, sans-serif;
 }
 
 .talena-team-page .team-wheel-person rect {

@@ -51,15 +51,31 @@
   }
 
   function sector(inner, outer, start, end) {
-    const a = point(outer, start);
-    const b = point(outer, end);
-    const c = point(inner, end);
-    const d = point(inner, start);
+    const corner = 7;
+    const outerInset = corner / outer * 180 / Math.PI;
+    const innerInset = corner / inner * 180 / Math.PI;
+    const outerStart = point(outer, start + outerInset);
+    const outerEnd = point(outer, end - outerInset);
+    const outerCornerEnd = point(outer, end);
+    const outerSideEnd = point(outer - corner, end);
+    const innerSideEnd = point(inner + corner, end);
+    const innerCornerEnd = point(inner, end);
+    const innerEnd = point(inner, end - innerInset);
+    const innerStart = point(inner, start + innerInset);
+    const innerCornerStart = point(inner, start);
+    const innerSideStart = point(inner + corner, start);
+    const outerSideStart = point(outer - corner, start);
+    const outerCornerStart = point(outer, start);
     return [
-      "M", a.x, a.y,
-      "A", outer, outer, 0, 0, 1, b.x, b.y,
-      "L", c.x, c.y,
-      "A", inner, inner, 0, 0, 0, d.x, d.y,
+      "M", outerStart.x, outerStart.y,
+      "A", outer, outer, 0, 0, 1, outerEnd.x, outerEnd.y,
+      "Q", outerCornerEnd.x, outerCornerEnd.y, outerSideEnd.x, outerSideEnd.y,
+      "L", innerSideEnd.x, innerSideEnd.y,
+      "Q", innerCornerEnd.x, innerCornerEnd.y, innerEnd.x, innerEnd.y,
+      "A", inner, inner, 0, 0, 0, innerStart.x, innerStart.y,
+      "Q", innerCornerStart.x, innerCornerStart.y, innerSideStart.x, innerSideStart.y,
+      "L", outerSideStart.x, outerSideStart.y,
+      "Q", outerCornerStart.x, outerCornerStart.y, outerStart.x, outerStart.y,
       "Z"
     ].join(" ");
   }
@@ -198,7 +214,7 @@
       const anchor = cosine > 0.62 ? "start" : cosine < -0.62 ? "end" : "middle";
       labelLayer.appendChild(node("text", {
         x: p.x, y: p.y + 4, "text-anchor": anchor,
-        fill: "#403A38", "font-size": "16", "font-weight": "650"
+        fill: "#526071", "font-size": "12", "font-weight": "600"
       }, labels[style] || style));
     });
 
@@ -237,8 +253,8 @@
       labelLayer.appendChild(node("text", {
         x: positions[index][0], y: positions[index][1],
         "text-anchor": "middle",
-        "font-size": 17, "font-weight": 780,
-        "letter-spacing": 0.8, fill: QUADRANT_COLOR
+        "font-size": 16, "font-weight": 800,
+        fill: QUADRANT_COLOR
       }, text));
     });
     svg.appendChild(labelLayer);
