@@ -70,6 +70,18 @@
               <span>{% trans "Candidate’s personal assessment link" %}</span>
             </button>
 
+            {% get_current_language as page_language %}
+            <button type="button" class="merge-field-item" data-copy="{deadline}">
+              <code>{deadline}</code>
+              <span>
+                {% if page_language|slice:":2" == "sv" %}
+                  Kandidatens deadline. Den senare av projektets fasta deadline och antal dagar efter inbjudan.
+                {% else %}
+                  Candidate deadline. The later of the fixed project date and days after invitation.
+                {% endif %}
+              </span>
+            </button>
+
             <button type="button" class="merge-field-item" data-copy="{sender_first_name}">
               <code>{sender_first_name}</code>
               <span>{% trans "Your first name" %}</span>
