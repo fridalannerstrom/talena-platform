@@ -122,7 +122,20 @@
                 {% endif %}
               </td>
               <td class="text-end text-nowrap">
-                {% include "admin/accounts/companies/_company_member_remove_button.html" with member=m %}
+                <div class="d-inline-flex align-items-center gap-1">
+                  <button type="button"
+                          class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1"
+                          data-bs-toggle="modal"
+                          data-bs-target="#userNameEditModal"
+                          data-user-name-edit-url="{% url 'accounts:company_user_detail' company.pk u.pk %}"
+                          data-user-name-edit-next="{{ request.get_full_path }}"
+                          data-user-first-name="{{ u.first_name }}"
+                          data-user-last-name="{{ u.last_name }}">
+                    <i data-feather="edit-2" aria-hidden="true"></i>
+                    Redigera
+                  </button>
+                  {% include "admin/accounts/companies/_company_member_remove_button.html" with member=m %}
+                </div>
               </td>
             </tr>
           {% endwith %}
@@ -140,5 +153,6 @@
 </div>
 
 {% include "admin/accounts/companies/_company_member_remove_modal.html" %}
+{% include "admin/accounts/companies/_user_name_edit_modal.html" %}
 
 {% endblock %}
