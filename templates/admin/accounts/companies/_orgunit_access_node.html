@@ -15,72 +15,70 @@
         <div class="fw-semibold text-truncate">{{ unit.name }}</div>
       </div>
 
-      <div class="d-flex align-items-center justify-content-end gap-2 flex-wrap">
-        <details class="project-access-details" data-project-scope-row data-unit-id="{{ unit.id }}">
-          <summary class="project-access-summary d-flex align-items-center gap-2 px-2 py-1 rounded-pill">
-            <i class="fa-regular fa-folder-open"></i>
-            {% if unit.id in restricted_unit_ids %}
-              <span class="project-access-state is-restricted" data-project-summary-state>{{ selected_project_ids|length }} of {{ unit_projects|length }} selected</span>
-            {% else %}
-              <span class="project-access-state" data-project-summary-state>All projects · {{ unit_projects|length }}</span>
-            {% endif %}
-            <i class="fa-solid fa-chevron-down project-access-chevron"></i>
-          </summary>
+      <div role="group" aria-label="Permission" class="role-orgunit">
+        {% with p=perm_map|get_item:unit.id|default:"editor" %}
+          <input type="radio" class="btn-check"
+                 name="perm_{{ unit.id }}" id="perm_{{ unit.id }}_viewer"
+                 value="viewer" data-perm-radio data-unit-id="{{ unit.id }}"
+                 {% if p == "viewer" %}checked{% endif %}>
+          <label class="btn btn-outline-secondary btn-sm" for="perm_{{ unit.id }}_viewer">Viewer</label>
 
-          <div class="project-access-panel border rounded-3 p-3 bg-white shadow-sm">
-            <div class="fw-semibold mb-2">Project access for {{ unit.name }}</div>
-            <div class="d-flex flex-wrap gap-2 mb-2">
-              <label class="project-scope-option border rounded-2 px-2 py-1">
-                <input class="form-check-input me-1" type="radio" name="project-scope-{{ unit.id }}" value="all" data-project-scope {% if unit.id not in restricted_unit_ids %}checked{% endif %}>
-                <span class="small">All projects</span>
-              </label>
-              <label class="project-scope-option border rounded-2 px-2 py-1">
-                <input class="form-check-input me-1" type="radio" name="project-scope-{{ unit.id }}" value="selected" data-project-scope {% if unit.id in restricted_unit_ids %}checked{% endif %}>
-                <span class="small">Only selected</span>
-              </label>
-            </div>
-            <div class="small text-muted mb-2">All projects also includes projects added later.</div>
-            <div class="project-picker-list row row-cols-1 row-cols-md-2 g-1 {% if unit.id not in restricted_unit_ids %}d-none{% endif %}" data-project-list>
-              {% for project in unit_projects %}
-                <label class="form-check col py-1">
-                  <input class="form-check-input" type="checkbox" data-project-checkbox data-unit-id="{{ unit.id }}" value="{{ project.id }}" {% if selected_project_ids and project.id in selected_project_ids %}checked{% endif %}>
-                  <span class="form-check-label">{{ project.name }}</span>
-                </label>
-              {% empty %}
-                <div class="small text-muted col py-2">No projects yet. New projects stay hidden until selected.</div>
-              {% endfor %}
-            </div>
-          </div>
-        </details>
+          <input type="radio" class="btn-check"
+                 name="perm_{{ unit.id }}" id="perm_{{ unit.id }}_editor"
+                 value="editor" data-perm-radio data-unit-id="{{ unit.id }}"
+                 {% if p == "editor" %}checked{% endif %}>
+          <label class="btn btn-outline-secondary btn-sm" for="perm_{{ unit.id }}_editor">Editor</label>
 
-        <div role="group" aria-label="Permission" class="role-orgunit">
-          {% with p=perm_map|get_item:unit.id|default:"editor" %}
-            <input type="radio" class="btn-check"
-                   name="perm_{{ unit.id }}" id="perm_{{ unit.id }}_viewer"
-                   value="viewer" data-perm-radio data-unit-id="{{ unit.id }}"
-                   {% if p == "viewer" %}checked{% endif %}>
-            <label class="btn btn-outline-secondary btn-sm" for="perm_{{ unit.id }}_viewer">Viewer</label>
-
-            <input type="radio" class="btn-check"
-                   name="perm_{{ unit.id }}" id="perm_{{ unit.id }}_editor"
-                   value="editor" data-perm-radio data-unit-id="{{ unit.id }}"
-                   {% if p == "editor" %}checked{% endif %}>
-            <label class="btn btn-outline-secondary btn-sm" for="perm_{{ unit.id }}_editor">Editor</label>
-
-            <input type="radio" class="btn-check"
-                   name="perm_{{ unit.id }}" id="perm_{{ unit.id }}_own"
-                   value="own" data-perm-radio data-unit-id="{{ unit.id }}"
-                   {% if p == "own" %}checked{% endif %}>
-            <label class="btn btn-outline-secondary btn-sm" for="perm_{{ unit.id }}_own">Edit own only</label>
-          {% endwith %}
-        </div>
+          <input type="radio" class="btn-check"
+                 name="perm_{{ unit.id }}" id="perm_{{ unit.id }}_own"
+                 value="own" data-perm-radio data-unit-id="{{ unit.id }}"
+                 {% if p == "own" %}checked{% endif %}>
+          <label class="btn btn-outline-secondary btn-sm" for="perm_{{ unit.id }}_own">Edit own only</label>
+        {% endwith %}
       </div>
     </div>
+
+    <details class="project-access-details" data-project-scope-row data-unit-id="{{ unit.id }}">
+      <summary class="project-access-summary d-inline-flex align-items-center gap-2 px-2 py-1 rounded-pill">
+        <i class="fa-regular fa-folder-open"></i>
+        {% if unit.id in restricted_unit_ids %}
+          <span class="project-access-state is-restricted" data-project-summary-state>{{ selected_project_ids|length }} of {{ unit_projects|length }} selected</span>
+        {% else %}
+          <span class="project-access-state" data-project-summary-state>All projects · {{ unit_projects|length }}</span>
+        {% endif %}
+        <i class="fa-solid fa-chevron-down project-access-chevron"></i>
+      </summary>
+
+      <div class="project-access-panel border rounded-3 p-3 bg-white shadow-sm">
+        <div class="fw-semibold mb-2">Project access for {{ unit.name }}</div>
+        <div class="d-flex flex-wrap gap-2 mb-2">
+          <label class="project-scope-option border rounded-2 px-2 py-1">
+            <input class="form-check-input me-1" type="radio" name="project-scope-{{ unit.id }}" value="all" data-project-scope {% if unit.id not in restricted_unit_ids %}checked{% endif %}>
+            <span class="small">All projects</span>
+          </label>
+          <label class="project-scope-option border rounded-2 px-2 py-1">
+            <input class="form-check-input me-1" type="radio" name="project-scope-{{ unit.id }}" value="selected" data-project-scope {% if unit.id in restricted_unit_ids %}checked{% endif %}>
+            <span class="small">Only selected</span>
+          </label>
+        </div>
+        <div class="small text-muted mb-2">All projects also includes projects added later.</div>
+        <div class="project-picker-list row row-cols-1 row-cols-md-2 g-1 {% if unit.id not in restricted_unit_ids %}d-none{% endif %}" data-project-list>
+          {% for project in unit_projects %}
+            <label class="form-check col py-1">
+              <input class="form-check-input" type="checkbox" data-project-checkbox data-unit-id="{{ unit.id }}" value="{{ project.id }}" {% if selected_project_ids and project.id in selected_project_ids %}checked{% endif %}>
+              <span class="form-check-label">{{ project.name }}</span>
+            </label>
+          {% empty %}
+            <div class="small text-muted col py-2">No projects yet. New projects stay hidden until selected.</div>
+          {% endfor %}
+        </div>
+      </div>
+    </details>
   {% endwith %}
 
   {% with kids=children_map|get_item:unit.id %}
     {% if kids %}
-      <ul class="orgunit-access-children list-unstyled ms-4">
+      <ul class="orgunit-access-children list-unstyled ms-4 border-start ps-3">
         {% for child in kids %}
           {% include "admin/accounts/companies/_orgunit_access_node.html" with unit=child company=company children_map=children_map checked_ids=checked_ids projects_by_unit=projects_by_unit project_scopes=project_scopes restricted_unit_ids=restricted_unit_ids %}
         {% endfor %}
