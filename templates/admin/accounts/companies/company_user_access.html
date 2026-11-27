@@ -146,7 +146,7 @@
 
             <style>
               #accessTree .orgunit-access-row { position: relative; }
-              #accessTree .orgunit-access-item:has(.project-access-details[open]) { position: relative; z-index: 5; }
+              #accessTree .project-access-details[open] { z-index: 10; }
               #accessTree .project-access-details { position: relative; }
               #accessTree .project-access-summary {
                 cursor: pointer;
@@ -354,8 +354,7 @@ document.addEventListener("change", function (e) {
         status.textContent = restricted
           ? `${selectedCount} of ${totalCount} selected`
           : `All ${totalCount} projects`;
-        status.classList.toggle("bg-label-warning", restricted);
-        status.classList.toggle("bg-label-success", !restricted);
+        status.classList.toggle("is-restricted", restricted);
       }
     });
 
