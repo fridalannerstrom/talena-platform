@@ -9128,6 +9128,10 @@ def process_create_v2(request):
                     form.cleaned_data.get("candidate_results_enabled")
                     or False
                 ),
+                project_deadline=form.cleaned_data.get("project_deadline"),
+                candidate_deadline_days=(
+                    form.cleaned_data.get("candidate_deadline_days") or None
+                ),
                 # None means the project follows the company's display setting.
                 # Sova monitoring and stored findings are unaffected.
                 integrity_guard_visible_override={
