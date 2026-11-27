@@ -391,13 +391,6 @@ class UserOrgUnitProjectAccess(models.Model):
             raise ValidationError(
                 "User must belong to the org unit's company."
             )
-        if self.projects.exclude(
-            company_id=self.org_unit.company_id,
-            org_unit_id=self.org_unit_id,
-        ).exists():
-            raise ValidationError(
-                "Selected projects must belong to this org unit."
-            )
 
 
 # ============================================================================
