@@ -370,12 +370,17 @@ document.addEventListener("change", function (e) {
   btnReset?.addEventListener("click", () => {
     const orig = new Set(originalUnits);
 
+    const originalProjects = JSON.parse(originalProjectState);
     tree.querySelectorAll("[data-project-scope-row]").forEach(row => {
+      const saved = originalProjects.find(item => item.unit === row.dataset.unitId);
       row.querySelectorAll("[data-project-scope]").forEach(r => {
-        r.checked = r.value === "all";
+        r.checked = r.value === (saved?.scope || "all");
       });
-      row.querySelectorAll("[data-project-checkbox]").forEach(cb => cb.checked = false);
-      row.querySelector("[data-project-list]")?.classList.add("d-none");
+      const selected = new Set(saved?.projects || []);
+      row.querySelectorAll("[data-project-checkbox]").forEach(cb => {
+        cb.checked = selected.has(cb.value);
+      });
+      row.querySelector("[data-project-list]")?.classList.toggle("d-none", (saved?.scope || "all") !== "selected");
     });
 
     checkboxes().forEach(cb => {
