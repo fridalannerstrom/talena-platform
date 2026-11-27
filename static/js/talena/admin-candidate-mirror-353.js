@@ -24,7 +24,10 @@
     "button[aria-expanded][aria-controls]",
     ".js-open-email-modal",
     "[data-copy-candidate-url]",
-    // Admins may fill in missing AI interview questions for customers.
+    // Admins may generate candidate insights and missing interview questions.
+    "[data-personality-ai-regenerate]",
+    "[data-motivation-ai-regenerate]",
+    "[data-cognitive-interpretation-regenerate]",
     "[data-pre-interview-questions-regenerate]"
   ].join(", ");
 

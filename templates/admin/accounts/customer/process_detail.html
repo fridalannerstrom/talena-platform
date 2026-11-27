@@ -336,6 +336,7 @@
         e.preventDefault();
 
         const url = link.dataset.sheetUrl || link.getAttribute("href");
+        sheetBody.dataset.currentCandidateUrl = url;
         const name = link.dataset.candidateName || "Candidate";
 
         sheetTitle.textContent = name;
