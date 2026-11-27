@@ -78,7 +78,7 @@
     {% if kids %}
       <ul class="list-unstyled ms-4">
 {% for child in kids %}
-  {% include "admin/accounts/companies/_orgunit_access_node.html" with unit=child company=company children_map=children_map checked_ids=checked_ids projects_by_unit=projects_by_unit project_scopes=project_scopes %}
+  {% include "admin/accounts/companies/_orgunit_access_node.html" with unit=child company=company children_map=children_map checked_ids=checked_ids projects_by_unit=projects_by_unit project_scopes=project_scopes restricted_unit_ids=restricted_unit_ids %}
 {% endfor %}
       </ul>
     {% endif %}
