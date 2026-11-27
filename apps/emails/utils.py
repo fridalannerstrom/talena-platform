@@ -206,8 +206,8 @@ def get_invitation_deadline_text(
 ):
     """Return the latest configured deadline for an invitation email.
 
-    A project deadline is fixed. A candidate deadline is calculated from the
-    invitation time for this candidate. If both are configured, the later date
+    A project deadline is fixed. A candidate deadline is calculated from when
+    that candidate was added to the project. If both are configured, the later date
     is used. The value is informational and does not control candidate access.
     """
     deadlines = []
