@@ -144,18 +144,13 @@
   {% if form.deadline_mode.errors %}<div class="text-danger small mt-2">{{ form.deadline_mode.errors }}</div>{% endif %}
   {% with selected_deadline_mode=form.deadline_mode.value|default:"none" %}
   <div class="wizard-deadline-value" data-deadline-fields="fixed" {% if selected_deadline_mode != "fixed" %}hidden{% endif %}>
-    <div class="wizard-deadline-date-time">
-      <div>
-        <label class="form-label fw-semibold" for="{{ form.project_deadline_date.id_for_label }}">Date</label>
-        {{ form.project_deadline_date }}
-        {% for error in form.project_deadline_date.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
-      </div>
-      <div>
-        <label class="form-label fw-semibold" for="{{ form.project_deadline_time.id_for_label }}">Time</label>
-        {{ form.project_deadline_time }}
-        {% for error in form.project_deadline_time.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
-      </div>
+    <label class="form-label fw-semibold" for="{{ form.project_deadline.id_for_label }}">Date and time</label>
+    <div class="wizard-deadline-picker-control" data-deadline-picker-control data-placeholder="Choose date and time">
+      {{ form.project_deadline }}
+      <span class="wizard-deadline-picker-display" data-deadline-picker-display aria-hidden="true"></span>
+      <span class="wizard-deadline-picker-icon" aria-hidden="true"><i class="fa-regular fa-calendar"></i></span>
     </div>
+    {% for error in form.project_deadline.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
     <div class="form-text">The same date and time applies to all candidates.</div>
   </div>
   <div class="wizard-deadline-value" data-deadline-fields="relative" {% if selected_deadline_mode != "relative" %}hidden{% endif %}>
