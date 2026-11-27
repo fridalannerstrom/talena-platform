@@ -1,5 +1,4 @@
 from django import forms
-from django.utils import timezone
 from django.utils.translation import get_language, gettext_lazy as _
 
 from apps.accounts.models import OrgUnit
@@ -178,28 +177,16 @@ class TestProcessWizardCreateForm(forms.Form):
         widget=forms.Select(attrs={"class": "form-select form-select-lg"}),
     )
 
-    project_deadline_date = forms.DateField(
+    project_deadline = forms.DateTimeField(
         required=False,
-        label=_("Deadline date"),
-        input_formats=["%Y-%m-%d"],
-        widget=forms.DateInput(
-            format="%Y-%m-%d",
+        label=_("Project deadline"),
+        input_formats=["%Y-%m-%dT%H:%M"],
+        widget=forms.DateTimeInput(
+            format="%Y-%m-%dT%H:%M",
             attrs={
-                "type": "date",
-                "class": "form-control form-control-lg",
-            },
-        ),
-    )
-
-    project_deadline_time = forms.TimeField(
-        required=False,
-        label=_("Deadline time"),
-        input_formats=["%H:%M"],
-        widget=forms.TimeInput(
-            format="%H:%M",
-            attrs={
-                "type": "time",
-                "class": "form-control form-control-lg",
+                "type": "datetime-local",
+                "class": "form-control",
+                "aria-label": _("Choose deadline date and time"),
             },
         ),
     )
@@ -336,16 +323,6 @@ class TestProcessWizardCreateForm(forms.Form):
             lambda unit: f"{unit.company.name} · {unit.name}"
         )
 
-        initial_deadline = self.initial.get("project_deadline")
-        if initial_deadline:
-            if timezone.is_aware(initial_deadline):
-                initial_deadline = timezone.localtime(initial_deadline)
-            self.initial.setdefault("project_deadline_date", initial_deadline.date())
-            self.initial.setdefault(
-                "project_deadline_time",
-                initial_deadline.time().replace(second=0, microsecond=0),
-            )
-
         deadline_mode = (
             self.data.get("deadline_mode")
             if self.is_bound
@@ -353,32 +330,19 @@ class TestProcessWizardCreateForm(forms.Form):
         ) or self.fields["deadline_mode"].initial or "none"
         if deadline_mode not in {"none", "fixed", "relative"}:
             deadline_mode = "none"
-        self.fields["project_deadline_date"].disabled = deadline_mode != "fixed"
-        self.fields["project_deadline_time"].disabled = deadline_mode != "fixed"
+        self.fields["project_deadline"].disabled = deadline_mode != "fixed"
         self.fields["candidate_deadline_days"].disabled = deadline_mode != "relative"
 
     def clean(self):
         cleaned = super().clean()
         deadline_mode = cleaned.get("deadline_mode") or "none"
 
-        if deadline_mode == "fixed":
-            deadline_date = cleaned.get("project_deadline_date")
-            deadline_time = cleaned.get("project_deadline_time")
-            if not deadline_date and "project_deadline_date" not in self.errors:
-                self.add_error("project_deadline_date", _("Choose a deadline date."))
-            if not deadline_time and "project_deadline_time" not in self.errors:
-                self.add_error("project_deadline_time", _("Choose a deadline time."))
-            if deadline_date and deadline_time:
-                combined = f"{deadline_date.isoformat()}T{deadline_time.strftime('%H:%M')}"
-                cleaned["project_deadline"] = forms.DateTimeField(
-                    input_formats=["%Y-%m-%dT%H:%M"]
-                ).clean(combined)
-            else:
-                cleaned["project_deadline"] = None
-        else:
-            cleaned["project_deadline"] = None
-
-        if deadline_mode == "relative" and not cleaned.get("candidate_deadline_days"):
+        if deadline_mode == "fixed" and not cleaned.get("project_deadline"):
+            self.add_error(
+                "project_deadline",
+                _("Choose a deadline date and time."),
+            )
+        elif deadline_mode == "relative" and not cleaned.get("candidate_deadline_days"):
             self.add_error(
                 "candidate_deadline_days",
                 _("Enter how many days the candidate has."),
