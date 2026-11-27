@@ -223,7 +223,8 @@ def get_invitation_deadline_text(
 
     if days > 0:
         invitation_time = (
-            getattr(invitation, "invited_at", None)
+            getattr(invitation, "created_at", None)
+            or getattr(invitation, "invited_at", None)
             or sent_at
             or timezone.now()
         )
