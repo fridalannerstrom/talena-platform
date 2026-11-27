@@ -2,7 +2,7 @@ from collections import deque
 from django.db.models import Q
 from apps.accounts.models import OrgUnit, UserOrgUnitAccess, CompanyMember
 from apps.accounts.models import Company
-from apps.accounts.models import CompanyMember, OrgUnit, UserOrgUnitAccess
+from apps.accounts.models import CompanyMember, OrgUnit, UserOrgUnitAccess, UserOrgUnitProjectAccess
 from apps.core.utils.auth import is_admin
 
 PERM_RANK = {"own": 1, "viewer": 2, "editor": 3}
@@ -74,8 +74,15 @@ def user_can_view_process(user, company, process):
     if not perm:
         return False
 
-    if perm == "own":
-        return process.created_by_id == user.id
+    if perm == "own" and process.created_by_id != user.id:
+        return False
+
+    scope = UserOrgUnitProjectAccess.objects.filter(
+        user=user,
+        org_unit_id=process.org_unit_id,
+    ).first()
+    if scope and not scope.projects.filter(pk=process.pk).exists():
+        return False
 
     return True
 
@@ -94,10 +101,12 @@ def user_can_edit_process(user, company, process):
     if perm == "viewer":
         return False
 
-    if perm == "own":
-        return process.created_by_id == user.id
+    if not user_can_view_process(user, company, process):
+        return False
 
-    return True  # editor
+    return perm == "editor" or (
+        perm == "own" and process.created_by_id == user.id
+    )
 
 def _build_children_map(company):
     units = OrgUnit.objects.filter(company=company).only("id", "parent_id")
@@ -148,3 +157,36 @@ def get_accessible_orgunit_ids(user, company):
         all_ids |= _descendants(children_map, rid)
 
     return all_ids
+
+def filter_processes_for_user(queryset, user, company):
+    """Apply unit role and project allow-lists to a process queryset."""
+    if is_admin(user):
+        return queryset.filter(company=company)
+
+    perms = get_effective_orgunit_permissions(user, company)
+    own_ids = [unit_id for unit_id, perm in perms.items() if perm == "own"]
+    shared_ids = [
+        unit_id for unit_id, perm in perms.items()
+        if perm in ("viewer", "editor")
+    ]
+    allowed = queryset.filter(
+        Q(org_unit_id__in=shared_ids)
+        | Q(org_unit_id__in=own_ids, created_by=user)
+    )
+
+    restricted = UserOrgUnitProjectAccess.objects.filter(
+        user=user,
+        org_unit_id__in=list(perms),
+    ).prefetch_related("projects")
+    restricted_ids = []
+    allowed_project_ids = []
+    for scope in restricted:
+        restricted_ids.append(scope.org_unit_id)
+        allowed_project_ids.extend(scope.projects.values_list("id", flat=True))
+
+    if restricted_ids:
+        allowed = allowed.filter(
+            ~Q(org_unit_id__in=restricted_ids)
+            | Q(id__in=allowed_project_ids)
+        )
+    return allowed
