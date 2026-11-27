@@ -440,14 +440,23 @@
 
               {% with selected_deadline_mode=form.deadline_mode.value|default:"none" %}
               <div class="wizard-deadline-value" data-deadline-fields="fixed" {% if selected_deadline_mode != "fixed" %}hidden{% endif %}>
-                <label class="form-label" for="{{ form.project_deadline.id_for_label }}">
-                  {% if wizard_language|slice:":2" == "sv" %}Fast datum och klockslag{% else %}Fixed date and time{% endif %}
-                </label>
-                {{ form.project_deadline }}
-                <div class="form-text">{% if wizard_language|slice:":2" == "sv" %}Det här datumet gäller alla kandidater.{% else %}This date applies to all candidates.{% endif %}</div>
-                {% if form.project_deadline.errors %}
-                  <div class="text-danger small mt-1">{{ form.project_deadline.errors }}</div>
-                {% endif %}
+                <div class="wizard-deadline-date-time">
+                  <div>
+                    <label class="form-label" for="{{ form.project_deadline_date.id_for_label }}">
+                      {% if wizard_language|slice:":2" == "sv" %}Datum{% else %}Date{% endif %}
+                    </label>
+                    {{ form.project_deadline_date }}
+                    {% if form.project_deadline_date.errors %}<div class="text-danger small mt-1">{{ form.project_deadline_date.errors }}</div>{% endif %}
+                  </div>
+                  <div>
+                    <label class="form-label" for="{{ form.project_deadline_time.id_for_label }}">
+                      {% if wizard_language|slice:":2" == "sv" %}Klockslag{% else %}Time{% endif %}
+                    </label>
+                    {{ form.project_deadline_time }}
+                    {% if form.project_deadline_time.errors %}<div class="text-danger small mt-1">{{ form.project_deadline_time.errors }}</div>{% endif %}
+                  </div>
+                </div>
+                <div class="form-text">{% if wizard_language|slice:":2" == "sv" %}Samma datum och tid gäller alla kandidater.{% else %}The same date and time applies to all candidates.{% endif %}</div>
               </div>
               <div class="wizard-deadline-value" data-deadline-fields="relative" {% if selected_deadline_mode != "relative" %}hidden{% endif %}>
                 <label class="form-label" for="{{ form.candidate_deadline_days.id_for_label }}">
