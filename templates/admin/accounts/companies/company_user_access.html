@@ -158,7 +158,7 @@
                 <div id="accessTree">
                   <ul class="list-unstyled m-0">
                     {% for unit in root_units %}
-                      {% include "admin/accounts/companies/_orgunit_access_node.html" with unit=unit company=company children_map=children_map checked_ids=checked_ids %}
+                      {% include "admin/accounts/companies/_orgunit_access_node.html" with unit=unit company=company children_map=children_map checked_ids=checked_ids projects_by_unit=projects_by_unit project_scopes=project_scopes %}
                     {% empty %}
                       <li class="text-muted px-2 py-3">
                         No accounts yet. Create the account structure first.
@@ -306,7 +306,15 @@ document.addEventListener("change", function (e) {
     const isDirtyPrimary = primarySelect ? (primarySelect.value || "") !== originalPrimary : false;
     const isDirtyPerms = !permsEqual(originalPerms, curUnits);
 
-    const isDirty = isDirtyUnits || isDirtyPrimary || isDirtyPerms;
+    const currentProjectState = JSON.stringify(
+      Array.from(tree.querySelectorAll("[data-project-scope-row]")).map(row => ({
+        unit: row.dataset.unitId,
+        scope: row.querySelector("[data-project-scope]:checked")?.value || "all",
+        projects: Array.from(row.querySelectorAll("[data-project-checkbox]:checked")).map(cb => cb.value).sort(),
+      }))
+    );
+    const isDirtyProjects = currentProjectState !== originalProjectState;
+    const isDirty = isDirtyUnits || isDirtyPrimary || isDirtyPerms || isDirtyProjects;
 
     btnSave.disabled = !isDirty;
 
@@ -324,6 +332,24 @@ document.addEventListener("change", function (e) {
       updateDirtyUI();
     }
   });
+
+  tree.addEventListener("change", (e) => {
+    if (e.target.matches("[data-project-scope]")) {
+      const row = e.target.closest("[data-project-scope-row]");
+      const list = row?.querySelector("[data-project-list]");
+      if (list) list.classList.toggle("d-none", e.target.value !== "selected");
+      updateDirtyUI();
+    }
+    if (e.target.matches("[data-project-checkbox]")) updateDirtyUI();
+  });
+
+  const originalProjectState = JSON.stringify(
+    Array.from(tree.querySelectorAll("[data-project-scope-row]")).map(row => ({
+      unit: row.dataset.unitId,
+      scope: row.querySelector("[data-project-scope]:checked")?.value || "all",
+      projects: Array.from(row.querySelectorAll("[data-project-checkbox]:checked")).map(cb => cb.value).sort(),
+    }))
+  );
 
   primarySelect?.addEventListener("change", updateDirtyUI);
 
@@ -343,6 +369,14 @@ document.addEventListener("change", function (e) {
 
   btnReset?.addEventListener("click", () => {
     const orig = new Set(originalUnits);
+
+    tree.querySelectorAll("[data-project-scope-row]").forEach(row => {
+      row.querySelectorAll("[data-project-scope]").forEach(r => {
+        r.checked = r.value === "all";
+      });
+      row.querySelectorAll("[data-project-checkbox]").forEach(cb => cb.checked = false);
+      row.querySelector("[data-project-list]")?.classList.add("d-none");
+    });
 
     checkboxes().forEach(cb => {
       const id = parseInt(cb.dataset.unitId, 10);
@@ -376,6 +410,11 @@ document.addEventListener("change", function (e) {
     }));
 
     const primaryOrgUnitId = primarySelect ? (primarySelect.value || null) : null;
+    const projectScopes = Array.from(tree.querySelectorAll("[data-project-scope-row]")).map(row => ({
+      org_unit_id: parseInt(row.dataset.unitId, 10),
+      restricted: row.querySelector("[data-project-scope]:checked")?.value === "selected",
+      project_ids: Array.from(row.querySelectorAll("[data-project-checkbox]:checked")).map(cb => parseInt(cb.value, 10)),
+    }));
 
     const resp = await fetch("{% url 'accounts:company_user_access_set' company.pk %}", {
       method: "POST",
@@ -388,6 +427,7 @@ document.addEventListener("change", function (e) {
         mode: "replace",
         primary_org_unit_id: primaryOrgUnitId,
         access: access,
+        project_scopes: projectScopes,
       }),
     });
 
@@ -404,6 +444,7 @@ document.addEventListener("change", function (e) {
     btnSave.disabled = true;
 
     checkboxes().forEach(cb => cb.disabled = true);
+    tree.querySelectorAll("[data-project-scope], [data-project-checkbox]").forEach(el => el.disabled = true);
     btnSelectAll.disabled = true;
     btnDeselectAll.disabled = true;
     btnReset.disabled = true;
@@ -422,6 +463,7 @@ document.addEventListener("change", function (e) {
       updateDirtyUI();
     } finally {
       checkboxes().forEach(cb => cb.disabled = false);
+      tree.querySelectorAll("[data-project-scope], [data-project-checkbox]").forEach(el => el.disabled = false);
       btnSelectAll.disabled = false;
       btnDeselectAll.disabled = false;
       btnReset.disabled = false;
