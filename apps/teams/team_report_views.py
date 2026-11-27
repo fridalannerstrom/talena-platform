@@ -191,6 +191,7 @@ def _build_team_summary_chart(values_by_style, metric):
         svg_id_prefix=f"team-summary-{metric}",
         svg_extra_class="team-style-flower__wheel team-summary-wheel-svg",
         sova_quadrant_layout=True,
+        chart_radius=289,
     )
 
 

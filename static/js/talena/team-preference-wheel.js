@@ -9,11 +9,17 @@
   const ORDER = ["Catalyst", "Director", "Energiser", "Architect",
     "Harmoniser", "Analyst", "Auditor", "Connector"];
   const QUADRANT_COLOR = "#353238";
+  const HIGH_PREFERENCE_COLOR = "#9dcfb2";
+  const LOW_PREFERENCE_COLOR = "#f19a83";
   const STYLE_COLORS = {
-    Catalyst: ["#ef978f", "#f6d2ce"], Connector: ["#ef978f", "#f6d2ce"],
-    Director: ["#dbada7", "#eed7d3"], Energiser: ["#dbada7", "#eed7d3"],
-    Architect: ["#a0baae", "#d3e0d9"], Harmoniser: ["#a0baae", "#d3e0d9"],
-    Analyst: ["#d9bc90", "#eee1c8"], Auditor: ["#d9bc90", "#eee1c8"]
+    Catalyst: [HIGH_PREFERENCE_COLOR, LOW_PREFERENCE_COLOR],
+    Connector: [HIGH_PREFERENCE_COLOR, LOW_PREFERENCE_COLOR],
+    Director: [HIGH_PREFERENCE_COLOR, LOW_PREFERENCE_COLOR],
+    Energiser: [HIGH_PREFERENCE_COLOR, LOW_PREFERENCE_COLOR],
+    Architect: [HIGH_PREFERENCE_COLOR, LOW_PREFERENCE_COLOR],
+    Harmoniser: [HIGH_PREFERENCE_COLOR, LOW_PREFERENCE_COLOR],
+    Analyst: [HIGH_PREFERENCE_COLOR, LOW_PREFERENCE_COLOR],
+    Auditor: [HIGH_PREFERENCE_COLOR, LOW_PREFERENCE_COLOR]
   };
 
   function readData(id) {

@@ -179,6 +179,7 @@ def _build_leadership_chart_svg(
     svg_id_prefix: str = "leadership-wheel",
     svg_extra_class: str = "",
     sova_quadrant_layout: bool = False,
+    chart_radius: float = 245,
 ) -> str:
     """Render a balanced eight-petal leadership profile from SOVA 1–5 scores.
 
@@ -186,7 +187,7 @@ def _build_leadership_chart_svg(
     generated server-side (not by Chart.js); only presentation is changed.
     """
     width, height = 900, 780
-    cx, cy, radius = 450, 390, 245
+    cx, cy, radius = 450, 390, chart_radius
     source_keys = list(source_keys) if source_keys is not None else list(_SOURCE_NAMES)
     quadrant_colors = ("#ef978f", "#dbada7", "#a0baae", "#d9bc90")
     # Both Team and Leadership follow SOVA's four compass quadrants.
