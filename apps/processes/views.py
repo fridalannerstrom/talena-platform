@@ -184,7 +184,7 @@ from datetime import datetime, date, time
 
 from django.http import HttpResponse
 from apps.accounts.utils.permissions import filter_by_user_accounts, user_can_access_account
-from apps.accounts.utils.org_access import get_effective_orgunit_permissions, user_can_view_process, user_can_edit_process, get_company_for_user
+from apps.accounts.utils.org_access import get_effective_orgunit_permissions, user_can_view_process, user_can_edit_process, get_company_for_user, filter_processes_for_user
 from django.http import HttpResponseForbidden
 
 from apps.processes.services.send_tests import send_assessments_and_emails
@@ -4061,8 +4061,11 @@ def get_dashboard_activity_for_user(user, limit=10):
     )
 
     accessible_process_ids = (
-        TestProcess.objects
-        .filter(process_q)
+        filter_processes_for_user(
+            TestProcess.objects.filter(process_q),
+            user,
+            company,
+        )
         .values_list("id", flat=True)
     )
 
@@ -4098,7 +4101,10 @@ def user_can_access_process(user, process) -> bool:
         .values_list("company_id", flat=True)
         .first()
     )
-    return bool(company_id and process.company_id == company_id)
+    if not company_id or process.company_id != company_id:
+        return False
+    company = Company.objects.filter(pk=company_id).first()
+    return bool(company and user_can_view_process(user, company, process))
 
 @login_required
 @require_POST
@@ -5701,8 +5707,11 @@ def process_list(request):
     )
 
     processes = (
-        TestProcess.objects
-        .filter(process_q)
+        filter_processes_for_user(
+            TestProcess.objects.filter(process_q),
+            request.user,
+            company,
+        )
         .filter(is_archived=show_archived)
         .annotate(
             live_candidates_count=Count("invitations", distinct=True),
