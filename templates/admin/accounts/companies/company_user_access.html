@@ -149,6 +149,31 @@
               </div>
             </div>
 
+            <style>
+              #accessTree .project-access-summary {
+                cursor: pointer;
+                list-style: none;
+                border: 1px solid #e7e2df;
+                background: #fff;
+                white-space: nowrap;
+              }
+              #accessTree .project-access-summary::-webkit-details-marker { display: none; }
+              #accessTree .project-access-summary:hover { background: #f8f7f6; }
+              #accessTree .project-access-details[open] .fa-chevron-down {
+                transform: rotate(180deg);
+              }
+              #accessTree .project-access-details .fa-chevron-down {
+                transition: transform .15s ease;
+              }
+              #accessTree .project-scope-option { cursor: pointer; background: #fff; }
+              #accessTree .project-scope-option:hover { background: #f8f7f6; }
+              #accessTree .project-access-panel { min-width: 320px; }
+              #accessTree .project-picker-list label { min-width: 0; }
+              #accessTree .project-picker-list .form-check-label {
+                overflow-wrap: anywhere;
+              }
+            </style>
+
             <!-- Tree container -->
             <div class="border rounded-3">
               <div class="px-3 py-3 border-bottom d-flex align-items-center justify-content-between">
@@ -302,6 +327,20 @@ document.addEventListener("change", function (e) {
   }
 
   function updateDirtyUI() {
+    tree.querySelectorAll("[data-project-scope-row]").forEach(row => {
+      const restricted = row.querySelector("[data-project-scope]:checked")?.value === "selected";
+      const selectedCount = row.querySelectorAll("[data-project-checkbox]:checked").length;
+      const totalCount = row.querySelectorAll("[data-project-checkbox]").length;
+      const status = row.querySelector("[data-project-summary-state]");
+      if (status) {
+        status.textContent = restricted
+          ? `${selectedCount} of ${totalCount} selected`
+          : `All ${totalCount} projects`;
+        status.classList.toggle("bg-label-warning", restricted);
+        status.classList.toggle("bg-label-success", !restricted);
+      }
+    });
+
     const curUnits = currentSelectionSet();
 
     const isDirtyUnits = !setsEqual(originalUnits, curUnits);
