@@ -865,6 +865,109 @@
   gap: 1.15rem;
 }
 
+.talena-team-page .team-summary-wheel-card {
+  margin: 0 0 1.8rem;
+  padding: 1.15rem 1.1rem 0.8rem;
+  border: 1px solid #efeae7;
+  border-radius: 15px;
+  background: #fcfbfa;
+}
+
+.talena-team-page .team-summary-wheel {
+  width: 100%;
+  max-width: 740px;
+  margin: 0.35rem auto 0;
+}
+
+.talena-team-page .team-summary-wheel-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  font-family: inherit;
+}
+
+.talena-team-page .team-summary-wheel-grid {
+  fill: none;
+  stroke: rgba(94, 83, 78, 0.22);
+  stroke-width: 1;
+  stroke-dasharray: 3 4;
+}
+
+.talena-team-page .team-summary-wheel-sector {
+  transition: fill-opacity 150ms ease;
+}
+
+.talena-team-page .team-summary-wheel-value {
+  font-size: 14px;
+  font-weight: 800;
+  paint-order: stroke;
+  stroke: rgba(255, 255, 255, 0.26);
+  stroke-width: 0.7px;
+}
+
+.talena-team-page .team-summary-wheel-label {
+  fill: #403a38;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.talena-team-page .team-summary-wheel-center {
+  fill: #fff;
+  stroke: #e8e4e0;
+  stroke-width: 2;
+}
+
+.talena-team-page .team-summary-wheel-center-label {
+  fill: #342e2d;
+  font-size: 12px;
+  font-weight: 760;
+}
+
+.talena-team-page .team-summary-wheel-center-scale {
+  fill: #827670;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.talena-team-page .team-summary-wheel-legend {
+  margin: 0.2rem 0 0;
+  color: var(--talena-text-muted);
+  font-size: 0.67rem;
+  text-align: center;
+}
+
+@media (max-width: 575.98px) {
+  .talena-team-page .team-summary-wheel-card {
+    margin-left: -0.55rem;
+    margin-right: -0.55rem;
+    padding: 0.9rem 0.4rem 0.7rem;
+  }
+
+  .talena-team-page .team-summary-wheel {
+    overflow-x: auto;
+    scrollbar-width: thin;
+  }
+
+  .talena-team-page .team-summary-wheel-svg {
+    min-width: 520px;
+  }
+
+  .talena-team-page .team-summary-wheel-label {
+    font-size: 12px;
+  }
+
+  .talena-team-page .team-summary-wheel-value {
+    font-size: 13px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .talena-team-page .team-summary-wheel-sector {
+    transition: none;
+  }
+}
+
 .talena-team-page .team-composite-chart-title {
   margin: 0 0 0.45rem;
   color: var(--talena-ink);
