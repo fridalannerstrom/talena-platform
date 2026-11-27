@@ -227,7 +227,7 @@
                   {% endif %}
                 </div>
 
-                {% if candidate_result_snapshot and (candidate_result_status.sharing_enabled or is_admin_view) %}
+                {% if candidate_result_snapshot and candidate_result_status.sharing_enabled or candidate_result_snapshot and is_admin_view %}
                   <div class="candidate-link-panel candidate-result-feedback-panel">
                     <div class="candidate-inline-title">
                       {% if LANGUAGE_CODE|slice:":2" == "sv" %}Kandidatens reflektioner{% else %}Candidate reflections{% endif %}
