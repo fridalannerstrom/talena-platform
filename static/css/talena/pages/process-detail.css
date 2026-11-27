@@ -603,3 +603,25 @@
     border-bottom: 0 !important;
   }
 }
+
+/* Keep the deadline summary compact alongside the other project facts. */
+.process-page .process-mini-info--deadline {
+  flex: 0 0 auto !important;
+  width: max-content !important;
+  max-width: 100%;
+  align-self: flex-start;
+}
+
+.process-page .process-mini-info--deadline .process-mini-info__value {
+  white-space: nowrap;
+}
+
+@media (max-width: 700px) {
+  .process-page .process-mini-info--deadline {
+    width: 100% !important;
+  }
+
+  .process-page .process-mini-info--deadline .process-mini-info__value {
+    white-space: normal;
+  }
+}
