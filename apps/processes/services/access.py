@@ -1,7 +1,7 @@
 from django.db.models import Q
 
 from apps.accounts.models import CompanyMember
-from apps.accounts.utils.org_access import get_effective_orgunit_permissions
+from apps.accounts.utils.org_access import get_effective_orgunit_permissions, filter_processes_for_user
 from apps.processes.models import TestProcess
 
 
@@ -54,7 +54,11 @@ def get_accessible_processes_for_user(user, include_archived=False):
         Q(org_unit_id__in=own_ids, created_by=user)
     )
 
-    queryset = TestProcess.objects.filter(process_q)
+    queryset = filter_processes_for_user(
+        TestProcess.objects.filter(process_q),
+        user,
+        company,
+    )
 
     if not include_archived:
         queryset = queryset.filter(is_archived=False)
