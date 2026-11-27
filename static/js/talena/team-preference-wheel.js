@@ -8,7 +8,13 @@
   const CENTER = { x: 450, y: 445 };
   const ORDER = ["Catalyst", "Director", "Energiser", "Architect",
     "Harmoniser", "Analyst", "Auditor", "Connector"];
-  const QUADRANT_COLORS = ["#9A366F", "#3E7DBA", "#31569D", "#75459E"];
+  const QUADRANT_COLOR = "#353238";
+  const STYLE_COLORS = {
+    Catalyst: ["#ef978f", "#f6d2ce"], Connector: ["#ef978f", "#f6d2ce"],
+    Director: ["#dbada7", "#eed7d3"], Energiser: ["#dbada7", "#eed7d3"],
+    Architect: ["#a0baae", "#d3e0d9"], Harmoniser: ["#a0baae", "#d3e0d9"],
+    Analyst: ["#d9bc90", "#eee1c8"], Auditor: ["#d9bc90", "#eee1c8"]
+  };
 
   function readData(id) {
     const script = document.getElementById(id);
@@ -65,7 +71,7 @@
     };
   }
 
-  function badge(layer, x, y, person, kind) {
+  function badge(layer, x, y, person) {
     const g = node("g", {
       "data-team-wheel-person": "",
       "data-person-name": person.name || "",
@@ -80,7 +86,7 @@
       "text-anchor": "middle",
       "font-size": "12",
       "font-weight": "700",
-      "fill": kind === "most" ? "#245946" : "#873E52",
+      "fill": "#514745",
       "data-team-wheel-initial": ""
     }, person.initials || "?"));
     g.appendChild(node("title", {}, (person.name || person.initials || "") +
@@ -112,7 +118,7 @@
       const y = center.y + (row - (rows - 1) / 2) * 30;
 
       if (entry.person) {
-        badge(layer, x, y, entry.person, kind);
+        badge(layer, x, y, entry.person);
       } else {
         const more = node("g", { "class": "team-wheel-overflow" });
         more.appendChild(node("rect", {
@@ -157,8 +163,9 @@
       const entry = byStyle.get(style) || {};
       const high = Array.isArray(entry.most) ? entry.most : [];
       const low = Array.isArray(entry.least) ? entry.least : [];
-      const highFill = index % 2 ? "#AAD7C2" : "#B8E1CD";
-      const lowFill = index % 2 ? "#F1C1CB" : "#F5CFD5";
+      const styleColors = STYLE_COLORS[style] || ["#ef978f", "#f6d2ce"];
+      const highFill = styleColors[0];
+      const lowFill = styleColors[1];
 
       const highSegment = node("path", {
         d: sector(185, 283, start, end), fill: highFill,
@@ -223,7 +230,7 @@
         x: positions[index][0], y: positions[index][1],
         "text-anchor": "middle",
         "font-size": 17, "font-weight": 780,
-        "letter-spacing": 0.8, fill: QUADRANT_COLORS[index]
+        "letter-spacing": 0.8, fill: QUADRANT_COLOR
       }, text));
     });
     svg.appendChild(labelLayer);

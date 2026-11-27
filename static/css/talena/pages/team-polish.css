@@ -844,7 +844,7 @@
 
 
 
-/* #375: aggregate SVG team wheel, distinct from the individual team radar. */
+/* Shared, compact layout for composite team score and preference charts. */
 .talena-team-page .team-analytics-grid--composite {
   grid-template-columns: minmax(0, 1fr);
   gap: 1.25rem;
@@ -852,36 +852,51 @@
 
 .talena-team-page .team-analytics-panel--composite {
   min-width: 0;
-  padding: clamp(1.1rem, 2.2vw, 1.85rem);
-  border-radius: 19px;
-  background: #fff;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.talena-team-page .team-report-chart-layout {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(1.25rem, 2.3vw, 2rem);
+}
+
+.talena-team-page .team-summary-wheel-card,
+.talena-team-page .team-preference-wheel-card {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.talena-team-page .team-preference-wheel-card {
+  padding-left: clamp(1rem, 2vw, 1.75rem);
+  border-left: 1px solid #eee8e4;
 }
 
 .talena-team-page .team-composite-chart-header {
   display: flex;
+  flex-direction: column;
   align-items: flex-start;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 1.15rem;
-}
-
-.talena-team-page .team-summary-wheel-card {
-  margin: 0 0 1.8rem;
-  padding: 1.15rem 1.1rem 0.8rem;
-  border: 1px solid #efeae7;
-  border-radius: 15px;
-  background: #fcfbfa;
+  gap: 0.8rem;
 }
 
 .talena-team-page .team-summary-wheel {
   width: 100%;
-  max-width: 740px;
+  max-width: none;
   margin: 0.35rem auto 0;
+  overflow-x: auto;
+  scrollbar-width: thin;
 }
 
 .talena-team-page .team-summary-wheel-svg {
   display: block;
   width: 100%;
+  min-width: 570px;
   height: auto;
   overflow: visible;
   font-family: inherit;
@@ -894,23 +909,106 @@
   text-align: center;
 }
 
-@media (max-width: 575.98px) {
-  .talena-team-page .team-summary-wheel-card {
-    margin-left: -0.55rem;
-    margin-right: -0.55rem;
-    padding: 0.9rem 0.4rem 0.7rem;
-  }
-
+.talena-team-page .team-composite-chart-modes {
+  max-width: 100%;
 }
 
-@media (max-width: 767.98px) {
-  .talena-team-page .team-summary-wheel {
-    overflow-x: auto;
-    scrollbar-width: thin;
+.talena-team-page .team-composite-wheel-legend {
+  justify-content: flex-start;
+  gap: 0.55rem 1rem;
+  margin: 0.9rem 0 0.3rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.talena-team-page .team-style-chart-box--composite {
+  margin: 0;
+  padding: 0.15rem 0 0.55rem;
+}
+
+.talena-team-page .team-composite-wheel {
+  min-width: 570px;
+}
+
+.talena-team-page .team-composite-wheel-details {
+  margin-top: 0.35rem;
+  border: 0;
+  border-top: 1px solid #eee8e4;
+  border-radius: 0;
+  background: transparent;
+}
+
+.talena-team-page .team-composite-wheel-details summary {
+  padding: 0.72rem 1.35rem 0.72rem 0;
+}
+
+.talena-team-page .team-composite-wheel-details summary::after {
+  right: 0.2rem;
+}
+
+.talena-team-page .team-composite-wheel-details-copy {
+  padding-right: 0;
+  padding-left: 0;
+}
+
+.talena-team-page .team-composite-chart-people-list--both {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+  padding: 0 0 0.5rem;
+}
+
+.talena-team-page .team-composite-chart-person-row {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+  padding: 0.58rem 0;
+  border: 0;
+  border-bottom: 1px solid #f0ece9;
+  border-radius: 0;
+  background: transparent;
+}
+
+.talena-team-page .team-composite-chart-person-style {
+  flex: 0 0 7.5rem;
+}
+
+.talena-team-page .team-composite-chart-person-extremes {
+  flex: 1 1 auto;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.35rem;
+}
+
+.talena-team-page .team-composite-chart-person-extremes > div {
+  min-width: 0;
+}
+
+.talena-team-page .team-composite-chart-person-value {
+  margin-left: 0;
+}
+
+@media (max-width: 1050px) {
+  .talena-team-page .team-report-chart-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.5rem;
   }
 
-  .talena-team-page .team-summary-wheel-svg {
-    min-width: 620px;
+  .talena-team-page .team-preference-wheel-card {
+    padding: 1.35rem 0 0;
+    border-top: 1px solid #eee8e4;
+    border-left: 0;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .talena-team-page .team-composite-chart-person-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .talena-team-page .team-composite-chart-person-style {
+    flex-basis: auto;
   }
 }
 
@@ -1001,11 +1099,12 @@
 }
 
 .talena-team-page .team-composite-wheel-swatch--most {
-  background: #b8e1cd;
+  background: #ef978f;
 }
 
 .talena-team-page .team-composite-wheel-swatch--least {
-  background: #f1c1cb;
+  background: #f6d2ce;
+  border-color: rgba(151, 101, 95, 0.2);
 }
 
 .talena-team-page .team-style-chart-box--composite {
@@ -1127,11 +1226,12 @@
 }
 
 .talena-team-page .team-composite-chart-person-dot--most {
-  background: #a5d4bc;
+  background: #ef978f;
 }
 
 .talena-team-page .team-composite-chart-person-dot--least {
-  background: #ecc0ca;
+  background: #f6d2ce;
+  border: 1px solid rgba(151, 101, 95, 0.22);
 }
 
 .talena-team-page .team-composite-chart-person-value {

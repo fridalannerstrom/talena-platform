@@ -311,6 +311,7 @@
       {% if team_style_stats.members_with_scores %}
         <div class="team-analytics-grid team-analytics-grid--composite">
           <div class="team-analytics-panel team-analytics-panel--composite">
+            <div class="team-report-chart-layout">
             <section class="team-summary-wheel-card" aria-labelledby="teamSummaryWheelTitle" data-team-summary-wheel>
               <div class="team-composite-chart-header">
                 <div>
@@ -341,9 +342,10 @@
               </p>
             </section>
 
+            <section class="team-preference-wheel-card" aria-labelledby="teamPreferenceWheelTitle">
             <div class="team-composite-chart-header">
               <div>
-                <h3 class="team-composite-chart-title">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Teamets preferenskarta{% else %}Team preference wheel{% endif %}</h3>
+                <h3 class="team-composite-chart-title" id="teamPreferenceWheelTitle">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Teamets preferenskarta{% else %}Team preference wheel{% endif %}</h3>
                 <p class="team-composite-chart-copy">
                   {% if LANGUAGE_CODE|slice:":2" == "sv" %}Se vilka teamstilar som tillhör varje persons två högst respektive två lägst rankade resultat. Initialerna syns direkt i cirkeln.{% else %}Each member's two highest and two lowest ranked team styles are shown, with initials directly in the wheel.{% endif %}
                 </p>
@@ -380,7 +382,7 @@
 
             <details class="team-composite-wheel-details" data-team-chart-person-details>
               <summary>{% if LANGUAGE_CODE|slice:":2" == "sv" %}Visa alla initialer och värden per teamstil{% else %}Show all initials and scores by team style{% endif %}</summary>
-              <p class="team-composite-wheel-details-copy">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Grönt visar varje persons högst rankade teamstilar och rosa visar de lägst rankade, utifrån tillgängliga resultat. Vid lika värden kan fler än två stilar visas per person. Personer med färre än fyra användbara stilar ingår inte i hjulet.{% else %}Green shows each member's highest-ranked styles and pink their lowest-ranked styles, based on available results. Ties can include more than two styles. Members with fewer than four usable styles are excluded from the wheel.{% endif %}</p>
+              <p class="team-composite-wheel-details-copy">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Fylligare färger visar de högst rankade stilarna och ljusare färger de lägst rankade, utifrån varje persons tillgängliga resultat. Vid lika värden kan fler än två stilar visas. Personer med färre än fyra användbara stilar ingår inte i hjulet.{% else %}Stronger shades show each member's highest-ranked styles and lighter shades show their lowest-ranked styles, based on available results. Ties can include more than two styles. Members with fewer than four usable styles are excluded from the wheel.{% endif %}</p>
               <div class="team-composite-chart-people-list team-composite-chart-people-list--both">
                 {% for row in team_style_stats.preference_wheel_rows %}
                   <div class="team-composite-chart-person-row">
@@ -399,35 +401,10 @@
                 {% endfor %}
               </div>
             </details>
-          </div>
-
-          <div class="team-analytics-panel">
-            <div class="fw-semibold">{% trans "Ranked averages" %}</div>
-            <div class="text-muted small">
-              {% trans "Team styles ordered by average score." %}
-            </div>
-
-            <div class="team-style-rank-list">
-              {% for row in team_style_stats.ranked_averages %}
-                <div class="team-style-rank-row">
-                  <div class="team-style-rank-label">
-                    <div class="fw-semibold">{% trans row.style %}</div>
-                    <div class="text-muted small">{% trans row.quadrant %}</div>
-                  </div>
-
-                  <div class="team-style-bar-wrap">
-                    <div class="team-style-bar">
-                      <div class="team-style-bar-fill" style="width: {{ row.average_percent }}%;"></div>
-                    </div>
-                  </div>
-
-                  <div class="team-style-rank-score">
-                    {% if row.average is not None %}{{ row.average }} / 5{% else %}—{% endif %}
-                  </div>
-                </div>
-              {% endfor %}
+            </section>
             </div>
           </div>
+
         </div>
       {% else %}
         <div class="team-empty-state">
