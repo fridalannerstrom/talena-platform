@@ -81,8 +81,16 @@
 
         </div>
 
-        <!-- Process details -->
-        <div class="process-hero__details mt-3">
+
+
+      </div>
+      <!-- /process-hero__meta -->
+
+    </div>
+    <!-- /process-hero__left -->
+
+    <!-- Process details -->
+        <div class="process-hero__details mt-3{% if process.project_deadline or process.candidate_deadline_days %} has-deadline{% endif %}{% if process.is_historical %} is-historical{% endif %}">
 
           <!-- Purpose -->
           {% if not process.is_historical %}
@@ -161,17 +169,44 @@
             </div>
           {% endif %}
 
+          <!-- Deadline -->
+          {% if process.project_deadline or process.candidate_deadline_days %}
+            {% get_current_language as header_language %}
+            <div class="process-mini-info process-mini-info--deadline">
+              <div class="text-muted small mb-1">
+                {% trans "Deadline" %}
+              </div>
+              <div class="process-mini-info__value">
+                {% if process.project_deadline %}
+                  {% if process.candidate_deadline_days %}
+                    <span>{% if header_language|slice:":2" == "sv" %}Fast · {% else %}Fixed · {% endif %}</span>
+                  {% endif %}
+                  {{ process.project_deadline|date:"j M Y, H:i" }}
+                {% endif %}
+                {% if process.project_deadline and process.candidate_deadline_days %}<br>{% endif %}
+                {% if process.candidate_deadline_days %}
+                  {% if process.project_deadline %}
+                    <span>{% if header_language|slice:":2" == "sv" %}Per kandidat · {% else %}Per candidate · {% endif %}</span>
+                  {% endif %}
+                  {{ process.candidate_deadline_days }}
+                  {% if header_language|slice:":2" == "sv" %}
+                    {% if process.candidate_deadline_days == 1 %}dag per kandidat{% else %}dagar per kandidat{% endif %}
+                  {% else %}
+                    {% if process.candidate_deadline_days == 1 %}day per candidate{% else %}days per candidate{% endif %}
+                  {% endif %}
+                {% endif %}
+              </div>
+            </div>
+          {% endif %}
+
         </div>
         <!-- /process-hero__details -->
 
-      </div>
-      <!-- /process-hero__meta -->
-
-    </div>
-    <!-- /process-hero__left -->
 
     <!-- RIGHT ACTIONS -->
     <div class="process-hero__right">
+
+      <div class="process-hero__actions">
 
       {% if process.is_historical %}
 
@@ -207,6 +242,12 @@
         </span>
 
       {% endif %}
+
+      </div>
+
+
+
+
 
     </div>
     <!-- /process-hero__right -->

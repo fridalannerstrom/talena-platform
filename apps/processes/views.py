@@ -184,7 +184,7 @@ from datetime import datetime, date, time
 
 from django.http import HttpResponse
 from apps.accounts.utils.permissions import filter_by_user_accounts, user_can_access_account
-from apps.accounts.utils.org_access import get_effective_orgunit_permissions, user_can_view_process, user_can_edit_process, get_company_for_user
+from apps.accounts.utils.org_access import get_effective_orgunit_permissions, user_can_view_process, user_can_edit_process, get_company_for_user, filter_processes_for_user
 from django.http import HttpResponseForbidden
 
 from apps.processes.services.send_tests import send_assessments_and_emails
@@ -4061,8 +4061,11 @@ def get_dashboard_activity_for_user(user, limit=10):
     )
 
     accessible_process_ids = (
-        TestProcess.objects
-        .filter(process_q)
+        filter_processes_for_user(
+            TestProcess.objects.filter(process_q),
+            user,
+            company,
+        )
         .values_list("id", flat=True)
     )
 
@@ -4098,7 +4101,10 @@ def user_can_access_process(user, process) -> bool:
         .values_list("company_id", flat=True)
         .first()
     )
-    return bool(company_id and process.company_id == company_id)
+    if not company_id or process.company_id != company_id:
+        return False
+    company = Company.objects.filter(pk=company_id).first()
+    return bool(company and user_can_view_process(user, company, process))
 
 @login_required
 @require_POST
@@ -5701,8 +5707,11 @@ def process_list(request):
     )
 
     processes = (
-        TestProcess.objects
-        .filter(process_q)
+        filter_processes_for_user(
+            TestProcess.objects.filter(process_q),
+            request.user,
+            company,
+        )
         .filter(is_archived=show_archived)
         .annotate(
             live_candidates_count=Count("invitations", distinct=True),
@@ -6363,6 +6372,10 @@ def process_update(request, pk):
             obj.project_completion_notifications_enabled = bool(
                 form.cleaned_data.get("project_completion_notifications_enabled")
             )
+            obj.project_deadline = form.cleaned_data.get("project_deadline")
+            obj.candidate_deadline_days = (
+                form.cleaned_data.get("candidate_deadline_days") or None
+            )
             # Mirror the project creation choice. Omitted values from older
             # forms must not silently reset an existing project override.
             if "integrity_guard_visibility" in request.POST:
@@ -6475,6 +6488,13 @@ def process_update(request, pk):
             ),
             "project_completion_notifications_enabled": (
                 obj.project_completion_notifications_enabled
+            ),
+            "project_deadline": obj.project_deadline,
+            "candidate_deadline_days": obj.candidate_deadline_days,
+            "deadline_mode": (
+                "relative"
+                if obj.candidate_deadline_days
+                else "fixed" if obj.project_deadline else "none"
             ),
             "integrity_guard_visibility": (
                 "default"
@@ -9118,6 +9138,10 @@ def process_create_v2(request):
                 candidate_results_enabled=(
                     form.cleaned_data.get("candidate_results_enabled")
                     or False
+                ),
+                project_deadline=form.cleaned_data.get("project_deadline"),
+                candidate_deadline_days=(
+                    form.cleaned_data.get("candidate_deadline_days") or None
                 ),
                 # None means the project follows the company's display setting.
                 # Sova monitoring and stored findings are unaffected.

@@ -1130,3 +1130,260 @@ main .container-fluid:has(#processCreateWizardForm) > .d-flex:first-child > a {
   outline: 3px solid rgba(255, 111, 97, 0.6);
   outline-offset: 3px;
 }
+
+
+/* Compact, clearly selected deadline options in project creation. */
+.wizard-deadline-picker {
+  min-width: 0;
+  padding: 1.1rem 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.wizard-deadline-divider {
+  display: block;
+  width: 100%;
+  height: 0;
+  margin: 1.35rem 0;
+  border: 0;
+  border-top: 1px solid var(--talena-border, #e7e2de);
+  opacity: 1;
+}
+
+#processCreateWizardForm .wizard-deadline-picker {
+  margin: 0;
+  padding: 0;
+}
+
+.wizard-deadline-picker-admin {
+  margin: 0;
+  padding: 0;
+}
+
+.wizard-deadline-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.wizard-deadline-title-copy {
+  min-width: 0;
+}
+
+.wizard-deadline-heading-title {
+  margin: 0 0 0.2rem;
+  color: var(--talena-ink, #171717);
+  font-size: 0.96rem;
+  font-weight: 760;
+  letter-spacing: -0.015em;
+}
+
+.wizard-deadline-description {
+  margin: 0;
+  color: var(--talena-text-muted, #615d59);
+  font-size: 0.76rem;
+  line-height: 1.5;
+}
+
+.wizard-deadline-optional {
+  flex: 0 0 auto;
+  padding-top: 0.15rem;
+  color: var(--talena-text-muted, #615d59);
+  font-size: 0.7rem;
+  font-weight: 650;
+}
+
+.wizard-deadline-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+
+.wizard-deadline-choice {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.62rem;
+  min-width: 0;
+  min-height: 76px;
+  margin: 0;
+  padding: 0.78rem 0.82rem;
+  border: 1px solid var(--talena-border, #e7e2de);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--talena-text, #302d2b);
+  cursor: pointer;
+  transition: border-color 140ms ease, background-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+}
+
+.wizard-deadline-choice:hover {
+  border-color: #e9b8af;
+  background: #fffdfc;
+  transform: translateY(-1px);
+}
+
+.wizard-deadline-choice.is-selected {
+  border-color: var(--talena-coral, #ff6f61);
+  background: var(--talena-coral-soft, #fff0ed);
+  box-shadow: inset 0 0 0 1px rgba(255, 111, 97, 0.12);
+}
+
+.wizard-deadline-choice input[type="radio"] {
+  width: 1rem;
+  height: 1rem;
+  flex: 0 0 1rem;
+  margin: 0.18rem 0 0;
+  accent-color: var(--talena-coral-strong, #bc4b40);
+}
+
+.wizard-deadline-choice:focus-within {
+  outline: 3px solid rgba(255, 111, 97, 0.35);
+  outline-offset: 2px;
+}
+
+.wizard-deadline-choice-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.22rem;
+  min-width: 0;
+}
+
+.wizard-deadline-choice-copy strong {
+  color: var(--talena-ink, #171717);
+  font-size: 0.76rem;
+  font-weight: 740;
+  line-height: 1.35;
+}
+
+.wizard-deadline-choice-copy small {
+  color: var(--talena-text-muted, #615d59);
+  font-size: 0.68rem;
+  line-height: 1.4;
+}
+
+.wizard-deadline-value {
+  width: 100%;
+  max-width: none;
+  margin-top: 0.9rem;
+  padding: 0.95rem 1rem;
+  border: 1px solid #eee5e1;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.84);
+}
+
+.wizard-deadline-picker-control {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 48px;
+  padding: 0.7rem 2.8rem 0.7rem 0.9rem;
+  overflow: hidden;
+  border: 1px solid var(--talena-border, #e5ddd8);
+  border-radius: 11px;
+  background: #fff;
+  color: var(--talena-ink, #171717);
+  transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.wizard-deadline-picker-control:focus-within {
+  border-color: var(--talena-coral, #ff6d61);
+  box-shadow: 0 0 0 3px rgba(255, 109, 97, 0.15);
+}
+
+.wizard-deadline-picker-control input[type="datetime-local"] {
+  position: absolute !important;
+  z-index: 2;
+  inset: 0;
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  padding: 0 !important;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.wizard-deadline-picker-display {
+  overflow: hidden;
+  color: var(--talena-ink, #171717);
+  font-size: 0.84rem;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.wizard-deadline-picker-display.is-placeholder {
+  color: var(--talena-text-muted, #716b66);
+}
+
+.wizard-deadline-picker-icon {
+  position: absolute;
+  right: 0.95rem;
+  display: inline-flex;
+  align-items: center;
+  color: var(--talena-text-subtle, #615d59);
+  font-size: 0.95rem;
+  pointer-events: none;
+}
+
+.wizard-deadline-value[hidden] {
+  display: none !important;
+}
+
+.wizard-deadline-value .form-label {
+  margin-bottom: 0.42rem;
+  color: var(--talena-ink, #171717);
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.wizard-deadline-value input {
+  display: block;
+  width: 100%;
+  height: 44px;
+  font-size: 0.84rem;
+}
+
+.wizard-deadline-value .form-text {
+  margin-top: 0.4rem;
+  font-size: 0.68rem;
+}
+
+.wizard-deadline-note {
+  margin-top: 0.85rem;
+  margin-bottom: 1rem;
+  color: var(--talena-text-muted, #615d59);
+  font-size: 0.7rem;
+  line-height: 1.5;
+}
+
+.wizard-deadline-picker-admin {
+  padding: 0;
+}
+
+.wizard-deadline-note code {
+  color: var(--talena-coral-strong, #bc4b40);
+  font-size: 0.68rem;
+}
+
+@media (max-width: 767.98px) {
+  .wizard-deadline-options {
+    grid-template-columns: 1fr;
+  }
+
+  .wizard-deadline-choice {
+    min-height: 0;
+  }
+
+  .wizard-deadline-picker {
+    padding: 1rem;
+  }
+
+  .wizard-deadline-picker-admin {
+    margin-inline: -0.25rem;
+  }
+}

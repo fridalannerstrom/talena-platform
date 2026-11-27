@@ -26,7 +26,7 @@ def get_or_create_main_org_unit(company):
 
 
 @transaction.atomic
-def ensure_user_has_default_orgunit(user, company, permission="own"):
+def ensure_user_has_default_orgunit(user, company, permission="editor"):
     """
     Ensures that a user:
     - is a member of the company

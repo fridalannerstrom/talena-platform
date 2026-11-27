@@ -8,7 +8,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.http import HttpResponse, HttpResponseForbidden
 from django.shortcuts import redirect, render, get_object_or_404
 from django.utils.encoding import force_str
-from django.utils.http import urlsafe_base64_decode
+from django.utils.http import urlsafe_base64_decode, url_has_allowed_host_and_scheme
 from django.db.models import Count
 from django.views.decorators.http import require_POST
 from apps.core.integrations.sova import SovaClient
@@ -87,7 +87,7 @@ from apps.activity.models import ActivityEvent
 from apps.core.utils.auth import is_admin
 from apps.processes.models import TestProcess, TestInvitation, Candidate
 
-from .forms import InviteUserForm, OrgUnitForm, UserOrgUnitAccessForm
+from .forms import InviteUserForm, OrgUnitForm, UserOrgUnitAccessForm, AdminUserNameForm
 from .services.invites import send_invite_email, render_account_invitation
 from .decorators import admin_required
 from apps.portal.forms import AccountForm as PortalAccountForm, ProfileImageForm
@@ -96,7 +96,7 @@ from .utils.permissions import get_user_accessible_accounts
 from django.contrib.auth.views import PasswordChangeView
 from django.urls import reverse_lazy
 
-from .models import Company, CompanyMember, OrgUnit, UserOrgUnitAccess
+from .models import Company, CompanyMember, OrgUnit, UserOrgUnitAccess, UserOrgUnitProjectAccess
 from .forms import (CompanyMemberAddForm, CompanyForm, CompanyInviteMemberForm,
                     OrgUnitAccessAddForm, CompanyNameForm, OrgUnitNameForm)
 
@@ -1113,12 +1113,21 @@ def _admin_readonly_ai_state(owner, language):
 
 
 def build_candidate_detail_context(process, invitation, language="sv"):
-    """Same customer view-model, with read-only derived language states."""
-    return build_shared_candidate_detail_context(
+    """Same customer view-model, plus saved reflections for internal admin review."""
+    context = build_shared_candidate_detail_context(
         process=process,
         invitation=_admin_readonly_ai_state(invitation, language),
         language=language,
     )
+    snapshot = context.get("candidate_result_snapshot")
+    if snapshot:
+        from apps.candidate_results.presentation import (
+            build_candidate_result_reflections,
+        )
+        reflections = build_candidate_result_reflections(snapshot)
+        context["candidate_result_reflections"] = reflections
+        context["candidate_result_reflections_enabled"] = bool(reflections)
+    return context
 
 
 def build_invite_link(request, user):
@@ -1148,7 +1157,7 @@ def admin_user_detail(request, pk):
 
     company = Company.objects.filter(memberships__user=user_obj).first()
 
-    # --- POST actions (din befintliga kod) ---
+    # --- POST invite actions ---
     if request.method == "POST":
         action = request.POST.get("action")
         if action in ("resend_invite_email", "generate_invite_link"):
@@ -2223,8 +2232,27 @@ def company_user_access(request, pk):
             .values_list("org_unit_id", "permission")  # byt till permission_level om ditt fältnamn heter så
         )
 
+    project_scopes = {}
+    projects_by_unit = {}
+    if selected_user:
+        for scope in UserOrgUnitProjectAccess.objects.filter(
+            user=selected_user,
+            org_unit__company=company,
+        ).prefetch_related("projects"):
+            project_scopes[scope.org_unit_id] = set(
+                scope.projects.values_list("id", flat=True)
+            )
+    for process in TestProcess.objects.filter(
+        company=company,
+        org_unit__isnull=False,
+    ).only("id", "name", "org_unit_id").order_by("name"):
+        projects_by_unit.setdefault(process.org_unit_id, []).append(process)
+
     return render(request, "admin/accounts/companies/company_user_access.html", {
         "company": company,
+        "project_scopes": project_scopes,
+        "restricted_unit_ids": set(project_scopes),
+        "projects_by_unit": projects_by_unit,
         "users": users,
         "selected_user": selected_user,
         "root_units": root_units,
@@ -2302,6 +2330,9 @@ def company_user_access_set(request, company_pk):
     mode = payload.get("mode")
     access = payload.get("access", [])  # <-- NEW
     primary_org_unit_id = payload.get("primary_org_unit_id")  # <-- NEW
+    project_scopes = payload.get("project_scopes", [])
+    if not isinstance(project_scopes, list):
+        return JsonResponse({"ok": False, "error": "project_scopes must be a list"}, status=400)
 
     if not user_id or mode != "replace" or not isinstance(access, list):
         return JsonResponse({"ok": False, "error": "user_id + mode='replace' + access[] required"}, status=400)
@@ -2353,21 +2384,64 @@ def company_user_access_set(request, company_pk):
         if primary_unit.id not in set(requested_ids):
             return JsonResponse({"ok": False, "error": "Primary org unit must be selected for the user"}, status=400)
 
+    all_units_by_id = {
+        unit.id: unit
+        for unit in OrgUnit.objects.filter(company=company)
+    }
+    seen_scope_ids = set()
+    scopes_to_create = []
+    for row in project_scopes:
+        try:
+            unit_id = int(row.get("org_unit_id"))
+        except (TypeError, ValueError):
+            return JsonResponse({"ok": False, "error": "Invalid project scope unit"}, status=400)
+        restricted = row.get("restricted") is True
+        if not restricted:
+            continue
+        if unit_id in seen_scope_ids or unit_id not in all_units_by_id:
+            return JsonResponse({"ok": False, "error": "Invalid or duplicate project scope unit"}, status=400)
+        seen_scope_ids.add(unit_id)
+        raw_project_ids = row.get("project_ids", [])
+        if not isinstance(raw_project_ids, list):
+            return JsonResponse({"ok": False, "error": "project_ids must be a list"}, status=400)
+        try:
+            project_ids = {int(value) for value in raw_project_ids}
+        except (TypeError, ValueError):
+            return JsonResponse({"ok": False, "error": "Invalid project id"}, status=400)
+        unit = all_units_by_id[unit_id]
+        valid_ids = set(TestProcess.objects.filter(
+            company=company,
+            org_unit=unit,
+            id__in=project_ids,
+        ).values_list("id", flat=True))
+        if project_ids != valid_ids:
+            return JsonResponse({"ok": False, "error": "Selected projects must belong to their unit"}, status=400)
+        scopes_to_create.append((unit, project_ids))
+
     with transaction.atomic():
-        # Replace access rows
+        # Replace unit access rows.
         UserOrgUnitAccess.objects.filter(user=user, org_unit__company=company).delete()
 
-        objs = []
-        for u in units:
-            objs.append(UserOrgUnitAccess(
+        objs = [
+            UserOrgUnitAccess(
                 user=user,
-                org_unit=u,
-                permission=perm_by_id[u.id],
-            ))
+                org_unit=unit,
+                permission=perm_by_id[unit.id],
+            )
+            for unit in units
+        ]
         if objs:
             UserOrgUnitAccess.objects.bulk_create(objs)
 
-        # Save primary on CompanyMember
+        # No scope row means all projects. A row with an empty selection means none.
+        UserOrgUnitProjectAccess.objects.filter(
+            user=user,
+            org_unit__company=company,
+        ).delete()
+        for unit, project_ids in scopes_to_create:
+            scope = UserOrgUnitProjectAccess.objects.create(user=user, org_unit=unit)
+            scope.projects.set(project_ids)
+
         membership = CompanyMember.objects.get(company=company, user=user)
         membership.primary_org_unit = primary_unit
         membership.save(update_fields=["primary_org_unit"])
@@ -2399,6 +2473,7 @@ def company_users(request, pk):
     return render(request, "admin/accounts/companies/company_users.html", {
         "company": company,
         "memberships": memberships,
+        "name_form": AdminUserNameForm(),
         "active": "users",
         "show_invite_button": True,  # så knappen syns uppe i headern
         "invite_form": invite_form,  # ✅
@@ -2579,7 +2654,7 @@ def admin_process_create_for_user(request, user_pk):
             membership, primary_unit, access = ensure_user_has_default_orgunit(
                 user=user_obj,
                 company=company,
-                permission="own",
+                permission="editor",
             )
 
             # ✅ Set required fields
@@ -3198,6 +3273,26 @@ def company_user_detail(request, company_pk, user_pk):
         user=user_obj,
     )
 
+    name_form = AdminUserNameForm(instance=user_obj)
+    name_form_open = False
+    if request.method == "POST" and request.POST.get("action") == "update_user_name":
+        name_form = AdminUserNameForm(request.POST, instance=user_obj)
+        if name_form.is_valid():
+            name_form.save()
+            messages.success(request, "Användarens namn har uppdaterats.")
+            next_url = request.POST.get("next")
+            if next_url and url_has_allowed_host_and_scheme(
+                next_url,
+                allowed_hosts={request.get_host()},
+            ):
+                return redirect(next_url)
+            return redirect(
+                "accounts:company_user_detail",
+                company_pk=company.pk,
+                user_pk=user_obj.pk,
+            )
+        name_form_open = True
+
     pending_invite = not user_obj.is_active
 
     processes = (
@@ -3252,6 +3347,8 @@ def company_user_detail(request, company_pk, user_pk):
 
         "pending_invite": pending_invite,
         "orgunit_accesses": orgunit_accesses,
+        "name_form": name_form,
+        "name_form_open": name_form_open,
 
         "active": "users",
         "show_invite_button": True,
@@ -3923,6 +4020,8 @@ def company_process_create(request, company_pk):
                 selected_tests=selected_tests,
                 candidate_language=form.cleaned_data["candidate_language"],
                 candidate_results_enabled=form.cleaned_data.get("candidate_results_enabled", False),
+                project_deadline=form.cleaned_data.get("project_deadline"),
+                candidate_deadline_days=form.cleaned_data.get("candidate_deadline_days") or None,
                 project_completion_notifications_enabled=form.cleaned_data.get("project_completion_notifications_enabled", True),
                 source="talena",
                 is_historical=False,
@@ -4193,7 +4292,7 @@ def company_invite_member(request, company_pk):
             ensure_user_has_default_orgunit(
                 user=user,
                 company=company,
-                permission="own",
+                permission="editor",
             )
 
             if user.is_active:

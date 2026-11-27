@@ -66,6 +66,19 @@ class TestProcess(models.Model):
             return self.integrity_guard_visible_override
         return self.company.integrity_guard_visible if self.company_id else True
 
+    # These deadlines are only exposed as an optional invitation-email merge field.
+    # They never block candidate access in Talena.
+    project_deadline = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Optional fixed date and time for the invitation email deadline.",
+    )
+    candidate_deadline_days = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        help_text="Optional number of days from when a candidate is added to the project.",
+    )
+
     # #466: notify the project creator when the candidate finishes all tests.
     project_completion_notifications_enabled = models.BooleanField(
         default=True,

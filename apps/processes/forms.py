@@ -177,6 +177,45 @@ class TestProcessWizardCreateForm(forms.Form):
         widget=forms.Select(attrs={"class": "form-select form-select-lg"}),
     )
 
+    project_deadline = forms.DateTimeField(
+        required=False,
+        label=_("Project deadline"),
+        input_formats=["%Y-%m-%dT%H:%M"],
+        widget=forms.DateTimeInput(
+            format="%Y-%m-%dT%H:%M",
+            attrs={
+                "type": "datetime-local",
+                "class": "form-control",
+                "aria-label": _("Choose deadline date and time"),
+            },
+        ),
+    )
+
+    candidate_deadline_days = forms.IntegerField(
+        required=False,
+        min_value=1,
+        label=_("Candidate deadline in days"),
+        widget=forms.NumberInput(
+            attrs={
+                "class": "form-control form-control-lg",
+                "min": "1",
+                "step": "1",
+                "inputmode": "numeric",
+            },
+        ),
+    )
+
+    deadline_mode = forms.ChoiceField(
+        required=False,
+        initial="none",
+        choices=[
+            ("none", _("No deadline")),
+            ("fixed", _("Fixed date and time")),
+            ("relative", _("Days after candidate is added")),
+        ],
+        widget=forms.RadioSelect,
+    )
+
     purpose = forms.CharField(
         max_length=80,
         widget=forms.HiddenInput(),
@@ -283,6 +322,33 @@ class TestProcessWizardCreateForm(forms.Form):
         field.label_from_instance = (
             lambda unit: f"{unit.company.name} · {unit.name}"
         )
+
+        deadline_mode = (
+            self.data.get("deadline_mode")
+            if self.is_bound
+            else self.initial.get("deadline_mode")
+        ) or self.fields["deadline_mode"].initial or "none"
+        if deadline_mode not in {"none", "fixed", "relative"}:
+            deadline_mode = "none"
+        self.fields["project_deadline"].disabled = deadline_mode != "fixed"
+        self.fields["candidate_deadline_days"].disabled = deadline_mode != "relative"
+
+    def clean(self):
+        cleaned = super().clean()
+        deadline_mode = cleaned.get("deadline_mode") or "none"
+
+        if deadline_mode == "fixed" and not cleaned.get("project_deadline"):
+            self.add_error(
+                "project_deadline",
+                _("Choose a deadline date and time."),
+            )
+        elif deadline_mode == "relative" and not cleaned.get("candidate_deadline_days"):
+            self.add_error(
+                "candidate_deadline_days",
+                _("Enter how many days the candidate has."),
+            )
+
+        return cleaned
 
 
 # Talena process context i18n batch 1

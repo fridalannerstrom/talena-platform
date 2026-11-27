@@ -71,6 +71,25 @@ class InviteUserForm(forms.ModelForm):
         return email
 
 
+class AdminUserNameForm(forms.ModelForm):
+    first_name = forms.CharField(
+        label="Förnamn",
+        max_length=150,
+        required=False,
+        widget=forms.TextInput(attrs={"class": "form-control", "autocomplete": "given-name"}),
+    )
+    last_name = forms.CharField(
+        label="Efternamn",
+        max_length=150,
+        required=False,
+        widget=forms.TextInput(attrs={"class": "form-control", "autocomplete": "family-name"}),
+    )
+
+    class Meta:
+        model = User
+        fields = ["first_name", "last_name"]
+
+
 class OrgUnitForm(forms.ModelForm):
     """Form för att skapa/redigera OrgUnit."""
 

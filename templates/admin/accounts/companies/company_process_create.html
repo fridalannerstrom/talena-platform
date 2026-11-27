@@ -1,6 +1,12 @@
 {% extends "admin/accounts/companies/company_base.html" %}
 {% load static %}
 
+{% block admin_candidate_mirror_css %}
+  {{ block.super }}
+  <link href="{% static 'css/talena/pages/process-create.css' %}" rel="stylesheet" />
+  <script src="{% static 'js/talena/deadline-picker.js' %}" defer></script>
+{% endblock %}
+
 {% block company_content %}
 
 <div class="card">
@@ -100,6 +106,94 @@
     The selected language is used in Sova orders and candidate invitation emails.
   </div>
 </div>
+
+<hr class="wizard-deadline-divider">
+
+<div class="wizard-deadline-picker wizard-deadline-picker-admin" data-deadline-picker>
+  <div class="wizard-deadline-heading">
+    <div class="wizard-deadline-title-copy">
+      <h3 class="wizard-deadline-heading-title">Deadline</h3>
+      <p class="wizard-deadline-description">Choose one fixed date for everyone or a number of days from when each candidate is added.</p>
+    </div>
+    <span class="wizard-deadline-optional">Optional</span>
+  </div>
+  {% with selected_deadline_mode=form.deadline_mode.value|default:"none" %}
+  <div class="wizard-deadline-options" role="radiogroup" aria-label="Choose a deadline">
+    <label class="wizard-deadline-choice" data-deadline-option>
+      <input type="radio" name="deadline_mode" value="none"
+             {% if selected_deadline_mode == "none" %}checked{% endif %} data-deadline-choice>
+      <span class="wizard-deadline-choice-copy">
+        <strong>No deadline</strong><small>No time limit for candidates</small>
+      </span>
+    </label>
+    <label class="wizard-deadline-choice" data-deadline-option>
+      <input type="radio" name="deadline_mode" value="fixed"
+             {% if selected_deadline_mode == "fixed" %}checked{% endif %} data-deadline-choice>
+      <span class="wizard-deadline-choice-copy">
+        <strong>Fixed date</strong><small>Same date for all candidates</small>
+      </span>
+    </label>
+    <label class="wizard-deadline-choice" data-deadline-option>
+      <input type="radio" name="deadline_mode" value="relative"
+             {% if selected_deadline_mode == "relative" %}checked{% endif %} data-deadline-choice>
+      <span class="wizard-deadline-choice-copy">
+        <strong>After candidate is added</strong><small>An individual deadline per candidate</small>
+      </span>
+    </label>
+  </div>
+  {% endwith %}
+  {% if form.deadline_mode.errors %}<div class="text-danger small mt-2">{{ form.deadline_mode.errors }}</div>{% endif %}
+  {% with selected_deadline_mode=form.deadline_mode.value|default:"none" %}
+  <div class="wizard-deadline-value" data-deadline-fields="fixed" {% if selected_deadline_mode != "fixed" %}hidden{% endif %}>
+    <label class="form-label fw-semibold" for="{{ form.project_deadline.id_for_label }}">Date and time</label>
+    <div class="wizard-deadline-picker-control" data-deadline-picker-control data-placeholder="Choose date and time">
+      {{ form.project_deadline }}
+      <span class="wizard-deadline-picker-display" data-deadline-picker-display aria-hidden="true"></span>
+      <span class="wizard-deadline-picker-icon" aria-hidden="true"><i class="fa-regular fa-calendar"></i></span>
+    </div>
+    {% for error in form.project_deadline.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+    <div class="form-text">The same date and time applies to all candidates.</div>
+  </div>
+  <div class="wizard-deadline-value" data-deadline-fields="relative" {% if selected_deadline_mode != "relative" %}hidden{% endif %}>
+    <label class="form-label fw-semibold" for="{{ form.candidate_deadline_days.id_for_label }}">Days from when the candidate is added</label>
+    {{ form.candidate_deadline_days }}
+    <div class="form-text">The countdown starts separately when each candidate is added to the project.</div>
+    {% for error in form.candidate_deadline_days.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+  </div>
+  {% endwith %}
+  <div class="wizard-deadline-note">
+    The deadline appears in the email if you use <code>{deadline}</code>. It does not affect candidate access.
+  </div>
+</div>
+<script>
+(function () {
+  const picker = document.querySelector("[data-deadline-picker]");
+  if (!picker) return;
+  const choices = picker.querySelectorAll("[data-deadline-choice]");
+  const panels = picker.querySelectorAll("[data-deadline-fields]");
+  function updateDeadlineChoice() {
+    const selected = picker.querySelector("[data-deadline-choice]:checked");
+    const mode = selected ? selected.value : "none";
+    choices.forEach(function (choice) {
+      const option = choice.closest("[data-deadline-option]");
+      if (option) option.classList.toggle("is-selected", choice.checked);
+    });
+    panels.forEach(function (panel) {
+      const active = panel.getAttribute("data-deadline-fields") === mode;
+      panel.hidden = !active;
+      panel.querySelectorAll("input").forEach(function (input) {
+        input.disabled = !active;
+      });
+    });
+  }
+  choices.forEach(function (choice) {
+    choice.addEventListener("change", updateDeadlineChoice);
+  });
+  updateDeadlineChoice();
+})();
+</script>
+
+<hr class="wizard-deadline-divider">
 
 <div class="mb-4">
   <label class="form-label fw-semibold" for="id_org_unit">

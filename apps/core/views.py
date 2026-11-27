@@ -49,7 +49,7 @@ from apps.accounts.models import Company, OrgUnit
 from apps.accounts.utils.permissions import get_user_accessible_orgunits
 from apps.processes.models import TestProcess, Candidate, TestInvitation
 from django.shortcuts import get_object_or_404, render
-from apps.accounts.utils.org_access import get_effective_orgunit_permissions
+from apps.accounts.utils.org_access import get_effective_orgunit_permissions, filter_processes_for_user
 from django.db.models import Q, Count
 from apps.activity.models import ActivityEvent
 from apps.activity.services import log_event, customer_visible_activity
@@ -135,8 +135,11 @@ def customer_dashboard(request):
     )
 
     accessible_processes = (
-        TestProcess.objects
-        .filter(process_q)
+        filter_processes_for_user(
+            TestProcess.objects.filter(process_q),
+            request.user,
+            company,
+        )
         .filter(is_archived=False)
         .annotate(candidates_count=Count("invitations", distinct=True))
         .select_related("org_unit")
@@ -266,8 +269,11 @@ def customer_activity(request):
     )
 
     accessible_process_ids = (
-        TestProcess.objects
-        .filter(process_filter)
+        filter_processes_for_user(
+            TestProcess.objects.filter(process_filter),
+            request.user,
+            company,
+        )
         .values_list("id", flat=True)
     )
 
