@@ -172,20 +172,20 @@
               <div class="process-mini-info__value">
                 {% if process.project_deadline %}
                   {% if process.candidate_deadline_days %}
-                    {% if header_language|slice:":2" == "sv" %}Fast datum: {% else %}Fixed date: {% endif %}
+                    <span>{% if header_language|slice:":2" == "sv" %}Fast · {% else %}Fixed · {% endif %}</span>
                   {% endif %}
-                  {{ process.project_deadline|date:"Y-m-d H:i" }}
+                  {{ process.project_deadline|date:"j M Y, H:i" }}
                 {% endif %}
                 {% if process.project_deadline and process.candidate_deadline_days %}<br>{% endif %}
                 {% if process.candidate_deadline_days %}
                   {% if process.project_deadline %}
-                    {% if header_language|slice:":2" == "sv" %}Efter att kandidaten lagts till: {% else %}After candidate is added: {% endif %}
+                    <span>{% if header_language|slice:":2" == "sv" %}Per kandidat · {% else %}Per candidate · {% endif %}</span>
                   {% endif %}
                   {{ process.candidate_deadline_days }}
                   {% if header_language|slice:":2" == "sv" %}
-                    {% if process.candidate_deadline_days == 1 %}dag{% else %}dagar{% endif %} från att kandidaten läggs till
+                    {% if process.candidate_deadline_days == 1 %}dag per kandidat{% else %}dagar per kandidat{% endif %}
                   {% else %}
-                    {% if process.candidate_deadline_days == 1 %}day{% else %}days{% endif %} after candidate is added
+                    {% if process.candidate_deadline_days == 1 %}day per candidate{% else %}days per candidate{% endif %}
                   {% endif %}
                 {% endif %}
               </div>
