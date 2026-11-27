@@ -2251,6 +2251,7 @@ def company_user_access(request, pk):
     return render(request, "admin/accounts/companies/company_user_access.html", {
         "company": company,
         "project_scopes": project_scopes,
+        "restricted_unit_ids": set(project_scopes),
         "projects_by_unit": projects_by_unit,
         "users": users,
         "selected_user": selected_user,
