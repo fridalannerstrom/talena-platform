@@ -357,13 +357,6 @@
                     <div class="text-danger small mt-1">{{ form.org_unit.errors }}</div>
                   {% endif %}
                 </div>
-              {% else %}
-                <div class="wizard-account-field">
-                  <div class="form-label">
-                    {% if wizard_language|slice:":2" == "sv" %}Konto{% else %}Account{% endif %}
-                  </div>
-                  <div class="wizard-account-value">{{ org_units.0.company.name }} · {{ org_units.0.name }}</div>
-                </div>
               {% endif %}
 
               <div class="row g-3">
