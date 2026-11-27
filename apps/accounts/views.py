@@ -1113,12 +1113,21 @@ def _admin_readonly_ai_state(owner, language):
 
 
 def build_candidate_detail_context(process, invitation, language="sv"):
-    """Same customer view-model, with read-only derived language states."""
-    return build_shared_candidate_detail_context(
+    """Same customer view-model, plus saved reflections for internal admin review."""
+    context = build_shared_candidate_detail_context(
         process=process,
         invitation=_admin_readonly_ai_state(invitation, language),
         language=language,
     )
+    snapshot = context.get("candidate_result_snapshot")
+    if snapshot:
+        from apps.candidate_results.presentation import (
+            build_candidate_result_reflections,
+        )
+        reflections = build_candidate_result_reflections(snapshot)
+        context["candidate_result_reflections"] = reflections
+        context["candidate_result_reflections_enabled"] = bool(reflections)
+    return context
 
 
 def build_invite_link(request, user):
