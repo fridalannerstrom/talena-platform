@@ -3,6 +3,7 @@ from unittest.mock import patch
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
+from django.utils import translation
 
 from apps.accounts.models import Company, CompanyMember, OrgUnit, UserOrgUnitAccess
 from apps.processes.models import TestProcess
@@ -42,15 +43,28 @@ class ProcessCreateAccountTests(TestCase):
         return self.client.post(self.url, data)
 
     def test_single_account_is_selected_without_a_form_choice(self):
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 200)
-        self.assertNotContains(response, 'name="org_unit"')
+        for language in ("sv", "en"):
+            with translation.override(language):
+                response = self.client.get(self.url)
+            self.assertEqual(response.status_code, 200)
+            self.assertNotContains(response, 'name="org_unit"')
+            self.assertNotContains(response, "wizard-account-field")
 
         response = self._post()
         self.assertEqual(response.status_code, 302)
         process = TestProcess.objects.get(name="Account selection test")
         self.assertEqual(process.org_unit, self.first)
         self.assertEqual(process.company, self.company)
+
+    def test_no_accessible_accounts_preserves_redirect_and_creates_nothing(self):
+        UserOrgUnitAccess.objects.filter(user=self.user).delete()
+
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 302)
+
+        response = self._post()
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(TestProcess.objects.exists())
 
     def test_multiple_accounts_require_a_choice_and_save_selected_company(self):
         company_two = Company.objects.create(name="Second company")
