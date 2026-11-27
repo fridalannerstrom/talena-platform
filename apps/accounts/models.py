@@ -352,6 +352,54 @@ class UserOrgUnitAccess(models.Model):
             raise ValidationError("User måste vara medlem i företaget innan orgunit-access kan ges.")
 
 
+class UserOrgUnitProjectAccess(models.Model):
+    """Optional project allow-list for one user within one exact org unit.
+
+    No row means all current and future projects in the unit are visible.
+    A row means only the explicitly related projects are visible.
+    """
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="orgunit_project_accesses",
+    )
+    org_unit = models.ForeignKey(
+        OrgUnit,
+        on_delete=models.CASCADE,
+        related_name="user_project_accesses",
+    )
+    projects = models.ManyToManyField(
+        "processes.TestProcess",
+        blank=True,
+        related_name="user_orgunit_project_accesses",
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "org_unit"],
+                name="uniq_user_orgunit_project_scope",
+            ),
+        ]
+
+    def clean(self):
+        if not CompanyMember.objects.filter(
+            user=self.user,
+            company=self.org_unit.company,
+        ).exists():
+            raise ValidationError(
+                "User must belong to the org unit's company."
+            )
+        if self.projects.exclude(
+            company_id=self.org_unit.company_id,
+            org_unit_id=self.org_unit_id,
+        ).exists():
+            raise ValidationError(
+                "Selected projects must belong to this org unit."
+            )
+
+
 # ============================================================================
 # INVITES
 # ============================================================================
