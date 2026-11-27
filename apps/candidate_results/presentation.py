@@ -12,7 +12,7 @@ from .content import (
 from .models import CandidateResultAccess, CandidateResultSnapshot
 
 
-def _build_candidate_result_reflections(snapshot) -> dict:
+def build_candidate_result_reflections(snapshot) -> dict:
     """Build status data from the exact frozen text shown to the candidate."""
     if snapshot is None:
         return {}
@@ -99,7 +99,7 @@ def build_candidate_result_panel_context(process, invitation) -> dict:
 
     sharing_enabled = bool(getattr(process, "candidate_results_enabled", False))
     reflections = (
-        _build_candidate_result_reflections(snapshot)
+        build_candidate_result_reflections(snapshot)
         if sharing_enabled
         else {}
     )
