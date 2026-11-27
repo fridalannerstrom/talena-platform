@@ -173,7 +173,7 @@
     <!-- /process-hero__left -->
 
     <!-- RIGHT ACTIONS -->
-    <div class="process-hero__right">
+    <div class="process-hero__right{% if process.project_deadline or process.candidate_deadline_days %} has-deadline{% endif %}">
 
       <div class="process-hero__actions">
 
