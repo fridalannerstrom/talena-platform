@@ -333,7 +333,7 @@ class UserOrgUnitAccess(models.Model):
     permission = models.CharField(
         max_length=10,
         choices=PERM_CHOICES,
-        default=PERM_VIEWER,
+        default=PERM_EDITOR,
     )
 
     created_at = models.DateTimeField(auto_now_add=True)

@@ -15,7 +15,7 @@
     </div>
 
     <div role="group" aria-label="Permission" class="role-orgunit">
-      {% with p=perm_map|get_item:unit.id|default:"viewer" %}
+      {% with p=perm_map|get_item:unit.id|default:"editor" %}
         <input type="radio" class="btn-check"
                name="perm_{{ unit.id }}" id="perm_{{ unit.id }}_viewer"
                value="viewer" data-perm-radio data-unit-id="{{ unit.id }}"

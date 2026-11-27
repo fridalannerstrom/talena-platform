@@ -2579,7 +2579,7 @@ def admin_process_create_for_user(request, user_pk):
             membership, primary_unit, access = ensure_user_has_default_orgunit(
                 user=user_obj,
                 company=company,
-                permission="own",
+                permission="editor",
             )
 
             # ✅ Set required fields
@@ -4193,7 +4193,7 @@ def company_invite_member(request, company_pk):
             ensure_user_has_default_orgunit(
                 user=user,
                 company=company,
-                permission="own",
+                permission="editor",
             )
 
             if user.is_active:

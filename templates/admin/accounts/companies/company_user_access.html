@@ -250,7 +250,7 @@ document.addEventListener("change", function (e) {
     const checked = tree.querySelector(
       `input[data-perm-radio][data-unit-id="${unitId}"]:checked`
     );
-    return checked ? checked.value : "viewer";
+    return checked ? checked.value : "editor";
   }
 
   function toast(msg, type="warning") {
@@ -291,7 +291,7 @@ document.addEventListener("change", function (e) {
   function permsEqual(origPerms, currentUnitIds) {
     for (const id of currentUnitIds) {
       const cur = getPermissionForUnit(id);
-      const orig = origPerms[id] ?? "viewer";
+      const orig = origPerms[id] ?? "editor";
       if (cur !== orig) return false;
     }
 
@@ -350,7 +350,7 @@ document.addEventListener("change", function (e) {
 
       // Reset permission UI for checked units
       if (orig.has(id)) {
-        const wanted = originalPerms[id] || "viewer";
+        const wanted = originalPerms[id] || "editor";
         const radio = tree.querySelector(`input[data-perm-radio][data-unit-id="${id}"][value="${wanted}"]`);
 
         if (radio) {
