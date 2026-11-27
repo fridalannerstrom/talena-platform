@@ -87,7 +87,7 @@ from apps.activity.models import ActivityEvent
 from apps.core.utils.auth import is_admin
 from apps.processes.models import TestProcess, TestInvitation, Candidate
 
-from .forms import InviteUserForm, OrgUnitForm, UserOrgUnitAccessForm
+from .forms import InviteUserForm, OrgUnitForm, UserOrgUnitAccessForm, AdminUserNameForm
 from .services.invites import send_invite_email, render_account_invitation
 from .decorators import admin_required
 from apps.portal.forms import AccountForm as PortalAccountForm, ProfileImageForm
@@ -1156,11 +1156,21 @@ def admin_user_detail(request, pk):
     open_invite_modal = False
 
     company = Company.objects.filter(memberships__user=user_obj).first()
+    name_form = AdminUserNameForm(instance=user_obj)
+    name_form_open = False
 
-    # --- POST actions (din befintliga kod) ---
+    # --- POST actions ---
     if request.method == "POST":
         action = request.POST.get("action")
-        if action in ("resend_invite_email", "generate_invite_link"):
+        if action == "update_user_name":
+            name_form = AdminUserNameForm(request.POST, instance=user_obj)
+            if name_form.is_valid():
+                name_form.save()
+                messages.success(request, "Användarens namn har uppdaterats.")
+                return redirect("accounts:admin_user_detail", pk=user_obj.pk)
+            name_form_open = True
+
+        elif action in ("resend_invite_email", "generate_invite_link"):
             if not pending_invite:
                 messages.info(request, "Användaren är redan aktiv. Ingen invite behövs.")
                 return redirect("accounts:admin_user_detail", pk=user_obj.pk)
@@ -1256,6 +1266,8 @@ def admin_user_detail(request, pk):
         "pending_invite": pending_invite,
         "invite_link": invite_link,
         "open_invite_modal": open_invite_modal,
+        "name_form": name_form,
+        "name_form_open": name_form_open,
 
         "orgunit_accesses": orgunit_accesses,
     })
