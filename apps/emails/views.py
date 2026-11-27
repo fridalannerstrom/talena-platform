@@ -162,6 +162,7 @@ def get_email_template_placeholders():
         "{sender_first_name}",
         "{sender_last_name}",
         "{sender_full_name}",
+        "{deadline}",
     ]
 
 @login_required
@@ -273,6 +274,7 @@ def admin_edit_company_invitation_template(request, company_pk):
         "sender_first_name": "Talena",
         "sender_last_name": "Admin",
         "sender_full_name": "Talena Admin",
+        "deadline": "2026-12-04 14:30",
     }
 
     return render(request, "emails/admin_edit_company_invitation_template.html", {
