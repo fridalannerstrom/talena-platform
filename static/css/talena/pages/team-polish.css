@@ -887,49 +887,6 @@
   font-family: inherit;
 }
 
-.talena-team-page .team-summary-wheel-grid {
-  fill: none;
-  stroke: rgba(94, 83, 78, 0.22);
-  stroke-width: 1;
-  stroke-dasharray: 3 4;
-}
-
-.talena-team-page .team-summary-wheel-sector {
-  transition: fill-opacity 150ms ease;
-}
-
-.talena-team-page .team-summary-wheel-value {
-  font-size: 14px;
-  font-weight: 800;
-  paint-order: stroke;
-  stroke: rgba(255, 255, 255, 0.26);
-  stroke-width: 0.7px;
-}
-
-.talena-team-page .team-summary-wheel-label {
-  fill: #403a38;
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.talena-team-page .team-summary-wheel-center {
-  fill: #fff;
-  stroke: #e8e4e0;
-  stroke-width: 2;
-}
-
-.talena-team-page .team-summary-wheel-center-label {
-  fill: #342e2d;
-  font-size: 12px;
-  font-weight: 760;
-}
-
-.talena-team-page .team-summary-wheel-center-scale {
-  fill: #827670;
-  font-size: 11px;
-  font-weight: 600;
-}
-
 .talena-team-page .team-summary-wheel-legend {
   margin: 0.2rem 0 0;
   color: var(--talena-text-muted);
@@ -944,27 +901,16 @@
     padding: 0.9rem 0.4rem 0.7rem;
   }
 
+}
+
+@media (max-width: 767.98px) {
   .talena-team-page .team-summary-wheel {
     overflow-x: auto;
     scrollbar-width: thin;
   }
 
   .talena-team-page .team-summary-wheel-svg {
-    min-width: 520px;
-  }
-
-  .talena-team-page .team-summary-wheel-label {
-    font-size: 12px;
-  }
-
-  .talena-team-page .team-summary-wheel-value {
-    font-size: 13px;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .talena-team-page .team-summary-wheel-sector {
-    transition: none;
+    min-width: 620px;
   }
 }
 

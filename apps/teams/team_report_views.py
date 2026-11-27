@@ -34,6 +34,13 @@ STYLE_KEY_BY_NAME = {
     "Auditor": "auditor",
 }
 
+TEAM_STYLE_CHART_GROUPS = (
+    ("Explore", ("Connector", "Catalyst")),
+    ("Lead", ("Director", "Energiser")),
+    ("Deliver", ("Architect", "Harmoniser")),
+    ("Critically review", ("Analyst", "Auditor")),
+)
+
 
 def _as_list(value):
     if isinstance(value, list):
@@ -130,6 +137,60 @@ def _values_from_historical_candidate(historical_candidate):
 
     return _values_from_profile(
         build_team_style_profile(team_style_scores)
+    )
+
+
+def _build_team_summary_chart(values_by_style, metric):
+    """Render aggregate scores with the same eight-petal chart as the profile."""
+    from apps.reports.services.leadership_report import _build_leadership_chart_svg
+
+    quadrants = []
+    source_keys = []
+    scores_by_key = {}
+    spoken_scores = []
+
+    for quadrant_label, styles in TEAM_STYLE_CHART_GROUPS:
+        competencies = []
+        for style in styles:
+            key = STYLE_KEY_BY_NAME[style]
+            competencies.append({"title": _(style)})
+            source_keys.append(key)
+            value = values_by_style.get(style)
+            if value is not None:
+                scores_by_key[key] = (value, value)
+                spoken_scores.append(f"{_(style)}: {value} / 5")
+
+        quadrants.append({
+            "title": _(quadrant_label),
+            "competencies": competencies,
+        })
+
+    metric_labels = {
+        "average": _("Average"),
+        "minimum": _("Minimum"),
+        "maximum": _("Maximum"),
+    }
+    if (get_language() or "").lower().startswith("sv"):
+        metric_labels.update({
+            "average": "Medelvärde",
+            "minimum": "Lägsta",
+            "maximum": "Högsta",
+        })
+    content = {
+        "chart_intro": {
+            "title": f"{_('Team role profile chart')} · {metric_labels[metric]}",
+            "body": "; ".join(spoken_scores),
+        },
+        "quadrants": quadrants,
+    }
+    return _build_leadership_chart_svg(
+        content,
+        scores_by_key,
+        get_language(),
+        source_keys=source_keys,
+        svg_id_prefix=f"team-summary-{metric}",
+        svg_extra_class="team-style-flower__wheel team-summary-wheel-svg",
+        sova_quadrant_layout=True,
     )
 
 
@@ -460,6 +521,11 @@ def build_team_style_statistics(team, candidate_ids=None, process_ids=None):
     average_by_style = {row["style"]: row["average"] for row in average_rows}
     minimum_by_style = {row["style"]: row["minimum"] for row in minimum_rows}
     maximum_by_style = {row["style"]: row["maximum"] for row in maximum_rows}
+    summary_chart_svgs = {
+        "average": _build_team_summary_chart(average_by_style, "average"),
+        "minimum": _build_team_summary_chart(minimum_by_style, "minimum"),
+        "maximum": _build_team_summary_chart(maximum_by_style, "maximum"),
+    }
 
     return {
         "styles": TEAM_STYLE_ORDER,
@@ -488,6 +554,7 @@ def build_team_style_statistics(team, candidate_ids=None, process_ids=None):
         "chart_max_values": [
             maximum_by_style[style] for style in chart_order
         ],
+        "summary_chart_svgs": summary_chart_svgs,
     }
 
 

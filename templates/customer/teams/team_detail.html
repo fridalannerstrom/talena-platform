@@ -316,7 +316,7 @@
                 <div>
                   <h3 class="team-composite-chart-title" id="teamSummaryWheelTitle">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Teamets poäng per teamstil{% else %}Team style scores{% endif %}</h3>
                   <p class="team-composite-chart-copy">
-                    {% if LANGUAGE_CODE|slice:":2" == "sv" %}Jämför teamets medelvärde, lägsta och högsta resultat för alla åtta teamstilar. Varje sektor visar ett värde på skalan 1–5.{% else %}Compare the team average, lowest and highest scores across all eight team styles. Each segment shows a score on a 1–5 scale.{% endif %}
+                    {% if LANGUAGE_CODE|slice:":2" == "sv" %}Jämför teamets medelvärde, lägsta och högsta resultat för alla åtta teamstilar. Varje blad visar ett värde på skalan 1–5.{% else %}Compare the team average, lowest and highest scores across all eight team styles. Each petal shows a score on a 1–5 scale.{% endif %}
                   </p>
                 </div>
                 <div class="team-composite-chart-modes" role="group" aria-label="{% if LANGUAGE_CODE|slice:":2" == "sv" %}Välj värde att visa{% else %}Choose value to display{% endif %}">
@@ -325,21 +325,16 @@
                   <button type="button" class="team-composite-chart-mode" data-team-summary-mode="maximum" aria-pressed="false">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Högsta{% else %}Maximum{% endif %}</button>
                 </div>
               </div>
-              <div id="teamStyleSummaryWheel" class="team-summary-wheel"
-                   data-style-connector="{% trans 'Connector' %}"
-                   data-style-catalyst="{% trans 'Catalyst' %}"
-                   data-style-director="{% trans 'Director' %}"
-                   data-style-energiser="{% trans 'Energiser' %}"
-                   data-style-architect="{% trans 'Architect' %}"
-                   data-style-harmoniser="{% trans 'Harmoniser' %}"
-                   data-style-analyst="{% trans 'Analyst' %}"
-                   data-style-auditor="{% trans 'Auditor' %}"
-                   data-average-label="{% if LANGUAGE_CODE|slice:':2' == 'sv' %}Medelvärde{% else %}Average{% endif %}"
-                   data-minimum-label="{% if LANGUAGE_CODE|slice:':2' == 'sv' %}Lägsta{% else %}Minimum{% endif %}"
-                   data-maximum-label="{% if LANGUAGE_CODE|slice:':2' == 'sv' %}Högsta{% else %}Maximum{% endif %}"
-                   data-score-label="{% if LANGUAGE_CODE|slice:':2' == 'sv' %}poäng{% else %}score{% endif %}"
-                   data-wheel-label="{% if LANGUAGE_CODE|slice:':2' == 'sv' %}Teamets teamstilar, poäng från ett till fem{% else %}Team styles, scores from one to five{% endif %}">
-                <p class="text-muted small mb-0">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Diagrammet visas när sidan har laddats färdigt.{% else %}The chart appears when the page finishes loading.{% endif %}</p>
+              <div id="teamStyleSummaryWheel" class="team-summary-wheel">
+                <div data-team-summary-chart="average">
+                  {{ team_style_stats.summary_chart_svgs.average|safe }}
+                </div>
+                <div data-team-summary-chart="minimum" hidden>
+                  {{ team_style_stats.summary_chart_svgs.minimum|safe }}
+                </div>
+                <div data-team-summary-chart="maximum" hidden>
+                  {{ team_style_stats.summary_chart_svgs.maximum|safe }}
+                </div>
               </div>
               <p class="team-summary-wheel-legend">
                 {% if LANGUAGE_CODE|slice:":2" == "sv" %}Ringarna visar skalan 1–5. Ju längre ut sektorn når, desto högre är värdet.{% else %}The rings show the 1–5 scale. The farther a segment reaches, the higher its score.{% endif %}
