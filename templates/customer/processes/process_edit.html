@@ -406,6 +406,139 @@
               </div>
             </section>
 
+            <hr class="wizard-deadline-divider">
+
+            <section class="wizard-deadline-picker" aria-labelledby="settingsDeadlineHeading" data-deadline-picker>
+              <div class="wizard-deadline-heading">
+                <div class="wizard-deadline-title-copy">
+                  <h3 class="wizard-deadline-heading-title" id="settingsDeadlineHeading">
+                    <span data-project-language="sv" {% if form.candidate_language.value == "en" %}hidden{% endif %}>Deadline</span>
+                    <span data-project-language="en" {% if form.candidate_language.value != "en" %}hidden{% endif %}>Deadline</span>
+                  </h3>
+                  <p class="wizard-deadline-description">
+                    <span data-project-language="sv" {% if form.candidate_language.value == "en" %}hidden{% endif %}>Välj en fast tidpunkt eller ett antal dagar från att varje kandidat läggs till.</span>
+                    <span data-project-language="en" {% if form.candidate_language.value != "en" %}hidden{% endif %}>Choose a fixed date or a number of days from when each candidate is added.</span>
+                  </p>
+                </div>
+                <span class="wizard-deadline-optional">
+                  <span data-project-language="sv" {% if form.candidate_language.value == "en" %}hidden{% endif %}>Valfritt</span>
+                  <span data-project-language="en" {% if form.candidate_language.value != "en" %}hidden{% endif %}>Optional</span>
+                </span>
+              </div>
+
+              {% with selected_deadline_mode=form.deadline_mode.value|default:"none" %}
+              <div class="wizard-deadline-options" role="radiogroup" aria-label="Deadline">
+                <label class="wizard-deadline-choice" data-deadline-option>
+                  <input type="radio" name="deadline_mode" value="none"
+                         {% if selected_deadline_mode == "none" %}checked{% endif %} data-deadline-choice>
+                  <span class="wizard-deadline-choice-copy">
+                    <strong>
+                      <span data-project-language="sv" {% if form.candidate_language.value == "en" %}hidden{% endif %}>Ingen deadline</span>
+                      <span data-project-language="en" {% if form.candidate_language.value != "en" %}hidden{% endif %}>No deadline</span>
+                    </strong>
+                    <small>
+                      <span data-project-language="sv" {% if form.candidate_language.value == "en" %}hidden{% endif %}>Ingen tidsgräns för kandidaterna</span>
+                      <span data-project-language="en" {% if form.candidate_language.value != "en" %}hidden{% endif %}>No time limit for candidates</span>
+                    </small>
+                  </span>
+                </label>
+                <label class="wizard-deadline-choice" data-deadline-option>
+                  <input type="radio" name="deadline_mode" value="fixed"
+                         {% if selected_deadline_mode == "fixed" %}checked{% endif %} data-deadline-choice>
+                  <span class="wizard-deadline-choice-copy">
+                    <strong>
+                      <span data-project-language="sv" {% if form.candidate_language.value == "en" %}hidden{% endif %}>Fast datum</span>
+                      <span data-project-language="en" {% if form.candidate_language.value != "en" %}hidden{% endif %}>Fixed date</span>
+                    </strong>
+                    <small>
+                      <span data-project-language="sv" {% if form.candidate_language.value == "en" %}hidden{% endif %}>Samma datum för alla kandidater</span>
+                      <span data-project-language="en" {% if form.candidate_language.value != "en" %}hidden{% endif %}>Same date for all candidates</span>
+                    </small>
+                  </span>
+                </label>
+                <label class="wizard-deadline-choice" data-deadline-option>
+                  <input type="radio" name="deadline_mode" value="relative"
+                         {% if selected_deadline_mode == "relative" %}checked{% endif %} data-deadline-choice>
+                  <span class="wizard-deadline-choice-copy">
+                    <strong>
+                      <span data-project-language="sv" {% if form.candidate_language.value == "en" %}hidden{% endif %}>Efter att kandidaten lagts till</span>
+                      <span data-project-language="en" {% if form.candidate_language.value != "en" %}hidden{% endif %}>After candidate is added</span>
+                    </strong>
+                    <small>
+                      <span data-project-language="sv" {% if form.candidate_language.value == "en" %}hidden{% endif %}>Ett eget slutdatum per kandidat</span>
+                      <span data-project-language="en" {% if form.candidate_language.value != "en" %}hidden{% endif %}>An individual deadline per candidate</span>
+                    </small>
+                  </span>
+                </label>
+              </div>
+              {% endwith %}
+              {% if form.deadline_mode.errors %}
+                <div class="text-danger small mt-2">{{ form.deadline_mode.errors }}</div>
+              {% endif %}
+
+              {% with selected_deadline_mode=form.deadline_mode.value|default:"none" %}
+              <div class="wizard-deadline-value" data-deadline-fields="fixed" {% if selected_deadline_mode != "fixed" %}hidden{% endif %}>
+                <label class="form-label" for="{{ form.project_deadline.id_for_label }}">
+                  <span data-project-language="sv" {% if form.candidate_language.value == "en" %}hidden{% endif %}>Fast datum och klockslag</span>
+                  <span data-project-language="en" {% if form.candidate_language.value != "en" %}hidden{% endif %}>Fixed date and time</span>
+                </label>
+                {{ form.project_deadline }}
+                <div class="form-text">
+                  <span data-project-language="sv" {% if form.candidate_language.value == "en" %}hidden{% endif %}>Det här datumet gäller alla kandidater.</span>
+                  <span data-project-language="en" {% if form.candidate_language.value != "en" %}hidden{% endif %}>This date applies to all candidates.</span>
+                </div>
+                {% if form.project_deadline.errors %}<div class="text-danger small mt-1">{{ form.project_deadline.errors }}</div>{% endif %}
+              </div>
+              <div class="wizard-deadline-value" data-deadline-fields="relative" {% if selected_deadline_mode != "relative" %}hidden{% endif %}>
+                <label class="form-label" for="{{ form.candidate_deadline_days.id_for_label }}">
+                  <span data-project-language="sv" {% if form.candidate_language.value == "en" %}hidden{% endif %}>Antal dagar från att kandidaten läggs till</span>
+                  <span data-project-language="en" {% if form.candidate_language.value != "en" %}hidden{% endif %}>Days from when the candidate is added</span>
+                </label>
+                {{ form.candidate_deadline_days }}
+                <div class="form-text">
+                  <span data-project-language="sv" {% if form.candidate_language.value == "en" %}hidden{% endif %}>Tiden räknas separat från när varje kandidat läggs till i projektet.</span>
+                  <span data-project-language="en" {% if form.candidate_language.value != "en" %}hidden{% endif %}>The countdown starts separately when each candidate is added to the project.</span>
+                </div>
+                {% if form.candidate_deadline_days.errors %}<div class="text-danger small mt-1">{{ form.candidate_deadline_days.errors }}</div>{% endif %}
+              </div>
+              {% endwith %}
+
+              <div class="wizard-deadline-note">
+                <span data-project-language="sv" {% if form.candidate_language.value == "en" %}hidden{% endif %}>Deadline visas i mejlet om du använder <code>{deadline}</code>. Den påverkar inte kandidatens åtkomst.</span>
+                <span data-project-language="en" {% if form.candidate_language.value != "en" %}hidden{% endif %}>The deadline appears in the email if you use <code>{deadline}</code>. It does not affect candidate access.</span>
+              </div>
+            </section>
+
+            <hr class="wizard-deadline-divider">
+
+            <script>
+              (function () {
+                const picker = document.querySelector("[data-deadline-picker]");
+                if (!picker) return;
+                const choices = picker.querySelectorAll("[data-deadline-choice]");
+                const panels = picker.querySelectorAll("[data-deadline-fields]");
+                function updateDeadlineChoice() {
+                  const selected = picker.querySelector("[data-deadline-choice]:checked");
+                  const mode = selected ? selected.value : "none";
+                  choices.forEach(function (choice) {
+                    const option = choice.closest("[data-deadline-option]");
+                    if (option) option.classList.toggle("is-selected", choice.checked);
+                  });
+                  panels.forEach(function (panel) {
+                    const active = panel.getAttribute("data-deadline-fields") === mode;
+                    panel.hidden = !active;
+                    panel.querySelectorAll("input").forEach(function (input) {
+                      input.disabled = !active;
+                    });
+                  });
+                }
+                choices.forEach(function (choice) {
+                  choice.addEventListener("change", updateDeadlineChoice);
+                });
+                updateDeadlineChoice();
+              })();
+            </script>
+
             <div class="d-flex align-items-center gap-2 mt-4">
               <button class="btn btn-primary" type="submit">
                 {% trans "Save changes" %}
