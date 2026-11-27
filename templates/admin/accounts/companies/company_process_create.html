@@ -108,12 +108,9 @@
 
 <div class="wizard-deadline-picker wizard-deadline-picker-admin mb-4" data-deadline-picker>
   <div class="wizard-deadline-heading">
-    <div class="wizard-deadline-title">
-      <span class="wizard-deadline-icon" aria-hidden="true"><i class="fa-regular fa-clock"></i></span>
-      <div>
-        <h3 class="wizard-deadline-heading-title">Deadline</h3>
-        <p class="wizard-deadline-description">Choose one fixed date for everyone or a number of days from when each candidate is added.</p>
-      </div>
+    <div class="wizard-deadline-title-copy">
+      <h3 class="wizard-deadline-heading-title">Deadline</h3>
+      <p class="wizard-deadline-description">Choose one fixed date for everyone or a number of days from when each candidate is added.</p>
     </div>
     <span class="wizard-deadline-optional">Optional</span>
   </div>
@@ -158,8 +155,7 @@
   </div>
   {% endwith %}
   <div class="wizard-deadline-note">
-    <i class="fa-regular fa-envelope" aria-hidden="true"></i>
-    <span>The deadline appears in the email if you use <code>{deadline}</code>. It does not affect candidate access.</span>
+    The deadline appears in the email if you use <code>{deadline}</code>. It does not affect candidate access.
   </div>
 </div>
 <script>
